@@ -1,0 +1,37 @@
+Netty:
+PaketFlood
+InvalidPacket
+
+Netty Exploits:
+AlreadyInGame
+BadCharacter
+TabComplete
+PayloadRegister
+CustomPayLoad
+ItemNBT
+NullItem
+InvalidArmorStand
+InvalidSkull
+InvalidSpawner
+InvalidBlock
+MapRange
+BookEdit
+SetCreativeSlot
+ClickWindow
+SignUpdater
+SignChange
+NullPing
+NullChunk
+NotLoadedChunk
+ExcessiveChunkLoader
+NaNPosition
+InvalidSpawnData
+FakeFly
+
+
+
+Andet:
+Redstone lag machines
+Blocked Commands (/calc, /eval, /solve, /to, /pex promote, /pex demote)
+Proxy Firewall
+Dos
