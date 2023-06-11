@@ -1,0 +1,147 @@
+package me.alek.honey.netty;
+
+import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.api.NettyChannelProxy;
+import me.alek.honey.netty.api.event.Event;
+import me.alek.honey.netty.api.event.EventManager;
+import me.alek.honey.netty.api.packet.PacketProcessor;
+import me.alek.honey.netty.bukkit.BukkitEventInternal;
+import me.alek.honey.netty.injector.EarlyChannelInjector;
+import me.alek.honey.netty.injector.LateChannelInjector;
+import me.alek.honey.netty.listener.AsyncPacketAdapter;
+import me.alek.honey.netty.listener.FuzzyPacketAdapter;
+import me.alek.honey.netty.packet.cache.PacketWrapperFactory;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.processor.InternalPacketProcessor;
+import me.alek.honey.netty.utility.AsyncFuture;
+import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.wrappers.WrappedPacket;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
+import java.util.function.Supplier;
+
+public class PacketLibrary {
+
+    private final PacketLibrarySettings settings;
+    private final PacketProcessor internalPacketProcessor;
+    private final EventManager eventManager;
+    private final AsyncFuture future;
+    private final JavaPlugin plugin;
+    private NettyChannelProxy proxy;
+
+    private static PacketLibrary INSTANCE;
+
+    public static PacketLibrary get() {
+        return INSTANCE;
+    }
+
+    public static PacketLibrary set(PacketLibrarySettings settings) {
+        new PacketLibrary(settings);
+        return INSTANCE;
+    }
+
+    private PacketLibrary(PacketLibrarySettings settings) {
+        INSTANCE = this;
+        this.settings = settings;
+        this.plugin = settings.getPlugin();
+        eventManager = new EventManager();
+        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), HoneyPlugin.get());
+
+        if (settings.useLateInjection()) {
+            proxy = new LateChannelInjector();
+        }
+        else {
+            proxy = new EarlyChannelInjector();
+        }
+        proxy.inject();
+        internalPacketProcessor = new InternalPacketProcessor(eventManager);
+
+        future = PacketType.load();
+        future.andThen(PacketWrapperFactory.load());
+    }
+
+    public void callSyncEvent(Event event, boolean isPacket) {
+        eventManager.callListeners(event, isPacket);
+    }
+
+
+    public void setLateProxy() {
+        if (proxy instanceof EarlyChannelInjector) {
+            proxy.eject();
+            proxy = new LateChannelInjector();
+            proxy.inject();
+        }
+        settings.setUseLateInjection(true);
+    }
+
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    public NettyChannelProxy getProxy() {
+        return proxy;
+    }
+
+    public boolean useLateInjection() {
+        return settings.useLateInjection();
+    }
+
+    public Protocol getFallbackProtocol() {
+        return settings.getFallbackProtocol();
+    }
+
+    public String getHandlerName() {
+        return settings.getHandlerName();
+    }
+
+    public PacketLibrarySettings getSettings() {
+        return settings;
+    }
+
+    public PacketProcessor getPacketProcessor() {
+        return internalPacketProcessor;
+    }
+
+    private void addListener(Runnable runnable) {
+        if (future.isDone()) {
+            runnable.run();
+            return;
+        }
+        future.addListener(runnable);
+    }
+
+
+    public void sendPacket(Player player, WrappedPacket<?> packet) {
+        proxy.writePacket(player, packet);
+    }
+
+    public void flushPackets(Player player) {
+        proxy.flushPackets(player);
+    }
+
+    public <WP extends WrappedPacket<WP>> void addListener(AsyncPacketAdapter<WP> adapter, Supplier<PacketTypeEnum> packetTypes) {
+        addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
+    }
+
+    public <WP extends WrappedPacket<WP>> void addListeners(AsyncPacketAdapter<WP> adapter, Supplier<List<PacketTypeEnum>> packetTypes) {
+        addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
+    }
+
+    public void addFuzzyListeners(FuzzyPacketAdapter adapter, Supplier<List<PacketTypeEnum>> packetTypes) {
+        addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
+    }
+
+    public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {
+        internalPacketProcessor.setPostAction(packetType, postAction);
+    }
+
+    public void disable() {
+        proxy.eject();
+    }
+
+
+}

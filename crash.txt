@@ -5,6 +5,8 @@ AntiCrash:
 - https://github.com/arkflame/ExploitFixer
 - https://github.com/RayzsYT/rayzsanticrasher/tree/main
 - https://mc-plugins.net/bukkit-spigot/avarionguard/0-3-alpha/
+- https://www.spigotmc.org/resources/panilla-prevent-hacked-items.65694/
+- https://github.com/MouathA/SpigotGuard-SRC/tree/master/xyz/yooniks/spigotguard
 
 AntiBot:
 FlameCord, Aegis, MCord, AntiBot, XCord
@@ -21,6 +23,15 @@ MCBot, MCStorm
 Things:
 - https://www.spigotmc.org/wiki/firewall-guide/
 - https://wiki.vg/Plugin_channels
+- https://blog.ammaraskar.com/minecraft-vulnerability-advisory/
+- https://www.spigotmc.org/wiki/using-the-minecraft-region-fixer/
+- https://www.spigotmc.org/resources/dupe-fixes-illegal-stack-remover.44411/
+- https://www.spigotmc.org/threads/minecraft-security-part-1-awareness.414081/
 
 Exploit:
 - https://www.spigotmc.org/threads/c04-position-packet-bug.605694/#post-4594620
+- https://www.spigotmc.org/threads/possible-bukkit-spigot-permissions-exploit.39984/
+- https://www.spigotmc.org/threads/kneesnap-random-griefing-occurances-possible-exploit.41220/
+- https://www.spigotmc.org/resources/antihackedpotions.17716/
+- https://www.spigotmc.org/threads/prevent-new-creative-mode-crash-client.391636/#post-3532605
+- https://github.com/BigShotEmzy/Creeper-Client-Legacy/tree/Main
