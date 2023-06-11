@@ -8,6 +8,7 @@ import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.wrappers.WrappedPacket;
 import me.alek.honey.netty.PacketLibrary;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
@@ -36,6 +37,7 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.isCancelled()) {
+            Bukkit.broadcastMessage("cancelled " + packet);
             return;
         }
         super.channelRead(ctx, packetContainer.getHandle());
@@ -54,6 +56,7 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.isCancelled()) {
+            Bukkit.broadcastMessage("cancelled " + packet);
             return;
         }
         if (packetContainer.getPost() != null) {

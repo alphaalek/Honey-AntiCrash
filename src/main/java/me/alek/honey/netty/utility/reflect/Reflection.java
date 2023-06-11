@@ -86,6 +86,10 @@ public class Reflection {
         return getCanonicalClass(setPlaceholders(name));
     }
 
+    public static Class<?> getArrayClass(String name) {
+        return getClass("[L" + name + ";");
+    }
+
     public static Class<?> getFuzzyClass(String... names) {
         for (String name : names) {
             try {

@@ -1,6 +1,6 @@
 package me.alek.honey.services;
 
-import me.alek.honey.listeners.check.Check;
+import me.alek.honey.checks.Check;
 import me.alek.honey.netty.wrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

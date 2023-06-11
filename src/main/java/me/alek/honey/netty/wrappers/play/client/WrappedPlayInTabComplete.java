@@ -8,4 +8,8 @@ public class WrappedPlayInTabComplete extends WrappedPacket<WrappedPlayInTabComp
     public WrappedPlayInTabComplete(Object rawPacket, PacketContainer<WrappedPlayInTabComplete> packetContainer) {
         super(rawPacket, packetContainer);
     }
+
+    public String getMessage() {
+        return getPacket().getStrings().read(0);
+    }
 }

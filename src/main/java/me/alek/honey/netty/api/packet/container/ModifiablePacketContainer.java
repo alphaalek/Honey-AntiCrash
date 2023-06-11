@@ -2,6 +2,8 @@ package me.alek.honey.netty.api.packet.container;
 
 import me.alek.honey.netty.api.packet.PacketModifier;
 
+import java.util.UUID;
+
 public interface ModifiablePacketContainer{
 
     PacketModifier<Double> getDoubles();
@@ -20,6 +22,20 @@ public interface ModifiablePacketContainer{
 
     PacketModifier<String> getStrings();
 
-    PacketModifier<Object> getObjects(Class<?> target);
+    PacketModifier<Object> getObjects();
+
+    PacketModifier<UUID> getUUIDS();
+
+    PacketModifier<String[]> getStringArrays();
+
+    PacketModifier<long[]> getLongArrays();
+
+    PacketModifier<int[]> getIntArrays();
+
+    PacketModifier<short[]> getShortArrays();
+
+    PacketModifier<byte[]> getByteArrays();
+
+    <T> PacketModifier<T> getObjects(Class<T> target);
 
 }

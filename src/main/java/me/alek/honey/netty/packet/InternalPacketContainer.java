@@ -10,6 +10,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.wrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
 import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
@@ -103,49 +104,88 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         return player;
     }
 
+    private <T> PacketModifier<T> getModifier(Class<T> clazz) {
+        return packetStructure.withType(clazz).withTarget(handle);
+    }
+
     @Override
     public PacketModifier<Double> getDoubles() {
-        return packetStructure.withType(double.class).withTarget(handle);
+        return getModifier(double.class);
     }
 
     @Override
     public PacketModifier<Long> getLongs() {
-        return packetStructure.withType(long.class).withTarget(handle);
+        return getModifier(long.class);
     }
 
     @Override
     public PacketModifier<Integer> getInts() {
-        return packetStructure.withType(int.class).withTarget(handle);
+        return getModifier(int.class);
     }
 
     @Override
     public PacketModifier<Short> getShorts() {
-        return packetStructure.withType(short.class).withTarget(handle);
+        return getModifier(short.class);
     }
 
     @Override
     public PacketModifier<Float> getFloats() {
-        return packetStructure.withType(float.class).withTarget(handle);
+        return getModifier(float.class);
     }
 
     @Override
     public PacketModifier<Byte> getBytes() {
-        return packetStructure.withType(byte.class).withTarget(handle);
+        return getModifier(byte.class);
     }
 
     @Override
     public PacketModifier<Boolean> getBooleans() {
-        return packetStructure.withType(boolean.class).withTarget(handle);
+        return getModifier(boolean.class);
     }
 
     @Override
     public PacketModifier<String> getStrings() {
-        return packetStructure.withType(String.class).withTarget(handle);
+        return getModifier(String.class);
     }
 
     @Override
-    public PacketModifier<Object> getObjects(Class<?> target) {
-        return packetStructure.withTarget(handle);
+    public PacketModifier<Object> getObjects() {
+        return getModifier(Object.class);
+    }
+
+    @Override
+    public PacketModifier<UUID> getUUIDS() {
+        return getModifier(UUID.class);
+    }
+
+    @Override
+    public PacketModifier<String[]> getStringArrays() {
+        return getModifier(String[].class);
+    }
+
+    @Override
+    public PacketModifier<long[]> getLongArrays() {
+        return getModifier(long[].class);
+    }
+
+    @Override
+    public PacketModifier<int[]> getIntArrays() {
+        return getModifier(int[].class);
+    }
+
+    @Override
+    public PacketModifier<short[]> getShortArrays() {
+        return getModifier(short[].class);
+    }
+
+    @Override
+    public PacketModifier<byte[]> getByteArrays() {
+        return getModifier(byte[].class);
+    }
+
+    @Override
+    public <T> PacketModifier<T> getObjects(Class<T> target) {
+        return packetStructure.withType(target).withTarget(handle);
     }
 
 }

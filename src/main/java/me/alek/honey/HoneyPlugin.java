@@ -1,11 +1,16 @@
 package me.alek.honey;
 
-import me.alek.honey.listeners.check.Check;
-import me.alek.honey.listeners.check.CheckRegistry;
+import me.alek.honey.checks.Check;
+import me.alek.honey.checks.CheckRegistry;
+import me.alek.honey.configuration.Configuration;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.configuration.DedicatedConfiguration;
+import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,6 +20,8 @@ public class HoneyPlugin extends JavaPlugin {
     private static HoneyPlugin INSTANCE;
 
     private ViolationService violationService;
+    private NotificationService notificationService;
+    private Configuration configuration;
     private boolean isRunning;
     private PacketLibrary packetLibrary;
 
@@ -27,9 +34,14 @@ public class HoneyPlugin extends JavaPlugin {
         new Thread(() -> {
             // some logic
 
+            configuration = new DedicatedConfiguration();
             violationService = new ViolationService();
+            notificationService = new NotificationService();
+
             registerChecks();
         }).start();
+
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }
 
     @Override
@@ -40,14 +52,14 @@ public class HoneyPlugin extends JavaPlugin {
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
-        for (CheckRegistry checkEnum : CheckRegistry.values()) {
-            final Check check = checkEnum.getCheck().get();
+        for (Check check : CheckRegistry.getChecks()) {
 
             switch (check.getType()) {
 
                 case NETTY: {
                     if (check instanceof AsyncPacketAdapter) {
-                        PacketLibrary.get().addListeners((AsyncPacketAdapter<WP>) check, check.getTypes());
+                        PacketLibrary.get().addListeners((AsyncPacketAdapter<WP>) check, check.getPacketTypes());
+                        check.load();
                     }
                     break;
                 }
@@ -57,6 +69,14 @@ public class HoneyPlugin extends JavaPlugin {
                 }
             }
         }
+    }
+
+    public void reload() {
+        for (Check check : CheckRegistry.getChecks()) {
+            check.load();
+        }
+
+        // idk
     }
 
     public static HoneyPlugin get() {
@@ -69,5 +89,17 @@ public class HoneyPlugin extends JavaPlugin {
 
     public ViolationService getViolationService() {
         return violationService;
+    }
+
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public ConfigurationOptions getConfigurationOptions() {
+        return configuration.getOptions();
     }
 }

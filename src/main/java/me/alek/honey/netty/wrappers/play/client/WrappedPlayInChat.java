@@ -8,4 +8,8 @@ public class WrappedPlayInChat extends WrappedPacket<WrappedPlayInChat> {
     public WrappedPlayInChat(Object rawPacket, PacketContainer<WrappedPlayInChat> packetContainer) {
         super(rawPacket, packetContainer);
     }
+
+    public String getMessage() {
+        return getPacket().getStrings().read(0);
+    }
 }
