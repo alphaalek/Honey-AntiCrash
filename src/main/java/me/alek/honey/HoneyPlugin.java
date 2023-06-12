@@ -3,13 +3,12 @@ package me.alek.honey;
 import me.alek.honey.checks.Check;
 import me.alek.honey.checks.CheckRegistry;
 import me.alek.honey.configuration.Configuration;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Bukkit;
@@ -31,15 +30,12 @@ public class HoneyPlugin extends JavaPlugin {
         INSTANCE = this;
 
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, "alek_packets"));
-        new Thread(() -> {
-            // some logic
 
-            configuration = new DedicatedConfiguration();
-            violationService = new ViolationService();
-            notificationService = new NotificationService();
+        configuration = new DedicatedConfiguration();
+        violationService = new ViolationService();
+        notificationService = new NotificationService();
 
-            registerChecks();
-        }).start();
+        registerChecks();
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }
@@ -97,9 +93,5 @@ public class HoneyPlugin extends JavaPlugin {
 
     public Configuration getConfiguration() {
         return configuration;
-    }
-
-    public ConfigurationOptions getConfigurationOptions() {
-        return configuration.getOptions();
     }
 }

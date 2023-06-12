@@ -1,0 +1,36 @@
+package me.alek.honey.netty.packetwrappers.play.client;
+
+import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+
+public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCustomPayload> {
+
+    private static final boolean MODERN = Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9);
+    private static Class<?> MINECRAFT_KEY_CLASS;
+
+    public WrappedPlayInCustomPayload(Object rawPacket, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
+        super(rawPacket, packetContainer);
+
+        if (MODERN) {
+            MINECRAFT_KEY_CLASS = Reflection.getFuzzyClass("{nms}.MinecraftKey", "{nms}.resources.MinecraftKey");
+        }
+    }
+
+    public Object getDataSerializer() {
+        return getPacket().getDataSerializers().read(0);
+    }
+
+    public Object getMinecraftKey() {
+        if (MODERN) {
+            return getPacket().getObjects(MINECRAFT_KEY_CLASS).read(0);
+        }
+        return getPacket().getStrings().read(0);
+    }
+
+    public String getKeyString() {
+        return getMinecraftKey().toString();
+    }
+
+}

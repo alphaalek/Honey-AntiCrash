@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 
 import java.util.List;

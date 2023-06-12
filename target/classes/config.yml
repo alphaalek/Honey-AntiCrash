@@ -1,0 +1,139 @@
+
+# general
+cancel-on-violation: true
+kick-message: "Du sender for mange packets! :-("
+clear-old-violation-timestamp: 300000 # 5 minutter
+
+bypass-permission-enabled: true
+ignore-permission: honey.bypass
+
+# interval er det gældende interval. det er i millisekunder, det vil sige 1000 ms hvert sekund, 60000 ms hvert minut, og så videre
+
+# max-per-interval er hvor mange gange der må ske noget indenfor det interval, før vedkommende bliver violated
+# hvis max-per-interval ikke er sat, vil man automatisk blive violated når man gør det pågældende tjek (tilsvarende hvis den var på 1)
+# derfor giver det ikke mening at have interval, hvis man ikke bruger max-per-interval
+
+# vls-amount er hvor mange gange vedkommende må blive violated, før vedkommende bliver kicket. gamle violations bliver
+# automatisk ryddet, du kan ændre det ovenover. den er normalt på 5 minutter
+# hvis vls-amount ikke er sat, vil man automatisk blive kicket når man bliver violated (tilsvarende hvis den var på 1)
+
+# commands
+commands:
+  vls-amount: 3
+  prohibited-tab-complete-commands:
+    - "/to"
+    - "/fargetoffset"
+    - "/fastasyncworldedit:to"
+    - "/fastasyncworldedit:targetoffset"
+  prohibited-commands:
+    - "/skill"
+    - "/pex promote"
+    - "/pex demote"
+    - "//calc"
+    - "//solve"
+    - "//eval"
+
+# nbt
+nbt:
+  max-nbt-length: 10000
+  max-firework-nbt-length: 15000
+  max-firework-charge-nbt-length: 15000
+  max-book-nbt-length: 40000
+  max-chest-data: 262144 #2^18
+
+  max-nbt-bases: 400
+  max-nbt-nesting: 10
+
+  check-illegal-skull-textures: true
+
+# velocity
+velocity:
+  new-chunks:
+    max-per-interval: 60
+    interval: 3000 # 3 sekunder
+    #vls-amount: 1
+    kick-player: true
+  new-unloaded-chunks:
+    max-per-interval: 45
+    interval: 3000 # 3 sekunder
+    #vls-amount: 1
+    kick-player: true
+  movement:
+    # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
+    max-2d-distance: 10
+    vls-amount: 10
+    kick-player: true
+
+# custom payload
+custom-payload:
+  max-bytebuf-capacity: 1250
+  max-serialized-item-nbt-length: 10000
+  kick-player: true
+
+packet-flood:
+  kick-player: true
+  vls-amount: 10
+
+  # arm animation
+  arm-animation:
+    max-per-interval: 30
+    interval: 1000
+
+  # auto recipe
+  auto-recipe:
+    max-per-interval: 15
+    interval: 1000
+
+  # block dig
+  block-dig:
+    max-per-interval: 60
+    interval: 500
+
+  # block place
+  block-place:
+    max-per-interval: 14
+    interval: 100
+
+  # client command - OBS: ikke en chat command
+  client-command:
+    max-per-interval: 5
+    interval: 500
+
+  # chat - serverbound
+  chat:
+    max-per-interval: 5
+    interval: 500
+
+  # set creative slot
+  set-creative-slot:
+    max-per-interval: 50
+    interval: 1000
+
+  # position
+  position:
+    max-per-interval: 20
+    interval: 100
+
+  # use item
+  use-item:
+    max-per-interval: 60
+    interval: 1000
+
+  # use entity
+  use-entity:
+    max-per-interval: 40
+    interval: 1000
+
+  # tab complete
+  tab-complete:
+    max-per-interval: 40
+    interval: 1000
+
+  # window click
+  window-click:
+    max-per-interval: 55
+    interval: 100
+
+
+
+

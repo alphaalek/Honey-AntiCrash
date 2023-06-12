@@ -2,7 +2,7 @@ package me.alek.honey.netty.api.event.impl.packet;
 
 import me.alek.honey.netty.api.event.Event;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 

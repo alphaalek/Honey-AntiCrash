@@ -3,7 +3,7 @@ package me.alek.honey.netty.listener;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 
 public class AsyncPacketAdapter<WP extends WrappedPacket<WP>> {

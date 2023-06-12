@@ -3,7 +3,7 @@ package me.alek.honey.netty.packet.cache;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

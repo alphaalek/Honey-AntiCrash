@@ -36,6 +36,10 @@ public interface ModifiablePacketContainer{
 
     PacketModifier<byte[]> getByteArrays();
 
+    PacketModifier<Object> getItems();
+
+    PacketModifier<Object> getDataSerializers();
+
     <T> PacketModifier<T> getObjects(Class<T> target);
 
 }

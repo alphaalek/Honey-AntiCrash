@@ -3,11 +3,11 @@ package me.alek.honey.utility;
 public class NumberConversions {
 
     public static boolean isInfinite(double value) {
-        return Double.isInfinite(value) || value > Double.MAX_VALUE;
+        return Double.isInfinite(value);
     }
 
     public static boolean isInfinite(float value) {
-        return Float.isInfinite(value) || value > Float.MAX_VALUE;
+        return Float.isInfinite(value);
     }
 
     public static boolean isNaN(double value) {
@@ -19,11 +19,11 @@ public class NumberConversions {
     }
 
     public static boolean isInvalid(double value) {
-        return isInfinite(value) || isNaN(value);
+        return value >= Double.MAX_VALUE || isInfinite(value) || isNaN(value);
     }
 
     public static boolean isInvalid(float value) {
-        return isInfinite(value) || isNaN(value);
+        return value >= Float.MAX_VALUE || isInfinite(value) || isNaN(value);
 
     }
 }

@@ -16,7 +16,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.utility.AsyncFuture;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;

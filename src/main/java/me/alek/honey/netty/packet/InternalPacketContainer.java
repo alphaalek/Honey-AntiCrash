@@ -7,13 +7,17 @@ import me.alek.honey.netty.packet.cache.PacketWrapperCache;
 import me.alek.honey.netty.packet.structure.PacketStructureCache;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.wrappers.WrappedPacket;
+import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
+
+    private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
+    private static final Class<?> packetDataSerializerClass = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
 
     public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
         return new InternalPacketContainer<>(null, null, null, null, null, packet);
@@ -181,6 +185,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public PacketModifier<byte[]> getByteArrays() {
         return getModifier(byte[].class);
+    }
+
+    @Override
+    public PacketModifier<Object> getItems() {
+        return getModifier((Class<Object>) itemStackClass);
+    }
+
+    @Override
+    public PacketModifier<Object> getDataSerializers() {
+        return getModifier((Class<Object>) packetDataSerializerClass);
     }
 
     @Override
