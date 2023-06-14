@@ -57,20 +57,32 @@ public class Reflection {
         throw new RuntimeException("Reflection fejl " + name);
     }
 
-    public static Class<?> getSubClass(String superClass, String name) {
-        return getSubClass(getClass(superClass), name);
+    public static Class<Object> getSubClass(String superClass, String name) {
+        return (Class<Object>) getSubClass(getClass(superClass), name);
     }
 
     public static Class<?> getClassWithException(String name) throws Exception {
         return getCanonicalClassWithException(setPlaceholders(name));
     }
 
+    public static Class<Object> getObjectClassWithException(String name) throws Exception {
+        return (Class<Object>) getClassWithException(name);
+    }
+
     public static Class<?> getClass(String name) {
         return getCanonicalClass(setPlaceholders(name));
     }
 
+    public static Class<Object> getObjectClass(String name) {
+        return (Class<Object>) getClass(name);
+    }
+
     public static Class<?> getArrayClass(String name) {
         return getClass("[L" + name + ";");
+    }
+
+    public static Class<Object[]> getArrayObjectClass(String name) {
+        return (Class<Object[]>) getClass("[" + name + ";");
     }
 
     public static Class<?> getFuzzyClass(String... names) {
@@ -81,6 +93,10 @@ public class Reflection {
             }
         }
         throw new RuntimeException("Reflection fejl " + names);
+    }
+
+    public static Class<Object> getFuzzyObjectClass(String... names) {
+        return (Class<Object>) getFuzzyClass(names);
     }
 
     public static Class<?> getCanonicalClassWithException(String name) throws Exception {

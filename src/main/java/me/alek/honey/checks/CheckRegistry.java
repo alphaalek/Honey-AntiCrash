@@ -8,20 +8,22 @@ import java.util.function.Supplier;
 
 public enum CheckRegistry {
 
-    FLOOD(Flood::new),
-    ILLEGAL_VELOCITY(IllegalVelocity::new),
-    HELD_ITEM(HeldItem::new),
-    CREATIVE_SLOT(CreativeSlot::new),
-    CUSTOM_PAYLOAD(CustomPayload::new),
-    ILLEGAL_ATTRIBUTE(IllegalAttribute::new),
-    ALREADY_ONLINE(AlreadyOnline::new),
-    NOT_ONLINE(NotOnline::new),
-    ILLEGAL_SIGN(IllegalSign::new),
-    BLOCK_PLACEMENT(BlockPlacement::new),
-    COMMANDS_(Commands::new),
-    ILLEGAL_CHAT(IllegalChatMessage::new),
-    TAB_COMPLETE(TabComplete::new),
-    WINDOW_CLICK(WindowClick::new);
+    v1(Flood::new),
+    v2(IllegalVelocity::new),
+    v3(HeldItem::new),
+    v4(CreativeSlot::new),
+    v5(CustomPayload::new),
+    v6(IllegalAttribute::new),
+    v7(AlreadyOnline::new),
+    v9(NotOnline::new),
+    v10(IllegalSign::new),
+    v11(BlockPlacement::new),
+    v12(Commands::new),
+    v13(IllegalChatMessage::new),
+    v14(NullPing.NullPingLogin::new),
+    v15(NullPing.NullPingEncryption::new),
+    v16(TabComplete::new),
+    v17(WindowClick::new);
 
     private final Supplier<Check> check;
     private static List<Check> checks;

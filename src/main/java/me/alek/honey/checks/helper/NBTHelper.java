@@ -4,7 +4,9 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +20,7 @@ public class NBTHelper {
     private static final Class<?> nbtTagCompoundClass = Reflection.getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
     private static final Class<?> nbtTagListClass = Reflection.getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
     private static final Class<?> nbtBaseClass = Reflection.getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
+    private static final Class<?> nbtStringClass = Reflection.getFuzzyClass("{nms}.NBTTagString", "{nms}.nbt.NBTTagString");
 
     private static final MethodInvoker getCompoundInvoker = Reflection.getMethod(nbtTagCompoundClass, "getCompound", String.class);
     private static final MethodInvoker hasKeyInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKey", String.class);
@@ -31,6 +34,7 @@ public class NBTHelper {
     private static final MethodInvoker listGetIndexInvoker = Reflection.getMethod(nbtTagListClass, "get", Integer.class);
     private static final FieldAccessor<ArrayList<Object>> listAccessor = Reflection.getField(nbtTagListClass, 0, List.class);
 
+    private static final FieldAccessor<String> dataAccessor = Reflection.getField(nbtStringClass, 0, String.class);
     private static final MethodInvoker getTypeIdInvoker = Reflection.getMethod(nbtBaseClass, "getTypeId");
 
     private static final MethodInvoker getTagCompoundInvoker = Reflection.getMethod(ItemHelper.getNMSItemStackClass(), "getTag");
@@ -87,6 +91,7 @@ public class NBTHelper {
     // får en nbt list for den key i en nbt compound
     public static Object compoundGetFuzzyList(Object tag, String key) {
         Object list = compoundGetFuzzyBase(tag, key);
+        Bukkit.broadcastMessage(list + "");
         if (list == null) {
             return null;
         }
@@ -218,6 +223,7 @@ public class NBTHelper {
         }
     }
 
+
     public static boolean checkNMSNBT(Object item) {
         if (item == null) {
             return false;
@@ -229,6 +235,10 @@ public class NBTHelper {
         return checkBukkitNBT(bukkitItem);
     }
 
+    public static int getNbtLength(Object tag) {
+        return tag.toString().getBytes().length;
+    }
+
     public static boolean checkBukkitNBT(ItemStack item) {
         if (item == null) {
             return false;
@@ -237,7 +247,7 @@ public class NBTHelper {
         if (tag == null) {
             return false;
         }
-        int nbtLength = tag.toString().getBytes().length;
+        int nbtLength = getNbtLength(tag);
         switch (item.getType()) {
             case FIREWORK: {
                 if (nbtLength > ConfigurationOptions.NBT.MAX_FIREWORK_NBT_LENGTH) {
@@ -253,7 +263,7 @@ public class NBTHelper {
             }
             case WRITTEN_BOOK:
             case BOOK_AND_QUILL: {
-                if (nbtLength > ConfigurationOptions.NBT.MAX_BOOK_NBT_LENGTH) {
+                if (checkBook(tag, nbtLength)) {
                     clearBookTags(tag);
                     return true;
                 }
@@ -282,6 +292,40 @@ public class NBTHelper {
                 clearBookTags(tag);
             }
             return true;
+        }
+        if (checkBadCharacter(item)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean checkBadCharacter(ItemStack item) {
+        if (!item.hasItemMeta()) {
+            return false;
+        }
+        final ItemMeta meta = item.getItemMeta();
+        if (checkBadCharacter(item.getItemMeta().getDisplayName())) {
+            return true;
+        }
+        if (meta.getLore() == null) {
+            return false;
+        }
+        for (String line : item.getItemMeta().getLore()) {
+            if (checkBadCharacter(line)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean checkBadCharacter(String str) {
+        if (str == null) {
+            return false;
+        }
+        for (char character : str.toCharArray()) {
+            if (character == Character.MIN_VALUE) {
+                return true;
+            }
         }
         return false;
     }
@@ -374,21 +418,25 @@ public class NBTHelper {
         Object textures = compoundGetList(propertiesCompound, "textures", 10);
         for (int i = 0; i < getListSize(textures); i++) {
             final Object compound = listGetIndexCompound(textures, i);
-            if (!compoundHasKey(compound, "value")) {
+            if (!compoundHasKey(compound, "Value")) {
                 continue;
             }
-            String value = (String) compoundGetCompound(compound, "value");
+            Object value = compoundGetFuzzyBase(compound, "Value");
             String base64;
             try {
-                base64 = new String(Base64.getDecoder().decode(value));
+                base64 = new String(Base64.getDecoder().decode(dataAccessor.get(value)));
             } catch (IllegalArgumentException ex) {
                 return true;
             }
-            final String formatted = base64.trim().replace(" ", "").replace("\"", "").toLowerCase();
+            final String formatted = base64
+                    .trim()
+                    .replace(" ", "")
+                    .replace("\"", "")
+                    .toLowerCase();
             final Matcher matcher = URL_PATTERN.matcher(formatted);
             while (matcher.find()) {
-                final String url = formatted.substring(matcher.end() + 1);
-                if (!url.startsWith("http://textures.minecraft.net") || !url.startsWith("https://textures.minecraft.net")) {
+                final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
+                if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
                     return true;
                 }
             }
@@ -396,7 +444,32 @@ public class NBTHelper {
         return false;
     }
 
-    public static boolean checkBook(Object nbt) {
+    public static boolean checkBook(Object tag) {
+        return checkBook(tag, getNbtLength(tag));
+    }
+
+    public static boolean checkBook(Object tag, int nbtLength) {
+        if (nbtLength > ConfigurationOptions.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
+            return true;
+        }
+        if (!compoundHasKeyOfType(tag, "pages", 9)) {
+            return true;
+        }
+        Object nbtList = compoundGetFuzzyList(tag, "pages");
+        int size = getListSize(nbtList);
+        if (size > ConfigurationOptions.NBT.MAX_BOOK_PAGES) {
+            return true;
+        }
+        for (int i = 0; i < size; i++) {
+            final Object base = listGetIndexFuzzy(nbtList, i);
+            if (base == null) {
+                return true;
+            }
+            String page = dataAccessor.get(base);
+            if (page == null || page.length() > ConfigurationOptions.NBT.MAX_BOOK_PAGE_LENGTH) {
+                return true;
+            }
+        }
         return false;
     }
 

@@ -4,6 +4,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
 import me.alek.honey.checks.helper.ItemHelper;
 import me.alek.honey.checks.helper.NBTHelper;
+import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -11,6 +13,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -28,6 +31,17 @@ public class BlockPlacement extends AsyncPacketAdapter<WrappedPlayInBlockPlace> 
         if (itemInHand.getType() == Material.AIR) {
             return;
         }
+
+        WrappedBlockPosition blockPosition = packetContainer.getPacket().getBlockPosition();
+        if (!blockPosition.equals(WrappedBlockPosition.DEFAULT)) {
+
+            double distance = blockPosition.distance(player.getLocation());
+            if (distance > ConfigurationOptions.BlockPlacement.MAX_BLOCK_TO_PLAYER_DISTANCE) {
+                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal Placement");
+                packetContainer.cancel();
+                return;
+            }
+        }
         if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
             Object nmsItem = packetContainer.getPacket().getItem();
 
@@ -42,7 +56,7 @@ public class BlockPlacement extends AsyncPacketAdapter<WrappedPlayInBlockPlace> 
                     }
                 }
                 if (NBTHelper.checkBukkitNBT(bukkitItem)) {
-                    VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this);
+                    VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal NBT");
                     packetContainer.cancel();
                     return;
                 }
@@ -50,7 +64,7 @@ public class BlockPlacement extends AsyncPacketAdapter<WrappedPlayInBlockPlace> 
             }
         }
         if (NBTHelper.checkBukkitNBT(itemInHand)) {
-            VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this);
+            VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal NBT");
             packetContainer.cancel();
         }
     }

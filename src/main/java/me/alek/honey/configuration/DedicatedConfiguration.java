@@ -6,17 +6,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class DedicatedConfiguration implements Configuration {
 
-    private final ConfigurationOptions options;
     private final FileConfiguration configuration;
 
     public DedicatedConfiguration() {
         HoneyPlugin.get().saveDefaultConfig();
         this.configuration = HoneyPlugin.get().getConfig();
 
-        options = new ConfigurationOptions(configuration);
+        ConfigurationOptions.setFile(configuration);
+        ConfigurationOptions.load();
     }
 
-    public ConfigurationOptions getOptions() {
-        return options;
-    }
 }

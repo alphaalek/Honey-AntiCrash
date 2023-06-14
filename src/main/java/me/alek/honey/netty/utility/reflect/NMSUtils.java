@@ -1,26 +1,26 @@
 package me.alek.honey.netty.utility.reflect;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.entity.Player;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class NMSUtils {
 
-    private static final boolean NEW_PROTOCOL = Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17);;
-    private static final Class<?> craftPlayerClass = Reflection.getClass("{obc}.entity.CraftPlayer");
-    private static final Class<?> entityPlayerClass = getEntityPlayerClass();
-    private static final Class<?> playerConnectionClass = getPlayerConnectionClass();
-    private static final Class<?> networkManagerClass = getNetworkManagerClass();
-    private static final MethodInvoker getHandle = Reflection.getMethod(craftPlayerClass, "getHandle", entityPlayerClass);
+    private static final MethodInvoker getHandle = Reflection.getMethod(
+            getCraftPlayerClass(), "getHandle", getEntityPlayerClass());
     private static final FieldAccessor<Object> playerConnection = Reflection.getField(
-            entityPlayerClass, 0, playerConnectionClass);
+            getEntityPlayerClass(), 0, getPlayerConnectionClass());
     private static final FieldAccessor<Object> networkManager = Reflection.getField(
-            playerConnectionClass, 0, networkManagerClass);
+            getPlayerConnectionClass(), 0, getNetworkManagerClass());
     private static final FieldAccessor<Channel> channel = Reflection.getField(
-            networkManagerClass, 0, Channel.class);
+            getNetworkManagerClass(), 0, Channel.class);
+    private static final FieldAccessor<SocketAddress> socketAddress = Reflection.getField(
+            getNetworkManagerClass(), 0, SocketAddress.class
+    );
 
     private static final HashMap<UUID, Channel> lookupChannels = new HashMap<>();
 
@@ -57,6 +57,14 @@ public class NMSUtils {
         return lookupChannels.get(player.getUniqueId());
     }
 
+    public static InetSocketAddress getSocketAddress(Player player) {
+        return (InetSocketAddress) socketAddress.get(getNetworkManager(player));
+    }
+
+    public static InetSocketAddress getSocketAddress(Object networkManager) {
+        return (InetSocketAddress) socketAddress.get(networkManager);
+    }
+
     public static Class<?> getEntityPlayerClass() {
         return Reflection.getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
     }
@@ -77,10 +85,26 @@ public class NMSUtils {
         return Reflection.getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection");
     }
 
+    public static Class<?> getCraftPlayerClass() {
+        return Reflection.getClass("{obc}.entity.CraftPlayer");
+    }
+
+    public static Class<Object> getBlockPositionClass() {
+        return Reflection.getFuzzyObjectClass("{nms}.BlockPosition", "{nms}.core.BlockPosition");
+    }
+
+    public static Class<?> getBaseBlockPositionClass() {
+        return Reflection.getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
+    }
+
     public static boolean isFakeChannel(Channel channel) {
         if (channel == null) {
             return true;
         }
         return channel.getClass().getSimpleName().equals("FakeChannel") || channel.getClass().getSimpleName().equals("SpoofedChannel");
+    }
+
+    public static boolean isBlockPosition(Object object) {
+        return getBaseBlockPositionClass().isInstance(object);
     }
 }

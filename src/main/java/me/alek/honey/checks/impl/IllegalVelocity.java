@@ -52,10 +52,8 @@ public class IllegalVelocity<WP extends WrappedPlayInFlying<WP>> extends AsyncPa
         }
         lastChunkMap.put(player.getUniqueId(), chunk);
 
-        packetContainer.cancel();
         VIOLATION_SERVICE.increment(player, packet, this, "Chunk Overflow");
-
-        if (!chunk.isLoaded() || !packet.getWorld().isChunkLoaded(chunk)) {
+        if (!chunk.isLoaded() && !packet.getWorld().isChunkLoaded(chunk)) {
             packetContainer.cancel();
             VIOLATION_SERVICE.increment(player, packet, this, "Unloaded Chunk Overflow");
         }

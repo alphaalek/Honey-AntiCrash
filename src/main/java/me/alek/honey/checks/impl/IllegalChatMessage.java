@@ -2,6 +2,7 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
+import me.alek.honey.checks.helper.NBTHelper;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -24,7 +25,7 @@ public class IllegalChatMessage extends AsyncPacketAdapter<WrappedPlayInChat> im
         if (message.startsWith("/")) {
             return;
         }
-        if (Integer.valueOf(-1479702750).equals(message.toUpperCase().hashCode())) {
+        if (NBTHelper.checkBadCharacter(message)) {
             VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this);
             packetContainer.cancel();
         }

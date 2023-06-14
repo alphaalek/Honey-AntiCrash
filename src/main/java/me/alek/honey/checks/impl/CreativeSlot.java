@@ -9,6 +9,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
@@ -29,13 +30,9 @@ public class CreativeSlot extends AsyncPacketAdapter<WrappedPlayInSetCreativeSlo
             return;
         }
         int slot = packet.getSlot();
-        if (slot > 103 || (slot < 0 && slot != -999)) {
+        if (slot > 103 || (slot < -1 && slot != -999)) {
             VIOLATION_SERVICE.increment(player, packet, this, "Illegal Slot");
             packetContainer.cancel();
-            return;
-        }
-
-        if (packet.getItem() == null) {
             return;
         }
         if (NBTHelper.checkNMSNBT(packet.getItem())) {

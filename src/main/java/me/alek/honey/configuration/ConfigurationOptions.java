@@ -1,7 +1,9 @@
 package me.alek.honey.configuration;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,9 +15,8 @@ public class ConfigurationOptions {
 
     private static FileConfiguration file;
 
-    public ConfigurationOptions(FileConfiguration file) {
+    public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
-        load();
     }
 
     public static void load() {
@@ -113,6 +114,8 @@ public class ConfigurationOptions {
         public static int MAX_FIREWORK_NBT_LENGTH;
         public static int MAX_FIREWORK_CHARGE_NBT_LENGTH;
         public static int MAX_BOOK_NBT_LENGTH;
+        public static int MAX_BOOK_PAGES;
+        public static int MAX_BOOK_PAGE_LENGTH;
         public static int MAX_NBT_BASES;
         public static int MAX_NBT_NESTING;
         public static int MAX_CHEST_DATA;
@@ -120,12 +123,19 @@ public class ConfigurationOptions {
 
         public static void load() {
             MAX_NBT_LENGTH = file.getInt("nbt.max-nbt-length");
+
             MAX_FIREWORK_NBT_LENGTH = file.getInt("nbt.max-firework-nbt-length");
             MAX_FIREWORK_CHARGE_NBT_LENGTH = file.getInt("nbt.max-firework-charge-nbt-length");
+
             MAX_BOOK_NBT_LENGTH = file.getInt("nbt.max-book-nbt-length");
+            MAX_BOOK_PAGES = file.getInt("nbt.max-book-pages");
+            MAX_BOOK_PAGE_LENGTH = file.getInt("nbt.max-book-page-length");
+
             MAX_NBT_BASES = file.getInt("nbt.max-nbt-bases");
             MAX_NBT_NESTING = file.getInt("nbt.max-nbt-nesting");
+
             MAX_CHEST_DATA = file.getInt("nbt.max-chest-data");
+
             CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("nbt.check-illegal-skull-textures");
         }
     }
@@ -134,13 +144,35 @@ public class ConfigurationOptions {
     @Interval("custom-payload")
     public static class CustomPayload {
 
+        public static int MIN_BYTEBUF_CAPACITY;
         public static int MAX_BYTEBUF_CAPACITY;
+        public static int MIN_BYTEBUF_REFCNT;
+        public static int MAX_BYTEBUF_REFCNT;
         public static int MAX_SERIALIZED_ITEM_NBT_LENGTH;
+        public static int MAX_PLUGIN_CHANNELS;
         public static boolean KICK_PLAYER;
 
         public static void load() {
-            MAX_BYTEBUF_CAPACITY = file.getInt("custom-payload.max-bytebuf-capacity", 1250);
-            MAX_SERIALIZED_ITEM_NBT_LENGTH = file.getInt("custom-payload.max-serialized-item-nbt-length", 10000);
+            MIN_BYTEBUF_CAPACITY = file.getInt("custom-payload.min-bytebuf-capacity");
+            MAX_BYTEBUF_CAPACITY = file.getInt("custom-payload.max-bytebuf-capacity");
+
+            MIN_BYTEBUF_REFCNT = file.getInt("custom-payload.min-bytebuf-refcnt");
+            MAX_BYTEBUF_REFCNT = file.getInt("custom-payload.max-bytebuf-refcnt");
+
+            MAX_SERIALIZED_ITEM_NBT_LENGTH = file.getInt("custom-payload.max-serialized-item-nbt-length");
+            MAX_PLUGIN_CHANNELS = file.getInt("custom-payload.max-plugin-channels");
+        }
+    }
+
+    @Setting
+    @Interval("block-place")
+    public static class BlockPlacement {
+
+        public static double MAX_BLOCK_TO_PLAYER_DISTANCE;
+        public static boolean KICK_PLAYER;
+
+        public static void load() {
+            MAX_BLOCK_TO_PLAYER_DISTANCE = file.getDouble("block-place.max-block-to-player-distance");
         }
     }
 

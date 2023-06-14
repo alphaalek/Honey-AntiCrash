@@ -1,45 +1,48 @@
 package me.alek.honey.netty.api.packet.container;
 
-import me.alek.honey.netty.api.packet.PacketModifier;
+import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.netty.api.packet.IStructureModifier;
 
 import java.util.UUID;
 
 public interface ModifiablePacketContainer{
 
-    PacketModifier<Double> getDoubles();
+    IStructureModifier<Double> getDoubles();
 
-    PacketModifier<Long> getLongs();
+    IStructureModifier<Long> getLongs();
 
-    PacketModifier<Integer> getInts();
+    IStructureModifier<Integer> getInts();
 
-    PacketModifier<Short> getShorts();
+    IStructureModifier<Short> getShorts();
 
-    PacketModifier<Float> getFloats();
+    IStructureModifier<Float> getFloats();
 
-    PacketModifier<Byte> getBytes();
+    IStructureModifier<Byte> getBytes();
 
-    PacketModifier<Boolean> getBooleans();
+    IStructureModifier<Boolean> getBooleans();
 
-    PacketModifier<String> getStrings();
+    IStructureModifier<String> getStrings();
 
-    PacketModifier<Object> getObjects();
+    IStructureModifier<Object> getObjects();
 
-    PacketModifier<UUID> getUUIDS();
+    IStructureModifier<UUID> getUUIDS();
 
-    PacketModifier<String[]> getStringArrays();
+    IStructureModifier<String[]> getStringArrays();
 
-    PacketModifier<long[]> getLongArrays();
+    IStructureModifier<long[]> getLongArrays();
 
-    PacketModifier<int[]> getIntArrays();
+    IStructureModifier<int[]> getIntArrays();
 
-    PacketModifier<short[]> getShortArrays();
+    IStructureModifier<short[]> getShortArrays();
 
-    PacketModifier<byte[]> getByteArrays();
+    IStructureModifier<byte[]> getByteArrays();
 
-    PacketModifier<Object> getItems();
+    IStructureModifier<Object> getItems();
 
-    PacketModifier<Object> getDataSerializers();
+    IStructureModifier<Object> getDataSerializers();
 
-    <T> PacketModifier<T> getObjects(Class<T> target);
+    IStructureModifier<WrappedBlockPosition> getBlockPositions();
+
+    <T> IStructureModifier<T> getObjects(Class<T> target);
 
 }

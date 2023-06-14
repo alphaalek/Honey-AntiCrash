@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.HoneyPlugin;
@@ -16,6 +17,7 @@ import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -34,11 +36,14 @@ public class CustomPayload extends AsyncPacketAdapter<WrappedPlayInCustomPayload
     @Override
     public void onPacketReceive(Player player, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
         WrappedPlayInCustomPayload packet = packetContainer.getPacket();
-        Object priorSerializer = packet.getDataSerializer();
-        if (priorSerializer == null) {
+        Bukkit.broadcastMessage("received custom payload: " + packet);
+        ByteBuf priorSerializer;
+        try {
+            priorSerializer = (ByteBuf) packet.getDataSerializer();
+        } catch (Exception ex) {
             return;
         }
-        ByteBuf serializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.wrappedBuffer((ByteBuf)priorSerializer));
+        ByteBuf serializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.wrappedBuffer(priorSerializer));
         Object item = null;
         ItemStack bukkitItem = null;
         try {
@@ -48,34 +53,60 @@ public class CustomPayload extends AsyncPacketAdapter<WrappedPlayInCustomPayload
         }
         ItemStack itemInHand = player.getItemInHand();
 
-        if (item != null) {
-            Object tag = NBTHelper.getTag(item);
-            if (tag != null) {
-                if (tag.toString().getBytes().length > ConfigurationOptions.CustomPayload.MAX_SERIALIZED_ITEM_NBT_LENGTH) {
-                    VIOLATION_SERVICE.increment(player, packet, this);
-                    packetContainer.cancel();
-                    return;
-                }
-            }
-        }
-        if (serializer.capacity() > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_CAPACITY) {
-            VIOLATION_SERVICE.increment(player, packet, this);
-            packetContainer.cancel();
-            return;
-        }
-        String key = packet.getKeyString();
-        if (key.contains("BSign") || key.contains("BEdit")) {
-            if (!ItemHelper.isBook(itemInHand)) {
+        Object tag = NBTHelper.getTag(item);
+        if (tag != null) {
+            if (tag.toString().getBytes().length > ConfigurationOptions.CustomPayload.MAX_SERIALIZED_ITEM_NBT_LENGTH) {
                 NBTHelper.clearBookTags(bukkitItem);
-                VIOLATION_SERVICE.increment(player, packet, this);
+                VIOLATION_SERVICE.increment(player, packet, this, "Serialized NBT");
                 packetContainer.cancel();
+                serializer.release();
                 return;
             }
         }
         if (NBTHelper.checkBukkitNBT(bukkitItem)) {
             NBTHelper.clearBookTags(bukkitItem);
-            VIOLATION_SERVICE.increment(player, packet, this);
+            VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Serialized NBT");
             packetContainer.cancel();
+            serializer.release();
+            return;
+        }
+        final int refCnt = serializer.refCnt();
+        final int capacity = serializer.capacity();
+
+        Bukkit.broadcastMessage("refCnt: " + refCnt + ", capacity: " + capacity);
+        if (       capacity > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_CAPACITY
+                || capacity < ConfigurationOptions.CustomPayload.MIN_BYTEBUF_CAPACITY
+                || refCnt > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_REFCNT
+                || refCnt < ConfigurationOptions.CustomPayload.MIN_BYTEBUF_REFCNT
+        ) {
+            NBTHelper.clearBookTags(bukkitItem);
+            VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Bytebuf Range");
+            packetContainer.cancel();
+            serializer.release();
+            return;
+        }
+        String key = packet.getKeyString();
+        if (key.contains("BSign") || key.contains("BEdit") || key.contains("BOpen")) {
+            if (!ItemHelper.isBook(itemInHand)) {
+                NBTHelper.clearBookTags(item);
+                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal Book");
+                packetContainer.cancel();
+                serializer.release();
+                return;
+            }
+        }
+        if (key.toLowerCase().contains("register")) {
+            int channelSize = player.getListeningPluginChannels().size();
+
+            for (int i = 0; i < serializer.toString(Charsets.UTF_8).split("\000").length; i++) {
+                if (++channelSize > ConfigurationOptions.CustomPayload.MAX_PLUGIN_CHANNELS) {
+
+                    VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Channel Register");
+                    packetContainer.cancel();
+                    serializer.release();
+                    return;
+                }
+            }
         }
     }
 

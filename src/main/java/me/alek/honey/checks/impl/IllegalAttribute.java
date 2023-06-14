@@ -2,10 +2,10 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
-import me.alek.honey.netty.api.packet.PacketStructure;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.packet.structure.PacketStructureCache;
+import me.alek.honey.netty.packet.structure.ReflectStructureCache;
+import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -34,7 +34,7 @@ public class IllegalAttribute extends FuzzyPacketAdapter implements Check {
             final List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
             for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, Protocol.getProtocol())) {
-                PacketStructure<Object> structure = PacketStructureCache.getStructure(packetType);
+                ReflectStructure<Object, Object> structure = ReflectStructureCache.acquireStructure(packetType);
 
                 if (structure.withType(double.class).getAccessors().size() != 0) {
                     packetTypes.add(packetType);

@@ -160,6 +160,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private PacketContainer<? extends WrappedPacket<?>> handleCommon(
             Player player,
+            Channel channel,
             Object packet,
             PacketBound packetBound
     ) {
@@ -176,7 +177,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(
-                packet, player, POST_ACTION_MAP.get(packetType), packetType
+                packet, player, channel, POST_ACTION_MAP.get(packetType), packetType
         );
         if (hasAdapters) {
             callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
@@ -260,12 +261,12 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet) {
-        return handleCommon(player, packet, PacketBound.CLIENT);
+        return handleCommon(player, channel, packet, PacketBound.CLIENT);
     }
 
     @Override
     public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, Player player, Object packet) {
-        return handleCommon(player, packet, PacketBound.SERVER);
+        return handleCommon(player, channel, packet, PacketBound.SERVER);
     }
 
     public PacketState getPacketState(Player player, Object packet) {

@@ -1,12 +1,17 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.netty.api.packet.PacketModifier;
-import me.alek.honey.netty.api.packet.PacketStructure;
+import io.netty.channel.Channel;
+import me.alek.honey.checks.helper.converters.Converters;
+import me.alek.honey.checks.helper.converters.TwinConverter;
+import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.cache.PacketWrapperCache;
-import me.alek.honey.netty.packet.structure.PacketStructureCache;
+import me.alek.honey.netty.packet.structure.ReflectStructureCache;
+import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
@@ -20,42 +25,47 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private static final Class<?> packetDataSerializerClass = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
 
     public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
-        return new InternalPacketContainer<>(null, null, null, null, null, packet);
+        return new InternalPacketContainer<>(null, null, null, null, null, null, packet);
     };
     private final PacketTypeEnum type;
     private final Object handle;
     private final WP wrappedPacket;
     private final Runnable postAction;
     private final Player player;
-    private final PacketStructure<Object> packetStructure;
+    private final Channel channel;
+    private final ReflectStructure<Object, Object> packetStructure;
     private boolean cancelled = false;
 
     public InternalPacketContainer(
             Object rawPacket,
             PacketTypeEnum type,
-            Player player
+            Player player,
+            Channel channel
     ) {
-        this(rawPacket, player, null, type);
+        this(rawPacket, player, channel, null, type);
     }
 
     public InternalPacketContainer(
             Object rawPacket,
             Player player,
+            Channel channel,
             Runnable postAction,
             PacketTypeEnum type
     ) {
         this.wrappedPacket = (WP) PacketWrapperCache.getWrapper(type, rawPacket, this);
-        this.packetStructure = PacketStructureCache.getStructure(type);
+        this.packetStructure = ReflectStructureCache.acquireStructure(type);
         this.player = player;
         this.type = type;
         this.postAction = postAction;
         this.handle = rawPacket;
+        this.channel = channel;
     }
 
     public InternalPacketContainer(
-        PacketStructure<Object> packetStructure,
+        ReflectStructure<Object, Object> packetStructure,
         WP wrappedPacket,
         Player player,
+        Channel channel,
         PacketTypeEnum type,
         Runnable postAction,
         Object rawPacket
@@ -66,8 +76,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.postAction = postAction;
         this.type = type;
         this.handle = rawPacket;
+        this.channel = channel;
     }
 
+    @Override
+    public Channel getChannel() {
+        return channel;
+    }
     @Override
     public PacketTypeEnum getType() {
         return type;
@@ -108,97 +123,106 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         return player;
     }
 
-    private <T> PacketModifier<T> getModifier(Class<T> clazz) {
-        return packetStructure.withType(clazz).withTarget(handle);
+    private <T> IStructureModifier<T> getModifier(Class<T> clazz) {
+        return getModifier(clazz, null);
+    }
+
+    private <T, C> IStructureModifier<C> getModifier(Class<T> clazz, TwinConverter<T, C> converter) {
+        return packetStructure.withType(clazz, converter).withTarget(handle);
     }
 
     @Override
-    public PacketModifier<Double> getDoubles() {
+    public IStructureModifier<Double> getDoubles() {
         return getModifier(double.class);
     }
 
     @Override
-    public PacketModifier<Long> getLongs() {
+    public IStructureModifier<Long> getLongs() {
         return getModifier(long.class);
     }
 
     @Override
-    public PacketModifier<Integer> getInts() {
+    public IStructureModifier<Integer> getInts() {
         return getModifier(int.class);
     }
 
     @Override
-    public PacketModifier<Short> getShorts() {
+    public IStructureModifier<Short> getShorts() {
         return getModifier(short.class);
     }
 
     @Override
-    public PacketModifier<Float> getFloats() {
+    public IStructureModifier<Float> getFloats() {
         return getModifier(float.class);
     }
 
     @Override
-    public PacketModifier<Byte> getBytes() {
+    public IStructureModifier<Byte> getBytes() {
         return getModifier(byte.class);
     }
 
     @Override
-    public PacketModifier<Boolean> getBooleans() {
+    public IStructureModifier<Boolean> getBooleans() {
         return getModifier(boolean.class);
     }
 
     @Override
-    public PacketModifier<String> getStrings() {
+    public IStructureModifier<String> getStrings() {
         return getModifier(String.class);
     }
 
     @Override
-    public PacketModifier<Object> getObjects() {
+    public IStructureModifier<Object> getObjects() {
         return getModifier(Object.class);
     }
 
     @Override
-    public PacketModifier<UUID> getUUIDS() {
+    public IStructureModifier<UUID> getUUIDS() {
         return getModifier(UUID.class);
     }
 
     @Override
-    public PacketModifier<String[]> getStringArrays() {
+    public IStructureModifier<String[]> getStringArrays() {
         return getModifier(String[].class);
     }
 
     @Override
-    public PacketModifier<long[]> getLongArrays() {
+    public IStructureModifier<long[]> getLongArrays() {
         return getModifier(long[].class);
     }
 
     @Override
-    public PacketModifier<int[]> getIntArrays() {
+    public IStructureModifier<int[]> getIntArrays() {
         return getModifier(int[].class);
     }
 
     @Override
-    public PacketModifier<short[]> getShortArrays() {
+    public IStructureModifier<short[]> getShortArrays() {
         return getModifier(short[].class);
     }
 
     @Override
-    public PacketModifier<byte[]> getByteArrays() {
+    public IStructureModifier<byte[]> getByteArrays() {
         return getModifier(byte[].class);
     }
 
     @Override
-    public PacketModifier<Object> getItems() {
+    public IStructureModifier<Object> getItems() {
         return getModifier((Class<Object>) itemStackClass);
     }
 
     @Override
-    public PacketModifier<Object> getDataSerializers() {
+    public IStructureModifier<Object> getDataSerializers() {
         return getModifier((Class<Object>) packetDataSerializerClass);
     }
 
     @Override
-    public <T> PacketModifier<T> getObjects(Class<T> target) {
+    public IStructureModifier<WrappedBlockPosition> getBlockPositions() {
+        return getModifier(NMSUtils.getBlockPositionClass(), Converters.getBlockPositionConverter());
+    }
+
+    @Override
+    public <T> IStructureModifier<T> getObjects(Class<T> target) {
         return packetStructure.withType(target).withTarget(handle);
     }
 
