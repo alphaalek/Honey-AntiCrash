@@ -89,12 +89,16 @@ public class NMSUtils {
         return Reflection.getClass("{obc}.entity.CraftPlayer");
     }
 
+    public static Class<?> getBaseBlockPositionClass() {
+        return Reflection.getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
+    }
+
     public static Class<Object> getBlockPositionClass() {
         return Reflection.getFuzzyObjectClass("{nms}.BlockPosition", "{nms}.core.BlockPosition");
     }
 
-    public static Class<?> getBaseBlockPositionClass() {
-        return Reflection.getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
+    public static Class<Object> getItemStackClass() {
+        return Reflection.getFuzzyObjectClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     }
 
     public static boolean isFakeChannel(Channel channel) {

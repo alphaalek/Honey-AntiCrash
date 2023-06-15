@@ -1,17 +1,15 @@
 package me.alek.honey.checks.impl;
 
-import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.Check;
+import me.alek.honey.checks.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
+import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 
@@ -19,9 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class IllegalAttribute extends FuzzyPacketAdapter implements Check {
-
-    private final ViolationService VIOLATION_SERVICE = HoneyPlugin.get().getViolationService();
+public class IllegalAttribute extends FuzzyPacketAdapter implements PacketCheck {
 
     @Override
     public String getName() {
@@ -53,16 +49,14 @@ public class IllegalAttribute extends FuzzyPacketAdapter implements Check {
         for (double value : packetContainer.getDoubles().readValues()) {
 
             if (NumberConversions.isInvalid(value)) {
-                packetContainer.cancel();
-                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Double");
+                punish(player, packetContainer, "Double");
                 return;
             }
         }
         for (float value : packetContainer.getFloats().readValues()) {
 
             if (NumberConversions.isInvalid(value)) {
-                packetContainer.cancel();
-                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Float");
+                punish(player, packetContainer, "Float");
                 return;
             }
         }

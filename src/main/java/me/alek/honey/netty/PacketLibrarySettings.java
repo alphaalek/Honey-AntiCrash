@@ -5,15 +5,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class PacketLibrarySettings {
 
-    private boolean useLateInjection = false;
+    private boolean useLateInjection;
     private Protocol fallbackProtocol;
     private final JavaPlugin plugin;
     private final String handlerName;
 
     public PacketLibrarySettings(
             JavaPlugin plugin,
+            boolean useLateInjection,
             String handlerName
     ) {
+        this.useLateInjection = useLateInjection;
         this.plugin = plugin;
         this.handlerName = handlerName;
     }

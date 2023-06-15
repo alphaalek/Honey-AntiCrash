@@ -1,8 +1,8 @@
 
 # general
 cancel-on-violation: true
-kick-message: "Du sender for mange packets! :-("
-clear-old-violation-timestamp: 300000 # 5 minutter
+kick-message: "Du sender ugyldige packets! :-("
+clear-old-violations-timestamp: 300000 # 5 minutter
 
 bypass-permission-enabled: true
 bypass-permission: honey.bypass
@@ -60,16 +60,13 @@ velocity:
   new-chunks:
     max-per-interval: 60
     interval: 3000 # 3 sekunder
-    kick-player: true
   new-unloaded-chunks:
-    max-per-interval: 45
-    interval: 3000 # 3 sekunder
-    kick-player: true
+    max-per-interval: 25
+    interval: 5000 # 5 sekunder
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
     max-2d-distance: 10
     vls-amount: 5
-    kick-player: true
 
 # custom payload
 custom-payload:
@@ -86,16 +83,13 @@ custom-payload:
   max-serialized-item-nbt-length: 6000
   max-plugin-channels: 105
 
-  kick-player: true
-
 # block placement
 block-place:
   # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
   max-block-to-player-distance: 12
-  kick-player: false
+  vls-amount: 5
 
 packet-flood:
-  kick-player: true
   vls-amount: 10
 
   # arm animation

@@ -8,6 +8,4 @@ public interface TwinConverter<T, C> {
 
     T convertDeclaring(C object);
 
-    ConstructorInvoker getDelegatedConstructor();
-
 }

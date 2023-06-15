@@ -12,10 +12,12 @@ me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutCustomPayload.cla
 me\alek\honey\netty\utility\reflect\Reflection$1.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInPosition.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnPosition.class
+me\alek\honey\checks\PacketCheck.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutOpenWindowMerchant.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityEffect.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInUpdateSign.class
 me\alek\honey\netty\packetwrappers\handshake\client\WrappedHandshakeInSetProtocol.class
+me\alek\honey\configuration\ConfigurationOptions$IntervalSetting.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutSuccess.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTrSel.class
 me\alek\honey\checks\impl\IllegalChatMessage.class
@@ -36,6 +38,7 @@ me\alek\honey\checks\impl\CustomPayload.class
 me\alek\honey\netty\packet\cache\PacketWrapperFactory$1.class
 me\alek\honey\netty\api\event\impl\packet\PacketPlaySendEvent.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntity.class
+me\alek\honey\services\ViolationService$1.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutKickDisconnect.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInUseItem.class
 me\alek\honey\netty\packetwrappers\status\server\WrappedStatusOutPong.class
@@ -56,12 +59,12 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInRecipeSettings.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInRecipeDisplayed.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAdvancements.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutScoreboardDisplayObjective.class
+me\alek\honey\services\ViolationService$ViolationContext.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMap.class
 me\alek\honey\checks\impl\NullPing$NullPingEncryption.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInCloseWindow.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMapChunkBulk.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMapChunk.class
-me\alek\honey\HoneyPlugin$1.class
 me\alek\honey\checks\impl\HeldItem.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateTime.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTabComplete.class
@@ -76,6 +79,7 @@ me\alek\honey\checks\impl\NotOnline.class
 me\alek\honey\netty\packet\structure\ReflectStructure.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInWindowClick.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockBreak.class
+me\alek\honey\services\ConfiscationService.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCloseWindow.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInEnchantItem.class
 me\alek\honey\netty\api\event\Listener.class
@@ -103,9 +107,7 @@ me\alek\honey\netty\utility\reflect\ConstructorInvoker.class
 me\alek\honey\netty\api\event\impl\packet\PacketHandshakeReceiveEvent.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutNamedEntitySpawn.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInClientCommand.class
-me\alek\honey\checks\helper\wrappers\models\WrappedItemStack.class
 me\alek\honey\netty\api\packet\IStructureModifier.class
-me\alek\honey\checks\helper\wrappers\models\WrappedEntity.class
 me\alek\honey\checks\impl\BlockPlacement.class
 me\alek\honey\checks\helper\converters\TwinConverter.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTitle.class
@@ -133,6 +135,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityMetadata.clas
 me\alek\honey\checks\helper\wrappers\models\WrappedBlockPosition.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRecipeUpdate.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInArmAnimation.class
+me\alek\honey\services\ViolationService$PacketKeyWrapper.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutServerDifficulty.class
 me\alek\honey\configuration\ConfigurationOptions$BlockPlacement.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCompression.class
@@ -148,6 +151,7 @@ me\alek\honey\netty\injector\EarlyChannelInjector$3.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutExplosion.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBEdit.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutScoreboardObjective.class
+me\alek\honey\services\ViolationService$PacketLimitHandler.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCooldown.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutLightUpdate.class
 me\alek\honey\checks\helper\ItemHelper.class
@@ -213,6 +217,7 @@ me\alek\honey\checks\impl\IllegalVelocity.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInUseEntity.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTransaction.class
 me\alek\honey\checks\impl\TabComplete.class
+me\alek\honey\utility\Tuple2.class
 me\alek\honey\netty\packetwrappers\status\server\WrappedStatusOutServerInfo.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateEntityNBT.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewDistance.class
@@ -223,6 +228,7 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTransaction.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInPositionLook.class
 me\alek\honey\configuration\ConfigurationOptions$Velocity.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRecipes.class
+me\alek\honey\checks\helper\converters\Converters$2.class
 me\alek\honey\configuration\Configuration.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockAction.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInAutoRecipe.class

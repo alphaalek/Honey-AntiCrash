@@ -1,8 +1,6 @@
 package me.alek.honey.checks.impl;
 
-import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.Check;
-import me.alek.honey.checks.helper.ItemHelper;
+import me.alek.honey.checks.PacketCheck;
 import me.alek.honey.checks.helper.NBTHelper;
 import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -10,20 +8,17 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
-import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockPlacement extends AsyncPacketAdapter<WrappedPlayInBlockPlace> implements Check {
-
-    private final ViolationService VIOLATION_SERVICE = HoneyPlugin.get().getViolationService();
+public class BlockPlacement extends AsyncPacketAdapter<WrappedPlayInBlockPlace> implements PacketCheck {
 
     @Override
     public void onPacketReceive(Player player, PacketContainer<WrappedPlayInBlockPlace> packetContainer) {
@@ -37,35 +32,27 @@ public class BlockPlacement extends AsyncPacketAdapter<WrappedPlayInBlockPlace> 
 
             double distance = blockPosition.distance(player.getLocation());
             if (distance > ConfigurationOptions.BlockPlacement.MAX_BLOCK_TO_PLAYER_DISTANCE) {
-                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal Placement");
-                packetContainer.cancel();
+                flag(player, packetContainer, this, "Illegal Placement", ConfigurationOptions.BlockPlacement.get());
                 return;
             }
         }
         if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
-            Object nmsItem = packetContainer.getPacket().getItem();
+            ItemStack item = packetContainer.getPacket().getItem();
 
-            if (nmsItem != null) {
-                ItemStack bukkitItem = ItemHelper.asBukkitItem(nmsItem);
-
-                if (bukkitItem != null) {
-                    if (bukkitItem.getType() != itemInHand.getType()) {
-                        VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal Placement");
-                        packetContainer.cancel();
-                        return;
-                    }
+            if (item != null) {
+                if (item.getType() != itemInHand.getType()) {
+                    punish(player, packetContainer, "Illegal Placement");
+                    return;
                 }
-                if (NBTHelper.checkBukkitNBT(bukkitItem)) {
-                    VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal NBT");
-                    packetContainer.cancel();
+                if (NBTHelper.checkBukkitNBT(item)) {
+                    punish(player, packetContainer, "Illegal NBT");
                     return;
                 }
                 return;
             }
         }
         if (NBTHelper.checkBukkitNBT(itemInHand)) {
-            VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this, "Illegal NBT");
-            packetContainer.cancel();
+            punish(player, packetContainer, "Illegal NBT");
         }
     }
 

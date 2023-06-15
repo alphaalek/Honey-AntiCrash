@@ -15,13 +15,13 @@ import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
-    private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     private static final Class<?> packetDataSerializerClass = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
 
     public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
@@ -207,8 +207,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public IStructureModifier<Object> getItems() {
-        return getModifier((Class<Object>) itemStackClass);
+    public IStructureModifier<ItemStack> getItems() {
+        return getModifier(NMSUtils.getItemStackClass(), Converters.getItemstackConverter());
     }
 
     @Override

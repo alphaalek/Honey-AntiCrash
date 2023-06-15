@@ -1,15 +1,14 @@
 package me.alek.honey.checks.impl;
 
-import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.Check;
+import me.alek.honey.checks.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
-import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 
@@ -20,9 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class IllegalVelocity<WP extends WrappedPlayInFlying<WP>> extends AsyncPacketAdapter<WP> implements Check {
-
-    private final ViolationService VIOLATION_SERVICE = HoneyPlugin.get().getViolationService();
+public class IllegalVelocity<WP extends WrappedPlayInFlying<WP>> extends AsyncPacketAdapter<WP> implements PacketCheck {
 
     private final Map<UUID, Chunk> lastChunkMap = new ConcurrentHashMap<>();
 
@@ -42,8 +39,7 @@ public class IllegalVelocity<WP extends WrappedPlayInFlying<WP>> extends AsyncPa
         }
         final int distance = Locations.calculate2DDistance(packet.getLocation(), player.getLocation());
         if (distance > ConfigurationOptions.Velocity.Movement.MAX_2D_DISTANCE) {
-            packetContainer.cancel();
-            VIOLATION_SERVICE.increment(player, packet, this, "Illegal Movement");
+            flag(player, packetContainer, this, "Illegal Movement", ConfigurationOptions.Velocity.Movement.get());
             return;
         }
         Chunk chunk = packet.getWorld().getChunkAt(packet.getLocation());
@@ -52,10 +48,9 @@ public class IllegalVelocity<WP extends WrappedPlayInFlying<WP>> extends AsyncPa
         }
         lastChunkMap.put(player.getUniqueId(), chunk);
 
-        VIOLATION_SERVICE.increment(player, packet, this, "Chunk Overflow");
+        flagButAccept(player, packetContainer, this, "Chunk Overflow", ConfigurationOptions.Velocity.NewChunks.get());
         if (!chunk.isLoaded() && !packet.getWorld().isChunkLoaded(chunk)) {
-            packetContainer.cancel();
-            VIOLATION_SERVICE.increment(player, packet, this, "Unloaded Chunk Overflow");
+            flagButAccept(player, packetContainer, this, "Chunk Overflow", ConfigurationOptions.Velocity.NewUnloadedChunks.get());
         }
     }
 
@@ -70,7 +65,7 @@ public class IllegalVelocity<WP extends WrappedPlayInFlying<WP>> extends AsyncPa
     }
 
     @Override
-    public void resetVls(Player player) {
+    public void onResetVls(Player player) {
         lastChunkMap.remove(player.getUniqueId());
     }
 }

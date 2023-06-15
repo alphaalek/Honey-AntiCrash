@@ -65,10 +65,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
         if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
             return getPacket().getInts().read(3);
         }
-        Bukkit.broadcastMessage(enumConstClass + "");
         Enum<?> enumConst = getPacket().getObjects(enumConstClass).read(0);
-        Bukkit.broadcastMessage(enumConst + "");
-        Bukkit.broadcastMessage(enumConst.ordinal() + "");
         return enumConst.ordinal();
     }
 
@@ -80,15 +77,11 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
         getPacket().getObjects(enumConstClass).write(0, enumConst);
     }
 
-    public Object getItem() {
+    public ItemStack getItem() {
         return getPacket().getItems().read(0);
     }
 
     public void setClickedItemStack(ItemStack stack) {
-        setClickedItemStack(ItemHelper.asNMSItem(stack));
-    }
-
-    public void setClickedItemStack(Object stack) {
-        getPacket().getItems().write(0, stack);
+        setClickedItemStack(stack);
     }
 }

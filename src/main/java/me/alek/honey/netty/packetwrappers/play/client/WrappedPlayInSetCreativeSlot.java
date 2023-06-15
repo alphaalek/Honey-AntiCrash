@@ -2,6 +2,7 @@ package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.inventory.ItemStack;
 
 public class WrappedPlayInSetCreativeSlot extends WrappedPacket<WrappedPlayInSetCreativeSlot> {
 
@@ -9,7 +10,7 @@ public class WrappedPlayInSetCreativeSlot extends WrappedPacket<WrappedPlayInSet
         super(rawPacket, packetContainer);
     }
 
-    public Object getItem() {
+    public ItemStack getItem() {
         return getPacket().getItems().read(0);
     }
 

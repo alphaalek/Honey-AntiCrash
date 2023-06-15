@@ -2,7 +2,9 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
+import me.alek.honey.checks.PacketCheck;
 import me.alek.honey.checks.helper.NBTHelper;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -17,27 +19,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CreativeSlot extends AsyncPacketAdapter<WrappedPlayInSetCreativeSlot> implements Check {
-
-    private final ViolationService VIOLATION_SERVICE = HoneyPlugin.get().getViolationService();
+public class CreativeSlot extends AsyncPacketAdapter<WrappedPlayInSetCreativeSlot> implements PacketCheck {
 
     @Override
     public void onPacketReceive(Player player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer) {
         WrappedPlayInSetCreativeSlot packet = packetContainer.getPacket();
         if (player.getGameMode() != GameMode.CREATIVE) {
-            VIOLATION_SERVICE.increment(player, packet, this);
-            packetContainer.cancel();
+            punish(player, packetContainer, "Illegal Access");
             return;
         }
         int slot = packet.getSlot();
         if (slot > 103 || (slot < -1 && slot != -999)) {
-            VIOLATION_SERVICE.increment(player, packet, this, "Illegal Slot");
-            packetContainer.cancel();
+            punish(player, packetContainer, "Illegal Slot");
             return;
         }
-        if (NBTHelper.checkNMSNBT(packet.getItem())) {
-            VIOLATION_SERVICE.increment(player, packet, this, "Illegal NBT");
-            packetContainer.cancel();
+        if (NBTHelper.checkBukkitNBT(packet.getItem())) {
+            punish(player, packetContainer, "Illegal NBT");
         }
     }
 

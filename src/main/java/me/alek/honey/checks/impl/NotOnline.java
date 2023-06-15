@@ -2,6 +2,7 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
+import me.alek.honey.checks.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -16,16 +17,13 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class NotOnline extends FuzzyPacketAdapter implements Check {
-
-    private static final NotificationService NOTIFICATION_SERVICE = HoneyPlugin.get().getNotificationService();
+public class NotOnline extends FuzzyPacketAdapter implements PacketCheck {
 
     @Override
     public void onPacketReceive(Player player, PacketContainer packetContainer) {
         if (!player.isOnline()) {
-            packetContainer.cancel();
             NMSUtils.getChannel(player).close();
-            NOTIFICATION_SERVICE.notify("some reason");
+            notifyAndCancel(player, packetContainer, "Spilleren sendte en packet men var ikke online!");
         }
     }
 

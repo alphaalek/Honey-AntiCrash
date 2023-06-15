@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
+import me.alek.honey.checks.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
@@ -26,8 +27,6 @@ import java.util.function.Supplier;
 
 public class NullPing {
 
-    private static final ViolationService VIOLATION_SERVICE = HoneyPlugin.get().getViolationService();
-
     private static boolean isNullPing(Channel channel) {
         ChannelPipeline pipeline = channel.pipeline();
         ChannelHandler handler = pipeline.get("packet_handler");
@@ -39,15 +38,12 @@ public class NullPing {
     }
 
     // offline mode
-    public static class NullPingLogin extends AsyncPacketAdapter<WrappedLoginInLoginStart> implements Check {
-
-        public NullPingLogin() {}
+    public static class NullPingLogin extends AsyncPacketAdapter<WrappedLoginInLoginStart> implements PacketCheck {
 
         @Override
         public void onPacketReceive(Player player, PacketContainer<WrappedLoginInLoginStart> packetContainer) {
             if (isNullPing(packetContainer.getChannel())) {
-                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this);
-                packetContainer.cancel();
+                notifyAndCancel(player, packetContainer, "Spilleren forsøgte at joine med null ping!");
             }
         }
 
@@ -63,15 +59,12 @@ public class NullPing {
     }
 
     // online mode
-    public static class NullPingEncryption extends AsyncPacketAdapter<WrappedLoginInEncryptionResponse> implements Check {
-
-        public NullPingEncryption() {}
+    public static class NullPingEncryption extends AsyncPacketAdapter<WrappedLoginInEncryptionResponse> implements PacketCheck {
 
         @Override
         public void onPacketReceive(Player player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer) {
             if (isNullPing(packetContainer.getChannel())) {
-                VIOLATION_SERVICE.increment(player, packetContainer.getPacket(), this);
-                packetContainer.cancel();
+                notifyAndCancel(player, packetContainer, "Spilleren forsøgte at joine med null ping!");
             }
         }
 

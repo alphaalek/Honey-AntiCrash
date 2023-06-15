@@ -27,9 +27,9 @@ import java.util.function.Supplier;
 public class PacketLibrary {
 
     private final PacketLibrarySettings settings;
-    private final PacketProcessor internalPacketProcessor;
+    private PacketProcessor internalPacketProcessor;
     private final EventManager eventManager;
-    private final AsyncFuture future;
+    private AsyncFuture future;
     private final JavaPlugin plugin;
     private NettyChannelProxy proxy;
 

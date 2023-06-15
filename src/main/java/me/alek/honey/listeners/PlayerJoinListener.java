@@ -1,5 +1,6 @@
 package me.alek.honey.listeners;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.Check;
 import me.alek.honey.checks.CheckRegistry;
 import org.bukkit.event.EventHandler;
@@ -14,6 +15,7 @@ public class PlayerJoinListener implements Listener {
         for (Check check : CheckRegistry.getChecks()) {
             check.setup(event.getPlayer());
         }
+        HoneyPlugin.get().getViolationService().addPlayer(event.getPlayer());
     }
 
     @EventHandler
@@ -21,5 +23,6 @@ public class PlayerJoinListener implements Listener {
         for (Check check : CheckRegistry.getChecks()) {
             check.cleanup(event.getPlayer());
         }
+        HoneyPlugin.get().getViolationService().removePlayer(event.getPlayer());
     }
 }
