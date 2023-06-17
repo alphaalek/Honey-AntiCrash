@@ -1,7 +1,7 @@
 package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.types.Check;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -40,7 +40,7 @@ public class ViolationService {
 
     public PacketLimitHandler getLimits(
             Player player,
-            Check check,
+            PacketCheck<? extends WrappedPacket<?>> check,
             PacketTypeEnum packetType,
             ConfigurationOptions.IntervalSetting setting
     ) {
@@ -51,7 +51,7 @@ public class ViolationService {
     public void flag(
             Player player,
             PacketContainer<? extends WrappedPacket<?>> packet,
-            Check check,
+            PacketCheck<? extends WrappedPacket<?>> check,
             String violationName,
             ConfigurationOptions.IntervalSetting setting
     ) {
@@ -61,7 +61,7 @@ public class ViolationService {
     public void flag(
             Player player,
             PacketContainer<? extends WrappedPacket<?>> packet,
-            Check check,
+            PacketCheck<? extends WrappedPacket<?>> check,
             Runnable onViolation,
             String violationName,
             ConfigurationOptions.IntervalSetting setting
@@ -103,9 +103,9 @@ public class ViolationService {
         }
     }
 
-    private static class CheckKey extends Tuple2<Check, PacketTypeEnum> {
+    private static class CheckKey extends Tuple2<PacketCheck<? extends WrappedPacket<?>>, PacketTypeEnum> {
 
-        protected CheckKey(Check check, PacketTypeEnum packetTypeEnum) {
+        protected CheckKey(PacketCheck<? extends WrappedPacket<?>> check, PacketTypeEnum packetTypeEnum) {
             super(check, packetTypeEnum);
         }
     }

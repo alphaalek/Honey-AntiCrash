@@ -1,10 +1,10 @@
 package me.alek.honey.checks.listeners;
 
 import me.alek.honey.checks.*;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.helper.NBTHelper;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;

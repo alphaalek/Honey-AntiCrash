@@ -13,30 +13,23 @@ import java.util.List;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
-    private final List<Check> checks = new ArrayList<>();
+    private final List<PacketCheck<WP>> checks = new ArrayList<>();
 
-    public void visit(Check check) {
+    public void visit(PacketCheck<WP> check) {
         checks.add(check);
     }
 
-    public List<Check> getChecks() {
+    public List<PacketCheck<WP>> getChecks() {
         return checks;
     }
 
     public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         int skipping = 0;
-        for (Check check : checks) {
+        for (PacketCheck<WP> check : checks) {
             if (skipping-- > 0) {
                 continue;
             }
-            ResponseContainer response;
-            if (check instanceof ContainerCheck) {
-                response = ((ContainerCheck<WP>)check).<WP>accept(player, packetContainer, container);
-            }
-            else {
-                response =((PacketCheck<WP>)check).<WP>accept(player, packetContainer.getPacket(), container);
-            }
-
+            ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
             if (response.SUCCESS) {
                 continue;
             }

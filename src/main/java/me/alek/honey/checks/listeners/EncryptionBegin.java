@@ -5,7 +5,7 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ContainerCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -42,11 +42,11 @@ public class EncryptionBegin extends AbstractPacketListener<WrappedLoginInEncryp
         return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_RESPONSE);
     }
 
-    public static class EncryptionA implements ContainerCheck<WrappedLoginInEncryptionResponse> {
+    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse> {
 
         @Override
-        public ResponseContainer accept(Player player, PacketContainer<WrappedLoginInEncryptionResponse> packet, CheckContextContainer container) {
-            ChannelPipeline pipeline = packet.getChannel().pipeline();
+        public ResponseContainer accept(Player player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
+            ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 
             if (NMSUtils.getNetworkManagerClass().isInstance(handler)) {

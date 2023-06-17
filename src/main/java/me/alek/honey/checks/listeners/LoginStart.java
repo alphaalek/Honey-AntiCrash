@@ -6,7 +6,6 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ContainerCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -65,11 +64,11 @@ public class LoginStart extends AbstractPacketListener<WrappedLoginInLoginStart>
         }
     }
 
-    public static class LoginB implements ContainerCheck<WrappedLoginInLoginStart> {
+    public static class LoginB implements PacketCheck<WrappedLoginInLoginStart> {
 
         @Override
-        public ResponseContainer accept(Player player, PacketContainer<WrappedLoginInLoginStart> packet, CheckContextContainer container) {
-            ChannelPipeline pipeline = packet.getChannel().pipeline();
+        public ResponseContainer accept(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+            ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 
             if (NMSUtils.getNetworkManagerClass().isInstance(handler)) {

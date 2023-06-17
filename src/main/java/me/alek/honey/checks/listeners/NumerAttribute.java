@@ -6,7 +6,7 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ContainerCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.ReflectStructureCache;
@@ -62,11 +62,11 @@ public class NumerAttribute<WP extends WrappedPacket<WP>> extends AbstractPacket
         };
     }
 
-    public static class AttributeA<WP extends WrappedPacket<WP>> implements ContainerCheck<WP> {
+    public static class AttributeA<WP extends WrappedPacket<WP>> implements PacketCheck<WP> {
 
         @Override
-        public ResponseContainer accept(Player player, PacketContainer<WP> packet, CheckContextContainer container) {
-            for (double value : packet.getDoubles().readValues()) {
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            for (double value : packet.getContainer().getDoubles().readValues()) {
 
                 if (NumberConversions.isInvalid(value)) {
                     return ResponseBuilder
@@ -76,7 +76,7 @@ public class NumerAttribute<WP extends WrappedPacket<WP>> extends AbstractPacket
                             .build();
                 }
             }
-            for (float value : packet.getFloats().readValues()) {
+            for (float value : packet.getContainer().getFloats().readValues()) {
 
                 if (NumberConversions.isInvalid(value)) {
                     return ResponseBuilder
