@@ -1,10 +1,12 @@
 package me.alek.honey.checks.listeners;
 
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.impl.TabA;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
@@ -39,5 +41,27 @@ public class TabComplete extends AbstractPacketListener<WrappedPlayInTabComplete
         return () -> Collections.singletonList(PacketType.Play.Client.TAB_COMPLETE);
     }
 
+    public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, IntervalCheck {
 
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+            String label = packet.getMessage().split(" ")[0];
+
+            for (String prohibitedCommand : ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS) {
+                if (label.equals(prohibitedCommand)) {
+                    return ResponseBuilder
+                            .inst()
+                            .cancel()
+                            .flag()
+                            .build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public ConfigurationOptions.IntervalSetting getSetting() {
+            return ConfigurationOptions.Commands.get();
+        }
+    }
 }

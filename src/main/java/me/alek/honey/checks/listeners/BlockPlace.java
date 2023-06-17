@@ -1,9 +1,16 @@
 package me.alek.honey.checks.listeners;
 
-import me.alek.honey.checks.*;
-import me.alek.honey.checks.impl.PlaceA;
-import me.alek.honey.checks.impl.PlaceB;
-import me.alek.honey.checks.impl.PlaceC;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.helper.NBTHelper;
+import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -44,5 +51,67 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
+    }
+
+    public static class PlaceA implements IntervalCheck, PacketCheck<WrappedPlayInBlockPlace> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+            WrappedBlockPosition blockPosition = packet.getBlockPosition();
+            if (!blockPosition.equals(WrappedBlockPosition.DEFAULT)) {
+
+                double distance = blockPosition.distance(player.getLocation());
+                if (distance > ConfigurationOptions.BlockPlacement.MAX_BLOCK_TO_PLAYER_DISTANCE) {
+                    return ResponseBuilder
+                            .inst()
+                            .cancel()
+                            .flag()
+                            .build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public ConfigurationOptions.IntervalSetting getSetting() {
+            return ConfigurationOptions.BlockPlacement.get();
+        }
+    }
+
+    public static class PlaceB implements PacketCheck<WrappedPlayInBlockPlace> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+            ItemStack item = packet.getItem();
+            ItemStack itemInHand = player.getItemInHand();
+
+            if (item.getType() != itemInHand.getType()) {
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+    }
+
+    public static class PlaceC implements PacketCheck<WrappedPlayInBlockPlace> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+            ItemStack item = packet.getItem();
+            ItemStack itemInHand = player.getItemInHand();
+
+            if (NBTHelper.checkBukkitNBT(item) || NBTHelper.checkBukkitNBT(itemInHand)) {
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .confiscate(item)
+                        .build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
     }
 }

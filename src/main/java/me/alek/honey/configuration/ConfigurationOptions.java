@@ -1,5 +1,8 @@
 package me.alek.honey.configuration;
 
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInAutoRecipe;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -8,19 +11,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ConfigurationOptions {
 
     private static FileConfiguration file;
-    private static List<ConfigurationOptions.IntervalSetting> floodSettings = new ArrayList<>();
+    private static Map<PacketTypeEnum, ConfigurationOptions.IntervalSetting> floodSettings = new HashMap<>();
 
     public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
     }
 
-    public static List<ConfigurationOptions.IntervalSetting> getFloodSettings() {
+    public static Map<PacketTypeEnum, IntervalSetting> getFloodSettings() {
         return floodSettings;
     }
 
@@ -58,7 +62,8 @@ public class ConfigurationOptions {
             IntervalSetting setting = (IntervalSetting) constructor.newInstance();
 
             if (clazz.isAnnotationPresent(Flood.class)) {
-                floodSettings.add(setting);
+                Flood flood = clazz.getAnnotation(Flood.class);
+                floodSettings.put(flood.value(), setting);
             }
             while (true) {
                 for (Field field : clazz.getDeclaredFields()) {
@@ -103,6 +108,7 @@ public class ConfigurationOptions {
     @Target(ElementType.TYPE)
     private @interface Flood {
 
+        PacketType.Play.Client value();
     }
 
     public abstract static class IntervalSetting {
@@ -297,17 +303,38 @@ public class ConfigurationOptions {
     @Interval("packet-flood")
     public static class PacketFlood extends IntervalSetting {
 
-        @Flood
+        @Flood(PacketType.Play.Client.ARM_ANIMATION)
         @Setting
-        @Interval({"packet-flood.arm-animation", "packet-flood"})
+        @Interval({"packet-flood", "packet-flood.arm-animation"})
         public static class ArmAnimation extends IntervalSetting {
 
         }
 
-        @Flood
+        @Flood(PacketType.Play.Client.AUTO_RECIPE)
         @Setting
-        @Interval({"packet-flood.auto-recipe", "packet-flood"})
+        @Interval({"packet-flood", "packet-flood.auto-recipe"})
         public static class AutoRecipe extends IntervalSetting {
+
+        }
+
+        @Flood(PacketType.Play.Client.BLOCK_DIG)
+        @Setting
+        @Interval({"packet-flood", "packet-flood.block-dog"})
+        public static class BlockDig extends IntervalSetting {
+
+        }
+
+        @Flood(PacketType.Play.Client.BLOCK_PLACE)
+        @Setting
+        @Interval({"packet-flood", "packet-flood.block-place"})
+        public static class BlockPlace extends IntervalSetting {
+
+        }
+
+        @Flood(PacketType.Play.Client.CLIENT_COMMAND)
+        @Setting
+        @Interval({"packet-flood", "packet-flood.client-command"})
+        public static class ClientCommand extends IntervalSetting {
 
         }
     }

@@ -31,10 +31,10 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             ResponseContainer response;
             if (check instanceof ContainerCheck) {
-                response = ((ContainerCheck<WP>)check).accept(player, packetContainer, container);
+                response = ((ContainerCheck<WP>)check).<WP>accept(player, packetContainer, container);
             }
             else {
-                response =((PacketCheck<WP>)check).accept(player, packetContainer.getPacket(), container);
+                response =((PacketCheck<WP>)check).<WP>accept(player, packetContainer.getPacket(), container);
             }
 
             if (response.SUCCESS) {
@@ -50,7 +50,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     setting = ((IntervalCheck)check).getSetting();
                 }
                 else if (check instanceof IntervalConsumerCheck) {
-                    setting = ((IntervalConsumerCheck<WP>)check).getSetting().apply((Class<WP>) packetContainer.getPacket().getClass());
+                    setting = ((IntervalConsumerCheck)check).getSetting().apply(packetContainer.getType());
                 }
 
                 if (setting == null) {

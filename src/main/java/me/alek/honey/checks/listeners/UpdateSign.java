@@ -1,7 +1,9 @@
 package me.alek.honey.checks.listeners;
 
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.impl.SignA;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -34,6 +36,23 @@ public class UpdateSign extends AbstractPacketListener<WrappedPlayInUpdateSign> 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Play.Client.UPDATE_SIGN);
+    }
+
+    public static class SignA implements PacketCheck<WrappedPlayInUpdateSign> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
+            for (String line : packet.getLines()) {
+                if (line.length() > 49) {
+                    return ResponseBuilder
+                            .inst()
+                            .cancel()
+                            .punish()
+                            .build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
     }
 
 }

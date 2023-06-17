@@ -1,13 +1,19 @@
 package me.alek.honey.checks.listeners;
 
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.impl.EncryptionA;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.ContainerCheck;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -34,5 +40,27 @@ public class EncryptionBegin extends AbstractPacketListener<WrappedLoginInEncryp
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_RESPONSE);
+    }
+
+    public static class EncryptionA implements ContainerCheck<WrappedLoginInEncryptionResponse> {
+
+        @Override
+        public ResponseContainer accept(Player player, PacketContainer<WrappedLoginInEncryptionResponse> packet, CheckContextContainer container) {
+            ChannelPipeline pipeline = packet.getChannel().pipeline();
+            ChannelHandler handler = pipeline.get("packet_handler");
+
+            if (NMSUtils.getNetworkManagerClass().isInstance(handler)) {
+                InetSocketAddress address = NMSUtils.getSocketAddress(handler);
+
+                if (address.getAddress() == null) {
+                    return ResponseBuilder
+                            .inst()
+                            .cancel()
+                            .notify("")
+                            .build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
     }
 }

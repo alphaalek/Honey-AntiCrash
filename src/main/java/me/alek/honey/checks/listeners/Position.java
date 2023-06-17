@@ -1,12 +1,12 @@
 package me.alek.honey.checks.listeners;
 
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.impl.PositionA;
-import me.alek.honey.checks.impl.PositionB;
-import me.alek.honey.checks.impl.PositionC;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
@@ -59,6 +59,82 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
     @Override
     public void cleanup(Player player) {
         lastChunkMap.remove(player.getUniqueId());
+    }
+
+    public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            Map<?, ?> lastChunkMap = container.getMap(0);
+            if (lastChunkMap == null) {
+                return ResponseBuilder.SUCCESS.builder().skip(1).build();
+            }
+            Chunk chunk = packet.getWorld().getChunkAt(packet.getLocation());
+            if (lastChunkMap.get(player.getUniqueId()) == chunk) {
+                return ResponseBuilder.SUCCESS.builder().skip(1).build();
+            }
+            container.putChunk(chunk);
+            try {
+                ((Map<UUID, Chunk>)lastChunkMap).put(player.getUniqueId(), chunk);
+            } catch (Exception ex) {
+                return ResponseBuilder.SUCCESS.builder().skip(1).build();
+            }
+            return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+        }
+
+        @Override
+        public ConfigurationOptions.IntervalSetting getSetting() {
+            return ConfigurationOptions.Velocity.NewChunks.get();
+        }
+    }
+
+    public static class PositionB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            Chunk chunk = container.getChunk(0);
+            if (chunk == null) {
+                return ResponseBuilder.SUCCESS;
+            }
+            if (player.getWorld().isChunkLoaded(chunk) && chunk.isLoaded()) {
+                return ResponseBuilder.SUCCESS;
+            }
+            return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+        }
+
+        @Override
+        public ConfigurationOptions.IntervalSetting getSetting() {
+            return ConfigurationOptions.Velocity.NewUnloadedChunks.get();
+        }
+    }
+
+    public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            if (packet.getLocation().getChunk() == null) {
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .build();
+            }
+            final int distance = Locations.calculate2DDistance(packet.getLocation(), player.getLocation());
+            if (distance > ConfigurationOptions.Velocity.Movement.MAX_2D_DISTANCE) {
+                player.teleport(player.getLocation());
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .flag()
+                        .build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public ConfigurationOptions.IntervalSetting getSetting() {
+            return ConfigurationOptions.Velocity.Movement.get();
+        }
     }
 
 }

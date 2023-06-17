@@ -1,13 +1,19 @@
 package me.alek.honey.checks.listeners;
 
+import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.helper.ItemHelper;
-import me.alek.honey.checks.impl.PayloadA;
-import me.alek.honey.checks.impl.PayloadB;
-import me.alek.honey.checks.impl.PayloadC;
-import me.alek.honey.checks.impl.PayloadD;
+import me.alek.honey.checks.helper.NBTHelper;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -63,12 +69,144 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
         visitor.visit(new PayloadB());
         visitor.visit(new PayloadC());
         visitor.visit(new PayloadD());
+        visitor.visit(new PayloadE());
         return visitor;
     }
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Play.Client.CUSTOM_PAYLOAD);
+    }
+
+    public static class PayloadA implements PacketCheck<WrappedPlayInCustomPayload> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+            ByteBuf serializer = container.getSerializer(0);
+            if (serializer == null || serializer instanceof EmptyByteBuf) {
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+    }
+
+    public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload> {
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+            ByteBuf serializer = container.getSerializer(0);
+            if (serializer == null) {
+                return ResponseBuilder.SUCCESS;
+            }
+            final int refCnt = serializer.refCnt();
+            final int capacity = serializer.capacity();
+
+            if (       capacity > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_CAPACITY
+                    || capacity < ConfigurationOptions.CustomPayload.MIN_BYTEBUF_CAPACITY
+                    || refCnt > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_REFCNT
+                    || refCnt < ConfigurationOptions.CustomPayload.MIN_BYTEBUF_REFCNT
+            ) {
+                serializer.release();
+                ItemStack bukkitItem = container.getItem(0);
+
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .confiscate(bukkitItem)
+                        .build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+    }
+
+    public static class PayloadC implements PacketCheck<WrappedPlayInCustomPayload> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+            ItemStack item = container.getItem(0);
+            ItemStack itemInHand = player.getItemInHand();
+
+            if (!(NBTHelper.checkBukkitNBT(itemInHand) || NBTHelper.checkBukkitNBT(item))) {
+                if (item == null) {
+                    return ResponseBuilder.SUCCESS;
+                }
+                Object tag = NBTHelper.getTag(item);
+                if (tag == null || tag.toString().getBytes().length <= ConfigurationOptions.CustomPayload.MAX_SERIALIZED_ITEM_NBT_LENGTH) {
+                    return ResponseBuilder.SUCCESS;
+                }
+            }
+            ByteBuf serializer = container.getSerializer(0);
+            if (serializer != null && serializer.refCnt() > 0) {
+                serializer.release();
+            }
+            return ResponseBuilder
+                    .inst()
+                    .cancel()
+                    .punish()
+                    .confiscate(item)
+                    .build();
+        }
+    }
+
+    public static class PayloadD implements PacketCheck<WrappedPlayInCustomPayload> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+            String channel = packet.getChannel();
+            ItemStack itemInHand = player.getItemInHand();
+
+            if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
+                if (!channel.isEmpty()) {
+                    return ResponseBuilder.SUCCESS;
+                }
+            }
+            else {
+                if (ItemHelper.isBook(itemInHand)) {
+                    return ResponseBuilder.SUCCESS;
+                }
+            }
+            ByteBuf serializer = container.getSerializer(0);
+            if (serializer != null) {
+                serializer.release();
+            }
+
+            ItemStack bukkitItem = container.getItem(0);
+            return ResponseBuilder
+                    .inst()
+                    .cancel()
+                    .punish()
+                    .confiscate(bukkitItem)
+                    .build();
+        }
+    }
+
+    public static class PayloadE implements PacketCheck<WrappedPlayInCustomPayload> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+            String channel = packet.getChannel();
+            ByteBuf serializer = container.getSerializer(0);
+
+            if (channel.toLowerCase().contains("register")) {
+                int channelSize = player.getListeningPluginChannels().size();
+
+                for (int i = 0; i < serializer.toString(Charsets.UTF_8).split("\000").length; i++) {
+                    if (++channelSize > ConfigurationOptions.CustomPayload.MAX_PLUGIN_CHANNELS) {
+                        serializer.release();
+                        return ResponseBuilder
+                                .inst()
+                                .cancel()
+                                .punish()
+                                .build();
+                    }
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
     }
 
 }

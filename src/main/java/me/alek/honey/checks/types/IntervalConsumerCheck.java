@@ -1,11 +1,12 @@
 package me.alek.honey.checks.types;
 
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.function.Function;
 
-public interface IntervalConsumerCheck<WP extends WrappedPacket<WP>> {
+public interface IntervalConsumerCheck {
 
-    Function<Class<WP>, ConfigurationOptions.IntervalSetting> getSetting();
+    Function<PacketTypeEnum, ConfigurationOptions.IntervalSetting> getSetting();
 }
