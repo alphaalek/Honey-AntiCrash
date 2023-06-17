@@ -1,6 +1,5 @@
 package me.alek.honey.configuration;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -9,17 +8,24 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationOptions {
 
     private static FileConfiguration file;
+    private static List<ConfigurationOptions.IntervalSetting> floodSettings = new ArrayList<>();
 
     public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
     }
 
+    public static List<ConfigurationOptions.IntervalSetting> getFloodSettings() {
+        return floodSettings;
+    }
+
     public static void load() {
+        floodSettings.clear();
         load(ConfigurationOptions.class);
     }
 
@@ -30,8 +36,7 @@ public class ConfigurationOptions {
         if (clazz.isAnnotationPresent(Setting.class)) {
             try {
                 clazz.getDeclaredMethod("load").invoke(null);
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } catch (Exception ignored) {
             }
         }
         if (clazz.isAnnotationPresent(Interval.class)) {
@@ -47,24 +52,30 @@ public class ConfigurationOptions {
         }
     }
 
-    public static void setIntervalBased(Class<?> clazz, String prefixPath) {
+    public static void setIntervalBased(Class<?> clazz, String[] prefixPaths) {
         try {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             IntervalSetting setting = (IntervalSetting) constructor.newInstance();
 
+            if (clazz.isAnnotationPresent(Flood.class)) {
+                floodSettings.add(setting);
+            }
             while (true) {
                 for (Field field : clazz.getDeclaredFields()) {
-                    switch (field.getName()) {
-                        case "MAX_PER_INTERVAL": {
-                            field.set(setting, file.getInt(prefixPath + ".max-per-interval"));
-                            continue;
-                        }
-                        case "INTERVAL": {
-                            field.set(setting, file.getInt(prefixPath + ".interval", 1000));
-                            continue;
-                        }
-                        case "VLS_AMOUNT": {
-                            field.set(setting, file.getInt(prefixPath + ".vls-amount", 1));
+                    for (String prefixPath : prefixPaths) {
+
+                        switch (field.getName()) {
+                            case "MAX_PER_INTERVAL": {
+                                field.set(setting, file.getInt(prefixPath + ".max-per-interval"));
+                                continue;
+                            }
+                            case "INTERVAL": {
+                                field.set(setting, file.getInt(prefixPath + ".interval", 1000));
+                                continue;
+                            }
+                            case "VLS_AMOUNT": {
+                                field.set(setting, file.getInt(prefixPath + ".vls-amount", 1));
+                            }
                         }
                     }
                 }
@@ -85,7 +96,13 @@ public class ConfigurationOptions {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     private @interface Interval {
-        String value();
+        String[] value();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    private @interface Flood {
+
     }
 
     public abstract static class IntervalSetting {
@@ -115,13 +132,17 @@ public class ConfigurationOptions {
     public static class General {
 
         public static int CLEAR_OLD_VIOLATIONS_TIMESTAMP;
-        public static boolean CANCEL_ON_VIOLATION;
         public static String KICK_MESSAGE;
+        public static boolean BYPASS_PERMISSION_ENABLED;
+        public static String BYPASS_PERMISSION;
+        public static String NOTIFY_PERMISSION;
 
         public static void load() {
             CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp");
-            CANCEL_ON_VIOLATION = file.getBoolean("cancel-on-violation");
             KICK_MESSAGE = file.getString("kick-message");
+            BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled");
+            BYPASS_PERMISSION = file.getString("bypass-permission");
+            NOTIFY_PERMISSION = file.getString("notify-permission");
         }
     }
 
@@ -228,14 +249,14 @@ public class ConfigurationOptions {
         public static class NewChunks extends IntervalSetting {
 
             private static NewChunks instance;
+
             public NewChunks() {
                 instance = this;
             }
+
             public static NewChunks get() {
                 return instance;
             }
-
-            public static void load() {}
         }
 
         @Setting
@@ -250,7 +271,6 @@ public class ConfigurationOptions {
                 return instance;
             }
 
-            public static void load() {}
         }
 
         @Setting
@@ -271,7 +291,24 @@ public class ConfigurationOptions {
                 MAX_2D_DISTANCE = file.getInt("velocity.movement.max-2d-distance");
             }
         }
+    }
 
-        public static void load() {}
+    @Setting
+    @Interval("packet-flood")
+    public static class PacketFlood extends IntervalSetting {
+
+        @Flood
+        @Setting
+        @Interval({"packet-flood.arm-animation", "packet-flood"})
+        public static class ArmAnimation extends IntervalSetting {
+
+        }
+
+        @Flood
+        @Setting
+        @Interval({"packet-flood.auto-recipe", "packet-flood"})
+        public static class AutoRecipe extends IntervalSetting {
+
+        }
     }
 }

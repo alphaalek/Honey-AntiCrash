@@ -10,6 +10,6 @@ public class WrappedPlayInChat extends WrappedPacket<WrappedPlayInChat> {
     }
 
     public String getMessage() {
-        return getPacket().getStrings().read(0);
+        return getContainer().getStrings().read(0);
     }
 }

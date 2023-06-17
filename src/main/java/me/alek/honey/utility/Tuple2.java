@@ -12,8 +12,8 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable {
     final T2 t2;
 
     protected Tuple2(T1 t1, T2 t2) {
-        this.t1 = Objects.requireNonNull(t1, "t1");
-        this.t2 = Objects.requireNonNull(t2, "t2");
+        this.t1 = t1;
+        this.t2 = t2;
     }
 
     public T1 getT1() {
@@ -72,8 +72,12 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable {
     @Override
     public int hashCode() {
         int result = size();
-        result = 31 * result + t1.hashCode();
-        result = 31 * result + t2.hashCode();
+        if (t1 != null) {
+            result = 31 * result + t1.hashCode();
+        }
+        if (t2 != null) {
+            result = 31 * result + t2.hashCode();
+        }
         return result;
     }
 

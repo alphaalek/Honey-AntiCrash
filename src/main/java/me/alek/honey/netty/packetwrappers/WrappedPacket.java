@@ -28,7 +28,7 @@ public abstract class WrappedPacket<WP extends WrappedPacket<WP>> {
         return getPlayer().getWorld();
     }
 
-    public PacketContainer<WP> getPacket() {
+    public PacketContainer<WP> getContainer() {
         return packetContainer;
     }
 

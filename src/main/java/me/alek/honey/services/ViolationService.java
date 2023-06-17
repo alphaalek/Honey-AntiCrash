@@ -1,7 +1,7 @@
 package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.Check;
+import me.alek.honey.checks.types.Check;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -13,7 +13,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,6 +38,16 @@ public class ViolationService {
         return violatedMap.get(player.getUniqueId());
     }
 
+    public PacketLimitHandler getLimits(
+            Player player,
+            Check check,
+            PacketTypeEnum packetType,
+            ConfigurationOptions.IntervalSetting setting
+    ) {
+        ViolationContext context = getViolationContext(player);
+        return context.getLimits(new CheckKey(check, packetType), setting);
+    }
+
     public void flag(
             Player player,
             PacketContainer<? extends WrappedPacket<?>> packet,
@@ -46,13 +55,23 @@ public class ViolationService {
             String violationName,
             ConfigurationOptions.IntervalSetting setting
     ) {
-        ViolationContext context = getViolationContext(player);
-        PacketLimitHandler details = context.getLimits(check, packet.getType(), setting);
-        details.flag(packet, violationName);
+        getLimits(player, check, packet.getType(), setting).flag(packet, violationName);
     }
 
-    public void punish(Player player, PacketContainer<?> packet, String violationName) {
-        HoneyPlugin.get().getNotificationService().warn(player, packet, violationName);
+    public void flag(
+            Player player,
+            PacketContainer<? extends WrappedPacket<?>> packet,
+            Check check,
+            Runnable onViolation,
+            String violationName,
+            ConfigurationOptions.IntervalSetting setting
+    ) {
+        getLimits(player, check, packet.getType(), setting).flag(packet, violationName, onViolation);
+    }
+
+    public void punish(Player player, PacketContainer<? extends WrappedPacket<?>> packet, String violationName) {
+        HoneyPlugin.get().getNotificationService()
+                .warn(player, packet, "punished " + player + " for " + violationName);
         removePlayer(player);
         new BukkitRunnable() {
             @Override
@@ -64,15 +83,14 @@ public class ViolationService {
 
     public class ViolationContext {
 
-        private final Map<PacketKeyWrapper, PacketLimitHandler> packetLimitMap = new HashMap<>();
+        private final Map<CheckKey, PacketLimitHandler> packetLimitMap = new HashMap<>();
         private final Player player;
 
         public ViolationContext(Player player) {
             this.player = player;
         }
 
-        public synchronized PacketLimitHandler getLimits(Check check, PacketTypeEnum packetType, ConfigurationOptions.IntervalSetting setting) {
-            final PacketKeyWrapper key = new PacketKeyWrapper(check, packetType);
+        public synchronized PacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.IntervalSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
                 Bukkit.broadcastMessage("creating new entry");
                 packetLimitMap.put(key, new PacketLimitHandler(player, setting));
@@ -85,10 +103,10 @@ public class ViolationService {
         }
     }
 
-    public static class PacketKeyWrapper extends Tuple2<Check, PacketTypeEnum> {
+    private static class CheckKey extends Tuple2<Check, PacketTypeEnum> {
 
-        public PacketKeyWrapper(Check check, PacketTypeEnum packetType) {
-            super(check, packetType);
+        protected CheckKey(Check check, PacketTypeEnum packetTypeEnum) {
+            super(check, packetTypeEnum);
         }
     }
 
@@ -103,6 +121,7 @@ public class ViolationService {
         private long lastViolationClear;
         private int flagged;
         private int violations;
+        private boolean violatedForInterval;
 
         public PacketLimitHandler(Player player, ConfigurationOptions.IntervalSetting setting) {
             this.player = player;
@@ -113,38 +132,52 @@ public class ViolationService {
             lastViolationClear = System.currentTimeMillis();
         }
 
-        public void clearFlags() {
-            flagged = 0;
-            intervalStart = System.currentTimeMillis();
-        }
-
-        public void flag(PacketContainer<? extends WrappedPacket<?>> packet, String violationName) {
+        public void flag(PacketContainer<? extends WrappedPacket<?>> packet, String violationName, Runnable onViolation) {
             if (System.currentTimeMillis() - intervalStart > interval) {
                 Bukkit.broadcastMessage("cleared flags");
-                clearFlags();
+                violatedForInterval = false;
+                flagged = 0;
+                intervalStart = System.currentTimeMillis();
             }
             flagged++;
             Bukkit.broadcastMessage("flagged " + player.getName() + " " + violationName + " " + flagged + "/" + maxPerInterval + ", interval: " + interval);
             if (flagged <= maxPerInterval) {
                 return;
             }
-            violate(packet, violationName);
+            violate(packet, violationName, onViolation);
         }
 
-        public void violate(PacketContainer<? extends WrappedPacket<?>> packet, String violationName) {
+        public void flag(PacketContainer<? extends WrappedPacket<?>> packet, String violationName) {
+            violate(packet, violationName, null);
+        }
+
+        public void violate(PacketContainer<? extends WrappedPacket<?>> packet, String violationName, Runnable onViolation) {
+            if (onViolation != null) {
+                Bukkit.broadcastMessage("run on violation");
+                onViolation.run();
+            }
             if (System.currentTimeMillis() - lastViolationClear > ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
-                Bukkit.broadcastMessage("cleard violations");
+                Bukkit.broadcastMessage("cleared violations");
+                violatedForInterval = false;
                 violations = 0;
                 lastViolationClear = System.currentTimeMillis();
             }
+            if (violatedForInterval) {
+                return;
+            }
             Bukkit.broadcastMessage("violated " + player.getName() + " " + violationName + " " + violations + "/" + vlsAmount + ", interval: " + ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP + ", interval left: " + (System.currentTimeMillis() - ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP));
+            violatedForInterval = true;
             violations++;
-            clearFlags();
-            HoneyPlugin.get().getNotificationService().notify(player, packet, violationName);
+            HoneyPlugin.get().getNotificationService()
+                    .notify(player, packet, violationName);
             if (violations < vlsAmount) {
                 return;
             }
             punish(player, packet, violationName);
+        }
+
+        public void violate(PacketContainer<? extends WrappedPacket<?>> packet, String violationName) {
+            violate(packet, violationName, null);
         }
 
         public Player getPlayer() {

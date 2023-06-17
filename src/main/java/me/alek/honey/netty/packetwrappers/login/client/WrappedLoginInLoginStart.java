@@ -11,6 +11,6 @@ public class WrappedLoginInLoginStart extends WrappedPacket<WrappedLoginInLoginS
     }
 
     public GameProfile getProfile() {
-        return getPacket().getObjects(GameProfile.class).read(0);
+        return getContainer().getObjects(GameProfile.class).read(0);
     }
 }

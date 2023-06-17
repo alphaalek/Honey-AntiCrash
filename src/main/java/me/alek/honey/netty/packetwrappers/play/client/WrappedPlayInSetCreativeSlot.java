@@ -11,10 +11,10 @@ public class WrappedPlayInSetCreativeSlot extends WrappedPacket<WrappedPlayInSet
     }
 
     public ItemStack getItem() {
-        return getPacket().getItems().read(0);
+        return getContainer().getItems().read(0);
     }
 
     public int getSlot() {
-        return getPacket().getInts().read(0);
+        return getContainer().getInts().read(0);
     }
 }

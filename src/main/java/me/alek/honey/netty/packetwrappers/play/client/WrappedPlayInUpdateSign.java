@@ -32,9 +32,9 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
 
     public String[] getLines() {
         if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9)) {
-            return getPacket().getStringArrays().read(0);
+            return getContainer().getStringArrays().read(0);
         }
-        Object[] chatBaseComponentArray = (Object[]) getPacket().getObjects(iChatBaseComponentArrayClass).read(0);
+        Object[] chatBaseComponentArray = (Object[]) getContainer().getObjects(iChatBaseComponentArrayClass).read(0);
         String[] lines = new String[4];
         for (int i = 0; i < 4; i++) {
             lines[i] = (String) formatter.invoke(null, textComponentGetter.invoke(chatBaseComponentArray[i]));

@@ -23,38 +23,38 @@ public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends Wra
         if (location != null) {
             return location.getX();
         }
-        return getPacket().getDoubles().read(0);
+        return getContainer().getDoubles().read(0);
     }
 
     public double getY() {
         if (location != null) {
             return location.getY();
         }
-        return getPacket().getDoubles().read(1);
+        return getContainer().getDoubles().read(1);
     }
 
     public double getZ() {
         if (location != null) {
             return location.getZ();
         }
-        return getPacket().getDoubles().read(2);
+        return getContainer().getDoubles().read(2);
     }
 
     public float getYaw() {
         if (location != null) {
             return location.getYaw();
         }
-        return getPacket().getFloats().read(0);
+        return getContainer().getFloats().read(0);
     }
 
     public float getPitch() {
         if (location != null) {
             return location.getPitch();
         }
-        return getPacket().getFloats().read(1);
+        return getContainer().getFloats().read(1);
     }
 
     public boolean onGround() {
-        return getPacket().getBooleans().read(0);
+        return getContainer().getBooleans().read(0);
     }
 }

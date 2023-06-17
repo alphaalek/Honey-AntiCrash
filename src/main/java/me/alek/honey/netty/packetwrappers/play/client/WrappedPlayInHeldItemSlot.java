@@ -10,6 +10,6 @@ public class WrappedPlayInHeldItemSlot extends WrappedPacket<WrappedPlayInHeldIt
     }
 
     public int getSlot() {
-        return getPacket().getInts().read(0);
+        return getContainer().getInts().read(0);
     }
 }

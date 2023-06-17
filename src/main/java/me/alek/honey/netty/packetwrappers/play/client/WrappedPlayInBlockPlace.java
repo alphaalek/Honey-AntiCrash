@@ -13,15 +13,15 @@ public class WrappedPlayInBlockPlace extends WrappedPacket<WrappedPlayInBlockPla
     }
 
     public ItemStack getItem() {
-       return getPacket().getItems().read(0);
+       return getContainer().getItems().read(0);
     }
 
     public WrappedBlockPosition getBlockPosition() {
-        return getPacket().getBlockPositions().read(1);
+        return getContainer().getBlockPositions().read(1);
     }
 
     public long getTimestamp() {
-        return getPacket().getLongs().read(0);
+        return getContainer().getLongs().read(0);
     }
 
 }

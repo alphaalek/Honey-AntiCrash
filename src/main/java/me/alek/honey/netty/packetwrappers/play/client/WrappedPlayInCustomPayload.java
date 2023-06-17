@@ -19,17 +19,17 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
     }
 
     public Object getDataSerializer() {
-        return getPacket().getDataSerializers().read(0);
+        return getContainer().getDataSerializers().read(0);
     }
 
     public Object getMinecraftKey() {
         if (MODERN) {
-            return getPacket().getObjects(MINECRAFT_KEY_CLASS).read(0);
+            return getContainer().getObjects(MINECRAFT_KEY_CLASS).read(0);
         }
-        return getPacket().getStrings().read(0);
+        return getContainer().getStrings().read(0);
     }
 
-    public String getKeyString() {
+    public String getChannel() {
         return getMinecraftKey().toString();
     }
 

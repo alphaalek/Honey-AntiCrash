@@ -1,11 +1,12 @@
 
 # general
-cancel-on-violation: true
 kick-message: "Du sender mistænksomme packets! :-("
 clear-old-violations-timestamp: 300000 # 5 minutter
 
-bypass-permission-enabled: true
+bypass-permission-enabled: false
 bypass-permission: honey.bypass
+
+notify-permission: honey.notify
 
 #
 # interval er det gældende interval. det er i millisekunder, det vil sige 1000 ms hvert sekund, 60000 ms hvert minut, og så videre
@@ -15,9 +16,68 @@ bypass-permission: honey.bypass
 # derfor giver det ikke mening at have interval, hvis man ikke bruger max-per-interval
 #
 # vls-amount er hvor mange gange vedkommende må blive violated, før vedkommende bliver kicket. gamle violations bliver
-# automatisk ryddet, du kan ændre det ovenover. den er normalt på 5 minutter
+# automatisk ryddet, du kan ændre hvor typisk ovenover. den er normalt på 5 minutter
 # hvis vls-amount ikke er sat, vil man automatisk blive kicket når man bliver violated (tilsvarende hvis den var på 1)
 #
+
+# netty
+netty:
+  max-bytes-per-packet: 12500
+  block-heavy-compressed: true
+
+# nbt
+nbt:
+  # de forskellige limits på nbt length er målt i længden af bytes
+
+  max-nbt-length: 4000
+
+  max-firework-nbt-length: 1500
+  max-firework-charge-nbt-length: 1500
+
+  max-book-nbt-length: 6000
+  max-book-pages: 100
+  max-book-page-length: 300
+
+  max-chest-data: 262144 #2^18
+
+  max-nbt-bases: 175
+  max-nbt-nesting: 5
+
+  check-illegal-skull-textures: true
+
+# velocity
+velocity:
+  new-chunks:
+    max-per-interval: 45
+    interval: 2500 # 2,5 sekunder
+  new-unloaded-chunks:
+    max-per-interval: 20
+    interval: 5000 # 5 sekunder
+  movement:
+    # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
+    max-2d-distance: 10
+    vls-amount: 5
+
+# custom payload
+custom-payload:
+  min-bytebuf-capactiy: 5
+  # normalt ikke nødvendigt, da de andre checks vil sørge for alt for store NBT tags,
+  # men det kan være en ekstra beskyttelse der sørger for størrelsen på bytebuffers sendt
+  # med packet serializeren
+  max-bytebuf-capacity: 10000
+
+  # hvor mange references der er til den bytebuffer instance
+  min-bytebuf-refcnt: 1
+  max-bytebuf-refcnt: 15
+
+  max-serialized-item-nbt-length: 6000
+  max-plugin-channels: 105
+
+# block placement
+block-place:
+  # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
+  max-block-to-player-distance: 12
+  vls-amount: 5
 
 # commands
 commands:
@@ -35,60 +95,7 @@ commands:
     - "//solve"
     - "//eval"
 
-# nbt
-nbt:
-  # de forskellige limits på nbt length er målt i længden af bytes
-
-  max-nbt-length: 4000
-
-  max-firework-nbt-length: 1500
-  max-firework-charge-nbt-length: 1500
-
-  max-book-nbt-length: 6000
-  max-book-pages: 100
-  max-book-page-length: 320
-
-  max-chest-data: 262144 #2^18
-
-  max-nbt-bases: 175
-  max-nbt-nesting: 5
-
-  check-illegal-skull-textures: true
-
-# velocity (ikke velocity proxy..!)
-velocity:
-  new-chunks:
-    max-per-interval: 45
-    interval: 2500 # 2,5 sekunder
-  new-unloaded-chunks:
-    max-per-interval: 25
-    interval: 5000 # 5 sekunder
-  movement:
-    # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-2d-distance: 10
-    vls-amount: 5
-
-# custom payload
-custom-payload:
-  min-bytebuf-capactiy: 5
-  # normalt ikke nødvendigt, da de andre checks vil sørge for alt for store NBT tags,
-  # men det kan være en ekstra beskyttelse der sørger for størrelsen på bytebuffers sendt
-  # med packet serializeren
-  max-bytebuf-capacity: 15000
-
-  # hvor mange references der er til den bytebuffer instance
-  min-bytebuf-refcnt: 1
-  max-bytebuf-refcnt: 15
-
-  max-serialized-item-nbt-length: 6000
-  max-plugin-channels: 105
-
-# block placement
-block-place:
-  # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
-  max-block-to-player-distance: 12
-  vls-amount: 5
-
+# flood
 packet-flood:
   vls-amount: 10
 

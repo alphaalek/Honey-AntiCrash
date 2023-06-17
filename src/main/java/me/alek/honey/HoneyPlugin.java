@@ -1,8 +1,8 @@
 package me.alek.honey;
 
-import me.alek.honey.checks.Check;
-import me.alek.honey.checks.CheckRegistry;
-import me.alek.honey.checks.PacketCheck;
+import me.alek.honey.checks.IListener;
+import me.alek.honey.checks.ListenerRegistry;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
@@ -52,10 +52,10 @@ public class HoneyPlugin extends JavaPlugin {
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
-        for (Check check : CheckRegistry.getChecks()) {
+        for (IListener check : ListenerRegistry.getChecks()) {
 
-            if (check instanceof PacketCheck && check instanceof AsyncPacketAdapter) {
-                PacketLibrary.get().addListeners((AsyncPacketAdapter<WP>) check, ((PacketCheck)check).getPacketTypes());
+            if (check instanceof IPacketListener && check instanceof AsyncPacketAdapter) {
+                PacketLibrary.get().addListeners((AsyncPacketAdapter<WP>) check, ((IPacketListener)check).getPacketTypes());
                 check.load();
                 continue;
             }
@@ -64,7 +64,7 @@ public class HoneyPlugin extends JavaPlugin {
     }
 
     public void reload() {
-        for (Check check : CheckRegistry.getChecks()) {
+        for (IListener check : ListenerRegistry.getChecks()) {
             check.load();
         }
 
