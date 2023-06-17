@@ -4,7 +4,7 @@ import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.helper.NBTHelper;
+import me.alek.honey.helper.NBTHelper;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalCheck;

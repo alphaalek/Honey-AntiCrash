@@ -1,4 +1,4 @@
-package me.alek.honey.checks.helper;
+package me.alek.honey.helper;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;

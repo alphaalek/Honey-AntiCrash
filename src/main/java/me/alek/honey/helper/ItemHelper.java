@@ -1,9 +1,8 @@
-package me.alek.honey.checks.helper;
+package me.alek.honey.helper;
 
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

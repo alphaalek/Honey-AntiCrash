@@ -1,6 +1,4 @@
-package me.alek.honey.checks.helper.converters;
-
-import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
+package me.alek.honey.netty.packet.structure.converters;
 
 public interface TwinConverter<T, C> {
 

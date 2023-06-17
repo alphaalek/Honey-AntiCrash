@@ -1,14 +1,13 @@
-package me.alek.honey.checks.helper.converters;
+package me.alek.honey.netty.packet.structure.converters;
 
-import me.alek.honey.checks.helper.ItemHelper;
-import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.helper.ItemHelper;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
-import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;

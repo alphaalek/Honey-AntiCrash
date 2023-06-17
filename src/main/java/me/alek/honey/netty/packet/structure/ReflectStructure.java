@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet.structure;
 
-import me.alek.honey.checks.helper.converters.TwinConverter;
+import me.alek.honey.netty.packet.structure.converters.TwinConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.api.packet.IStructureModifier;

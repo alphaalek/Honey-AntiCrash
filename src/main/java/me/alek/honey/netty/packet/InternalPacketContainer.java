@@ -1,9 +1,9 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
-import me.alek.honey.checks.helper.converters.Converters;
-import me.alek.honey.checks.helper.converters.TwinConverter;
-import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.netty.packet.structure.converters.Converters;
+import me.alek.honey.netty.packet.structure.converters.TwinConverter;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.cache.PacketWrapperCache;

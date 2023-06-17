@@ -1,6 +1,5 @@
 package me.alek.honey.netty.packet.structure;
 
-import me.alek.honey.checks.helper.wrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 

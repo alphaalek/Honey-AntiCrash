@@ -1,6 +1,5 @@
-package me.alek.honey.checks.helper.wrappers.models;
+package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.checks.helper.wrappers.WrappedObject;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;

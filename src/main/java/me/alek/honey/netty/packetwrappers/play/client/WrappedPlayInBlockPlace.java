@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import me.alek.honey.checks.helper.wrappers.models.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
