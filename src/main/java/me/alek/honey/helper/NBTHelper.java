@@ -474,7 +474,7 @@ public class NBTHelper {
     }
 
     public static boolean checkContainer(ItemStack item) {
-        return item.hasItemMeta() && item.toString().getBytes().length > ConfigurationOptions.NBT.MAX_CHEST_DATA;
+        return item.hasItemMeta() && item.toString().getBytes().length > ConfigurationOptions.Items.MAX_CHEST_DATA;
     }
 
     public static void clearBookTags(ItemStack item) {

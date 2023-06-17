@@ -54,6 +54,26 @@ public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends Wra
         return getContainer().getFloats().read(1);
     }
 
+    public void setX(double x) {
+        getContainer().getDoubles().write(0, x);
+    }
+
+    public void setY(double y) {
+        getContainer().getDoubles().write(1, y);
+    }
+
+    public void setZ(double z) {
+        getContainer().getDoubles().write(2, z);
+    }
+
+    public void setYaw(float yaw) {
+        getContainer().getFloats().write(0, yaw);
+    }
+
+    public void setPitch(float pitch) {
+        getContainer().getFloats().write(1, pitch);
+    }
+
     public boolean onGround() {
         return getContainer().getBooleans().read(0);
     }

@@ -42,7 +42,7 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.isCancelled()) {
-            Bukkit.broadcastMessage("cancelled " + packet);
+            Bukkit.getLogger().info("cancelled");
             return;
         }
         super.channelRead(ctx, packetContainer.getHandle());
@@ -61,7 +61,6 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.isCancelled()) {
-            Bukkit.broadcastMessage("cancelled " + packet);
             return;
         }
         if (packetContainer.getPost() != null) {

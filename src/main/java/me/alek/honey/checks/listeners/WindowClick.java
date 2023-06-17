@@ -49,7 +49,7 @@ public class WindowClick extends AbstractPacketListener<WrappedPlayInWindowClick
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             int slot = packet.getWindowSlot();
-            if (slot > 103 || (slot < -1 && slot != -999)) {
+            if (player.getOpenInventory() == null || slot > player.getOpenInventory().countSlots() || (slot < -1 && slot != -999)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()

@@ -4,6 +4,7 @@ import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.configuration.Configuration;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
@@ -11,6 +12,7 @@ import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ConfiscationService;
+import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Bukkit;
@@ -23,6 +25,7 @@ public class HoneyPlugin extends JavaPlugin {
     private ViolationService violationService;
     private NotificationService notificationService;
     private ConfiscationService confiscationService;
+    private LoggerService loggerService;
     private Configuration configuration;
     private boolean isRunning;
     private PacketLibrary packetLibrary;
@@ -35,6 +38,8 @@ public class HoneyPlugin extends JavaPlugin {
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "alek_packets"));
 
         configuration = new DedicatedConfiguration();
+
+        loggerService = new LoggerService();
         violationService = new ViolationService();
         notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
@@ -64,11 +69,12 @@ public class HoneyPlugin extends JavaPlugin {
     }
 
     public void reload() {
+        configuration.reload();
         for (IListener check : ListenerRegistry.getChecks()) {
             check.load();
         }
-
-        // idk
+        violationService.reload();
+        loggerService.reload();
     }
 
     public static HoneyPlugin get() {
@@ -89,6 +95,10 @@ public class HoneyPlugin extends JavaPlugin {
 
     public ConfiscationService getConfiscationService() {
         return confiscationService;
+    }
+
+    public LoggerService getLoggerService() {
+        return loggerService;
     }
 
     public Configuration getConfiguration() {

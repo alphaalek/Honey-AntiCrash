@@ -1,6 +1,7 @@
 package me.alek.honey.checks;
 
 import io.netty.buffer.ByteBuf;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.inventory.ItemStack;
 
@@ -9,10 +10,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CheckContextContainer {
 
-    private final Map<Class<?>, ContainerStructure<?>> map = new HashMap<>();
+    private final Map<Class<?>, ContainerStructure<?>> map = new ConcurrentHashMap<>();
 
     public void putSerializer(ByteBuf serializer) {
         putValue(ByteBuf.class, serializer);
@@ -47,12 +49,22 @@ public class CheckContextContainer {
         return getValue(Chunk.class, index);
     }
 
-    public <T> void putValue(Class<T> clazz, T value) {
-        getStructure(clazz).add(value);
+    public synchronized <T> void putValue(Class<T> clazz, T value) {
+        ContainerStructure<T> structure = getStructure(clazz);
+        if (structure == null) {
+            map.put(clazz, new ContainerStructure<>());
+            putValue(clazz, value);
+            return;
+        }
+        structure.add(value);
     }
 
-    public <T> T getValue(Class<T> clazz, int index) {
-        return getStructure(clazz).get(index);
+    public synchronized <T> T getValue(Class<T> clazz, int index) {
+        ContainerStructure<T> structure = getStructure(clazz);
+        if (structure != null) {
+            return structure.get(index);
+        }
+        return null;
     }
 
     public <T> ContainerStructure<T> getStructure(Class<T> clazz) {

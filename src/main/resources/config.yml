@@ -1,12 +1,27 @@
 
 # general
-kick-message: "Du sender mistænksomme packets! :-("
+kick-message: "§cDu sender dårlige packets! :-("
 clear-old-violations-timestamp: 300000 # 5 minutter
 
 bypass-permission-enabled: false
 bypass-permission: honey.bypass
 
 notify-permission: honey.notify
+
+# packet logger
+packet-logger:
+  enabled: true
+  console: true # skal det logges i console også, eller kun i filer
+
+  ignored-players:
+    #- Alek05
+
+  ignored-packets:
+    - "PacketPlayInFlying"
+    - "PacketPlayInKeepAlive"
+
+  detailed: false # viser attributes for hver packet
+  truncate-old-logs: true # fjerner gamle logs ved server start
 
 #
 # interval er det gældende interval. det er i millisekunder, det vil sige 1000 ms hvert sekund, 60000 ms hvert minut, og så videre
@@ -24,11 +39,11 @@ notify-permission: honey.notify
 netty:
   max-bytes-per-packet: 12500
   block-heavy-compressed: true
+  packets-per-second: 500
 
 # nbt
 nbt:
   # de forskellige limits på nbt length er målt i længden af bytes
-
   max-nbt-length: 4000
 
   max-firework-nbt-length: 1500
@@ -38,12 +53,20 @@ nbt:
   max-book-pages: 100
   max-book-page-length: 300
 
-  max-chest-data: 262144 #2^18
-
-  max-nbt-bases: 175
+  max-nbt-bases: 150
   max-nbt-nesting: 5
 
   check-illegal-skull-textures: true
+
+# items
+items:
+  max-chest-data: 250000
+
+  max-enchantment-level: 100
+  max-amount: 64
+
+  max-displayname-length: 200
+  max-total-lore-length: 2000 # summen af længderne på alle lores af et item
 
 # velocity
 velocity:
@@ -57,6 +80,12 @@ velocity:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
     max-2d-distance: 10
     vls-amount: 5
+  height:
+    enabled: true
+    max-height: 2048 # blokerer position packets til serveren hvis y > 2048
+  yaw:
+    max-yaw: 50000 # begynder at omregne yaw til en værdi i mellem 0 - 360
+    min-yaw: -50000
 
 # custom payload
 custom-payload:
@@ -76,7 +105,7 @@ custom-payload:
 # block placement
 block-place:
   # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
-  max-block-to-player-distance: 12
+  max-block-to-player-distance: 10
   vls-amount: 5
 
 # commands
@@ -97,67 +126,153 @@ commands:
 
 # flood
 packet-flood:
-  vls-amount: 10
 
-  # arm animation
-  arm-animation:
-    max-per-interval: 30
+  # common
+  common:
+    max-per-interval: 150
+    interval: 1000
+    vls-amount: 1
+
+  # total
+  total:
+    max-per-interval: 500
+    intervaL: 1000
+    vls-amount: 1
+
+  # specifics
+  specific:
+    # fælles indstillinger, hvis du vil have andre skal du ændre det i de forskellige packets
+    # packet indstillinger er højere prioritet end fælles indstillinger
+    vls-amount: 5
     interval: 1000
 
-  # auto recipe
-  auto-recipe:
-    max-per-interval: 15
-    interval: 1000
+    # abilities
+    abilities:
+      max-per-interval: 20
 
-  # block dig
-  block-dig:
-    max-per-interval: 60
-    interval: 500
+    # arm animation
+    arm-animation:
+      max-per-interval: 45
+      interval: 600
 
-  # block place
-  block-place:
-    max-per-interval: 14
-    interval: 100
+    # auto recipe
+    auto-recipe:
+      max-per-interval: 15
+      vls-amount: 4
 
-  # client command - OBS: ikke en chat command
-  client-command:
-    max-per-interval: 5
-    interval: 500
+    # block dig
+    block-dig:
+      max-per-interval: 45
+      interval: 600
+      vls-amount: 7
 
-  # chat
-  chat:
-    max-per-interval: 5
-    interval: 500
+    # block place
+    block-place:
+      max-per-interval: 45
+      interval: 600
+      vls-amount: 7
 
-  # set creative slot
-  set-creative-slot:
-    max-per-interval: 50
-    interval: 1000
+    # chat
+    chat:
+      max-per-interval: 9
+      interval: 500
+      vls-amount: 6
 
-  # position
-  position:
-    max-per-interval: 20
-    interval: 100
+    # client command - OBS: ikke en chat command
+    client-command:
+      max-per-interval: 5
+      interval: 500
 
-  # use item
-  use-item:
-    max-per-interval: 60
-    interval: 1000
+    # close window
+    close-window:
+      max-per-interval: 15
+      interval: 700
 
-  # use entity
-  use-entity:
-    max-per-interval: 40
-    interval: 1000
+    # custom payload
+    custom-payload:
+      max-per-interval: 35
+      vls-amount: 4
 
-  # tab complete
-  tab-complete:
-    max-per-interval: 40
-    interval: 1000
+    # enchant item
+    enchant-item:
+      max-per-interval: 20
 
-  # window click
-  window-click:
-    max-per-interval: 55
-    interval: 100
+    # entity actione
+    entity-action:
+      max-per-interval: 40
+      interval: 600
+
+    # flying
+    flying:
+      max-per-interval: 100
+      vls-amount: 10
+
+    # held item slot
+    held-item-slot:
+      max-per-interval: 22
+      interval: 700
+
+    # keep alive
+    keep-alive:
+      max-per-interval: 20
+      vls-amount: 10
+
+    # look
+    look:
+      max-per-interval: 40
+      interval: 700
+      vls-amount: 10
+
+    # position
+    position:
+      max-per-interval: 40
+      interval: 500
+      vls-amount: 7
+
+    # set creative slot
+    set-creative-slot:
+      max-per-interval: 55
+
+    # settings
+    settings:
+      max-per-interval: 40
+      interval: 400
+
+    # spectate
+    spectate:
+      max-per-interval: 15
+
+    # steer vehicle
+    steer-vehicle:
+      max-per-interval: 90
+
+    # tab complete
+    tab-complete:
+      max-per-interval: 40
+
+    # update sign
+    update-sign:
+      max-per-interval: 5
+      vls-amount: 4
+
+    # use item
+    use-item:
+      max-per-interval: 45
+      interval: 600
+
+    # use entity
+    use-entity:
+      max-per-interval: 45
+      interval: 600
+
+    # window click
+    window-click:
+      max-per-interval: 65
+      interval: 600
+      vls-amount: 8
+
+
+
 
 
 

@@ -21,6 +21,7 @@ import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -53,7 +54,6 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
 
         container.putSerializer(priorSerializer);
         container.putItem(bukkitItem);
-
         return true;
     }
 
@@ -88,6 +88,7 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                         .inst()
                         .cancel()
                         .punish()
+                        .terminate()
                         .build();
             }
             return ResponseBuilder.SUCCESS;
@@ -117,6 +118,7 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                         .cancel()
                         .punish()
                         .confiscate(bukkitItem)
+                        .terminate()
                         .build();
             }
             return ResponseBuilder.SUCCESS;
@@ -148,6 +150,7 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                     .cancel()
                     .punish()
                     .confiscate(item)
+                    .terminate()
                     .build();
         }
     }
@@ -159,12 +162,10 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
             String channel = packet.getChannel();
             ItemStack itemInHand = player.getItemInHand();
 
-            if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
-                if (!channel.isEmpty()) {
+            if (!channel.isEmpty()) {
+                if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
                     return ResponseBuilder.SUCCESS;
                 }
-            }
-            else {
                 if (ItemHelper.isBook(itemInHand)) {
                     return ResponseBuilder.SUCCESS;
                 }
@@ -173,13 +174,13 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
             if (serializer != null) {
                 serializer.release();
             }
-
             ItemStack bukkitItem = container.getItem(0);
             return ResponseBuilder
                     .inst()
                     .cancel()
                     .punish()
                     .confiscate(bukkitItem)
+                    .terminate()
                     .build();
         }
     }
@@ -201,6 +202,7 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                                 .inst()
                                 .cancel()
                                 .punish()
+                                .terminate()
                                 .build();
                     }
                 }

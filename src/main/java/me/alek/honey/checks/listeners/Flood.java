@@ -21,11 +21,11 @@ import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
-
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
@@ -75,7 +75,7 @@ public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
                 return ResponseBuilder
                         .inst()
                         .cancel()
-                        .notify("FloodB")
+                        .notify("")
                         .terminate()
                         .build();
             }
@@ -86,7 +86,6 @@ public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
     public static class FloodB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, IntervalConsumerCheck {
 
         private final Map<PacketTypeEnum, ConfigurationOptions.IntervalSetting> settingMap = new HashMap<>();
-        private Function<PacketTypeEnum, ConfigurationOptions.IntervalSetting> settingFunction;
 
         public FloodB() {
             settingMap.putAll(ConfigurationOptions.getFloodSettings());
@@ -98,11 +97,8 @@ public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
         }
 
         @Override
-        public Function<PacketTypeEnum, ConfigurationOptions.IntervalSetting> getSetting() {
-            if (settingFunction == null) {
-                settingFunction = settingMap::get;
-            }
-            return settingFunction;
+        public ConfigurationOptions.IntervalSetting getSetting(PacketTypeEnum packetType) {
+            return settingMap.get(packetType);
         }
     }
 

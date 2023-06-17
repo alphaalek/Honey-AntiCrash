@@ -53,6 +53,8 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
         visitor.visit(new PositionA<>());
         visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
+        visitor.visit(new PositionD<>());
+        visitor.visit(new PositionE<>());
         return visitor;
     }
 
@@ -137,4 +139,34 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
         }
     }
 
+    public static class PositionD<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            if (ConfigurationOptions.Velocity.Height.ENABLED) {
+
+                if (packet.getLocation().getY() > ConfigurationOptions.Velocity.Height.MAX_HEIGHT) {
+                    return ResponseBuilder
+                            .inst()
+                            .cancel()
+                            .build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+    }
+
+    public static class PositionE<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            if (packet.getYaw() > ConfigurationOptions.Velocity.Yaw.MAX_YAW && ConfigurationOptions.Velocity.Yaw.MAX_YAW > 360) {
+                packet.setYaw(packet.getYaw() % 360);
+            }
+            else if (packet.getYaw() < ConfigurationOptions.Velocity.Yaw.MIN_YAW && ConfigurationOptions.Velocity.Yaw.MIN_YAW < -360) {
+                packet.setYaw(360 - (Math.max(packet.getYaw(), packet.getYaw() * (-1)) % 360));
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+    }
 }

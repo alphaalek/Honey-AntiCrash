@@ -7,16 +7,21 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class DedicatedConfiguration implements Configuration {
 
-    private final FileConfiguration configuration;
-
     public DedicatedConfiguration() {
         HoneyPlugin.get().saveDefaultConfig();
-        this.configuration = HoneyPlugin.get().getConfig();
+        loadFile();
+    }
 
+    public void loadFile() {
+        FileConfiguration configuration = HoneyPlugin.get().getConfig();
         ConfigurationOptions.setFile(configuration);
 
-        Bukkit.getLogger().info(HoneyPlugin.get().getConfig().getInt("block-place.vls-amount") + "");
         ConfigurationOptions.load();
+    }
+
+    public void reload() {
+        HoneyPlugin.get().reloadConfig();
+        loadFile();
     }
 
 }
