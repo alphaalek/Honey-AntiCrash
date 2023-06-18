@@ -75,7 +75,7 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
                 return ResponseBuilder.SUCCESS;
             }
             String label = message.split(" ")[0].substring(1);
-            if (((CraftServer) Bukkit.getServer()).getCommandMap().getCommand(label) == null) {
+            if (((CraftServer) Bukkit.getServer()).getCommandMap().getCommand(label) == null && !message.startsWith("//")) {
                 return ResponseBuilder.SUCCESS;
             }
             for (String prohibitedCommand : ConfigurationOptions.Commands.PROHIBITED_COMMANDS) {

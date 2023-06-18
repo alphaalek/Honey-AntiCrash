@@ -24,4 +24,25 @@ public class WrappedPlayInBlockPlace extends WrappedPacket<WrappedPlayInBlockPla
         return getContainer().getLongs().read(0);
     }
 
+    // < 1.9
+    public int getPlacedBlockDirection() {
+        return getContainer().getInts().read(0);
+    }
+
+    // < 1.9
+    public float getFacingX() {
+        return getContainer().getFloats().read(0);
+    }
+
+    // < 1.9
+    public float getFacingY() {
+        return getContainer().getFloats().read(1);
+    }
+
+    // < 1.9
+    public float getFacingZ() {
+        return getContainer().getFloats().read(2);
+    }
+
+
 }

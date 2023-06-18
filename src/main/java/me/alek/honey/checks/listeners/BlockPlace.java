@@ -16,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -41,10 +42,11 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
     public CheckVisitor<WrappedPlayInBlockPlace> getVisitor() {
         CheckVisitor<WrappedPlayInBlockPlace> visitor = new CheckVisitor<>();
         visitor.visit(new PlaceA());
-        if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
-            visitor.visit(new PlaceB());
-        }
+        visitor.visit(new PlaceB());
         visitor.visit(new PlaceC());
+        if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
+            visitor.visit(new PlaceD());
+        }
         return visitor;
     }
 
@@ -85,11 +87,12 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
             ItemStack item = packet.getItem();
             ItemStack itemInHand = player.getItemInHand();
 
-            if (item.getType() != itemInHand.getType()) {
+            if (NBTHelper.checkBukkitNBT(item) || NBTHelper.checkBukkitNBT(itemInHand)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()
                         .punish()
+                        .confiscate(item)
                         .build();
             }
             return ResponseBuilder.SUCCESS;
@@ -101,17 +104,45 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             ItemStack item = packet.getItem();
-            ItemStack itemInHand = player.getItemInHand();
-
-            if (NBTHelper.checkBukkitNBT(item) || NBTHelper.checkBukkitNBT(itemInHand)) {
+            if (item == null) {
+                return ResponseBuilder.SUCCESS;
+            }
+            Material material = item.getType();
+            if (material == Material.PISTON_MOVING_PIECE || material == Material.PISTON_EXTENSION) {
                 return ResponseBuilder
                         .inst()
                         .cancel()
                         .punish()
-                        .confiscate(item)
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+    }
+
+    public static class PlaceD implements PacketCheck<WrappedPlayInBlockPlace> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+            final int placedBlockDirection = packet.getPlacedBlockDirection();
+            final float facingX = packet.getFacingX();
+            final float facingY = packet.getFacingY();
+            final float facingZ = packet.getFacingZ();
+
+            if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
+                return violate();
+            }
+            if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
+                return violate();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        private ResponseContainer violate() {
+            return ResponseBuilder
+                    .inst()
+                    .cancel()
+                    .punish()
+                    .build();
         }
     }
 }

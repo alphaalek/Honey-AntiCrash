@@ -102,13 +102,8 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
             if (serializer == null) {
                 return ResponseBuilder.SUCCESS;
             }
-            final int refCnt = serializer.refCnt();
-            final int capacity = serializer.capacity();
-
-            if (       capacity > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_CAPACITY
-                    || capacity < ConfigurationOptions.CustomPayload.MIN_BYTEBUF_CAPACITY
-                    || refCnt > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_REFCNT
-                    || refCnt < ConfigurationOptions.CustomPayload.MIN_BYTEBUF_REFCNT
+            if (       serializer.capacity() > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_CAPACITY
+                    || serializer.readableBytes() > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_SIZE
             ) {
                 serializer.release();
                 ItemStack bukkitItem = container.getItem(0);
@@ -190,6 +185,12 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             String channel = packet.getChannel();
+            if (channel == null) {
+                return ResponseBuilder.SUCCESS; // burde aldrig ske, fordi PayloadD vil terminate visitor hvis channel er empty
+            }
+            if (channel.equals("BungeeCord")) {
+                return ResponseBuilder.SUCCESS; // ingen grund til at tjekke for BungeeCord plugin channels
+            }
             ByteBuf serializer = container.getSerializer(0);
 
             if (channel.toLowerCase().contains("register")) {

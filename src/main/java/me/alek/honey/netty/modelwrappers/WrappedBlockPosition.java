@@ -2,6 +2,7 @@ package me.alek.honey.netty.modelwrappers;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import java.io.Serializable;
@@ -59,6 +60,9 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public double distance(double x, double y, double z) {
+        if (me.alek.honey.utility.NumberConversions.isInvalid(new double[]{x, y, z})) {
+            return 1000000;
+        }
         double deltaX = Math.abs(this.x - x);
         double deltaY = Math.abs(this.y - y);
         double deltaZ = Math.abs(this.z - z);

@@ -12,7 +12,9 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
@@ -49,7 +51,12 @@ public class WindowClick extends AbstractPacketListener<WrappedPlayInWindowClick
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             int slot = packet.getWindowSlot();
-            if (player.getOpenInventory() == null || slot > player.getOpenInventory().countSlots() || (slot < -1 && slot != -999)) {
+
+            int inventorySlots = player.getOpenInventory().countSlots();
+            if (player.getOpenInventory().getType() == InventoryType.CRAFTING) {
+                inventorySlots += 4; // armor slots
+            }
+            if (player.getOpenInventory() == null || slot > inventorySlots || (slot < -1 && slot != -999)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()

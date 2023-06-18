@@ -21,7 +21,7 @@ public class Locations {
         final double x2 = loc2.getX();
         final double z2 = loc2.getZ();
 
-        if (NumberConversions.isInvalid(x1) || NumberConversions.isInvalid(z1) || NumberConversions.isInvalid(x2) || NumberConversions.isInfinite(z2)) {
+        if (NumberConversions.isInvalid(new double[]{x1, z1, x2, z2})) {
             return 1000000;
         }
         final double deltaX = Math.abs(x1 - x2);

@@ -52,6 +52,9 @@ public class ViolationService {
         if (player == null) {
             return false;
         }
+        if (punishing.isEmpty()) {
+            return false; // optimized
+        }
         return punishing.contains(player.getUniqueId());
     }
 
@@ -60,10 +63,12 @@ public class ViolationService {
             return;
         }
         violatedMap.put(player.getUniqueId(), new ViolationContext(player));
+        punishing.remove(player.getUniqueId());
     }
 
     public void removePlayer(Player player) {
         violatedMap.remove(player.getUniqueId());
+        punishing.remove(player.getUniqueId());
     }
 
     public ViolationContext getViolationContext(Player player) {
@@ -107,29 +112,41 @@ public class ViolationService {
     public void punish(Player player, String violationName, ConfigurationOptions.IntervalSetting setting, PacketLimitHandler packetLimitHandler) {
         punishing.add(player.getUniqueId());
 
-        Channel channel = NMSUtils.getChannel(player);
-        if (channel != null) {
-            channel.close();
-        }
-
         /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
         PacketContainer<WrappedPlayOutKickDisconnect> packetContainer =
                 new InternalPacketContainer<>(handle, player, NMSUtils.getChannel(player), null, PacketType.Play.Server.KICK_DISCONNECT);
         WrappedPlayOutKickDisconnect packet = PacketWrapperFactory.playOutKickDisconnect(handle, packetContainer);
         packet.getContainer() // chat base components write
 
-        PacketLibrary.get().getProxy().writePacket(player, PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT));*/
+        PacketLibrary.get().getProxy().writePacket(player, handle);*/
 
+        Bukkit.broadcastMessage(violationName);
         new BukkitRunnable() {
             @Override
             public void run() {
                 player.kickPlayer(ConfigurationOptions.General.KICK_MESSAGE);
             }
         }.runTask(HoneyPlugin.get());
+        HoneyPlugin.get().getNotificationService().warn(
+                player,
+                violationName,
+                setting,
+                packetLimitHandler
+        );
+        HoneyPlugin.get().getLoggerService().log(
+                LoggerService.LoggingStrategy.KICK,
+                this,
+                player.getName(),
+                violationName,
+                packetLimitHandler,
+                setting
+        );
 
-        HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
+        Channel channel = NMSUtils.getChannel(player);
+        if (channel != null) {
+            channel.close();
+        }
         removePlayer(player);
-        punishing.remove(player.getUniqueId());
     }
 
     public void punish(Player player, String violationName) {

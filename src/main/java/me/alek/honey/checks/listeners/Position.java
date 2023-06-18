@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.utility.Locations;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -121,8 +122,14 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
                         .punish()
                         .build();
             }
-            final int distance = Locations.calculate2DDistance(packet.getLocation(), player.getLocation());
-            if (distance > ConfigurationOptions.Velocity.Movement.MAX_2D_DISTANCE) {
+            final Location playerLoc = player.getLocation();
+            final Location packetLog = packet.getLocation();
+
+            final int distance2d = Locations.calculate2DDistance(packetLog, playerLoc);
+            final int distanceY = (int) Math.abs(playerLoc.getY() - packetLog.getY());
+
+            final int maxDistance = ConfigurationOptions.Velocity.Movement.MAX_2D_DISTANCE;
+            if (distance2d > maxDistance || distanceY > maxDistance) {
                 player.teleport(player.getLocation());
                 return ResponseBuilder
                         .inst()
@@ -143,18 +150,21 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (ConfigurationOptions.Velocity.Height.ENABLED) {
+            final double x = packet.getX();
+            final double y = packet.getY();
+            final double z = packet.getZ();
 
-                if (packet.getLocation().getY() > ConfigurationOptions.Velocity.Height.MAX_HEIGHT) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .build();
-                }
+            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < -256 || y > 2048) {
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .build();
             }
             return ResponseBuilder.SUCCESS;
         }
     }
+
 
     public static class PositionE<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 

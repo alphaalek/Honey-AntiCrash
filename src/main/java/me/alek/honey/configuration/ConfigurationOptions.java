@@ -271,17 +271,14 @@ public class ConfigurationOptions {
 
         public static int MIN_BYTEBUF_CAPACITY;
         public static int MAX_BYTEBUF_CAPACITY;
-        public static int MIN_BYTEBUF_REFCNT;
-        public static int MAX_BYTEBUF_REFCNT;
+        public static int MAX_BYTEBUF_SIZE;
         public static int MAX_SERIALIZED_ITEM_NBT_LENGTH;
         public static int MAX_PLUGIN_CHANNELS;
 
         public static void load() {
             MIN_BYTEBUF_CAPACITY = file.getInt("custom-payload.min-bytebuf-capacity");
             MAX_BYTEBUF_CAPACITY = file.getInt("custom-payload.max-bytebuf-capacity");
-
-            MIN_BYTEBUF_REFCNT = file.getInt("custom-payload.min-bytebuf-refcnt");
-            MAX_BYTEBUF_REFCNT = file.getInt("custom-payload.max-bytebuf-refcnt");
+            MAX_BYTEBUF_SIZE = file.getInt("custom-payload.max-bytebuf-size");
 
             MAX_SERIALIZED_ITEM_NBT_LENGTH = file.getInt("custom-payload.max-serialized-item-nbt-length");
             MAX_PLUGIN_CHANNELS = file.getInt("custom-payload.max-plugin-channels");
@@ -360,12 +357,12 @@ public class ConfigurationOptions {
         @Setting
         public static class Height {
 
-            public static boolean ENABLED;
             public static int MAX_HEIGHT;
+            public static int MIN_HEIGHT;
 
             public static void load() {
-                ENABLED = file.getBoolean("velocity.height.enabled");
                 MAX_HEIGHT = file.getInt("velocity.height.max-height");
+                MIN_HEIGHT = file.getInt("velocity.height.min-height");
             }
         }
 

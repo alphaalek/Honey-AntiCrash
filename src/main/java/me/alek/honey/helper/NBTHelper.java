@@ -449,26 +449,30 @@ public class NBTHelper {
     }
 
     public static boolean checkBook(Object tag, int nbtLength) {
-        if (nbtLength > ConfigurationOptions.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
-            return true;
-        }
-        if (!compoundHasKeyOfType(tag, "pages", 9)) {
-            return true;
-        }
-        Object nbtList = compoundGetFuzzyList(tag, "pages");
-        int size = getListSize(nbtList);
-        if (size > ConfigurationOptions.NBT.MAX_BOOK_PAGES) {
-            return true;
-        }
-        for (int i = 0; i < size; i++) {
-            final Object base = listGetIndexFuzzy(nbtList, i);
-            if (base == null) {
+        try {
+            if (nbtLength > ConfigurationOptions.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
                 return true;
             }
-            String page = dataAccessor.get(base);
-            if (page == null || page.length() > ConfigurationOptions.NBT.MAX_BOOK_PAGE_LENGTH) {
+            if (!compoundHasKeyOfType(tag, "pages", 9)) {
                 return true;
             }
+            Object nbtList = compoundGetFuzzyList(tag, "pages");
+            int size = getListSize(nbtList);
+            if (size > ConfigurationOptions.NBT.MAX_BOOK_PAGES) {
+                return true;
+            }
+            for (int i = 0; i < size; i++) {
+                final Object base = listGetIndexFuzzy(nbtList, i);
+                if (base == null) {
+                    return true;
+                }
+                String page = dataAccessor.get(base);
+                if (page == null || page.length() > ConfigurationOptions.NBT.MAX_BOOK_PAGE_LENGTH) {
+                    return true;
+                }
+            }
+        } catch (Exception ex) {
+            return true;
         }
         return false;
     }

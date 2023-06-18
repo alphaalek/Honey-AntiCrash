@@ -44,6 +44,7 @@ netty:
 # nbt
 nbt:
   # de forskellige limits på nbt length er målt i længden af bytes
+  # bliver tjekket for i alle packets der har med items at gøre
   max-nbt-length: 4000
 
   max-firework-nbt-length: 1500
@@ -74,30 +75,26 @@ velocity:
     max-per-interval: 45
     interval: 2500 # 2,5 sekunder
   new-unloaded-chunks:
-    max-per-interval: 20
+    max-per-interval: 15
     interval: 5000 # 5 sekunder
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-2d-distance: 10
-    vls-amount: 5
+    max-2d-distance: 20
+    vls-amount: 6
   height:
-    enabled: true
-    max-height: 2048 # blokerer position packets til serveren hvis y > 2048
+    max-height: 2048
+    min-height: 512
   yaw:
-    max-yaw: 50000 # begynder at omregne yaw til en værdi i mellem 0 - 360
-    min-yaw: -50000
+    max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
+    min-yaw: -25000
 
 # custom payload
 custom-payload:
-  min-bytebuf-capactiy: 5
   # normalt ikke nødvendigt, da de andre checks vil sørge for alt for store NBT tags,
   # men det kan være en ekstra beskyttelse der sørger for størrelsen på bytebuffers sendt
   # med packet serializeren
-  max-bytebuf-capacity: 10000
-
-  # hvor mange references der er til den bytebuffer instance
-  min-bytebuf-refcnt: 1
-  max-bytebuf-refcnt: 15
+  max-bytebuf-size: 10000
+  max-bytebuf-capacity: 10000 # for at være sikker på den ikke er compressed
 
   max-serialized-item-nbt-length: 6000
   max-plugin-channels: 105
@@ -129,14 +126,14 @@ packet-flood:
 
   # common
   common:
-    max-per-interval: 150
-    interval: 1000
+    max-per-interval: 180
+    interval: 1250
     vls-amount: 1
 
   # total
   total:
-    max-per-interval: 500
-    intervaL: 1000
+    max-per-interval: 650
+    intervaL: 1250
     vls-amount: 1
 
   # specifics
@@ -180,24 +177,25 @@ packet-flood:
 
     # client command - OBS: ikke en chat command
     client-command:
-      max-per-interval: 5
+      max-per-interval: 8
       interval: 500
 
     # close window
     close-window:
-      max-per-interval: 15
+      max-per-interval: 10
       interval: 700
+      vls-amount: 4
 
     # custom payload
     custom-payload:
-      max-per-interval: 35
-      vls-amount: 4
+      max-per-interval: 30
+      vls-amount: 3
 
     # enchant item
     enchant-item:
-      max-per-interval: 20
+      max-per-interval: 8
 
-    # entity actione
+    # entity action
     entity-action:
       max-per-interval: 40
       interval: 600
