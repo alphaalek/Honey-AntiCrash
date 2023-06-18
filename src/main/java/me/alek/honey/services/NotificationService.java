@@ -96,7 +96,6 @@ public class NotificationService {
     }
 
     public void notify(Player player, String notification, ConfigurationOptions.IntervalSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
-        Bukkit.broadcastMessage("notify! " + notification);
         for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey())) {
                 continue;

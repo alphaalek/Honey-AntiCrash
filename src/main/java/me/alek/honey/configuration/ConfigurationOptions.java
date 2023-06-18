@@ -400,49 +400,49 @@ public class ConfigurationOptions {
 
         @Flood(PacketType.Play.Client.ABILITIES)
         @Setting
-        @Interval({"packet-flood", "packet-flood.abilities"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.abilities"})
         public static class Abilities extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.ARM_ANIMATION)
         @Setting
-        @Interval({"packet-flood", "packet-flood.arm-animation"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.arm-animation"})
         public static class ArmAnimation extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.AUTO_RECIPE)
         @Setting
-        @Interval({"packet-flood", "packet-flood.auto-recipe"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.auto-recipe"})
         public static class AutoRecipe extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.BLOCK_DIG)
         @Setting
-        @Interval({"packet-flood", "packet-flood.block-dig"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.block-dig"})
         public static class BlockDig extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.BLOCK_PLACE)
         @Setting
-        @Interval({"packet-flood", "packet-flood.block-place"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.block-place"})
         public static class BlockPlace extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.CLIENT_COMMAND)
         @Setting
-        @Interval({"packet-flood", "packet-flood.client-command"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.client-command"})
         public static class ClientCommand extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.CLOSE_WINDOW)
         @Setting
-        @Interval({"packet-flood", "packet-flood.close-window"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.close-window"})
         public static class CloseWindow extends IntervalSetting {
 
         }
@@ -450,126 +450,126 @@ public class ConfigurationOptions {
 
         @Flood(PacketType.Play.Client.CHAT)
         @Setting
-        @Interval({"packet-flood", "packet-flood.chat"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.chat"})
         public static class Chat extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.CUSTOM_PAYLOAD)
         @Setting
-        @Interval({"packet-flood", "packet-flood.custom-payload"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.custom-payload"})
         public static class CustomPayload extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.HELD_ITEM_SLOT)
         @Setting
-        @Interval({"packet-flood", "packet-flood.held-item-slot"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.held-item-slot"})
         public static class HeldItemSlot extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.ENCHANT_ITEM)
         @Setting
-        @Interval({"packet-flood", "packet-flood.enchant-item"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.enchant-item"})
         public static class EnchantItem extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.ENTITY_ACTION)
         @Setting
-        @Interval({"packet-flood", "packet-flood.entity-action"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.entity-action"})
         public static class EntityAction extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.KEEP_ALIVE)
         @Setting
-        @Interval({"packet-flood", "packet-flood.keep-alive"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.keep-alive"})
         public static class KeepAlive extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.LOOK)
         @Setting
-        @Interval({"packet-flood", "packet-flood.look"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.look"})
         public static class Look extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.FLYING)
         @Setting
-        @Interval({"packet-flood", "packet-flood.flying"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.flying"})
         public static class Flying extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.SET_CREATIVE_SLOT)
         @Setting
-        @Interval({"packet-flood", "packet-flood.set-creative-slot"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.set-creative-slot"})
         public static class SetCreativeSlot extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.SETTINGS)
         @Setting
-        @Interval({"packet-flood", "packet-flood.settings"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.settings"})
         public static class Settings extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.SPECTATE)
         @Setting
-        @Interval({"packet-flood", "packet-flood.spectate"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.spectate"})
         public static class Spectate extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.STEER_VEHICLE)
         @Setting
-        @Interval({"packet-flood", "packet-flood.steer-vehicle"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.steer-vehicle"})
         public static class SteerVehicle extends IntervalSetting {
 
         }
 
         @Flood({PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK})
         @Setting
-        @Interval({"packet-flood", "packet-flood.position"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.position"})
         public static class Position extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.UPDATE_SIGN)
         @Setting
-        @Interval({"packet-flood", "packet-flood.update-sign"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.update-sign"})
         public static class UpdateSign extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.USE_ITEM)
         @Setting
-        @Interval({"packet-flood", "packet-flood.use-item"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.use-item"})
         public static class UseItem extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.USE_ENTITY)
         @Setting
-        @Interval({"packet-flood", "packet-flood.use-entity"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.use-entity"})
         public static class UseEntity extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.TAB_COMPLETE)
         @Setting
-        @Interval({"packet-flood", "packet-flood.tab-complete"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.tab-complete"})
         public static class TabComplete extends IntervalSetting {
 
         }
 
         @Flood(PacketType.Play.Client.WINDOW_CLICK)
         @Setting
-        @Interval({"packet-flood", "packet-flood.window-click"})
+        @Interval({"packet-flood.specific", "packet-flood.specific.window-click"})
         public static class WindowClick extends IntervalSetting {
 
         }

@@ -5,12 +5,11 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.AsyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends AsyncPacketAdapter<WP> {
 
-    private CheckVisitor<WP> visitor;
+    private CheckVisitor<WP> cachedVisitor;
 
     public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) {
         if (packetContainer.getState() == PacketState.PLAY) {
@@ -22,18 +21,15 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {
             return;
         }
-        if (visitor == null) {
-            visitor = getVisitor();
-        }
-        visitor.check(this, player, packetContainer, checkContextContainer);
+        getCachedVisitor().check(this, player, packetContainer, checkContextContainer);
         onPostPacketReceive(player, packetContainer);
     }
 
     public CheckVisitor<WP> getCachedVisitor() {
-        if (visitor == null) {
-            visitor = getVisitor();
+        if (cachedVisitor == null) {
+            cachedVisitor = getVisitor();
         }
-        return visitor;
+        return cachedVisitor;
     }
 
     public abstract CheckVisitor<WP> getVisitor();

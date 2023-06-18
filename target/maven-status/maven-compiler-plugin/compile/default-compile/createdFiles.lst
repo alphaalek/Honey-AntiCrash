@@ -171,6 +171,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutServerDifficulty.cl
 me\alek\honey\checks\listeners\CustomPayload.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$HeldItemSlot.class
 me\alek\honey\configuration\ConfigurationOptions$BlockPlacement.class
+me\alek\honey\netty\packet\PacketFactory.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCompression.class
 me\alek\honey\checks\listeners\CustomPayload$PayloadD.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$CloseWindow.class

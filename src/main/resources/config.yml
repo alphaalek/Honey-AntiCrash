@@ -152,7 +152,7 @@ packet-flood:
 
     # arm animation
     arm-animation:
-      max-per-interval: 45
+      max-per-interval: 35
       interval: 600
 
     # auto recipe
@@ -162,14 +162,14 @@ packet-flood:
 
     # block dig
     block-dig:
-      max-per-interval: 45
+      max-per-interval: 35
       interval: 600
       vls-amount: 7
 
     # block place
     block-place:
-      max-per-interval: 45
-      interval: 600
+      max-per-interval: 35
+      interval: 650
       vls-amount: 7
 
     # chat
@@ -257,12 +257,12 @@ packet-flood:
 
     # use item
     use-item:
-      max-per-interval: 45
+      max-per-interval: 35
       interval: 600
 
     # use entity
     use-entity:
-      max-per-interval: 45
+      max-per-interval: 35
       interval: 600
 
     # window click

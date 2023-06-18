@@ -1,11 +1,21 @@
 package me.alek.honey.services;
 
+import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.PacketFactory;
+import me.alek.honey.netty.packet.cache.PacketWrapperCache;
+import me.alek.honey.netty.packet.cache.PacketWrapperFactory;
+import me.alek.honey.netty.packet.structure.ReflectStructureCache;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -20,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ViolationService {
 
-    private final Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
+    private volatile Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
     private volatile List<UUID> punishing = new CopyOnWriteArrayList<>();
     private final LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
@@ -96,16 +106,30 @@ public class ViolationService {
 
     public void punish(Player player, String violationName, ConfigurationOptions.IntervalSetting setting, PacketLimitHandler packetLimitHandler) {
         punishing.add(player.getUniqueId());
-        HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
-        removePlayer(player);
-        Bukkit.broadcastMessage("punished");
+
+        Channel channel = NMSUtils.getChannel(player);
+        if (channel != null) {
+            channel.close();
+        }
+
+        /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
+        PacketContainer<WrappedPlayOutKickDisconnect> packetContainer =
+                new InternalPacketContainer<>(handle, player, NMSUtils.getChannel(player), null, PacketType.Play.Server.KICK_DISCONNECT);
+        WrappedPlayOutKickDisconnect packet = PacketWrapperFactory.playOutKickDisconnect(handle, packetContainer);
+        packet.getContainer() // chat base components write
+
+        PacketLibrary.get().getProxy().writePacket(player, PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT));*/
+
         new BukkitRunnable() {
             @Override
             public void run() {
                 player.kickPlayer(ConfigurationOptions.General.KICK_MESSAGE);
-                punishing.remove(player.getUniqueId());
             }
         }.runTask(HoneyPlugin.get());
+
+        HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
+        removePlayer(player);
+        punishing.remove(player.getUniqueId());
     }
 
     public void punish(Player player, String violationName) {
@@ -123,7 +147,6 @@ public class ViolationService {
 
         public synchronized PacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.IntervalSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
-                Bukkit.getLogger().info("creating new entry " + key.getT1().toString() + " " + key.getT2());
                 packetLimitMap.put(key, new PacketLimitHandler(player, setting));
             }
             return packetLimitMap.get(key);
