@@ -4,12 +4,11 @@ import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.configuration.Configuration;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
-import me.alek.honey.netty.listener.AsyncPacketAdapter;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
@@ -59,8 +58,8 @@ public class HoneyPlugin extends JavaPlugin {
     public <WP extends WrappedPacket<WP>> void registerChecks() {
         for (IListener check : ListenerRegistry.getChecks()) {
 
-            if (check instanceof IPacketListener && check instanceof AsyncPacketAdapter) {
-                PacketLibrary.get().addListeners((AsyncPacketAdapter<WP>) check, ((IPacketListener)check).getPacketTypes());
+            if (check instanceof IPacketListener && check instanceof SyncPacketAdapter) {
+                PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, ((IPacketListener)check).getPacketTypes());
                 check.load();
                 continue;
             }

@@ -9,6 +9,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
@@ -55,6 +56,11 @@ public class CreativeSlot extends AbstractPacketListener<WrappedPlayInSetCreativ
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "CreativeA";
+        }
     }
 
     public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot> {
@@ -62,7 +68,7 @@ public class CreativeSlot extends AbstractPacketListener<WrappedPlayInSetCreativ
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             int slot = packet.getSlot();
-            if (slot > 103 || (slot < -1 && slot != -999)) {
+            if (slot > 47 || (slot < -1 && slot != -999)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()
@@ -70,6 +76,11 @@ public class CreativeSlot extends AbstractPacketListener<WrappedPlayInSetCreativ
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "CreativeB";
         }
     }
 
@@ -86,6 +97,11 @@ public class CreativeSlot extends AbstractPacketListener<WrappedPlayInSetCreativ
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "CreativeC";
         }
     }
 }

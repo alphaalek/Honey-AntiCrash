@@ -38,15 +38,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     public InternalPacketContainer(
             Object rawPacket,
-            PacketTypeEnum type,
-            Player player,
-            Channel channel
-    ) {
-        this(rawPacket, player, channel, null, type);
-    }
-
-    public InternalPacketContainer(
-            Object rawPacket,
             Player player,
             Channel channel,
             Runnable postAction,

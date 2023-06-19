@@ -9,7 +9,7 @@ import me.alek.honey.netty.api.event.impl.packet.*;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.listener.AsyncPacketAdapter;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import org.bukkit.entity.Player;
@@ -31,48 +31,50 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private static class ListModifier<WP extends WrappedPacket<WP>> {
 
-        private final List<AsyncPacketAdapter<WP>> packetAdapters = new ArrayList<>();
+        private final List<SyncPacketAdapter<WP>> packetAdapters = new ArrayList<>();
 
         public void call(Player player, PacketContainer<?> packetContainer, boolean isRead) {
-            for (AsyncPacketAdapter<WP> packetAdapter : packetAdapters) {
-                if (isRead) {
-                    if (packetContainer.getPacket() instanceof WrappedPlayInFlying) {
-                        callFlying(player, packetContainer, packetAdapter);
-                        continue;
+            try {
+                for (SyncPacketAdapter<WP> packetAdapter : packetAdapters) {
+                    if (isRead) {
+                        if (packetContainer.getPacket() instanceof WrappedPlayInFlying) {
+                            callFlying(player, packetContainer, packetAdapter);
+                            continue;
+                        }
+                        packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     }
-                    packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
+                    else {
+                        packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
+                    }
                 }
-                else {
-                    packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
-                }
+            } catch (Exception ex) {
+                error(player, packetContainer.getType(), packetContainer);
             }
         }
 
-        private <R extends WrappedPlayInFlying<R>> void callFlying(Player player, PacketContainer<?> packetContainer, AsyncPacketAdapter<WP> packetAdapter) {
-            ((AsyncPacketAdapter<R>)packetAdapter).onPacketReceive(player, (PacketContainer<R>) packetContainer);
+        private <R extends WrappedPlayInFlying<R>> void callFlying(Player player, PacketContainer<?> packetContainer, SyncPacketAdapter<WP> packetAdapter) throws Exception {
+            ((SyncPacketAdapter<R>)packetAdapter).onPacketReceive(player, (PacketContainer<R>) packetContainer);
         }
 
         public void cancel(Player player, PacketContainer<?> packetContainer, boolean isRead) {
             final PacketBound bound = (isRead) ? PacketBound.CLIENT : PacketBound.SERVER;
 
-            for (AsyncPacketAdapter<WP> packetAdapter : packetAdapters) {
+            for (SyncPacketAdapter<WP> packetAdapter : packetAdapters) {
                 packetAdapter.onPacketCancel(player, (PacketContainer<WP>) packetContainer, bound);
             }
         }
 
-        public void error(Player player, PacketTypeEnum packetType, boolean isRead) {
-            final PacketBound bound = (isRead) ? PacketBound.CLIENT : PacketBound.SERVER;
-
-            for (AsyncPacketAdapter<WP> packetAdapter : packetAdapters) {
-                packetAdapter.onPacketError(player, packetType, bound);
+        public void error(Player player, PacketTypeEnum packetType, PacketContainer<?> packetContainer) {
+            for (SyncPacketAdapter<WP> packetAdapter : packetAdapters) {
+                packetAdapter.onPacketError(player, packetType, (PacketContainer<WP>) packetContainer);
             }
         }
 
-        public void addListener(AsyncPacketAdapter<?> packetAdapter) {
-            packetAdapters.add((AsyncPacketAdapter<WP>) packetAdapter);
+        public void addListener(SyncPacketAdapter<?> packetAdapter) {
+            packetAdapters.add((SyncPacketAdapter<WP>) packetAdapter);
         }
 
-        public void removeListener(AsyncPacketAdapter<?> packetAdapter) {
+        public void removeListener(SyncPacketAdapter<?> packetAdapter) {
             packetAdapters.remove(packetAdapter);
         }
 
@@ -85,7 +87,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
-    public void addListener(AsyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
+    public void addListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
                 if (!Protocol.protocolMatch((RangedPacketTypeEnum) packetType)) {
@@ -99,15 +101,15 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
-    public void addListener(AsyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetTypes) {
+    public void addListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetTypes) {
         addListener(packetAdapter, Arrays.asList(packetTypes));
     }
 
-    public void removeListener(AsyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetTypes) {
+    public void removeListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetTypes) {
         removeListener(packetAdapter, Arrays.asList(packetTypes));
     }
 
-    public void removeListener(AsyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
+    public void removeListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             PACKET_ADAPTERS.get(packetType.getNmsClass()).removeListener(packetAdapter);
             if (PACKET_ADAPTERS.get(packetType.getNmsClass()).isEmpty()) {
@@ -139,11 +141,11 @@ public class InternalPacketProcessor implements PacketProcessor {
         PACKET_ADAPTERS.get(clazz).call(player, packetContainer, isRead);
     }
 
-    public void errorListeners(Player player, Class<?> clazz, boolean isRead) {
+    public void errorListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer) {
         if (!hasListeners(clazz)) {
             return;
         }
-        PACKET_ADAPTERS.get(clazz).error(player, PacketType.getPacketType(clazz), isRead);
+        PACKET_ADAPTERS.get(clazz).error(player, PacketType.getPacketType(clazz), packetContainer);
     }
 
     public void cancelListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {

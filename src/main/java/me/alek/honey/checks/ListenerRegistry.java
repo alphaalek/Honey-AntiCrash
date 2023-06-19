@@ -13,14 +13,16 @@ public enum ListenerRegistry {
     v3(HeldItem::new),
     v4(CreativeSlot::new),
     v5(CustomPayload::new),
-    v6(NumerAttribute::new),
-    v7(LoginStart::new),
-    v8(UpdateSign::new),
-    v9(BlockPlace::new),
-    v10(Chat::new),
-    v11(EncryptionBegin::new),
-    v12(TabComplete::new),
-    v13(WindowClick::new);
+    v6(Netty::new),
+    v7(Netty.Attributes::new),
+    v8(LoginStart::new),
+    v9(UpdateSign::new),
+    v10(BlockPlace::new),
+    v11(Chat::new),
+    v12(EncryptionBegin::new),
+    v13(TabComplete::new),
+    v14(WindowClick::new),
+    v15(Look::new);
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;

@@ -93,6 +93,11 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadA";
+        }
     }
 
     public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload> {
@@ -100,7 +105,7 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             ByteBuf serializer = container.getSerializer(0);
             if (serializer == null) {
-                return ResponseBuilder.SUCCESS;
+                return ResponseBuilder.SUCCESS; // burde aldrig ske, for så vil PayloadA være blevet flagged
             }
             if (       serializer.capacity() > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_CAPACITY
                     || serializer.readableBytes() > ConfigurationOptions.CustomPayload.MAX_BYTEBUF_SIZE
@@ -117,6 +122,11 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadB";
         }
     }
 
@@ -148,6 +158,11 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                     .terminate()
                     .build();
         }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadC";
+        }
     }
 
     public static class PayloadD implements PacketCheck<WrappedPlayInCustomPayload> {
@@ -177,6 +192,11 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                     .confiscate(bukkitItem)
                     .terminate()
                     .build();
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadD";
         }
     }
 
@@ -209,6 +229,11 @@ public class CustomPayload extends AbstractPacketListener<WrappedPlayInCustomPay
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadE";
         }
     }
 

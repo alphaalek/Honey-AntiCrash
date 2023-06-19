@@ -3,10 +3,12 @@ package me.alek.honey.netty.packetwrappers.play.client;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.inventory.ItemStack;
 
 public class WrappedPlayInBlockPlace extends WrappedPacket<WrappedPlayInBlockPlace> {
 
+    private final boolean below_1_9 = Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8);
 
     public WrappedPlayInBlockPlace(Object rawPacket, PacketContainer<WrappedPlayInBlockPlace> packetContainer) {
         super(rawPacket, packetContainer);
@@ -24,24 +26,20 @@ public class WrappedPlayInBlockPlace extends WrappedPacket<WrappedPlayInBlockPla
         return getContainer().getLongs().read(0);
     }
 
-    // < 1.9
     public int getPlacedBlockDirection() {
-        return getContainer().getInts().read(0);
+        return below_1_9 ? getContainer().getInts().read(0) : 0;
     }
 
-    // < 1.9
     public float getFacingX() {
-        return getContainer().getFloats().read(0);
+        return below_1_9 ? getContainer().getFloats().read(0) : 0;
     }
 
-    // < 1.9
     public float getFacingY() {
-        return getContainer().getFloats().read(1);
+        return below_1_9 ? getContainer().getFloats().read(1) : 0;
     }
 
-    // < 1.9
     public float getFacingZ() {
-        return getContainer().getFloats().read(2);
+        return below_1_9 ? getContainer().getFloats().read(2) : 0;
     }
 
 

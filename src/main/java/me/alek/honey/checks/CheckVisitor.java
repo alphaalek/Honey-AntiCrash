@@ -26,11 +26,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return checks;
     }
 
-    public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) throws Exception {
         int skipping = 0;
         for (PacketCheck<WP> check : checks) {
             if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 packetContainer.cancel();
+                return;
+            }
+            if (packetContainer.isCancelled()) {
                 return;
             }
             if (skipping-- > 0) {
@@ -59,7 +62,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         packetContainer,
                         check,
                         response.ON_VIOLATION,
-                        check.getClass().getSimpleName(),
+                        check.getViolationName(),
                         setting
                 );
             }
@@ -69,7 +72,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (response.PUNISH) {
                 HoneyPlugin.get().getViolationService().punish(
                         player,
-                        check.getClass().getSimpleName()
+                        check.getViolationName()
                 );
             }
             if (response.CONFISCATE && response.CONFISCATED_ITEM != null) {

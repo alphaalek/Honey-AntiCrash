@@ -8,7 +8,7 @@ import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.EarlyChannelInjector;
 import me.alek.honey.netty.injector.LateChannelInjector;
-import me.alek.honey.netty.listener.AsyncPacketAdapter;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.cache.PacketWrapperFactory;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -123,11 +123,11 @@ public class PacketLibrary {
         proxy.flushPackets(player);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListener(AsyncPacketAdapter<WP> adapter, Supplier<PacketTypeEnum> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, Supplier<PacketTypeEnum> packetTypes) {
         addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(AsyncPacketAdapter<WP> adapter, Supplier<List<PacketTypeEnum>> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void addListeners(SyncPacketAdapter<WP> adapter, Supplier<List<PacketTypeEnum>> packetTypes) {
         addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
     }
 

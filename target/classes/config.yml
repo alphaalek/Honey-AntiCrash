@@ -26,7 +26,7 @@ packet-logger:
 #
 # interval er det gældende interval. det er i millisekunder, det vil sige 1000 ms hvert sekund, 60000 ms hvert minut, og så videre
 #
-# max-per-interval er hvor mange gange der må ske noget indenfor det interval, før vedkommende bliver violated
+# max-per-interval er hvor mange positive tjek der må være i det interval, før vedkommende bliver violated
 # hvis max-per-interval ikke er sat, vil man automatisk blive violated når man gør det pågældende tjek (tilsvarende hvis den var på 1)
 # derfor giver det ikke mening at have interval, hvis man ikke bruger max-per-interval
 #
@@ -34,6 +34,8 @@ packet-logger:
 # automatisk ryddet, du kan ændre hvor typisk ovenover. den er normalt på 5 minutter
 # hvis vls-amount ikke er sat, vil man automatisk blive kicket når man bliver violated (tilsvarende hvis den var på 1)
 #
+
+# alle packets som bliver sendt i et interval, efter at spilleren er blevet violated for det tjek, vil blive blokeret
 
 # netty
 netty:
@@ -61,6 +63,7 @@ nbt:
 
 # items
 items:
+
   max-chest-data: 250000
 
   max-enchantment-level: 100
@@ -71,25 +74,34 @@ items:
 
 # velocity
 velocity:
+
   new-chunks:
-    max-per-interval: 45
-    interval: 2500 # 2,5 sekunder
+    max-per-interval: 40
+    interval: 3000 # 3 sekunder
+    vls-amount: 1
+
   new-unloaded-chunks:
-    max-per-interval: 15
+    max-per-interval: 10
     interval: 5000 # 5 sekunder
+    vls-amount: 1
+
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-2d-distance: 20
-    vls-amount: 6
+    max-2d-distance: 100
+    vls-amount: 8
+
   height:
     max-height: 2048
-    min-height: 512
+    min-height: -256
+    vls-amount: 1
+
   yaw:
     max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
     min-yaw: -25000
 
 # custom payload
 custom-payload:
+
   # normalt ikke nødvendigt, da de andre checks vil sørge for alt for store NBT tags,
   # men det kan være en ekstra beskyttelse der sørger for størrelsen på bytebuffers sendt
   # med packet serializeren
@@ -99,27 +111,93 @@ custom-payload:
   max-serialized-item-nbt-length: 6000
   max-plugin-channels: 105
 
+  # packet flood for plugin channels
+  channels:
+    # fælles indstillinger
+    interval: 1000
+    vls-amount: 3
+
+    # adv cmd
+    adv-cmd:
+      max-per-interval: 7
+      vls-amount: 4
+
+    # auto cmd
+    auto-cmd:
+      max-per-interval: 7
+      vls-amount: 4
+
+    # b edit
+    b-edit:
+      max-per-interval: 6
+
+    # b open
+    b-open:
+      max-per-interval: 12
+
+    # b sign
+    b-sign:
+      max-per-interval: 4
+
+    # beacon
+    beacon:
+      max-per-interval: 6
+      vls-amount: 5
+
+    # register plugin channel
+    register:
+      max-per-interval: 4
+      vls-amount: 6
+
+    unregister:
+      max-per-interval: 4
+      vls-amount: 6
+
+    # ingen limits på ItemName, PickItem & TrSel, udover den almindelige packet flood længere nede
+
 # block placement
 block-place:
+
   # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
   max-block-to-player-distance: 10
   vls-amount: 5
 
 # commands
 commands:
+
   vls-amount: 3
+
   prohibited-tab-complete-commands:
-    - "/to"
+    # fast async world edit
     - "/fargetoffset"
-    - "/fastasyncworldedit:to"
-    - "/fastasyncworldedit:targetoffset"
+    - "/to"
+
+  # følgende sendte kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando-label findes på serveren
   prohibited-commands:
+    # spigot
     - "/skill"
+    # permissions ex
     - "/pex promote"
     - "/pex demote"
+    - "/promote"
+    - "/demote"
+    # world edit
     - "//calc"
+    - "//calculate"
     - "//solve"
     - "//eval"
+    - "//evaluate"
+    # multiverse
+    - "/mv ^"
+    - "/mvhelp ^"
+    - "/mv help ^"
+
+  # fallback prefixes der også vil blive tjekket for ved de ovenstående nægtede kommandoer.
+  # det er eksempelvis hvis man skriver "//multiverse-core:mvhelp ^"
+  fallback-prefixes:
+    - "fastasyncworldedit"
+    - "worldedit"
+    - "multiverse-core"
 
 # flood
 packet-flood:
@@ -188,7 +266,7 @@ packet-flood:
 
     # custom payload
     custom-payload:
-      max-per-interval: 30
+      max-per-interval: 50 # mere specifikke indstillinger ift packet flood af bestemte plugin channels, under custom-payload-sektionen
       vls-amount: 3
 
     # enchant item
@@ -229,7 +307,8 @@ packet-flood:
 
     # set creative slot
     set-creative-slot:
-      max-per-interval: 55
+      interval: 850
+      max-per-interval: 65
 
     # settings
     settings:

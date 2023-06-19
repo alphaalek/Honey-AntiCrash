@@ -60,6 +60,11 @@ public class TabComplete extends AbstractPacketListener<WrappedPlayInTabComplete
         }
 
         @Override
+        public String getViolationName() {
+            return "TabA";
+        }
+
+        @Override
         public ConfigurationOptions.IntervalSetting getSetting() {
             return ConfigurationOptions.Commands.get();
         }

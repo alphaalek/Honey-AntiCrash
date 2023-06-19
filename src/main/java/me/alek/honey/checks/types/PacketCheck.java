@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 
 public interface PacketCheck<WP extends WrappedPacket<WP>> {
 
-    ResponseContainer accept(Player player, WP packet, CheckContextContainer container);
+    ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception;
+
+    String getViolationName();
 
 }

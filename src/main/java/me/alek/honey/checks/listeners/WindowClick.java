@@ -53,10 +53,10 @@ public class WindowClick extends AbstractPacketListener<WrappedPlayInWindowClick
             int slot = packet.getWindowSlot();
 
             int inventorySlots = player.getOpenInventory().countSlots();
-            if (player.getOpenInventory().getType() == InventoryType.CRAFTING) {
+            if (player.getOpenInventory() != null && (player.getOpenInventory().getType() == InventoryType.CRAFTING && player.getInventory().getType() == InventoryType.PLAYER)) {
                 inventorySlots += 4; // armor slots
             }
-            if (player.getOpenInventory() == null || slot > inventorySlots || (slot < -1 && slot != -999)) {
+            if (player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()
@@ -64,6 +64,11 @@ public class WindowClick extends AbstractPacketListener<WrappedPlayInWindowClick
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "WindowA";
         }
     }
 
@@ -81,6 +86,11 @@ public class WindowClick extends AbstractPacketListener<WrappedPlayInWindowClick
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "WindowB";
         }
     }
 }

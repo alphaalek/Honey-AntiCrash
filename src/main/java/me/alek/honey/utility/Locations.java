@@ -15,17 +15,36 @@ public class Locations {
         return loc1.getPitch() == loc2.getPitch() && loc1.getYaw() == loc2.getYaw();
     }
 
-    public static int calculate2DDistance(Location loc1, Location loc2) {
-        final double x1 = loc1.getX();
-        final double z1 = loc1.getZ();
-        final double x2 = loc2.getX();
-        final double z2 = loc2.getZ();
+    public static boolean checkInvalidLocation(Location... locations) {
+        for (Location location : locations) {
 
-        if (NumberConversions.isInvalid(new double[]{x1, z1, x2, z2})) {
-            return 1000000;
+            if (NumberConversions.isInvalid(new double[]{location.getX(), location.getZ(), location.getY()}) || NumberConversions.isInvalid(new float[]{location.getPitch(), location.getPitch()})) {
+                return true;
+            }
         }
-        final double deltaX = Math.abs(x1 - x2);
-        final double deltaZ = Math.abs(z1 - z2);
+        return false;
+    }
+
+    public static int calculateYDistance(Location loc1, Location loc2) {
+        if (checkInvalidLocation(loc1, loc2)) {
+            return 1_000_000;
+        }
+        return (int) Math.abs(loc1.getY() - loc2.getY());
+    }
+
+    public static float calculateYawDistance(float yaw1, float yaw2) {
+        if (NumberConversions.isInvalid(new float[]{yaw1, yaw2})) {
+            return 1_000_000f;
+        }
+        return Math.abs(yaw1 - yaw2);
+    }
+
+    public static int calculate2DDistance(Location loc1, Location loc2) {
+        if (checkInvalidLocation(loc1, loc2)) {
+            return 1_000_000;
+        }
+        final double deltaX = Math.abs(loc1.getX() - loc2.getX());
+        final double deltaZ = Math.abs(loc1.getZ() - loc2.getZ());
 
         return (int) Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaZ, 2));
     }

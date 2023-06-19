@@ -51,6 +51,11 @@ public class HeldItem extends AbstractPacketListener<WrappedPlayInHeldItemSlot> 
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "HeldItemA";
+        }
     }
 
 }

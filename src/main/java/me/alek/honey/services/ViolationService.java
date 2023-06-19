@@ -120,7 +120,6 @@ public class ViolationService {
 
         PacketLibrary.get().getProxy().writePacket(player, handle);*/
 
-        Bukkit.broadcastMessage(violationName);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -141,7 +140,6 @@ public class ViolationService {
                 packetLimitHandler,
                 setting
         );
-
         Channel channel = NMSUtils.getChannel(player);
         if (channel != null) {
             channel.close();

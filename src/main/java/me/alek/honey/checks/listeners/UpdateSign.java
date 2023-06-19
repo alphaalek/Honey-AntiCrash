@@ -53,6 +53,11 @@ public class UpdateSign extends AbstractPacketListener<WrappedPlayInUpdateSign> 
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "SignA";
+        }
     }
 
 }

@@ -24,7 +24,6 @@ import java.util.function.Supplier;
 
 public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private final Map<UUID, Chunk> lastChunkMap = new ConcurrentHashMap<>();
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
@@ -36,11 +35,7 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-        if (Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation())) {
-            return false;
-        }
-        container.putMap(lastChunkMap);
-        return true;
+        return !Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation());
     }
 
     @Override
@@ -55,34 +50,37 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
         visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
         visitor.visit(new PositionD<>());
-        visitor.visit(new PositionE<>());
         return visitor;
     }
 
     @Override
     public void cleanup(Player player) {
-        lastChunkMap.remove(player.getUniqueId());
+        PositionA.lastChunkMap.remove(player.getUniqueId());
+        PositionC.lastPacketLocation.remove(player.getUniqueId());
     }
 
     public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
 
+        private static volatile Map<UUID, Chunk> lastChunkMap = new ConcurrentHashMap<>();
+
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            Map<?, ?> lastChunkMap = container.getMap(0);
-            if (lastChunkMap == null) {
-                return ResponseBuilder.SUCCESS.builder().skip(1).build();
-            }
             Chunk chunk = packet.getWorld().getChunkAt(packet.getLocation());
             if (lastChunkMap.get(player.getUniqueId()) == chunk) {
-                return ResponseBuilder.SUCCESS.builder().skip(1).build();
+                return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
             }
             container.putChunk(chunk);
             try {
-                ((Map<UUID, Chunk>)lastChunkMap).put(player.getUniqueId(), chunk);
+                (lastChunkMap).put(player.getUniqueId(), chunk);
             } catch (Exception ex) {
-                return ResponseBuilder.SUCCESS.builder().skip(1).build();
+                return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
             }
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PositionA";
         }
 
         @Override
@@ -106,12 +104,19 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
         }
 
         @Override
+        public String getViolationName() {
+            return "PositionB";
+        }
+
+        @Override
         public ConfigurationOptions.IntervalSetting getSetting() {
             return ConfigurationOptions.Velocity.NewUnloadedChunks.get();
         }
     }
 
     public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
+
+        private static volatile Map<UUID, Location> lastPacketLocation = new ConcurrentHashMap<>();
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
@@ -122,13 +127,28 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
                         .punish()
                         .build();
             }
-            final Location playerLoc = player.getLocation();
-            final Location packetLog = packet.getLocation();
-
-            final int distance2d = Locations.calculate2DDistance(packetLog, playerLoc);
-            final int distanceY = (int) Math.abs(playerLoc.getY() - packetLog.getY());
-
             final int maxDistance = ConfigurationOptions.Velocity.Movement.MAX_2D_DISTANCE;
+
+            final Location playerLoc = player.getLocation();
+            final Location packetLoc = packet.getLocation();
+            final Location lastKnownPacketLoc = lastPacketLocation.get(player.getUniqueId());
+
+            if (lastKnownPacketLoc != null) {
+
+                // for at undgå flag ved lagspikes
+                final int distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+                final int distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+
+                if (distance2d_client < maxDistance && distanceY_client < maxDistance) {
+                    return ResponseBuilder.SUCCESS;
+                }
+            }
+            lastPacketLocation.put(player.getUniqueId(), packetLoc);
+
+            final int distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
+            final int distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
+
+            // for at undgå flag ved teleporteringer
             if (distance2d > maxDistance || distanceY > maxDistance) {
                 player.teleport(player.getLocation());
                 return ResponseBuilder
@@ -138,6 +158,11 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PositionC";
         }
 
         @Override
@@ -154,7 +179,7 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
             final double y = packet.getY();
             final double z = packet.getZ();
 
-            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < -256 || y > 2048) {
+            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Velocity.Height.MIN_HEIGHT || y > ConfigurationOptions.Velocity.Height.MAX_HEIGHT) {
                 return ResponseBuilder
                         .inst()
                         .cancel()
@@ -163,20 +188,29 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
             }
             return ResponseBuilder.SUCCESS;
         }
-    }
-
-
-    public static class PositionE<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (packet.getYaw() > ConfigurationOptions.Velocity.Yaw.MAX_YAW && ConfigurationOptions.Velocity.Yaw.MAX_YAW > 360) {
-                packet.setYaw(packet.getYaw() % 360);
-            }
-            else if (packet.getYaw() < ConfigurationOptions.Velocity.Yaw.MIN_YAW && ConfigurationOptions.Velocity.Yaw.MIN_YAW < -360) {
-                packet.setYaw(360 - (Math.max(packet.getYaw(), packet.getYaw() * (-1)) % 360));
-            }
-            return ResponseBuilder.SUCCESS;
+        public String getViolationName() {
+            return "PositionD";
         }
     }
+
+    // PositionE
+
+    // interval, percentage-of-vertical-switch, vls-amount
+
+    // tjekker seneste cached model class "VelocityReference", og sammenligner den direction med
+    // den direction som bliver regnet ud ift. til seneste lokation af den VelocityReference
+    // hvis det er en anden direction end den tidligere cached, vil det blive flagged som target,
+    // ellers vil det blive flagged som normal (forestil dig hvis du hopper, vil alle position packets
+    // fra jorden op til det højeste punkt være i et flow af samme direction, men hvis man derimod
+    // spammer en masse packets op og ned i et mønster der ikke er normalt i Minecraft, vil det blive
+    // flagged som target. Når det interval er ovre, tjekker den om target er højere end det antal af
+    // procent som er blevet konfigureret til. jeg tænkte på omkring min. 35-45
+
+    // put det ind i violation service og lav det som en mulighed for andre modules også, hvis jeg tænker
+    // at det kunne være en god idé at implementere flere steder i fremtiden. Det samme gælder for
+    // buffer violation check, jeg har bare ikke noget konkret sted lige nu at bruge det, men jeg ved det
+    // vil blive nyttigt på et tidspunkt
+
 }

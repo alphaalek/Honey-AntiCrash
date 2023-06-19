@@ -41,7 +41,6 @@ public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
         visitor.visit(new FloodA<>());
-        visitor.visit(new FloodB<>());
         return visitor;
     }
 
@@ -60,40 +59,22 @@ public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
         };
     }
 
-    public static class FloodA<WP extends WrappedPacket<WP>> implements PacketCheck<WP> {
-
-        @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (player == null || !player.isOnline()) {
-
-                if (player != null) {
-                    Channel channel = NMSUtils.getChannel(player);
-                    if (channel != null) {
-                        channel.close();
-                    }
-                }
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .notify("")
-                        .terminate()
-                        .build();
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-    }
-
-    public static class FloodB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, IntervalConsumerCheck {
+    public static class FloodA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, IntervalConsumerCheck {
 
         private final Map<PacketTypeEnum, ConfigurationOptions.IntervalSetting> settingMap = new HashMap<>();
 
-        public FloodB() {
+        public FloodA() {
             settingMap.putAll(ConfigurationOptions.getFloodSettings());
         }
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+        }
+
+        @Override
+        public String getViolationName() {
+            return "FloodA";
         }
 
         @Override

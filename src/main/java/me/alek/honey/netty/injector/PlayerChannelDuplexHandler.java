@@ -38,7 +38,7 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
         if (packetContainer == null) {
-            packetProcessor.errorListeners(player, packet.getClass(), true);
+            packetProcessor.errorListeners(player, packet.getClass(), packetContainer);
             return;
         }
         if (packetContainer.isCancelled()) {
@@ -57,7 +57,7 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
         }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
         if (packetContainer == null) {
-            packetProcessor.errorListeners(player, packet.getClass(), false);
+            packetProcessor.errorListeners(player, packet.getClass(), packetContainer);
             return;
         }
         if (packetContainer.isCancelled()) {

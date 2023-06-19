@@ -62,5 +62,10 @@ public class EncryptionBegin extends AbstractPacketListener<WrappedLoginInEncryp
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "EncryptionA";
+        }
     }
 }

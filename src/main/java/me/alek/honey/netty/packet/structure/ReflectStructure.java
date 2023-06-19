@@ -133,11 +133,12 @@ public class ReflectStructure<T, C> {
             this.converter = converter;
         }
 
+        @Override
         public IStructureModifier<C> write(int index, C value) {
             if (!has(index)) {
                 return this;
             }
-            FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
+            final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (converter != null) {
                 accessor.set(handle, converter.convertDeclaring(value));
             }
@@ -148,11 +149,12 @@ public class ReflectStructure<T, C> {
             return this;
         }
 
+        @Override
         public C read(int index) {
             if (!has(index)) {
                 return null;
             }
-            FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
+            final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (converter != null) {
                 return converter.convertDelegate(accessor.get(handle));
             }

@@ -6,13 +6,13 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 
-public class AsyncPacketAdapter<WP extends WrappedPacket<WP>> {
+public class SyncPacketAdapter<WP extends WrappedPacket<WP>> {
 
-    public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+    public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {
 
     }
 
-    public void onPacketSend(Player player, PacketContainer<WP> packetContainer) {
+    public void onPacketSend(Player player, PacketContainer<WP> packetContainer) throws Exception {
 
     }
 
@@ -20,7 +20,7 @@ public class AsyncPacketAdapter<WP extends WrappedPacket<WP>> {
 
     }
 
-    public void onPacketError(Player player, PacketTypeEnum packetType, PacketBound bound) {
+    public void onPacketError(Player player, PacketTypeEnum packetType, PacketContainer<WP> packetContainer) {
 
     }
 }

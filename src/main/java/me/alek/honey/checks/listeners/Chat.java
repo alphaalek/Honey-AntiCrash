@@ -14,12 +14,14 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.function.Supplier;
 
 public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
@@ -38,6 +40,7 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
     public CheckVisitor<WrappedPlayInChat> getVisitor() {
         CheckVisitor<WrappedPlayInChat> visitor = new CheckVisitor<>();
         visitor.visit(new ChatA());
+        visitor.visit(new ChatB());
         visitor.visit(new CommandsA());
         return visitor;
     }
@@ -52,10 +55,31 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
             String message = packet.getMessage();
-            if (message.startsWith("/")) {
-                return ResponseBuilder.SUCCESS;
+            if (message == null || message.isEmpty() || NBTHelper.checkBadCharacter(message)) {
+                return ResponseBuilder
+                        .inst()
+                        .cancel()
+                        .punish()
+                        .terminate()
+                        .build();
             }
-            if (NBTHelper.checkBadCharacter(message)) {
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "ChatA";
+        }
+    }
+
+    public static class ChatB implements PacketCheck<WrappedPlayInChat> {
+
+        private final boolean below_1_11 = Protocol.getProtocol().isOlderThan(Protocol.v1_11);
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+            int maxLength = below_1_11 ? 100 : 256;
+            if (packet.getMessage().length() > maxLength) {
                 return ResponseBuilder
                         .inst()
                         .cancel()
@@ -64,23 +88,32 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "ChatB";
+        }
     }
 
     public static class CommandsA implements IntervalCheck, PacketCheck<WrappedPlayInChat> {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+
+            String str = null;
+            str.isEmpty();
+
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
                 return ResponseBuilder.SUCCESS;
             }
             String label = message.split(" ")[0].substring(1);
-            if (((CraftServer) Bukkit.getServer()).getCommandMap().getCommand(label) == null && !message.startsWith("//")) {
+            if (((CraftServer) Bukkit.getServer()).getCommandMap().getCommand(label) == null) {
                 return ResponseBuilder.SUCCESS;
             }
             for (String prohibitedCommand : ConfigurationOptions.Commands.PROHIBITED_COMMANDS) {
 
-                if (message.equals(prohibitedCommand)) {
+                if (message.startsWith(prohibitedCommand)) {
                     return ResponseBuilder
                             .inst()
                             .cancel()
@@ -89,6 +122,11 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "CommandsA";
         }
 
         @Override

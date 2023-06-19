@@ -60,18 +60,30 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             WrappedBlockPosition blockPosition = packet.getBlockPosition();
+            if (blockPosition == null) {
+                return violate();
+            }
             if (!blockPosition.equals(WrappedBlockPosition.DEFAULT)) {
 
                 double distance = blockPosition.distance(player.getLocation());
                 if (distance > ConfigurationOptions.BlockPlacement.MAX_BLOCK_TO_PLAYER_DISTANCE) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .flag()
-                            .build();
+                    return violate();
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        private ResponseContainer violate() {
+            return ResponseBuilder
+                    .inst()
+                    .cancel()
+                    .flag()
+                    .build();
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PlaceA";
         }
 
         @Override
@@ -97,6 +109,11 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "PlaceB";
+        }
     }
 
     public static class PlaceC implements PacketCheck<WrappedPlayInBlockPlace> {
@@ -117,6 +134,11 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
             }
             return ResponseBuilder.SUCCESS;
         }
+
+        @Override
+        public String getViolationName() {
+            return "PlaceC";
+        }
     }
 
     public static class PlaceD implements PacketCheck<WrappedPlayInBlockPlace> {
@@ -135,6 +157,11 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
                 return violate();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PlaceD";
         }
 
         private ResponseContainer violate() {
