@@ -1,16 +1,12 @@
 package me.alek.honey.checks.listeners;
 
-import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -19,9 +15,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -34,6 +28,11 @@ public class Netty<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, Protocol.getProtocol());
+    }
+
+    @Override
+    public ListenerPriority getPriority() {
+        return ListenerPriority.HIGHEST;
     }
 
     @Override
@@ -83,7 +82,7 @@ public class Netty<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
     }
 
 
-    public static class Attributes<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener {
+    public static class NettyC<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener {
 
         @Override
         public CheckVisitor<WP> getVisitor() {
@@ -150,6 +149,11 @@ public class Netty<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
         @Override
         public String getViolationName() {
             return "NettyC";
+        }
+
+        @Override
+        public ListenerPriority getPriority() {
+            return ListenerPriority.HIGHEST;
         }
     }
 }

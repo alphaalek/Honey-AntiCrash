@@ -2,6 +2,7 @@ package me.alek.honey.checks.types;
 
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 

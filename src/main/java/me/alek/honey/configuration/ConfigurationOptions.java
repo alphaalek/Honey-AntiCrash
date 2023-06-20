@@ -198,6 +198,7 @@ public class ConfigurationOptions {
 
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
         public static List<String> PROHIBITED_COMMANDS;
+        public static List<String> FALLBACK_PREFIXES;
 
         private static Commands instance;
         public Commands() {
@@ -210,6 +211,7 @@ public class ConfigurationOptions {
         public static void load() {
             PROHIBITED_TAB_COMPLETE_COMMANDS = file.getStringList("commands.prohibited-tab-complete-commands");
             PROHIBITED_COMMANDS = file.getStringList("commands.prohibited-commands");
+            FALLBACK_PREFIXES = file.getStringList("commands.fallback-prefixes");
         }
     }
 

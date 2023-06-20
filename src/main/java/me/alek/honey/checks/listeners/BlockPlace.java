@@ -6,6 +6,7 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.helper.NBTHelper;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -36,6 +37,11 @@ public class BlockPlace extends AbstractPacketListener<WrappedPlayInBlockPlace> 
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInBlockPlace> packetContainer) {
 
+    }
+
+    @Override
+    public ListenerPriority getPriority() {
+        return ListenerPriority.NORMAL;
     }
 
     @Override

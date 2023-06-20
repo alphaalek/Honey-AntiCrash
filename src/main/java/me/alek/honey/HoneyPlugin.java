@@ -1,5 +1,6 @@
 package me.alek.honey;
 
+import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.IPacketListener;
@@ -8,6 +9,7 @@ import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ConfiscationService;
@@ -59,7 +61,14 @@ public class HoneyPlugin extends JavaPlugin {
         for (IListener check : ListenerRegistry.getChecks()) {
 
             if (check instanceof IPacketListener && check instanceof SyncPacketAdapter) {
-                PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, ((IPacketListener)check).getPacketTypes());
+                ListenerPriority priority;
+                if (check instanceof AbstractPacketListener) {
+                    priority = ((AbstractPacketListener<WP>)check).getPriority();
+                }
+                else {
+                    priority = ListenerPriority.NORMAL;
+                }
+                PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
                 check.load();
                 continue;
             }

@@ -35,6 +35,7 @@ me\alek\honey\netty\packet\structure\ReflectStructure$1.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityExperienceOrb.class
 me\alek\honey\configuration\DedicatedConfiguration.class
 me\alek\honey\checks\listeners\EncryptionBegin.class
+me\alek\honey\checks\listeners\WindowClick$WindowC.class
 me\alek\honey\netty\packet\cache\PacketWrapperFactory$BufferedMapCreator.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$Spectate.class
 me\alek\honey\netty\injector\EarlyChannelInjector.class
@@ -212,6 +213,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityLiving.c
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInKeepAlive.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInChat.class
 me\alek\honey\netty\modelwrappers\WrappedBlockPosition.class
+me\alek\honey\checks\listeners\Netty$NettyC.class
 me\alek\honey\checks\listeners\Look$LookA.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutEncryptionRequest.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood.class
@@ -226,7 +228,6 @@ me\alek\honey\checks\listeners\CustomPayload$PayloadA.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCustomPayload.class
 me\alek\honey\netty\packet\InternalPacketContainer.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPlayerListHeaderFooter.class
-me\alek\honey\checks\listeners\Netty$Attributes.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$KeepAlive.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRelEntityMove.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRemoveEntityEffect.class
@@ -310,6 +311,7 @@ me\alek\honey\configuration\Configuration.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockAction.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInAutoRecipe.class
 me\alek\honey\checks\listeners\BlockPlace.class
+me\alek\honey\netty\api\packet\ListenerPriority.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateHealth.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMount.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTileEntityData.class

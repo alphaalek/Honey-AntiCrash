@@ -19,9 +19,9 @@ public interface PacketProcessor {
 
     void removeListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetType);
 
-    void addListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetType);
+    void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetType);
 
-    void addListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetType);
+    void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetType);
 
     void callListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead);
 

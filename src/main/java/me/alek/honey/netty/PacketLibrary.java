@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.NettyChannelProxy;
 import me.alek.honey.netty.api.event.Event;
 import me.alek.honey.netty.api.event.EventManager;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.EarlyChannelInjector;
@@ -123,16 +124,16 @@ public class PacketLibrary {
         proxy.flushPackets(player);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, Supplier<PacketTypeEnum> packetTypes) {
-        addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
+    public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
+        addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(SyncPacketAdapter<WP> adapter, Supplier<List<PacketTypeEnum>> packetTypes) {
-        addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
+    public <WP extends WrappedPacket<WP>> void addListeners(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
+        addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
     }
 
-    public void addFuzzyListeners(FuzzyPacketAdapter adapter, Supplier<List<PacketTypeEnum>> packetTypes) {
-        addListener(() -> internalPacketProcessor.addListener(adapter, packetTypes.get()));
+    public void addFuzzyListeners(FuzzyPacketAdapter adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
+        addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
     }
 
     public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {

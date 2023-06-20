@@ -6,6 +6,7 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -44,6 +45,11 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
     }
 
     @Override
+    public ListenerPriority getPriority() {
+        return ListenerPriority.NORMAL;
+    }
+
+    @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
         visitor.visit(new PositionA<>());
@@ -66,15 +72,12 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             Chunk chunk = packet.getWorld().getChunkAt(packet.getLocation());
+            container.putChunk(chunk);
             if (lastChunkMap.get(player.getUniqueId()) == chunk) {
                 return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
             }
-            container.putChunk(chunk);
-            try {
-                (lastChunkMap).put(player.getUniqueId(), chunk);
-            } catch (Exception ex) {
-                return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
-            }
+            lastChunkMap.put(player.getUniqueId(), chunk);
+
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
         }
 
@@ -94,10 +97,7 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             Chunk chunk = container.getChunk(0);
-            if (chunk == null) {
-                return ResponseBuilder.SUCCESS;
-            }
-            if (player.getWorld().isChunkLoaded(chunk) && chunk.isLoaded()) {
+            if (chunk != null && player.getWorld().isChunkLoaded(chunk) && chunk.isLoaded()) {
                 return ResponseBuilder.SUCCESS;
             }
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
@@ -148,9 +148,8 @@ public class Position<WP extends WrappedPlayInFlying<WP>> extends AbstractPacket
             final int distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
             final int distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
 
-            // for at undgå flag ved teleporteringer
+            // for at undgå flag ved serverside teleporteringer
             if (distance2d > maxDistance || distanceY > maxDistance) {
-                player.teleport(player.getLocation());
                 return ResponseBuilder
                         .inst()
                         .cancel()

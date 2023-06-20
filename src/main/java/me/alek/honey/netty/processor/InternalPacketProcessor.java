@@ -2,6 +2,7 @@ package me.alek.honey.netty.processor;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.api.event.EventManager;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.utility.protocol.Protocol;
@@ -17,6 +18,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class InternalPacketProcessor implements PacketProcessor {
 
@@ -31,63 +33,126 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private static class ListModifier<WP extends WrappedPacket<WP>> {
 
-        private final List<SyncPacketAdapter<WP>> packetAdapters = new ArrayList<>();
+        private final EnumMap<ListenerPriority, List<SyncPacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
+        private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         public void call(Player player, PacketContainer<?> packetContainer, boolean isRead) {
-            try {
-                for (SyncPacketAdapter<WP> packetAdapter : packetAdapters) {
+            callPriority((packetAdapter) -> {
+                try {
                     if (isRead) {
                         if (packetContainer.getPacket() instanceof WrappedPlayInFlying) {
                             callFlying(player, packetContainer, packetAdapter);
-                            continue;
+                            return;
                         }
                         packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     }
                     else {
                         packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
                     }
+                } catch (Exception ex) {
+                    error(player, packetContainer.getType(), packetContainer);
                 }
-            } catch (Exception ex) {
-                error(player, packetContainer.getType(), packetContainer);
-            }
+            });
         }
 
         private <R extends WrappedPlayInFlying<R>> void callFlying(Player player, PacketContainer<?> packetContainer, SyncPacketAdapter<WP> packetAdapter) throws Exception {
             ((SyncPacketAdapter<R>)packetAdapter).onPacketReceive(player, (PacketContainer<R>) packetContainer);
         }
 
+        public void callPriority(Consumer<SyncPacketAdapter<WP>> consumer) {
+            synchronized (priorityMap) {
+                for (ListenerPriority priority : pipeline) {
+                    for (SyncPacketAdapter<WP> listener : priorityMap.get(priority)) {
+                        consumer.accept(listener);
+                    }
+                }
+            }
+        }
+
         public void cancel(Player player, PacketContainer<?> packetContainer, boolean isRead) {
             final PacketBound bound = (isRead) ? PacketBound.CLIENT : PacketBound.SERVER;
 
-            for (SyncPacketAdapter<WP> packetAdapter : packetAdapters) {
+            callPriority((packetAdapter) -> {
                 packetAdapter.onPacketCancel(player, (PacketContainer<WP>) packetContainer, bound);
-            }
+            });
         }
 
         public void error(Player player, PacketTypeEnum packetType, PacketContainer<?> packetContainer) {
-            for (SyncPacketAdapter<WP> packetAdapter : packetAdapters) {
+            callPriority((packetAdapter) -> {
                 packetAdapter.onPacketError(player, packetType, (PacketContainer<WP>) packetContainer);
+            });
+        }
+
+        public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority) {
+            if (!priorityMap.containsKey(priority)) {
+                priorityMap.put(priority, new ArrayList<>());
+            }
+            priorityMap.get(priority).add((SyncPacketAdapter<WP>) packetAdapter);
+            addToPipeline(priority);
+        }
+
+        public boolean removeListener(SyncPacketAdapter<?> packetAdapter) {
+            synchronized (priorityMap) {
+
+                for (ListenerPriority priority : pipeline) {
+                    final List<SyncPacketAdapter<WP>> listeners = priorityMap.get(priority);
+
+                    for (SyncPacketAdapter<WP> listener : listeners) {
+                        if (listener == packetAdapter) {
+                            listeners.remove(listener);
+
+                            if (listeners.size() == 0) {
+                                priorityMap.remove(priority);
+                                removeFromPipeline(priority);
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        public boolean removeFromPipeline(ListenerPriority priority) {
+            synchronized (pipeline) {
+                return pipeline.removeIf((listenerPriority) -> listenerPriority == priority);
             }
         }
 
-        public void addListener(SyncPacketAdapter<?> packetAdapter) {
-            packetAdapters.add((SyncPacketAdapter<WP>) packetAdapter);
-        }
+        public void addToPipeline(ListenerPriority priority) {
+            synchronized (pipeline) {
+                int indexAtInsert = -1;
+                int index = 0;
 
-        public void removeListener(SyncPacketAdapter<?> packetAdapter) {
-            packetAdapters.remove(packetAdapter);
+                for (ListenerPriority listenerPriority : pipeline) {
+                    if (priority == listenerPriority) {
+                        return; // eksisterer allerede i pipeline
+                    }
+                    if (listenerPriority.ordinal() > priority.ordinal()) {
+                        indexAtInsert = index;
+                        break;
+                    }
+                    index++;
+                }
+                if (indexAtInsert == -1) {
+                    pipeline.addLast(priority);
+                }
+                else {
+                    pipeline.add(indexAtInsert, priority);
+                }
+            }
         }
 
         public boolean isEmpty() {
-            return packetAdapters.isEmpty();
+            return priorityMap.isEmpty();
         }
 
         public void clear() {
-            packetAdapters.clear();
+            priorityMap.clear();
         }
     }
 
-    public void addListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
+    public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
                 if (!Protocol.protocolMatch((RangedPacketTypeEnum) packetType)) {
@@ -97,12 +162,12 @@ public class InternalPacketProcessor implements PacketProcessor {
             if (!PACKET_ADAPTERS.containsKey(packetType.getNmsClass())) {
                 PACKET_ADAPTERS.put(packetType.getNmsClass(), new ListModifier<>());
             }
-            PACKET_ADAPTERS.get(packetType.getNmsClass()).addListener(packetAdapter);
+            PACKET_ADAPTERS.get(packetType.getNmsClass()).addListener(packetAdapter, priority);
         }
     }
 
-    public void addListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetTypes) {
-        addListener(packetAdapter, Arrays.asList(packetTypes));
+    public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetTypes) {
+        addListener(packetAdapter, priority, Arrays.asList(packetTypes));
     }
 
     public void removeListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetTypes) {
@@ -112,6 +177,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     public void removeListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             PACKET_ADAPTERS.get(packetType.getNmsClass()).removeListener(packetAdapter);
+
             if (PACKET_ADAPTERS.get(packetType.getNmsClass()).isEmpty()) {
                 PACKET_ADAPTERS.remove(packetType.getNmsClass());
             }
@@ -120,6 +186,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public boolean hasListener(PacketTypeEnum... packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
+
             if (!hasListeners(packetType.getNmsClass())) {
                 return false;
             }

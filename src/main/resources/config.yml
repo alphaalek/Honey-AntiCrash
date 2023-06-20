@@ -87,7 +87,7 @@ velocity:
 
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-2d-distance: 100
+    max-2d-distance: 75
     vls-amount: 8
 
   height:
@@ -159,7 +159,7 @@ custom-payload:
 block-place:
 
   # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
-  max-block-to-player-distance: 10
+  max-block-to-player-distance: 25
   vls-amount: 5
 
 # commands
@@ -223,12 +223,13 @@ packet-flood:
 
     # abilities
     abilities:
-      max-per-interval: 20
+      max-per-interval: 25
+      vls-amount: 7
 
     # arm animation
     arm-animation:
-      max-per-interval: 35
-      interval: 600
+      max-per-interval: 50
+      interval: 700
 
     # auto recipe
     auto-recipe:
@@ -266,7 +267,7 @@ packet-flood:
 
     # custom payload
     custom-payload:
-      max-per-interval: 50 # mere specifikke indstillinger ift packet flood af bestemte plugin channels, under custom-payload-sektionen
+      max-per-interval: 55 # mere specifikke indstillinger ift packet flood af bestemte plugin channels, under custom-payload-sektionen
       vls-amount: 3
 
     # enchant item
@@ -285,8 +286,9 @@ packet-flood:
 
     # held item slot
     held-item-slot:
-      max-per-interval: 22
+      max-per-interval: 25
       interval: 700
+      vls-amount: 6
 
     # keep alive
     keep-alive:

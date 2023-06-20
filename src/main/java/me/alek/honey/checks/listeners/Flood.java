@@ -10,6 +10,7 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalConsumerCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -35,6 +36,11 @@ public class Flood<WP extends WrappedPacket<WP>> extends AbstractPacketListener<
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
 
+    }
+
+    @Override
+    public ListenerPriority getPriority() {
+        return ListenerPriority.NORMAL;
     }
 
     @Override

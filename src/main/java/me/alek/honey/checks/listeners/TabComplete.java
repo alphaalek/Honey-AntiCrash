@@ -6,12 +6,15 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -30,6 +33,11 @@ public class TabComplete extends AbstractPacketListener<WrappedPlayInTabComplete
     }
 
     @Override
+    public ListenerPriority getPriority() {
+        return ListenerPriority.NORMAL;
+    }
+
+    @Override
     public CheckVisitor<WrappedPlayInTabComplete> getVisitor() {
         CheckVisitor<WrappedPlayInTabComplete> visitor = new CheckVisitor<>();
         visitor.visit(new TabA());
@@ -43,12 +51,18 @@ public class TabComplete extends AbstractPacketListener<WrappedPlayInTabComplete
 
     public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, IntervalCheck {
 
+        private final String[] prohibitedCommands = Chat.getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
             String label = packet.getMessage().split(" ")[0];
 
-            for (String prohibitedCommand : ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS) {
-                if (label.equals(prohibitedCommand)) {
+            Bukkit.broadcastMessage(label);
+            Bukkit.broadcastMessage(Arrays.toString(prohibitedCommands) + "");
+
+            for (String prohibitedCommand : prohibitedCommands) {
+
+                if (Chat.match(label, prohibitedCommand)) {
                     return ResponseBuilder
                             .inst()
                             .cancel()

@@ -10,18 +10,20 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.function.Supplier;
 
 public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
@@ -34,6 +36,11 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInChat> packetContainer) {
 
+    }
+
+    @Override
+    public ListenerPriority getPriority() {
+        return ListenerPriority.NORMAL;
     }
 
     @Override
@@ -95,25 +102,69 @@ public class Chat extends AbstractPacketListener<WrappedPlayInChat> implements I
         }
     }
 
+    private static String getLabel(String command) {
+        String label = command.split( " ")[0];
+        boolean isCommandFormat = label.startsWith("/");
+        return isCommandFormat ? getNameFormat(label) : label;
+    }
+
+    private static String getNameFormat(String command) {
+        if (command.startsWith("/")) {
+            return command.substring(1);
+        }
+        return command;
+    }
+
+    public static String[] getStatisfiedList(List<String> commands) {
+        final CommandMap commandMap = ((CraftServer)Bukkit.getServer()).getCommandMap();
+        final List<String> knownCommands = new ArrayList<>();
+
+        for (String command : commands) {
+            String label = getLabel(command);
+            String nameFormat = getNameFormat(command);
+
+            for (String fallbackPrefix : ConfigurationOptions.Commands.FALLBACK_PREFIXES) {
+                if (commandMap.getCommand(fallbackPrefix + ":" + label) != null) {
+                    knownCommands.add(fallbackPrefix + ":" + nameFormat);
+                }
+            }
+            if (commandMap.getCommand(label) != null) {
+                knownCommands.add(nameFormat);
+            }
+        }
+        String[] prohibitedCommands = new String[knownCommands.size()];
+        int index = 0;
+        for (String command : knownCommands) {
+            prohibitedCommands[index] = command;
+            index++;
+        }
+        return prohibitedCommands;
+    }
+
+    public static boolean match(String commandCheck, String commandSent) {
+        String[] args = commandSent.split(" ");
+        if (args.length == 1) {
+            if (!commandCheck.equals(getNameFormat(commandSent))) {
+                return false;
+            }
+        }
+        return commandSent.startsWith(commandCheck);
+    }
+
     public static class CommandsA implements IntervalCheck, PacketCheck<WrappedPlayInChat> {
+
+        private final String[] prohibitedCommands = getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
-
-            String str = null;
-            str.isEmpty();
 
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
                 return ResponseBuilder.SUCCESS;
             }
-            String label = message.split(" ")[0].substring(1);
-            if (((CraftServer) Bukkit.getServer()).getCommandMap().getCommand(label) == null) {
-                return ResponseBuilder.SUCCESS;
-            }
-            for (String prohibitedCommand : ConfigurationOptions.Commands.PROHIBITED_COMMANDS) {
+            for (String prohibitedCommand : this.prohibitedCommands) {
 
-                if (message.startsWith(prohibitedCommand)) {
+                if (match(prohibitedCommand, message)) {
                     return ResponseBuilder
                             .inst()
                             .cancel()
