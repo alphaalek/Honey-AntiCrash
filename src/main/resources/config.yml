@@ -1,27 +1,112 @@
 
-# general
+#
+# ...
+# ...
+# ...
+# ...
+# ...
+#
+
+############################################################
+# +------------------------------------------------------+ #
+# |                 Globale indstillinger                | #
+# +------------------------------------------------------+ #
+############################################################
+
+# Beskeden en spiller får når vedkommende bliver kicket.
 kick-message: "§cDu sender dårlige packets! :-("
+
+# Hvor lang tid der skal gå før gamle violations bliver ryddet.
 clear-old-violations-timestamp: 300000 # 5 minutter
 
+# Permission som ignorerer packet checks. Skal slås til før det virker.
 bypass-permission-enabled: false
 bypass-permission: honey.bypass
 
+# Permission til at få beskeder af spillere der bliver violated.
 notify-permission: honey.notify
 
 # packet logger
 packet-logger:
+  # Skal packet logger være slået til eller ej.
   enabled: true
-  console: true # skal det logges i console også, eller kun i filer
 
+  # Skal det logges i console også. Som standard bliver der logget i oprettede filer.
+  console: true
+
+  # Spillere som packet logger skal ignorere.
   ignored-players:
     #- Alek05
 
+  # Packets som packet logger skal ignorere.
   ignored-packets:
     - "PacketPlayInFlying"
     - "PacketPlayInKeepAlive"
 
-  detailed: false # viser attributes for hver packet
-  truncate-old-logs: true # fjerner gamle logs ved server start
+  # Skal packet logger være detaljeret, og vise attributes for hver eneste packet.
+  detailed: false
+
+  # Skal gamle logs fjernes ved server start.
+  truncate-old-logs: true
+
+############################################################
+# +------------------------------------------------------+ #
+# |              Item-Analyse Indstillinger              | #
+# +------------------------------------------------------+ #
+############################################################
+
+# item analysis
+item-analysis:
+
+  # Hvor mange bytes må en container (chest/shulker ...) fylde.
+  max-container-data: 250000
+
+  # Hvor højt enchant level må et item højest have.
+  max-enchantment-level: 256
+
+  # Hvor højt antal må et item stack højest have.
+  max-amount: 64
+
+  # Hvor langt navn må et item højest have.
+  max-displayname-length: 200
+
+  # Hvor langt må summen af alle længderne på et items lore højest have.
+  max-total-lore-length: 2000
+
+  # NBT
+  nbt:
+    # Hvor mange bytes må et items NBT højest have.
+    max-nbt-length: 4000
+
+    # Hvor mange bytes må fyrværkeris NBT højest have. Fyrværkeri bliver ikke kørt igennem den generelle tjek.
+    max-firework-nbt-length: 1500
+
+    # Hvor mange bytes må fyrværkeri-ladnings NBT højest have.
+    max-firework-charge-nbt-length: 1500
+
+    # Hvor mange bytes må en bogs NBT højest have. Bøger bliver ikke kørt igennem den generelle tjek.
+    max-book-nbt-length: 6000
+
+    # Hvor mange sider må en bog højest have.
+    max-book-pages: 50
+
+    # Hvor mange bytes må en side i en bog højest have.
+    max-book-page-length: 300
+
+    # Hvor mange NBT bases må et items NBT højest have. (den generelle NBT repræsentation, gælder lister, strings, doubles osv ...)
+    max-nbt-bases: 150
+
+    # Hvor meget NBT nesting må et items NBT højest have. (lister oveni listener oveni compounds osv ...)
+    max-nbt-nesting: 5
+
+    # Må skulls/heads ikke have ugyldige textures.
+    check-illegal-skull-textures: true
+
+############################################################
+# +------------------------------------------------------+ #
+# |              Packet Check Indstillinger              | #
+# +------------------------------------------------------+ #
+############################################################
 
 #
 # interval er det gældende interval. det er i millisekunder, det vil sige 1000 ms hvert sekund, 60000 ms hvert minut, og så videre
@@ -39,55 +124,29 @@ packet-logger:
 
 # netty
 netty:
+  # Hvor mange bytes hver packet højest må have.
   max-bytes-per-packet: 12500
-  block-heavy-compressed: true
-  packets-per-second: 500
 
-# nbt
-nbt:
-  # de forskellige limits på nbt length er målt i længden af bytes
-  # bliver tjekket for i alle packets der har med items at gøre
-  max-nbt-length: 4000
-
-  max-firework-nbt-length: 1500
-  max-firework-charge-nbt-length: 1500
-
-  max-book-nbt-length: 6000
-  max-book-pages: 100
-  max-book-page-length: 300
-
-  max-nbt-bases: 150
-  max-nbt-nesting: 5
-
-  check-illegal-skull-textures: true
-
-# items
-items:
-
-  max-chest-data: 250000
-
-  max-enchantment-level: 100
-  max-amount: 64
-
-  max-displayname-length: 200
-  max-total-lore-length: 2000 # summen af længderne på alle lores af et item
+  # Skal der tilføjes ekstra beskyttelse af Netty Crashers ved at inject anderledes decoder & decompressor af netværk packets.
+  # Anbefales stærkt at have slå til.
+  decode: true
 
 # velocity
 velocity:
 
   new-chunks:
-    max-per-interval: 40
+    max-per-interval: 32
     interval: 3000 # 3 sekunder
     vls-amount: 1
 
   new-unloaded-chunks:
-    max-per-interval: 10
+    max-per-interval: 5
     interval: 5000 # 5 sekunder
     vls-amount: 1
 
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-2d-distance: 75
+    max-2d-distance: 50
     vls-amount: 8
 
   height:
@@ -162,46 +221,59 @@ block-place:
   max-block-to-player-distance: 25
   vls-amount: 5
 
+############################################################
+# +------------------------------------------------------+ #
+# |           Blokerede Kommando Indstillinger           | #
+# +------------------------------------------------------+ #
+############################################################
+
 # commands
 commands:
-
   vls-amount: 3
 
+  # Tab completion af kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando er registreret på serveren.
   prohibited-tab-complete-commands:
     # fast async world edit
     - "/fargetoffset"
     - "/to"
 
-  # følgende sendte kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando-label findes på serveren
+  # Skrevet kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando er registreret på serveren.
   prohibited-commands:
     # spigot
     - "/skill"
+
     # permissions ex
     - "/pex promote"
     - "/pex demote"
     - "/promote"
     - "/demote"
+
     # world edit
     - "//calc"
     - "//calculate"
     - "//solve"
     - "//eval"
     - "//evaluate"
+
     # multiverse
     - "/mv ^"
     - "/mvhelp ^"
     - "/mv help ^"
 
-  # fallback prefixes der også vil blive tjekket for ved de ovenstående nægtede kommandoer.
-  # det er eksempelvis hvis man skriver "//multiverse-core:mvhelp ^"
+  # Fallback prefixes der også vil blive tjekket for ved de ovenstående nægtede kommandoer.
+  # Det er eksempelvis hvis man skriver /multiverse-core:mv help ^
   fallback-prefixes:
     - "fastasyncworldedit"
     - "worldedit"
     - "multiverse-core"
 
-# flood
-packet-flood:
+############################################################
+# +------------------------------------------------------+ #
+# |              Packet Flood Indstillinger              | #
+# +------------------------------------------------------+ #
+############################################################
 
+packet-flood:
   # common
   common:
     max-per-interval: 180
@@ -211,7 +283,7 @@ packet-flood:
   # total
   total:
     max-per-interval: 650
-    intervaL: 1250
+    interval: 1250
     vls-amount: 1
 
   # specifics
@@ -228,7 +300,7 @@ packet-flood:
 
     # arm animation
     arm-animation:
-      max-per-interval: 50
+      max-per-interval: 60
       interval: 700
 
     # auto recipe
@@ -297,13 +369,13 @@ packet-flood:
 
     # look
     look:
-      max-per-interval: 40
+      max-per-interval: 45
       interval: 700
       vls-amount: 10
 
     # position
     position:
-      max-per-interval: 40
+      max-per-interval: 60
       interval: 500
       vls-amount: 7
 

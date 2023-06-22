@@ -10,7 +10,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -216,39 +215,9 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class NBT {
+    public static class ItemAnalysis {
 
-        public static int MAX_NBT_LENGTH;
-        public static int MAX_FIREWORK_NBT_LENGTH;
-        public static int MAX_FIREWORK_CHARGE_NBT_LENGTH;
-        public static int MAX_BOOK_NBT_LENGTH;
-        public static int MAX_BOOK_PAGES;
-        public static int MAX_BOOK_PAGE_LENGTH;
-        public static int MAX_NBT_BASES;
-        public static int MAX_NBT_NESTING;
-        public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
-
-        public static void load() {
-            MAX_NBT_LENGTH = file.getInt("nbt.max-nbt-length");
-
-            MAX_FIREWORK_NBT_LENGTH = file.getInt("nbt.max-firework-nbt-length");
-            MAX_FIREWORK_CHARGE_NBT_LENGTH = file.getInt("nbt.max-firework-charge-nbt-length");
-
-            MAX_BOOK_NBT_LENGTH = file.getInt("nbt.max-book-nbt-length");
-            MAX_BOOK_PAGES = file.getInt("nbt.max-book-pages");
-            MAX_BOOK_PAGE_LENGTH = file.getInt("nbt.max-book-page-length");
-
-            MAX_NBT_BASES = file.getInt("nbt.max-nbt-bases");
-            MAX_NBT_NESTING = file.getInt("nbt.max-nbt-nesting");
-
-            CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("nbt.check-illegal-skull-textures");
-        }
-    }
-
-    @Setting
-    public static class Items {
-
-        public static int MAX_CHEST_DATA;
+        public static int MAX_CONTAINER_DATA;
 
         public static int MAX_ENCHANTMENT_LEVEL;
         public static int MAX_AMOUNT;
@@ -257,13 +226,43 @@ public class ConfigurationOptions {
         public static int MAX_TOTAL_LORE_LENGTH;
 
         public static void load() {
-            MAX_CHEST_DATA = file.getInt("items.max-chest-data");
+            MAX_CONTAINER_DATA = file.getInt("item-analysis.max-container-data");
 
-            MAX_ENCHANTMENT_LEVEL = file.getInt("items.max-enchantment-level");
-            MAX_AMOUNT = file.getInt("items.max-amount");
+            MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level");
+            MAX_AMOUNT = file.getInt("item-analysis.max-amount");
 
-            MAX_DISPLAYNAME_LENGTH = file.getInt("items.max-displayname-length");
-            MAX_TOTAL_LORE_LENGTH = file.getInt("items.max-total-lore-length");
+            MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length");
+            MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length");
+        }
+
+        @Setting
+        public static class NBT {
+
+            public static int MAX_NBT_LENGTH;
+            public static int MAX_FIREWORK_NBT_LENGTH;
+            public static int MAX_FIREWORK_CHARGE_NBT_LENGTH;
+            public static int MAX_BOOK_NBT_LENGTH;
+            public static int MAX_BOOK_PAGES;
+            public static int MAX_BOOK_PAGE_LENGTH;
+            public static int MAX_NBT_BASES;
+            public static int MAX_NBT_NESTING;
+            public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
+
+            public static void load() {
+                MAX_NBT_LENGTH = file.getInt("nbt.max-nbt-length");
+
+                MAX_FIREWORK_NBT_LENGTH = file.getInt("nbt.max-firework-nbt-length");
+                MAX_FIREWORK_CHARGE_NBT_LENGTH = file.getInt("nbt.max-firework-charge-nbt-length");
+
+                MAX_BOOK_NBT_LENGTH = file.getInt("nbt.max-book-nbt-length");
+                MAX_BOOK_PAGES = file.getInt("nbt.max-book-pages");
+                MAX_BOOK_PAGE_LENGTH = file.getInt("nbt.max-book-page-length");
+
+                MAX_NBT_BASES = file.getInt("nbt.max-nbt-bases");
+                MAX_NBT_NESTING = file.getInt("nbt.max-nbt-nesting");
+
+                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("nbt.check-illegal-skull-textures");
+            }
         }
     }
 

@@ -10,6 +10,6 @@ public class WrappedPlayInTabComplete extends WrappedPacket<WrappedPlayInTabComp
     }
 
     public String getMessage() {
-        return getContainer().getStrings().read(0);
+        return getContainer().getStrings().readField(0);
     }
 }

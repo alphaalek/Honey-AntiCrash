@@ -11,8 +11,8 @@ public class ItemHelper {
     private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
 
-    private static final MethodInvoker bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
-    private static final MethodInvoker nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
+    private static final MethodInvoker<?> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
+    private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
 
     public static Class<?> getNMSItemStackClass() {
         return itemStackClass;

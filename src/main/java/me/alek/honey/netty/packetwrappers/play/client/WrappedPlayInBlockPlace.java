@@ -15,31 +15,31 @@ public class WrappedPlayInBlockPlace extends WrappedPacket<WrappedPlayInBlockPla
     }
 
     public ItemStack getItem() {
-       return getContainer().getItems().read(0);
+       return getContainer().getItems().readField(0);
     }
 
     public WrappedBlockPosition getBlockPosition() {
-        return getContainer().getBlockPositions().read(1);
+        return getContainer().getBlockPositions().readField(1);
     }
 
     public long getTimestamp() {
-        return getContainer().getLongs().read(0);
+        return getContainer().getLongs().readField(0);
     }
 
     public int getPlacedBlockDirection() {
-        return below_1_9 ? getContainer().getInts().read(0) : 0;
+        return below_1_9 ? getContainer().getInts().readField(0) : 0;
     }
 
     public float getFacingX() {
-        return below_1_9 ? getContainer().getFloats().read(0) : 0;
+        return below_1_9 ? getContainer().getFloats().readField(0) : 0;
     }
 
     public float getFacingY() {
-        return below_1_9 ? getContainer().getFloats().read(1) : 0;
+        return below_1_9 ? getContainer().getFloats().readField(1) : 0;
     }
 
     public float getFacingZ() {
-        return below_1_9 ? getContainer().getFloats().read(2) : 0;
+        return below_1_9 ? getContainer().getFloats().readField(2) : 0;
     }
 
 

@@ -45,6 +45,10 @@ public class LoggerService {
         if (ignoredPackets.contains(handle.getClass().getSimpleName())) {
             return;
         }
+        if (strategy == LoggingStrategy.KICK) {
+            Bukkit.getLogger().info("Kicking " + playerName + " for " + violationName);
+            return;
+        }
         Bukkit.getLogger().info(
                  "flagged " + violationName + " " + packetLimitHandler.getFlagged() + "/" + setting.getMaxPerInterval() + ", "
                 + packetLimitHandler.getViolations() + "/" + setting.getVlsAmount() + ", " + setting.getInterval()

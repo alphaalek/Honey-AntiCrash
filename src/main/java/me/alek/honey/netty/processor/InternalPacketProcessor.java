@@ -61,9 +61,11 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         public void callPriority(Consumer<SyncPacketAdapter<WP>> consumer) {
             synchronized (priorityMap) {
-                for (ListenerPriority priority : pipeline) {
-                    for (SyncPacketAdapter<WP> listener : priorityMap.get(priority)) {
-                        consumer.accept(listener);
+                synchronized (pipeline) {
+                    for (ListenerPriority priority : pipeline) {
+                        for (SyncPacketAdapter<WP> listener : priorityMap.get(priority)) {
+                            consumer.accept(listener);
+                        }
                     }
                 }
             }
@@ -93,12 +95,15 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         public boolean removeListener(SyncPacketAdapter<?> packetAdapter) {
             synchronized (priorityMap) {
+                synchronized (pipeline) {
 
-                for (ListenerPriority priority : pipeline) {
-                    final List<SyncPacketAdapter<WP>> listeners = priorityMap.get(priority);
+                    for (ListenerPriority priority : pipeline) {
+                        final List<SyncPacketAdapter<WP>> listeners = priorityMap.get(priority);
 
-                    for (SyncPacketAdapter<WP> listener : listeners) {
-                        if (listener == packetAdapter) {
+                        for (SyncPacketAdapter<WP> listener : listeners) {
+                            if (listener != packetAdapter) {
+                                continue;
+                            }
                             listeners.remove(listener);
 
                             if (listeners.size() == 0) {

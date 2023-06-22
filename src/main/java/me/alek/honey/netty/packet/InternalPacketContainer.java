@@ -33,7 +33,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final Runnable postAction;
     private final Player player;
     private final Channel channel;
-    private final ReflectStructure<Object, Object> packetStructure;
+    private final ReflectStructure<Object, ?> packetStructure;
     private boolean cancelled = false;
 
     public InternalPacketContainer(

@@ -23,58 +23,58 @@ public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends Wra
         if (location != null) {
             return location.getX();
         }
-        return getContainer().getDoubles().read(0);
+        return getContainer().getDoubles().readField(0);
     }
 
     public double getY() {
         if (location != null) {
             return location.getY();
         }
-        return getContainer().getDoubles().read(1);
+        return getContainer().getDoubles().readField(1);
     }
 
     public double getZ() {
         if (location != null) {
             return location.getZ();
         }
-        return getContainer().getDoubles().read(2);
+        return getContainer().getDoubles().readField(2);
     }
 
     public float getYaw() {
         if (location != null) {
             return location.getYaw();
         }
-        return getContainer().getFloats().read(0);
+        return getContainer().getFloats().readField(0);
     }
 
     public float getPitch() {
         if (location != null) {
             return location.getPitch();
         }
-        return getContainer().getFloats().read(1);
+        return getContainer().getFloats().readField(1);
     }
 
     public void setX(double x) {
-        getContainer().getDoubles().write(0, x);
+        getContainer().getDoubles().writeField(0, x);
     }
 
     public void setY(double y) {
-        getContainer().getDoubles().write(1, y);
+        getContainer().getDoubles().writeField(1, y);
     }
 
     public void setZ(double z) {
-        getContainer().getDoubles().write(2, z);
+        getContainer().getDoubles().writeField(2, z);
     }
 
     public void setYaw(float yaw) {
-        getContainer().getFloats().write(0, yaw);
+        getContainer().getFloats().writeField(0, yaw);
     }
 
     public void setPitch(float pitch) {
-        getContainer().getFloats().write(1, pitch);
+        getContainer().getFloats().writeField(1, pitch);
     }
 
     public boolean onGround() {
-        return getContainer().getBooleans().read(0);
+        return getContainer().getBooleans().readField(0);
     }
 }

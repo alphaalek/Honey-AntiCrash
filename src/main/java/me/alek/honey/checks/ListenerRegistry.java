@@ -8,21 +8,21 @@ import java.util.function.Supplier;
 
 public enum ListenerRegistry {
 
-    v1(Flood::new),
-    v2(Position::new),
-    v3(HeldItem::new),
-    v4(CreativeSlot::new),
-    v5(CustomPayload::new),
-    v6(Netty::new),
-    v7(Netty.NettyC::new),
-    v8(LoginStart::new),
-    v9(UpdateSign::new),
-    v10(BlockPlace::new),
-    v11(Chat::new),
-    v12(EncryptionBegin::new),
-    v13(TabComplete::new),
-    v14(WindowClick::new),
-    v15(Look::new);
+    v1(FloodListener::new),
+    v2(PositionListener::new),
+    v3(HeldItemListener::new),
+    v4(CreativeSlotListener::new),
+    v5(CustomPayloadListener::new),
+    v6(NettyListener::new),
+    v7(NettyListener.NettyC::new),
+    v8(LoginStartListener::new),
+    v9(UpdateSignListener::new),
+    v10(BlockPlaceListener::new),
+    v11(ChatListener::new),
+    v12(EncryptionBeginListener::new),
+    v13(TabCompleteListener::new),
+    v14(WindowClickListener::new),
+    v15(LookListener::new);
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;

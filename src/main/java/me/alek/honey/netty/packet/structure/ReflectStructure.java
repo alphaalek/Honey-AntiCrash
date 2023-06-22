@@ -2,11 +2,12 @@ package me.alek.honey.netty.packet.structure;
 
 import me.alek.honey.netty.packet.structure.converters.TwinConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.api.packet.IStructureModifier;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.reflect.ReflectToucher;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class ReflectStructure<T, C> {
@@ -20,29 +21,20 @@ public class ReflectStructure<T, C> {
         put(byte.class, Byte.class);
         put(boolean.class, Boolean.class);
     }};
-    private final static Class<?> GENERAL_PACKET_CLASS = Reflection.getClass("{nms}.Packet");
 
+    private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final Class<?> handle;
     private TwinConverter<T, C> converter;
     private Map<Integer, FieldAccessor<?>> DEFAULT_ACCESSORS;
+    private Map<Integer, MethodInvoker<?>> DEFAULT_INVOKERS;
     private Map<Integer, FieldAccessor<T>> ACQUIRED_ACCESSORS;
-    private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
+    private Map<Integer, MethodInvoker<T>> ACQUIRED_INVOKERS;
 
-    // default structure
     public ReflectStructure(Class<?> delegate) {
         this.handle = delegate;
-        setDefaultFields();
+        initDefaults();
     }
 
-    // specific structure
-    public ReflectStructure(
-            Class<?> delegate,
-            Class<?> type
-    ) {
-        this(delegate, type, null);
-    }
-
-    // specific structure
     public ReflectStructure(
             Class<?> delegate,
             Class<?> type,
@@ -50,47 +42,79 @@ public class ReflectStructure<T, C> {
     ) {
         this.handle = delegate;
         this.converter = converter;
-        setDefaultFields();
-        ACQUIRED_ACCESSORS = getAcquiredFields(type);
+
+        initDefaults();
+        initAcquired(type);
     }
 
-    private void setDefaultFields() {
-        final Map<Integer, FieldAccessor<?>> defaults = new HashMap<>();
+    public void initDefaults() {
+        DEFAULT_INVOKERS = new HashMap<>();
+        DEFAULT_ACCESSORS = new HashMap<>();
+        setDefault(DEFAULT_INVOKERS, false);
+        setDefault(DEFAULT_ACCESSORS, true);
+    }
 
+    public void initAcquired(Class<?> type) {
+        ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
+        ACQUIRED_INVOKERS = getAcquiredInvokers(type);
+    }
+
+    public void setDefault(
+            Map<Integer, ? extends ReflectToucher<?>> defaults,
+            boolean isFields
+    ) {
         int index = 0;
         Class<?> clazz = handle;
 
         while (clazz != null && clazz != Object.class) {
-            setDefaultFields(index, defaults, clazz);
+            setDefaultSpecific(index, defaults, clazz, isFields);
             clazz = clazz.getSuperclass();
         }
-        DEFAULT_ACCESSORS = defaults;
     }
 
-    private Map<Integer, FieldAccessor<?>> setDefaultFields(
+    public Map<Integer, ? extends ReflectToucher<?>> setDefaultSpecific(
             int prevIndex,
-            Map<Integer, FieldAccessor<?>> defaults,
-            Class<?> clazz
+            Map<Integer, ? extends ReflectToucher<?>> defaults,
+            Class<?> clazz,
+            boolean isFields
     ) {
-        for (Field field : clazz.getDeclaredFields()) {
-            FieldAccessor<?> accessor = new FieldAccessor<>(field);
-            defaults.put(prevIndex++, accessor);
+        Object[] handles = (isFields) ? clazz.getDeclaredFields() : clazz.getDeclaredMethods();
+        for (Object handle : handles) {
+            ReflectToucher<?> toucher = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
+            defaults.put(prevIndex++, castReflectToucher(toucher));
         }
         return defaults;
     }
 
-    private Map<Integer, FieldAccessor<T>> getAcquiredFields(Class<?> type) {
+    @SuppressWarnings("unchecked")
+    private Map<Integer, FieldAccessor<T>> getAcquiredAccessors(Class<?> type) {
+        return (Map<Integer, FieldAccessor<T>>) getAcquired(type, new HashMap<Integer, FieldAccessor<T>>(), DEFAULT_ACCESSORS);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<Integer, MethodInvoker<T>> getAcquiredInvokers(Class<?> type) {
+        return (Map<Integer, MethodInvoker<T>>) getAcquired(type, new HashMap<Integer, MethodInvoker<T>>(), DEFAULT_INVOKERS);
+    }
+
+    private Map<Integer, ? extends ReflectToucher<T>> getAcquired(
+            Class<?> targetType,
+            Map<Integer, ? extends ReflectToucher<T>> acquiredMap,
+            Map<Integer, ? extends ReflectToucher<?>> defaultMap
+    ) {
         int index = 0;
-        Map<Integer, FieldAccessor<T>> acquired = new HashMap<>();
-        for (FieldAccessor<?> accessor : DEFAULT_ACCESSORS.values()) {
-            if (type != accessor.getType()) {
+        for (ReflectToucher<?> reflectToucher : defaultMap.values()) {
+            if (targetType != reflectToucher.getType()) {
                 continue;
             }
-            Bukkit.getLogger().info("putting " + accessor.getField().getName() + " in " + handle + " " + " type " + type.getSimpleName());
-            acquired.put(index, (FieldAccessor<T>) accessor);
+            acquiredMap.put(index, castReflectToucher(reflectToucher));
             index++;
         }
-        return acquired;
+        return acquiredMap;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R extends ReflectToucher<?>> R castReflectToucher(ReflectToucher<?> reflectToucher) {
+        return (R) reflectToucher;
     }
 
     public <R> ReflectStructure<R, R> withType(Class<R> clazz) {
@@ -115,8 +139,16 @@ public class ReflectStructure<T, C> {
         return ACQUIRED_ACCESSORS.values();
     }
 
+    public Collection<MethodInvoker<T>> getInvokers() {
+        return ACQUIRED_INVOKERS.values();
+    }
+
     public Collection<FieldAccessor<?>> getDefaultAccessors() {
         return DEFAULT_ACCESSORS.values();
+    }
+
+    public Collection<MethodInvoker<?>> getDefaultInvokers() {
+        return DEFAULT_INVOKERS.values();
     }
 
     public IStructureModifier<C> withTarget(Object rawPacket) {
@@ -134,8 +166,8 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public IStructureModifier<C> write(int index, C value) {
-            if (!has(index)) {
+        public IStructureModifier<C> writeField(int index, C value) {
+            if (!hasField(index)) {
                 return this;
             }
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
@@ -150,8 +182,8 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public C read(int index) {
-            if (!has(index)) {
+        public C readField(int index) {
+            if (!hasField(index)) {
                 return null;
             }
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
@@ -165,22 +197,47 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public List<C> readValues() {
+        public C invokeMethod(int index, Object... params) {
+            if (!hasMethod(index)) {
+                return null;
+            }
+            final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
+            if (converter != null) {
+                return converter.convertDelegate(invoker.invoke(handle, params));
+            }
+            else {
+                // T & C er den samme i generic context
+                return (C) invoker.invoke(handle, params);
+            }
+        }
+
+        @Override
+        public List<C> readFieldValues() {
             final List<C> list = new ArrayList<>();
             for (int i = 0; i < ACQUIRED_ACCESSORS.size(); i++) {
-               list.add(read(i));
+               list.add(readField(i));
             }
             return list;
         }
 
         @Override
-        public boolean has(int index) {
+        public boolean hasField(int index) {
             return ACQUIRED_ACCESSORS.containsKey(index);
         }
 
         @Override
-        public int size() {
+        public boolean hasMethod(int index) {
+            return ACQUIRED_INVOKERS.containsKey(index);
+        }
+
+        @Override
+        public int fieldSize() {
             return ACQUIRED_ACCESSORS.size();
+        }
+
+        @Override
+        public int methodSize() {
+            return ACQUIRED_INVOKERS.size();
         }
     }
 }

@@ -2,7 +2,7 @@ package me.alek.honey.netty.utility.reflect;
 
 import java.lang.reflect.Method;
 
-public class MethodInvoker {
+public class MethodInvoker<T> implements ReflectToucher<T> {
 
     private final Method method;
 
@@ -11,20 +11,25 @@ public class MethodInvoker {
         this.method = method;
     }
 
-    public Object invoke(Object object, Object... parameters) {
+    public T invoke(Object instance, Object... parameters) {
         try {
-            return method.invoke(object, parameters);
+            return invokeWithException(instance, parameters);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Reflection fejl");
         }
     }
 
-    public Object invokeWithException(Object object, Object... parameters) throws Exception {
-        return method.invoke(object, parameters);
+    public T invokeWithException(Object instance, Object... parameters) throws Exception {
+        return (T) method.invoke(instance, parameters);
     }
 
     public Method getMethod() {
         return method;
+    }
+
+    @Override
+    public Class<T> getType() {
+        return (Class<T>) method.getReturnType();
     }
 }

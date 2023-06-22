@@ -250,13 +250,13 @@ public class NBTHelper {
         int nbtLength = getNbtLength(tag);
         switch (item.getType()) {
             case FIREWORK: {
-                if (nbtLength > ConfigurationOptions.NBT.MAX_FIREWORK_NBT_LENGTH) {
+                if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH) {
                     return true;
                 }
                 break;
             }
             case FIREWORK_CHARGE: {
-                if (nbtLength > ConfigurationOptions.NBT.MAX_FIREWORK_CHARGE_NBT_LENGTH) {
+                if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_CHARGE_NBT_LENGTH) {
                     return true;
                 }
                 break;
@@ -270,7 +270,7 @@ public class NBTHelper {
                 break;
             }
             default: {
-                if (nbtLength > ConfigurationOptions.NBT.MAX_NBT_LENGTH) {
+                if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH) {
                     return true;
                 }
             }
@@ -280,7 +280,7 @@ public class NBTHelper {
                 return true;
             }
         }
-        if (ConfigurationOptions.NBT.CHECK_ILLEGAL_SKULL_TEXTURES) {
+        if (ConfigurationOptions.ItemAnalysis.NBT.CHECK_ILLEGAL_SKULL_TEXTURES) {
             if (ItemHelper.isSkull(item)) {
                 if (checkSkull(tag)) {
                     return true;
@@ -400,7 +400,7 @@ public class NBTHelper {
     }
 
     private static boolean checkValues(int totalBases, int nestingContext) {
-        return totalBases > ConfigurationOptions.NBT.MAX_NBT_BASES || nestingContext > ConfigurationOptions.NBT.MAX_NBT_NESTING;
+        return totalBases > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES || nestingContext > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
     }
 
     public static boolean checkSkull(Object nbt) {
@@ -450,7 +450,7 @@ public class NBTHelper {
 
     public static boolean checkBook(Object tag, int nbtLength) {
         try {
-            if (nbtLength > ConfigurationOptions.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
+            if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
                 return true;
             }
             if (!compoundHasKeyOfType(tag, "pages", 9)) {
@@ -458,7 +458,7 @@ public class NBTHelper {
             }
             Object nbtList = compoundGetFuzzyList(tag, "pages");
             int size = getListSize(nbtList);
-            if (size > ConfigurationOptions.NBT.MAX_BOOK_PAGES) {
+            if (size > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES) {
                 return true;
             }
             for (int i = 0; i < size; i++) {
@@ -467,7 +467,7 @@ public class NBTHelper {
                     return true;
                 }
                 String page = dataAccessor.get(base);
-                if (page == null || page.length() > ConfigurationOptions.NBT.MAX_BOOK_PAGE_LENGTH) {
+                if (page == null || page.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
                     return true;
                 }
             }
@@ -478,7 +478,7 @@ public class NBTHelper {
     }
 
     public static boolean checkContainer(ItemStack item) {
-        return item.hasItemMeta() && item.toString().getBytes().length > ConfigurationOptions.Items.MAX_CHEST_DATA;
+        return item.hasItemMeta() && item.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.MAX_CONTAINER_DATA;
     }
 
     public static void clearBookTags(ItemStack item) {

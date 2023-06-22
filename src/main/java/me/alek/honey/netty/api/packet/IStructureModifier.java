@@ -4,13 +4,19 @@ import java.util.List;
 
 public interface IStructureModifier<T> {
 
-    IStructureModifier<T> write(int index, T value);
+    IStructureModifier<T> writeField(int index, T value);
 
-    T read(int index);
+    T readField(int index);
 
-    List<T> readValues();
+    T invokeMethod(int index, Object... params);
 
-    boolean has(int index);
+    List<T> readFieldValues();
 
-    int size();
+    boolean hasField(int index);
+
+    boolean hasMethod(int index);
+
+    int fieldSize();
+
+    int methodSize();
 }

@@ -120,12 +120,10 @@ public class ViolationService {
 
         PacketLibrary.get().getProxy().writePacket(player, handle);*/
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                player.kickPlayer(ConfigurationOptions.General.KICK_MESSAGE);
-            }
-        }.runTask(HoneyPlugin.get());
+        Channel channel = NMSUtils.getChannel(player);
+        if (channel != null) {
+            channel.close();
+        }
         HoneyPlugin.get().getNotificationService().warn(
                 player,
                 violationName,
@@ -140,10 +138,6 @@ public class ViolationService {
                 packetLimitHandler,
                 setting
         );
-        Channel channel = NMSUtils.getChannel(player);
-        if (channel != null) {
-            channel.close();
-        }
         removePlayer(player);
     }
 

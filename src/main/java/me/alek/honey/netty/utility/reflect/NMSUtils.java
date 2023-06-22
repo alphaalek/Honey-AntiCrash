@@ -101,6 +101,14 @@ public class NMSUtils {
         return Reflection.getFuzzyObjectClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     }
 
+    public static Class<Object> getNBTTagCompoundClass() {
+        return Reflection.getFuzzyObjectClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
+    }
+
+    public static Class<Object> getNBTBaseClass() {
+        return Reflection.getFuzzyObjectClass("{nms}.NBTBase", "{nms}.nbt.NBTBase");
+    }
+
     public static boolean isFakeChannel(Channel channel) {
         if (channel == null) {
             return true;

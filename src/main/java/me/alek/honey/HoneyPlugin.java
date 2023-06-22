@@ -2,8 +2,11 @@ package me.alek.honey;
 
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.IListener;
-import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.ListenerRegistry;
+import me.alek.honey.command.CommandManager;
+import me.alek.honey.command.impl.HelpCommand;
+import me.alek.honey.command.impl.ReloadCommand;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
@@ -27,6 +30,7 @@ public class HoneyPlugin extends JavaPlugin {
     private NotificationService notificationService;
     private ConfiscationService confiscationService;
     private LoggerService loggerService;
+    private CommandManager commandManager;
     private Configuration configuration;
     private boolean isRunning;
     private PacketLibrary packetLibrary;
@@ -44,6 +48,10 @@ public class HoneyPlugin extends JavaPlugin {
         violationService = new ViolationService();
         notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
+
+        commandManager = new CommandManager(this);
+        new ReloadCommand(commandManager);
+        new HelpCommand(commandManager);
 
         registerChecks();
 
@@ -111,5 +119,9 @@ public class HoneyPlugin extends JavaPlugin {
 
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public CommandManager getCommandManager() {
+        return commandManager;
     }
 }

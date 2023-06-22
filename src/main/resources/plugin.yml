@@ -1,3 +1,5 @@
 name: Honey
 version: 1.0
 main: me.alek.honey.HoneyPlugin
+commands:
+  honey:
