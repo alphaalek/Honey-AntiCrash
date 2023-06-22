@@ -37,7 +37,7 @@ public class LoggerService {
             String playerName,
             String violationName,
             ViolationService.PacketLimitHandler packetLimitHandler,
-            ConfigurationOptions.IntervalSetting setting
+            ConfigurationOptions.VlSetting setting
     ) {
         if (ignoredPlayers.contains(playerName)) {
             return;
@@ -49,8 +49,9 @@ public class LoggerService {
             Bukkit.getLogger().info("Kicking " + playerName + " for " + violationName);
             return;
         }
+        String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
         Bukkit.getLogger().info(
-                 "flagged " + violationName + " " + packetLimitHandler.getFlagged() + "/" + setting.getMaxPerInterval() + ", "
+                 logType + " " + violationName + " " + packetLimitHandler.getFlagged() + "/" + setting.getMaxPerInterval() + ", "
                 + packetLimitHandler.getViolations() + "/" + setting.getVlsAmount() + ", " + setting.getInterval()
                 + " (" + handle.getClass().getSimpleName() + ")"
         );

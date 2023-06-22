@@ -21,14 +21,25 @@ public class NBTFactory {
                 .withType(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter())
                 .withTarget(nmsItem);
 
-        return (NBTCompound) structureModifier.readField(0);
+        NBTBase<?, ?> base = structureModifier.readField(0);
+        if (base == null) {
+            return null;
+        }
+        return (NBTCompound) base;
     }
 
-    public static NBTBase<?, ?> fromDelegate(Object nbt) {
-        NBTType type = getType(nbt);
+    public static <K, V> NBTBase<K, V> fromDelegate(Object handle) {
+        return copyFromType(getType(handle), handle);
+    }
+
+    public static <K, V> NBTBase<K, V> copyBase(NBTBase<K, V> base) {
+        return copyFromType(base.getType(), base.getHandle());
+    }
+
+    public static <K, V> NBTBase<K, V> copyFromType(NBTType type, Object handle) {
         ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker = type.getConstructorInvoker();
 
-        return (NBTBase<?, ?>) constructorInvoker.invoke(nbt);
+        return (NBTBase<K, V>) constructorInvoker.invoke(handle);
     }
 
     public static NBTType getType(Object handle) {

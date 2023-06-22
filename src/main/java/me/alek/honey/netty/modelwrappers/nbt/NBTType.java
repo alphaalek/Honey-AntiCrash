@@ -16,9 +16,10 @@ public enum NBTType {
     DOUBLE(6, double.class),
     BYTEARRAY(7, byte[].class),
     STRING(8, String.class),
-    LIST(9, List.class, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTList.class)),
-    COMPOUND(10, Map.class, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTCompound.class)),
+    LIST(9, List.class, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTList.class, Object.class)),
+    COMPOUND(10, Map.class, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTCompound.class, Object.class)),
     INTARRAY(11, int[].class),
+    LONGARRAY(12, long[].class),
     UNKNOWN(-1, null);
 
     private final int typeId;
@@ -32,7 +33,7 @@ public enum NBTType {
     }
 
     NBTType(int typeId, Class<?> clazz) {
-        this(typeId, clazz, new ConstructorInvoker<>((Class<? extends NBTBase<?, ?>>) WrappedElement.class));
+        this(typeId, clazz, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTElement.class, Object.class, clazz));
     }
 
     NBTType(int typeId, Class<?> clazz, ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker) {

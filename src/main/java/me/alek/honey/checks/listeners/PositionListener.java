@@ -94,7 +94,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.Velocity.NewChunks.get();
         }
     }
@@ -116,7 +116,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.Velocity.NewUnloadedChunks.get();
         }
     }
@@ -172,7 +172,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.Velocity.Movement.get();
         }
     }

@@ -4,34 +4,25 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.PacketFactory;
-import me.alek.honey.netty.packet.cache.PacketWrapperCache;
-import me.alek.honey.netty.packet.cache.PacketWrapperFactory;
-import me.alek.honey.netty.packet.structure.ReflectStructureCache;
-import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ViolationService {
 
-    private volatile Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
-    private volatile List<UUID> punishing = new CopyOnWriteArrayList<>();
+    private final Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
+    private final List<UUID> punishing = new CopyOnWriteArrayList<>();
     private final LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
     public void reload() {
@@ -80,22 +71,22 @@ public class ViolationService {
 
     public PacketLimitHandler getLimits(
             Player player,
-            PacketCheck<? extends WrappedPacket<?>> check,
-            PacketTypeEnum packetType,
-            ConfigurationOptions.IntervalSetting setting
+            CheckKey checkKey,
+            ConfigurationOptions.VlSetting setting
     ) {
         ViolationContext context = getViolationContext(player);
-        return context.getLimits(new CheckKey(check, packetType), setting);
+        return context.getLimits(checkKey, setting);
     }
 
     public void flag(
             Player player,
             PacketContainer<? extends WrappedPacket<?>> packet,
-            PacketCheck<? extends WrappedPacket<?>> check,
+            Runnable onViolation,
             String violationName,
-            ConfigurationOptions.IntervalSetting setting
+            ConfigurationOptions.VlSetting setting
     ) {
-        getLimits(player, check, packet.getType(), setting).flag(packet.getHandle(), violationName);
+        getLimits(player, CheckKey.DEFAULT, setting)
+                .flag(packet.getHandle(), violationName, onViolation);
     }
 
     public void flag(
@@ -104,12 +95,13 @@ public class ViolationService {
             PacketCheck<? extends WrappedPacket<?>> check,
             Runnable onViolation,
             String violationName,
-            ConfigurationOptions.IntervalSetting setting
+            ConfigurationOptions.VlSetting setting
     ) {
-        getLimits(player, check, packet.getType(), setting).flag(packet.getHandle(), violationName, onViolation);
+        getLimits(player, new CheckKey(check, packet.getType()), setting)
+                .flag(packet.getHandle(), violationName, onViolation);
     }
 
-    public void punish(Player player, String violationName, ConfigurationOptions.IntervalSetting setting, PacketLimitHandler packetLimitHandler) {
+    public void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, PacketLimitHandler packetLimitHandler) {
         punishing.add(player.getUniqueId());
 
         /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
@@ -147,14 +139,14 @@ public class ViolationService {
 
     public class ViolationContext {
 
-        private volatile Map<CheckKey, PacketLimitHandler> packetLimitMap = new ConcurrentHashMap<>();
+        private final Map<CheckKey, PacketLimitHandler> packetLimitMap = new ConcurrentHashMap<>();
         private final Player player;
 
         public ViolationContext(Player player) {
             this.player = player;
         }
 
-        public synchronized PacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.IntervalSetting setting) {
+        public synchronized PacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
                 packetLimitMap.put(key, new PacketLimitHandler(player, setting));
             }
@@ -172,6 +164,8 @@ public class ViolationService {
 
     private static class CheckKey extends Tuple2<PacketCheck<? extends WrappedPacket<?>>, PacketTypeEnum> {
 
+        public static CheckKey DEFAULT = new CheckKey(null, null);
+
         protected CheckKey(PacketCheck<? extends WrappedPacket<?>> check, PacketTypeEnum packetTypeEnum) {
             super(check, packetTypeEnum);
         }
@@ -180,7 +174,7 @@ public class ViolationService {
     public class PacketLimitHandler {
 
         private final Player player;
-        private final ConfigurationOptions.IntervalSetting setting;
+        private final ConfigurationOptions.VlSetting setting;
         private int maxPerInterval;
         private int interval;
         private int vlsAmount;
@@ -191,7 +185,7 @@ public class ViolationService {
         private volatile int violations;
         private volatile boolean violatedForInterval;
 
-        public PacketLimitHandler(Player player, ConfigurationOptions.IntervalSetting setting) {
+        public PacketLimitHandler(Player player, ConfigurationOptions.VlSetting setting) {
             this.setting = setting;
             this.player = player;
             maxPerInterval = setting.getMaxPerInterval();
@@ -215,12 +209,12 @@ public class ViolationService {
             this.vlsAmount = setting.getVlsAmount();
         }
 
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return setting;
         }
 
         public synchronized void flag(Object handle, String violationName, Runnable onViolation) {
-            if (System.currentTimeMillis() - intervalStart > interval) {
+            if (System.currentTimeMillis() - intervalStart >= interval) {
                 violatedForInterval = false;
                 flagged = 0;
                 intervalStart = System.currentTimeMillis();
@@ -250,7 +244,7 @@ public class ViolationService {
             if (onViolation != null) {
                 onViolation.run();
             }
-            if (System.currentTimeMillis() - lastViolationClear > ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
+            if (System.currentTimeMillis() - lastViolationClear >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violatedForInterval = false;
                 violations = 0;
                 lastViolationClear = System.currentTimeMillis();

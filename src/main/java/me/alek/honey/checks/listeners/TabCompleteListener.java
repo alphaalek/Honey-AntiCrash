@@ -11,10 +11,8 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -76,7 +74,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.Commands.get();
         }
     }

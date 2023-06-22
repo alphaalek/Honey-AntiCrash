@@ -17,13 +17,13 @@ import java.util.Map;
 public class ConfigurationOptions {
 
     private static FileConfiguration file;
-    private static Map<PacketTypeEnum, ConfigurationOptions.IntervalSetting> floodSettings = new HashMap<>();
+    private static Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
 
     public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
     }
 
-    public static Map<PacketTypeEnum, IntervalSetting> getFloodSettings() {
+    public static Map<PacketTypeEnum, VlSetting> getFloodSettings() {
         return floodSettings;
     }
 
@@ -43,7 +43,7 @@ public class ConfigurationOptions {
             }
         }
         if (clazz.isAnnotationPresent(Interval.class)) {
-            if (IntervalSetting.class.isAssignableFrom(clazz)) {
+            if (VlSetting.class.isAssignableFrom(clazz)) {
                 setIntervalBased(clazz, clazz.getAnnotation(Interval.class).value());
             }
         }
@@ -58,7 +58,7 @@ public class ConfigurationOptions {
     public static void setIntervalBased(Class<?> clazz, String[] prefixPaths) {
         try {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
-            IntervalSetting setting = (IntervalSetting) constructor.newInstance();
+            VlSetting setting = (VlSetting) constructor.newInstance();
 
             if (clazz.isAnnotationPresent(Flood.class)) {
                 Flood flood = clazz.getAnnotation(Flood.class);
@@ -100,7 +100,7 @@ public class ConfigurationOptions {
                         }
                     }
                 }
-                if (IntervalSetting.class.isAssignableFrom(clazz = clazz.getSuperclass())) {
+                if (VlSetting.class.isAssignableFrom(clazz = clazz.getSuperclass())) {
                     continue;
                 }
                 return;
@@ -127,14 +127,14 @@ public class ConfigurationOptions {
         PacketType.Play.Client[] value();
     }
 
-    public abstract static class IntervalSetting {
+    public abstract static class VlSetting implements Cloneable {
 
         public int MAX_PER_INTERVAL = 1;
         public int INTERVAL = 0;
         public int VLS_AMOUNT = 1;
         private boolean ENABLED;
 
-        public IntervalSetting() {}
+        public VlSetting() {}
 
         public int getMaxPerInterval() {
             return MAX_PER_INTERVAL;
@@ -150,6 +150,15 @@ public class ConfigurationOptions {
 
         public boolean isEnabled() {
             return ENABLED;
+        }
+
+        @Override
+        public VlSetting clone() {
+            try {
+                return (VlSetting) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError();
+            }
         }
     }
 
@@ -193,7 +202,7 @@ public class ConfigurationOptions {
 
     @Setting
     @Interval("commands")
-    public static class Commands extends IntervalSetting {
+    public static class Commands extends VlSetting {
 
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
         public static List<String> PROHIBITED_COMMANDS;
@@ -288,7 +297,7 @@ public class ConfigurationOptions {
 
     @Setting
     @Interval("block-place")
-    public static class BlockPlacement extends IntervalSetting {
+    public static class BlockPlacement extends VlSetting {
         public static double MAX_BLOCK_TO_PLAYER_DISTANCE;
 
         private static BlockPlacement instance;
@@ -309,7 +318,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Interval("velocity.new-chunks")
-        public static class NewChunks extends IntervalSetting {
+        public static class NewChunks extends VlSetting {
 
             private static NewChunks instance;
 
@@ -324,7 +333,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Interval("velocity.new-unloaded-chunks")
-        public static class NewUnloadedChunks extends IntervalSetting {
+        public static class NewUnloadedChunks extends VlSetting {
 
             private static NewUnloadedChunks instance;
             public NewUnloadedChunks() {
@@ -338,7 +347,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Interval("velocity.movement")
-        public static class Movement extends IntervalSetting {
+        public static class Movement extends VlSetting {
 
             public static int MAX_2D_DISTANCE;
 
@@ -394,181 +403,226 @@ public class ConfigurationOptions {
 
     @Setting
     @Interval("packet-flood")
-    public static class PacketFlood extends IntervalSetting {
+    public static class PacketFlood extends VlSetting {
 
-        @Flood(PacketType.Play.Client.ABILITIES)
         @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.abilities"})
-        public static class Abilities extends IntervalSetting {
+        @Interval("packet-flood.common.a")
+        public static class FloodA extends VlSetting {
+
+            private static FloodA instance;
+            public FloodA() {
+                instance = this;
+            }
+            public static FloodA get() {
+                return instance;
+            }
 
         }
 
-        @Flood(PacketType.Play.Client.ARM_ANIMATION)
         @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.arm-animation"})
-        public static class ArmAnimation extends IntervalSetting {
+        @Interval("packet-flood.common.b")
+        public static class FloodB extends VlSetting {
 
+            private static FloodB instance;
+            public FloodB() {
+                instance = this;
+            }
+            public static FloodB get() {
+                return instance;
+            }
         }
 
-        @Flood(PacketType.Play.Client.AUTO_RECIPE)
         @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.auto-recipe"})
-        public static class AutoRecipe extends IntervalSetting {
+        @Interval("packet-flood.c")
+        public static class FloodC extends VlSetting {
 
+            private static FloodC instance;
+            public FloodC() {
+                instance = this;
+            }
+            public static FloodC get() {
+                return instance;
+            }
         }
 
-        @Flood(PacketType.Play.Client.BLOCK_DIG)
         @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.block-dig"})
-        public static class BlockDig extends IntervalSetting {
+        public static class FloodD {
 
-        }
+            @Flood(PacketType.Play.Client.ABILITIES)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.abilities"})
+            public static class Abilities extends VlSetting {
 
-        @Flood(PacketType.Play.Client.BLOCK_PLACE)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.block-place"})
-        public static class BlockPlace extends IntervalSetting {
+            }
 
-        }
+            @Flood(PacketType.Play.Client.ARM_ANIMATION)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.arm-animation"})
+            public static class ArmAnimation extends VlSetting {
 
-        @Flood(PacketType.Play.Client.CLIENT_COMMAND)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.client-command"})
-        public static class ClientCommand extends IntervalSetting {
+            }
 
-        }
+            @Flood(PacketType.Play.Client.AUTO_RECIPE)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.auto-recipe"})
+            public static class AutoRecipe extends VlSetting {
 
-        @Flood(PacketType.Play.Client.CLOSE_WINDOW)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.close-window"})
-        public static class CloseWindow extends IntervalSetting {
+            }
 
-        }
+            @Flood(PacketType.Play.Client.BLOCK_DIG)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.block-dig"})
+            public static class BlockDig extends VlSetting {
+
+            }
+
+            @Flood(PacketType.Play.Client.BLOCK_PLACE)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.block-place"})
+            public static class BlockPlace extends VlSetting {
+
+            }
+
+            @Flood(PacketType.Play.Client.CLIENT_COMMAND)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.client-command"})
+            public static class ClientCommand extends VlSetting {
+
+            }
+
+            @Flood(PacketType.Play.Client.CLOSE_WINDOW)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.close-window"})
+            public static class CloseWindow extends VlSetting {
+
+            }
 
 
-        @Flood(PacketType.Play.Client.CHAT)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.chat"})
-        public static class Chat extends IntervalSetting {
+            @Flood(PacketType.Play.Client.CHAT)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.chat"})
+            public static class Chat extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.CUSTOM_PAYLOAD)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.custom-payload"})
-        public static class CustomPayload extends IntervalSetting {
+            @Flood(PacketType.Play.Client.CUSTOM_PAYLOAD)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.custom-payload"})
+            public static class CustomPayload extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.HELD_ITEM_SLOT)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.held-item-slot"})
-        public static class HeldItemSlot extends IntervalSetting {
+            @Flood(PacketType.Play.Client.HELD_ITEM_SLOT)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.held-item-slot"})
+            public static class HeldItemSlot extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.ENCHANT_ITEM)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.enchant-item"})
-        public static class EnchantItem extends IntervalSetting {
+            @Flood(PacketType.Play.Client.ENCHANT_ITEM)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.enchant-item"})
+            public static class EnchantItem extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.ENTITY_ACTION)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.entity-action"})
-        public static class EntityAction extends IntervalSetting {
+            @Flood(PacketType.Play.Client.ENTITY_ACTION)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.entity-action"})
+            public static class EntityAction extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.KEEP_ALIVE)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.keep-alive"})
-        public static class KeepAlive extends IntervalSetting {
+            @Flood(PacketType.Play.Client.KEEP_ALIVE)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.keep-alive"})
+            public static class KeepAlive extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.LOOK)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.look"})
-        public static class Look extends IntervalSetting {
+            @Flood(PacketType.Play.Client.LOOK)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.look"})
+            public static class Look extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.FLYING)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.flying"})
-        public static class Flying extends IntervalSetting {
+            @Flood(PacketType.Play.Client.FLYING)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.flying"})
+            public static class Flying extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.SET_CREATIVE_SLOT)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.set-creative-slot"})
-        public static class SetCreativeSlot extends IntervalSetting {
+            @Flood(PacketType.Play.Client.SET_CREATIVE_SLOT)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.set-creative-slot"})
+            public static class SetCreativeSlot extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.SETTINGS)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.settings"})
-        public static class Settings extends IntervalSetting {
+            @Flood(PacketType.Play.Client.SETTINGS)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.settings"})
+            public static class Settings extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.SPECTATE)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.spectate"})
-        public static class Spectate extends IntervalSetting {
+            @Flood(PacketType.Play.Client.SPECTATE)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.spectate"})
+            public static class Spectate extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.STEER_VEHICLE)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.steer-vehicle"})
-        public static class SteerVehicle extends IntervalSetting {
+            @Flood(PacketType.Play.Client.STEER_VEHICLE)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.steer-vehicle"})
+            public static class SteerVehicle extends VlSetting {
 
-        }
+            }
 
-        @Flood({PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK})
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.position"})
-        public static class Position extends IntervalSetting {
+            @Flood({PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK})
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.position"})
+            public static class Position extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.UPDATE_SIGN)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.update-sign"})
-        public static class UpdateSign extends IntervalSetting {
+            @Flood(PacketType.Play.Client.UPDATE_SIGN)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.update-sign"})
+            public static class UpdateSign extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.USE_ITEM)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.use-item"})
-        public static class UseItem extends IntervalSetting {
+            @Flood(PacketType.Play.Client.USE_ITEM)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.use-item"})
+            public static class UseItem extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.USE_ENTITY)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.use-entity"})
-        public static class UseEntity extends IntervalSetting {
+            @Flood(PacketType.Play.Client.USE_ENTITY)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.use-entity"})
+            public static class UseEntity extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.TAB_COMPLETE)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.tab-complete"})
-        public static class TabComplete extends IntervalSetting {
+            @Flood(PacketType.Play.Client.TAB_COMPLETE)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.tab-complete"})
+            public static class TabComplete extends VlSetting {
 
-        }
+            }
 
-        @Flood(PacketType.Play.Client.WINDOW_CLICK)
-        @Setting
-        @Interval({"packet-flood.specific", "packet-flood.specific.window-click"})
-        public static class WindowClick extends IntervalSetting {
+            @Flood(PacketType.Play.Client.WINDOW_CLICK)
+            @Setting
+            @Interval({"packet-flood.d", "packet-flood.d.window-click"})
+            public static class WindowClick extends VlSetting {
+
+            }
 
         }
     }

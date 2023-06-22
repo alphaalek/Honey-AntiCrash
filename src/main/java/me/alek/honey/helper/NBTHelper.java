@@ -1,6 +1,8 @@
 package me.alek.honey.helper;
 
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -91,7 +93,6 @@ public class NBTHelper {
     // får en nbt list for den key i en nbt compound
     public static Object compoundGetFuzzyList(Object tag, String key) {
         Object list = compoundGetFuzzyBase(tag, key);
-        Bukkit.broadcastMessage(list + "");
         if (list == null) {
             return null;
         }

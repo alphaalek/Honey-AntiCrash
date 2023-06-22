@@ -15,11 +15,18 @@ public class ResponseBuilder {
             .build();
 
     public static Function<PacketContainer<? extends WrappedPacket<?>>, ResponseContainer> FLOOD_FLAG
-        = (packet) -> ResponseBuilder
+             = (packet) -> ResponseBuilder
                           .inst()
                           .accept()
                           .flag()
                           .onViolation(packet::cancel)
+                          .build();
+
+    public static Function<PacketContainer<? extends WrappedPacket<?>>, ResponseContainer> FLOOD_FLAG_DEFAULT_KEY
+             = (packet) -> FLOOD_FLAG
+                          .apply(packet)
+                          .builder()
+                          .useDefaultCheckKey()
                           .build();
 
     public static ResponseBuilder inst() {
@@ -53,6 +60,11 @@ public class ResponseBuilder {
 
     public ResponseBuilder flag() {
         responseContainer.FLAGGED = true;
+        return this;
+    }
+
+    public ResponseBuilder useDefaultCheckKey() {
+        responseContainer.FLAG_DEFAULT_CHECK_KEY = true;
         return this;
     }
 

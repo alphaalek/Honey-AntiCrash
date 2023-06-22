@@ -33,14 +33,11 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 packetContainer.cancel();
                 return;
             }
-            if (packetContainer.isCancelled()) {
-                return;
-            }
             if (skipping-- > 0) {
                 continue;
             }
             ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
-            ConfigurationOptions.IntervalSetting setting = null;
+            ConfigurationOptions.VlSetting setting = null;
             if (check instanceof IntervalCheck) {
                 setting = ((IntervalCheck)check).getSetting();
             }
@@ -57,14 +54,25 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 if (setting == null) {
                     continue;
                 }
-                HoneyPlugin.get().getViolationService().flag(
-                        player,
-                        packetContainer,
-                        check,
-                        response.ON_VIOLATION,
-                        check.getViolationName(),
-                        setting
-                );
+                if (response.FLAG_DEFAULT_CHECK_KEY) {
+                    HoneyPlugin.get().getViolationService().flag(
+                            player,
+                            packetContainer,
+                            response.ON_VIOLATION,
+                            check.getViolationName(),
+                            setting
+                    );
+                }
+                else {
+                    HoneyPlugin.get().getViolationService().flag(
+                            player,
+                            packetContainer,
+                            check,
+                            response.ON_VIOLATION,
+                            check.getViolationName(),
+                            setting
+                    );
+                }
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null) {
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);

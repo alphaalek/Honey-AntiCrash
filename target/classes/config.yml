@@ -274,20 +274,26 @@ commands:
 ############################################################
 
 packet-flood:
+
   # common
   common:
-    max-per-interval: 180
-    interval: 1250
-    vls-amount: 1
+    a:
+      max-per-interval: 150
+      interval: 300
+      vls-amount: 1
+    b:
+      max-per-interval: 350
+      interval: 1000
+      vls-amount: 1
 
   # total
-  total:
-    max-per-interval: 650
+  c:
+    max-per-interval: 550
     interval: 1250
     vls-amount: 1
 
-  # specifics
-  specific:
+  # specific
+  d:
     # fælles indstillinger, hvis du vil have andre skal du ændre det i de forskellige packets
     # packet indstillinger er højere prioritet end fælles indstillinger
     vls-amount: 5

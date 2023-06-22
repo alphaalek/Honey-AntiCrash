@@ -4,5 +4,5 @@ import me.alek.honey.configuration.ConfigurationOptions;
 
 public interface IntervalCheck {
 
-    ConfigurationOptions.IntervalSetting getSetting();
+    ConfigurationOptions.VlSetting getSetting();
 }

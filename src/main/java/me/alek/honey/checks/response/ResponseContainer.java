@@ -6,6 +6,7 @@ public class ResponseContainer {
     public boolean ACCEPTED;
     public boolean CANCELLED;
     public boolean FLAGGED;
+    public boolean FLAG_DEFAULT_CHECK_KEY;
     public boolean PUNISH;
     public boolean CONFISCATE;
     public boolean NOTIFY;

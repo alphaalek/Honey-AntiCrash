@@ -36,13 +36,16 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
+        return ListenerPriority.LOW;
     }
 
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
         visitor.visit(new FloodA<>());
+        visitor.visit(new FloodB<>());
+        visitor.visit(new FloodD<>());
+        visitor.visit(new FloodC<>());
         return visitor;
     }
 
@@ -61,14 +64,96 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         };
     }
 
-    public static class FloodA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, IntervalConsumerCheck {
+    public static abstract class AbstractCustomizedFlood<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, IntervalConsumerCheck {
 
-        private final Map<PacketTypeEnum, ConfigurationOptions.IntervalSetting> settingMap = new HashMap<>();
+        private final Map<PacketTypeEnum, ConfigurationOptions.VlSetting> settingMap = new HashMap<>();
 
-        public FloodA() {
-            settingMap.putAll(ConfigurationOptions.getFloodSettings());
+        public AbstractCustomizedFlood() {
+            final ConfigurationOptions.VlSetting commonSetting = getSetting();
+            for (Map.Entry<PacketTypeEnum, ConfigurationOptions.VlSetting> settingEntry : ConfigurationOptions.getFloodSettings().entrySet()) {
+
+                final ConfigurationOptions.VlSetting setting = settingEntry.getValue().clone();
+                setting.INTERVAL = commonSetting.INTERVAL;
+                setting.MAX_PER_INTERVAL = commonSetting.MAX_PER_INTERVAL;
+                setting.VLS_AMOUNT = commonSetting.VLS_AMOUNT;
+
+                settingMap.put(settingEntry.getKey(), setting);
+            }
         }
 
+        public abstract ConfigurationOptions.VlSetting getSetting();
+
+        public abstract boolean useDefaultCheckKey();
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (useDefaultCheckKey()) {
+                return ResponseBuilder.FLOOD_FLAG_DEFAULT_KEY.apply(packet.getContainer());
+            }
+            return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting(PacketTypeEnum packetType) {
+            return settingMap.get(packetType);
+        }
+    }
+
+    public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizedFlood<WP> {
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.PacketFlood.FloodA.get();
+        }
+
+        @Override
+        public boolean useDefaultCheckKey() {
+            return false;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "FloodA";
+        }
+    }
+
+    public static class FloodB<WP extends WrappedPacket<WP>> extends AbstractCustomizedFlood<WP> {
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.PacketFlood.FloodB.get();
+        }
+
+        @Override
+        public boolean useDefaultCheckKey() {
+            return false;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "FloodB";
+        }
+    }
+
+    public static class FloodC<WP extends WrappedPacket<WP>> extends AbstractCustomizedFlood<WP> {
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.PacketFlood.FloodC.get();
+        }
+
+        @Override
+        public boolean useDefaultCheckKey() {
+            return true;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "FloodC";
+        }
+    }
+
+    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, IntervalConsumerCheck {
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
@@ -76,12 +161,12 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "FloodA";
+            return "FloodD";
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting(PacketTypeEnum packetType) {
-            return settingMap.get(packetType);
+        public ConfigurationOptions.VlSetting getSetting(PacketTypeEnum packetType) {
+            return ConfigurationOptions.getFloodSettings().get(packetType);
         }
     }
 

@@ -97,7 +97,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.BlockPlacement.get();
         }
     }

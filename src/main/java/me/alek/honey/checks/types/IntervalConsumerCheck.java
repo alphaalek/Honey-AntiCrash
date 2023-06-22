@@ -5,5 +5,5 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 
 public interface IntervalConsumerCheck {
 
-    ConfigurationOptions.IntervalSetting getSetting(PacketTypeEnum packetType);
+    ConfigurationOptions.VlSetting getSetting(PacketTypeEnum packetType);
 }

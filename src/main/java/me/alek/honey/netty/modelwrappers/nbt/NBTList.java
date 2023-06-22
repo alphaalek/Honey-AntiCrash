@@ -11,7 +11,7 @@ public class NBTList<T> extends NBTBase<List<Object>, List<T>> {
     private final NBTType typeOf;
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, List<T>>> getStructure() {
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, List<T>>> getValueStructure() {
         return (structure) -> structure.withType(getParameterizedClass(), Converters.getNBTListConverter());
     }
 
@@ -25,15 +25,35 @@ public class NBTList<T> extends NBTBase<List<Object>, List<T>> {
         this.typeOf = typeOf;
     }
 
+    public int size() {
+        return getValue().size();
+    }
+
+    public void clear() {
+        getValue().clear();
+    }
+
+    public boolean isEmpty() {
+        return getValue().isEmpty();
+    }
+
     public NBTType getTypeOf() {
         return typeOf;
     }
 
-    public T read(int index) {
+    public T remove(int index) {
+        return getValue().remove(index);
+    }
+
+    public boolean contains(T value) {
+        return getValue().contains(value);
+    }
+
+    public T get(int index) {
         return getValue().get(index);
     }
 
-    public void write(int index, T value) {
+    public void add(int index, T value) {
         getValue().set(index, value);
     }
 

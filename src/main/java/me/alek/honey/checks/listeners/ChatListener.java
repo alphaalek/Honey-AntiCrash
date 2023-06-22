@@ -181,7 +181,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         }
 
         @Override
-        public ConfigurationOptions.IntervalSetting getSetting() {
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.Commands.get();
         }
     }
