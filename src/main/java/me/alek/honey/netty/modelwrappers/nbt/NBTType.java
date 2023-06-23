@@ -1,6 +1,7 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +17,9 @@ public enum NBTType {
     DOUBLE(6, double.class),
     BYTEARRAY(7, byte[].class),
     STRING(8, String.class),
-    LIST(9, List.class, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTList.class, Object.class)),
-    COMPOUND(10, Map.class, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTCompound.class, Object.class)),
+    @SuppressWarnings("unchecked")
+    LIST(9, List.class, new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class)),
+    COMPOUND(10, Map.class, new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class)),
     INTARRAY(11, int[].class),
     LONGARRAY(12, long[].class),
     UNKNOWN(-1, null);
@@ -26,14 +28,36 @@ public enum NBTType {
     private final Class<?> clazz;
     private final ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker;
 
-    private static final Map<Class<?>, NBTType> typeLookup = new HashMap<>();
+    private static final Map<Class<?>, NBTType> typeLookup;
 
     static {
-        initializeTypeLookup();
+        typeLookup = new HashMap<>();
+
+        synchronized (typeLookup) {
+            for (NBTType nbtType : values()) {
+
+                if (nbtType == NBTType.UNKNOWN) {
+                    continue;
+                }
+                typeLookup.put(nbtType.getClazz(), nbtType);
+            }
+        }
     }
 
+    @SuppressWarnings("unchecked")
+    public static Class<? extends NBTBase<?, ?>> castNBTBase(Class<?> clazz) {
+        try {
+            if (NBTBase.class.isAssignableFrom(clazz)) {
+                return (Class<? extends NBTBase<?, ?>>) clazz.asSubclass(NBTBase.class);
+            }
+        } catch (Exception ex) {
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
     NBTType(int typeId, Class<?> clazz) {
-        this(typeId, clazz, new ConstructorInvoker<>((Class<NBTBase<?, ?>>) (Class<?>) NBTElement.class, Object.class, clazz));
+        this(typeId, clazz, new ConstructorInvoker<>(castNBTBase(NBTElement.class), Object.class));
     }
 
     NBTType(int typeId, Class<?> clazz, ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker) {
@@ -53,18 +77,8 @@ public enum NBTType {
         return constructorInvoker;
     }
 
-    public static void initializeTypeLookup() {
-        if (!typeLookup.isEmpty()) {
-            return;
-        }
-        synchronized (typeLookup) {
-            for (NBTType nbtType : values()) {
-                typeLookup.put(nbtType.getClazz(), nbtType);
-            }
-        }
-    }
 
-    public static NBTType getFromTypeId(int typeId) {
+    public static NBTType getFromTypeId(byte typeId) {
         try {
             return values()[typeId];
         } catch (Exception ex) {

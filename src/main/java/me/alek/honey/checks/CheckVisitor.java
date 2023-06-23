@@ -33,9 +33,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 packetContainer.cancel();
                 return;
             }
-            if (skipping-- > 0) {
-                continue;
-            }
+            if (skipping-- > 0) continue;
+
             ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
             ConfigurationOptions.VlSetting setting = null;
             if (check instanceof IntervalCheck) {
@@ -44,6 +43,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             else if (check instanceof IntervalConsumerCheck) {
                 setting = ((IntervalConsumerCheck)check).getSetting(packetContainer.getType());
             }
+
             if (response.SUCCESS) {
                 continue;
             }

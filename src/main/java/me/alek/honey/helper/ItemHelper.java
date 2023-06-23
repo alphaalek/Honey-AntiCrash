@@ -23,25 +23,31 @@ public class ItemHelper {
     }
 
     public static ItemStack asBukkitItem(Object item) {
-        try {
-            if (itemStackClass.isInstance(item)) {
-                Object bukkitItem = bukkitCopyInvoker.invoke(null, item);
-                if (bukkitItem instanceof ItemStack) {
-                    return (ItemStack) bukkitItem;
+        if (item != null) {
+
+            try {
+                if (itemStackClass.isInstance(item)) {
+                    Object bukkitItem = bukkitCopyInvoker.invoke(null, item);
+                    if (bukkitItem instanceof ItemStack) {
+                        return (ItemStack) bukkitItem;
+                    }
                 }
+            } catch (Exception ex) {
             }
-        } catch (Exception ex) {
         }
         return null;
     }
 
     public static Object asNMSItem(ItemStack item) {
-        try {
-            Object nmsItem = nmsCopyInvoker.invoke(null, item);
-            if (isNMSItem(nmsItem)) {
-                return nmsItem;
+        if (item != null) {
+
+            try {
+                Object nmsItem = nmsCopyInvoker.invoke(null, item);
+                if (isNMSItem(nmsItem)) {
+                    return nmsItem;
+                }
+            } catch (Exception ex) {
             }
-        } catch (Exception ex) {
         }
         return null;
     }

@@ -1,5 +1,7 @@
 package me.alek.honey.netty.utility.reflect;
 
+import org.bukkit.Bukkit;
+
 import java.lang.reflect.Constructor;
 
 public class ConstructorInvoker<T> {
@@ -14,6 +16,7 @@ public class ConstructorInvoker<T> {
         try {
             this.constructor = clazz.getDeclaredConstructor(params);
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Reflection fejl");
         }
     }

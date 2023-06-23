@@ -32,4 +32,9 @@ public class MethodInvoker<T> implements ReflectToucher<T> {
     public Class<T> getType() {
         return (Class<T>) method.getReturnType();
     }
+
+    @Override
+    public String getName() {
+        return method.getName();
+    }
 }

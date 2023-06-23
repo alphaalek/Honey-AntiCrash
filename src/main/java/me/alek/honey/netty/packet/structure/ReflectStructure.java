@@ -1,14 +1,16 @@
 package me.alek.honey.netty.packet.structure;
 
-import me.alek.honey.netty.packet.structure.converters.TwinConverter;
+import me.alek.honey.netty.packet.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReflectStructure<T, C> {
 
@@ -24,7 +26,7 @@ public class ReflectStructure<T, C> {
 
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final Class<?> handle;
-    private TwinConverter<T, C> converter;
+    private JavaConverter<T, C> converter;
     private Map<Integer, FieldAccessor<?>> DEFAULT_ACCESSORS;
     private Map<Integer, MethodInvoker<?>> DEFAULT_INVOKERS;
     private Map<Integer, FieldAccessor<T>> ACQUIRED_ACCESSORS;
@@ -38,7 +40,7 @@ public class ReflectStructure<T, C> {
     public ReflectStructure(
             Class<?> delegate,
             Class<?> type,
-            TwinConverter<T, C> converter
+            JavaConverter<T, C> converter
     ) {
         this.handle = delegate;
         this.converter = converter;
@@ -47,23 +49,26 @@ public class ReflectStructure<T, C> {
         initAcquired(type);
     }
 
-    public void initDefaults() {
+    public synchronized void initDefaults() {
         DEFAULT_INVOKERS = new HashMap<>();
         DEFAULT_ACCESSORS = new HashMap<>();
         setDefault(DEFAULT_INVOKERS, false);
         setDefault(DEFAULT_ACCESSORS, true);
     }
 
-    public void initAcquired(Class<?> type) {
+    public synchronized void initAcquired(Class<?> type) {
+        Bukkit.getLogger().info("NEW STRUCTURE !!!!!!!!!!!!!!!!!!!!!!!! " + handle.getName());
         ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
+
+        Bukkit.getLogger().info(DEFAULT_ACCESSORS.size() + ": " + ACQUIRED_ACCESSORS.size() + ", " + DEFAULT_INVOKERS + ": " + ACQUIRED_INVOKERS.size());
     }
 
     public void setDefault(
             Map<Integer, ? extends ReflectToucher<?>> defaults,
             boolean isFields
     ) {
-        int index = 0;
+        AtomicInteger index = new AtomicInteger();
         Class<?> clazz = handle;
 
         while (clazz != null && clazz != Object.class) {
@@ -73,15 +78,16 @@ public class ReflectStructure<T, C> {
     }
 
     public Map<Integer, ? extends ReflectToucher<?>> setDefaultSpecific(
-            int prevIndex,
+            AtomicInteger index,
             Map<Integer, ? extends ReflectToucher<?>> defaults,
             Class<?> clazz,
             boolean isFields
     ) {
         Object[] handles = (isFields) ? clazz.getDeclaredFields() : clazz.getDeclaredMethods();
+        Bukkit.broadcastMessage("HANDLES: " + Arrays.toString(handles) + "");
         for (Object handle : handles) {
             ReflectToucher<?> toucher = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
-            defaults.put(prevIndex++, castReflectToucher(toucher));
+            defaults.put(index.getAndIncrement(), castReflectToucher(toucher));
         }
         return defaults;
     }
@@ -96,19 +102,25 @@ public class ReflectStructure<T, C> {
         return (Map<Integer, MethodInvoker<T>>) getAcquired(type, new HashMap<Integer, MethodInvoker<T>>(), DEFAULT_INVOKERS);
     }
 
-    private Map<Integer, ? extends ReflectToucher<T>> getAcquired(
+    private synchronized Map<Integer, ? extends ReflectToucher<T>> getAcquired(
             Class<?> targetType,
             Map<Integer, ? extends ReflectToucher<T>> acquiredMap,
             Map<Integer, ? extends ReflectToucher<?>> defaultMap
     ) {
+        Bukkit.getLogger().info("NEEEEEEEEEW " + handle.getName());
+        Bukkit.getLogger().info("defaults: " + defaultMap.size());
         int index = 0;
+        Bukkit.getLogger().info(defaultMap + "");
         for (ReflectToucher<?> reflectToucher : defaultMap.values()) {
-            if (targetType != reflectToucher.getType()) {
+            Bukkit.getLogger().info(handle.getName() + ", " + reflectToucher.getType().getName() + " " + reflectToucher.getName() );
+            if (!targetType.isAssignableFrom(reflectToucher.getType())) {
                 continue;
             }
+            Bukkit.getLogger().info(handle.getName() + ", - PUTTING " + reflectToucher.getType().getName());
             acquiredMap.put(index, castReflectToucher(reflectToucher));
             index++;
         }
+        Bukkit.getLogger().info(acquiredMap + "");
         return acquiredMap;
     }
 
@@ -117,15 +129,26 @@ public class ReflectStructure<T, C> {
         return (R) reflectToucher;
     }
 
+    public <R> ReflectStructure<R, R> withWeakType(Class<?> clazz) {
+        return (ReflectStructure<R, R>) withType(clazz);
+    }
+
+    public <R, D> ReflectStructure<R, D> withWeakType(Class<?> clazz, JavaConverter<R, D> converter) {
+        return withSpecificType(clazz, converter);
+    }
+
     public <R> ReflectStructure<R, R> withType(Class<R> clazz) {
         // R og D er den samme i generic context
         return withType(clazz, null);
     }
 
+    public <R, D> ReflectStructure<R, D> withType(Class<R> clazz, JavaConverter<R, D> converter) {
+        return withSpecificType(clazz, converter);
+    }
 
-    public <R, D> ReflectStructure<R, D> withType(Class<R> clazz, TwinConverter<R, D> converter) {
+    public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter) {
         if (clazz == null) {
-             return null;
+            return null;
         }
         ReflectStructure<R, D> packetStructure = (ReflectStructure<R, D>) SUB_TYPE_CACHE.get(clazz);
         if (packetStructure == null) {
@@ -133,6 +156,10 @@ public class ReflectStructure<T, C> {
             SUB_TYPE_CACHE.put(clazz, packetStructure);
         }
         return packetStructure;
+    }
+
+    public Collection<FieldAccessor<T>> getSuperAccessors() {
+        return ACQUIRED_ACCESSORS.values();
     }
 
     public Collection<FieldAccessor<T>> getAccessors() {
@@ -158,9 +185,9 @@ public class ReflectStructure<T, C> {
     private class StructureModifier implements IStructureModifier<C> {
 
         private final Object handle;
-        private final TwinConverter<T, C> converter;
+        private final JavaConverter<T, C> converter;
 
-        public StructureModifier(Object handle, TwinConverter<T, C> converter) {
+        public StructureModifier(Object handle, JavaConverter<T, C> converter) {
             this.handle = handle;
             this.converter = converter;
         }
@@ -182,18 +209,64 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
+        public IStructureModifier<C> writeField(String name, int index, C value) {
+            if (!hasField(index)) {
+                return this;
+            }
+            int specificIndex = 0;
+            for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
+
+                if (accessor.getName().equals(name) && index == specificIndex++) {
+                    if (converter != null) {
+                        accessor.set(handle, converter.convertDeclaring(value));
+                    }
+                    else {
+                        // T & C er den samme i generic context
+                        accessor.set(handle, (T) value);
+                    }
+                    break;
+                }
+            }
+            return this;
+        }
+
+        @Override
         public C readField(int index) {
             if (!hasField(index)) {
                 return null;
             }
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
-            if (converter != null) {
-                return converter.convertDelegate(accessor.get(handle));
+            if (accessor != null) {
+                if (converter != null) {
+                    return converter.convertDelegate(accessor.get(handle));
+                }
+                else {
+                    // T & C er den samme i generic context
+                    return (C) accessor.get(handle);
+                }
             }
-            else {
-                // T & C er den samme i generic context
-                return (C) accessor.get(handle);
+            return null;
+        }
+
+        @Override
+        public C readField(String name, int index) {
+            if (!hasField(index)) {
+                return null;
             }
+            int specificIndex = 0;
+            for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
+
+                if (accessor.getName().equals(name) && index == specificIndex++) {
+                    if (converter != null) {
+                        return converter.convertDelegate(accessor.get(handle));
+                    }
+                    else {
+                        // T & C er den samme i generic context
+                        return (C) accessor.get(handle);
+                    }
+                }
+            }
+            return null;
         }
 
         @Override
@@ -212,6 +285,27 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
+        public C invokeMethod(String name, int index, Object... params) {
+            if (!hasMethod(index)) {
+                return null;
+            }
+            int specificIndex = 0;
+            for (MethodInvoker<T> accessor : ACQUIRED_INVOKERS.values()) {
+
+                if (accessor.getName().equals(name) && index == specificIndex++) {
+                    if (converter != null) {
+                        return converter.convertDelegate(accessor.invoke(handle, params));
+                    }
+                    else {
+                        // T & C er den samme i generic context
+                        return (C) accessor.invoke(handle, params);
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
         public List<C> readFieldValues() {
             final List<C> list = new ArrayList<>();
             for (int i = 0; i < ACQUIRED_ACCESSORS.size(); i++) {
@@ -226,8 +320,32 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
+        public boolean hasField(String name, int index) {
+            int specificIndex = 0;
+            for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
+
+                if (accessor.getName().equals(name) && index == specificIndex++) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
         public boolean hasMethod(int index) {
             return ACQUIRED_INVOKERS.containsKey(index);
+        }
+
+        @Override
+        public boolean hasMethod(String name, int index) {
+            int specificIndex = 0;
+            for (MethodInvoker<T> accessor : ACQUIRED_INVOKERS.values()) {
+
+                if (accessor.getName().equals(name) && index == specificIndex++) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -239,5 +357,6 @@ public class ReflectStructure<T, C> {
         public int methodSize() {
             return ACQUIRED_INVOKERS.size();
         }
+
     }
 }

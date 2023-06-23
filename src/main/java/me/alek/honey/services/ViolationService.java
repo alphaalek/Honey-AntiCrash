@@ -101,7 +101,10 @@ public class ViolationService {
                 .flag(packet.getHandle(), violationName, onViolation);
     }
 
-    public void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, PacketLimitHandler packetLimitHandler) {
+    public synchronized void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, PacketLimitHandler packetLimitHandler) {
+        if (punishing.contains(player.getUniqueId())) {
+            return;
+        }
         punishing.add(player.getUniqueId());
 
         /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);

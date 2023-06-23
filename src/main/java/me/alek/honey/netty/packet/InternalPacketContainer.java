@@ -2,7 +2,7 @@ package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.TwinConverter;
+import me.alek.honey.netty.packet.structure.converters.JavaConverter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -118,7 +118,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         return getModifier(clazz, null);
     }
 
-    private <T, C> IStructureModifier<C> getModifier(Class<T> clazz, TwinConverter<T, C> converter) {
+    private <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter) {
         return packetStructure.withType(clazz, converter).withTarget(handle);
     }
 

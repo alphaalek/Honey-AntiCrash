@@ -1,15 +1,21 @@
 package me.alek.honey.netty.packet.structure.converters;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public class MapConverter<K, V, T> extends HashMap<K, V> implements TwinConverter<Map<K, V>, Map<K, T>> {
+public class MapConverterWrapper<K, V, T> extends HashMap<K, V> implements JavaConverter<Map<K, V>, MapConverterWrapper<K, V, T>> {
 
-    private final TwinConverter<V, T> converter;
+    private final JavaConverter<V, T> converter;
     private final Map<K, T> delegatedMap = new HashMap<>();
 
-    public MapConverter(TwinConverter<V, T> converter) {
+    public MapConverterWrapper(JavaConverter<V, T> converter) {
         this.converter = converter;
+    }
+
+    public JavaConverter<Map<K, V>, MapConverterWrapper<K, V, T>> apply(Map<K, V> map) {
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
+        }
+        return this;
     }
 
     public T removeConverted(K key) {
@@ -36,17 +42,25 @@ public class MapConverter<K, V, T> extends HashMap<K, V> implements TwinConverte
         }
     }
 
+    public Collection<T> convertedValues() {
+        List<T> list = new ArrayList<>();
+        for (V value : values()) {
+            list.add(converter.convertDelegate(value));
+        }
+        return list;
+    }
+
     public T getConverted(K key) {
         return converter.convertDelegate(super.get(key));
     }
 
     @Override
-    public Map<K, T> convertDelegate(Map<K, V> delegate) {
-        return delegatedMap;
+    public MapConverterWrapper<K, V, T> convertDelegate(Map<K, V> delegate) {
+        return (MapConverterWrapper<K, V, T>) delegatedMap;
     }
 
     @Override
-    public Map<K, V> convertDeclaring(Map<K, T> object) {
+    public Map<K, V> convertDeclaring(MapConverterWrapper<K, V, T> object) {
         return this;
     }
 }

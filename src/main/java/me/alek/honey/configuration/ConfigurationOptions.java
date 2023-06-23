@@ -258,19 +258,19 @@ public class ConfigurationOptions {
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {
-                MAX_NBT_LENGTH = file.getInt("nbt.max-nbt-length");
+                MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length");
 
-                MAX_FIREWORK_NBT_LENGTH = file.getInt("nbt.max-firework-nbt-length");
-                MAX_FIREWORK_CHARGE_NBT_LENGTH = file.getInt("nbt.max-firework-charge-nbt-length");
+                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
+                MAX_FIREWORK_CHARGE_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-charge-nbt-length");
 
-                MAX_BOOK_NBT_LENGTH = file.getInt("nbt.max-book-nbt-length");
-                MAX_BOOK_PAGES = file.getInt("nbt.max-book-pages");
-                MAX_BOOK_PAGE_LENGTH = file.getInt("nbt.max-book-page-length");
+                MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
+                MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
+                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
 
-                MAX_NBT_BASES = file.getInt("nbt.max-nbt-bases");
-                MAX_NBT_NESTING = file.getInt("nbt.max-nbt-nesting");
+                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
+                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
 
-                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("nbt.check-illegal-skull-textures");
+                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures");
             }
         }
     }

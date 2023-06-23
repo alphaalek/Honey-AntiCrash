@@ -28,6 +28,11 @@ public class FieldAccessor<T> implements ReflectToucher<T> {
         return (Class<T>) field.getType();
     }
 
+    @Override
+    public String getName() {
+        return field.getName();
+    }
+
     public void set(Object object, T value) {
         try {
             field.set(object, value);

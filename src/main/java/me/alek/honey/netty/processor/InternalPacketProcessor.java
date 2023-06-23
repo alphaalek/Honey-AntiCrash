@@ -50,6 +50,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                         packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
                     }
                 } catch (Exception ex) {
+                    ex.printStackTrace();
                     error(player, packetContainer.getType(), packetContainer);
                 }
             });

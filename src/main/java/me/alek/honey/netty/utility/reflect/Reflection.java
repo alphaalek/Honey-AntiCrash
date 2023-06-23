@@ -152,30 +152,30 @@ public class Reflection {
         return output.toString();
     }
 
-    public static ConstructorInvoker getConstructor(Class<?> target, Class<?>... parameters) {
+    public static ConstructorInvoker<Object> getConstructor(Class<?> target, Class<?>... parameters) {
         try {
-            return new ConstructorInvoker(target.getConstructor(parameters));
+            return (ConstructorInvoker<Object>) new ConstructorInvoker<>(target.getConstructor(parameters));
         } catch (Exception ex) {
             throw new RuntimeException("Reflection fejl");
         }
     }
 
-    public static MethodInvoker getMethod(Method method) {
-        return new MethodInvoker(method);
+    public static MethodInvoker<?> getMethod(Method method) {
+        return new MethodInvoker<>(method);
     }
 
-    public static MethodInvoker getMethod(String target, String name, Class<?>... parameters) {
+    public static MethodInvoker<?> getMethod(String target, String name, Class<?>... parameters) {
         return getMethod(getClass(target), name, parameters);
     }
 
-    public static MethodInvoker getMethodFromParameters(Class<?> target, int index, Class<?>... parameters) {
+    public static MethodInvoker<?> getMethodFromParameters(Class<?> target, int index, Class<?>... parameters) {
         int currentIndex = -1;
 
         for (Method method : target.getDeclaredMethods()) {
             if (Arrays.equals(method.getParameterTypes(), parameters)) {
 
                 if (currentIndex++ == index) {
-                    return new MethodInvoker(method);
+                    return new MethodInvoker<>(method);
                 }
             }
         }
@@ -185,13 +185,13 @@ public class Reflection {
         throw new RuntimeException("Reflection fejl " + index + " " + target.getName());
     }
 
-    public static MethodInvoker getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
+    public static MethodInvoker<?> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
         int currentIndex = 0;
         for (Method method : target.getDeclaredMethods()) {
 
             if (method.getReturnType() == returnType) {
                 if (currentIndex == index) {
-                    return new MethodInvoker(method);
+                    return new MethodInvoker<>(method);
                 }
                 currentIndex++;
             }
@@ -202,12 +202,12 @@ public class Reflection {
         throw new RuntimeException("Reflection fejl " + index + " " + target.getName() + " " + returnType);
     }
 
-    public static MethodInvoker getMethod(Class<?> target, String name, Class<?>... parameters) {
+    public static MethodInvoker<?> getMethod(Class<?> target, String name, Class<?>... parameters) {
         for (Method method : target.getDeclaredMethods()) {
             if (!method.getName().equals(name) || method.getParameterTypes() == parameters) {
                 continue;
             }
-            return new MethodInvoker(method);
+            return new MethodInvoker<>(method);
         }
         if (target.getSuperclass() != null) {
             return getMethod(target.getSuperclass(), name, parameters);

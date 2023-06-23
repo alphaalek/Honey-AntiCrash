@@ -1,8 +1,10 @@
 package me.alek.honey.helper;
 
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.modelwrappers.nbt.NBTList;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -24,22 +26,22 @@ public class NBTHelper {
     private static final Class<?> nbtBaseClass = Reflection.getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
     private static final Class<?> nbtStringClass = Reflection.getFuzzyClass("{nms}.NBTTagString", "{nms}.nbt.NBTTagString");
 
-    private static final MethodInvoker getCompoundInvoker = Reflection.getMethod(nbtTagCompoundClass, "getCompound", String.class);
-    private static final MethodInvoker hasKeyInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKey", String.class);
-    private static final MethodInvoker hasKeyOfTypeInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKeyOfType", String.class, Integer.class);
-    private static final MethodInvoker getListInvoker = Reflection.getMethod(nbtTagCompoundClass, "getList", String.class, Integer.class);
-    private static final MethodInvoker removeTagInvoker = Reflection.getMethod(nbtTagCompoundClass, "remove", String.class);
-    private static final MethodInvoker getKeysInvoker = Reflection.getMethodFromReturnType(nbtTagCompoundClass, 0, Set.class);
+    private static final MethodInvoker<?> getCompoundInvoker = Reflection.getMethod(nbtTagCompoundClass, "getCompound", String.class);
+    private static final MethodInvoker<?> hasKeyInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKey", String.class);
+    private static final MethodInvoker<?> hasKeyOfTypeInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKeyOfType", String.class, Integer.class);
+    private static final MethodInvoker<?> getListInvoker = Reflection.getMethod(nbtTagCompoundClass, "getList", String.class, Integer.class);
+    private static final MethodInvoker<?> removeTagInvoker = Reflection.getMethod(nbtTagCompoundClass, "remove", String.class);
+    private static final MethodInvoker<?> getKeysInvoker = Reflection.getMethodFromReturnType(nbtTagCompoundClass, 0, Set.class);
     private static final FieldAccessor<Object> mapAccessor = Reflection.getField(nbtTagCompoundClass, 0, Map.class);
 
-    private static final MethodInvoker listGetSizeInvoker = Reflection.getMethod(nbtTagListClass, "size");
-    private static final MethodInvoker listGetIndexInvoker = Reflection.getMethod(nbtTagListClass, "get", Integer.class);
+    private static final MethodInvoker<?> listGetSizeInvoker = Reflection.getMethod(nbtTagListClass, "size");
+    private static final MethodInvoker<?> listGetIndexInvoker = Reflection.getMethod(nbtTagListClass, "get", Integer.class);
     private static final FieldAccessor<ArrayList<Object>> listAccessor = Reflection.getField(nbtTagListClass, 0, List.class);
 
     private static final FieldAccessor<String> dataAccessor = Reflection.getField(nbtStringClass, 0, String.class);
-    private static final MethodInvoker getTypeIdInvoker = Reflection.getMethod(nbtBaseClass, "getTypeId");
+    private static final MethodInvoker<?> getTypeIdInvoker = Reflection.getMethod(nbtBaseClass, "getTypeId");
 
-    private static final MethodInvoker getTagCompoundInvoker = Reflection.getMethod(ItemHelper.getNMSItemStackClass(), "getTag");
+    private static final MethodInvoker<?> getTagCompoundInvoker = Reflection.getMethod(ItemHelper.getNMSItemStackClass(), "getTag");
 
     // nbt fra item
     public static Object getTag(ItemStack item) {
@@ -124,7 +126,7 @@ public class NBTHelper {
             return false;
         }
         try {
-            return (boolean) hasKeyInvoker.invoke(tag, key);
+            return (Boolean) hasKeyInvoker.invoke(tag, key);
         } catch (ClassCastException ex) {
             return false;
         }
@@ -136,7 +138,7 @@ public class NBTHelper {
             return false;
         }
         try {
-            return (boolean) hasKeyOfTypeInvoker.invoke(tag, key, type);
+            return (Boolean) hasKeyOfTypeInvoker.invoke(tag, key, type);
         } catch (ClassCastException ex) {
             return false;
         }
@@ -176,7 +178,7 @@ public class NBTHelper {
             return 0;
         }
         try {
-            return (int) listGetSizeInvoker.invoke(list);
+            return (Integer) listGetSizeInvoker.invoke(list);
         } catch (ClassCastException ex) {
             return 0;
         }
@@ -218,12 +220,11 @@ public class NBTHelper {
             return -1;
         }
         try {
-            return (int) getTypeIdInvoker.invoke(base);
+            return (Integer) getTypeIdInvoker.invoke(base);
         } catch (ClassCastException ex) {
             return -1;
         }
     }
-
 
     public static boolean checkNMSNBT(Object item) {
         if (item == null) {
@@ -241,10 +242,12 @@ public class NBTHelper {
     }
 
     public static boolean checkBukkitNBT(ItemStack item) {
+        Bukkit.getLogger().info("CHECKING ITEM!!!!");
         if (item == null) {
             return false;
         }
         Object tag = getTag(item);
+        NBTCompound compound = NBTFactory.fromItem(item);
         if (tag == null) {
             return false;
         }
@@ -264,7 +267,9 @@ public class NBTHelper {
             }
             case WRITTEN_BOOK:
             case BOOK_AND_QUILL: {
-                if (checkBook(tag, nbtLength)) {
+                if (checkBook(compound, compound.toString().getBytes().length)) {
+                    Bukkit.broadcastMessage(compound.toString().getBytes().length + "");
+                    Bukkit.broadcastMessage("length hehe");
                     clearBookTags(tag);
                     return true;
                 }
@@ -272,6 +277,7 @@ public class NBTHelper {
             }
             default: {
                 if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH) {
+                    Bukkit.broadcastMessage("ok");
                     return true;
                 }
             }
@@ -445,34 +451,40 @@ public class NBTHelper {
         return false;
     }
 
-    public static boolean checkBook(Object tag) {
+    public static boolean checkBook(NBTCompound tag) {
         return checkBook(tag, getNbtLength(tag));
     }
 
-    public static boolean checkBook(Object tag, int nbtLength) {
+    public static boolean checkBook(NBTCompound tag, int nbtLength) {
+        Bukkit.getLogger().info("checking book");
         try {
             if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
+                Bukkit.broadcastMessage("length");
                 return true;
             }
-            if (!compoundHasKeyOfType(tag, "pages", 9)) {
+            if (!tag.hasKey("pages")) {
+                Bukkit.broadcastMessage("pages");
                 return true;
             }
-            Object nbtList = compoundGetFuzzyList(tag, "pages");
-            int size = getListSize(nbtList);
-            if (size > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES) {
+            NBTList<String> stringList = tag.getListOf("pages", String.class);
+            if (stringList.size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES) {
+                Bukkit.broadcastMessage("size");
                 return true;
             }
-            for (int i = 0; i < size; i++) {
-                final Object base = listGetIndexFuzzy(nbtList, i);
-                if (base == null) {
+            for (final NBTBase<?, String> page : stringList.getValues()) {
+                Bukkit.broadcastMessage(page + "");
+                if (page == null) {
                     return true;
                 }
-                String page = dataAccessor.get(base);
-                if (page == null || page.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
+                String value = page.getValue();
+                Bukkit.broadcastMessage(value);
+                if (value == null || value.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
                     return true;
                 }
             }
         } catch (Exception ex) {
+            Bukkit.getLogger().info("excepting :( " + ex.getMessage());
+            ex.printStackTrace();
             return true;
         }
         return false;
