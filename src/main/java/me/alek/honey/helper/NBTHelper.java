@@ -1,10 +1,7 @@
 package me.alek.honey.helper;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
-import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
-import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.modelwrappers.nbt.NBTList;
+import me.alek.honey.netty.modelwrappers.nbt.*;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -13,9 +10,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 
 public class NBTHelper {
 
@@ -410,30 +409,38 @@ public class NBTHelper {
         return totalBases > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES || nestingContext > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
     }
 
-    public static boolean checkSkull(Object nbt) {
-        if (!compoundHasKey(nbt, "SkullOwner")) {
+    public static boolean checkSkull(NBTCompound nbt) {
+        if (!nbt.hasKey("SkullOwner")) {
             return false;
         }
-        Object skullOwnerCompound = compoundGetCompound(nbt, "SkullOwner");
-        if (!compoundHasKey(skullOwnerCompound, "Properties")) {
+        NBTCompound skullOwnerCompound = nbt.getCompound("SkullOwner");
+        if (!skullOwnerCompound.hasKey("Properties")) {
             return false;
         }
-        Object propertiesCompound = compoundGetCompound(skullOwnerCompound, "Properties");
-        if (!compoundHasKey(propertiesCompound, "textures")) {
+        NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
+        if (!propertiesCompound.hasKey("textures")) {
             return false;
         }
-        Object textures = compoundGetList(propertiesCompound, "textures", 10);
-        for (int i = 0; i < getListSize(textures); i++) {
-            final Object compound = listGetIndexCompound(textures, i);
-            if (!compoundHasKey(compound, "Value")) {
-                continue;
+        NBTList<NBTCompound> textures = propertiesCompound.getListOf("textures", NBTType.COMPOUND);
+
+        final AtomicBoolean hasFound = new AtomicBoolean();
+        BreakableSpliterator<NBTCompound> breakableSpliterator = new BreakableSpliterator<>(textures
+                .getValues()
+                .stream()
+                .map(NBTBase::getValue)
+                .spliterator(),
+                (compound) -> !hasFound.get());
+        StreamSupport.stream(breakableSpliterator, false).forEach((texture) -> {
+            if (!texture.hasKey("Value")) {
+                return;
             }
-            Object value = compoundGetFuzzyBase(compound, "Value");
+            String stringValue = texture.getString("Value");
             String base64;
             try {
-                base64 = new String(Base64.getDecoder().decode(dataAccessor.get(value)));
+                base64 = new String(Base64.getDecoder().decode(stringValue));
             } catch (IllegalArgumentException ex) {
-                return true;
+                hasFound.set(true);
+                return;
             }
             final String formatted = base64
                     .trim()
@@ -444,11 +451,12 @@ public class NBTHelper {
             while (matcher.find()) {
                 final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
                 if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
-                    return true;
+                    hasFound.set(true);
+                    return;
                 }
             }
-        }
-        return false;
+        });
+        return hasFound.get();
     }
 
     public static boolean checkBook(NBTCompound tag) {
@@ -486,28 +494,18 @@ public class NBTHelper {
         return item.hasItemMeta() && item.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.MAX_CONTAINER_DATA;
     }
 
-    public static void clearBookTags(ItemStack item) {
-        clearBookTags(ItemHelper.asNMSItem(item));
-    }
-
-    public static void clearBookTagsFromItem(Object nmsItem) {
-        if (!ItemHelper.isNMSItem(nmsItem)) {
-            return;
-        }
-        Object tag = getTag(nmsItem);
+    public static void clearBookTagsFromItem(ItemStack item) {
+        NBTCompound tag = NBTFactory.fromItem(item);
         if (tag == null) {
             return;
         }
         clearBookTags(tag);
     }
 
-    public static void clearBookTags(Object tag) {
-        if (!isNBTCompound(tag)) {
-            return;
-        }
-        removeCompoundTag(tag, "pages");
-        removeCompoundTag(tag, "author");
-        removeCompoundTag(tag, "title");
+    public static void clearBookTags(NBTCompound tag) {
+        tag.remove("pages");
+        tag.remove("author");
+        tag.remove("title");
     }
 
 }

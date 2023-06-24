@@ -1,0 +1,32 @@
+package me.alek.honey.helper;
+
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+public class BreakableSpliterator<T> extends Spliterators.AbstractSpliterator<T> {
+
+    private Spliterator<T> splitr;
+    private Predicate<T> predicate;
+    private boolean isMatched = true;
+
+    public BreakableSpliterator(Spliterator<T> splitr, Predicate<T> predicate) {
+        super(splitr.estimateSize(), 0);
+        this.splitr = splitr;
+        this.predicate = predicate;
+    }
+
+    @Override
+    public synchronized boolean tryAdvance(Consumer<? super T> consumer) {
+        boolean hadNext = splitr.tryAdvance(elem -> {
+            if (predicate.test(elem) && isMatched) {
+                consumer.accept(elem);
+            } else {
+                isMatched = false;
+            }
+        });
+        return hadNext && isMatched;
+    }
+}
+

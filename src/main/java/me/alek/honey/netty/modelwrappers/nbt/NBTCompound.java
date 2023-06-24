@@ -75,7 +75,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverterWrappe
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends NBTBase<?, R>> NBTList<R> getListOf(String key, NBTType nbtType) {
+    public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
         NBTList<?> list = getList(key);
         if (list == null) {
             return null;
