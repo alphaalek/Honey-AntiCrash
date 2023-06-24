@@ -1,20 +1,18 @@
 package me.alek.honey.netty.packet.structure.converters;
 
-import org.bukkit.Bukkit;
-
 import java.util.*;
 
-public class MapConverterWrapper<K, V, T> implements JavaConverter<Map<K, V>, MapConverterWrapper<K, V, T>> {
+public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
 
     private final JavaConverter<V, T> converter;
     private final Map<K, T> delegatedMap = new HashMap<>();
     private Map<K, V> declaringMap;
 
-    public MapConverterWrapper(JavaConverter<V, T> converter) {
+    public SimpleMapConverter(JavaConverter<V, T> converter) {
         this.converter = converter;
     }
 
-    public MapConverterWrapper<K, V, T> apply(Map<K, V> map) {
+    public SimpleMapConverter<K, V, T> apply(Map<K, V> map) {
         declaringMap = map;
         for (Map.Entry<K, V> entry : map.entrySet()) {
             delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
@@ -93,14 +91,14 @@ public class MapConverterWrapper<K, V, T> implements JavaConverter<Map<K, V>, Ma
     }
 
     @Override
-    public MapConverterWrapper<K, V, T> convertDelegate(Map<K, V> delegate) {
+    public SimpleMapConverter<K, V, T> convertDelegate(Map<K, V> delegate) {
         checkMap();
 
         return this;
     }
 
     @Override
-    public Map<K, V> convertDeclaring(MapConverterWrapper<K, V, T> object) {
+    public Map<K, V> convertDeclaring(MapConverter<K, V, T> object) {
         checkMap();
 
         return declaringMap;

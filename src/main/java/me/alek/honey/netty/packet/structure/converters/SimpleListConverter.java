@@ -3,17 +3,17 @@ package me.alek.honey.netty.packet.structure.converters;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListConverterWrapper<V, T> implements JavaConverter<List<V>, ListConverterWrapper<V, T>> {
+public class SimpleListConverter<V, T> implements ListConverter<V, T> {
 
     private final JavaConverter<V, T> converter;
     private final List<T> delegatedList = new ArrayList<>();
     private List<V> declaringList;
 
-    public ListConverterWrapper(JavaConverter<V, T> converter) {
+    public SimpleListConverter(JavaConverter<V, T> converter) {
         this.converter = converter;
     }
 
-    public ListConverterWrapper<V, T> apply(List<V> list) {
+    public SimpleListConverter<V, T> apply(List<V> list) {
         declaringList = list;
         for (V value : list) {
             delegatedList.add(converter.convertDelegate(value));
@@ -53,6 +53,7 @@ public class ListConverterWrapper<V, T> implements JavaConverter<List<V>, ListCo
         return converter.convertDelegate(declaringList.remove(index));
     }
 
+    @Override
     public boolean addConverted(T value) {
         checkList();
 
@@ -93,14 +94,14 @@ public class ListConverterWrapper<V, T> implements JavaConverter<List<V>, ListCo
     }
 
     @Override
-    public ListConverterWrapper<V, T> convertDelegate(List<V> delegate) {
+    public SimpleListConverter<V, T> convertDelegate(List<V> delegate) {
         checkList();
 
         return this;
     }
 
     @Override
-    public List<V> convertDeclaring(ListConverterWrapper<V, T> object) {
+    public List<V> convertDeclaring(ListConverter<V, T> object) {
         checkList();
 
         return declaringList;

@@ -10,7 +10,6 @@ import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -27,13 +26,13 @@ public class Converters {
     }
 
     @SuppressWarnings("unchecked")
-    public static <R, V, D> MapConverterWrapper<R, V, D> getMapConverter(MapConverterWrapper<?, ?, ?> converter) {
-        return (MapConverterWrapper<R, V, D>) converter;
+    public static <R, V, D> SimpleMapConverter<R, V, D> getMapConverter(SimpleMapConverter<?, ?, ?> converter) {
+        return (SimpleMapConverter<R, V, D>) converter;
     }
 
     @SuppressWarnings("unchecked")
-    public static <R, V> ListConverterWrapper<R, V> getListConverter(ListConverterWrapper<?, ?> converter) {
-        return (ListConverterWrapper<R, V>) converter;
+    public static <R, V> SimpleListConverter<R, V> getListConverter(SimpleListConverter<?, ?> converter) {
+        return (SimpleListConverter<R, V>) converter;
     }
 
     public static JavaConverter<Object, WrappedBlockPosition> getBlockPositionConverter() {
@@ -108,11 +107,11 @@ public class Converters {
         });
     }
 
-    public static MapConverterWrapper<String, Object, NBTBase<?, ?>> getNBTCompoundConverter() {
-        return getMapConverter(new MapConverterWrapper<>(getNBTBaseConverter()));
+    public static SimpleMapConverter<String, Object, NBTBase<?, ?>> getNBTCompoundConverter() {
+        return getMapConverter(new SimpleMapConverter<>(getNBTBaseConverter()));
     }
 
-    public static <T> ListConverterWrapper<Object, T> getNBTListConverter() {
-        return getListConverter(new ListConverterWrapper<>(getNBTBaseConverter()));
+    public static <T> SimpleListConverter<Object, T> getNBTListConverter() {
+        return getListConverter(new SimpleListConverter<>(getNBTBaseConverter()));
     }
 }

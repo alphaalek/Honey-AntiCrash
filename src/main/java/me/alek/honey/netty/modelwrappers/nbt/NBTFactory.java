@@ -5,7 +5,7 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.ListConverterWrapper;
+import me.alek.honey.netty.packet.structure.converters.SimpleListConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.apache.commons.lang.Validate;
@@ -54,8 +54,13 @@ public class NBTFactory {
             return null;
         }
 
-        if (type == NBTType.LIST) {
-            return (NBTBase<K, V>) constructorInvoker.invoke(handle, getListType(handle));
+        switch (type) {
+            case LIST:
+                return (NBTBase<K, V>) constructorInvoker.invoke(handle, getListType(handle), Converters.getNBTListConverter());
+            case COMPOUND:
+                return (NBTBase<K, V>) constructorInvoker.invoke(handle, Converters.getNBTCompoundConverter());
+            default:
+                break;
         }
         return (NBTBase<K, V>) constructorInvoker.invoke(handle);
     }
@@ -80,8 +85,8 @@ public class NBTFactory {
             return NBTType.getFromTypeId(type);
         }
 
-        IStructureModifier<ListConverterWrapper<Object, NBTBase<?, ?>>> listModifier = reflectStructure
-                .<List<Object>, ListConverterWrapper<Object, NBTBase<?, ?>>>withWeakType(List.class,
+        IStructureModifier<SimpleListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
+                .<List<Object>, SimpleListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
                     Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
                         reflectStructure.withType((Class<List>) getType(handle).getClazz())
                         .withTarget(handle)

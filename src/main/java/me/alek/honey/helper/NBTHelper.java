@@ -2,6 +2,8 @@ package me.alek.honey.helper;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.*;
+import me.alek.honey.netty.packet.structure.converters.MapConverter;
+import me.alek.honey.netty.packet.structure.converters.SimpleMapConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -10,11 +12,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.StreamSupport;
 
 public class NBTHelper {
 
@@ -267,9 +267,7 @@ public class NBTHelper {
             case WRITTEN_BOOK:
             case BOOK_AND_QUILL: {
                 if (checkBook(compound, compound.toString().getBytes().length)) {
-                    Bukkit.broadcastMessage(compound.toString().getBytes().length + "");
-                    Bukkit.broadcastMessage("length hehe");
-                    clearBookTags(tag);
+                    clearBookTags(compound);
                     return true;
                 }
                 break;
@@ -288,14 +286,14 @@ public class NBTHelper {
         }
         if (ConfigurationOptions.ItemAnalysis.NBT.CHECK_ILLEGAL_SKULL_TEXTURES) {
             if (ItemHelper.isSkull(item)) {
-                if (checkSkull(tag)) {
+                if (checkSkull(compound)) {
                     return true;
                 }
             }
         }
         if (checkBigNBT(tag)) {
             if (ItemHelper.isBook(item)) {
-                clearBookTags(tag);
+                clearBookTags(compound);
             }
             return true;
         }
@@ -421,42 +419,36 @@ public class NBTHelper {
         if (!propertiesCompound.hasKey("textures")) {
             return false;
         }
-        NBTList<NBTCompound> textures = propertiesCompound.getListOf("textures", NBTType.COMPOUND);
-
-        final AtomicBoolean hasFound = new AtomicBoolean();
-        BreakableSpliterator<NBTCompound> breakableSpliterator = new BreakableSpliterator<>(textures
-                .getValues()
-                .stream()
-                .map(NBTBase::getValue)
-                .spliterator(),
-                (compound) -> !hasFound.get());
-        StreamSupport.stream(breakableSpliterator, false).forEach((texture) -> {
-            if (!texture.hasKey("Value")) {
-                return;
+        NBTList<MapConverter<String, Object, NBTBase<?, ?>>> textures = propertiesCompound.getListOf("textures", NBTType.COMPOUND);
+        for (NBTBase<?, MapConverter<String, Object, NBTBase<?, ?>>> compoundBase : textures.getValues()) {
+            final MapConverter<String, Object, NBTBase<?, ?>> texture = compoundBase.getValue();
+            if (!texture.containsKey("Value")) {
+                return true;
             }
-            String stringValue = texture.getString("Value");
+            NBTBase<?, String> value = (NBTBase<?, String>) texture.getConverted("Value");
+
             String base64;
             try {
-                base64 = new String(Base64.getDecoder().decode(stringValue));
+                base64 = new String(Base64.getDecoder().decode(value.getValue()));
             } catch (IllegalArgumentException ex) {
-                hasFound.set(true);
-                return;
+                return true;
             }
             final String formatted = base64
                     .trim()
                     .replace(" ", "")
                     .replace("\"", "")
                     .toLowerCase();
+            Bukkit.broadcastMessage(formatted);
+
             final Matcher matcher = URL_PATTERN.matcher(formatted);
             while (matcher.find()) {
                 final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
                 if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
-                    hasFound.set(true);
-                    return;
+                    return true;
                 }
             }
-        });
-        return hasFound.get();
+        }
+        return false;
     }
 
     public static boolean checkBook(NBTCompound tag) {

@@ -1,21 +1,26 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.packet.structure.ReflectStructure;
+import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.ListConverterWrapper;
+import me.alek.honey.netty.packet.structure.converters.ListConverter;
+import me.alek.honey.netty.packet.structure.converters.SimpleListConverter;
 
 import java.io.DataOutput;
 import java.util.List;
 import java.util.function.Function;
 
-public class NBTList<T> extends NBTBase<List<Object>, ListConverterWrapper<Object, NBTBase<?, T>>> {
+public class NBTList<T> extends NBTAbstractListWrapper<Object, NBTBase<?, T>> {
 
     private final NBTType typeOf;
 
+    public NBTList(Object base, NBTType typeOf, ListConverter<Object, NBTBase<?, T>> converter) {
+        super(base, converter);
+        this.typeOf = typeOf;
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverterWrapper<Object, NBTBase<?, T>>>> getValueStructure(List<Object> original) {
-        ListConverterWrapper<Object, NBTBase<?, T>> converter = Converters.getNBTListConverter();
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, NBTBase<?, T>>>> getValueStructure(ApplicableConverter<List<Object>, ListConverter<Object, NBTBase<?, T>>> converter, List<Object> original) {
         return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
     }
 
@@ -26,11 +31,6 @@ public class NBTList<T> extends NBTBase<List<Object>, ListConverterWrapper<Objec
         for (NBTBase<?, T> value : getValue().getDelegatedList()) {
             value.write(output);
         }
-    }
-
-    public NBTList(Object base, NBTType typeOf) {
-        super(base);
-        this.typeOf = typeOf;
     }
 
     public int size() {

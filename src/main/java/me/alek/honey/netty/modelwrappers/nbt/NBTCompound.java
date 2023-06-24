@@ -1,25 +1,26 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.packet.structure.ReflectStructure;
+import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.MapConverterWrapper;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.packet.structure.converters.MapConverter;
 
 import java.io.DataOutput;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public class NBTCompound extends NBTBase<Map<String, Object>, MapConverterWrapper<String, Object, NBTBase<?, ?>>> {
+public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?, ?>> {
 
-    public NBTCompound(Object rawNms) {
-        super(rawNms);
+    public NBTCompound(Object rawNms, MapConverter<String, Object, NBTBase<?, ?>> converter) {
+        super(rawNms, converter);
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverterWrapper<String, Object, NBTBase<?, ?>>>> getValueStructure(Map<String, Object> original) {
-        return (structure) -> structure.withSpecificType(Map.class, Converters.getNBTCompoundConverter().apply(original), false);
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>>> getValueStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> converter, Map<String, Object> original) {
+        return (structure) -> structure.withSpecificType(Map.class, converter.apply(original), false);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverterWrappe
         try {
             return (NBTList<R>) list;
         } catch (Exception ex) {
-            return new NBTList<>(list.getHandle(), nbtType);
+            return new NBTList<>(list.getHandle(), nbtType, Converters.getNBTListConverter());
         }
     }
 
@@ -153,5 +154,4 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverterWrappe
     public long[] getLongArray(String key) {
         return getSpecific(key);
     }
-
 }

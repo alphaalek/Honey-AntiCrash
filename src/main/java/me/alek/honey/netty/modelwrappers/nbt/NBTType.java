@@ -1,5 +1,7 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.netty.packet.structure.converters.ListConverter;
+import me.alek.honey.netty.packet.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import org.bukkit.Bukkit;
 
@@ -18,8 +20,8 @@ public enum NBTType {
     BYTEARRAY(7, byte[].class),
     STRING(8, String.class),
     @SuppressWarnings("unchecked")
-    LIST(9, List.class, new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class)),
-    COMPOUND(10, Map.class, new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class)),
+    LIST(9, List.class, new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class, ListConverter.class)),
+    COMPOUND(10, Map.class, new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, MapConverter.class)),
     INTARRAY(11, int[].class),
     LONGARRAY(12, long[].class),
     UNKNOWN(-1, null);

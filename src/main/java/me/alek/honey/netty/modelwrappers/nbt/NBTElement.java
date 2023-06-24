@@ -3,6 +3,8 @@ package me.alek.honey.netty.modelwrappers.nbt;
 import me.alek.honey.netty.modelwrappers.nbt.writer.NBTWriter;
 import me.alek.honey.netty.modelwrappers.nbt.writer.Writers;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
+import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.packet.structure.converters.JavaConverter;
 
 import java.io.DataOutput;
 import java.util.Map;
@@ -14,11 +16,11 @@ public class NBTElement<T> extends NBTBase<T, T> {
     private final static Map<NBTType, NBTWriter<?>> WRITERS = new ConcurrentHashMap<>();
 
     public NBTElement(Object base) {
-        super(base);
+        super(base, null);
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<T, T>> getValueStructure(T original) {
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<T, T>> getValueStructure(ApplicableConverter<T, T> converter, T original) {
         return (structure) -> structure.withType((Class<T>) getType().getClazz());
     }
 
