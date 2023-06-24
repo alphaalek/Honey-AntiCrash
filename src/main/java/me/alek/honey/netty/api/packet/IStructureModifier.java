@@ -1,8 +1,12 @@
 package me.alek.honey.netty.api.packet;
 
+import me.alek.honey.netty.packet.structure.converters.JavaConverter;
+
 import java.util.List;
 
 public interface IStructureModifier<T> {
+
+    <R> JavaConverter<R, T> getConverter();
 
     IStructureModifier<T> writeField(int index, T value);
 

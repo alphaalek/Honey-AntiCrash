@@ -46,7 +46,6 @@ me\alek\honey\checks\listeners\CustomPayloadListener$PayloadB.class
 me\alek\honey\netty\injector\EarlyChannelInjector.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntitySound.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutHeldItemSlot.class
-me\alek\honey\netty\packet\structure\converters\MapConverter.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$UseItem.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$CloseWindow.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityWeather.class
@@ -147,6 +146,7 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSetCommandMinecart.c
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityTeleport.class
 me\alek\honey\services\NotificationService.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCombatEvent.class
+me\alek\honey\netty\packet\structure\converters\ListConverterWrapper.class
 me\alek\honey\checks\listeners\WindowClickListener$WindowB.class
 me\alek\honey\netty\utility\reflect\ConstructorInvoker.class
 me\alek\honey\checks\listeners\CreativeSlotListener$CreativeB.class
@@ -203,7 +203,6 @@ me\alek\honey\netty\packet\PacketFactory.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCompression.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$Settings.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$IntArrayWriter.class
-me\alek\honey\netty\packet\structure\converters\ListConverter.class
 me\alek\honey\netty\packetwrappers\status\client\WrappedStatusInStart.class
 me\alek\honey\checks\IPacketListener.class
 me\alek\honey\netty\injector\EarlyChannelInjector$1.class
@@ -219,6 +218,7 @@ me\alek\honey\checks\listeners\TabCompleteListener.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCamera.class
 me\alek\honey\command\CooldownManager.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInEntityNBTQuery.class
+me\alek\honey\netty\packet\structure\converters\MapConverterWrapper.class
 me\alek\honey\checks\listeners\CustomPayloadListener.class
 me\alek\honey\netty\injector\EarlyChannelInjector$3.class
 me\alek\honey\checks\types\PacketCheck.class

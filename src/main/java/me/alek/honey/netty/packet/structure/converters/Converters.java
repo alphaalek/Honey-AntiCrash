@@ -95,7 +95,6 @@ public class Converters {
                 if (delegate == null) {
                     return null;
                 }
-                Bukkit.broadcastMessage("converting nbt delegate");
                 return NBTFactory.fromDelegate(delegate);
             }
 

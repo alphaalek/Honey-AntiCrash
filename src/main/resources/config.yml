@@ -87,7 +87,7 @@ item-analysis:
     # Hvor mange bytes må en bogs NBT højest have. Bøger bliver ikke kørt igennem den generelle tjek.
     max-book-nbt-length: 6000
 
-    # Hvor mange sider må en bog højest have.
+    # Hvor mange sider må en bog højest have. I Vanilla Minecraft er det højest muligt at få 50 sider.
     max-book-pages: 50
 
     # Hvor mange bytes må en side i en bog højest have.
@@ -278,17 +278,17 @@ packet-flood:
   # common
   common:
     a:
-      max-per-interval: 150
-      interval: 300
+      max-per-interval: 300
+      interval: 500
       vls-amount: 1
     b:
-      max-per-interval: 350
+      max-per-interval: 550
       interval: 1000
       vls-amount: 1
 
   # total
   c:
-    max-per-interval: 550
+    max-per-interval: 850
     interval: 1250
     vls-amount: 1
 

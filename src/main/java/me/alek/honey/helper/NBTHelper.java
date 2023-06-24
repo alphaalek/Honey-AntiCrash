@@ -456,35 +456,27 @@ public class NBTHelper {
     }
 
     public static boolean checkBook(NBTCompound tag, int nbtLength) {
-        Bukkit.getLogger().info("checking book");
         try {
             if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
-                Bukkit.broadcastMessage("length");
                 return true;
             }
             if (!tag.hasKey("pages")) {
-                Bukkit.broadcastMessage("pages");
                 return true;
             }
             NBTList<String> stringList = tag.getListOf("pages", String.class);
             if (stringList.size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES) {
-                Bukkit.broadcastMessage("size");
                 return true;
             }
             for (final NBTBase<?, String> page : stringList.getValues()) {
-                Bukkit.broadcastMessage(page + "");
                 if (page == null) {
                     return true;
                 }
                 String value = page.getValue();
-                Bukkit.broadcastMessage(value);
                 if (value == null || value.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
                     return true;
                 }
             }
         } catch (Exception ex) {
-            Bukkit.getLogger().info("excepting :( " + ex.getMessage());
-            ex.printStackTrace();
             return true;
         }
         return false;

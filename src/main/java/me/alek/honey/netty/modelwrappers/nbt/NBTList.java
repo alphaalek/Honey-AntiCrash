@@ -3,7 +3,6 @@ package me.alek.honey.netty.modelwrappers.nbt;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.converters.Converters;
 import me.alek.honey.netty.packet.structure.converters.ListConverterWrapper;
-import me.alek.honey.netty.packet.structure.converters.JavaConverter;
 
 import java.io.DataOutput;
 import java.util.List;
@@ -11,13 +10,13 @@ import java.util.function.Function;
 
 public class NBTList<T> extends NBTBase<List<Object>, ListConverterWrapper<Object, NBTBase<?, T>>> {
 
-    private final ListConverterWrapper<Object, NBTBase<?, T>> CONVERTER = Converters.getNBTListConverter();
     private final NBTType typeOf;
 
     @Override
     @SuppressWarnings("unchecked")
     public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverterWrapper<Object, NBTBase<?, T>>>> getValueStructure(List<Object> original) {
-        return (structure) -> structure.withSpecificType(List.class, (JavaConverter<List<Object>, ListConverterWrapper<Object, NBTBase<?, T>>>) (JavaConverter<?, ?>) CONVERTER.apply(original));
+        ListConverterWrapper<Object, NBTBase<?, T>> converter = Converters.getNBTListConverter();
+        return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
     }
 
     @Override

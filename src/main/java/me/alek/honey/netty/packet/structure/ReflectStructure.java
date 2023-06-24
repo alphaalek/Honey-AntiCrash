@@ -57,11 +57,8 @@ public class ReflectStructure<T, C> {
     }
 
     public synchronized void initAcquired(Class<?> type) {
-        Bukkit.getLogger().info("NEW STRUCTURE !!!!!!!!!!!!!!!!!!!!!!!! " + handle.getName());
         ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
-
-        Bukkit.getLogger().info(DEFAULT_ACCESSORS.size() + ": " + ACQUIRED_ACCESSORS.size() + ", " + DEFAULT_INVOKERS + ": " + ACQUIRED_INVOKERS.size());
     }
 
     public void setDefault(
@@ -84,7 +81,6 @@ public class ReflectStructure<T, C> {
             boolean isFields
     ) {
         Object[] handles = (isFields) ? clazz.getDeclaredFields() : clazz.getDeclaredMethods();
-        Bukkit.broadcastMessage("HANDLES: " + Arrays.toString(handles) + "");
         for (Object handle : handles) {
             ReflectToucher<?> toucher = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
             defaults.put(index.getAndIncrement(), castReflectToucher(toucher));
@@ -107,20 +103,14 @@ public class ReflectStructure<T, C> {
             Map<Integer, ? extends ReflectToucher<T>> acquiredMap,
             Map<Integer, ? extends ReflectToucher<?>> defaultMap
     ) {
-        Bukkit.getLogger().info("NEEEEEEEEEW " + handle.getName());
-        Bukkit.getLogger().info("defaults: " + defaultMap.size());
         int index = 0;
-        Bukkit.getLogger().info(defaultMap + "");
         for (ReflectToucher<?> reflectToucher : defaultMap.values()) {
-            Bukkit.getLogger().info(handle.getName() + ", " + reflectToucher.getType().getName() + " " + reflectToucher.getName() );
             if (!targetType.isAssignableFrom(reflectToucher.getType())) {
                 continue;
             }
-            Bukkit.getLogger().info(handle.getName() + ", - PUTTING " + reflectToucher.getType().getName());
             acquiredMap.put(index, castReflectToucher(reflectToucher));
             index++;
         }
-        Bukkit.getLogger().info(acquiredMap + "");
         return acquiredMap;
     }
 
@@ -133,33 +123,48 @@ public class ReflectStructure<T, C> {
         return (ReflectStructure<R, R>) withType(clazz);
     }
 
+    public <R> ReflectStructure<R, R> withWeakTypeWithoutCache(Class<?> clazz) {
+        return (ReflectStructure<R, R>) withTypeWithoutCache(clazz);
+    }
+
     public <R, D> ReflectStructure<R, D> withWeakType(Class<?> clazz, JavaConverter<R, D> converter) {
-        return withSpecificType(clazz, converter);
+        return withSpecificType(clazz, converter, true);
+    }
+
+    public <R, D> ReflectStructure<R, D> withWeakTypeWithoutCache(Class<?> clazz, JavaConverter<R, D> converter) {
+        return withSpecificType(clazz, converter, false);
     }
 
     public <R> ReflectStructure<R, R> withType(Class<R> clazz) {
         // R og D er den samme i generic context
-        return withType(clazz, null);
+        return withSpecificType(clazz, null, true);
+    }
+
+    public <R> ReflectStructure<R, R> withTypeWithoutCache(Class<R> clazz) {
+        return withSpecificType(clazz, null, false);
     }
 
     public <R, D> ReflectStructure<R, D> withType(Class<R> clazz, JavaConverter<R, D> converter) {
-        return withSpecificType(clazz, converter);
+        return withSpecificType(clazz, converter, true);
     }
 
-    public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter) {
+    public <R, D> ReflectStructure<R, D> withTypeWithoutCache(Class<R> clazz, JavaConverter<R, D> converter) {
+        return withSpecificType(clazz, converter, false);
+    }
+
+    public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter, boolean withCache) {
         if (clazz == null) {
             return null;
         }
-        ReflectStructure<R, D> packetStructure = (ReflectStructure<R, D>) SUB_TYPE_CACHE.get(clazz);
+        ReflectStructure<R, D> packetStructure = (withCache) ? (ReflectStructure<R, D>) SUB_TYPE_CACHE.get(clazz) : null;
         if (packetStructure == null) {
             packetStructure = new ReflectStructure<>(handle, clazz, converter);
-            SUB_TYPE_CACHE.put(clazz, packetStructure);
+
+            if (withCache) {
+                SUB_TYPE_CACHE.put(clazz, packetStructure);
+            }
         }
         return packetStructure;
-    }
-
-    public Collection<FieldAccessor<T>> getSuperAccessors() {
-        return ACQUIRED_ACCESSORS.values();
     }
 
     public Collection<FieldAccessor<T>> getAccessors() {
@@ -190,6 +195,11 @@ public class ReflectStructure<T, C> {
         public StructureModifier(Object handle, JavaConverter<T, C> converter) {
             this.handle = handle;
             this.converter = converter;
+        }
+
+        @Override
+        public <R> JavaConverter<R, C> getConverter() {
+            return (JavaConverter<R, C>) converter;
         }
 
         @Override

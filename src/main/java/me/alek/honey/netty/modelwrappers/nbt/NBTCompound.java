@@ -3,6 +3,7 @@ package me.alek.honey.netty.modelwrappers.nbt;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.converters.Converters;
 import me.alek.honey.netty.packet.structure.converters.MapConverterWrapper;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.util.Collection;
@@ -12,15 +13,13 @@ import java.util.function.Function;
 
 public class NBTCompound extends NBTBase<Map<String, Object>, MapConverterWrapper<String, Object, NBTBase<?, ?>>> {
 
-    private final MapConverterWrapper<String, Object, NBTBase<?, ?>> CONVERTER = Converters.getNBTCompoundConverter();
-
     public NBTCompound(Object rawNms) {
         super(rawNms);
     }
 
     @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverterWrapper<String, Object, NBTBase<?, ?>>>> getValueStructure(Map<String, Object> original) {
-        return (structure) -> structure.<Map<String, Object>, MapConverterWrapper<String, Object, NBTBase<?, ?>>>withWeakType(Map.class, CONVERTER.apply(original));
+        return (structure) -> structure.withSpecificType(Map.class, Converters.getNBTCompoundConverter().apply(original), false);
     }
 
     @Override

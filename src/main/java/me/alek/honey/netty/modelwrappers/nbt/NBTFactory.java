@@ -5,10 +5,11 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.packet.structure.ReflectStructure;
 import me.alek.honey.netty.packet.structure.ReflectStructureCache;
 import me.alek.honey.netty.packet.structure.converters.Converters;
+import me.alek.honey.netty.packet.structure.converters.ListConverterWrapper;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -16,13 +17,14 @@ import java.util.List;
 public class NBTFactory {
 
     public static NBTCompound fromItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return null;
+        }
         Object nmsItem = ItemHelper.asNMSItem(item);
         if (nmsItem == null) {
             return null;
         }
-        Bukkit.getLogger().info("CHECKING ITEM " + nmsItem);
         ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
-        Bukkit.getLogger().info("STRUCTURE! " + reflectStructure);
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withType(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter())
                 .withTarget(nmsItem);
@@ -31,7 +33,6 @@ public class NBTFactory {
         if (base == null) {
             return null;
         }
-        Bukkit.getLogger().info("NBTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT got nbt " + base + " from " + item.getType());
         return (NBTCompound) base;
     }
 
@@ -79,11 +80,15 @@ public class NBTFactory {
             return NBTType.getFromTypeId(type);
         }
 
-        IStructureModifier<List<NBTBase<?, ?>>> listModifier = reflectStructure
-                .<List<Object>, List<NBTBase<?, ?>>>withWeakType(List.class, Converters.getNBTListConverter())
+        IStructureModifier<ListConverterWrapper<Object, NBTBase<?, ?>>> listModifier = reflectStructure
+                .<List<Object>, ListConverterWrapper<Object, NBTBase<?, ?>>>withWeakType(List.class, Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
+                        reflectStructure.withType((Class<List>) getType(handle).getClazz())
+                        .withTarget(handle)
+                        .readField(0)
+                ))
                 .withTarget(handle);
 
-        List<? extends NBTBase<?, ?>> list = listModifier.readField(0);
+        List<? extends NBTBase<?, ?>> list = listModifier.readField(0).getDelegatedList();
         NBTBase<?, ?> value = list.get(0);
 
         if (value == null)
@@ -102,7 +107,6 @@ public class NBTFactory {
                 .withTarget(handle);
         Validate.notNull(structureModifier);
 
-        Bukkit.broadcastMessage(structureModifier.methodSize() + "");
         byte typeId = structureModifier.invokeMethod("getTypeId", 0);
         return NBTType.getFromTypeId(typeId);
     }

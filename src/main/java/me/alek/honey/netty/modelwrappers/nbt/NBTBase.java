@@ -48,19 +48,8 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         valueStructureModifier.writeField(0, value);
     }
 
-
     public V getValue() {
         if (value == null) {
-            Bukkit.broadcastMessage(getType().getClazz() + "");
-            Bukkit.broadcastMessage(handle + " " + handle.getClass().getName());
-            Bukkit.broadcastMessage(defaultStructure.withType(getType().getClazz()).getSuperAccessors() + "");
-            Bukkit.broadcastMessage(defaultStructure.withType(getType().getClazz()).withTarget(handle).fieldSize() + "");
-            Bukkit.broadcastMessage(defaultStructure
-                    .withType(getType().getClazz())
-                    .withTarget(handle)
-                    .readField(0) + "");
-            Bukkit.broadcastMessage(valueStructureModifier + "");
-            Bukkit.broadcastMessage(valueStructureModifier.readField(0) + "");
             value = valueStructureModifier.readField(0);
         }
         return value;

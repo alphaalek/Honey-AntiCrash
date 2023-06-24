@@ -13,6 +13,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -51,6 +52,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    Bukkit.getLogger().info("§6" + ex.getMessage() + " " + ex.getCause());
                     error(player, packetContainer.getType(), packetContainer);
                 }
             });
