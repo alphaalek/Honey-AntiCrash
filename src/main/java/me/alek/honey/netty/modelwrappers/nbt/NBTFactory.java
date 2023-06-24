@@ -81,11 +81,13 @@ public class NBTFactory {
         }
 
         IStructureModifier<ListConverterWrapper<Object, NBTBase<?, ?>>> listModifier = reflectStructure
-                .<List<Object>, ListConverterWrapper<Object, NBTBase<?, ?>>>withWeakType(List.class, Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
+                .<List<Object>, ListConverterWrapper<Object, NBTBase<?, ?>>>withWeakType(List.class,
+                    Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
                         reflectStructure.withType((Class<List>) getType(handle).getClazz())
                         .withTarget(handle)
                         .readField(0)
-                ))
+                    )
+                )
                 .withTarget(handle);
 
         List<? extends NBTBase<?, ?>> list = listModifier.readField(0).getDelegatedList();
