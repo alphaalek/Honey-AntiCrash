@@ -2,9 +2,8 @@ package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.modelwrappers.nbt.writer.NBTWriter;
 import me.alek.honey.netty.modelwrappers.nbt.writer.Writers;
-import me.alek.honey.netty.packet.structure.ReflectStructure;
-import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.packet.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
 import java.io.DataOutput;
 import java.util.Map;

@@ -1,6 +1,6 @@
 package me.alek.honey.netty.api.packet;
 
-import me.alek.honey.netty.packet.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 
 import java.util.List;
 

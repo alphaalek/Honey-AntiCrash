@@ -2,8 +2,7 @@ package me.alek.honey.helper;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.*;
-import me.alek.honey.netty.packet.structure.converters.MapConverter;
-import me.alek.honey.netty.packet.structure.converters.SimpleMapConverter;
+import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;

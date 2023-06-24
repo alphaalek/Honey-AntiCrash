@@ -1,14 +1,14 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.cache.PacketWrapperCache;
-import me.alek.honey.netty.packet.structure.ReflectStructureCache;
-import me.alek.honey.netty.packet.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.utility.reflect.NMSUtils;

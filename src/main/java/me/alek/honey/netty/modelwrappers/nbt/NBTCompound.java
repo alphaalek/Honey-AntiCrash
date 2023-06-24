@@ -1,13 +1,12 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.packet.structure.ReflectStructure;
-import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.MapConverter;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.io.DataOutput;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -76,7 +75,7 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
+    public <R> NBTAbstractList<R> getListOf(String key, NBTType nbtType) {
         NBTList<?> list = getList(key);
         if (list == null) {
             return null;
@@ -85,15 +84,20 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
             return null;
         }
         try {
-            return (NBTList<R>) list;
+            return (NBTAbstractList<R>) list;
         } catch (Exception ex) {
-            return new NBTList<>(list.getHandle(), nbtType, Converters.getNBTListConverter());
+            if (nbtType == NBTType.COMPOUND) {
+                return (NBTAbstractList<R>) new NBTCompoundList(list.getHandle(), Converters.getNBTListConverter());
+            }
+            else {
+                return (NBTAbstractList<R>) new NBTList<>(list.getHandle(), nbtType, Converters.getNBTListConverter());
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTList<R> getListOf(String key, Class<R> clazz) {
-        return (NBTList<R>) getListOf(key, NBTType.getFromClass(clazz));
+    public <R> NBTAbstractList<R> getListOf(String key, Class<R> clazz) {
+        return getListOf(key, NBTType.getFromClass(clazz));
     }
 
     @SuppressWarnings("unchecked")

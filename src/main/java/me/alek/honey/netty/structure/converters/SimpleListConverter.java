@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet.structure.converters;
+package me.alek.honey.netty.structure.converters;
 
 import java.util.ArrayList;
 import java.util.List;

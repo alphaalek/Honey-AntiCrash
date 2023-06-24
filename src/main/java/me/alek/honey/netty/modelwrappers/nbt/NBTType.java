@@ -1,9 +1,8 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.packet.structure.converters.ListConverter;
-import me.alek.honey.netty.packet.structure.converters.MapConverter;
+import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
-import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +23,7 @@ public enum NBTType {
     COMPOUND(10, Map.class, new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, MapConverter.class)),
     INTARRAY(11, int[].class),
     LONGARRAY(12, long[].class),
+    COMPOUNDLIST(13, List.class),
     UNKNOWN(-1, null);
 
     private final int typeId;
@@ -38,7 +38,7 @@ public enum NBTType {
         synchronized (typeLookup) {
             for (NBTType nbtType : values()) {
 
-                if (nbtType == NBTType.UNKNOWN) {
+                if (nbtType == NBTType.UNKNOWN || typeLookup.containsKey(nbtType.getClazz())) {
                     continue;
                 }
                 typeLookup.put(nbtType.getClazz(), nbtType);

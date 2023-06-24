@@ -2,9 +2,9 @@ package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.packet.structure.ReflectStructure;
-import me.alek.honey.netty.packet.structure.ReflectStructureCache;
-import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
@@ -55,21 +55,12 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public V getValue() {
         if (value == null) {
-            Bukkit.broadcastMessage("GETTING VALUE!");
-            Bukkit.broadcastMessage(getType().getClazz() + "");
-            Bukkit.broadcastMessage(handle + " " + handle.getClass().getName());
-            Bukkit.broadcastMessage("accessors : " + defaultStructure.withType(getType().getClazz()).getAccessors() + "");
-            Bukkit.broadcastMessage("fieldsize: " + defaultStructure.withType(getType().getClazz()).withTarget(handle).fieldSize() + "");
             Object originalValue = defaultStructure
                     .withType(getType().getClazz())
                     .withTarget(handle)
                     .readField(0);
-            Bukkit.broadcastMessage("original " + originalValue);
-            Bukkit.broadcastMessage("original " + originalValue.getClass());
             value = valueStructureModifier.readField(0);
         }
-        Bukkit.broadcastMessage("got value " + value);
-        Bukkit.broadcastMessage("value " + value.getClass().getName());
         return value;
     }
 

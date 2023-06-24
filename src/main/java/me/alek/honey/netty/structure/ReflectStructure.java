@@ -1,11 +1,10 @@
-package me.alek.honey.netty.packet.structure;
+package me.alek.honey.netty.structure;
 
-import me.alek.honey.netty.packet.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

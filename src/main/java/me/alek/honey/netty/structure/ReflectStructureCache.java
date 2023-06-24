@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet.structure;
+package me.alek.honey.netty.structure;
 
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;

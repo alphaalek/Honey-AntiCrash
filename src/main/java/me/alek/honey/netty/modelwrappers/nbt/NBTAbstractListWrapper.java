@@ -1,7 +1,7 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.packet.structure.converters.ListConverter;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.converters.ListConverter;
 
 import java.util.List;
 

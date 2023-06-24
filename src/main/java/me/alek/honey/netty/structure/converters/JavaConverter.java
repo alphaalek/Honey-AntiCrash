@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet.structure.converters;
+package me.alek.honey.netty.structure.converters;
 
 public interface JavaConverter<T, C> {
 

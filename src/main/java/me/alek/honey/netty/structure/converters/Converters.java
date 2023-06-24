@@ -1,12 +1,12 @@
-package me.alek.honey.netty.packet.structure.converters;
+package me.alek.honey.netty.structure.converters;
 
 import me.alek.honey.helper.ItemHelper;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.packet.structure.ReflectStructure;
-import me.alek.honey.netty.packet.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;

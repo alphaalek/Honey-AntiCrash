@@ -1,7 +1,7 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.packet.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.packet.structure.converters.MapConverter;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.util.Collection;
 import java.util.Map;

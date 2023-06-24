@@ -2,10 +2,11 @@ package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.helper.ItemHelper;
 import me.alek.honey.netty.api.packet.IStructureModifier;
-import me.alek.honey.netty.packet.structure.ReflectStructure;
-import me.alek.honey.netty.packet.structure.ReflectStructureCache;
-import me.alek.honey.netty.packet.structure.converters.Converters;
-import me.alek.honey.netty.packet.structure.converters.SimpleListConverter;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.structure.converters.SimpleListConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.apache.commons.lang.Validate;
@@ -55,6 +56,8 @@ public class NBTFactory {
         }
 
         switch (type) {
+            case COMPOUNDLIST:
+                return (NBTBase<K, V>) constructorInvoker.invoke(handle, Converters.getNBTListConverter());
             case LIST:
                 return (NBTBase<K, V>) constructorInvoker.invoke(handle, getListType(handle), Converters.getNBTListConverter());
             case COMPOUND:
@@ -85,15 +88,16 @@ public class NBTFactory {
             return NBTType.getFromTypeId(type);
         }
 
-        IStructureModifier<SimpleListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
-                .<List<Object>, SimpleListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
-                    Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
-                        reflectStructure.withType((Class<List>) getType(handle).getClazz())
+        IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
+            .<List<Object>, SimpleListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
+                Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
+
+                    reflectStructure.withType((Class<List>) getType(handle).getClazz())
                         .withTarget(handle)
                         .readField(0)
-                    )
                 )
-                .withTarget(handle);
+            )
+            .withTarget(handle);
 
         List<? extends NBTBase<?, ?>> list = listModifier.readField(0).getDelegatedList();
         NBTBase<?, ?> value = list.get(0);
@@ -115,6 +119,13 @@ public class NBTFactory {
         Validate.notNull(structureModifier);
 
         byte typeId = structureModifier.invokeMethod("getTypeId", 0);
-        return NBTType.getFromTypeId(typeId);
+        NBTType type = NBTType.getFromTypeId(typeId);
+
+        if (type == NBTType.LIST) {
+            if (getListType(handle) == NBTType.COMPOUND) {
+                return NBTType.COMPOUNDLIST;
+            }
+        }
+        return type;
     }
 }
