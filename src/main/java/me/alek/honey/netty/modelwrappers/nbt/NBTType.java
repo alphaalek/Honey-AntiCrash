@@ -23,7 +23,8 @@ public enum NBTType {
     COMPOUND(10, Map.class, new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, MapConverter.class)),
     INTARRAY(11, int[].class),
     LONGARRAY(12, long[].class),
-    COMPOUNDLIST(13, List.class),
+    COMPOUNDLIST(-1, List.class),
+    LISTINLIST(-1, List.class),
     UNKNOWN(-1, null);
 
     private final int typeId;

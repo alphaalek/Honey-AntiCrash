@@ -1,25 +1,16 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.io.DataOutput;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?, ?>> {
 
     public NBTCompound(Object rawNms, MapConverter<String, Object, NBTBase<?, ?>> converter) {
         super(rawNms, converter);
-    }
-
-    @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>>> getValueStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> converter, Map<String, Object> original) {
-        return (structure) -> structure.withSpecificType(Map.class, converter.apply(original), false);
     }
 
     @Override
@@ -64,6 +55,10 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
         return get(key).getType().getTypeId() == typeId;
     }
 
+    public boolean hasKeyOfType(String key, NBTType nbtType) {
+        return get(key).getType() == nbtType;
+    }
+
     public void put(String key, NBTBase<?, ?> base) {
         getValue().putConverted(key, base);
     }
@@ -74,8 +69,17 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
         }
     }
 
+    public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
+        return castNBTList(getAbstractListOf(key, nbtType));
+    }
+
     @SuppressWarnings("unchecked")
-    public <R> NBTAbstractList<R> getListOf(String key, NBTType nbtType) {
+    private <R> NBTList<R> castNBTList(NBTAbstractList<?> list) {
+        return (NBTList<R>) list;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <R> NBTAbstractList<R> getAbstractListOf(String key, NBTType nbtType) {
         NBTList<?> list = getList(key);
         if (list == null) {
             return null;
@@ -89,6 +93,9 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
             if (nbtType == NBTType.COMPOUND) {
                 return (NBTAbstractList<R>) new NBTCompoundList(list.getHandle(), Converters.getNBTListConverter());
             }
+            else if (nbtType == NBTType.LIST) {
+                return (NBTAbstractList<R>) new NBTListInList(list.getHandle(), Converters.getNBTListConverter());
+            }
             else {
                 return (NBTAbstractList<R>) new NBTList<>(list.getHandle(), nbtType, Converters.getNBTListConverter());
             }
@@ -96,8 +103,28 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTAbstractList<R> getListOf(String key, Class<R> clazz) {
-        return getListOf(key, NBTType.getFromClass(clazz));
+    public <R> NBTAbstractList<R> getAbstractListOf(String key, Class<R> clazz) {
+        return getAbstractListOf(key, NBTType.getFromClass(clazz));
+    }
+
+    public <R> NBTList<R> getListOf(String key, Class<R> clazz) {
+        return castNBTList(getAbstractListOf(key, clazz));
+    }
+
+    public NBTCompoundList getCompoundList(String key) {
+        return (NBTCompoundList) getCompoundListParameterized(key);
+    }
+
+    private NBTAbstractList<NBTCompound> getCompoundListParameterized(String key) {
+        return getAbstractListOf(key, NBTType.COMPOUND);
+    }
+
+    public NBTListInList getListInList(String key) {
+        return (NBTListInList) getListInListParameterized(key);
+    }
+
+    private NBTAbstractList<NBTList<?>> getListInListParameterized(String key) {
+        return getAbstractListOf(key, NBTType.LIST);
     }
 
     @SuppressWarnings("unchecked")

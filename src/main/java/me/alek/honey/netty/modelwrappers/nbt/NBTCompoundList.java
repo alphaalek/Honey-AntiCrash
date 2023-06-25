@@ -15,16 +15,16 @@ public class NBTCompoundList extends NBTAbstractList<NBTCompound> {
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, NBTCompound>>> getValueStructure(ApplicableConverter<List<Object>, ListConverter<Object, NBTCompound>> converter, List<Object> original) {
-        return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
-    }
-
-    @Override
     public void write(DataOutput output) throws Exception {
         output.writeByte((byte) getType().getTypeId());
         output.writeInt(size());
         for (NBTCompound value : getValue().getDelegatedList()) {
             value.write(output);
         }
+    }
+
+    @Override
+    public NBTBase<?, ?> getUnknown(int index) {
+        return getValue().getConverted(index);
     }
 }

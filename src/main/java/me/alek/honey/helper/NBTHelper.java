@@ -19,211 +19,6 @@ public class NBTHelper {
 
     private static final Pattern URL_PATTERN = Pattern.compile("url");
 
-    private static final Class<?> nbtTagCompoundClass = Reflection.getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
-    private static final Class<?> nbtTagListClass = Reflection.getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
-    private static final Class<?> nbtBaseClass = Reflection.getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
-    private static final Class<?> nbtStringClass = Reflection.getFuzzyClass("{nms}.NBTTagString", "{nms}.nbt.NBTTagString");
-
-    private static final MethodInvoker<?> getCompoundInvoker = Reflection.getMethod(nbtTagCompoundClass, "getCompound", String.class);
-    private static final MethodInvoker<?> hasKeyInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKey", String.class);
-    private static final MethodInvoker<?> hasKeyOfTypeInvoker = Reflection.getMethod(nbtTagCompoundClass, "hasKeyOfType", String.class, Integer.class);
-    private static final MethodInvoker<?> getListInvoker = Reflection.getMethod(nbtTagCompoundClass, "getList", String.class, Integer.class);
-    private static final MethodInvoker<?> removeTagInvoker = Reflection.getMethod(nbtTagCompoundClass, "remove", String.class);
-    private static final MethodInvoker<?> getKeysInvoker = Reflection.getMethodFromReturnType(nbtTagCompoundClass, 0, Set.class);
-    private static final FieldAccessor<Object> mapAccessor = Reflection.getField(nbtTagCompoundClass, 0, Map.class);
-
-    private static final MethodInvoker<?> listGetSizeInvoker = Reflection.getMethod(nbtTagListClass, "size");
-    private static final MethodInvoker<?> listGetIndexInvoker = Reflection.getMethod(nbtTagListClass, "get", Integer.class);
-    private static final FieldAccessor<ArrayList<Object>> listAccessor = Reflection.getField(nbtTagListClass, 0, List.class);
-
-    private static final FieldAccessor<String> dataAccessor = Reflection.getField(nbtStringClass, 0, String.class);
-    private static final MethodInvoker<?> getTypeIdInvoker = Reflection.getMethod(nbtBaseClass, "getTypeId");
-
-    private static final MethodInvoker<?> getTagCompoundInvoker = Reflection.getMethod(ItemHelper.getNMSItemStackClass(), "getTag");
-
-    // nbt fra item
-    public static Object getTag(ItemStack item) {
-        return getTag(ItemHelper.asNMSItem(item));
-    }
-
-    // nbt fra item
-    public static Object getTag(Object item) {
-        if (item == null) {
-            return null;
-        }
-        return getTagCompoundInvoker.invoke(item);
-    }
-
-    // tjekker om object er nbt compound
-    public static boolean isNBTCompound(Object tag) {
-        if (tag == null) {
-            return false;
-        }
-        return nbtTagCompoundClass.isInstance(tag);
-    }
-
-    // får en nbt compound for den key i en nbt compound
-    public static Object compoundGetCompound(Object tag, String key) {
-        if (!isNBTCompound(tag)) {
-            return null;
-        }
-        return getCompoundInvoker.invoke(tag, key);
-    }
-
-    // får en nbt list for den key og type id i en nbt compound
-    public static Object compoundGetList(Object tag, String key, int type) {
-        if (!isNBTCompound(tag)) {
-            return null;
-        }
-        return getListInvoker.invoke(tag, key, type);
-    }
-
-    // får hvilken som helst nbt base for den key i en nbt compound
-    public static Object compoundGetFuzzyBase(Object tag, String key) {
-        if (!isNBTCompound(tag)) {
-            return null;
-        }
-        Map<String, Object> map = compoundGetMap(tag);
-        if (map == null || map.isEmpty()) {
-            return null;
-        }
-        return map.get(key);
-    }
-
-    // får en nbt list for den key i en nbt compound
-    public static Object compoundGetFuzzyList(Object tag, String key) {
-        Object list = compoundGetFuzzyBase(tag, key);
-        if (list == null) {
-            return null;
-        }
-        if (!isNBTList(list)) {
-            return null;
-        }
-        return list;
-    }
-
-    // får map af key-value pair i en nbt compound
-    public static Map<String, Object> compoundGetMap(Object tag) {
-        if (!isNBTCompound(tag)) {
-            return null;
-        }
-        Object map = mapAccessor.get(tag);
-        if (map == null) {
-            return null;
-        }
-        try {
-            return (Map<String, Object>) map;
-        } catch (ClassCastException ex) {
-            return null;
-        }
-    }
-
-    // tjekker om nbt compound har key
-    public static boolean compoundHasKey(Object tag, String key) {
-        if (!isNBTCompound(tag)) {
-            return false;
-        }
-        try {
-            return (Boolean) hasKeyInvoker.invoke(tag, key);
-        } catch (ClassCastException ex) {
-            return false;
-        }
-    }
-
-    // tjekker om nbt compound har key og type id
-    public static boolean compoundHasKeyOfType(Object tag, String key, int type) {
-        if (!isNBTCompound(tag)) {
-            return false;
-        }
-        try {
-            return (Boolean) hasKeyOfTypeInvoker.invoke(tag, key, type);
-        } catch (ClassCastException ex) {
-            return false;
-        }
-    }
-
-    // får keys tilsvarende alle nbt bases i en nbt compound
-    public static Set<String> compoundGetKeys(Object tag) {
-        if (!isNBTCompound(tag)) {
-            return null;
-        }
-        try {
-            return (Set<String>) getKeysInvoker.invoke(tag);
-        } catch (ClassCastException ex) {
-            return null;
-        }
-    }
-
-    // fjerner nbt base tilsvarende key fra nbt compound
-    public static void removeCompoundTag(Object compound, String tag) {
-        if (!isNBTCompound(tag)) {
-            return;
-        }
-        removeTagInvoker.invoke(compound, tag);
-    }
-
-    // tjekker om object er nbt list
-    public static boolean isNBTList(Object list) {
-        if (list == null) {
-            return false;
-        }
-        return nbtTagListClass.isInstance(list);
-    }
-
-    // får længde af nbt list
-    public static int getListSize(Object list) {
-        if(!isNBTList(list)) {
-            return 0;
-        }
-        try {
-            return (Integer) listGetSizeInvoker.invoke(list);
-        } catch (ClassCastException ex) {
-            return 0;
-        }
-    }
-
-    // får nbt compound for index i nbt list
-    public static Object listGetIndexCompound(Object list, int index) {
-        if (!isNBTList(list)) {
-            return null;
-        }
-        return listGetIndexInvoker.invoke(list, index);
-    }
-
-    // får hvilken som helst nbt base for index i nbt list
-    public static Object listGetIndexFuzzy(Object list, int index) {
-        if (!isNBTList(list)) {
-            return null;
-        }
-        Object internalList = listAccessor.get(list);
-        if (internalList == null) {
-            return null;
-        }
-        try {
-            ArrayList<Object> array = (ArrayList<Object>) internalList;
-            return array.get(index);
-        } catch (ClassCastException ex) {
-            return null;
-        }
-    }
-
-    // tjekker om object er nbt base
-    public static boolean isNBTBase(Object base) {
-        return nbtBaseClass.isInstance(base) || nbtBaseClass.isAssignableFrom(base.getClass());
-    }
-
-    // får type id af nbt base
-    public static int baseGetTypeId(Object base) {
-        if (!isNBTBase(base)) {
-            return -1;
-        }
-        try {
-            return (Integer) getTypeIdInvoker.invoke(base);
-        } catch (ClassCastException ex) {
-            return -1;
-        }
-    }
-
     public static boolean checkNMSNBT(Object item) {
         if (item == null) {
             return false;
@@ -240,16 +35,14 @@ public class NBTHelper {
     }
 
     public static boolean checkBukkitNBT(ItemStack item) {
-        Bukkit.getLogger().info("CHECKING ITEM!!!!");
         if (item == null) {
             return false;
         }
-        Object tag = getTag(item);
         NBTCompound compound = NBTFactory.fromItem(item);
-        if (tag == null) {
+        if (compound == null) {
             return false;
         }
-        int nbtLength = getNbtLength(tag);
+        int nbtLength = compound.toString().getBytes().length;
         switch (item.getType()) {
             case FIREWORK: {
                 if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH) {
@@ -265,7 +58,7 @@ public class NBTHelper {
             }
             case WRITTEN_BOOK:
             case BOOK_AND_QUILL: {
-                if (checkBook(compound, compound.toString().getBytes().length)) {
+                if (checkBook(compound, nbtLength)) {
                     clearBookTags(compound);
                     return true;
                 }
@@ -290,7 +83,7 @@ public class NBTHelper {
                 }
             }
         }
-        if (checkBigNBT(tag)) {
+        if (checkBigNBT(compound)) {
             if (ItemHelper.isBook(item)) {
                 clearBookTags(compound);
             }
@@ -333,16 +126,16 @@ public class NBTHelper {
         return false;
     }
 
-    public static boolean checkBigNBT(Object tag) {
+    public static boolean checkBigNBT(NBTCompound tag) {
         return checkCompoundNBT(tag, new AtomicInteger(), 0);
     }
 
-    private static boolean checkCompoundNBT(Object tag, AtomicInteger totalBases, int nestingContext) {
+    private static boolean checkCompoundNBT(NBTCompound tag, AtomicInteger totalBases, int nestingContext) {
         nestingContext++;
         if (checkValues(totalBases.get(), nestingContext)) {
             return true;
         }
-        Set<String> keys = compoundGetKeys(tag);
+        Set<String> keys = tag.getKeys();
         if (keys == null || keys.isEmpty()) {
             return false;
         }
@@ -350,8 +143,8 @@ public class NBTHelper {
             if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
                 return true;
             }
-            if (compoundHasKeyOfType(tag, key, 9)) {
-                Object list = compoundGetFuzzyList(tag, key);
+            if (tag.hasKeyOfType(key, NBTType.LIST) || tag.hasKeyOfType(key, NBTType.COMPOUNDLIST)) {
+                NBTAbstractList<?> list = tag.getList(key);
                 if (list == null) {
                     continue;
                 }
@@ -360,8 +153,8 @@ public class NBTHelper {
                 }
                 continue;
             }
-            if (compoundHasKeyOfType(tag, key, 10)) {
-                Object compound = compoundGetCompound(tag, key);
+            if (tag.hasKeyOfType(key, NBTType.COMPOUND)) {
+                NBTCompound compound = tag.getCompound(key);
                 if (compound == null) {
                     continue;
                 }
@@ -373,28 +166,27 @@ public class NBTHelper {
         return false;
     }
 
-    private static boolean checkListNBT(Object list, AtomicInteger totalBases, int nestingContext) {
+    private static boolean checkListNBT(NBTAbstractList<?> list, AtomicInteger totalBases, int nestingContext) {
         nestingContext++;
         if (checkValues(totalBases.get(), nestingContext)) {
             return true;
         }
-        int size = getListSize(list);
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < list.size(); i++) {
             if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
                 return true;
             }
-            Object base = listGetIndexFuzzy(list, i);
+            NBTBase<?, ?> base = list.getUnknown(i);
             if (base == null) {
                 continue;
             }
-            if (baseGetTypeId(base) == 10) {
-                if (checkCompoundNBT(base, totalBases, nestingContext)) {
+            if (base.getType() == NBTType.COMPOUND) {
+                if (checkCompoundNBT((NBTCompound) base, totalBases, nestingContext)) {
                     return true;
                 }
                 continue;
             }
-            if (baseGetTypeId(base) == 9) {
-                if (checkListNBT(base, totalBases, nestingContext)) {
+            if (base.getType() == NBTType.LIST || base.getType() == NBTType.COMPOUNDLIST) {
+                if (checkListNBT((NBTAbstractList<?>) base, totalBases, nestingContext)) {
                     return true;
                 }
             }
@@ -418,7 +210,8 @@ public class NBTHelper {
         if (!propertiesCompound.hasKey("textures")) {
             return false;
         }
-        NBTList<MapConverter<String, Object, NBTBase<?, ?>>> textures = propertiesCompound.getListOf("textures", NBTType.COMPOUND);
+        NBTCompoundList textures = propertiesCompound.getCompoundList("textures");
+        Bukkit.broadcastMessage(textures + "");
         for (NBTBase<?, MapConverter<String, Object, NBTBase<?, ?>>> compoundBase : textures.getValues()) {
             final MapConverter<String, Object, NBTBase<?, ?>> texture = compoundBase.getValue();
             if (!texture.containsKey("Value")) {
@@ -450,10 +243,6 @@ public class NBTHelper {
         return false;
     }
 
-    public static boolean checkBook(NBTCompound tag) {
-        return checkBook(tag, getNbtLength(tag));
-    }
-
     public static boolean checkBook(NBTCompound tag, int nbtLength) {
         try {
             if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH || tag == null) {
@@ -462,7 +251,7 @@ public class NBTHelper {
             if (!tag.hasKey("pages")) {
                 return true;
             }
-            NBTList<String> stringList = tag.getListOf("pages", String.class);
+            NBTList<String> stringList = tag.getListOf("pages", NBTType.STRING);
             if (stringList.size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES) {
                 return true;
             }

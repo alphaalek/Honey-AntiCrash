@@ -56,6 +56,7 @@ public class NBTFactory {
         }
 
         switch (type) {
+            case LISTINLIST:
             case COMPOUNDLIST:
                 return (NBTBase<K, V>) constructorInvoker.invoke(handle, Converters.getNBTListConverter());
             case LIST:
@@ -122,8 +123,12 @@ public class NBTFactory {
         NBTType type = NBTType.getFromTypeId(typeId);
 
         if (type == NBTType.LIST) {
-            if (getListType(handle) == NBTType.COMPOUND) {
+            NBTType listType = getListType(handle);
+            if (listType == NBTType.COMPOUND) {
                 return NBTType.COMPOUNDLIST;
+            }
+            if (listType == NBTType.LIST) {
+                return NBTType.LISTINLIST;
             }
         }
         return type;

@@ -1,21 +1,28 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 
 import java.util.List;
+import java.util.function.Function;
 
-public abstract class NBTAbstractListWrapper<V, T> extends NBTBase<List<V>, ListConverter<V, T>> implements ListConverter<V, T> {
+public abstract class NBTAbstractListWrapper<T, V> extends NBTBase<List<T>, ListConverter<T, V>> implements ListConverter<T, V> {
 
-    private final ListConverter<V, T> delegate;
+    private final ListConverter<T, V> delegate;
 
-    public NBTAbstractListWrapper(Object base, ListConverter<V, T> handle) {
+    public NBTAbstractListWrapper(Object base, ListConverter<T, V> handle) {
         super(base, handle);
         this.delegate = handle;
     }
 
     @Override
-    public ApplicableConverter<List<V>, ListConverter<V,T>> apply(List<V> list) {
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<T>, ListConverter<T, V>>> getValueStructure(ApplicableConverter<List<T>, ListConverter<T, V>> converter, List<T> original) {
+        return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
+    }
+
+    @Override
+    public ApplicableConverter<List<T>, ListConverter<T, V>> apply(List<T> list) {
         return delegate.apply(list);
     }
 
@@ -35,47 +42,47 @@ public abstract class NBTAbstractListWrapper<V, T> extends NBTBase<List<V>, List
     }
 
     @Override
-    public T removeConverted(int index) {
+    public V removeConverted(int index) {
         return delegate.removeConverted(index);
     }
 
     @Override
-    public boolean addConverted(T value) {
+    public boolean addConverted(V value) {
         return delegate.addConverted(value);
     }
 
     @Override
-    public T setConverted(int index, T value) {
+    public V setConverted(int index, V value) {
         return delegate.setConverted(index, value);
     }
 
     @Override
-    public boolean removeConverted(T value) {
+    public boolean removeConverted(V value) {
         return delegate.removeConverted(value);
     }
 
     @Override
-    public T getConverted(int index) {
+    public V getConverted(int index) {
         return delegate.getConverted(index);
     }
 
     @Override
-    public boolean containsConverted(T value) {
+    public boolean containsConverted(V value) {
         return delegate.containsConverted(value);
     }
 
     @Override
-    public List<T> getDelegatedList() {
+    public List<V> getDelegatedList() {
         return delegate.getDelegatedList();
     }
 
     @Override
-    public ListConverter<V, T> convertDelegate(List<V> delegate) {
+    public ListConverter<T, V> convertDelegate(List<T> delegate) {
         return this.delegate.convertDelegate(delegate);
     }
 
     @Override
-    public List<V> convertDeclaring(ListConverter<V, T> object) {
+    public List<T> convertDeclaring(ListConverter<T, V> object) {
         return delegate.convertDeclaring(object);
     }
 }

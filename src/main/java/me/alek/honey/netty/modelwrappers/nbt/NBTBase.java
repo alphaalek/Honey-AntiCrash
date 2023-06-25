@@ -26,7 +26,6 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         this.converter = converter;
         this.handle = base;
 
-        Bukkit.broadcastMessage("nbt base init");
         defaultStructure = ReflectStructureCache.acquireStructure(handle.getClass());
 
         valueStructureModifier = getValueStructure(

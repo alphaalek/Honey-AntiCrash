@@ -13,6 +13,8 @@ public abstract class NBTAbstractList<T> extends NBTAbstractListWrapper<Object, 
         this.typeOf = typeOf;
     }
 
+    public abstract NBTBase<?, ?> getUnknown(int index);
+
     public int size() {
         return getValue().size();
     }

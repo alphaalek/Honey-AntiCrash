@@ -15,6 +15,11 @@ public class NBTList<T> extends NBTAbstractList<NBTBase<?, T>> {
     }
 
     @Override
+    public NBTBase<?, ?> getUnknown(int index) {
+        return getValue().getConverted(index);
+    }
+
+    @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, NBTBase<?, T>>>> getValueStructure(ApplicableConverter<List<Object>, ListConverter<Object, NBTBase<?, T>>> converter, List<Object> original) {
         return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
     }
