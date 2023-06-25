@@ -9,6 +9,8 @@ import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -43,6 +45,34 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public abstract void write(DataOutput output) throws Exception;
 
+    public NBTAbstractList<?> asList() {
+        if (type.getClazz() != List.class) {
+            return null;
+        }
+        return (NBTAbstractList<?>) this;
+    }
+
+    public NBTCompound asCompound() {
+        if (type != NBTType.COMPOUND) {
+            return null;
+        }
+        return (NBTCompound) this;
+    }
+
+    public NBTElement<V> asElement() {
+        if (type.getClazz() == List.class || type.getClazz() == Map.class) {
+            return null;
+        }
+        return (NBTElement<V>) this;
+    }
+
+    public <R> NBTElement<R> asElement(Class<R> clazz) {
+        if (type.getClazz() == List.class || type.getClazz() == Map.class) {
+            return null;
+        }
+        return (NBTElement<R>) this;
+    }
+
     public Object getHandle() {
         return handle;
     }
@@ -54,10 +84,6 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public V getValue() {
         if (value == null) {
-            Object originalValue = defaultStructure
-                    .withType(getType().getClazz())
-                    .withTarget(handle)
-                    .readField(0);
             value = valueStructureModifier.readField(0);
         }
         return value;
@@ -65,7 +91,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public NBTType getType() {
         if (type == null) {
-            this.type = NBTFactory.getType(handle);
+            this.type = NBTFactory.getType(handle, false);
         }
         return type;
     }

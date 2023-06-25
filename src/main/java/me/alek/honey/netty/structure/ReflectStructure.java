@@ -5,6 +5,7 @@ import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -365,6 +366,16 @@ public class ReflectStructure<T, C> {
         @Override
         public int methodSize() {
             return ACQUIRED_INVOKERS.size();
+        }
+
+        @Override
+        public Collection<?> getAccessors() {
+            return ACQUIRED_ACCESSORS.values();
+        }
+
+        @Override
+        public Collection<?> getInvokers() {
+            return ACQUIRED_INVOKERS.values();
         }
 
     }

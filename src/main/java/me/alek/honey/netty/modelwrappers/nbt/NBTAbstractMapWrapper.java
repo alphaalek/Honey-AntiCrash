@@ -2,7 +2,6 @@ package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.util.Collection;
@@ -22,7 +21,7 @@ public abstract class NBTAbstractMapWrapper<K, V, T> extends NBTBase<Map<K, V>, 
 
     @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<K, V>, MapConverter<K, V, T>>> getValueStructure(ApplicableConverter<Map<K, V>, MapConverter<K, V, T>> converter, Map<K, V> original) {
-        return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
+        return (structure) -> structure.withSpecificType(Map.class, converter.apply(original), false);
     }
 
     @Override

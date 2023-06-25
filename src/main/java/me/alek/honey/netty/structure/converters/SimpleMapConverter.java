@@ -24,6 +24,24 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         if (declaringMap == null) {
             throw new RuntimeException("Ingen delegated map for wrapper map");
         }
+        int delegatedSize = delegatedMap.size();
+        int declaringSize = declaringMap.size();
+
+        if (delegatedSize != declaringSize) {
+
+            if (delegatedSize > declaringSize) {
+                declaringMap.clear();
+                for (K delegateKey : delegatedMap.keySet()) {
+                    declaringMap.put(delegateKey, converter.convertDeclaring(delegatedMap.get(delegateKey)));
+                }
+            }
+            else {
+                delegatedMap.clear();
+                for (K declaringKey : declaringMap.keySet()) {
+                    delegatedMap.put(declaringKey, converter.convertDelegate(declaringMap.get(declaringKey)));
+                }
+            }
+        }
     }
 
     public Set<K> keySet() {

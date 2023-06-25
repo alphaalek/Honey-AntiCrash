@@ -69,62 +69,50 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
         }
     }
 
-    public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
-        return castNBTList(getAbstractListOf(key, nbtType));
-    }
-
     @SuppressWarnings("unchecked")
     private <R> NBTList<R> castNBTList(NBTAbstractList<?> list) {
         return (NBTList<R>) list;
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTAbstractList<R> getAbstractListOf(String key, NBTType nbtType) {
-        NBTList<?> list = getList(key);
-        if (list == null) {
-            return null;
+    public <R extends NBTBase<?, ?>> NBTAbstractList<R> getAbstractListOf(String key, NBTType nbtType) {
+
+        NBTAbstractList<R> list = getAbstractList(key);
+        if (list != null && nbtType == list.getTypeOf()) {
+            return list;
         }
-        if (nbtType != list.getTypeOf()) {
-            return null;
+        if (nbtType == NBTType.COMPOUND) {
+            return (NBTAbstractList<R>) new NBTListOfCompound(get(key).getHandle(), Converters.getNBTListConverter());
         }
-        try {
-            return (NBTAbstractList<R>) list;
-        } catch (Exception ex) {
-            if (nbtType == NBTType.COMPOUND) {
-                return (NBTAbstractList<R>) new NBTCompoundList(list.getHandle(), Converters.getNBTListConverter());
-            }
-            else if (nbtType == NBTType.LIST) {
-                return (NBTAbstractList<R>) new NBTListInList(list.getHandle(), Converters.getNBTListConverter());
-            }
-            else {
-                return (NBTAbstractList<R>) new NBTList<>(list.getHandle(), nbtType, Converters.getNBTListConverter());
-            }
+        else if (nbtType == NBTType.LIST) {
+            return (NBTAbstractList<R>) new NBTListOfList(get(key).getHandle(), Converters.getNBTListConverter());
+        }
+        else {
+            return (NBTAbstractList<R>) new NBTList<>(get(key).getHandle(), nbtType, Converters.getNBTListConverter());
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTAbstractList<R> getAbstractListOf(String key, Class<R> clazz) {
+    public <R extends NBTBase<?, ?>> NBTAbstractList<R> getAbstractListOf(String key, Class<?> clazz) {
         return getAbstractListOf(key, NBTType.getFromClass(clazz));
     }
 
+    @SuppressWarnings("unchecked")
     public <R> NBTList<R> getListOf(String key, Class<R> clazz) {
-        return castNBTList(getAbstractListOf(key, clazz));
+        return (NBTList<R>) (NBTAbstractList<?>) getAbstractListOf(key, clazz);
     }
 
-    public NBTCompoundList getCompoundList(String key) {
-        return (NBTCompoundList) getCompoundListParameterized(key);
+    @SuppressWarnings("unchecked")
+    public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
+        return getListOf(key, (Class<R>) nbtType.getClazz());
     }
 
-    private NBTAbstractList<NBTCompound> getCompoundListParameterized(String key) {
-        return getAbstractListOf(key, NBTType.COMPOUND);
+    public NBTListOfCompound getListOfCompound(String key) {
+        return (NBTListOfCompound) (NBTAbstractList<?>) getAbstractListOf(key, NBTType.COMPOUND);
     }
 
-    public NBTListInList getListInList(String key) {
-        return (NBTListInList) getListInListParameterized(key);
-    }
-
-    private NBTAbstractList<NBTList<?>> getListInListParameterized(String key) {
-        return getAbstractListOf(key, NBTType.LIST);
+    public NBTListOfList getListOfList(String key) {
+        return (NBTListOfList) (NBTAbstractList<?>) getAbstractListOf(key, NBTType.LIST);
     }
 
     @SuppressWarnings("unchecked")
@@ -138,8 +126,9 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
         return null;
     }
 
-    public NBTList<?> getList(String key) {
-        return (NBTList<?>) get(key);
+    @SuppressWarnings("unchecked")
+    public <R extends NBTBase<?, ?>> NBTAbstractList<R> getAbstractList(String key) {
+        return (NBTAbstractList<R>) get(key);
     }
 
     public NBTCompound getCompound(String key) {

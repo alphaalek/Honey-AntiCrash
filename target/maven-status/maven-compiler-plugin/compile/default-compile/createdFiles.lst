@@ -1,4 +1,3 @@
-me\alek\honey\netty\modelwrappers\nbt\NBTCompoundList.class
 me\alek\honey\checks\listeners\PositionListener$PositionA.class
 me\alek\honey\checks\listeners\WindowClickListener$WindowA.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutNBTQuery.class
@@ -36,6 +35,7 @@ me\alek\honey\netty\listener\SyncPacketAdapter.class
 me\alek\honey\checks\listeners\FloodListener$FloodB.class
 me\alek\honey\netty\modelwrappers\nbt\NBTCompound.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityPainting.class
+me\alek\honey\netty\modelwrappers\nbt\NBTListOfCompound.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$UseEntity.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityExperienceOrb.class
 me\alek\honey\netty\structure\ReflectStructure.class
@@ -304,6 +304,7 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInJigsawGenerate.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntity.class
 me\alek\honey\netty\structure\converters\ListConverter.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$SetCreativeSlot.class
+me\alek\honey\netty\modelwrappers\nbt\NBTListOfList.class
 me\alek\honey\configuration\ConfigurationOptions$Velocity$NewUnloadedChunks.class
 me\alek\honey\netty\structure\ReflectStructure$StructureModifier.class
 me\alek\honey\checks\listeners\ChatListener$CommandsA.class

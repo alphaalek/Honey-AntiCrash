@@ -3,9 +3,6 @@ package me.alek.honey.helper;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.*;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.netty.utility.reflect.FieldAccessor;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -66,7 +63,6 @@ public class NBTHelper {
             }
             default: {
                 if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH) {
-                    Bukkit.broadcastMessage("ok");
                     return true;
                 }
             }
@@ -143,8 +139,8 @@ public class NBTHelper {
             if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
                 return true;
             }
-            if (tag.hasKeyOfType(key, NBTType.LIST) || tag.hasKeyOfType(key, NBTType.COMPOUNDLIST)) {
-                NBTAbstractList<?> list = tag.getList(key);
+            if (tag.hasKeyOfType(key, NBTType.LIST) || tag.hasKeyOfType(key, NBTType.LISTOFCOMOUND)) {
+                NBTAbstractList<?> list = tag.getAbstractList(key);
                 if (list == null) {
                     continue;
                 }
@@ -175,7 +171,7 @@ public class NBTHelper {
             if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
                 return true;
             }
-            NBTBase<?, ?> base = list.getUnknown(i);
+            NBTBase<?, ?> base = list.getValue().getConverted(i);
             if (base == null) {
                 continue;
             }
@@ -185,7 +181,7 @@ public class NBTHelper {
                 }
                 continue;
             }
-            if (base.getType() == NBTType.LIST || base.getType() == NBTType.COMPOUNDLIST) {
+            if (base.getType() == NBTType.LIST || base.getType() == NBTType.LISTOFCOMOUND) {
                 if (checkListNBT((NBTAbstractList<?>) base, totalBases, nestingContext)) {
                     return true;
                 }
@@ -210,14 +206,13 @@ public class NBTHelper {
         if (!propertiesCompound.hasKey("textures")) {
             return false;
         }
-        NBTCompoundList textures = propertiesCompound.getCompoundList("textures");
-        Bukkit.broadcastMessage(textures + "");
-        for (NBTBase<?, MapConverter<String, Object, NBTBase<?, ?>>> compoundBase : textures.getValues()) {
+        NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
+        for (NBTCompound compoundBase : textures.getValues()) {
             final MapConverter<String, Object, NBTBase<?, ?>> texture = compoundBase.getValue();
             if (!texture.containsKey("Value")) {
                 return true;
             }
-            NBTBase<?, String> value = (NBTBase<?, String>) texture.getConverted("Value");
+            NBTElement<String> value = texture.getConverted("Value").asElement(String.class);
 
             String base64;
             try {
@@ -230,7 +225,6 @@ public class NBTHelper {
                     .replace(" ", "")
                     .replace("\"", "")
                     .toLowerCase();
-            Bukkit.broadcastMessage(formatted);
 
             final Matcher matcher = URL_PATTERN.matcher(formatted);
             while (matcher.find()) {
@@ -251,7 +245,7 @@ public class NBTHelper {
             if (!tag.hasKey("pages")) {
                 return true;
             }
-            NBTList<String> stringList = tag.getListOf("pages", NBTType.STRING);
+            NBTList<String> stringList = tag.getListOf("pages", String.class);
             if (stringList.size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES) {
                 return true;
             }

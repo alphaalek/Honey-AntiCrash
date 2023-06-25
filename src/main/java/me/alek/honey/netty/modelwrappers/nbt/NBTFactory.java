@@ -38,7 +38,7 @@ public class NBTFactory {
     }
 
     public static <K, V> NBTBase<K, V> fromDelegate(Object handle) {
-        return copyFromType(getType(handle), handle);
+        return copyFromType(getType(handle, false), handle);
     }
 
     public static <K, V> NBTBase<K, V> copyBase(NBTBase<K, V> base) {
@@ -54,19 +54,18 @@ public class NBTFactory {
         if (constructorInvoker == null) {
             return null;
         }
-
         switch (type) {
-            case LISTINLIST:
-            case COMPOUNDLIST:
+            case LISTOFLIST:
+            case LISTOFCOMOUND:
                 return (NBTBase<K, V>) constructorInvoker.invoke(handle, Converters.getNBTListConverter());
             case LIST:
                 return (NBTBase<K, V>) constructorInvoker.invoke(handle, getListType(handle), Converters.getNBTListConverter());
             case COMPOUND:
                 return (NBTBase<K, V>) constructorInvoker.invoke(handle, Converters.getNBTCompoundConverter());
+            // nbt element
             default:
-                break;
+                return (NBTBase<K, V>) constructorInvoker.invoke(handle);
         }
-        return (NBTBase<K, V>) constructorInvoker.invoke(handle);
     }
 
     public static ReflectStructure<Object, ? > getNBTStructure(Object handle) {
@@ -90,10 +89,10 @@ public class NBTFactory {
         }
 
         IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
-            .<List<Object>, SimpleListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
+            .<List<Object>, ListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
                 Converters.<NBTBase<?, ?>>getNBTListConverter().apply(
 
-                    reflectStructure.withType((Class<List>) getType(handle).getClazz())
+                    reflectStructure.withType((Class<List>) getType(handle, true).getClazz())
                         .withTarget(handle)
                         .readField(0)
                 )
@@ -109,7 +108,7 @@ public class NBTFactory {
         return value.getType();
     }
 
-    public static NBTType getType(Object handle) {
+    public static NBTType getType(Object handle, boolean ignoreNestedLists) {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
@@ -122,13 +121,16 @@ public class NBTFactory {
         byte typeId = structureModifier.invokeMethod("getTypeId", 0);
         NBTType type = NBTType.getFromTypeId(typeId);
 
-        if (type == NBTType.LIST) {
-            NBTType listType = getListType(handle);
-            if (listType == NBTType.COMPOUND) {
-                return NBTType.COMPOUNDLIST;
-            }
-            if (listType == NBTType.LIST) {
-                return NBTType.LISTINLIST;
+        if (type == NBTType.LIST && !ignoreNestedLists) {
+
+            switch (getListType(handle)) {
+
+                case COMPOUND:
+                    return NBTType.LISTOFCOMOUND;
+                case LIST:
+                    return NBTType.LISTOFLIST;
+                default:
+                    break;
             }
         }
         return type;

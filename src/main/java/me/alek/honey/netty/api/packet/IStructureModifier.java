@@ -1,7 +1,11 @@
 package me.alek.honey.netty.api.packet;
 
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.netty.utility.reflect.FieldAccessor;
+import me.alek.honey.netty.utility.reflect.MethodInvoker;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface IStructureModifier<T> {
@@ -33,5 +37,9 @@ public interface IStructureModifier<T> {
     int fieldSize();
 
     int methodSize();
+
+    Collection<?> getAccessors();
+
+    Collection<?> getInvokers();
 
 }

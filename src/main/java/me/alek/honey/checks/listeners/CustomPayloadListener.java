@@ -16,6 +16,8 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
@@ -146,7 +148,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (item == null) {
                     return ResponseBuilder.SUCCESS;
                 }
-                Object tag = NBTHelper.getTag(item);
+                NBTCompound tag = NBTFactory.fromItem(item);
                 if (tag == null || tag.toString().getBytes().length <= ConfigurationOptions.CustomPayload.MAX_SERIALIZED_ITEM_NBT_LENGTH) {
                     return ResponseBuilder.SUCCESS;
                 }

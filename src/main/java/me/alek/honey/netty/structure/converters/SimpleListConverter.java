@@ -1,5 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
+import org.bukkit.Bukkit;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +27,25 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
         if (declaringList == null) {
             throw new RuntimeException("Ingen delegated list for wrapper list");
         }
+        int delegatedSize = delegatedList.size();
+        int declaringSize = declaringList.size();
+
+        if (delegatedSize != declaringSize) {
+
+            if (delegatedSize > declaringSize) {
+                declaringList.clear();
+                for (T delegate : delegatedList) {
+                    declaringList.add(converter.convertDeclaring(delegate));
+                }
+            }
+            else {
+                delegatedList.clear();
+                for (V declaring : declaringList) {
+                    delegatedList.add(converter.convertDelegate(declaring));
+                }
+            }
+        }
+
     }
 
     public int size() {
