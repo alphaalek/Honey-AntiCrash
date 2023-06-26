@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 public class NBTHelper {
 
-    private static final Pattern URL_PATTERN = Pattern.compile("url");
-
     public static boolean checkNMSNBT(Object item) {
         if (item == null) {
             return false;
@@ -41,14 +39,9 @@ public class NBTHelper {
         }
         int nbtLength = compound.toString().getBytes().length;
         switch (item.getType()) {
+            case FIREWORK_CHARGE:
             case FIREWORK: {
                 if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH) {
-                    return true;
-                }
-                break;
-            }
-            case FIREWORK_CHARGE: {
-                if (nbtLength > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_CHARGE_NBT_LENGTH) {
                     return true;
                 }
                 break;
@@ -71,19 +64,6 @@ public class NBTHelper {
             if (checkContainer(item)) {
                 return true;
             }
-        }
-        if (ConfigurationOptions.ItemAnalysis.NBT.CHECK_ILLEGAL_SKULL_TEXTURES) {
-            if (ItemHelper.isSkull(item)) {
-                if (checkSkull(compound)) {
-                    return true;
-                }
-            }
-        }
-        if (checkBigNBT(compound)) {
-            if (ItemHelper.isBook(item)) {
-                clearBookTags(compound);
-            }
-            return true;
         }
         if (checkBadCharacter(item)) {
             return true;
@@ -122,120 +102,6 @@ public class NBTHelper {
         return false;
     }
 
-    public static boolean checkBigNBT(NBTCompound tag) {
-        return checkCompoundNBT(tag, new AtomicInteger(), 0);
-    }
-
-    private static boolean checkCompoundNBT(NBTCompound tag, AtomicInteger totalBases, int nestingContext) {
-        nestingContext++;
-        if (checkValues(totalBases.get(), nestingContext)) {
-            return true;
-        }
-        Set<String> keys = tag.getKeys();
-        if (keys == null || keys.isEmpty()) {
-            return false;
-        }
-        for (final String key : keys) {
-            if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
-                return true;
-            }
-            if (tag.hasKeyOfType(key, NBTType.LIST) || tag.hasKeyOfType(key, NBTType.LISTOFCOMOUND)) {
-                NBTAbstractList<?> list = tag.getAbstractList(key);
-                if (list == null) {
-                    continue;
-                }
-                if (checkListNBT(list, totalBases, nestingContext)) {
-                    return true;
-                }
-                continue;
-            }
-            if (tag.hasKeyOfType(key, NBTType.COMPOUND)) {
-                NBTCompound compound = tag.getCompound(key);
-                if (compound == null) {
-                    continue;
-                }
-                if (checkCompoundNBT(compound, totalBases, nestingContext)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean checkListNBT(NBTAbstractList<?> list, AtomicInteger totalBases, int nestingContext) {
-        nestingContext++;
-        if (checkValues(totalBases.get(), nestingContext)) {
-            return true;
-        }
-        for (int i = 0; i < list.size(); i++) {
-            if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
-                return true;
-            }
-            NBTBase<?, ?> base = list.getValue().getConverted(i);
-            if (base == null) {
-                continue;
-            }
-            if (base.getType() == NBTType.COMPOUND) {
-                if (checkCompoundNBT((NBTCompound) base, totalBases, nestingContext)) {
-                    return true;
-                }
-                continue;
-            }
-            if (base.getType() == NBTType.LIST || base.getType() == NBTType.LISTOFCOMOUND) {
-                if (checkListNBT((NBTAbstractList<?>) base, totalBases, nestingContext)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean checkValues(int totalBases, int nestingContext) {
-        return totalBases > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES || nestingContext > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
-    }
-
-    public static boolean checkSkull(NBTCompound nbt) {
-        if (!nbt.hasKey("SkullOwner")) {
-            return false;
-        }
-        NBTCompound skullOwnerCompound = nbt.getCompound("SkullOwner");
-        if (!skullOwnerCompound.hasKey("Properties")) {
-            return false;
-        }
-        NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
-        if (!propertiesCompound.hasKey("textures")) {
-            return false;
-        }
-        NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
-        for (NBTCompound compoundBase : textures.getValues()) {
-            final MapConverter<String, Object, NBTBase<?, ?>> texture = compoundBase.getValue();
-            if (!texture.containsKey("Value")) {
-                return true;
-            }
-            NBTElement<String> value = texture.getConverted("Value").asElement(String.class);
-
-            String base64;
-            try {
-                base64 = new String(Base64.getDecoder().decode(value.getValue()));
-            } catch (IllegalArgumentException ex) {
-                return true;
-            }
-            final String formatted = base64
-                    .trim()
-                    .replace(" ", "")
-                    .replace("\"", "")
-                    .toLowerCase();
-
-            final Matcher matcher = URL_PATTERN.matcher(formatted);
-            while (matcher.find()) {
-                final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
-                if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     public static boolean checkBook(NBTCompound tag, int nbtLength) {
         try {
@@ -266,14 +132,6 @@ public class NBTHelper {
 
     public static boolean checkContainer(ItemStack item) {
         return item.hasItemMeta() && item.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.MAX_CONTAINER_DATA;
-    }
-
-    public static void clearBookTagsFromItem(ItemStack item) {
-        NBTCompound tag = NBTFactory.fromItem(item);
-        if (tag == null) {
-            return;
-        }
-        clearBookTags(tag);
     }
 
     public static void clearBookTags(NBTCompound tag) {

@@ -23,4 +23,6 @@ public interface ListConverter<V, T> extends JavaConverter<List<V>, ListConverte
     boolean containsConverted(T value);
 
     List<T> getDelegatedList();
+
+    JavaConverter<V, T> getHandle();
 }

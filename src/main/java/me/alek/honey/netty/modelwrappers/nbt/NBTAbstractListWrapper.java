@@ -1,24 +1,35 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.structure.converters.*;
 
 import java.util.List;
 import java.util.function.Function;
 
 public abstract class NBTAbstractListWrapper<T, V> extends NBTBase<List<T>, ListConverter<T, V>> implements ListConverter<T, V> {
 
-    private final ListConverter<T, V> delegate;
+    private ListConverter<T, V> delegate;
 
-    public NBTAbstractListWrapper(Object base, ListConverter<T, V> handle) {
-        super(base, handle);
-        this.delegate = handle;
+    public NBTAbstractListWrapper(Object base, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base, root, owner);
+    }
+
+    @Override
+    public ApplicableConverter<List<T>, ListConverter<T, V>> getConverter() {
+        if (delegate == null) {
+            delegate = (ListConverter<T, V>) Converters.getNBTListConverter(getOwner());
+        }
+        return delegate;
     }
 
     @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<List<T>, ListConverter<T, V>>> getValueStructure(ApplicableConverter<List<T>, ListConverter<T, V>> converter, List<T> original) {
         return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
+    }
+
+    @Override
+    public JavaConverter<T, V> getHandle() {
+        return delegate.getHandle();
     }
 
     @Override

@@ -5,6 +5,7 @@ import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
@@ -19,10 +20,15 @@ import java.util.function.Function;
 public class Converters {
 
     private static Map<Class<?>, JavaConverter<?, ?>> CONVERTER_CACHE = new HashMap<>();
+    private static Map<NBTBase<?, ?>, NBTConverter> NBT_CONVERTER_CACHE = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public static <R, V> JavaConverter<R, V> getConverter(Class<?> clazz, Function<? super Class<?>, ? extends JavaConverter<?, ?>> orElse) {
         return (JavaConverter<R, V>) CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
+    }
+
+    public static NBTConverter getNBTConverter(NBTBase<?, ?> owner, Function<? super NBTBase<?, ?>, ? extends NBTConverter> orElse) {
+        return NBT_CONVERTER_CACHE.computeIfAbsent(owner, orElse);
     }
 
     @SuppressWarnings("unchecked")
@@ -87,31 +93,15 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter() {
-        return getConverter(NBTBase.class, (clazz) -> new JavaConverter<Object, NBTBase<?, ?>>() {
-            @Override
-            public NBTBase<?, ?> convertDelegate(Object delegate) {
-                if (delegate == null) {
-                    return null;
-                }
-                return NBTFactory.fromDelegate(delegate);
-            }
-
-            @Override
-            public Object convertDeclaring(NBTBase<?, ?> declaring) {
-                if (declaring == null) {
-                    return null;
-                }
-                return declaring.getHandle();
-            }
-        });
+    public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter(NBTBase<?, ?> owner) {
+        return getNBTConverter(owner, (nbtRoot) -> new NBTConverter(owner));
     }
 
-    public static SimpleMapConverter<String, Object, NBTBase<?, ?>> getNBTCompoundConverter() {
-        return getMapConverter(new SimpleMapConverter<>(getNBTBaseConverter()));
+    public static SimpleMapConverter<String, Object, NBTBase<?, ?>> getNBTCompoundConverter(NBTBase<?, ?> owner) {
+        return getMapConverter(new SimpleMapConverter<>(getNBTBaseConverter(owner)));
     }
 
-    public static <T> SimpleListConverter<Object, T> getNBTListConverter() {
-        return getListConverter(new SimpleListConverter<>(getNBTBaseConverter()));
+    public static <T> SimpleListConverter<Object, T> getNBTListConverter(NBTBase<?, ?> owner) {
+        return getListConverter(new SimpleListConverter<>(getNBTBaseConverter(owner)));
     }
 }

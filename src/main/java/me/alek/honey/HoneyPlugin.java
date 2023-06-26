@@ -1,9 +1,7 @@
 package me.alek.honey;
 
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.IListener;
-import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.ListenerRegistry;
+import me.alek.honey.checks.*;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.command.impl.HelpCommand;
 import me.alek.honey.command.impl.ReloadCommand;
@@ -54,6 +52,7 @@ public class HoneyPlugin extends JavaPlugin {
         new HelpCommand(commandManager);
 
         registerChecks();
+        ItemAnalysis.reload();
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }
@@ -91,6 +90,7 @@ public class HoneyPlugin extends JavaPlugin {
         }
         violationService.reload();
         loggerService.reload();
+        ItemAnalysis.reload();
     }
 
     public static HoneyPlugin get() {

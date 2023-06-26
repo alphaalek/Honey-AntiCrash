@@ -7,8 +7,8 @@ import java.util.Iterator;
 
 public class NBTListOfList extends NBTAbstractList<NBTAbstractList<?>> {
 
-    public NBTListOfList(Object base, ListConverter<Object, NBTAbstractList<?>> converter) {
-        super(base, NBTType.LIST, converter);
+    public NBTListOfList(Object base, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base, NBTType.LIST, root, owner);
     }
 
     @Override

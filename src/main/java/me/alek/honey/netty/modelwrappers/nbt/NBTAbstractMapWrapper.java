@@ -2,26 +2,38 @@ package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
 public abstract class NBTAbstractMapWrapper<K, V, T> extends NBTBase<Map<K, V>, MapConverter<K, V, T>> implements MapConverter<K, V, T> {
 
-    private final MapConverter<K, V, T> delegate;
+    private MapConverter<K, V, T> delegate;
 
-    public NBTAbstractMapWrapper(Object base, MapConverter<K, V, T> handle) {
-        super(base, handle);
-        this.delegate = handle;
+    public NBTAbstractMapWrapper(Object base, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base, root, owner);
     }
 
     @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<K, V>, MapConverter<K, V, T>>> getValueStructure(ApplicableConverter<Map<K, V>, MapConverter<K, V, T>> converter, Map<K, V> original) {
         return (structure) -> structure.withSpecificType(Map.class, converter.apply(original), false);
+    }
+
+    public ApplicableConverter<Map<K, V>, MapConverter<K, V, T>> getConverter() {
+        if (delegate == null) {
+            delegate = (MapConverter<K, V, T>) Converters.getNBTCompoundConverter(getOwner());
+        }
+        return delegate;
+    }
+
+    @Override
+    public JavaConverter<V, T> getHandle() {
+        return delegate.getHandle();
     }
 
     @Override

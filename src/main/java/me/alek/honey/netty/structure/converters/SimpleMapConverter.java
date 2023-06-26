@@ -29,17 +29,9 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
 
         if (delegatedSize != declaringSize) {
 
-            if (delegatedSize > declaringSize) {
-                declaringMap.clear();
-                for (K delegateKey : delegatedMap.keySet()) {
-                    declaringMap.put(delegateKey, converter.convertDeclaring(delegatedMap.get(delegateKey)));
-                }
-            }
-            else {
-                delegatedMap.clear();
-                for (K declaringKey : declaringMap.keySet()) {
-                    delegatedMap.put(declaringKey, converter.convertDelegate(declaringMap.get(declaringKey)));
-                }
+            delegatedMap.clear();
+            for (K declaringKey : declaringMap.keySet()) {
+                delegatedMap.put(declaringKey, converter.convertDelegate(declaringMap.get(declaringKey)));
             }
         }
     }
@@ -106,6 +98,11 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         checkMap();
 
         return delegatedMap.get(key);
+    }
+
+    @Override
+    public JavaConverter<V, T> getHandle() {
+        return converter;
     }
 
     @Override

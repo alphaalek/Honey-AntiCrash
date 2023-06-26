@@ -6,8 +6,8 @@ import java.io.DataOutput;
 
 public class NBTList<T> extends NBTAbstractList<NBTBase<?, T>> {
 
-    public NBTList(Object base, NBTType typeOf, ListConverter<Object, NBTBase<?, T>> converter) {
-        super(base, typeOf, converter);
+    public NBTList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base, typeOf, root, owner);
     }
 
     @Override

@@ -6,8 +6,8 @@ import java.io.DataOutput;
 
 public class NBTListOfCompound extends NBTAbstractList<NBTCompound> {
 
-    public NBTListOfCompound(Object base, ListConverter<Object, NBTCompound> converter) {
-        super(base, NBTType.COMPOUND, converter);
+    public NBTListOfCompound(Object base, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base, NBTType.COMPOUND, root, owner);
     }
 
     @Override

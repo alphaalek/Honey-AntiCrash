@@ -183,8 +183,8 @@ public class ReflectStructure<T, C> {
         return DEFAULT_INVOKERS.values();
     }
 
-    public IStructureModifier<C> withTarget(Object rawPacket) {
-        return new StructureModifier(rawPacket, converter);
+    public IStructureModifier<C> withTarget(Object handle) {
+        return new StructureModifier(handle, converter);
     }
 
     private class StructureModifier implements IStructureModifier<C> {
@@ -198,8 +198,8 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public <R> JavaConverter<R, C> getConverter() {
-            return (JavaConverter<R, C>) converter;
+        public JavaConverter<T, C> getConverter() {
+            return converter;
         }
 
         @Override
@@ -248,6 +248,7 @@ public class ReflectStructure<T, C> {
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (accessor != null) {
                 if (converter != null) {
+                    Bukkit.broadcastMessage("reading converted " + accessor.get(handle));
                     return converter.convertDelegate(accessor.get(handle));
                 }
                 else {

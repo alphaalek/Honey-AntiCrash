@@ -32,20 +32,11 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
 
         if (delegatedSize != declaringSize) {
 
-            if (delegatedSize > declaringSize) {
-                declaringList.clear();
-                for (T delegate : delegatedList) {
-                    declaringList.add(converter.convertDeclaring(delegate));
-                }
-            }
-            else {
-                delegatedList.clear();
-                for (V declaring : declaringList) {
-                    delegatedList.add(converter.convertDelegate(declaring));
-                }
+            delegatedList.clear();
+            for (V declaring : declaringList) {
+                delegatedList.add(converter.convertDelegate(declaring));
             }
         }
-
     }
 
     public int size() {
@@ -99,7 +90,7 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
     public T getConverted(int index) {
         checkList();
 
-        return converter.convertDelegate(declaringList.get(index));
+        return delegatedList.get(index);
     }
 
     public boolean containsConverted(T value) {
@@ -112,6 +103,11 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
         checkList();
 
         return delegatedList;
+    }
+
+    @Override
+    public JavaConverter<V, T> getHandle() {
+        return converter;
     }
 
     @Override

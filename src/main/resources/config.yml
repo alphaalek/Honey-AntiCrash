@@ -64,6 +64,9 @@ item-analysis:
   # Hvor højt enchant level må et item højest have.
   max-enchantment-level: 256
 
+  # Må items have enchants der ikke er mulige at få i Vanilla. Dette ses bort fra max-enchantment-level, men i stedet specifikke enchantments.
+  check-illegal-enchantments: false
+
   # Hvor højt antal må et item stack højest have.
   max-amount: 64
 
@@ -73,6 +76,12 @@ item-analysis:
   # Hvor langt må summen af alle længderne på et items lore højest have.
   max-total-lore-length: 2000
 
+  # Må fyrværkeri have data der ikke er mulig at få i Vanilla.
+  check-illegal-firework: true
+
+  # Må potions have data der ikke er mulig at få i Vanilla.
+  check-illegal-potions: true
+
   # NBT
   nbt:
     # Hvor mange bytes må et items NBT højest have.
@@ -80,9 +89,6 @@ item-analysis:
 
     # Hvor mange bytes må fyrværkeris NBT højest have. Fyrværkeri bliver ikke kørt igennem den generelle tjek.
     max-firework-nbt-length: 1500
-
-    # Hvor mange bytes må fyrværkeri-ladnings NBT højest have.
-    max-firework-charge-nbt-length: 1500
 
     # Hvor mange bytes må en bogs NBT højest have. Bøger bliver ikke kørt igennem den generelle tjek.
     max-book-nbt-length: 6000
@@ -94,10 +100,10 @@ item-analysis:
     max-book-page-length: 300
 
     # Hvor mange NBT bases må et items NBT højest have. (den generelle NBT repræsentation, gælder lister, strings, doubles osv ...)
-    max-nbt-bases: 150
+    max-nbt-bases: 65
 
     # Hvor meget NBT nesting må et items NBT højest have. (lister oveni listener oveni compounds osv ...)
-    max-nbt-nesting: 5
+    max-nbt-nesting: 4
 
     # Må skulls/heads ikke have ugyldige textures.
     check-illegal-skull-textures: true

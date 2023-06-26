@@ -19,12 +19,16 @@ public enum NBTType {
     BYTEARRAY(7, byte[].class),
     STRING(8, String.class),
     @SuppressWarnings("unchecked")
-    LIST(9, List.class, new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class, ListConverter.class)),
-    COMPOUND(10, Map.class, new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, MapConverter.class)),
+    LIST(9, List.class,
+            new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class, NBTRoot.class, NBTBase.class)),
+    COMPOUND(10, Map.class,
+            new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, NBTRoot.class, NBTBase.class)),
     INTARRAY(11, int[].class),
     LONGARRAY(12, long[].class),
-    LISTOFCOMOUND(-1, List.class, new ConstructorInvoker<>(castNBTBase(NBTListOfCompound.class), Object.class, ListConverter.class)),
-    LISTOFLIST(-1, List.class, new ConstructorInvoker<>(castNBTBase(NBTListOfList.class), Object.class, ListConverter.class)),
+    LISTOFCOMOUND(-1, List.class,
+            new ConstructorInvoker<>(castNBTBase(NBTListOfCompound.class), Object.class, NBTRoot.class, NBTBase.class)),
+    LISTOFLIST(-1, List.class,
+            new ConstructorInvoker<>(castNBTBase(NBTListOfList.class), Object.class, NBTRoot.class, NBTBase.class)),
     UNKNOWN(-1, null);
 
     private final int typeId;
@@ -60,7 +64,7 @@ public enum NBTType {
 
     @SuppressWarnings("unchecked")
     NBTType(int typeId, Class<?> clazz) {
-        this(typeId, clazz, new ConstructorInvoker<>(castNBTBase(NBTElement.class), Object.class));
+        this(typeId, clazz, new ConstructorInvoker<>(castNBTBase(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class));
     }
 
     NBTType(int typeId, Class<?> clazz, ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker) {

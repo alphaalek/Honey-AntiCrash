@@ -1,30 +1,13 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.MapConverter;
-
 import java.io.DataOutput;
 import java.util.Collection;
 import java.util.Set;
 
 public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?, ?>> {
 
-    public NBTCompound(Object rawNms, MapConverter<String, Object, NBTBase<?, ?>> converter) {
-        super(rawNms, converter);
-    }
-
-    @Override
-    public void write(DataOutput output) throws Exception {
-        for (String key : getValue().keySet()) {
-            NBTBase<?, ?> base = getValue().getConverted(key);
-            output.writeByte((byte) getType().getTypeId());
-            if (getType() == NBTType.END) {
-                continue;
-            }
-            output.writeUTF(key);
-            base.write(output);
-        }
-        output.writeByte(0);
+    public NBTCompound(Object rawNms, NBTRoot root, NBTBase<?, ?> owner) {
+        super(rawNms, root, owner);
     }
 
     public NBTBase<?, ?> remove(String key) {
@@ -69,6 +52,20 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
         }
     }
 
+    @Override
+    public void write(DataOutput output) throws Exception {
+        for (String key : getValue().keySet()) {
+            NBTBase<?, ?> base = getValue().getConverted(key);
+            output.writeByte((byte) getType().getTypeId());
+            if (getType() == NBTType.END) {
+                continue;
+            }
+            output.writeUTF(key);
+            base.write(output);
+        }
+        output.writeByte(0);
+    }
+
     @SuppressWarnings("unchecked")
     private <R> NBTList<R> castNBTList(NBTAbstractList<?> list) {
         return (NBTList<R>) list;
@@ -81,14 +78,16 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
         if (list != null && nbtType == list.getTypeOf()) {
             return list;
         }
+        NBTRoot root = getRoot();
+        NBTBase<?, ?> base = get(key);
         if (nbtType == NBTType.COMPOUND) {
-            return (NBTAbstractList<R>) new NBTListOfCompound(get(key).getHandle(), Converters.getNBTListConverter());
+            return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner());
         }
         else if (nbtType == NBTType.LIST) {
-            return (NBTAbstractList<R>) new NBTListOfList(get(key).getHandle(), Converters.getNBTListConverter());
+            return (NBTAbstractList<R>) new NBTListOfList(base.getHandle(), root, base.getOwner());
         }
         else {
-            return (NBTAbstractList<R>) new NBTList<>(get(key).getHandle(), nbtType, Converters.getNBTListConverter());
+            return (NBTAbstractList<R>) new NBTList<>(base.getHandle(), nbtType, root, base.getOwner());
         }
     }
 

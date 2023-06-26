@@ -10,6 +10,7 @@ public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends Wra
 
     public WrappedPlayInFlying(Object rawPacket, PacketContainer<WP> packetContainer) {
         super(rawPacket, packetContainer);
+        location = getLocation();
     }
 
     public Location getLocation() {

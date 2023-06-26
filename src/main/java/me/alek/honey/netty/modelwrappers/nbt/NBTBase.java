@@ -5,7 +5,6 @@ import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.io.Serializable;
@@ -18,20 +17,22 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     private final Object handle;
     private final ReflectStructure<Object, ?> defaultStructure;
-    private final ApplicableConverter<T, V> converter;
     protected IStructureModifier<V> valueStructureModifier;
 
-    private V value;
+    private NBTRoot root;
+    private NBTBase<?, ?> owner;
     private NBTType type;
+    private V value;
 
-    public NBTBase(Object base, ApplicableConverter<T, V> converter) {
-        this.converter = converter;
+    public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner) {
         this.handle = base;
+        this.root = root;
+        this.owner = owner;
 
         defaultStructure = ReflectStructureCache.acquireStructure(handle.getClass());
 
         valueStructureModifier = getValueStructure(
-                converter,
+                getConverter(),
                 defaultStructure
                     .withType((Class<T>) getType().getClazz())
                     .withTarget(handle)
@@ -41,9 +42,27 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
                 .withTarget(base);
     }
 
+    public abstract ApplicableConverter<T, V> getConverter();
+
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> getValueStructure(ApplicableConverter<T, V> converter, T original);
 
     public abstract void write(DataOutput output) throws Exception;
+
+    public NBTRoot getRoot() {
+        if (root == null) {
+            if (this instanceof NBTRoot) {
+                root = (NBTRoot) this;
+            }
+        }
+        return root;
+    }
+
+    public NBTBase<?, ?> getOwner() {
+        if (owner == null) {
+            owner = this;
+        }
+        return owner;
+    }
 
     public NBTAbstractList<?> asList() {
         if (type.getClazz() != List.class) {
@@ -91,7 +110,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public NBTType getType() {
         if (type == null) {
-            this.type = NBTFactory.getType(handle, false);
+            this.type = NBTFactory.getType(handle, false, root);
         }
         return type;
     }
@@ -175,6 +194,6 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     @Override
     public NBTBase<T, V> clone() {
-        return NBTFactory.copyBase(this);
+        return NBTFactory.copyBase(this, getOwner());
     }
 }

@@ -1,7 +1,5 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.structure.converters.ListConverter;
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -9,8 +7,8 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTAbstra
 
     private final NBTType typeOf;
 
-    public NBTAbstractList(Object base, NBTType typeOf, ListConverter<Object, T> converter) {
-        super(base, converter);
+    public NBTAbstractList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base, root, owner);
         this.typeOf = typeOf;
     }
 

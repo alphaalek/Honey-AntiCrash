@@ -1,5 +1,6 @@
 package me.alek.honey.configuration;
 
+import me.alek.honey.checks.item.CheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,9 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigurationOptions {
 
@@ -25,6 +24,14 @@ public class ConfigurationOptions {
 
     public static Map<PacketTypeEnum, VlSetting> getFloodSettings() {
         return floodSettings;
+    }
+
+    public static List<Field> getItemAnalysisSettings() {
+        List<Field> fields = new ArrayList<>();
+        fields.addAll(Arrays.asList(ItemAnalysis.class.getDeclaredFields()));
+        fields.addAll(Arrays.asList(ItemAnalysis.NBT.class.getDeclaredFields()));
+
+        return fields;
     }
 
     public static void load() {
@@ -127,12 +134,19 @@ public class ConfigurationOptions {
         PacketType.Play.Client[] value();
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface ItemAnalysisSetting {
+
+        CheckRegistry value();
+    }
+
     public abstract static class VlSetting implements Cloneable {
 
         public int MAX_PER_INTERVAL = 1;
         public int INTERVAL = 0;
         public int VLS_AMOUNT = 1;
-        private boolean ENABLED;
+        private boolean ENABLED = true;
 
         public VlSetting() {}
 
@@ -226,13 +240,22 @@ public class ConfigurationOptions {
     @Setting
     public static class ItemAnalysis {
 
+        @ItemAnalysisSetting(CheckRegistry.MAX_CONTAINER_CHECK)
         public static int MAX_CONTAINER_DATA;
-
+        @ItemAnalysisSetting(CheckRegistry.MAX_ENCHANTMENT_LEVEL_CHECK)
         public static int MAX_ENCHANTMENT_LEVEL;
+        @ItemAnalysisSetting(CheckRegistry.MAX_AMOUNT_CHECK)
         public static int MAX_AMOUNT;
-
+        @ItemAnalysisSetting(CheckRegistry.MAX_DISPLAYNAME_LENGTH_CHECK)
         public static int MAX_DISPLAYNAME_LENGTH;
+        @ItemAnalysisSetting(CheckRegistry.MAX_TOTAL_LORE_LENGTH_CHECK)
         public static int MAX_TOTAL_LORE_LENGTH;
+        @ItemAnalysisSetting(CheckRegistry.ILLEGAL_ENCHANTMENTS_CHECK)
+        public static boolean CHECK_ILLEGAL_ENCHANTMENTS;
+        @ItemAnalysisSetting(CheckRegistry.ILLEGAL_FIREWORK_CHECK)
+        public static boolean CHECK_ILLEGAL_FIREWORK;
+        @ItemAnalysisSetting(CheckRegistry.ILLEGAL_POTION_CHECK)
+        public static boolean CHECK_ILLEGAL_POTIONS;
 
         public static void load() {
             MAX_CONTAINER_DATA = file.getInt("item-analysis.max-container-data");
@@ -242,26 +265,36 @@ public class ConfigurationOptions {
 
             MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length");
             MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length");
+
+            CHECK_ILLEGAL_ENCHANTMENTS = file.getBoolean("item-analysis.check-illegal-enchantments");
+            CHECK_ILLEGAL_FIREWORK = file.getBoolean("item-analysis.check-illegal-firework");
+            CHECK_ILLEGAL_POTIONS = file.getBoolean("item-analysis.check-illegal-potions");
         }
 
         @Setting
         public static class NBT {
 
+            @ItemAnalysisSetting(CheckRegistry.MAX_NBT_LENGTH)
             public static int MAX_NBT_LENGTH;
+            @ItemAnalysisSetting(CheckRegistry.MAX_FIREWORK_NBT_LENGTH)
             public static int MAX_FIREWORK_NBT_LENGTH;
-            public static int MAX_FIREWORK_CHARGE_NBT_LENGTH;
+            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_NBT_LENGTH)
             public static int MAX_BOOK_NBT_LENGTH;
+            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_PAGES)
             public static int MAX_BOOK_PAGES;
+            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_PAGE_LENGTH)
             public static int MAX_BOOK_PAGE_LENGTH;
+            @ItemAnalysisSetting(CheckRegistry.MAX_NBT_BASES)
             public static int MAX_NBT_BASES;
+            @ItemAnalysisSetting(CheckRegistry.MAX_NBT_NESTING)
             public static int MAX_NBT_NESTING;
+            @ItemAnalysisSetting(CheckRegistry.ILLEGAL_SKULL_TEXTURES)
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {
                 MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length");
 
                 MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
-                MAX_FIREWORK_CHARGE_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-charge-nbt-length");
 
                 MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
                 MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
