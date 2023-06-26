@@ -26,7 +26,7 @@ public abstract class NBTAbstractMapWrapper<K, V, T> extends NBTBase<Map<K, V>, 
 
     public ApplicableConverter<Map<K, V>, MapConverter<K, V, T>> getConverter() {
         if (delegate == null) {
-            delegate = (MapConverter<K, V, T>) Converters.getNBTCompoundConverter(getOwner());
+            delegate = (MapConverter<K, V, T>) Converters.getNBTCompoundConverter(this);
         }
         return delegate;
     }

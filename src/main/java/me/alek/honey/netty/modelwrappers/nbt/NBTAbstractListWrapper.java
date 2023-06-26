@@ -17,7 +17,7 @@ public abstract class NBTAbstractListWrapper<T, V> extends NBTBase<List<T>, List
     @Override
     public ApplicableConverter<List<T>, ListConverter<T, V>> getConverter() {
         if (delegate == null) {
-            delegate = (ListConverter<T, V>) Converters.getNBTListConverter(getOwner());
+            delegate = (ListConverter<T, V>) Converters.getNBTListConverter(this);
         }
         return delegate;
     }

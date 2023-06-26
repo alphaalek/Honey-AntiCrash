@@ -52,8 +52,11 @@ public class NBTFactory {
         if (nmsItem == null) {
             return null;
         }
-        NBTRoot root = new NBTRoot(getNBTStructure(nmsItem).withType(NMSUtils.getNBTTagCompoundClass()).withTarget(nmsItem).readField(0));
 
+        NBTRoot root = new NBTRoot(getNBTStructure(nmsItem).withType(NMSUtils.getNBTTagCompoundClass()).withTarget(nmsItem).readField(0));
+        if (root.isNull()) {
+            return null;
+        }
         ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))

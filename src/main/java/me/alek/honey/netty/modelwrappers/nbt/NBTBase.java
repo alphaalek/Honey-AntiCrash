@@ -16,7 +16,7 @@ import java.util.function.Function;
 public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> implements Cloneable, Serializable {
 
     private final Object handle;
-    private final ReflectStructure<Object, ?> defaultStructure;
+    protected ReflectStructure<Object, ?> defaultStructure;
     protected IStructureModifier<V> valueStructureModifier;
 
     private NBTRoot root;
@@ -29,17 +29,19 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         this.root = root;
         this.owner = owner;
 
-        defaultStructure = ReflectStructureCache.acquireStructure(handle.getClass());
+        if (base != null) {
+            defaultStructure = ReflectStructureCache.acquireStructure(handle.getClass());
 
-        valueStructureModifier = getValueStructure(
-                getConverter(),
-                defaultStructure
-                    .withType((Class<T>) getType().getClazz())
-                    .withTarget(handle)
-                    .readField(0)
-                )
-                .apply(defaultStructure)
-                .withTarget(base);
+            valueStructureModifier = getValueStructure(
+                    getConverter(),
+                    defaultStructure
+                            .withType((Class<T>) getType().getClazz())
+                            .withTarget(handle)
+                            .readField(0)
+                    )
+                    .apply(defaultStructure)
+                    .withTarget(base);
+        }
     }
 
     public abstract ApplicableConverter<T, V> getConverter();
@@ -47,6 +49,10 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> getValueStructure(ApplicableConverter<T, V> converter, T original);
 
     public abstract void write(DataOutput output) throws Exception;
+
+    public boolean isNull() {
+        return valueStructureModifier == null || defaultStructure == null;
+    }
 
     public NBTRoot getRoot() {
         if (root == null) {

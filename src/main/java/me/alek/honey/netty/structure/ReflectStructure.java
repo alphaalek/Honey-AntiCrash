@@ -248,7 +248,6 @@ public class ReflectStructure<T, C> {
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (accessor != null) {
                 if (converter != null) {
-                    Bukkit.broadcastMessage("reading converted " + accessor.get(handle));
                     return converter.convertDelegate(accessor.get(handle));
                 }
                 else {
