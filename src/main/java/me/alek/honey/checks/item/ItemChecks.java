@@ -1,80 +1,121 @@
 package me.alek.honey.checks.item;
 
-import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.modelwrappers.nbt.*;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
+import me.alek.honey.netty.modelwrappers.nbt.NBTList;
+import me.alek.honey.netty.modelwrappers.nbt.NBTListOfCompound;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Base64;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ItemChecks {
 
-
     public static class MaxContainerCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_CONTAINER_DATA;
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            if (!item.hasItemMeta()) {
+                return false;
+            }
+            return item.getItemMeta().toString().getBytes().length > MAX_CONTAINER_DATA;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_CONTAINER_DATA = value;
         }
     }
 
     public static class MaxEnchantmentLevelCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_ENCHANTMENT_LEVEL;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
+            NBTListOfCompound enchantments;
+            Material material = item.getType();
+            if (material == Material.ENCHANTED_BOOK) {
+                enchantments = nbt.getListOfCompound("StoredEnchantments");
+            }
+            else {
+                enchantments = nbt.getListOfCompound("ench");
+            }
+            for (NBTCompound enchantment : enchantments) {
+                NBTElement<Short> level = enchantment.get("lvl").asElement(short.class);
+                if (level.getValue() > MAX_ENCHANTMENT_LEVEL) {
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_ENCHANTMENT_LEVEL = value;
         }
     }
 
     public static class MaxAmountCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_AMOUNT;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            return item.getAmount() > MAX_AMOUNT;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_AMOUNT = value;
         }
     }
 
     public static class MaxDisplayNameLengthCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_DISPLAYNAME_LENGTH;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            if (!item.hasItemMeta() || item.getItemMeta().getDisplayName() == null) {
+                return false;
+            }
+            return item.getItemMeta().getDisplayName().length() > MAX_DISPLAYNAME_LENGTH;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_DISPLAYNAME_LENGTH = value;
         }
     }
 
     public static class MaxTotalLoreLengthCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_TOTAL_LORE_LENGTH;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
+            if (!item.hasItemMeta() || item.getItemMeta().getLore() == null) {
+                return false;
+            }
+            int counter = 0;
+            for (String lore : item.getItemMeta().getLore()) {
+                counter += lore.length();
+                if (counter > MAX_TOTAL_LORE_LENGTH) {
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_TOTAL_LORE_LENGTH = value;
         }
     }
 
@@ -117,161 +158,153 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxNBTLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class IllegalCharacterCheck implements ItemAnalysis.ItemChecker {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
+            if (!item.hasItemMeta()) {
+                return false;
+            }
+            if (item.getItemMeta().getDisplayName() != null && checkBadCharacter(item.getItemMeta().getDisplayName())) {
+                return true;
+            }
+            if (item.getItemMeta().getLore() != null) {
+                for (String lore : item.getItemMeta().getLore()) {
+                    if (checkBadCharacter(lore)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private boolean checkBadCharacter(String str) {
+            if (str == null) {
+                return false;
+            }
+            for (char character : str.toCharArray()) {
+                if (character == Character.MIN_VALUE) {
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         public void setValue(int value) {
 
+        }
+    }
+
+    public static class MaxNBTLengthCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_NBT_LENGTH;
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return nbt.toString().getBytes().length > MAX_NBT_LENGTH;
+        }
+
+        @Override
+        public void setValue(int value) {
+            MAX_NBT_LENGTH = value;
         }
     }
 
     public static class MaxFireworkLengthCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_FIREWORK_NBT_LENGTH;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            return nbt.toString().getBytes().length > MAX_FIREWORK_NBT_LENGTH;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_FIREWORK_NBT_LENGTH = value;
         }
     }
 
     public static class MaxBookNBTLengthCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_BOOK_NBT_LENGTH;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            return nbt.toString().getBytes().length > MAX_BOOK_NBT_LENGTH;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_BOOK_NBT_LENGTH = value;
         }
     }
 
     public static class MaxBookPagesCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_BOOK_PAGES;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            Bukkit.broadcastMessage(nbt.getListOf("pages", String.class).size() + "");
+            return nbt.getListOf("pages", String.class).asList().size() > MAX_BOOK_PAGES;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_BOOK_PAGES = value;
         }
     }
 
     public static class MaxBookPageLengthCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_BOOK_PAGE_LENGTH;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
+            NBTList<String> pages = nbt.getListOf("pages", String.class);
+            for (NBTElement<String> page : pages) {
+                if (page.getValue().length() > MAX_BOOK_PAGE_LENGTH) {
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_BOOK_PAGE_LENGTH = value;
         }
     }
 
     public static class MaxNBTBasesCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_NBT_BASES;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            return nbt.getRoot().getTotalElements() > MAX_NBT_BASES;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_NBT_BASES = value;
         }
     }
 
     public static class MaxNBTNestingCheck implements ItemAnalysis.ItemChecker {
 
+        private int MAX_NBT_NESTING;
+
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return checkCompoundNBT(nbt, new AtomicInteger(), 0);
+            return nbt.getRoot().getMaxDistanceBetweenTail() > MAX_NBT_NESTING;
         }
 
         @Override
         public void setValue(int value) {
-        }
-
-        private static boolean checkCompoundNBT(NBTCompound tag, AtomicInteger totalBases, int nestingContext) {
-            nestingContext++;
-            if (checkValues(totalBases.get(), nestingContext)) {
-                return true;
-            }
-            Set<String> keys = tag.getKeys();
-            if (keys == null || keys.isEmpty()) {
-                return false;
-            }
-            for (final String key : keys) {
-                if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
-                    return true;
-                }
-                if (tag.hasKeyOfType(key, NBTType.LIST) || tag.hasKeyOfType(key, NBTType.LISTOFCOMOUND)) {
-                    NBTAbstractList<?> list = tag.getAbstractList(key);
-                    if (list == null) {
-                        continue;
-                    }
-                    if (checkListNBT(list, totalBases, nestingContext)) {
-                        return true;
-                    }
-                    continue;
-                }
-                if (tag.hasKeyOfType(key, NBTType.COMPOUND)) {
-                    NBTCompound compound = tag.getCompound(key);
-                    if (compound == null) {
-                        continue;
-                    }
-                    if (checkCompoundNBT(compound, totalBases, nestingContext)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        private static boolean checkListNBT(NBTAbstractList<?> list, AtomicInteger totalBases, int nestingContext) {
-            nestingContext++;
-            if (checkValues(totalBases.get(), nestingContext)) {
-                return true;
-            }
-            for (int i = 0; i < list.size(); i++) {
-                if (checkValues(totalBases.incrementAndGet(), nestingContext)) {
-                    return true;
-                }
-                NBTBase<?, ?> base = list.getValue().getConverted(i);
-                if (base == null) {
-                    continue;
-                }
-                if (base.getType() == NBTType.COMPOUND) {
-                    if (checkCompoundNBT((NBTCompound) base, totalBases, nestingContext)) {
-                        return true;
-                    }
-                    continue;
-                }
-                if (base.getType() == NBTType.LIST || base.getType() == NBTType.LISTOFCOMOUND) {
-                    if (checkListNBT((NBTAbstractList<?>) base, totalBases, nestingContext)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        private static boolean checkValues(int totalBases, int nestingContext) {
-            return totalBases > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES || nestingContext > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
+            MAX_NBT_NESTING = value;
         }
     }
 

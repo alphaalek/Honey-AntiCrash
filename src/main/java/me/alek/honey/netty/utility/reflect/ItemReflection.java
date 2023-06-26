@@ -1,12 +1,8 @@
-package me.alek.honey.helper;
+package me.alek.honey.netty.utility.reflect;
 
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.Reflection;
-
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemHelper {
+public class ItemReflection {
 
     private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
@@ -55,32 +51,5 @@ public class ItemHelper {
     public static boolean isNMSItem(Object item) {
         return itemStackClass.isInstance(item);
     }
-
-    public static boolean isBukkitItem(Object item) {
-        return item instanceof ItemStack;
-    }
-
-    public static boolean isContainer(ItemStack item) {
-        if (item == null) {
-            return false;
-        }
-        String name = item.getType().name();
-        return name.equals("chest") || name.equals("hopper") || name.equals("shulker");
-    }
-
-    public static boolean isBook(ItemStack item) {
-        if (item == null) {
-            return false;
-        }
-        return item.getType() == Material.WRITTEN_BOOK || item.getType() == Material.BOOK_AND_QUILL;
-    }
-
-    public static boolean isSkull(ItemStack item) {
-        if (item == null) {
-            return false;
-        }
-        return item.getType() == Material.SKULL || item.getType() == Material.SKULL_ITEM;
-    }
-
 
 }

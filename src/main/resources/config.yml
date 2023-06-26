@@ -85,13 +85,13 @@ item-analysis:
   # NBT
   nbt:
     # Hvor mange bytes må et items NBT højest have.
-    max-nbt-length: 4000
+    max-nbt-length: 6000
 
-    # Hvor mange bytes må fyrværkeris NBT højest have. Fyrværkeri bliver ikke kørt igennem den generelle tjek.
+    # Hvor mange bytes må fyrværkeris NBT højest have.
     max-firework-nbt-length: 1500
 
-    # Hvor mange bytes må en bogs NBT højest have. Bøger bliver ikke kørt igennem den generelle tjek.
-    max-book-nbt-length: 6000
+    # Hvor mange bytes må en bogs NBT højest have.
+    max-book-nbt-length: 5000
 
     # Hvor mange sider må en bog højest have. I Vanilla Minecraft er det højest muligt at få 50 sider.
     max-book-pages: 50

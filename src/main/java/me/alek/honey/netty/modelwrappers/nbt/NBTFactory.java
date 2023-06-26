@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.helper.ItemHelper;
+import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -9,7 +9,6 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -48,7 +47,7 @@ public class NBTFactory {
         if (cacheValue != null && (System.currentTimeMillis() - cacheValue.getCreated() < 10000)) {
             return cacheValue.getCompound();
         }
-        Object nmsItem = ItemHelper.asNMSItem(item);
+        Object nmsItem = ItemReflection.asNMSItem(item);
         if (nmsItem == null) {
             return null;
         }

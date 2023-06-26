@@ -5,7 +5,6 @@ import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.io.Serializable;

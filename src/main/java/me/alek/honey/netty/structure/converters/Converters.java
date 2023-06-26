@@ -1,6 +1,6 @@
 package me.alek.honey.netty.structure.converters;
 
-import me.alek.honey.helper.ItemHelper;
+import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
@@ -81,12 +81,12 @@ public class Converters {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
             public ItemStack convertDelegate(Object delegate) {
-                return ItemHelper.asBukkitItem(delegate);
+                return ItemReflection.asBukkitItem(delegate);
             }
 
             @Override
             public Object convertDeclaring(ItemStack itemStack) {
-                return ItemHelper.asNMSItem(itemStack);
+                return ItemReflection.asNMSItem(itemStack);
             }
         });
     }

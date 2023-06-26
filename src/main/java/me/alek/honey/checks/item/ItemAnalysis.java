@@ -12,7 +12,7 @@ import java.util.*;
 public class ItemAnalysis {
 
     private static final Map<CheckRegistry, ItemChecker> checkRegistryLookup = new HashMap<>();
-    private static final List<ItemChecker> toggledChecks = new ArrayList<>();
+    private static final List<ItemChecker> disabledChecks = new ArrayList<>();
 
     private static final Map<Material, List<ItemChecker>> directAvailableChecks = new EnumMap<>(Material.class);
     private static final List<ItemChecker> globalAvailableChecks = new ArrayList<>();
@@ -24,7 +24,7 @@ public class ItemAnalysis {
     }
 
     public static void reload() {
-        toggledChecks.clear();
+        disabledChecks.clear();
         directAvailableChecks.clear();
         globalAvailableChecks.clear();
 
@@ -43,18 +43,16 @@ public class ItemAnalysis {
 
                     if (!field.getBoolean(null)) {
                         // lad være med at enable dem
-                        continue;
+                        disabledChecks.add(checkRegistryLookup.get(setting.value()));
                     }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            toggledChecks.add(checkRegistryLookup.get(setting.value()));
         }
-
         for (CheckRegistry registry : CheckRegistry.values()) {
 
-            if (!toggledChecks.contains(registry.getCheck())) {
+            if (disabledChecks.contains(registry.getCheck())) {
                 // den check er ikke slået til og skal derfor heller ikke tilføjes
                 continue;
             }
@@ -73,7 +71,7 @@ public class ItemAnalysis {
         }
     }
 
-    public boolean checkItem(ItemStack item) {
+    public static boolean checkItem(ItemStack item) {
         NBTCompound nbt = NBTFactory.fromItem(item);
         Material material = item.getType();
 

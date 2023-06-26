@@ -4,15 +4,15 @@ import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.helper.NBTHelper;
-import me.alek.honey.netty.api.packet.ListenerPriority;
-import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
@@ -109,7 +109,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             ItemStack item = packet.getItem();
             ItemStack itemInHand = player.getItemInHand();
 
-            if (NBTHelper.checkBukkitNBT(item) || NBTHelper.checkBukkitNBT(itemInHand)) {
+            if (ItemAnalysis.checkItem(item) || ItemAnalysis.checkItem(itemInHand)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()

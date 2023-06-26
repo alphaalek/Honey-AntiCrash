@@ -4,16 +4,15 @@ import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.helper.NBTHelper;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -131,7 +130,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             ItemStack item = packet.getItem();
-            if (NBTHelper.checkBukkitNBT(item)) {
+            if (ItemAnalysis.checkItem(item)) {
                 return ResponseBuilder
                         .inst()
                         .cancel()

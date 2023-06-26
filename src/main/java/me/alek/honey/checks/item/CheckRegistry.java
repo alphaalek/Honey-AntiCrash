@@ -12,6 +12,7 @@ public enum CheckRegistry {
     MAX_AMOUNT_CHECK(ItemChecks.MaxAmountCheck::new),
     MAX_DISPLAYNAME_LENGTH_CHECK(ItemChecks.MaxDisplayNameLengthCheck::new),
     MAX_TOTAL_LORE_LENGTH_CHECK(ItemChecks.MaxTotalLoreLengthCheck::new),
+    ILLEGAL_CHARACTER_CHECK(ItemChecks.IllegalCharacterCheck::new),
     ILLEGAL_ENCHANTMENTS_CHECK(ItemChecks.IllegalEnchantmentsCheck::new),
     ILLEGAL_FIREWORK_CHECK(ItemChecks.IllegalFireworkCheck::new, Material.FIREWORK),
     ILLEGAL_POTION_CHECK(ItemChecks.IllegalPotionsCheck::new, Material.POTION),

@@ -5,7 +5,6 @@ import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.util.Collection;
@@ -33,8 +32,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         return delegate;
     }
 
-    @Override
-    public JavaConverter<Object, NBTBase<?, ?>> getHandle() {
+    public JavaConverter<Object, NBTBase<?, ?>> getConverterHandle() {
         return delegate.getHandle();
     }
 

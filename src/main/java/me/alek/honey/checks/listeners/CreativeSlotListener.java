@@ -4,10 +4,10 @@ import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.helper.NBTHelper;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -96,7 +96,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
-            if (NBTHelper.checkBukkitNBT(packet.getItem())) {
+            if (ItemAnalysis.checkItem(packet.getItem())) {
                 return ResponseBuilder
                         .inst()
                         .cancel()

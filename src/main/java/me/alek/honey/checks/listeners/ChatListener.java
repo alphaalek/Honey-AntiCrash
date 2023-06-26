@@ -4,11 +4,10 @@ import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.helper.NBTHelper;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -62,15 +61,24 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
             String message = packet.getMessage();
-            if (message == null || message.isEmpty() || NBTHelper.checkBadCharacter(message)) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .terminate()
-                        .build();
+            if (message == null || message.isEmpty()) {
+                return violate();
+            }
+            for (char character : message.toCharArray()) {
+                if (character == Character.MIN_VALUE) {
+                    return violate();
+                }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        public ResponseContainer violate() {
+            return ResponseBuilder
+                    .inst()
+                    .cancel()
+                    .punish()
+                    .terminate()
+                    .build();
         }
 
         @Override

@@ -8,11 +8,10 @@ import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.helper.ItemHelper;
-import me.alek.honey.helper.NBTHelper;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -22,8 +21,10 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
+import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,7 +36,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
     private final Class<?> PACKET_SERIALIZER_CLASS = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
     private final ConstructorInvoker PACKET_SERIALIZER_CONSTRUCTOR = Reflection.getConstructor(PACKET_SERIALIZER_CLASS, ByteBuf.class);
-    private final MethodInvoker ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemHelper.getNMSItemStackClass());
+    private final MethodInvoker ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemReflection.getNMSItemStackClass());
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
@@ -50,7 +51,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         ItemStack bukkitItem = null;
         try {
             Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(newSerializer);
-            bukkitItem = ItemHelper.asBukkitItem(item);
+            bukkitItem = ItemReflection.asBukkitItem(item);
         } catch (Exception ex) {
         }
 
@@ -144,7 +145,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             ItemStack item = container.getItem(0);
             ItemStack itemInHand = player.getItemInHand();
 
-            if (!(NBTHelper.checkBukkitNBT(itemInHand) || NBTHelper.checkBukkitNBT(item))) {
+            if (!(ItemAnalysis.checkItem(itemInHand) || ItemAnalysis.checkItem(item))) {
                 if (item == null) {
                     return ResponseBuilder.SUCCESS;
                 }
@@ -183,7 +184,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
                     return ResponseBuilder.SUCCESS;
                 }
-                if (ItemHelper.isBook(itemInHand)) {
+                if (itemInHand.getType() == Material.BOOK || itemInHand.getType() == Material.BOOK_AND_QUILL || itemInHand.getType() == Material.WRITTEN_BOOK) {
                     return ResponseBuilder.SUCCESS;
                 }
             }

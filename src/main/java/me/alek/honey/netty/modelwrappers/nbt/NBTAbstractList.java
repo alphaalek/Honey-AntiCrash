@@ -39,8 +39,7 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
         return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
     }
 
-    @Override
-    public JavaConverter<Object, T> getHandle() {
+    public JavaConverter<Object, T> getConverterHandle() {
         return delegate.getHandle();
     }
 
