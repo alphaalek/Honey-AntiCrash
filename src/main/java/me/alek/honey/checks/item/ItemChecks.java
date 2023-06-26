@@ -1,14 +1,26 @@
 package me.alek.honey.checks.item;
 
+import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
 import me.alek.honey.netty.modelwrappers.nbt.NBTList;
 import me.alek.honey.netty.modelwrappers.nbt.NBTListOfCompound;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.MapConverter;
+import me.alek.honey.netty.utility.reflect.FieldAccessor;
+import me.alek.honey.netty.utility.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_8_R3.map.RenderData;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.map.MapCursor;
+import org.bukkit.map.MapView;
 
 import java.util.Base64;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,45 +128,6 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
             MAX_TOTAL_LORE_LENGTH = value;
-        }
-    }
-
-    public static class IllegalEnchantmentsCheck implements ItemAnalysis.ItemChecker {
-
-        @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-
-        }
-    }
-
-    public static class IllegalFireworkCheck implements ItemAnalysis.ItemChecker {
-
-        @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-
-        }
-    }
-
-    public static class IllegalPotionsCheck implements ItemAnalysis.ItemChecker {
-
-        @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-
         }
     }
 
@@ -344,6 +317,75 @@ public class ItemChecks {
                 while (matcher.find()) {
                     final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
                     if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+
+        }
+    }
+
+    public static class IllegalEnchantmentsCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+
+        }
+    }
+
+    public static class IllegalFireworkCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+
+        }
+    }
+
+    public static class IllegalPotionsCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+
+        }
+    }
+
+    public static class MapRangeCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            MapView mapView = Bukkit.getMap(item.getDurability());
+
+            MapConverter<Object, Object, WrappedRenderData> renderCache = ReflectStructureCache.acquireStructure(mapView.getClass())
+                    .withWeakType(Map.class, Converters.getMapConverterOf(WrappedRenderData.class, Converters.getRenderDataConverter(), false))
+                    .withTarget(mapView)
+                    .readFieldAndApplyMapping(0);
+
+            for (WrappedRenderData cache : renderCache.convertedValues()) {
+                for (MapCursor cursor : cache.getMapCursors()) {
+
+                    byte rawType = cursor.getRawType();
+                    if (rawType < 0 || rawType > 15) {
                         return true;
                     }
                 }

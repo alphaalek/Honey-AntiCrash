@@ -15,6 +15,8 @@ public interface IStructureModifier<T> {
 
     T readField(int index);
 
+    <K, V, R> T readFieldAndApplyMapping(int index);
+
     T readField(String name, int index);
 
     T invokeMethod(int index, Object... params);

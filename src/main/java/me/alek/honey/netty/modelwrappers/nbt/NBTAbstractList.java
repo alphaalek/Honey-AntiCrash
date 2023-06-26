@@ -35,8 +35,8 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, T>>> applyStructure(ApplicableConverter<List<Object>, ListConverter<Object, T>> converter, List<Object> original) {
-        return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, T>>> applyStructure(ApplicableConverter<List<Object>, ListConverter<Object, T>> converter) {
+        return (structure) -> structure.withSpecificType(List.class, converter, false);
     }
 
     public JavaConverter<Object, T> getConverterHandle() {

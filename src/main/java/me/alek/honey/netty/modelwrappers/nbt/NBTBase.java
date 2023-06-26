@@ -3,7 +3,6 @@ package me.alek.honey.netty.modelwrappers.nbt;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
 import java.io.DataOutput;
@@ -16,7 +15,6 @@ import java.util.function.Function;
 public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> implements Cloneable, Serializable {
 
     private final Object handle;
-    protected ReflectStructure<Object, ?> defaultStructure;
     protected IStructureModifier<V> valueStructureModifier;
 
     private NBTRoot root;
@@ -25,21 +23,14 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     private V value;
 
     public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner) {
+        super(base);
         this.handle = base;
         this.root = root;
         this.owner = owner;
 
         if (base != null) {
-            defaultStructure = ReflectStructureCache.acquireStructure(handle.getClass());
-
-            valueStructureModifier = applyStructure(
-                    getConverter(),
-                    defaultStructure
-                            .withType((Class<T>) getType().getClazz())
-                            .withTarget(handle)
-                            .readField(0)
-                    )
-                    .apply(defaultStructure)
+            valueStructureModifier = applyStructure(getConverter())
+                    .apply(getReflectStructure())
                     .withTarget(base);
         }
         getRoot().registerSub(getOwner(), this);
@@ -47,12 +38,24 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public abstract ApplicableConverter<T, V> getConverter();
 
-    public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter, T original);
+    public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
 
     public abstract void write(DataOutput output) throws Exception;
 
+    public V getValue() {
+        if (value == null) {
+            value = valueStructureModifier.readFieldAndApplyMapping(0);
+        }
+        return value;
+    }
+
+    public void setValue(V value) {
+        this.value = value;
+        valueStructureModifier.writeField(0, value);
+    }
+
     public boolean isNull() {
-        return valueStructureModifier == null || defaultStructure == null;
+        return valueStructureModifier == null || getReflectStructure() == null;
     }
 
     public NBTRoot getRoot() {
@@ -97,22 +100,6 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
             return null;
         }
         return (NBTElement<R>) this;
-    }
-
-    public Object getHandle() {
-        return handle;
-    }
-
-    public void setValue(V value) {
-        this.value = value;
-        valueStructureModifier.writeField(0, value);
-    }
-
-    public V getValue() {
-        if (value == null) {
-            value = valueStructureModifier.readField(0);
-        }
-        return value;
     }
 
     public NBTType getType() {

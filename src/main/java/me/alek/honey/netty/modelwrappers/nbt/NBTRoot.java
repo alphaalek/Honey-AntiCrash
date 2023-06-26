@@ -28,6 +28,7 @@ public class NBTRoot extends NBTCompound {
         if (owner != null && sub != null && owner.getHandle() != null && sub.getHandle() != null) {
             totalElements++;
 
+            // da nbt parsing kører inde fra og ud, bruger jeg distance to tail i stedet for distance to root
             if (!distanceToTailMap.containsKey(sub)) {
                 distanceToTailMap.put(sub, 0);
                 distanceToTailMap.put(owner, 1);
@@ -58,8 +59,18 @@ public class NBTRoot extends NBTCompound {
         return acquiredSub;
     }
 
-    public int getDistanceToTailBTBase(NBTBase<?, ?> element) {
+    public int getDistanceToTail(NBTBase<?, ?> element) {
         return distanceToTailMap.getOrDefault(element, -1);
+    }
+
+    public int getDistanceToRoot(NBTBase<?, ?> element) {
+        NBTBase<?, ?> owner = element;
+        int counter = 0;
+        while (!(owner instanceof NBTRoot)) {
+            counter++;
+            owner = owner.getOwner();
+        }
+        return counter;
     }
 
     public int getMaxDistanceBetweenTail() {

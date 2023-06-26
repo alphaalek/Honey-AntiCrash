@@ -1,22 +1,33 @@
 package me.alek.honey.netty.structure.converters;
 
-import org.bukkit.Bukkit;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
 
+    private final boolean controlDeclaring;
     private final JavaConverter<V, T> converter;
     private final Map<K, T> delegatedMap = new HashMap<>();
     private Map<K, V> declaringMap;
 
-    public SimpleMapConverter(JavaConverter<V, T> converter) {
+    public SimpleMapConverter(JavaConverter<V, T> converter, boolean controlDeclaring) {
         this.converter = converter;
+        this.controlDeclaring = controlDeclaring;
     }
 
     public SimpleMapConverter<K, V, T> apply(Map<K, V> map) {
-        declaringMap = map;
+        if (controlDeclaring) {
+            declaringMap = map;
+        }
+        else {
+            declaringMap = new HashMap<>();
+        }
         for (Map.Entry<K, V> entry : map.entrySet()) {
+            if (!controlDeclaring) {
+                declaringMap.put(entry.getKey(), entry.getValue());
+            }
             delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
         }
         return this;
@@ -24,7 +35,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
 
     @Override
     public MapConverter<K, V, T> fakeApply(Map<K, V> mapping) {
-        return new SimpleMapConverter<K, V, T>(converter).apply(mapping);
+        return new SimpleMapConverter<K, V, T>(converter, false).apply(mapping);
     }
 
     public void checkMap() {

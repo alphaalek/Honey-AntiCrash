@@ -1,23 +1,31 @@
 package me.alek.honey.netty.structure.converters;
 
-import org.bukkit.Bukkit;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleListConverter<V, T> implements ListConverter<V, T> {
 
+    private final boolean controlDeclaring;
     private final JavaConverter<V, T> converter;
     private final List<T> delegatedList = new ArrayList<>();
     private List<V> declaringList;
 
-    public SimpleListConverter(JavaConverter<V, T> converter) {
+    public SimpleListConverter(JavaConverter<V, T> converter, boolean controlDeclaring) {
         this.converter = converter;
+        this.controlDeclaring = controlDeclaring;
     }
 
     public SimpleListConverter<V, T> apply(List<V> list) {
-        declaringList = list;
+        if (controlDeclaring) {
+            declaringList = list;
+        }
+        else {
+            declaringList = new ArrayList<>();
+        }
         for (V value : list) {
+            if (!controlDeclaring) {
+                declaringList.add(value);
+            }
             delegatedList.add(converter.convertDelegate(value));
         }
         return this;
@@ -25,10 +33,10 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
 
     @Override
     public ListConverter<V, T> fakeApply(List<V> mapping) {
-        return new SimpleListConverter<>(converter).apply(mapping);
+        return new SimpleListConverter<>(converter, false).apply(mapping);
     }
 
-    public void checkList() {
+    public void checkLists() {
         if (declaringList == null) {
             throw new RuntimeException("Ingen delegated list for wrapper list");
         }
@@ -45,26 +53,26 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
     }
 
     public int size() {
-        checkList();
+        checkLists();
 
         return delegatedList.size();
     }
 
     public void clear() {
-        checkList();
+        checkLists();
 
         delegatedList.clear();
         declaringList.clear();
     }
 
     public boolean isEmpty() {
-        checkList();
+        checkLists();
 
         return delegatedList.isEmpty();
     }
 
     public T removeConverted(int index) {
-        checkList();
+        checkLists();
 
         delegatedList.remove(index);
         return converter.convertDelegate(declaringList.remove(index));
@@ -72,40 +80,40 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
 
     @Override
     public boolean addConverted(T value) {
-        checkList();
+        checkLists();
 
         delegatedList.add(value);
         return declaringList.add(converter.convertDeclaring(value));
     }
 
     public T setConverted(int index, T value) {
-        checkList();
+        checkLists();
 
         delegatedList.set(index, value);
         return converter.convertDelegate(declaringList.set(index, converter.convertDeclaring(value)));
     }
 
     public boolean removeConverted(T value) {
-        checkList();
+        checkLists();
 
         delegatedList.remove(value);
         return declaringList.remove(converter.convertDeclaring(value));
     }
 
     public T getConverted(int index) {
-        checkList();
+        checkLists();
 
         return delegatedList.get(index);
     }
 
     public boolean containsConverted(T value) {
-        checkList();
+        checkLists();
 
         return delegatedList.contains(value);
     }
 
     public List<T> getDelegatedList() {
-        checkList();
+        checkLists();
 
         return delegatedList;
     }
@@ -117,14 +125,14 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
 
     @Override
     public SimpleListConverter<V, T> convertDelegate(List<V> delegate) {
-        checkList();
+        checkLists();
 
         return this;
     }
 
     @Override
     public List<V> convertDeclaring(ListConverter<V, T> object) {
-        checkList();
+        checkLists();
 
         return declaringList;
     }

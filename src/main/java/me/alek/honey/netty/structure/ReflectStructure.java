@@ -1,6 +1,8 @@
 package me.alek.honey.netty.structure;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.api.packet.IStructureModifier;
@@ -254,6 +256,32 @@ public class ReflectStructure<T, C> {
                     // T & C er den samme i generic context
                     return (C) accessor.get(handle);
                 }
+            }
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <K, V, R> C readFieldAndApplyMapping(int index) {
+            if (!hasField(index)) {
+                return null;
+            }
+            if (converter == null) { // hvad skal den dog apply til?
+                return readField(index);
+            }
+            final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
+            if (accessor != null) {
+
+                T originalValue = accessor.get(handle);
+                C convertedValue = converter.convertDelegate(originalValue);
+
+                if (convertedValue instanceof MapConverter && originalValue instanceof Map) {
+                    ((MapConverter<K, V, R>)convertedValue).apply((Map<K, V>) originalValue);
+                }
+                if (convertedValue instanceof ListConverter && originalValue instanceof List) {
+                    ((ListConverter<V, R>)convertedValue).apply((List<V>) originalValue);
+                }
+                return convertedValue;
             }
             return null;
         }

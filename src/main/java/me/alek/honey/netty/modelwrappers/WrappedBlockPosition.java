@@ -18,6 +18,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     private final int z;
 
     public WrappedBlockPosition(int x, int y, int z) {
+        super(null);
         this.x = x;
         this.y = y;
         this.z = z;

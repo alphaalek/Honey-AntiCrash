@@ -16,6 +16,7 @@ public enum CheckRegistry {
     ILLEGAL_ENCHANTMENTS_CHECK(ItemChecks.IllegalEnchantmentsCheck::new),
     ILLEGAL_FIREWORK_CHECK(ItemChecks.IllegalFireworkCheck::new, Material.FIREWORK),
     ILLEGAL_POTION_CHECK(ItemChecks.IllegalPotionsCheck::new, Material.POTION),
+    MAP_RANGE_CHECK(ItemChecks.MapRangeCheck::new, Material.MAP, Material.EMPTY_MAP),
 
     // nbt
     MAX_NBT_LENGTH(ItemChecks.MaxNBTLengthCheck::new),

@@ -21,8 +21,8 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>>> applyStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> converter, Map<String, Object> original) {
-        return (structure) -> structure.withSpecificType(Map.class, converter.apply(original), false);
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>>> applyStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> converter) {
+        return (structure) -> structure.withSpecificType(Map.class, converter, false);
     }
 
     public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getConverter() {
