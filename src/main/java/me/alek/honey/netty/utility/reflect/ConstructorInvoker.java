@@ -27,4 +27,8 @@ public class ConstructorInvoker<T> {
             throw new RuntimeException("Reflection fejl");
         }
     }
+
+    public Constructor<T> getConstructor() {
+        return constructor;
+    }
 }

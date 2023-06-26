@@ -127,7 +127,6 @@ me\alek\honey\helper\ItemHelper.class
 me\alek\honey\checks\listeners\FloodListener$FloodA.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCloseWindow.class
 me\alek\honey\netty\structure\converters\NBTConverter.class
-me\alek\honey\netty\modelwrappers\nbt\NBTAbstractMapWrapper.class
 me\alek\honey\netty\structure\converters\MapConverter.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInEnchantItem.class
 me\alek\honey\netty\api\event\Listener.class
@@ -252,7 +251,6 @@ me\alek\honey\checks\listeners\BlockPlaceListener$PlaceA.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload.class
 me\alek\honey\checks\listeners\PositionListener$PositionB.class
 me\alek\honey\checks\listeners\LoginStartListener.class
-me\alek\honey\netty\modelwrappers\nbt\NBTAbstractListWrapper.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCollect.class
 me\alek\honey\checks\listeners\LookListener.class
 me\alek\honey\checks\listeners\WindowClickListener.class

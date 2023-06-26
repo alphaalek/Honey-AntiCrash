@@ -52,11 +52,7 @@ public class NBTFactory {
         if (nmsItem == null) {
             return null;
         }
-
-        NBTRoot root = new NBTRoot(getNBTStructure(nmsItem).withType(NMSUtils.getNBTTagCompoundClass()).withTarget(nmsItem).readField(0));
-        if (root.isNull()) {
-            return null;
-        }
+        NBTRoot root = new NBTRoot();
         ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))
@@ -71,7 +67,8 @@ public class NBTFactory {
     }
 
     public static <K, V> NBTBase<K, V> fromDelegate(Object handle, NBTBase<?, ?> owner) {
-        return copyFromType(getType(handle, false, owner.getRoot()), handle, owner);
+
+        return copyFromType(getType(handle, false, owner), handle, owner);
     }
 
     public static <K, V> NBTBase<K, V> copyBase(NBTBase<K, V> base, NBTBase<?, ?> owner) {
@@ -87,7 +84,10 @@ public class NBTFactory {
         if (constructorInvoker == null) {
             return null;
         }
-        NBTRoot root = owner.getRoot();
+        NBTRoot root = null;
+        if (owner != null) {
+            root = owner.getRoot();
+        }
         if (type == NBTType.LIST) {
             return (NBTBase<K, V>) constructorInvoker.invoke(handle, getListType(handle, root), root, owner);
         }
@@ -102,7 +102,7 @@ public class NBTFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static NBTType getListType(Object handle, NBTRoot root) {
+    public static NBTType getListType(Object handle, NBTBase<?, ?> owner) {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
@@ -117,9 +117,9 @@ public class NBTFactory {
 
         IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
             .<List<Object>, ListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
-                Converters.<NBTBase<?, ?>>getNBTListConverter(root).apply(
+                Converters.<NBTBase<?, ?>>getNBTListConverter(owner).apply(
 
-                    reflectStructure.withType((Class<List>) getType(handle, true, root).getClazz())
+                    reflectStructure.withType((Class<List>) getType(handle, true, owner).getClazz())
                         .withTarget(handle)
                         .readField(0)
                 )
@@ -135,7 +135,7 @@ public class NBTFactory {
         return value.getType();
     }
 
-    public static NBTType getType(Object handle, boolean ignoreNestedLists, NBTRoot root) {
+    public static NBTType getType(Object handle, boolean ignoreNestedLists, NBTBase<?, ?> owner) {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
@@ -150,7 +150,7 @@ public class NBTFactory {
 
         if (type == NBTType.LIST && !ignoreNestedLists) {
 
-            switch (getListType(handle, root)) {
+            switch (getListType(handle, owner)) {
 
                 case COMPOUND:
                     return NBTType.LISTOFCOMOUND;

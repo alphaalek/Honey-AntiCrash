@@ -5,6 +5,7 @@ import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.io.Serializable;
@@ -32,7 +33,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         if (base != null) {
             defaultStructure = ReflectStructureCache.acquireStructure(handle.getClass());
 
-            valueStructureModifier = getValueStructure(
+            valueStructureModifier = applyStructure(
                     getConverter(),
                     defaultStructure
                             .withType((Class<T>) getType().getClazz())
@@ -42,11 +43,12 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
                     .apply(defaultStructure)
                     .withTarget(base);
         }
+        getRoot().registerSub(getOwner(), this);
     }
 
     public abstract ApplicableConverter<T, V> getConverter();
 
-    public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> getValueStructure(ApplicableConverter<T, V> converter, T original);
+    public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter, T original);
 
     public abstract void write(DataOutput output) throws Exception;
 

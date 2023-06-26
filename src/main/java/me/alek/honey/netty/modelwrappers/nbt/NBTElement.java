@@ -24,7 +24,7 @@ public class NBTElement<T> extends NBTBase<T, T> {
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<T, T>> getValueStructure(ApplicableConverter<T, T> converter, T original) {
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<T, T>> applyStructure(ApplicableConverter<T, T> converter, T original) {
         return (structure) -> structure.withType((Class<T>) getType().getClazz());
     }
 

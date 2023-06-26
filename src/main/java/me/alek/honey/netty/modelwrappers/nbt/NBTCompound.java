@@ -1,13 +1,41 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.MapConverter;
+import org.bukkit.Bukkit;
+
 import java.io.DataOutput;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
-public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?, ?>> {
+public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> {
+
+    private MapConverter<String, Object, NBTBase<?, ?>> delegate;
 
     public NBTCompound(Object rawNms, NBTRoot root, NBTBase<?, ?> owner) {
         super(rawNms, root, owner);
+    }
+
+    @Override
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>>> applyStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> converter, Map<String, Object> original) {
+        return (structure) -> structure.withSpecificType(Map.class, converter.apply(original), false);
+    }
+
+    public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getConverter() {
+        if (delegate == null) {
+            delegate = Converters.getNBTCompoundConverter(this);
+        }
+        return delegate;
+    }
+
+    @Override
+    public JavaConverter<Object, NBTBase<?, ?>> getHandle() {
+        return delegate.getHandle();
     }
 
     public NBTBase<?, ?> remove(String key) {
@@ -16,6 +44,10 @@ public class NBTCompound extends NBTAbstractMapWrapper<String, Object, NBTBase<?
 
     public void clear() {
         getValue().clear();
+    }
+
+    public boolean containsKey(String key) {
+        return getValue().containsKey(key);
     }
 
     public Set<String> getKeys() {

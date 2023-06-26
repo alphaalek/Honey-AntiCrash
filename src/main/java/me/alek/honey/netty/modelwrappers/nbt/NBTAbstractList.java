@@ -1,10 +1,19 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.netty.structure.converters.ListConverter;
+import org.bukkit.Bukkit;
+
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
-public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTAbstractListWrapper<Object, T> implements Iterable<T> {
+public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<List<Object>, ListConverter<Object, T>>implements Iterable<T> {
 
+    private ListConverter<Object, T> delegate;
     private final NBTType typeOf;
 
     public NBTAbstractList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner) {
@@ -15,6 +24,24 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTAbstra
     @Override
     public Iterator<T> iterator() {
         return getValue().getDelegatedList().iterator();
+    }
+
+    @Override
+    public ApplicableConverter<List<Object>, ListConverter<Object, T>> getConverter() {
+        if (delegate == null) {
+            delegate = Converters.getNBTListConverter(this);
+        }
+        return delegate;
+    }
+
+    @Override
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, T>>> applyStructure(ApplicableConverter<List<Object>, ListConverter<Object, T>> converter, List<Object> original) {
+        return (structure) -> structure.withSpecificType(List.class, converter.apply(original), false);
+    }
+
+    @Override
+    public JavaConverter<Object, T> getHandle() {
+        return delegate.getHandle();
     }
 
     @Override

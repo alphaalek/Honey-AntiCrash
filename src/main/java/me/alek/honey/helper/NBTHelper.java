@@ -37,6 +37,7 @@ public class NBTHelper {
         if (compound == null) {
             return false;
         }
+        Bukkit.broadcastMessage("total elements: " + compound.getRoot().getTotalElements());
         int nbtLength = compound.toString().getBytes().length;
         switch (item.getType()) {
             case FIREWORK_CHARGE:

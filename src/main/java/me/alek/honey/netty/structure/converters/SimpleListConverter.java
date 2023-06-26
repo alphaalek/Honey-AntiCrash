@@ -23,6 +23,11 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
         return this;
     }
 
+    @Override
+    public ListConverter<V, T> fakeApply(List<V> mapping) {
+        return new SimpleListConverter<>(converter).apply(mapping);
+    }
+
     public void checkList() {
         if (declaringList == null) {
             throw new RuntimeException("Ingen delegated list for wrapper list");

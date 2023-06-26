@@ -1,5 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
+import org.bukkit.Bukkit;
+
 import java.util.*;
 
 public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
@@ -18,6 +20,11 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
             delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
         }
         return this;
+    }
+
+    @Override
+    public MapConverter<K, V, T> fakeApply(Map<K, V> mapping) {
+        return new SimpleMapConverter<K, V, T>(converter).apply(mapping);
     }
 
     public void checkMap() {

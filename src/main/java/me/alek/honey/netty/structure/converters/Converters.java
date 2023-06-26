@@ -4,8 +4,6 @@ import me.alek.honey.helper.ItemHelper;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
-import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
