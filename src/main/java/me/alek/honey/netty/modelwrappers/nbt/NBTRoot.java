@@ -15,8 +15,8 @@ public class NBTRoot extends NBTCompound {
         super(null, null, null);
     }
 
-    public void registerSub(NBTBase<?, ?> owner, NBTBase<?, ?> sub) {
-        // da registerSub bliver kaldt i NBTBase (super constructor), er ownerMap & distanceToRootMap
+    public void subscribe(NBTBase<?, ?> owner, NBTBase<?, ?> sub) {
+        // da subscribe bliver kaldt i NBTBase (super constructor), er ownerMap & distanceToRootMap
         // ikke initialized endnu hvis de eks. havde været på class level (gælder kun for NBTRoot)
         if (ownerMap == null || distanceToTailMap == null) {
             ownerMap = new HashMap<>();

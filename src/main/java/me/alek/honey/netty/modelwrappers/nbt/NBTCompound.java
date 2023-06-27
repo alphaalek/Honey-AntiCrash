@@ -5,6 +5,7 @@ import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.util.Collection;
@@ -65,11 +66,11 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     public boolean hasKeyOfType(String key, byte typeId) {
-        return get(key).getType().getTypeId() == typeId;
+        return hasKey(key) && get(key).getType().getTypeId() == typeId;
     }
 
     public boolean hasKeyOfType(String key, NBTType nbtType) {
-        return get(key).getType() == nbtType;
+        return hasKey(key) && get(key).getType() == nbtType;
     }
 
     public void put(String key, NBTBase<?, ?> base) {
@@ -110,6 +111,10 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         }
         NBTRoot root = getRoot();
         NBTBase<?, ?> base = get(key);
+
+        if (base == null) {
+            return null;
+        }
         if (nbtType == NBTType.COMPOUND) {
             return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner());
         }

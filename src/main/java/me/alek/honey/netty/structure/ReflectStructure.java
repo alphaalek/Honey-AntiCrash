@@ -273,14 +273,14 @@ public class ReflectStructure<T, C> {
             if (accessor != null) {
 
                 T originalValue = accessor.get(handle);
+                if (converter instanceof MapConverter && originalValue instanceof Map) {
+                    ((MapConverter<K, V, R>)converter).apply((Map<K, V>) originalValue);
+                }
+                if (converter instanceof ListConverter && originalValue instanceof List) {
+                    ((ListConverter<V, R>)converter).apply((List<V>) originalValue);
+                }
                 C convertedValue = converter.convertDelegate(originalValue);
 
-                if (convertedValue instanceof MapConverter && originalValue instanceof Map) {
-                    ((MapConverter<K, V, R>)convertedValue).apply((Map<K, V>) originalValue);
-                }
-                if (convertedValue instanceof ListConverter && originalValue instanceof List) {
-                    ((ListConverter<V, R>)convertedValue).apply((List<V>) originalValue);
-                }
                 return convertedValue;
             }
             return null;

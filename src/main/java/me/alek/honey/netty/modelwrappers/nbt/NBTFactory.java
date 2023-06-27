@@ -66,7 +66,6 @@ public class NBTFactory {
     }
 
     public static <K, V> NBTBase<K, V> fromDelegate(Object handle, NBTBase<?, ?> owner) {
-
         return copyFromType(getType(handle, false, owner), handle, owner);
     }
 
@@ -115,17 +114,10 @@ public class NBTFactory {
         }
 
         IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
-            .<List<Object>, ListConverter<Object, NBTBase<?, ?>>>withWeakType(List.class,
-                Converters.<NBTBase<?, ?>>getNBTListConverter(owner).apply(
-
-                    reflectStructure.withType((Class<List>) getType(handle, true, owner).getClazz())
-                        .withTarget(handle)
-                        .readField(0)
-                )
-            )
+            .withWeakType(List.class, Converters.<NBTBase<?, ?>>getNBTListConverter(owner))
             .withTarget(handle);
 
-        List<? extends NBTBase<?, ?>> list = listModifier.readField(0).getDelegatedList();
+        List<? extends NBTBase<?, ?>> list = listModifier.readFieldAndApplyMapping(0).getDelegatedList();
         NBTBase<?, ?> value = list.get(0);
 
         if (value == null)

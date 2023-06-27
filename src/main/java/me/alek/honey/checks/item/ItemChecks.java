@@ -2,10 +2,7 @@ package me.alek.honey.checks.item;
 
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
-import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
-import me.alek.honey.netty.modelwrappers.nbt.NBTList;
-import me.alek.honey.netty.modelwrappers.nbt.NBTListOfCompound;
+import me.alek.honey.netty.modelwrappers.nbt.*;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
@@ -32,15 +29,17 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!item.hasItemMeta()) {
-                return false;
-            }
             return item.getItemMeta().toString().getBytes().length > MAX_CONTAINER_DATA;
         }
 
         @Override
         public void setValue(int value) {
             MAX_CONTAINER_DATA = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_METADATA;
         }
     }
 
@@ -50,18 +49,22 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            NBTListOfCompound enchantments;
-            Material material = item.getType();
-            if (material == Material.ENCHANTED_BOOK) {
+            NBTListOfCompound enchantments = null;
+
+            if (item.getType() == Material.ENCHANTED_BOOK) {
                 enchantments = nbt.getListOfCompound("StoredEnchantments");
             }
             else {
-                enchantments = nbt.getListOfCompound("ench");
+                if (nbt.hasKeyOfType("ench", NBTType.LISTOFCOMOUND)) {
+                    enchantments = nbt.getListOfCompound("ench");
+                }
             }
-            for (NBTCompound enchantment : enchantments) {
-                NBTElement<Short> level = enchantment.get("lvl").asElement(short.class);
-                if (level.getValue() > MAX_ENCHANTMENT_LEVEL) {
-                    return true;
+            if (enchantments != null) {
+                for (NBTCompound enchantment : enchantments) {
+                    NBTElement<Short> level = enchantment.get("lvl").asElement(short.class);
+                    if (level.getValue() > MAX_ENCHANTMENT_LEVEL) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -70,6 +73,11 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
             MAX_ENCHANTMENT_LEVEL = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 
@@ -86,6 +94,11 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_AMOUNT = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ALL;
+        }
     }
 
     public static class MaxDisplayNameLengthCheck implements ItemAnalysis.ItemChecker {
@@ -94,7 +107,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!item.hasItemMeta() || item.getItemMeta().getDisplayName() == null) {
+            if (item.getItemMeta().getDisplayName() == null) {
                 return false;
             }
             return item.getItemMeta().getDisplayName().length() > MAX_DISPLAYNAME_LENGTH;
@@ -104,6 +117,11 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_DISPLAYNAME_LENGTH = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_METADATA;
+        }
     }
 
     public static class MaxTotalLoreLengthCheck implements ItemAnalysis.ItemChecker {
@@ -112,7 +130,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!item.hasItemMeta() || item.getItemMeta().getLore() == null) {
+            if (item.getItemMeta().getLore() == null) {
                 return false;
             }
             int counter = 0;
@@ -129,15 +147,17 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_TOTAL_LORE_LENGTH = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_METADATA;
+        }
     }
 
     public static class IllegalCharacterCheck implements ItemAnalysis.ItemChecker {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!item.hasItemMeta()) {
-                return false;
-            }
             if (item.getItemMeta().getDisplayName() != null && checkBadCharacter(item.getItemMeta().getDisplayName())) {
                 return true;
             }
@@ -167,6 +187,11 @@ public class ItemChecks {
         public void setValue(int value) {
 
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_METADATA;
+        }
     }
 
     public static class MaxNBTLengthCheck implements ItemAnalysis.ItemChecker {
@@ -181,6 +206,11 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
             MAX_NBT_LENGTH = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 
@@ -197,6 +227,11 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_FIREWORK_NBT_LENGTH = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
     }
 
     public static class MaxBookNBTLengthCheck implements ItemAnalysis.ItemChecker {
@@ -212,6 +247,11 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_BOOK_NBT_LENGTH = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
     }
 
     public static class MaxBookPagesCheck implements ItemAnalysis.ItemChecker {
@@ -220,13 +260,20 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            Bukkit.broadcastMessage(nbt.getListOf("pages", String.class).size() + "");
-            return nbt.getListOf("pages", String.class).asList().size() > MAX_BOOK_PAGES;
+            if (nbt.hasKeyOfType("pages", NBTType.LIST)) {
+                return nbt.getListOf("pages", String.class).asList().size() > MAX_BOOK_PAGES;
+            }
+            return true;
         }
 
         @Override
         public void setValue(int value) {
             MAX_BOOK_PAGES = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 
@@ -249,6 +296,11 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_BOOK_PAGE_LENGTH = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
     }
 
     public static class MaxNBTBasesCheck implements ItemAnalysis.ItemChecker {
@@ -264,6 +316,11 @@ public class ItemChecks {
         public void setValue(int value) {
             MAX_NBT_BASES = value;
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
     }
 
     public static class MaxNBTNestingCheck implements ItemAnalysis.ItemChecker {
@@ -278,6 +335,11 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
             MAX_NBT_NESTING = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 
@@ -328,6 +390,11 @@ public class ItemChecks {
         public void setValue(int value) {
 
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
     }
 
     public static class IllegalEnchantmentsCheck implements ItemAnalysis.ItemChecker {
@@ -340,6 +407,11 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
 
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ALL;
         }
     }
 
@@ -354,6 +426,11 @@ public class ItemChecks {
         public void setValue(int value) {
 
         }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ALL;
+        }
     }
 
     public static class IllegalPotionsCheck implements ItemAnalysis.ItemChecker {
@@ -366,6 +443,11 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
 
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ALL;
         }
     }
 
@@ -396,6 +478,11 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
 
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ALL;
         }
     }
 }

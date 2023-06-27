@@ -33,7 +33,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
                     .apply(getReflectStructure())
                     .withTarget(base);
         }
-        getRoot().registerSub(getOwner(), this);
+        getRoot().subscribe(getOwner(), this);
     }
 
     public abstract ApplicableConverter<T, V> getConverter();

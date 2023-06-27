@@ -3,6 +3,7 @@ package me.alek.honey.checks.item;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -72,24 +73,40 @@ public class ItemAnalysis {
     }
 
     public static boolean checkItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return false;
+        }
         NBTCompound nbt = NBTFactory.fromItem(item);
         Material material = item.getType();
 
         if (directAvailableChecks.containsKey(material)) {
             for (ItemChecker checker : directAvailableChecks.get(material)) {
 
-                if (checker.check(item, nbt)) {
+                if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                     return true;
                 }
             }
         }
         for (ItemChecker checker : globalAvailableChecks) {
 
-            if (checker.check(item, nbt)) {
+            if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean checkAcceptance(AcceptStrategy strategy, ItemStack item, NBTCompound nbt) {
+        switch (strategy) {
+
+            case ALL:
+                return true;
+            case ONLY_WITH_NBT:
+                return nbt != null;
+            case ONLY_WITH_METADATA:
+                return item.hasItemMeta();
+        }
+        return true;
     }
 
     public interface ItemChecker {
@@ -97,6 +114,8 @@ public class ItemAnalysis {
         boolean check(ItemStack item, NBTCompound nbt);
 
         void setValue(int value);
+
+        AcceptStrategy getAcceptStrategy();
 
     }
 }

@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class CommonChannelInjector {
@@ -98,9 +99,12 @@ public class CommonChannelInjector {
             final ChannelPipeline pipeline = channel.pipeline();
             if (pipeline.get(PacketLibrary.get().getHandlerName()) != null) {
 
-                channel.eventLoop().execute(() -> {
-                    pipeline.remove(PacketLibrary.get().getHandlerName());
-                });
+                try {
+                    channel.eventLoop().execute(() -> {
+                        pipeline.remove(PacketLibrary.get().getHandlerName());
+                    });
+                } catch (NoSuchElementException ex) {
+                }
             }
         }
         PacketLibrary.get().callSyncEvent(event, false);
