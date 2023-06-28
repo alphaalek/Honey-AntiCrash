@@ -10,8 +10,8 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ViolationConsumerCheck;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationConsumerCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -43,7 +43,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
         ByteBuf priorSerializer;
         try {
-            priorSerializer = (ByteBuf) packetContainer.getPacket().getDataSerializer();
+            priorSerializer = (ByteBuf) packetContainer.getPacket().getDataSerializer().getHandle();
         } catch (Exception ex) {
             return false;
         }
@@ -119,7 +119,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 serializer.release();
                 ItemStack bukkitItem = container.getItem(0);
 
-                return ResponseBuilder.inst().cancel().punish().confiscate(bukkitItem).terminate().build();
+                return ResponseBuilder.inst().cancel().punish().terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -137,7 +137,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             ItemStack item = container.getItem(0);
             ItemStack itemInHand = player.getItemInHand();
 
-            if (!(ItemAnalysis.checkItem(itemInHand) || ItemAnalysis.checkItem(item))) {
+            if (!(ItemAnalysis.checkItem(player, itemInHand) || ItemAnalysis.checkItem(player, item))) {
                 if (item == null) {
                     return ResponseBuilder.SUCCESS;
                 }
@@ -150,7 +150,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (serializer != null && serializer.refCnt() > 0) {
                 serializer.release();
             }
-            return ResponseBuilder.inst().cancel().punish().confiscate(item).terminate().build();
+            return ResponseBuilder.inst().cancel().punish().terminate().build();
         }
 
         @Override
@@ -179,7 +179,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 serializer.release();
             }
             ItemStack bukkitItem = container.getItem(0);
-            return ResponseBuilder.inst().cancel().punish().confiscate(bukkitItem).terminate().build();
+            return ResponseBuilder.inst().cancel().punish().terminate().build();
         }
 
         @Override
@@ -217,6 +217,9 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+            if (!ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
+                return ResponseBuilder.SUCCESS;
+            }
             return ResponseBuilder.inst().flag().withKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
         }
 

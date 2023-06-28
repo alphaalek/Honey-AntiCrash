@@ -19,7 +19,7 @@ public class ConstructorInvoker<T> {
         }
     }
 
-    public Object invoke(Object... parameters) {
+    public T invoke(Object... parameters) {
         try {
             return constructor.newInstance(parameters);
         } catch (Exception ex) {

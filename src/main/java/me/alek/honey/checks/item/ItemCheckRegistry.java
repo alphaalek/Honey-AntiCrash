@@ -4,7 +4,7 @@ import org.bukkit.Material;
 
 import java.util.function.Supplier;
 
-public enum CheckRegistry {
+public enum ItemCheckRegistry {
     MAX_CONTAINER_CHECK(ItemChecks.MaxContainerCheck::new,
             Material.CHEST, Material.TRAPPED_CHEST, Material.DROPPER, Material.HOPPER, Material.HOPPER_MINECART,
             Material.STORAGE_MINECART, Material.ENDER_CHEST, Material.DISPENSER),
@@ -33,23 +33,24 @@ public enum CheckRegistry {
     MAX_NBT_NESTING(ItemChecks.MaxNBTNestingCheck::new),
     ILLEGAL_SKULL_TEXTURES(ItemChecks.IllegalSkullTexturesCheck::new, Material.SKULL, Material.SKULL_ITEM),
     ILLEGAL_COMPONENT_STRINGS(ItemChecks.IllegalComponentStrings::new),
-    ILLEGAL_NUMBERS(ItemChecks.IllegalNumbersCheck::new)
+    ILLEGAL_NUMBERS(ItemChecks.IllegalNumbersCheck::new),
 
+    UNKNOWN(null)
     ;
 
     private final ItemAnalysis.ItemChecker itemCheck;
     private final Material[] availableMaterials;
     private final String tag;
 
-    CheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, Material... availableMaterials) {
+    ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, Material... availableMaterials) {
         this(check, "", availableMaterials);
     }
 
-    CheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag) {
+    ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag) {
         this(check, tag, new Material[0]);
     }
 
-    CheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag, Material... availableMaterials) {
+    ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag, Material... availableMaterials) {
         this.itemCheck = check.get();
         this.tag = tag;
         this.availableMaterials = availableMaterials;

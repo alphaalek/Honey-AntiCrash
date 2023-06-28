@@ -104,8 +104,8 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             ItemStack item = packet.getItem();
             ItemStack itemInHand = player.getItemInHand();
 
-            if (ItemAnalysis.checkItem(item) || ItemAnalysis.checkItem(itemInHand)) {
-                return ResponseBuilder.inst().cancel().punish().confiscate(item).build();
+            if (ItemAnalysis.checkItem(player, item) || ItemAnalysis.checkItem(player, itemInHand)) {
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }

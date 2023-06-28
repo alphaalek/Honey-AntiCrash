@@ -23,9 +23,7 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
             declaringList = new ArrayList<>();
         }
         for (V value : list) {
-            if (!controlDeclaring) {
-                declaringList.add(value);
-            }
+            declaringList.add(value);
             delegatedList.add(converter.convertDelegate(value));
         }
         return this;

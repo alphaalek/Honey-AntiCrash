@@ -1,5 +1,6 @@
 package me.alek.honey.checks.item;
 
+import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
@@ -632,6 +633,7 @@ public class ItemChecks {
         }
     }
 
+
     public static class IllegalComponentStrings implements ItemAnalysis.ItemChecker {
 
         private final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
@@ -646,7 +648,7 @@ public class ItemChecks {
             NBTRoot root = nbt.getRoot();
             for (NBTElement<String> string : root.getAllElementsAs(NBTType.STRING, NBTElement.class)) {
                 for (String component : ILLEGAL_COMPONENT_STRINGS) {
-                    if (component.toLowerCase().replace("\\", "").trim().contains(string.getValue())) {
+                    if (string.getValue().toLowerCase().replace("\\", "").trim().contains(component)) {
                         return true;
                     }
                 }

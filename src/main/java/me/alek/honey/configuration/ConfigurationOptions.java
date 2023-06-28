@@ -1,6 +1,6 @@
 package me.alek.honey.configuration;
 
-import me.alek.honey.checks.item.CheckRegistry;
+import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -155,7 +155,7 @@ public class ConfigurationOptions {
     @Target(ElementType.FIELD)
     public @interface ItemAnalysisSetting {
 
-        CheckRegistry value();
+        ItemCheckRegistry value();
     }
 
     public abstract static class VlSetting implements Cloneable {
@@ -205,6 +205,7 @@ public class ConfigurationOptions {
         public static void load() {
             CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp");
             KICK_MESSAGE = file.getString("kick-message");
+
             BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled");
             BYPASS_PERMISSION = file.getString("bypass-permission");
             NOTIFY_PERMISSION = file.getString("notify-permission");
@@ -217,6 +218,7 @@ public class ConfigurationOptions {
         public static boolean ENABLED;
         public static boolean CONSOLE;
         public static boolean DETAILED;
+        public static boolean DEBUG;
         public static boolean TRUNCATE_OLD_LOGS;
         public static List<String> IGNORED_PLAYERS;
         public static List<String> IGNORED_PACKETS;
@@ -225,6 +227,7 @@ public class ConfigurationOptions {
             ENABLED = file.getBoolean("packet-logger.enabled");
             CONSOLE = file.getBoolean("packet-logger.console");
             DETAILED = file.getBoolean("packet-logger.detailed");
+            DEBUG = file.getBoolean("packet-logger.debug-mode");
             TRUNCATE_OLD_LOGS = file.getBoolean("packet-logger.truncate-old-logs");
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
@@ -257,25 +260,25 @@ public class ConfigurationOptions {
     @Setting
     public static class ItemAnalysis {
 
-        @ItemAnalysisSetting(CheckRegistry.MAX_CONTAINER_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_CONTAINER_CHECK)
         public static int MAX_CONTAINER_DATA;
-        @ItemAnalysisSetting(CheckRegistry.MAX_ENCHANTMENT_LEVEL_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_ENCHANTMENT_LEVEL_CHECK)
         public static int MAX_ENCHANTMENT_LEVEL;
-        @ItemAnalysisSetting(CheckRegistry.MAX_AMOUNT_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_AMOUNT_CHECK)
         public static int MAX_AMOUNT;
-        @ItemAnalysisSetting(CheckRegistry.MAX_DISPLAYNAME_LENGTH_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_DISPLAYNAME_LENGTH_CHECK)
         public static int MAX_DISPLAYNAME_LENGTH;
-        @ItemAnalysisSetting(CheckRegistry.MAX_TOTAL_LORE_LENGTH_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_TOTAL_LORE_LENGTH_CHECK)
         public static int MAX_TOTAL_LORE_LENGTH;
-        @ItemAnalysisSetting(CheckRegistry.MAX_FIREWORK_EXPLOSIONS)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_FIREWORK_EXPLOSIONS)
         public static int MAX_FIREWORK_EXPLOSIONS;
-        @ItemAnalysisSetting(CheckRegistry.MAX_BANNER_PATTERNS)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_BANNER_PATTERNS)
         public static int MAX_BANNER_PATTERNS;
-        @ItemAnalysisSetting(CheckRegistry.CUSTOM_POTION_EFFECTS_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.CUSTOM_POTION_EFFECTS_CHECK)
         public static boolean CHECK_CUSTOM_POTION_EFFECTS;
-        @ItemAnalysisSetting(CheckRegistry.UNBREAKABLE_ITEM_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.UNBREAKABLE_ITEM_CHECK)
         public static boolean CHECK_UNBREAKABLE_ITEMS;
-        @ItemAnalysisSetting(CheckRegistry.ATTRIBUTE_MODIFIERS_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.ATTRIBUTE_MODIFIERS_CHECK)
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
 
         public static void load() {
@@ -296,27 +299,40 @@ public class ConfigurationOptions {
         }
 
         @Setting
+        public static class General {
+
+            public static String CONFISCATION_STRATEGY;
+            public static List<String> IGNORED_PLAYERS;
+
+            public static void load() {
+                CONFISCATION_STRATEGY = file.getString("item-analysis.general.confiscation-strategy");
+                IGNORED_PLAYERS = file.getStringList("item-analysis.general.ignored-players");
+            }
+
+        }
+
+        @Setting
         public static class NBT {
 
-            @ItemAnalysisSetting(CheckRegistry.MAX_NBT_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_LENGTH)
             public static int MAX_NBT_LENGTH;
-            @ItemAnalysisSetting(CheckRegistry.MAX_FIREWORK_NBT_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_FIREWORK_NBT_LENGTH)
             public static int MAX_FIREWORK_NBT_LENGTH;
-            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_NBT_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_NBT_LENGTH)
             public static int MAX_BOOK_NBT_LENGTH;
-            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_PAGES)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_PAGES)
             public static int MAX_BOOK_PAGES;
-            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_PAGE_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_PAGE_LENGTH)
             public static int MAX_NBT_STRING_LENGTH;
-            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_TITLE_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_TITLE_LENGTH)
             public static int MAX_BOOK_TITLE_LENGTH;
-            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_AUHTOR_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_AUHTOR_LENGTH)
             public static int MAX_BOOK_AUTHOR_LENGTH;
-            @ItemAnalysisSetting(CheckRegistry.MAX_NBT_BASES)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_BASES)
             public static int MAX_NBT_BASES;
-            @ItemAnalysisSetting(CheckRegistry.MAX_NBT_NESTING)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_NESTING)
             public static int MAX_NBT_NESTING;
-            @ItemAnalysisSetting(CheckRegistry.ILLEGAL_SKULL_TEXTURES)
+            @ItemAnalysisSetting(ItemCheckRegistry.ILLEGAL_SKULL_TEXTURES)
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {

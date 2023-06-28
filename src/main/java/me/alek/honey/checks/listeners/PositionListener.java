@@ -1,10 +1,13 @@
 package me.alek.honey.checks.listeners;
 
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -107,8 +110,10 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
                 final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
 
-                if (distance2d_client < maxDistance && distanceY_client < maxDistance
-                 && distance2d_client > minDistance && distanceY_client > minDistance) {
+                if ((distance2d_client == 0) || distance2d_client < maxDistance && distance2d_client > minDistance) {
+                    return ResponseBuilder.SUCCESS;
+                }
+                if ((distanceY_client == 0) || distanceY_client < maxDistance && distanceY_client > minDistance) {
                     return ResponseBuilder.SUCCESS;
                 }
             }
@@ -117,8 +122,10 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
             final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
 
-            if (distance2d > maxDistance || distanceY > maxDistance
-             || distance2d < minDistance || distanceY < minDistance) {
+            if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
+                return ResponseBuilder.inst().cancel().flag().build();
+            }
+            if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
                 return ResponseBuilder.inst().cancel().flag().build();
             }
             return ResponseBuilder.SUCCESS;

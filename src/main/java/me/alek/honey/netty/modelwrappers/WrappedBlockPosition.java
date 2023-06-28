@@ -1,5 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
+import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,6 +17,15 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     private final int x;
     private final int y;
     private final int z;
+
+    public WrappedBlockPosition(Object handle) {
+        super(handle);
+        IStructureModifier<Integer> intModifier = getModifier(int.class);
+
+        this.x = intModifier.readField("x", 0);
+        this.y = intModifier.readField("y", 0);
+        this.z = intModifier.readField("z", 0);
+    }
 
     public WrappedBlockPosition(int x, int y, int z) {
         super(null);

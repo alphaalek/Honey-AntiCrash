@@ -28,15 +28,20 @@ notify-permission: honey.notify
 
 # packet logger
 packet-logger:
+
   # Skal packet logger være slået til eller ej.
-  enabled: true
+  enabled: false
 
   # Skal det logges i console også. Som standard bliver der logget i oprettede filer.
-  console: true
+  console: false
+
+  # Skal debug mode være slået til eller ej. Brugbart til udvikling og troubleshooting, men for en normal bruger er det fuldstændig unødvendigt.
+  # OBS: viser kun i console når den er slået til, ikke i filer, det vil simpelthen ellers fylde dem for meget op.
+  debug-mode: true
 
   # Spillere som packet logger skal ignorere.
   ignored-players:
-    #- Alek05
+  # - Alek05
 
   # Packets som packet logger skal ignorere.
   ignored-packets:
@@ -57,6 +62,18 @@ packet-logger:
 
 # item analysis
 item-analysis:
+
+  general:
+    # Hvilken strategi skal bruges når et forbudt item bliver fundet. Du kan vælge i mellem følgende:
+
+    # - lenient: Ugyldigheden bliver fjernet, eksempelvis bliver siderne i en bog fjernet hvis den stiger grænsen.
+    # - average: Det item bliver konfiskeret, altså det bliver fjernet fra eksistens og er ikke muligt at få igen.
+    # - strict: Hele ens inventory bliver ryddet.
+    confiscation-strategy: "lenient"
+
+    # Spillere som item-analyse skal ignorere.
+    ignored-players:
+    # - Alek05
 
   # Hvor mange bytes må en container (chest/shulker ...) fylde.
   max-container-data: 250000
@@ -285,6 +302,7 @@ commands:
     - "fastasyncworldedit"
     - "worldedit"
     - "multiverse-core"
+    - "permissionsex" # staves PermissionsEX ... :]
 
 ############################################################
 # +------------------------------------------------------+ #

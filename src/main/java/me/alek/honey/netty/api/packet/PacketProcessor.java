@@ -23,6 +23,8 @@ public interface PacketProcessor {
 
     void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetType);
 
+    <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> packetAdapter);
+
     void callListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead);
 
     void errorListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer);

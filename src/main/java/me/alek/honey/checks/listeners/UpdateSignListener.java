@@ -58,7 +58,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
                     return ResponseBuilder.inst().cancel().punish().build();
                 }
                 for (String string : ILLEGAL_COMPONENT_STRINGS) {
-                    if (line.equals(string)) {
+                    if (line.toLowerCase().replace("\"", "").trim().contains(string)) {
                         return ResponseBuilder.inst().cancel().punish().build();
                     }
                 }

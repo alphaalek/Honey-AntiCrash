@@ -148,6 +148,7 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInAbilities.class
 me\alek\honey\netty\packetwrappers\login\client\WrappedLoginInEncryptionResponse.class
 me\alek\honey\checks\listeners\WindowClickListener$WindowC.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityHeadRotation.class
+me\alek\honey\netty\structure\converters\SimpleWrapperConverter.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBoatMove.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateAttributes.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutWorldBorder.class
@@ -335,6 +336,7 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSteerVehicle.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPlayerInfo.class
 me\alek\honey\netty\modelwrappers\nbt\writer\NBTWriter.class
 me\alek\honey\checks\item\ItemChecks$MaxNBTBasesCheck.class
+me\alek\honey\netty\modelwrappers\WrappedPacketDataSerializer.class
 me\alek\honey\checks\listeners\NettyListener$NettyB.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSpectate.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutStatistic.class
@@ -372,7 +374,6 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInUseEntity.class
 me\alek\honey\checks\listeners\TabCompleteListener$TabA.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTransaction.class
 me\alek\honey\netty\modelwrappers\nbt\lists\NBTListOfCompound.class
-me\alek\honey\netty\structure\converters\Converters$3.class
 me\alek\honey\checks\item\ItemChecks$MaxTotalLoreLengthCheck.class
 me\alek\honey\checks\item\ItemAnalysis$ItemChecker.class
 me\alek\honey\utility\Tuple2.class
@@ -385,6 +386,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewDistance.class
 me\alek\honey\checks\listeners\BlockPlaceListener$PlaceD.class
 me\alek\honey\netty\processor\InternalPacketProcessor$1.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodB.class
+me\alek\honey\listeners\PacketLogger.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAutoRecipe.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTransaction.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$Flood$BEdit.class

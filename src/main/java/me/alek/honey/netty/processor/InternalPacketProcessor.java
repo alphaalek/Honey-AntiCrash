@@ -192,6 +192,27 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
+    @Override
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> check) {
+        for (ListModifier<?> listModifier : PACKET_ADAPTERS.values()) {
+            if (checkListModifier(listModifier, check)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean checkListModifier(ListModifier<WP2> listModifier, SyncPacketAdapter<WP> check) {
+        for (List<SyncPacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
+            for (SyncPacketAdapter<WP2> packetAdapter : packetAdapters) {
+                if (packetAdapter == check) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public boolean hasListener(PacketTypeEnum... packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
 

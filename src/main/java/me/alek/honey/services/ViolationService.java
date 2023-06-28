@@ -118,20 +118,9 @@ public class ViolationService {
         if (channel != null) {
             channel.close();
         }
-        HoneyPlugin.get().getNotificationService().warn(
-                player,
-                violationName,
-                setting,
-                packetLimitHandler
-        );
-        HoneyPlugin.get().getLoggerService().log(
-                LoggerService.LoggingStrategy.KICK,
-                this,
-                player.getName(),
-                violationName,
-                packetLimitHandler,
-                setting
-        );
+        HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
+        HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
+
         removePlayer(player);
     }
 
@@ -226,15 +215,8 @@ public class ViolationService {
                 intervalStart = System.currentTimeMillis();
             }
             flagged++;
-            if (loggerService.isEnabled()) {
-                HoneyPlugin.get().getLoggerService().log(
-                        LoggerService.LoggingStrategy.FLAG,
-                        handle,
-                        player.getName(),
-                        violationName,
-                        this,
-                        setting
-                );
+            if (loggerService.isDebug()) {
+                HoneyPlugin.get().getLoggerService().logVl(LoggerService.LoggingStrategy.FLAG, handle, player.getName(), violationName, this, setting);
             }
             if (flagged < maxPerInterval) {
                 return;
@@ -258,15 +240,8 @@ public class ViolationService {
             if (violatedForInterval) {
                 return;
             }
-            if (loggerService.isEnabled()) {
-                HoneyPlugin.get().getLoggerService().log(
-                        LoggerService.LoggingStrategy.VIOLATE,
-                        handle,
-                        player.getName(),
-                        violationName,
-                        this,
-                        setting
-                );
+            if (loggerService.isDebug()) {
+                HoneyPlugin.get().getLoggerService().logVl(LoggerService.LoggingStrategy.VIOLATE, handle, player.getName(), violationName, this, setting);
             }
             violatedForInterval = true;
             violations++;

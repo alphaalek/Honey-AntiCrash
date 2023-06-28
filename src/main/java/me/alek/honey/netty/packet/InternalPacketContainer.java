@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import me.alek.honey.netty.modelwrappers.WrappedPacketDataSerializer;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -22,7 +23,7 @@ import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
-    private static final Class<?> packetDataSerializerClass = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
+    private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
 
     public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
         return new InternalPacketContainer<>(null, null, null, null, null, null, packet);
@@ -168,6 +169,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
+    public IStructureModifier<?> getAll() {
+        return packetStructure.withTarget(handle);
+    }
+
+    @Override
     public IStructureModifier<UUID> getUUIDS() {
         return getModifier(UUID.class);
     }
@@ -203,8 +209,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public IStructureModifier<Object> getDataSerializers() {
-        return getModifier((Class<Object>) packetDataSerializerClass);
+    public IStructureModifier<WrappedPacketDataSerializer> getDataSerializers() {
+        return getModifier(packetDataSerializerClass, Converters.getPacketDataSerializerConverter());
     }
 
     @Override

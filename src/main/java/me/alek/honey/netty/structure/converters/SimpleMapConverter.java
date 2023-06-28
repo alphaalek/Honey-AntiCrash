@@ -25,9 +25,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
             declaringMap = new HashMap<>();
         }
         for (Map.Entry<K, V> entry : map.entrySet()) {
-            if (!controlDeclaring) {
-                declaringMap.put(entry.getKey(), entry.getValue());
-            }
+            declaringMap.put(entry.getKey(), entry.getValue());
             delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
         }
         return this;

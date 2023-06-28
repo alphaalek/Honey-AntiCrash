@@ -117,8 +117,8 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             ItemStack item = packet.getItem();
-            if (ItemAnalysis.checkItem(item)) {
-                return ResponseBuilder.inst().cancel().punish().confiscate(item).build();
+            if (ItemAnalysis.checkItem(player, item)) {
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }

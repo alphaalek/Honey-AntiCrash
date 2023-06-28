@@ -68,9 +68,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (response.PUNISH) {
                 HoneyPlugin.get().getViolationService().punish(player, check.getViolationName());
             }
-            if (response.CONFISCATE && response.CONFISCATED_ITEM != null) {
-                HoneyPlugin.get().getConfiscationService().confiscate(player, response.CONFISCATED_ITEM);
-            }
             if (response.TERMINATE) {
                 return;
             }

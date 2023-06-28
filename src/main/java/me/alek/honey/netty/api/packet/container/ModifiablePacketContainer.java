@@ -2,6 +2,7 @@ package me.alek.honey.netty.api.packet.container;
 
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.modelwrappers.WrappedPacketDataSerializer;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
@@ -26,6 +27,8 @@ public interface ModifiablePacketContainer{
 
     IStructureModifier<Object> getObjects();
 
+    IStructureModifier<?> getAll();
+
     IStructureModifier<UUID> getUUIDS();
 
     IStructureModifier<String[]> getStringArrays();
@@ -40,7 +43,7 @@ public interface ModifiablePacketContainer{
 
     IStructureModifier<ItemStack> getItems();
 
-    IStructureModifier<Object> getDataSerializers();
+    IStructureModifier<WrappedPacketDataSerializer> getDataSerializers();
 
     IStructureModifier<WrappedBlockPosition> getBlockPositions();
 

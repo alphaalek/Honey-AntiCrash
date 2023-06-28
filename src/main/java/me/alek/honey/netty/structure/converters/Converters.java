@@ -1,5 +1,6 @@
 package me.alek.honey.netty.structure.converters;
 
+import me.alek.honey.netty.modelwrappers.WrappedPacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -95,17 +96,11 @@ public class Converters {
     }
 
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
-        return getConverter(WrappedRenderData.class, (clazz) -> new JavaConverter<Object, WrappedRenderData>() {
-            @Override
-            public WrappedRenderData convertDelegate(Object delegate) {
-                return new WrappedRenderData(delegate);
-            }
+        return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
+    }
 
-            @Override
-            public Object convertDeclaring(WrappedRenderData object) {
-                return object.getHandle();
-            }
-        });
+    public static JavaConverter<Object, WrappedPacketDataSerializer> getPacketDataSerializerConverter() {
+        return getConverter(WrappedPacketDataSerializer.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacketDataSerializer.class));
     }
 
     public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter(NBTBase<?, ?> owner) {

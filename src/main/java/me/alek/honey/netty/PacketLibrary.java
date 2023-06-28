@@ -136,6 +136,33 @@ public class PacketLibrary {
         addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
     }
 
+    public <WP extends WrappedPacket<WP>> void removeListener(SyncPacketAdapter<WP> adapter) {
+        removeListeners(adapter, PacketType.getTypesAvailableFor(Protocol.getProtocol()));
+    }
+
+    public <WP extends WrappedPacket<WP>> void removeListeners(SyncPacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {
+        internalPacketProcessor.removeListener(adapter, packetTypes);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void removeFuzzyListener(FuzzyPacketAdapter adapter) {
+        removeListener(adapter);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void removeFuzzyListeners(FuzzyPacketAdapter adapter, List<PacketTypeEnum> packetTypes) {
+        removeListeners(adapter, packetTypes);
+    }
+
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> adapter) {
+        return internalPacketProcessor.isRegistered(adapter);
+    }
+
+    @SuppressWarnings("unchecked")
+    public boolean isFuzzyRegistered(FuzzyPacketAdapter adapter) {
+        return isRegistered(adapter);
+    }
+
     public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {
         internalPacketProcessor.setPostAction(packetType, postAction);
     }

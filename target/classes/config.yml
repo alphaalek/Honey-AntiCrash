@@ -28,11 +28,16 @@ notify-permission: honey.notify
 
 # packet logger
 packet-logger:
+
   # Skal packet logger være slået til eller ej.
-  enabled: true
+  enabled: false
 
   # Skal det logges i console også. Som standard bliver der logget i oprettede filer.
   console: true
+
+  # Skal debug mode være slået til eller ej. Brugbart til udvikling og troubleshooting, men for en normal bruger er det fuldstændig unødvendigt.
+  # OBS: viser kun i console når den er slået til, ikke i filer, det vil simpelthen ellers fylde dem for meget op.
+  debug-mode: true
 
   # Spillere som packet logger skal ignorere.
   ignored-players:
@@ -285,6 +290,7 @@ commands:
     - "fastasyncworldedit"
     - "worldedit"
     - "multiverse-core"
+    - "permissionsex" # staves PermissionsEX ... :]
 
 ############################################################
 # +------------------------------------------------------+ #

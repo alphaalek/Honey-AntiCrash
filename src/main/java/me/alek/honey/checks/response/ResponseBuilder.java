@@ -3,7 +3,6 @@ package me.alek.honey.checks.response;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Function;
 
@@ -86,12 +85,6 @@ public class ResponseBuilder {
 
     public ResponseBuilder onViolation(Runnable runnable) {
         responseContainer.ON_VIOLATION = runnable;
-        return this;
-    }
-
-    public ResponseBuilder confiscate(ItemStack itemStack) {
-        responseContainer.CONFISCATE = true;
-        responseContainer.CONFISCATED_ITEM = itemStack;
         return this;
     }
 

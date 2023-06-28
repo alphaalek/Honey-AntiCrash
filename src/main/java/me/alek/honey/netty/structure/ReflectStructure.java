@@ -1,13 +1,12 @@
 package me.alek.honey.netty.structure;
 
+import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -37,6 +36,7 @@ public class ReflectStructure<T, C> {
     public ReflectStructure(Class<?> delegate) {
         this.handle = delegate;
         initDefaults();
+        initAcquired(null);
     }
 
     public ReflectStructure(
@@ -107,7 +107,7 @@ public class ReflectStructure<T, C> {
     ) {
         int index = 0;
         for (ReflectToucher<?> reflectToucher : defaultMap.values()) {
-            if (!targetType.isAssignableFrom(reflectToucher.getType())) {
+            if (targetType != null && !targetType.isAssignableFrom(reflectToucher.getType())) {
                 continue;
             }
             acquiredMap.put(index, castReflectToucher(reflectToucher));

@@ -1,6 +1,10 @@
 package me.alek.honey.checks.listeners;
 
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
@@ -36,6 +40,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     public CheckVisitor<WrappedPlayInHeldItemSlot> getVisitor() {
         CheckVisitor<WrappedPlayInHeldItemSlot> visitor = new CheckVisitor<>();
         visitor.visit(new HeldItemA());
+        visitor.visit(new HeldItemB());
         return visitor;
     }
 
@@ -57,6 +62,22 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         @Override
         public String getViolationName() {
             return "HeldItemA";
+        }
+    }
+
+    public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
+            if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {
+                return ResponseBuilder.inst().cancel().punish().build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "HeldItemB";
         }
     }
 

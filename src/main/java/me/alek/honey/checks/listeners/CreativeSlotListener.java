@@ -88,8 +88,8 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
-            if (ItemAnalysis.checkItem(packet.getItem())) {
-                return ResponseBuilder.inst().cancel().punish().confiscate(packet.getItem()).build();
+            if (ItemAnalysis.checkItem(player, packet.getItem())) {
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }

@@ -101,7 +101,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             return () -> {
                 final List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
-                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, Protocol.getProtocol())) {
+                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(Protocol.getProtocol(), PacketBound.CLIENT)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 
                     if (structure.withType(double.class).getAccessors().size() != 0) {
