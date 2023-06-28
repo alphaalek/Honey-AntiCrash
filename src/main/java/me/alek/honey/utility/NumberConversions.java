@@ -19,7 +19,7 @@ public class NumberConversions {
     }
 
     public static boolean isInvalid(double value) {
-        return value == Double.MAX_VALUE || value == Integer.MIN_VALUE || isInfinite(value) || isNaN(value);
+        return value == Double.MAX_VALUE || value == Double.MIN_VALUE || isInfinite(value) || isNaN(value);
     }
 
     public static boolean isInvalid(double[] values) {
@@ -56,4 +56,14 @@ public class NumberConversions {
         }
         return false;
     }
+
+    public static boolean isInvalid(int[] values) {
+        for (int value : values) {
+            if (isInvalid((double) value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

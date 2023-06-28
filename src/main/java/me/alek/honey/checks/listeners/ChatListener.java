@@ -6,7 +6,7 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -62,23 +62,14 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
             String message = packet.getMessage();
             if (message == null || message.isEmpty()) {
-                return violate();
+                return ResponseBuilder.inst().cancel().punish().terminate().build();
             }
             for (char character : message.toCharArray()) {
                 if (character == Character.MIN_VALUE) {
-                    return violate();
+                    return ResponseBuilder.inst().cancel().punish().terminate().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
-        }
-
-        public ResponseContainer violate() {
-            return ResponseBuilder
-                    .inst()
-                    .cancel()
-                    .punish()
-                    .terminate()
-                    .build();
         }
 
         @Override
@@ -95,11 +86,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
             int maxLength = below_1_11 ? 100 : 256;
             if (packet.getMessage().length() > maxLength) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -159,7 +146,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         return commandSent.startsWith(commandCheck);
     }
 
-    public static class CommandsA implements IntervalCheck, PacketCheck<WrappedPlayInChat> {
+    public static class CommandsA implements ViolationCheck, PacketCheck<WrappedPlayInChat> {
 
         private final String[] prohibitedCommands = getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
 
@@ -173,11 +160,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             for (String prohibitedCommand : this.prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .flag()
-                            .build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

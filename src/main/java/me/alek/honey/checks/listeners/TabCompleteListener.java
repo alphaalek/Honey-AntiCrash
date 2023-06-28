@@ -3,7 +3,7 @@ package me.alek.honey.checks.listeners;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -47,7 +47,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         return () -> Collections.singletonList(PacketType.Play.Client.TAB_COMPLETE);
     }
 
-    public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, IntervalCheck {
+    public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
         private final String[] prohibitedCommands = ChatListener.getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
 
@@ -58,11 +58,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
             for (String prohibitedCommand : prohibitedCommands) {
 
                 if (ChatListener.match(label, prohibitedCommand)) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .flag()
-                            .build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

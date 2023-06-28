@@ -56,11 +56,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (player.getGameMode() != GameMode.CREATIVE) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -77,11 +73,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             int slot = packet.getSlot();
             if (slot > (player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -97,12 +89,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (ItemAnalysis.checkItem(packet.getItem())) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .confiscate(packet.getItem())
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().confiscate(packet.getItem()).build();
             }
             return ResponseBuilder.SUCCESS;
         }

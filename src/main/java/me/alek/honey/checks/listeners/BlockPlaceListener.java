@@ -7,7 +7,7 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -61,34 +61,29 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
     }
 
-    public static class PlaceA implements IntervalCheck, PacketCheck<WrappedPlayInBlockPlace> {
+    public static class PlaceA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             WrappedBlockPosition blockPosition = packet.getBlockPosition();
             if (blockPosition == null) {
-                return violate();
+                return ResponseBuilder.inst().cancel().flag().build();
             }
             if (!blockPosition.equals(WrappedBlockPosition.DEFAULT)) {
 
+                if (blockPosition.isInvalid()) {
+                    return ResponseBuilder.inst().cancel().flag().terminate().build();
+                }
                 double distance = blockPosition.distance(player.getLocation());
                 if (distance > ConfigurationOptions.BlockPlacement.MAX_BLOCK_TO_PLAYER_DISTANCE) {
-                    return violate();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
                 final Chunk chunk = blockPosition.toLocation(player.getWorld()).getChunk();
                 if (chunk == null || !player.getWorld().isChunkLoaded(chunk) || !chunk.isLoaded()) {
-                    return violate();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
-        }
-
-        private ResponseContainer violate() {
-            return ResponseBuilder
-                    .inst()
-                    .cancel()
-                    .flag()
-                    .build();
         }
 
         @Override
@@ -110,12 +105,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             ItemStack itemInHand = player.getItemInHand();
 
             if (ItemAnalysis.checkItem(item) || ItemAnalysis.checkItem(itemInHand)) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .confiscate(item)
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().confiscate(item).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -136,11 +126,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             }
             Material material = item.getType();
             if (material == Material.PISTON_MOVING_PIECE || material == Material.PISTON_EXTENSION) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -161,10 +147,10 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             final float facingZ = packet.getFacingZ();
 
             if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
-                return violate();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
-                return violate();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -174,12 +160,5 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             return "PlaceD";
         }
 
-        private ResponseContainer violate() {
-            return ResponseBuilder
-                    .inst()
-                    .cancel()
-                    .punish()
-                    .build();
-        }
     }
 }

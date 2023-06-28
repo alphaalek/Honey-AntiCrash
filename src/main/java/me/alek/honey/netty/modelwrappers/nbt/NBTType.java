@@ -1,7 +1,8 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.structure.converters.MapConverter;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 
 import java.util.HashMap;

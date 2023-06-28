@@ -1,6 +1,5 @@
 package me.alek.honey.checks.listeners;
 
-import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
@@ -11,6 +10,7 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.ViolationConsumerCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -24,6 +24,7 @@ import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,8 +36,8 @@ import java.util.function.Supplier;
 public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInCustomPayload> implements IPacketListener {
 
     private final Class<?> PACKET_SERIALIZER_CLASS = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-    private final ConstructorInvoker PACKET_SERIALIZER_CONSTRUCTOR = Reflection.getConstructor(PACKET_SERIALIZER_CLASS, ByteBuf.class);
-    private final MethodInvoker ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemReflection.getNMSItemStackClass());
+    private final ConstructorInvoker<?> PACKET_SERIALIZER_CONSTRUCTOR = Reflection.getConstructor(PACKET_SERIALIZER_CLASS, ByteBuf.class);
+    private final MethodInvoker<?> ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemReflection.getNMSItemStackClass());
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
@@ -78,6 +79,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         visitor.visit(new PayloadC());
         visitor.visit(new PayloadD());
         visitor.visit(new PayloadE());
+        visitor.visit(new PayloadF());
+        visitor.visit(new PayloadG());
         return visitor;
     }
 
@@ -92,12 +95,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             ByteBuf serializer = container.getSerializer(0);
             if (serializer == null || serializer instanceof EmptyByteBuf) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .terminate()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -121,13 +119,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 serializer.release();
                 ItemStack bukkitItem = container.getItem(0);
 
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .confiscate(bukkitItem)
-                        .terminate()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().confiscate(bukkitItem).terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -158,13 +150,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (serializer != null && serializer.refCnt() > 0) {
                 serializer.release();
             }
-            return ResponseBuilder
-                    .inst()
-                    .cancel()
-                    .punish()
-                    .confiscate(item)
-                    .terminate()
-                    .build();
+            return ResponseBuilder.inst().cancel().punish().confiscate(item).terminate().build();
         }
 
         @Override
@@ -193,13 +179,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 serializer.release();
             }
             ItemStack bukkitItem = container.getItem(0);
-            return ResponseBuilder
-                    .inst()
-                    .cancel()
-                    .punish()
-                    .confiscate(bukkitItem)
-                    .terminate()
-                    .build();
+            return ResponseBuilder.inst().cancel().punish().confiscate(bukkitItem).terminate().build();
         }
 
         @Override
@@ -213,27 +193,15 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             String channel = packet.getChannel();
-            if (channel == null) {
-                return ResponseBuilder.SUCCESS; // burde aldrig ske, fordi PayloadD vil terminate visitor hvis channel er empty
-            }
-            if (channel.equals("BungeeCord")) {
-                return ResponseBuilder.SUCCESS; // ingen grund til at tjekke for BungeeCord plugin channels
+            if (channel.equals("BungeeCord") || channel.contains("FML") || channel.equals("ML|OpenTE") || channel.equals("WECUI")) {
+                return ResponseBuilder.SUCCESS; // ingen grund til at tjekke for Community channels
             }
             ByteBuf serializer = container.getSerializer(0);
+            if (channel.equalsIgnoreCase("register")) {
 
-            if (channel.toLowerCase().contains("register")) {
-                int channelSize = player.getListeningPluginChannels().size();
-
-                for (int i = 0; i < serializer.toString(Charsets.UTF_8).split("\000").length; i++) {
-                    if (++channelSize > ConfigurationOptions.CustomPayload.MAX_PLUGIN_CHANNELS) {
-                        serializer.release();
-                        return ResponseBuilder
-                                .inst()
-                                .cancel()
-                                .punish()
-                                .terminate()
-                                .build();
-                    }
+                if (player.getListeningPluginChannels().size() > ConfigurationOptions.CustomPayload.MAX_PLUGIN_CHANNELS) {
+                    serializer.release();
+                    return ResponseBuilder.inst().cancel().punish().terminate().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -242,6 +210,46 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public String getViolationName() {
             return "PayloadE";
+        }
+    }
+
+    public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, ViolationConsumerCheck<WrappedPlayInCustomPayload, String> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+            return ResponseBuilder.inst().flag().withKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadF";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting(String key) {
+            return ConfigurationOptions.getChannelFloodSettings().get(key);
+        }
+
+        @Override
+        public String getKey(WrappedPlayInCustomPayload packet) {
+            return packet.getChannel();
+        }
+    }
+
+    public static class PayloadG implements PacketCheck<WrappedPlayInCustomPayload> {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+            String channel = packet.getChannel();
+            if (channel.equals("WDL|INIT") || channel.equals("WDL|CONTROL") || channel.equals("WDL|REQUEST")) {
+                return ResponseBuilder.inst().cancel().punish().build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PayloadG";
         }
     }
 

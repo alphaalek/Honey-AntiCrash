@@ -3,7 +3,7 @@ package me.alek.honey.checks.listeners;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.IntervalCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -12,7 +12,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -62,11 +61,81 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     @Override
     public void cleanup(Player player) {
-        PositionA.lastChunkMap.remove(player.getUniqueId());
-        PositionC.lastPacketLocation.remove(player.getUniqueId());
+        PositionC.lastChunkMap.remove(player.getUniqueId());
+        PositionB.lastPacketLocation.remove(player.getUniqueId());
     }
 
-    public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
+    public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            final double x = packet.getX();
+            final double y = packet.getY();
+            final double z = packet.getZ();
+
+            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Velocity.Height.MIN_HEIGHT || y > ConfigurationOptions.Velocity.Height.MAX_HEIGHT) {
+                return ResponseBuilder.inst().cancel().punish().build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PositionA";
+        }
+    }
+
+    public static class PositionB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final Map<UUID, Location> lastPacketLocation = new ConcurrentHashMap<>();
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+            if (packet.getLocation().getChunk() == null) {
+                return ResponseBuilder.inst().cancel().punish().build();
+            }
+            final double maxDistance = ConfigurationOptions.Velocity.Movement.MAX_DISTANCE;
+            final double minDistance = ConfigurationOptions.Velocity.Movement.MIN_DISTANCE;
+
+            final Location playerLoc = player.getLocation();
+            final Location packetLoc = packet.getLocation();
+            final Location lastKnownPacketLoc = lastPacketLocation.get(player.getUniqueId());
+
+            if (lastKnownPacketLoc != null) {
+
+                // for at undgå flag ved lagspikes
+                final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+                final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+
+                if (distance2d_client < maxDistance && distanceY_client < maxDistance
+                 && distance2d_client > minDistance && distanceY_client > minDistance) {
+                    return ResponseBuilder.SUCCESS;
+                }
+            }
+            lastPacketLocation.put(player.getUniqueId(), packetLoc);
+
+            final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
+            final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
+
+            if (distance2d > maxDistance || distanceY > maxDistance
+             || distance2d < minDistance || distanceY < minDistance) {
+                return ResponseBuilder.inst().cancel().flag().build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "PositionB";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.Velocity.Movement.get();
+        }
+    }
+
+    public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static volatile Map<UUID, Chunk> lastChunkMap = new ConcurrentHashMap<>();
 
@@ -84,13 +153,12 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 }
                 lastChunkMap.put(player.getUniqueId(), chunk);
             }
-
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
         }
 
         @Override
         public String getViolationName() {
-            return "PositionA";
+            return "PositionC";
         }
 
         @Override
@@ -99,7 +167,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
     }
 
-    public static class PositionB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
+    public static class PositionD<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
@@ -118,86 +186,6 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.Velocity.NewUnloadedChunks.get();
-        }
-    }
-
-    public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, IntervalCheck {
-
-        private static volatile Map<UUID, Location> lastPacketLocation = new ConcurrentHashMap<>();
-
-        @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (packet.getLocation().getChunk() == null) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
-            }
-            final int maxDistance = ConfigurationOptions.Velocity.Movement.MAX_2D_DISTANCE;
-
-            final Location playerLoc = player.getLocation();
-            final Location packetLoc = packet.getLocation();
-            final Location lastKnownPacketLoc = lastPacketLocation.get(player.getUniqueId());
-
-            if (lastKnownPacketLoc != null) {
-
-                // for at undgå flag ved lagspikes
-                final int distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                final int distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-
-                if (distance2d_client < maxDistance && distanceY_client < maxDistance) {
-                    return ResponseBuilder.SUCCESS;
-                }
-            }
-            lastPacketLocation.put(player.getUniqueId(), packetLoc);
-
-            final int distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
-            final int distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
-
-            // for at undgå flag ved serverside teleporteringer
-            if (distance2d > maxDistance || distanceY > maxDistance) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .flag()
-                        .build();
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getViolationName() {
-            return "PositionC";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.Velocity.Movement.get();
-        }
-    }
-
-    public static class PositionD<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
-
-        @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            final double x = packet.getX();
-            final double y = packet.getY();
-            final double z = packet.getZ();
-
-            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Velocity.Height.MIN_HEIGHT || y > ConfigurationOptions.Velocity.Height.MAX_HEIGHT) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getViolationName() {
-            return "PositionD";
         }
     }
 

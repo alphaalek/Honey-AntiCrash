@@ -1,11 +1,13 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.util.Collection;
@@ -43,10 +45,6 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     public void clear() {
         getValue().clear();
-    }
-
-    public boolean containsKey(String key) {
-        return getValue().containsKey(key);
     }
 
     public Set<String> getKeys() {

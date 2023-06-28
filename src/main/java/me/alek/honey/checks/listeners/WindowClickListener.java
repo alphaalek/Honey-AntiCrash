@@ -64,11 +64,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                 inventorySlots += 4; // armor slots
             }
             if (player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -88,7 +84,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
             int windowId = packet.getWindowId();
 
             if (mode < 0 || mode > 6) {
-                return violate();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             switch (button) { // mulige knapper, tjek Minecraft Protocol Wiki
                 case 0:
@@ -103,22 +99,13 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                 case 40:
                     break;
                 default:
-                    return violate();
+                    return ResponseBuilder.inst().cancel().punish().build();
             }
             if (((CraftPlayer)player).getHandle().activeContainer.windowId != windowId) {
-                return violate();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
-
-        public ResponseContainer violate() {
-            return ResponseBuilder
-                    .inst()
-                    .cancel()
-                    .punish()
-                    .build();
-        }
-
         @Override
         public String getViolationName() {
             return "WindowA";
@@ -131,12 +118,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             ItemStack item = packet.getItem();
             if (ItemAnalysis.checkItem(item)) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .confiscate(item)
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().confiscate(item).build();
             }
             return ResponseBuilder.SUCCESS;
         }

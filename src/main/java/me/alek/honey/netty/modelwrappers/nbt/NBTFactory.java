@@ -1,5 +1,6 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -51,7 +52,7 @@ public class NBTFactory {
         if (nmsItem == null) {
             return null;
         }
-        NBTRoot root = new NBTRoot();
+        NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES + 10);
         ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))

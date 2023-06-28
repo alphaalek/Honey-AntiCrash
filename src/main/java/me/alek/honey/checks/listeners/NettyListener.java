@@ -65,12 +65,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             if (player == null || !player.isOnline()) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .notify(getViolationName())
-                        .terminate()
-                        .build();
+                return ResponseBuilder.inst().cancel().notify(getViolationName()).terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -126,21 +121,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             for (double value : packet.getContainer().getDoubles().readFieldValues()) {
 
                 if (NumberConversions.isInvalid(value)) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .punish()
-                            .build();
+                    return ResponseBuilder.inst().cancel().punish().build();
                 }
             }
             for (float value : packet.getContainer().getFloats().readFieldValues()) {
 
                 if (NumberConversions.isInvalid(value)) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .punish()
-                            .build();
+                    return ResponseBuilder.inst().cancel().punish().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

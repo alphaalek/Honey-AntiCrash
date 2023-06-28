@@ -17,6 +17,7 @@ public class ConfigurationOptions {
 
     private static FileConfiguration file;
     private static Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
+    private static Map<String, VlSetting> channelFloodSettings = new HashMap<>();
 
     public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
@@ -24,6 +25,10 @@ public class ConfigurationOptions {
 
     public static Map<PacketTypeEnum, VlSetting> getFloodSettings() {
         return floodSettings;
+    }
+
+    public static Map<String, VlSetting> getChannelFloodSettings() {
+        return channelFloodSettings;
     }
 
     public static List<Field> getItemAnalysisSettings() {
@@ -49,9 +54,9 @@ public class ConfigurationOptions {
             } catch (Exception ignored) {
             }
         }
-        if (clazz.isAnnotationPresent(Interval.class)) {
+        if (clazz.isAnnotationPresent(Violation.class)) {
             if (VlSetting.class.isAssignableFrom(clazz)) {
-                setIntervalBased(clazz, clazz.getAnnotation(Interval.class).value());
+                setIntervalBased(clazz, clazz.getAnnotation(Violation.class).value());
             }
         }
         for (Class<?> nestedClass : clazz.getDeclaredClasses()) {
@@ -72,6 +77,10 @@ public class ConfigurationOptions {
                 for (PacketTypeEnum packetType : flood.value()) {
                     floodSettings.put(packetType, setting);
                 }
+            }
+            if (clazz.isAnnotationPresent(ChannelFlood.class)) {
+                ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
+                channelFloodSettings.put(flood.value(), setting);
             }
             while (true) {
                 for (Field field : clazz.getDeclaredFields()) {
@@ -123,7 +132,7 @@ public class ConfigurationOptions {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    private @interface Interval {
+    private @interface Violation {
         String[] value();
     }
 
@@ -132,6 +141,14 @@ public class ConfigurationOptions {
     private @interface Flood {
 
         PacketType.Play.Client[] value();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    private @interface ChannelFlood {
+
+        String value();
+
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -215,7 +232,7 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    @Interval("commands")
+    @Violation("commands")
     public static class Commands extends VlSetting {
 
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
@@ -250,12 +267,16 @@ public class ConfigurationOptions {
         public static int MAX_DISPLAYNAME_LENGTH;
         @ItemAnalysisSetting(CheckRegistry.MAX_TOTAL_LORE_LENGTH_CHECK)
         public static int MAX_TOTAL_LORE_LENGTH;
-        @ItemAnalysisSetting(CheckRegistry.ILLEGAL_ENCHANTMENTS_CHECK)
-        public static boolean CHECK_ILLEGAL_ENCHANTMENTS;
-        @ItemAnalysisSetting(CheckRegistry.ILLEGAL_FIREWORK_CHECK)
-        public static boolean CHECK_ILLEGAL_FIREWORK;
-        @ItemAnalysisSetting(CheckRegistry.ILLEGAL_POTION_CHECK)
-        public static boolean CHECK_ILLEGAL_POTIONS;
+        @ItemAnalysisSetting(CheckRegistry.MAX_FIREWORK_EXPLOSIONS)
+        public static int MAX_FIREWORK_EXPLOSIONS;
+        @ItemAnalysisSetting(CheckRegistry.MAX_BANNER_PATTERNS)
+        public static int MAX_BANNER_PATTERNS;
+        @ItemAnalysisSetting(CheckRegistry.CUSTOM_POTION_EFFECTS_CHECK)
+        public static boolean CHECK_CUSTOM_POTION_EFFECTS;
+        @ItemAnalysisSetting(CheckRegistry.UNBREAKABLE_ITEM_CHECK)
+        public static boolean CHECK_UNBREAKABLE_ITEMS;
+        @ItemAnalysisSetting(CheckRegistry.ATTRIBUTE_MODIFIERS_CHECK)
+        public static boolean CHECK_ATTRIBUTE_MODIFIERS;
 
         public static void load() {
             MAX_CONTAINER_DATA = file.getInt("item-analysis.max-container-data");
@@ -266,9 +287,12 @@ public class ConfigurationOptions {
             MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length");
             MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length");
 
-            CHECK_ILLEGAL_ENCHANTMENTS = file.getBoolean("item-analysis.check-illegal-enchantments");
-            CHECK_ILLEGAL_FIREWORK = file.getBoolean("item-analysis.check-illegal-firework");
-            CHECK_ILLEGAL_POTIONS = file.getBoolean("item-analysis.check-illegal-potions");
+            MAX_FIREWORK_EXPLOSIONS = file.getInt("item-analysis.max-firework-explosions");
+            MAX_BANNER_PATTERNS = file.getInt("item-analysis.max-banner-patterns");
+
+            CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects");
+            CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items");
+            CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers");
         }
 
         @Setting
@@ -283,7 +307,11 @@ public class ConfigurationOptions {
             @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_PAGES)
             public static int MAX_BOOK_PAGES;
             @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_PAGE_LENGTH)
-            public static int MAX_BOOK_PAGE_LENGTH;
+            public static int MAX_NBT_STRING_LENGTH;
+            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_TITLE_LENGTH)
+            public static int MAX_BOOK_TITLE_LENGTH;
+            @ItemAnalysisSetting(CheckRegistry.MAX_BOOK_AUHTOR_LENGTH)
+            public static int MAX_BOOK_AUTHOR_LENGTH;
             @ItemAnalysisSetting(CheckRegistry.MAX_NBT_BASES)
             public static int MAX_NBT_BASES;
             @ItemAnalysisSetting(CheckRegistry.MAX_NBT_NESTING)
@@ -293,12 +321,14 @@ public class ConfigurationOptions {
 
             public static void load() {
                 MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length");
+                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length");
 
                 MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
 
                 MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
                 MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
-                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
+                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
+                MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");
 
                 MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
                 MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
@@ -309,7 +339,7 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    @Interval("custom-payload")
+    @Violation("custom-payload")
     public static class CustomPayload {
 
         public static int MIN_BYTEBUF_CAPACITY;
@@ -326,10 +356,78 @@ public class ConfigurationOptions {
             MAX_SERIALIZED_ITEM_NBT_LENGTH = file.getInt("custom-payload.max-serialized-item-nbt-length");
             MAX_PLUGIN_CHANNELS = file.getInt("custom-payload.max-plugin-channels");
         }
+
+        @Setting
+        public static class Flood {
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.adv-cmd"})
+            @ChannelFlood("MC|AdvCmd")
+            public static class AdvCmd extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.auto-cmd"})
+            @ChannelFlood("MC|AutoCmd")
+            public static class AutoCmd extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.beacon"})
+            @ChannelFlood("MC|Beacon")
+            public static class Beacon extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.b-edit"})
+            @ChannelFlood("MC|BEdit")
+            public static class BEdit extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.b-open"})
+            @ChannelFlood("MC|BOpen")
+            public static class BOpen extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.brand"})
+            @ChannelFlood("MC|Brand")
+            public static class Brand extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.b-sign"})
+            @ChannelFlood("MC|BSign")
+            public static class BSign extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.register"})
+            @ChannelFlood("REGISTER")
+            public static class Register extends VlSetting {
+
+            }
+
+            @Setting
+            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.unregister"})
+            @ChannelFlood("UNREGISTER")
+            public static class Unregister extends VlSetting {
+
+            }
+
+        }
     }
 
     @Setting
-    @Interval("block-place")
+    @Violation("block-place")
     public static class BlockPlacement extends VlSetting {
         public static double MAX_BLOCK_TO_PLAYER_DISTANCE;
 
@@ -350,7 +448,7 @@ public class ConfigurationOptions {
     public static class Velocity {
 
         @Setting
-        @Interval("velocity.new-chunks")
+        @Violation("velocity.new-chunks")
         public static class NewChunks extends VlSetting {
 
             private static NewChunks instance;
@@ -365,7 +463,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Interval("velocity.new-unloaded-chunks")
+        @Violation("velocity.new-unloaded-chunks")
         public static class NewUnloadedChunks extends VlSetting {
 
             private static NewUnloadedChunks instance;
@@ -379,10 +477,11 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Interval("velocity.movement")
+        @Violation("velocity.movement")
         public static class Movement extends VlSetting {
 
-            public static int MAX_2D_DISTANCE;
+            public static double MAX_DISTANCE;
+            public static double MIN_DISTANCE;
 
             private static Movement instance;
             public Movement() {
@@ -393,7 +492,8 @@ public class ConfigurationOptions {
             }
 
             public static void load() {
-                MAX_2D_DISTANCE = file.getInt("velocity.movement.max-2d-distance");
+                MAX_DISTANCE = file.getDouble("velocity.movement.max-distance");
+                MIN_DISTANCE = file.getDouble("velocity.movement.min-distance");
             }
         }
 
@@ -414,10 +514,12 @@ public class ConfigurationOptions {
 
             public static int MAX_YAW;
             public static int MIN_YAW;
+            public static int MAX_YAW_DISTANCE;
 
             public static void load () {
                 MAX_YAW = file.getInt("velocity.yaw.max-yaw");
                 MIN_YAW = file.getInt("velocity.yaw.min-yaw");
+                MAX_YAW_DISTANCE = file.getInt("velocity.yaw.max-yaw-distance");
             }
         }
     }
@@ -435,11 +537,10 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    @Interval("packet-flood")
     public static class PacketFlood extends VlSetting {
 
         @Setting
-        @Interval("packet-flood.common.a")
+        @Violation("packet-flood.common.a")
         public static class FloodA extends VlSetting {
 
             private static FloodA instance;
@@ -453,7 +554,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Interval("packet-flood.common.b")
+        @Violation("packet-flood.common.b")
         public static class FloodB extends VlSetting {
 
             private static FloodB instance;
@@ -466,7 +567,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Interval("packet-flood.c")
+        @Violation("packet-flood.c")
         public static class FloodC extends VlSetting {
 
             private static FloodC instance;
@@ -483,49 +584,49 @@ public class ConfigurationOptions {
 
             @Flood(PacketType.Play.Client.ABILITIES)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.abilities"})
+            @Violation({"packet-flood.d", "packet-flood.d.abilities"})
             public static class Abilities extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ARM_ANIMATION)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.arm-animation"})
+            @Violation({"packet-flood.d", "packet-flood.d.arm-animation"})
             public static class ArmAnimation extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.AUTO_RECIPE)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.auto-recipe"})
+            @Violation({"packet-flood.d", "packet-flood.d.auto-recipe"})
             public static class AutoRecipe extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.BLOCK_DIG)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.block-dig"})
+            @Violation({"packet-flood.d", "packet-flood.d.block-dig"})
             public static class BlockDig extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.BLOCK_PLACE)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.block-place"})
+            @Violation({"packet-flood.d", "packet-flood.d.block-place"})
             public static class BlockPlace extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CLIENT_COMMAND)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.client-command"})
+            @Violation({"packet-flood.d", "packet-flood.d.client-command"})
             public static class ClientCommand extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CLOSE_WINDOW)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.close-window"})
+            @Violation({"packet-flood.d", "packet-flood.d.close-window"})
             public static class CloseWindow extends VlSetting {
 
             }
@@ -533,126 +634,126 @@ public class ConfigurationOptions {
 
             @Flood(PacketType.Play.Client.CHAT)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.chat"})
+            @Violation({"packet-flood.d", "packet-flood.d.chat"})
             public static class Chat extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CUSTOM_PAYLOAD)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.custom-payload"})
+            @Violation({"packet-flood.d", "packet-flood.d.custom-payload"})
             public static class CustomPayload extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.HELD_ITEM_SLOT)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.held-item-slot"})
+            @Violation({"packet-flood.d", "packet-flood.d.held-item-slot"})
             public static class HeldItemSlot extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ENCHANT_ITEM)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.enchant-item"})
+            @Violation({"packet-flood.d", "packet-flood.d.enchant-item"})
             public static class EnchantItem extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ENTITY_ACTION)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.entity-action"})
+            @Violation({"packet-flood.d", "packet-flood.d.entity-action"})
             public static class EntityAction extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.KEEP_ALIVE)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.keep-alive"})
+            @Violation({"packet-flood.d", "packet-flood.d.keep-alive"})
             public static class KeepAlive extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.LOOK)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.look"})
+            @Violation({"packet-flood.d", "packet-flood.d.look"})
             public static class Look extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.FLYING)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.flying"})
+            @Violation({"packet-flood.d", "packet-flood.d.flying"})
             public static class Flying extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SET_CREATIVE_SLOT)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.set-creative-slot"})
+            @Violation({"packet-flood.d", "packet-flood.d.set-creative-slot"})
             public static class SetCreativeSlot extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SETTINGS)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.settings"})
+            @Violation({"packet-flood.d", "packet-flood.d.settings"})
             public static class Settings extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SPECTATE)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.spectate"})
+            @Violation({"packet-flood.d", "packet-flood.d.spectate"})
             public static class Spectate extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.STEER_VEHICLE)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.steer-vehicle"})
+            @Violation({"packet-flood.d", "packet-flood.d.steer-vehicle"})
             public static class SteerVehicle extends VlSetting {
 
             }
 
             @Flood({PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK})
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.position"})
+            @Violation({"packet-flood.d", "packet-flood.d.position"})
             public static class Position extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.UPDATE_SIGN)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.update-sign"})
+            @Violation({"packet-flood.d", "packet-flood.d.update-sign"})
             public static class UpdateSign extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.USE_ITEM)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.use-item"})
+            @Violation({"packet-flood.d", "packet-flood.d.use-item"})
             public static class UseItem extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.USE_ENTITY)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.use-entity"})
+            @Violation({"packet-flood.d", "packet-flood.d.use-entity"})
             public static class UseEntity extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.TAB_COMPLETE)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.tab-complete"})
+            @Violation({"packet-flood.d", "packet-flood.d.tab-complete"})
             public static class TabComplete extends VlSetting {
 
             }
 
             @Flood(PacketType.Play.Client.WINDOW_CLICK)
             @Setting
-            @Interval({"packet-flood.d", "packet-flood.d.window-click"})
+            @Violation({"packet-flood.d", "packet-flood.d.window-click"})
             public static class WindowClick extends VlSetting {
 
             }

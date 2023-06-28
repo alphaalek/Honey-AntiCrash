@@ -1,17 +1,16 @@
 package me.alek.honey.checks.item;
 
-import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.modelwrappers.nbt.*;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
+import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
+import me.alek.honey.netty.modelwrappers.nbt.NBTType;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.netty.utility.reflect.FieldAccessor;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_8_R3.map.RenderData;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
@@ -22,6 +21,41 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ItemChecks {
+
+    public static class IllegalNumbersCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            NBTRoot root = nbt.getRoot();
+
+            for (NBTElement<Double> doubleValue : root.getAllElementsAs(NBTType.DOUBLE, NBTElement.class)) {
+                if (NumberConversions.isInvalid(doubleValue.getValue())) {
+                    return true;
+                }
+            }
+            for (NBTElement<Float> floatValue : root.getAllElementsAs(NBTType.FLOAT, NBTElement.class)) {
+                if (NumberConversions.isInvalid(floatValue.getValue())) {
+                    return true;
+                }
+            }
+            for (NBTElement<Integer> intValue : root.getAllElementsAs(NBTType.INT, NBTElement.class)) {
+                if (intValue.getValue() == Integer.MAX_VALUE || intValue.getValue() == Integer.MIN_VALUE) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
 
     public static class MaxContainerCheck implements ItemAnalysis.ItemChecker {
 
@@ -46,17 +80,16 @@ public class ItemChecks {
     public static class MaxEnchantmentLevelCheck implements ItemAnalysis.ItemChecker {
 
         private int MAX_ENCHANTMENT_LEVEL;
+        private String[] enchantmentKeys = new String[]{"ench", "StoredEnchantments", "Enchantments"};
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
             NBTListOfCompound enchantments = null;
 
-            if (item.getType() == Material.ENCHANTED_BOOK) {
-                enchantments = nbt.getListOfCompound("StoredEnchantments");
-            }
-            else {
-                if (nbt.hasKeyOfType("ench", NBTType.LISTOFCOMOUND)) {
-                    enchantments = nbt.getListOfCompound("ench");
+            for (String key : enchantmentKeys) {
+                if (nbt.hasKeyOfType(key, NBTType.LISTOFCOMOUND)) {
+                    enchantments = nbt.getListOfCompound(key);
+                    break;
                 }
             }
             if (enchantments != null) {
@@ -154,6 +187,61 @@ public class ItemChecks {
         }
     }
 
+    public static class UnbreakableItemCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            if (!nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)) {
+                return false;
+            }
+            NBTElement<Byte> unbreakable = nbt.get("Unbreakable").asElement(Byte.class);
+            return unbreakable.getValue() == (byte) 1;
+        }
+
+        @Override
+        public void setValue(int value) {
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
+    public static class AttributeModifiersCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("AttributeModifiers", NBTType.LISTOFCOMOUND);
+        }
+
+        @Override
+        public void setValue(int value) {
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
+    public static class CustomPotionEffectsCheck implements ItemAnalysis.ItemChecker {
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("CustomPotionEffects", NBTType.LISTOFCOMOUND);
+        }
+
+        @Override
+        public void setValue(int value) {
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
     public static class IllegalCharacterCheck implements ItemAnalysis.ItemChecker {
 
         @Override
@@ -206,6 +294,32 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
             MAX_NBT_LENGTH = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
+    public static class MaxNBTStringLengthCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_NBT_STRING_LENGTH;
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            for (NBTElement<String> page : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+                if (page.getValue().length() > MAX_NBT_STRING_LENGTH) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+            MAX_NBT_STRING_LENGTH = value;
         }
 
         @Override
@@ -277,24 +391,38 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBookPageLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBookTitleLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BOOK_PAGE_LENGTH;
+        private int MAX_BOOK_TITLE_LENGTH;
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            NBTList<String> pages = nbt.getListOf("pages", String.class);
-            for (NBTElement<String> page : pages) {
-                if (page.getValue().length() > MAX_BOOK_PAGE_LENGTH) {
-                    return true;
-                }
-            }
-            return false;
+            return nbt.getString("title").length() > MAX_BOOK_TITLE_LENGTH;
         }
 
         @Override
         public void setValue(int value) {
-            MAX_BOOK_PAGE_LENGTH = value;
+            MAX_BOOK_TITLE_LENGTH = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
+    public static class MaxBookAuthorLengthCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_BOOK_AUHTOR_LENGTH;
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return nbt.getString("author").length() > MAX_BOOK_AUHTOR_LENGTH;
+        }
+
+        @Override
+        public void setValue(int value) {
+            MAX_BOOK_AUHTOR_LENGTH = value;
         }
 
         @Override
@@ -346,41 +474,45 @@ public class ItemChecks {
     public static class IllegalSkullTexturesCheck implements ItemAnalysis.ItemChecker {
 
         private static final Pattern URL_PATTERN = Pattern.compile("url");
+        private static final String[] skullOwnerKeys = new String[]{"SkullOwner", "Owner"};
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!nbt.hasKey("SkullOwner")) {
-                return false;
+            NBTCompound skullOwnerCompound = null;
+            for (String key : skullOwnerKeys) {
+                if (nbt.hasKeyOfType(key, NBTType.COMPOUND)) {
+                    skullOwnerCompound = nbt.getCompound(key);
+                    break;
+                }
             }
-            NBTCompound skullOwnerCompound = nbt.getCompound("SkullOwner");
-            if (!skullOwnerCompound.hasKey("Properties")) {
+            if (skullOwnerCompound == null || !skullOwnerCompound.hasKey("Properties")) {
                 return false;
             }
             NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKey("textures")) {
-                return false;
+            if (!propertiesCompound.hasKeyOfType("textures", NBTType.LISTOFCOMOUND)) {
+                return true;
             }
             NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
             for (NBTCompound texture : textures.getValues()) {
 
-               if (!texture.containsKey("Value")) {
+               if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
                     return true;
                 }
-                String value = texture.getString("Value");
+                NBTElement<String> value = texture.get("Value").asElement(String.class);
                 String base64;
                 try {
-                    base64 = new String(Base64.getDecoder().decode(value));
+                    base64 = new String(Base64.getDecoder().decode(value.getValue()));
                 } catch (IllegalArgumentException ex) {
                     return true;
                 }
                 final String formatted = base64.trim().replace(" ", "").replace("\"", "").toLowerCase();
                 final Matcher matcher = URL_PATTERN.matcher(formatted);
-
-                while (matcher.find()) {
-                    final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
-                    if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
-                        return true;
-                    }
+                if (!matcher.find()) {
+                    return true;
+                }
+                final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
+                if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
+                    return true;
                 }
             }
             return false;
@@ -415,39 +547,53 @@ public class ItemChecks {
         }
     }
 
-    public static class IllegalFireworkCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxFireworkExplosionsCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_FIREWORK_EXPLOSIONS;
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            if (!nbt.hasKeyOfType("Fireworks", NBTType.COMPOUND)) {
+                return false;
+            }
+            NBTCompound fireworksCompound = nbt.getCompound("Fireworks");
+            if (!fireworksCompound.hasKeyOfType("Explosions", NBTType.LISTOFCOMOUND)) {
+                return false;
+            }
+            return fireworksCompound.getListOfCompound("Explosions").size() > MAX_FIREWORK_EXPLOSIONS;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_FIREWORK_EXPLOSIONS = value;
         }
 
         @Override
         public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ALL;
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class IllegalPotionsCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBannerPatternsCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_BANNER_PATTENRS;
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return false;
+            if (!nbt.hasKeyOfType("Patterns", NBTType.LISTOFCOMOUND)) {
+                return false;
+            }
+            return nbt.getListOfCompound("Patterns").size() > MAX_BANNER_PATTENRS;
         }
 
         @Override
         public void setValue(int value) {
-
+            MAX_BANNER_PATTENRS = value;
         }
 
         @Override
         public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ALL;
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 
@@ -483,6 +629,38 @@ public class ItemChecks {
         @Override
         public AcceptStrategy getAcceptStrategy() {
             return AcceptStrategy.ALL;
+        }
+    }
+
+    public static class IllegalComponentStrings implements ItemAnalysis.ItemChecker {
+
+        private final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
+                "{translate:\"translation.test.invalid\"}",
+                "{translate:\"translation.test.invalid2\"}",
+                "\"action:\":\"run_command\""
+        };
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            NBTRoot root = nbt.getRoot();
+            for (NBTElement<String> string : root.getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+                for (String component : ILLEGAL_COMPONENT_STRINGS) {
+                    if (component.toLowerCase().replace("\\", "").trim().contains(string.getValue())) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
         }
     }
 }

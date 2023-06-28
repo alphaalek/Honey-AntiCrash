@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
@@ -17,7 +16,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ViolationService {
 
@@ -81,11 +79,12 @@ public class ViolationService {
     public void flag(
             Player player,
             PacketContainer<? extends WrappedPacket<?>> packet,
+            CheckKey key,
             Runnable onViolation,
             String violationName,
             ConfigurationOptions.VlSetting setting
     ) {
-        getLimits(player, CheckKey.DEFAULT, setting)
+        getLimits(player, key, setting)
                 .flag(packet.getHandle(), violationName, onViolation);
     }
 
@@ -165,12 +164,16 @@ public class ViolationService {
         }
     }
 
-    private static class CheckKey extends Tuple2<PacketCheck<? extends WrappedPacket<?>>, PacketTypeEnum> {
+    public static class CheckKey extends Tuple2<Object, Object> {
 
         public static CheckKey DEFAULT = new CheckKey(null, null);
 
-        protected CheckKey(PacketCheck<? extends WrappedPacket<?>> check, PacketTypeEnum packetTypeEnum) {
-            super(check, packetTypeEnum);
+        public CheckKey(Object object1, Object object2) {
+            super(object1, object2);
+        }
+
+        public static CheckKey of(Object object1, Object object2) {
+            return new CheckKey(object1, object2);
         }
     }
 

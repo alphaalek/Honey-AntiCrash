@@ -2,6 +2,7 @@ package me.alek.honey.checks.response;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Function;
@@ -26,7 +27,7 @@ public class ResponseBuilder {
              = (packet) -> FLOOD_FLAG
                           .apply(packet)
                           .builder()
-                          .useDefaultCheckKey()
+                          .withKey(ViolationService.CheckKey.DEFAULT)
                           .build();
 
     public static ResponseBuilder inst() {
@@ -63,11 +64,6 @@ public class ResponseBuilder {
         return this;
     }
 
-    public ResponseBuilder useDefaultCheckKey() {
-        responseContainer.FLAG_DEFAULT_CHECK_KEY = true;
-        return this;
-    }
-
     public ResponseBuilder punish() {
         responseContainer.PUNISH = true;
         return this;
@@ -80,6 +76,11 @@ public class ResponseBuilder {
 
     public ResponseBuilder skip(int indices) {
         responseContainer.SKIP_INDICES = indices;
+        return this;
+    }
+
+    public ResponseBuilder withKey(ViolationService.CheckKey key) {
+        responseContainer.CUSTOM_KEY = key;
         return this;
     }
 

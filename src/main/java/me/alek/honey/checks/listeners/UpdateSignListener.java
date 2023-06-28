@@ -46,15 +46,21 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
 
     public static class SignA implements PacketCheck<WrappedPlayInUpdateSign> {
 
+        private final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
+                "{translate:\\\"translation.test.invalid\\\"}",
+                "{translate:\\\"translation.test.invalid2\\\"}"
+        };
+
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .punish()
-                            .build();
+                    return ResponseBuilder.inst().cancel().punish().build();
+                }
+                for (String string : ILLEGAL_COMPONENT_STRINGS) {
+                    if (line.equals(string)) {
+                        return ResponseBuilder.inst().cancel().punish().build();
+                    }
                 }
             }
             return ResponseBuilder.SUCCESS;

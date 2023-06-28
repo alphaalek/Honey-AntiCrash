@@ -18,9 +18,6 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -59,29 +56,14 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
     @Override
     public void cleanup(Player player) {
-        LookA.lastYaw.remove(player.getUniqueId());
     }
 
     public static class LookA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
-        private static volatile Map<UUID, Float> lastYaw = new ConcurrentHashMap<>();
-
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-
-            final float lastYaw = LookA.lastYaw.get(player.getUniqueId());
-            final float packetYaw = packet.getYaw();
-
-            LookA.lastYaw.put(player.getUniqueId(), packetYaw);
-            if (Float.isNaN(lastYaw)) {
-                return ResponseBuilder.SUCCESS;
-            }
-            if (Locations.calculateYawDistance(lastYaw, packetYaw) > 5_000) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+            if (Locations.calculateYawDistance(player.getLocation().getYaw(), packet.getYaw()) > ConfigurationOptions.Velocity.Yaw.MAX_YAW_DISTANCE) {
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -98,11 +80,7 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             float pitch = packet.getPitch();
             if (pitch < -90 || pitch > 90) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }

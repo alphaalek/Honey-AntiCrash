@@ -64,30 +64,39 @@ item-analysis:
   # Hvor højt enchant level må et item højest have.
   max-enchantment-level: 256
 
-  # Må items have enchants der ikke er mulige at få i Vanilla. Dette ses bort fra max-enchantment-level, men i stedet specifikke enchantments.
-  check-illegal-enchantments: false
-
   # Hvor højt antal må et item stack højest have.
   max-amount: 64
 
   # Hvor langt navn må et item højest have.
-  max-displayname-length: 200
+  max-displayname-length: 100
 
   # Hvor langt må summen af alle længderne på et items lore højest have.
   max-total-lore-length: 2000
 
-  # Må fyrværkeri have data der ikke er mulig at få i Vanilla.
-  check-illegal-firework: true
+  # Hvor mange eksplosioner må et fyrværkeri højest have. I Vanilla Minecraft er det højest muligt at have 17.
+  max-firework-explosions: 17
 
-  # Må potions have data der ikke er mulig at få i Vanilla.
-  check-illegal-potions: true
+  # Hvor mange banner mønstre må et banner højest have. I Vanilla Minecraft er det højest muligt at have 6.
+  max-banner-patterns: 6
+
+  # Må potions ikke have custom potion effects. Kan være bugged i gennem creative.
+  disable-custom-potion-effects: false
+
+  # Må items ikke være unbreakable. Kan være bugged i gennem creative.
+  disable-unbreakable-items: false
+
+  # Må items ikke have attribute modifiers. Kan være bugged i gennem creative.
+  disable-attribute-modifiers: false
 
   # NBT
   nbt:
     # Hvor mange bytes må et items NBT højest have.
     max-nbt-length: 6000
 
-    # Hvor mange bytes må fyrværkeris NBT højest have.
+    # Hvor mange bytes må en nbt string højest være.
+    max-nbt-string-length: 275
+
+    # Hvor mange bytes må fyrværkeris NBT højest have. Dette gælder også firework charge.
     max-firework-nbt-length: 1500
 
     # Hvor mange bytes må en bogs NBT højest have.
@@ -96,8 +105,11 @@ item-analysis:
     # Hvor mange sider må en bog højest have. I Vanilla Minecraft er det højest muligt at få 50 sider.
     max-book-pages: 50
 
-    # Hvor mange bytes må en side i en bog højest have.
-    max-book-page-length: 300
+    # Hvor lang titel må en bog højest have. I Vanilla Minecraft er det højest muligt at få 32 bogstaver.
+    max-book-title-length: 32
+
+    # Hvor lang må navnet på en forfatter af en bog højest have. I Vanilla Minecraft er det højest muligt at have 16 bogstaver.
+    max-book-author-length: 16
 
     # Hvor mange NBT bases må et items NBT højest have. (den generelle NBT repræsentation, gælder lister, strings, doubles osv ...)
     max-nbt-bases: 65
@@ -105,7 +117,7 @@ item-analysis:
     # Hvor meget NBT nesting må et items NBT højest have. (lister oveni listener oveni compounds osv ...)
     max-nbt-nesting: 4
 
-    # Må skulls/heads ikke have ugyldige textures.
+    # Må skulls/heads ikke have ugyldige textures. (behøves kun til op til 1.10.2, da Spigot har patchet det i den version)
     check-illegal-skull-textures: true
 
 ############################################################
@@ -131,11 +143,7 @@ item-analysis:
 # netty
 netty:
   # Hvor mange bytes hver packet højest må have.
-  max-bytes-per-packet: 12500
-
-  # Skal der tilføjes ekstra beskyttelse af Netty Crashers ved at inject anderledes decoder & decompressor af netværk packets.
-  # Anbefales stærkt at have slå til.
-  decode: true
+  max-bytes-per-packet: 10000
 
 # velocity
 velocity:
@@ -152,7 +160,8 @@ velocity:
 
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-2d-distance: 50
+    max-distance: 50
+    min-distance: 0.001
     vls-amount: 8
 
   height:
@@ -161,23 +170,21 @@ velocity:
     vls-amount: 1
 
   yaw:
+    max-yaw-distance: 5000
     max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
     min-yaw: -25000
 
 # custom payload
 custom-payload:
 
-  # normalt ikke nødvendigt, da de andre checks vil sørge for alt for store NBT tags,
-  # men det kan være en ekstra beskyttelse der sørger for størrelsen på bytebuffers sendt
-  # med packet serializeren
   max-bytebuf-size: 10000
-  max-bytebuf-capacity: 10000 # for at være sikker på den ikke er compressed
+  max-bytebuf-capacity: 10000
 
   max-serialized-item-nbt-length: 6000
   max-plugin-channels: 105
 
-  # packet flood for plugin channels
-  channels:
+  # packet flood for channels
+  packet-flood:
     # fælles indstillinger
     interval: 1000
     vls-amount: 3
@@ -192,6 +199,11 @@ custom-payload:
       max-per-interval: 7
       vls-amount: 4
 
+    # beacon
+    beacon:
+      max-per-interval: 6
+      vls-amount: 5
+
     # b edit
     b-edit:
       max-per-interval: 6
@@ -204,9 +216,9 @@ custom-payload:
     b-sign:
       max-per-interval: 4
 
-    # beacon
-    beacon:
-      max-per-interval: 6
+    # brand
+    brand:
+      max-per-interval: 3
       vls-amount: 5
 
     # register plugin channel
@@ -214,6 +226,7 @@ custom-payload:
       max-per-interval: 4
       vls-amount: 6
 
+    # unregister plugin channel
     unregister:
       max-per-interval: 4
       vls-amount: 6

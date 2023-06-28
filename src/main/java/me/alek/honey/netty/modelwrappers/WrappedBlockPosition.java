@@ -1,8 +1,8 @@
 package me.alek.honey.netty.modelwrappers;
 
+import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import java.io.Serializable;
@@ -42,6 +42,10 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     public int getZ() {
         return z;
+    }
+
+    public boolean isInvalid() {
+        return NumberConversions.isInvalid(new int[]{x, y, z});
     }
 
     public Vector toVector() {

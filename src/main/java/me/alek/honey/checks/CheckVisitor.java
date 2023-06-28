@@ -2,13 +2,12 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.IntervalCheck;
-import me.alek.honey.checks.types.IntervalConsumerCheck;
+import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.ViolationConsumerCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -26,6 +25,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return checks;
     }
 
+    @SuppressWarnings("unchecked")
     public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) throws Exception {
         int skipping = 0;
         for (PacketCheck<WP> check : checks) {
@@ -37,11 +37,12 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
             ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
             ConfigurationOptions.VlSetting setting = null;
-            if (check instanceof IntervalCheck) {
-                setting = ((IntervalCheck)check).getSetting();
+            if (check instanceof ViolationCheck) {
+                setting = ((ViolationCheck)check).getSetting();
             }
-            else if (check instanceof IntervalConsumerCheck) {
-                setting = ((IntervalConsumerCheck)check).getSetting(packetContainer.getType());
+            else if (check instanceof ViolationConsumerCheck) {
+                ViolationConsumerCheck<WP, Object> violationCheck = (ViolationConsumerCheck<WP, Object>) check;
+                setting = violationCheck.getSetting(violationCheck.getKey(packetContainer.getPacket()));
             }
 
             if (response.SUCCESS) {
@@ -54,34 +55,18 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 if (setting == null) {
                     continue;
                 }
-                if (response.FLAG_DEFAULT_CHECK_KEY) {
-                    HoneyPlugin.get().getViolationService().flag(
-                            player,
-                            packetContainer,
-                            response.ON_VIOLATION,
-                            check.getViolationName(),
-                            setting
-                    );
+                if (response.CUSTOM_KEY != null) {
+                    HoneyPlugin.get().getViolationService().flag(player, packetContainer, response.CUSTOM_KEY, response.ON_VIOLATION, check.getViolationName(), setting);
                 }
                 else {
-                    HoneyPlugin.get().getViolationService().flag(
-                            player,
-                            packetContainer,
-                            check,
-                            response.ON_VIOLATION,
-                            check.getViolationName(),
-                            setting
-                    );
+                    HoneyPlugin.get().getViolationService().flag(player, packetContainer, check, response.ON_VIOLATION, check.getViolationName(), setting);
                 }
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null) {
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);
             }
             if (response.PUNISH) {
-                HoneyPlugin.get().getViolationService().punish(
-                        player,
-                        check.getViolationName()
-                );
+                HoneyPlugin.get().getViolationService().punish(player, check.getViolationName());
             }
             if (response.CONFISCATE && response.CONFISCATED_ITEM != null) {
                 HoneyPlugin.get().getConfiscationService().confiscate(player, response.CONFISCATED_ITEM);

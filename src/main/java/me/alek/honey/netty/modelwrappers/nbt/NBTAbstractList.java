@@ -1,12 +1,15 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import org.bukkit.Bukkit;
 
+import java.io.DataOutput;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -32,6 +35,15 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
             delegate = Converters.getNBTListConverter(this);
         }
         return delegate;
+    }
+
+    @Override
+    public void write(DataOutput output) throws Exception {
+        output.writeByte((byte) getType().getTypeId());
+        output.writeInt(size());
+        for (T value : getValue().getDelegatedList()) {
+            value.write(output);
+        }
     }
 
     @Override

@@ -59,11 +59,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
                 InetSocketAddress address = NMSUtils.getSocketAddress(handler);
 
                 if (address == null || address.getAddress() == null) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .notify("")
-                            .build();
+                    return ResponseBuilder.inst().cancel().notify("").build();
                 }
             }
             return ResponseBuilder.SUCCESS;

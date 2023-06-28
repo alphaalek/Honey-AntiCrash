@@ -1,32 +1,46 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NBTRoot extends NBTCompound {
 
-    private HashMap<NBTBase<?, ?>, List<NBTBase<?, ?>>> ownerMap;
-    private HashMap<NBTBase<?, ?>, Integer> distanceToTailMap;
+    private Map<NBTBase<?, ?>, List<NBTBase<?, ?>>> ownerMap;
+    private Map<NBTBase<?, ?>, Integer> distanceToTailMap;
+    private Map<NBTType, List<NBTBase<?, ?>>> nbtTypeLookup;
     private int maxDistanceToTail = 0;
     private int totalElements = 0;
 
-    public NBTRoot() {
+    private final int maximumElementsWithin;
+
+    public NBTRoot(int maximumElementsWithin) {
         super(null, null, null);
+        this.maximumElementsWithin = maximumElementsWithin;
     }
 
     public void subscribe(NBTBase<?, ?> owner, NBTBase<?, ?> sub) {
         // da subscribe bliver kaldt i NBTBase (super constructor), er ownerMap & distanceToRootMap
         // ikke initialized endnu hvis de eks. havde været på class level (gælder kun for NBTRoot)
+        if (owner == null || sub == null) {
+            return;
+        }
         if (ownerMap == null || distanceToTailMap == null) {
             ownerMap = new HashMap<>();
             distanceToTailMap = new HashMap<>();
+            nbtTypeLookup = new EnumMap<>(NBTType.class);
         }
         if (!ownerMap.containsKey(owner)) {
             ownerMap.put(owner, new ArrayList<>());
         }
-        if (owner != null && sub != null && owner.getHandle() != null && sub.getHandle() != null) {
+        if (!owner.isNull() && !sub.isNull()) {
             totalElements++;
+
+            // tilføj dem til nbt lookup
+            nbtTypeLookup.computeIfAbsent(sub.getType(), (base) -> new ArrayList<>());
+            nbtTypeLookup.get(sub.getType()).add(sub);
 
             // da nbt parsing kører inde fra og ud, bruger jeg distance to tail i stedet for distance to root
             if (!distanceToTailMap.containsKey(sub)) {
@@ -59,6 +73,10 @@ public class NBTRoot extends NBTCompound {
         return acquiredSub;
     }
 
+    public <T extends NBTBase<?, ?>> List<T> getAllElementsAs(NBTType type, Class<T> clazz) {
+        return (List<T>) nbtTypeLookup.computeIfAbsent(type, (nbtType) -> new ArrayList<>());
+    }
+
     public int getDistanceToTail(NBTBase<?, ?> element) {
         return distanceToTailMap.getOrDefault(element, -1);
     }
@@ -79,6 +97,10 @@ public class NBTRoot extends NBTCompound {
 
     public int getTotalElements() {
         return totalElements;
+    }
+
+    public int getMaximumElementsWithin() {
+        return maximumElementsWithin;
     }
 
 }

@@ -25,11 +25,11 @@ public class Locations {
         return false;
     }
 
-    public static int calculateYDistance(Location loc1, Location loc2) {
+    public static double calculateYDistance(Location loc1, Location loc2) {
         if (checkInvalidLocation(loc1, loc2)) {
             return 1_000_000;
         }
-        return (int) Math.abs(loc1.getY() - loc2.getY());
+        return Math.abs(loc1.getY() - loc2.getY());
     }
 
     public static float calculateYawDistance(float yaw1, float yaw2) {
@@ -39,13 +39,13 @@ public class Locations {
         return Math.abs(yaw1 - yaw2);
     }
 
-    public static int calculate2DDistance(Location loc1, Location loc2) {
+    public static double calculate2DDistance(Location loc1, Location loc2) {
         if (checkInvalidLocation(loc1, loc2)) {
             return 1_000_000;
         }
         final double deltaX = Math.abs(loc1.getX() - loc2.getX());
         final double deltaZ = Math.abs(loc1.getZ() - loc2.getZ());
 
-        return (int) Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaZ, 2));
+        return Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaZ, 2));
     }
 }

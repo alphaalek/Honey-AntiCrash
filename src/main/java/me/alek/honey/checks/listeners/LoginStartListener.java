@@ -59,11 +59,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .notify("")
-                            .build();
+                    return ResponseBuilder.inst().cancel().notify("").build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -86,11 +82,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
                 InetSocketAddress address = NMSUtils.getSocketAddress(handler);
 
                 if (address.getAddress() == null) {
-                    return ResponseBuilder
-                            .inst()
-                            .cancel()
-                            .notify("")
-                            .build();
+                    return ResponseBuilder.inst().cancel().notify("").build();
                 }
             }
             return ResponseBuilder.SUCCESS;

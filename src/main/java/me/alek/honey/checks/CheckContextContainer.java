@@ -1,13 +1,11 @@
 package me.alek.honey.checks;
 
 import io.netty.buffer.ByteBuf;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +30,10 @@ public class CheckContextContainer {
         putValue(Chunk.class, chunk);
     }
 
+    public void putLocation(Location location) {
+        putValue(Location.class, location);
+    }
+
 
     public ByteBuf getSerializer(int index) {
         return getValue(ByteBuf.class, index);
@@ -47,6 +49,10 @@ public class CheckContextContainer {
 
     public Chunk getChunk(int index) {
         return getValue(Chunk.class, index);
+    }
+
+    public Location getLocation(int index) {
+        return getValue(Location.class, index);
     }
 
     public synchronized <T> void putValue(Class<T> clazz, T value) {

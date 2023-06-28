@@ -49,11 +49,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
-                return ResponseBuilder
-                        .inst()
-                        .cancel()
-                        .punish()
-                        .build();
+                return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
         }
