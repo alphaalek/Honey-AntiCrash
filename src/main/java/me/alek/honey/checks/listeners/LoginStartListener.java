@@ -67,7 +67,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public String getViolationName() {
-            return "LoginA";
+            return "Login.A";
         }
     }
 

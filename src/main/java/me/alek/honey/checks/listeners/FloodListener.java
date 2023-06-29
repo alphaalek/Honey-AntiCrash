@@ -118,7 +118,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "FloodA";
+            return "Flood.A";
         }
     }
 
@@ -136,7 +136,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "FloodB";
+            return "Flood.B";
         }
     }
 
@@ -154,7 +154,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "FloodC";
+            return "Flood.C";
         }
     }
 
@@ -166,7 +166,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "FloodD";
+            return "Flood.D";
         }
 
         @Override

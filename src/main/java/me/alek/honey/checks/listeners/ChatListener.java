@@ -74,7 +74,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getViolationName() {
-            return "ChatA";
+            return "Chat.A";
         }
     }
 
@@ -93,7 +93,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getViolationName() {
-            return "ChatB";
+            return "Chat.B";
         }
     }
 
@@ -168,7 +168,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getViolationName() {
-            return "CommandsA";
+            return "Commands.A";
         }
 
         @Override

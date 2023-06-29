@@ -2,10 +2,7 @@ package me.alek.honey.services;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
@@ -34,7 +31,7 @@ public class ViolationService {
                 addPlayer(player);
                 continue;
             }
-            for (PacketLimitHandler packetLimitHandler : violationContext.getPacketlimitMap().values()) {
+            for (AbstractPacketLimitHandler packetLimitHandler : violationContext.getPacketlimitMap().values()) {
                 packetLimitHandler.reload();
             }
         }
@@ -42,6 +39,10 @@ public class ViolationService {
 
     public List<UUID> getPunishing() {
         return punishing;
+    }
+
+    public Map<UUID, ViolationContext> getViolatedMap() {
+        return violatedMap;
     }
 
     public boolean isPunishing(Player player) {
@@ -54,7 +55,7 @@ public class ViolationService {
         return punishing.contains(player.getUniqueId());
     }
 
-    public void addPlayer(Player player) {
+    public synchronized void addPlayer(Player player) {
         if (violatedMap.containsKey(player.getUniqueId())) {
             return;
         }
@@ -66,47 +67,32 @@ public class ViolationService {
         violatedMap.remove(player.getUniqueId());
     }
 
-    public ViolationContext getViolationContext(Player player) {
+    public synchronized ViolationContext getViolationContext(Player player) {
         if (!violatedMap.containsKey(player.getUniqueId())) {
             addPlayer(player);
         }
         return violatedMap.get(player.getUniqueId());
     }
 
-    public PacketLimitHandler getLimits(
-            Player player,
-            CheckKey checkKey,
-            ConfigurationOptions.VlSetting setting
-    ) {
+    public AbstractPacketLimitHandler getLimits(Player player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
         ViolationContext context = getViolationContext(player);
         return context.getLimits(checkKey, setting);
     }
 
-    public void flag(
+    public boolean flag(
             Player player,
-            PacketContainer<? extends WrappedPacket<?>> packet,
+            Object handle,
             CheckKey key,
+            int amount,
             Runnable onViolation,
             String violationName,
             ConfigurationOptions.VlSetting setting
     ) {
-        getLimits(player, key, setting)
-                .flag(packet.getHandle(), violationName, onViolation);
+        return getLimits(player, key, setting)
+                .flag(handle, violationName, amount, onViolation);
     }
 
-    public void flag(
-            Player player,
-            PacketContainer<? extends WrappedPacket<?>> packet,
-            PacketCheck<? extends WrappedPacket<?>> check,
-            Runnable onViolation,
-            String violationName,
-            ConfigurationOptions.VlSetting setting
-    ) {
-        getLimits(player, new CheckKey(check, packet.getType()), setting)
-                .flag(packet.getHandle(), violationName, onViolation);
-    }
-
-    public void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, PacketLimitHandler packetLimitHandler) {
+    public void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, AbstractPacketLimitHandler packetLimitHandler) {
         try {
             punishLock.lock();
             if (punishing.contains(player.getUniqueId())) {
@@ -117,12 +103,11 @@ public class ViolationService {
             /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
             PacketContainer<WrappedPlayOutKickDisconnect> packetContainer =
                     new InternalPacketContainer<>(handle, player, NMSUtils.getChannel(player), null, PacketType.Play.Server.KICK_DISCONNECT);
-            WrappedPlayOutKickDisconnect packet = PacketWrapperFactory.playOutKickDisconnect(handle, packetContainer);
             packet.getContainer() // chat base components write
 
             HoneyPlugin.get().getPacketLibrary().getProxy().writePacket(player, handle);*/
 
-            HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
+            HoneyPlugin.get().getNotificationService().warn(player, violationName);
             HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
 
             Channel channel = NMSUtils.getChannel(player);
@@ -149,21 +134,25 @@ public class ViolationService {
 
     public class ViolationContext {
 
-        private final Map<CheckKey, PacketLimitHandler> packetLimitMap = new ConcurrentHashMap<>();
+        private final Map<CheckKey, AbstractPacketLimitHandler> packetLimitMap = new ConcurrentHashMap<>();
         private final Player player;
 
         public ViolationContext(Player player) {
             this.player = player;
         }
 
-        public synchronized PacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
+        public synchronized AbstractPacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
-                packetLimitMap.put(key, new PacketLimitHandler(player, setting));
+                if (setting.isUseBuffer()) {
+                    packetLimitMap.put(key, new PacketBufferHandler(player, setting));
+                } else {
+                    packetLimitMap.put(key, new PacketIntervalHandler(player, setting));
+                }
             }
             return packetLimitMap.get(key);
         }
 
-        public Map<CheckKey, PacketLimitHandler> getPacketlimitMap() {
+        public Map<CheckKey, AbstractPacketLimitHandler> getPacketlimitMap() {
             return packetLimitMap;
         }
 
@@ -175,6 +164,7 @@ public class ViolationService {
     public static class CheckKey extends Tuple2<Object, Object> {
 
         public static CheckKey DEFAULT = new CheckKey(null, null);
+        private boolean useBuffer;
 
         public CheckKey(Object object1, Object object2) {
             super(object1, object2);
@@ -183,71 +173,49 @@ public class ViolationService {
         public static CheckKey of(Object object1, Object object2) {
             return new CheckKey(object1, object2);
         }
+
+        public CheckKey setBuffer(boolean buffer) {
+            useBuffer = buffer;
+            return this;
+        }
+
+        @Override
+        public int hashCode() {
+            if (useBuffer) {
+                return super.hashCode() * (-1);
+            }
+            return super.hashCode();
+        }
     }
 
-    public class PacketLimitHandler {
+    public abstract class AbstractPacketLimitHandler {
 
         private final Player player;
         private final ConfigurationOptions.VlSetting setting;
-        private int maxPerInterval;
-        private int interval;
-        private int vlsAmount;
 
-        private volatile long intervalStart;
         private volatile long lastViolationClear;
-        private volatile int flagged;
         private volatile int violations;
         private volatile boolean violatedForInterval;
 
-        public PacketLimitHandler(Player player, ConfigurationOptions.VlSetting setting) {
-            this.setting = setting;
+        public AbstractPacketLimitHandler(Player player, ConfigurationOptions.VlSetting setting) {
             this.player = player;
-            maxPerInterval = setting.getMaxPerInterval();
-            interval = setting.getInterval();
-            vlsAmount = setting.getVlsAmount();
-            intervalStart = System.currentTimeMillis();
-            lastViolationClear = System.currentTimeMillis();
+            this.setting = setting;
+            reload();
         }
 
-        public int getFlagged() {
-            return flagged;
-        }
-
-        public int getViolations() {
-            return violations;
-        }
-
-        public void reload() {
-            this.maxPerInterval = setting.getMaxPerInterval();
-            this.interval = setting.getInterval();
-            this.vlsAmount = setting.getVlsAmount();
+        public Player getPlayer() {
+            return player;
         }
 
         public ConfigurationOptions.VlSetting getSetting() {
             return setting;
         }
 
-        public synchronized void flag(Object handle, String violationName, Runnable onViolation) {
-            if (System.currentTimeMillis() - intervalStart >= interval) {
-                violatedForInterval = false;
-                flagged = 0;
-                intervalStart = System.currentTimeMillis();
-            }
-            flagged++;
-            if (loggerService.isDebug()) {
-                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, player.getName(), violationName, this, setting);
-            }
-            if (flagged < maxPerInterval) {
-                return;
-            }
-            violate(handle, violationName, onViolation);
+        public synchronized void setViolatedForInterval(boolean value) {
+            this.violatedForInterval = value;
         }
 
-        public void flag(Object handle, String violationName) {
-            flag(handle, violationName, null);
-        }
-
-        public synchronized void violate(Object handle, String violationName, Runnable onViolation) {
+        public synchronized boolean violate(Object handle, String violationName, Runnable onViolation) {
             if (onViolation != null) {
                 onViolation.run();
             }
@@ -257,26 +225,120 @@ public class ViolationService {
                 lastViolationClear = System.currentTimeMillis();
             }
             if (violatedForInterval) {
-                return;
+                return false;
             }
             if (loggerService.isDebug()) {
-                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, player.getName(), violationName, this, setting);
+                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), violationName, this, getSetting());
             }
             violatedForInterval = true;
             violations++;
-            HoneyPlugin.get().getNotificationService().notify(player, violationName, setting, this);
-            if (violations < vlsAmount) {
-                return;
+            HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this);
+            if (violations < getSetting().getVlsAmount()) {
+                return false;
             }
-            punish(player, violationName, setting, this);
+            punish(getPlayer(), violationName, getSetting(), this);
+            return true;
         }
 
         public void violate(Object handle, String violationName) {
             violate(handle, violationName, null);
         }
 
-        public Player getPlayer() {
-            return player;
+        public int getViolations() {
+            return violations;
+        }
+
+        public void reload() {
+            this.lastViolationClear = System.currentTimeMillis();
+        }
+
+        public abstract boolean flag(Object handle, String violationName, int amount, Runnable onViolation);
+    }
+
+    public class PacketBufferHandler extends AbstractPacketLimitHandler {
+
+        private int threshold;
+        private int decayInterval; // ms
+        private int decayAmount;
+
+        private volatile long lastDecay;
+        private volatile int bufferIndex;
+
+        public PacketBufferHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+            lastDecay = System.currentTimeMillis();
+        }
+
+        @Override
+        public void reload() {
+            this.threshold = getSetting().getThreshold();
+            this.decayInterval = getSetting().getDecay();
+            this.decayAmount = getSetting().getDecayAmount();
+        }
+
+        @Override
+        public synchronized boolean flag(Object handle, String violationName, int amount, Runnable onViolation) {
+            if (System.currentTimeMillis() - lastDecay > decayInterval) {
+                setViolatedForInterval(false);
+                bufferIndex -= decayAmount;
+                lastDecay = System.currentTimeMillis();
+            }
+            if (bufferIndex < 0) {
+                bufferIndex = 0;
+            }
+            bufferIndex += amount;
+            if (loggerService.isDebug()) {
+                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
+            }
+            if (bufferIndex < threshold) {
+                return false;
+            }
+            return violate(handle, violationName, onViolation);
+        }
+
+        public int getBufferIndex() {
+            return bufferIndex;
+        }
+    }
+
+    public class PacketIntervalHandler extends AbstractPacketLimitHandler {
+
+        private int maxPerInterval;
+        private int interval; // ms
+
+        private volatile long intervalStart;
+        private volatile int flagged;
+
+        public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+            maxPerInterval = setting.getMaxPerInterval();
+            interval = setting.getInterval();
+            intervalStart = System.currentTimeMillis();
+        }
+
+        public int getFlagged() {
+            return flagged;
+        }
+
+        public void reload() {
+            this.maxPerInterval = getSetting().getMaxPerInterval();
+            this.interval = getSetting().getInterval();
+        }
+
+        public synchronized boolean flag(Object handle, String violationName, int amount, Runnable onViolation) {
+            if (System.currentTimeMillis() - intervalStart >= interval) {
+                setViolatedForInterval(false);
+                flagged = 0;
+                intervalStart = System.currentTimeMillis();
+            }
+            flagged += amount;
+            if (loggerService.isDebug()) {
+                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
+            }
+            if (flagged < maxPerInterval) {
+                return false;
+            }
+            return violate(handle, violationName, onViolation);
         }
     }
 }

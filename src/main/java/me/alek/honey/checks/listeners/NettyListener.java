@@ -57,7 +57,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         if (packetContainer != null) {
             packetContainer.cancel();
         }
-        HoneyPlugin.get().getViolationService().punish(player, "NettyA");
+        HoneyPlugin.get().getViolationService().punish(player, "Netty.A");
     }
 
     public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP> {
@@ -72,7 +72,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "NettyB";
+            return "Netty.B";
         }
     }
 
@@ -135,7 +135,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getViolationName() {
-            return "NettyC";
+            return "Netty.C";
         }
 
         @Override

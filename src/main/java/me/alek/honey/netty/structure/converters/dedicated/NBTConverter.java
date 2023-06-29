@@ -1,7 +1,8 @@
-package me.alek.honey.netty.structure.converters;
+package me.alek.honey.netty.structure.converters.dedicated;
 
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 
 public class NBTConverter implements JavaConverter<Object, NBTBase<?, ?>> {
 

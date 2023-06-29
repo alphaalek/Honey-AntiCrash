@@ -61,7 +61,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getViolationName() {
-            return "HeldItemA";
+            return "HeldItem.A";
         }
     }
 
@@ -77,7 +77,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getViolationName() {
-            return "HeldItemB";
+            return "HeldItem.B";
         }
     }
 

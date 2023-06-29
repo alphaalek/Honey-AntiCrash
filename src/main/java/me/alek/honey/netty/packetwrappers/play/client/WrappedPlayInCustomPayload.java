@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.modelwrappers.WrappedPacketDataSerializer;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;

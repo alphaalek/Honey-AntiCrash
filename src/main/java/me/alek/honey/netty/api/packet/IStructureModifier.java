@@ -1,6 +1,8 @@
 package me.alek.honey.netty.api.packet;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.netty.utility.reflect.FieldAccessor;
+import me.alek.honey.netty.utility.reflect.MethodInvoker;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +25,10 @@ public interface IStructureModifier<T> {
 
     T invokeMethod(String name, int index, Object... params);
 
+    T invokeMethodWithException(int index, Object... params) throws Exception;
+
+    T invokeMethodWithException(String name, int index, Object... params) throws Exception;
+
     List<T> readFieldValues();
 
     boolean hasField(int index);
@@ -37,8 +43,8 @@ public interface IStructureModifier<T> {
 
     int methodSize();
 
-    Collection<?> getAccessors();
+    Collection<FieldAccessor<?>> getAccessors();
 
-    Collection<?> getInvokers();
+    Collection<MethodInvoker<?>> getInvokers();
 
 }

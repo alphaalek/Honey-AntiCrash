@@ -51,31 +51,32 @@ public class NotificationService {
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 fejlede packets §e" + type + "§f. ");
+                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 fejlede packets §e" + type + "§7.");
             }
 
             @Override
-            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 fejlede packets §e" + type +  "§f. " + formatNotification(setting, packetLimitHandler));
-            }
-
-            @Override
-            public void warn(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 blev kicked for packets §e" + type +  "§f. " + formatNotification(setting, packetLimitHandler));
+            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
+                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 fejlede packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
             }
 
             @Override
             public void warn(Player player, String type) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 blev kicked for packets §e" + type + "§f. ");
+                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 blev kicked for packets §e" + type + "§7.");
             }
         });
     }
 
-    public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
+    public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
         if (setting == null) {
             return "";
         }
-        return "§e" + packetLimitHandler.getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + setting.getInterval() + "§7ms";
+        if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
+            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + setting.getInterval() + "§7ms";
+        }
+        else if (packetLimitHandler instanceof ViolationService.PacketBufferHandler) {
+            return "§7buffer: §e " + ((ViolationService.PacketBufferHandler)packetLimitHandler).getBufferIndex() + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls§e" + setting.getVlsAmount() + "§7vls, §e" + setting.getInterval() + "§7ms";
+        }
+        return "";
     }
 
     public void unsubscribe(Player player) {
@@ -95,7 +96,7 @@ public class NotificationService {
         notify(player, notification, null, null);
     }
 
-    public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
+    public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
         for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 continue;
@@ -110,19 +111,11 @@ public class NotificationService {
     }
 
     public void warn(Player player, String warning) {
-        warn(player, warning, null, null);
-    }
-
-    public void warn(Player player, String warning, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
         for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
                 continue;
             }
-            if (setting == null || packetLimitHandler == null) {
-                observer.getValue().warn(player, warning);
-            } else {
-                observer.getValue().warn(player, warning, setting, packetLimitHandler);
-            }
+            observer.getValue().warn(player, warning);
         }
     }
 
@@ -132,9 +125,7 @@ public class NotificationService {
 
         void notify(Player player, String notification);
 
-        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler);
-
-        void warn(Player player, String warning, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler);
+        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler);
 
         void warn(Player player, String notification);
     }

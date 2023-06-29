@@ -2,12 +2,13 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.ViolationConsumerCheck;
-import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -51,16 +52,12 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (response.CANCELLED && !response.ACCEPTED) {
                 packetContainer.cancel();
             }
-            if (response.FLAGGED) {
+            if (response.FLAGGED != 0) {
                 if (setting == null) {
                     continue;
                 }
-                if (response.CUSTOM_KEY != null) {
-                    HoneyPlugin.get().getViolationService().flag(player, packetContainer, response.CUSTOM_KEY, response.ON_VIOLATION, check.getViolationName(), setting);
-                }
-                else {
-                    HoneyPlugin.get().getViolationService().flag(player, packetContainer, check, response.ON_VIOLATION, check.getViolationName(), setting);
-                }
+                ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check, packetContainer.getType());
+                HoneyPlugin.get().getViolationService().flag(player, packetContainer, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting);
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null) {
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);

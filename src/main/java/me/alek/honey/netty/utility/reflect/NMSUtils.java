@@ -65,48 +65,65 @@ public class NMSUtils {
         return (InetSocketAddress) socketAddress.get(networkManager);
     }
 
-    public static Class<?> getEntityPlayerClass() {
-        return Reflection.getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
+    public static Class<Object> getFuzzyClass(String... params) {
+        return Reflection.getFuzzyObjectClass(params);
     }
 
-    public static Class<?> getPlayerConnectionClass() {
-        return Reflection.getFuzzyClass("{nms}.PlayerConnection", "{nms}.server.network.PlayerConnection");
+    public static Class<Object> getEntityPlayerClass() {
+        return getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
     }
 
-    public static Class<?> getNetworkManagerClass() {
-        return Reflection.getFuzzyClass("{nms}.NetworkManager", "{nms}.network.NetworkManager");
+    public static Class<Object> getPlayerConnectionClass() {
+        return getFuzzyClass("{nms}.PlayerConnection", "{nms}.server.network.PlayerConnection");
     }
 
-    public static Class<?> getMinecraftServerClass() {
-        return Reflection.getFuzzyClass("{nms}.MinecraftServer", "{nms}.server.MinecraftServer");
+    public static Class<Object> getNetworkManagerClass() {
+        return getFuzzyClass("{nms}.NetworkManager", "{nms}.network.NetworkManager");
     }
 
-    public static Class<?> getServerConnectionClass() {
-        return Reflection.getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection");
+    public static Class<Object> getMinecraftServerClass() {
+        return getFuzzyClass("{nms}.MinecraftServer", "{nms}.server.MinecraftServer");
     }
 
-    public static Class<?> getCraftPlayerClass() {
-        return Reflection.getClass("{obc}.entity.CraftPlayer");
+    public static Class<Object> getServerConnectionClass() {
+        return getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection");
     }
 
-    public static Class<?> getBaseBlockPositionClass() {
-        return Reflection.getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
+    public static Class<Object> getCraftPlayerClass() {
+        return getFuzzyClass("{obc}.entity.CraftPlayer");
+    }
+
+    public static Class<Object> getBaseBlockPositionClass() {
+        return getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
     }
 
     public static Class<Object> getBlockPositionClass() {
-        return Reflection.getFuzzyObjectClass("{nms}.BlockPosition", "{nms}.core.BlockPosition");
+        return getFuzzyClass("{nms}.BlockPosition", "{nms}.core.BlockPosition");
     }
 
     public static Class<Object> getItemStackClass() {
-        return Reflection.getFuzzyObjectClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
+        return getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     }
 
     public static Class<Object> getNBTTagCompoundClass() {
-        return Reflection.getFuzzyObjectClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
+        return getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
     }
 
-    public static Class<Object> getNBTBaseClass() {
-        return Reflection.getFuzzyObjectClass("{nms}.NBTBase", "{nms}.nbt.NBTBase");
+    public static Class<Object> getPacketDataSerializerClass() {
+        return getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
+    }
+
+    public static Class<Object> getEnumProtocolClass() {
+        return getFuzzyClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Class<Enum<?>> getEnumProtocolDirectionClass() {
+        return (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocolDirection", "{nms}.network.protocol.EnumProtocolDirection");
+    }
+
+    public static Class<Object> getPacketClass() {
+        return getFuzzyClass("{nms}.Packet", "{nms}.network.protocol.Packet");
     }
 
     public static boolean isFakeChannel(Channel channel) {

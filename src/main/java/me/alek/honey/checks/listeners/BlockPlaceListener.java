@@ -88,7 +88,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "PlaceA";
+            return "Place.A";
         }
 
         @Override
@@ -112,7 +112,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "PlaceB";
+            return "Place.B";
         }
     }
 
@@ -133,7 +133,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "PlaceC";
+            return "Place.C";
         }
     }
 
@@ -157,7 +157,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "PlaceD";
+            return "Place.D";
         }
 
     }

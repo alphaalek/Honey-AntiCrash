@@ -44,7 +44,6 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\utility\reflect\NMSUtils.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetSlot.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\listeners\FloodListener.java
-C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\WrappedPacketDataSerializer.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutResourcePackSend.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutNamedEntitySpawn.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutNamedSoundEffect.java
@@ -62,7 +61,6 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\api\event\impl\inject\PlayerEjectEvent.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\CheckContextContainer.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInUseItem.java
-C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\SimpleListConverter.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\api\event\impl\packet\PacketPlaySendEvent.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\utility\Locations.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutSetCompression.java
@@ -70,6 +68,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntitySound.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockBreak.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\services\ViolationService.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\dedicated\SimpleMapConverter.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSteerVehicle.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutWorldBorder.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\login\client\WrappedLoginInCustomPayload.java
@@ -81,6 +80,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\command\CooldownMan
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packet\type\PacketTypeEnum.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\api\event\impl\inject\PlayerBoundInjectEvent.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityTeleport.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\dedicated\NBTConverter.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityLook.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\utility\Either.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRecipes.java
@@ -146,6 +146,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\configuration\ConfigurationOptions.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRelEntityMoveLook.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\CheckVisitor.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\network\WrappedEnumProtocolDirection.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSetCommandBlock.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntity.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInClientCommand.java
@@ -158,8 +159,10 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\api\NettyChannelProxy.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTeleportAccept.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\MapConverter.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\network\WrappedEnumProtocol.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutExplosion.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutScoreboardDisplayObjective.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\dedicated\SimpleListConverter.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutKeepAlive.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateTime.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPlayerInfo.java
@@ -172,7 +175,6 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\api\event\impl\packet\PacketPlayReceiveEvent.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\injector\LateChannelInjector.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\listeners\UpdateSignListener.java
-C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\NBTConverter.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\services\LoggerService.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packet\type\RangedPacketTypeEnum.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\nbt\NBTRoot.java
@@ -205,6 +207,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\listeners\HeldItemListener.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\listeners\CustomPayloadListener.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\nbt\NBTAbstractList.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\network\WrappedPacketDataSerializer.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutVehicleMove.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityVelocity.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packet\type\PacketState.java
@@ -228,6 +231,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\listeners\LookListener.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutLogin.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\nbt\writer\Writers.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\network\WrappedNetworkManager.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutKickDisconnect.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\types\PacketCheck.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTileEntityData.java
@@ -259,7 +263,6 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\api\event\imp
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\item\enums\AcceptStrategy.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewCentre.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\utility\NumberConversions.java
-C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\structure\converters\SimpleMapConverter.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTabComplete.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutScoreboardObjective.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\response\ResponseContainer.java

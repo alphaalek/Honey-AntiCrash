@@ -5,7 +5,6 @@ import me.alek.honey.services.ViolationService;
 public class ResponseContainer {
     public boolean ACCEPTED;
     public boolean CANCELLED;
-    public boolean FLAGGED;
     public boolean PUNISH;
     public boolean NOTIFY;
     public boolean SUCCESS;
@@ -14,6 +13,7 @@ public class ResponseContainer {
     public ViolationService.CheckKey CUSTOM_KEY;
     public Runnable ON_VIOLATION;
     public String NOTIFICATION_MESSAGE;
+    public int FLAGGED;
 
     public ResponseBuilder builder() {
         return new ResponseBuilder(this);

@@ -67,6 +67,18 @@ public class ConfigurationOptions {
         }
     }
 
+    private static final Map<String, String> vlFieldLookup = new HashMap<String, String>(){{
+            put("MAX_PER_INTERVAL", ".max-per-interval");
+            put("INTERVAL", ".interval");
+            put("VLS_AMOUNT", ".vls-amount");
+
+            put("THRESHOLD", ".threshold");
+            put("DECAY", ".decay");
+            put ("DECAY_AMOUNT", ".decay-amount");
+
+            put("ENABLED", ".enabled");
+    }};
+
     public static void setIntervalBased(Class<?> clazz, String[] prefixPaths) {
         try {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
@@ -86,33 +98,16 @@ public class ConfigurationOptions {
                 for (Field field : clazz.getDeclaredFields()) {
                     for (String prefixPath : prefixPaths) {
 
-                        switch (field.getName()) {
-                            case "MAX_PER_INTERVAL": {
-                                if (file.get(prefixPath + ".max-per-interval") == null) {
-                                    continue;
-                                }
-                                field.set(setting, file.getInt(prefixPath + ".max-per-interval"));
-                                continue;
-                            }
-                            case "INTERVAL": {
-                                if (file.get(prefixPath + ".interval") == null) {
-                                    continue;
-                                }
-                                field.set(setting, file.getInt(prefixPath + ".interval"));
-                                continue;
-                            }
-                            case "VLS_AMOUNT": {
-                                if (file.get(prefixPath + ".vls-amount") == null) {
-                                    continue;
-                                }
-                                field.set(setting, file.getInt(prefixPath + ".vls-amount"));
-                            }
-                            case "ENABLED": {
-                                if (file.get(prefixPath + ".enabled") == null) {
-                                    continue;
-                                }
-                                field.set(setting, file.getBoolean(prefixPath + ".vls-amount"));
-                            }
+                        String configPath = vlFieldLookup.get(field.getName());
+                        if (configPath == null || file.get(prefixPath + configPath) == null) {
+                            continue;
+                        }
+
+                        if (file.get(prefixPath + configPath).getClass() == Integer.class) {
+                            field.setInt(setting, file.getInt(prefixPath + configPath));
+                        }
+                        else if (file.get(prefixPath + configPath).getClass() == Boolean.class) {
+                            field.setBoolean(setting, file.getBoolean(prefixPath + configPath));
                         }
                     }
                 }
@@ -161,12 +156,22 @@ public class ConfigurationOptions {
     public abstract static class VlSetting implements Cloneable {
 
         public int MAX_PER_INTERVAL = 1;
-        public int INTERVAL = 0;
+        public int INTERVAL;
         public int VLS_AMOUNT = 1;
-        private boolean ENABLED = true;
+        public int THRESHOLD;
+        public int DECAY;
+        public int DECAY_AMOUNT;
 
-        public VlSetting() {}
+        private boolean ENABLED;
+        private final boolean USE_BUFFER;
 
+        public VlSetting(boolean useBuffer) {
+            USE_BUFFER = useBuffer;
+        }
+
+        public VlSetting() {
+            this(false);
+        }
         public int getMaxPerInterval() {
             return MAX_PER_INTERVAL;
         }
@@ -179,8 +184,24 @@ public class ConfigurationOptions {
             return VLS_AMOUNT;
         }
 
+        public int getThreshold() {
+            return THRESHOLD;
+        }
+
+        public int getDecay() {
+            return DECAY;
+        }
+
+        public int getDecayAmount() {
+            return DECAY_AMOUNT;
+        }
+
         public boolean isEnabled() {
             return ENABLED;
+        }
+
+        public boolean isUseBuffer() {
+            return USE_BUFFER;
         }
 
         @Override
@@ -547,6 +568,22 @@ public class ConfigurationOptions {
 
         public static void load() {
             MAX_BYTES_PER_PACKET = file.getInt("netty.max-bytes-per-packet");
+        }
+
+        @Setting
+        @Violation("netty.f")
+        public static class NettyF extends VlSetting {
+
+            private static NettyF INSTANCE;
+
+            public NettyF() {
+                super(true);
+                INSTANCE = this;
+            }
+
+            public static NettyF get() {
+                return INSTANCE;
+            }
         }
     }
 

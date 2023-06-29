@@ -66,7 +66,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getViolationName() {
-            return "TabA";
+            return "Tab.A";
         }
 
         @Override

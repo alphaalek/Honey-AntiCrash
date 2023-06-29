@@ -59,7 +59,11 @@ public class ResponseBuilder {
     }
 
     public ResponseBuilder flag() {
-        responseContainer.FLAGGED = true;
+        return setFlagged(1);
+    }
+
+    public ResponseBuilder setFlagged(int amount) {
+        responseContainer.FLAGGED = amount;
         return this;
     }
 

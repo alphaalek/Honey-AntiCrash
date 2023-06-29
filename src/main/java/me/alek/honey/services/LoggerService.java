@@ -11,6 +11,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -27,12 +28,12 @@ public class LoggerService {
 
     private final FuzzyPacketAdapter packetLoggerListener = new PacketLogger();
 
-    public static class PacketLogger extends FuzzyPacketAdapter {
+    public class PacketLogger extends FuzzyPacketAdapter {
 
         @Override
         @SuppressWarnings("unchecked")
         public void onPacketReceive(Player player, PacketContainer packetContainer) {
-            HoneyPlugin.get().getLoggerService().logPacket(packetContainer, player.getName());
+            logPacket(packetContainer, player.getName());
         }
     }
 
@@ -71,7 +72,7 @@ public class LoggerService {
             Object handle,
             String playerName,
             String violationName,
-            ViolationService.PacketLimitHandler packetLimitHandler,
+            ViolationService.AbstractPacketLimitHandler packetLimitHandler,
             ConfigurationOptions.VlSetting setting
     ) {
         if (!debug) return;
@@ -80,8 +81,7 @@ public class LoggerService {
         }
         String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
         Bukkit.getLogger().info(
-                 logType + " " + playerName + " for " + violationName + " " + packetLimitHandler.getFlagged() + "/" + setting.getMaxPerInterval() + ", "
-                + packetLimitHandler.getViolations() + "/" + setting.getVlsAmount() + ", " + setting.getInterval()
+                 logType + " " + playerName + " for " + violationName + ". " + ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, packetLimitHandler))
                 + " (" + handle.getClass().getSimpleName() + ")"
         );
     }

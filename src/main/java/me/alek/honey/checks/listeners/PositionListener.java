@@ -84,7 +84,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getViolationName() {
-            return "PositionA";
+            return "Position.A";
         }
     }
 
@@ -137,7 +137,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getViolationName() {
-            return "PositionB";
+            return "Position.B";
         }
 
         @Override
@@ -169,7 +169,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getViolationName() {
-            return "PositionC";
+            return "Position.C";
         }
 
         @Override
@@ -191,7 +191,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getViolationName() {
-            return "PositionB";
+            return "Position.D";
         }
 
         @Override

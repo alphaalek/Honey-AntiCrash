@@ -68,7 +68,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
 
         @Override
         public String getViolationName() {
-            return "SignA";
+            return "Sign.A";
         }
     }
 

@@ -63,7 +63,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getViolationName() {
-            return "CreativeA";
+            return "Creative.A";
         }
     }
 
@@ -80,7 +80,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getViolationName() {
-            return "CreativeB";
+            return "Creative.B";
         }
     }
 
@@ -96,7 +96,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getViolationName() {
-            return "CreativeC";
+            return "Creative.C";
         }
     }
 }

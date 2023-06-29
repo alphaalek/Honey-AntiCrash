@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.modelwrappers.WrappedPacketDataSerializer;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;

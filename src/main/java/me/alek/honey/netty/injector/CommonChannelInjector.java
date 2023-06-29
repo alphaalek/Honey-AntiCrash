@@ -48,6 +48,7 @@ public class CommonChannelInjector {
                 }
             }
         });
+
         handlers.put(name, handler);
     }
 

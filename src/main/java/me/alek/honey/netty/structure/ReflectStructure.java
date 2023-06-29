@@ -7,6 +7,7 @@ import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -51,19 +52,19 @@ public class ReflectStructure<T, C> {
         initAcquired(type);
     }
 
-    public synchronized void initDefaults() {
+    private synchronized void initDefaults() {
         DEFAULT_INVOKERS = new HashMap<>();
         DEFAULT_ACCESSORS = new HashMap<>();
         setDefault(DEFAULT_INVOKERS, false);
         setDefault(DEFAULT_ACCESSORS, true);
     }
 
-    public synchronized void initAcquired(Class<?> type) {
+    private synchronized void initAcquired(Class<?> type) {
         ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
     }
 
-    public void setDefault(
+    private void setDefault(
             Map<Integer, ? extends ReflectToucher<?>> defaults,
             boolean isFields
     ) {
@@ -76,7 +77,7 @@ public class ReflectStructure<T, C> {
         }
     }
 
-    public Map<Integer, ? extends ReflectToucher<?>> setDefaultSpecific(
+    private Map<Integer, ? extends ReflectToucher<?>> setDefaultSpecific(
             AtomicInteger index,
             Map<Integer, ? extends ReflectToucher<?>> defaults,
             Class<?> clazz,
@@ -121,10 +122,12 @@ public class ReflectStructure<T, C> {
         return (R) reflectToucher;
     }
 
+    @SuppressWarnings("unchecked")
     public <R> ReflectStructure<R, R> withWeakType(Class<?> clazz) {
         return (ReflectStructure<R, R>) withType(clazz);
     }
 
+    @SuppressWarnings("unchecked")
     public <R> ReflectStructure<R, R> withWeakTypeWithoutCache(Class<?> clazz) {
         return (ReflectStructure<R, R>) withTypeWithoutCache(clazz);
     }
@@ -279,9 +282,7 @@ public class ReflectStructure<T, C> {
                 if (converter instanceof ListConverter && originalValue instanceof List) {
                     ((ListConverter<V, R>)converter).apply((List<V>) originalValue);
                 }
-                C convertedValue = converter.convertDelegate(originalValue);
-
-                return convertedValue;
+                return converter.convertDelegate(originalValue);
             }
             return null;
         }
@@ -309,34 +310,52 @@ public class ReflectStructure<T, C> {
 
         @Override
         public C invokeMethod(int index, Object... params) {
-            if (!hasMethod(index)) {
-                return null;
-            }
-            final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
-            if (converter != null) {
-                return converter.convertDelegate(invoker.invoke(handle, params));
-            }
-            else {
-                // T & C er den samme i generic context
-                return (C) invoker.invoke(handle, params);
+            try {
+                return invokeMethodWithException(index, params);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection fejl");
             }
         }
 
         @Override
         public C invokeMethod(String name, int index, Object... params) {
+            try {
+                return invokeMethodWithException(name, index, params);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection fejl");
+            }
+        }
+
+        @Override
+        public C invokeMethodWithException(int index, Object... params) throws Exception {
+            if (!hasMethod(index)) {
+                return null;
+            }
+            final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
+            if (converter != null) {
+                return converter.convertDelegate(invoker.invokeWithException(handle, params));
+            }
+            else {
+                // T & C er den samme i generic context
+                return (C) invoker.invokeWithException(handle, params);
+            }
+        }
+
+        @Override
+        public C invokeMethodWithException(String name, int index, Object... params) throws Exception {
             if (!hasMethod(index)) {
                 return null;
             }
             int specificIndex = 0;
-            for (MethodInvoker<T> accessor : ACQUIRED_INVOKERS.values()) {
+            for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
 
-                if (accessor.getName().equals(name) && index == specificIndex++) {
+                if (invoker.getName().equals(name) && index == specificIndex++) {
                     if (converter != null) {
-                        return converter.convertDelegate(accessor.invoke(handle, params));
+                        return converter.convertDelegate(invoker.invokeWithException(handle, params));
                     }
                     else {
                         // T & C er den samme i generic context
-                        return (C) accessor.invoke(handle, params);
+                        return (C) invoker.invokeWithException(handle, params);
                     }
                 }
             }
@@ -397,13 +416,13 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public Collection<?> getAccessors() {
-            return ACQUIRED_ACCESSORS.values();
+        public Collection<FieldAccessor<?>> getAccessors() {
+            return (Collection<FieldAccessor<?>>) (Collection<?>) ACQUIRED_ACCESSORS.values();
         }
 
         @Override
-        public Collection<?> getInvokers() {
-            return ACQUIRED_INVOKERS.values();
+        public Collection<MethodInvoker<?>> getInvokers() {
+            return (Collection<MethodInvoker<?>>) (Collection<?>) ACQUIRED_INVOKERS.values();
         }
 
     }

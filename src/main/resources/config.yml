@@ -160,7 +160,13 @@ item-analysis:
 # netty
 netty:
   # Hvor mange bytes hver packet højest må have.
-  max-bytes-per-packet: 400
+  max-bytes-per-packet: 500
+
+  f:
+    vls-amount: 1
+    threshold: 4500
+    decay: 1000
+    decay-amount: 850
 
 # velocity
 velocity:

@@ -70,7 +70,7 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
         @Override
         public String getViolationName() {
-            return "LookA";
+            return "Look.A";
         }
     }
 
@@ -87,7 +87,7 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
         @Override
         public String getViolationName() {
-            return "LookB";
+            return "Look.B";
         }
     }
 
@@ -106,7 +106,7 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
         @Override
         public String getViolationName() {
-            return "LookC";
+            return "Look.C";
         }
     }
 }

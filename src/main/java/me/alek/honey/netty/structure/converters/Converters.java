@@ -1,14 +1,19 @@
 package me.alek.honey.netty.structure.converters;
 
-import me.alek.honey.netty.modelwrappers.WrappedPacketDataSerializer;
-import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.utility.reflect.ItemReflection;
-import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
+import me.alek.honey.netty.structure.converters.dedicated.SimpleListConverter;
+import me.alek.honey.netty.structure.converters.dedicated.SimpleMapConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
+import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import org.bukkit.inventory.ItemStack;
@@ -25,21 +30,21 @@ public class Converters {
     private static Map<NBTBase<?, ?>, NBTConverter> NBT_CONVERTER_CACHE = new HashMap<>();
 
     @SuppressWarnings("unchecked")
-    public static <R, V> JavaConverter<R, V> getConverter(Class<?> clazz, Function<? super Class<?>, ? extends JavaConverter<?, ?>> orElse) {
+    private static <R, V> JavaConverter<R, V> getConverter(Class<?> clazz, Function<? super Class<?>, ? extends JavaConverter<?, ?>> orElse) {
         return (JavaConverter<R, V>) CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
     }
 
-    public static NBTConverter getNBTConverter(NBTBase<?, ?> owner, Function<? super NBTBase<?, ?>, ? extends NBTConverter> orElse) {
+    private static NBTConverter getNBTConverter(NBTBase<?, ?> owner, Function<? super NBTBase<?, ?>, ? extends NBTConverter> orElse) {
         return NBT_CONVERTER_CACHE.computeIfAbsent(owner, orElse);
     }
 
     @SuppressWarnings("unchecked")
-    public static <R, V, D> MapConverter<R, V, D> getMapConverter(Class<?> clazz, Function<? super Class<?>, ? extends MapConverter<R, V, D>> orElse) {
+    private static <R, V, D> MapConverter<R, V, D> getMapConverter(Class<?> clazz, Function<? super Class<?>, ? extends MapConverter<R, V, D>> orElse) {
         return (MapConverter<R, V, D>) MAP_CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
     }
 
     @SuppressWarnings("unchecked")
-    public static <R, V> ListConverter<R, V> getListConverter(Class<?> clazz, Function<? super Class<?>, ? extends ListConverter<R, V>> orElse) {
+    private static <R, V> ListConverter<R, V> getListConverter(Class<?> clazz, Function<? super Class<?>, ? extends ListConverter<R, V>> orElse) {
         return (ListConverter<R, V>) LIST_CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
     }
 
@@ -103,6 +108,15 @@ public class Converters {
         return getConverter(WrappedPacketDataSerializer.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacketDataSerializer.class));
     }
 
+    public static JavaConverter<Object, WrappedEnumProtocol> getEnumProtocolConverter() {
+        return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class));
+    }
+
+    public static JavaConverter<Object, WrappedPacket<?>> getPacketConverter() {
+        return getConverter(WrappedPacket.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacket.class));
+    }
+
+    // nbt
     public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter(NBTBase<?, ?> owner) {
         return getNBTConverter(owner, (nbtRoot) -> new NBTConverter(owner));
     }
@@ -116,6 +130,7 @@ public class Converters {
         return (ListConverter<Object, T>) getListConverterWithoutCache(getNBTBaseConverter(owner), true);
     }
 
+    // lists
     public static <K, T> ListConverter<K, T> getListConverterOf(Class<?> clazz, JavaConverter<K, T> converter, boolean controlDeclaring) {
         return getListConverter(clazz, (clazz1) -> new SimpleListConverter<>(converter, controlDeclaring));
     }
@@ -124,6 +139,7 @@ public class Converters {
         return new SimpleListConverter<>(converter, controlDeclaring);
     }
 
+    // maps
     public static <K, T, D> MapConverter<K, T, D> getMapConverterOf(Class<?> clazz, JavaConverter<T, D> converter, boolean controlDeclaring) {
         return getMapConverter(clazz, (clazz1) -> new SimpleMapConverter<>(converter, controlDeclaring));
     }
