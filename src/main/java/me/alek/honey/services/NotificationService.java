@@ -43,7 +43,7 @@ public class NotificationService {
     }
 
     public void subscribe(final Player observer) {
-        listenerMap.put(observer, new NotificationListener() {
+        listenerMap.put(observer, new NotificationService.NotificationListener() {
             @Override
             public void notify(String notification) {
                 observer.sendMessage(notification);
@@ -97,11 +97,8 @@ public class NotificationService {
 
     public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
         for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
-            if (!hasNotifyPermission(observer.getKey())) {
+            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 continue;
-            }
-            if (!player.isOnline()) {
-                return;
             }
             if (setting == null || packetLimitHandler == null) {
                 observer.getValue().notify(player, notification);
@@ -118,11 +115,8 @@ public class NotificationService {
 
     public void warn(Player player, String warning, ConfigurationOptions.VlSetting setting, ViolationService.PacketLimitHandler packetLimitHandler) {
         for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
-            if (!hasNotifyPermission(observer.getKey())) {
+            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
                 continue;
-            }
-            if (!player.isOnline()) {
-                return;
             }
             if (setting == null || packetLimitHandler == null) {
                 observer.getValue().warn(player, warning);

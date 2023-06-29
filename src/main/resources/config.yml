@@ -37,7 +37,7 @@ packet-logger:
 
   # Skal debug mode være slået til eller ej. Brugbart til udvikling og troubleshooting, men for en normal bruger er det fuldstændig unødvendigt.
   # OBS: viser kun i console når den er slået til, ikke i filer, det vil simpelthen ellers fylde dem for meget op.
-  debug-mode: true
+  debug-mode: false
 
   # Spillere som packet logger skal ignorere.
   ignored-players:
@@ -160,7 +160,7 @@ item-analysis:
 # netty
 netty:
   # Hvor mange bytes hver packet højest må have.
-  max-bytes-per-packet: 10000
+  max-bytes-per-packet: 400
 
 # velocity
 velocity:
@@ -177,7 +177,7 @@ velocity:
 
   movement:
     # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-distance: 50
+    max-distance: 30
     min-distance: 0.001
     vls-amount: 8
 

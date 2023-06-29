@@ -2,7 +2,6 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.listeners.PacketLogger;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
@@ -12,6 +11,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -26,6 +26,15 @@ public class LoggerService {
     private List<String> ignoredPackets;
 
     private final FuzzyPacketAdapter packetLoggerListener = new PacketLogger();
+
+    public static class PacketLogger extends FuzzyPacketAdapter {
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void onPacketReceive(Player player, PacketContainer packetContainer) {
+            HoneyPlugin.get().getLoggerService().logPacket(packetContainer, player.getName());
+        }
+    }
 
     public LoggerService() {
         reload();
@@ -57,7 +66,7 @@ public class LoggerService {
         }
     }
 
-    public void logVl(
+    public void logDebug(
             LoggingStrategy strategy,
             Object handle,
             String playerName,
@@ -84,9 +93,18 @@ public class LoggerService {
         if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getHandle().getClass().getSimpleName())) {
             return;
         }
+        StringBuilder message = new StringBuilder()
+                .append(playerName)
+                .append(" sendte ")
+                .append(packetContainer.getHandle().getClass().getSimpleName());
+        if (detailed) {
+            message
+                .append(": ")
+                .append(packetContainer.getAll().readFieldValues());
+        }
+
         if (console) {
-            Bukkit.broadcastMessage(playerName + " sendte " + packetContainer.getHandle().getClass().getSimpleName()
-                    + ": " + packetContainer.getAll().readFieldValues() + "");
+            Bukkit.getLogger().info(message.toString());
         }
         // log i fil her
     }

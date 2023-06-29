@@ -544,11 +544,9 @@ public class ConfigurationOptions {
     public static class Netty {
 
         public static int MAX_BYTES_PER_PACKET;
-        public static boolean BLOCK_HEAVY_COMPRESSED_PACKETS;
 
         public static void load() {
             MAX_BYTES_PER_PACKET = file.getInt("netty.max-bytes-per-packet");
-            BLOCK_HEAVY_COMPRESSED_PACKETS = file.getBoolean("netty.block-heavy-compressed");
         }
     }
 
@@ -609,7 +607,6 @@ public class ConfigurationOptions {
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.arm-animation"})
             public static class ArmAnimation extends VlSetting {
-
             }
 
             @Flood(PacketType.Play.Client.AUTO_RECIPE)

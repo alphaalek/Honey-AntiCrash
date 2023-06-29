@@ -1,7 +1,8 @@
 package me.alek.honey.netty.bukkit;
 
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import io.netty.channel.Channel;
 import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,7 +21,10 @@ public class BukkitEventInternal implements Listener {
         }
         else {
             library.getProxy().injectPlayer(player, false);
-            library.getProxy().getHandler(NMSUtils.getChannel(player)).setPlayer(player);
+
+            final Channel channel = NMSUtils.getChannel(player);
+            library.getProxy().getHandler(channel).setPlayer(player);
+            library.getProxy().getDecoder(channel).setPlayer(player);
         }
     }
 

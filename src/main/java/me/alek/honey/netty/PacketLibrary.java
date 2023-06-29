@@ -99,6 +99,10 @@ public class PacketLibrary {
         return settings.getHandlerName();
     }
 
+    public String getDecoderName() {
+        return settings.getDecoderName();
+    }
+
     public PacketLibrarySettings getSettings() {
         return settings;
     }

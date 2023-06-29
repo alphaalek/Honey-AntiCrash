@@ -41,7 +41,7 @@ public class HoneyPlugin extends JavaPlugin {
         isRunning = true;
         INSTANCE = this;
 
-        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "alek_packets"));
+        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
 
         configuration = new DedicatedConfiguration();
 

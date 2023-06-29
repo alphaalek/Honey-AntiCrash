@@ -2,6 +2,7 @@ package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.injector.PlayerChannelDuplexHandler;
+import me.alek.honey.netty.injector.PlayerPacketDecoder;
 import org.bukkit.entity.Player;
 
 public interface NettyChannelProxy {
@@ -29,6 +30,8 @@ public interface NettyChannelProxy {
     void receivePacket(Channel channel, Object rawPacket);
 
     PlayerChannelDuplexHandler getHandler(Channel channel);
+
+    PlayerPacketDecoder getDecoder(Channel channel);
 
 }
 

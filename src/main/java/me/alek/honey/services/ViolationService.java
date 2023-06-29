@@ -10,18 +10,21 @@ import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ViolationService {
 
     private final Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
     private final List<UUID> punishing = new CopyOnWriteArrayList<>();
     private final LoggerService loggerService = HoneyPlugin.get().getLoggerService();
+    private final ReentrantLock punishLock = new ReentrantLock();
 
     public void reload() {
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -35,6 +38,10 @@ public class ViolationService {
                 packetLimitHandler.reload();
             }
         }
+    }
+
+    public List<UUID> getPunishing() {
+        return punishing;
     }
 
     public boolean isPunishing(Player player) {
@@ -57,7 +64,6 @@ public class ViolationService {
 
     public void removePlayer(Player player) {
         violatedMap.remove(player.getUniqueId());
-        punishing.remove(player.getUniqueId());
     }
 
     public ViolationContext getViolationContext(Player player) {
@@ -100,28 +106,41 @@ public class ViolationService {
                 .flag(packet.getHandle(), violationName, onViolation);
     }
 
-    public synchronized void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, PacketLimitHandler packetLimitHandler) {
-        if (punishing.contains(player.getUniqueId())) {
-            return;
+    public void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, PacketLimitHandler packetLimitHandler) {
+        try {
+            punishLock.lock();
+            if (punishing.contains(player.getUniqueId())) {
+                return;
+            }
+            punishing.add(player.getUniqueId());
+
+            /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
+            PacketContainer<WrappedPlayOutKickDisconnect> packetContainer =
+                    new InternalPacketContainer<>(handle, player, NMSUtils.getChannel(player), null, PacketType.Play.Server.KICK_DISCONNECT);
+            WrappedPlayOutKickDisconnect packet = PacketWrapperFactory.playOutKickDisconnect(handle, packetContainer);
+            packet.getContainer() // chat base components write
+
+            HoneyPlugin.get().getPacketLibrary().getProxy().writePacket(player, handle);*/
+
+            HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
+            HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
+
+            Channel channel = NMSUtils.getChannel(player);
+            if (channel != null) {
+                channel.close();
+            }
+        } finally {
+            punishLock.unlock();
         }
-        punishing.add(player.getUniqueId());
+        new BukkitRunnable() {
 
-        /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
-        PacketContainer<WrappedPlayOutKickDisconnect> packetContainer =
-                new InternalPacketContainer<>(handle, player, NMSUtils.getChannel(player), null, PacketType.Play.Server.KICK_DISCONNECT);
-        WrappedPlayOutKickDisconnect packet = PacketWrapperFactory.playOutKickDisconnect(handle, packetContainer);
-        packet.getContainer() // chat base components write
-
-        PacketLibrary.get().getProxy().writePacket(player, handle);*/
-
-        Channel channel = NMSUtils.getChannel(player);
-        if (channel != null) {
-            channel.close();
-        }
-        HoneyPlugin.get().getNotificationService().warn(player, violationName, setting, packetLimitHandler);
-        HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
-
-        removePlayer(player);
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    punishing.remove(player.getUniqueId());
+                }
+            }
+        }.runTaskLaterAsynchronously(HoneyPlugin.get(), 5L);
     }
 
     public void punish(Player player, String violationName) {
@@ -216,7 +235,7 @@ public class ViolationService {
             }
             flagged++;
             if (loggerService.isDebug()) {
-                HoneyPlugin.get().getLoggerService().logVl(LoggerService.LoggingStrategy.FLAG, handle, player.getName(), violationName, this, setting);
+                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, player.getName(), violationName, this, setting);
             }
             if (flagged < maxPerInterval) {
                 return;
@@ -241,7 +260,7 @@ public class ViolationService {
                 return;
             }
             if (loggerService.isDebug()) {
-                HoneyPlugin.get().getLoggerService().logVl(LoggerService.LoggingStrategy.VIOLATE, handle, player.getName(), violationName, this, setting);
+                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, player.getName(), violationName, this, setting);
             }
             violatedForInterval = true;
             violations++;

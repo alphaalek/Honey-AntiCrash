@@ -43,6 +43,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
         <resources>
             <resource>
@@ -75,5 +76,6 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.93.Final</version>
         </dependency>
+
     </dependencies>
 </project>

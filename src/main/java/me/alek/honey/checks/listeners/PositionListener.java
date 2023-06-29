@@ -94,38 +94,42 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (packet.getLocation().getChunk() == null) {
-                return ResponseBuilder.inst().cancel().punish().build();
-            }
-            final double maxDistance = ConfigurationOptions.Velocity.Movement.MAX_DISTANCE;
-            final double minDistance = ConfigurationOptions.Velocity.Movement.MIN_DISTANCE;
-
-            final Location playerLoc = player.getLocation();
-            final Location packetLoc = packet.getLocation();
-            final Location lastKnownPacketLoc = lastPacketLocation.get(player.getUniqueId());
-
-            if (lastKnownPacketLoc != null) {
-
-                // for at undgå flag ved lagspikes
-                final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-
-                if ((distance2d_client == 0) || distance2d_client < maxDistance && distance2d_client > minDistance) {
-                    return ResponseBuilder.SUCCESS;
+            try {
+                if (packet.getLocation().getChunk() == null) {
+                    return ResponseBuilder.inst().cancel().punish().build();
                 }
-                if ((distanceY_client == 0) || distanceY_client < maxDistance && distanceY_client > minDistance) {
-                    return ResponseBuilder.SUCCESS;
+                final double maxDistance = ConfigurationOptions.Velocity.Movement.MAX_DISTANCE;
+                final double minDistance = ConfigurationOptions.Velocity.Movement.MIN_DISTANCE;
+
+                final Location playerLoc = player.getLocation();
+                final Location packetLoc = packet.getLocation();
+                final Location lastKnownPacketLoc = lastPacketLocation.get(player.getUniqueId());
+
+                if (lastKnownPacketLoc != null) {
+
+                    // for at undgå flag ved lagspikes
+                    final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+                    final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+
+                    if ((distance2d_client == 0) || distance2d_client < maxDistance && distance2d_client > minDistance) {
+                        return ResponseBuilder.SUCCESS;
+                    }
+                    if ((distanceY_client == 0) || distanceY_client < maxDistance && distanceY_client > minDistance) {
+                        return ResponseBuilder.SUCCESS;
+                    }
                 }
-            }
-            lastPacketLocation.put(player.getUniqueId(), packetLoc);
+                lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
-            final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
-            final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
+                final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
+                final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
 
-            if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
-                return ResponseBuilder.inst().cancel().flag().build();
-            }
-            if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
+                if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
+                if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
+            } catch (Exception ex) {
                 return ResponseBuilder.inst().cancel().flag().build();
             }
             return ResponseBuilder.SUCCESS;
@@ -144,7 +148,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static volatile Map<UUID, Chunk> lastChunkMap = new ConcurrentHashMap<>();
+        private static final Map<UUID, Chunk> lastChunkMap = new ConcurrentHashMap<>();
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
@@ -182,7 +186,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             if (chunk != null && player.getWorld().isChunkLoaded(chunk) && chunk.isLoaded()) {
                 return ResponseBuilder.SUCCESS;
             }
-            return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+            return ResponseBuilder.inst().cancel().flag().build();
         }
 
         @Override

@@ -51,7 +51,12 @@ public enum ItemCheckRegistry {
     }
 
     ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag, Material... availableMaterials) {
-        this.itemCheck = check.get();
+        if (check == null) {
+            this.itemCheck = null;
+        }
+        else {
+            this.itemCheck = check.get();
+        }
         this.tag = tag;
         this.availableMaterials = availableMaterials;
     }

@@ -65,4 +65,9 @@ public class LateChannelInjector implements NettyChannelProxy {
     public PlayerChannelDuplexHandler getHandler(Channel channel) {
         return CommonChannelInjector.getHandler(channel);
     }
+
+    @Override
+    public PlayerPacketDecoder getDecoder(Channel channel) {
+        return CommonChannelInjector.getDecoder(channel);
+    }
 }

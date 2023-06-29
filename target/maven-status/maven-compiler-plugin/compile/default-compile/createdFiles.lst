@@ -19,7 +19,6 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$Flying.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInPosition.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnPosition.class
 me\alek\honey\configuration\ConfigurationOptions$PacketLogger.class
-me\alek\honey\checks\item\CheckRegistry.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutOpenWindowMerchant.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$KeepAlive.class
 me\alek\honey\checks\listeners\EncryptionBeginListener.class
@@ -66,6 +65,7 @@ me\alek\honey\configuration\ConfigurationOptions$Flood.class
 me\alek\honey\netty\packet\cache\PacketWrapperFactory$1.class
 me\alek\honey\netty\api\event\impl\packet\PacketPlaySendEvent.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntity.class
+me\alek\honey\services\ViolationService$1.class
 me\alek\honey\checks\listeners\CustomPayloadListener$PayloadE.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutKickDisconnect.class
 me\alek\honey\command\impl\ReloadCommand.class
@@ -107,6 +107,7 @@ me\alek\honey\netty\modelwrappers\nbt\NBTType.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMap.class
 me\alek\honey\checks\listeners\LookListener$LookA.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$ArmAnimation.class
+me\alek\honey\checks\item\enums\AcceptStrategy.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$AutoRecipe.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInCloseWindow.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMapChunkBulk.class
@@ -131,10 +132,13 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInWindowClick.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockBreak.class
 me\alek\honey\services\ConfiscationService.class
 me\alek\honey\checks\listeners\FloodListener$FloodA.class
+me\alek\honey\netty\injector\PlayerPacketDecoder.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCloseWindow.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$Flood$Unregister.class
 me\alek\honey\netty\structure\converters\NBTConverter.class
 me\alek\honey\checks\types\ViolationCheck.class
+me\alek\honey\configuration\ConfigurationOptions$ItemAnalysis$General.class
+me\alek\honey\checks\item\ItemCheckRegistry.class
 me\alek\honey\netty\structure\converters\MapConverter.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInEnchantItem.class
 me\alek\honey\netty\api\event\Listener.class
@@ -149,6 +153,7 @@ me\alek\honey\netty\packetwrappers\login\client\WrappedLoginInEncryptionResponse
 me\alek\honey\checks\listeners\WindowClickListener$WindowC.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityHeadRotation.class
 me\alek\honey\netty\structure\converters\SimpleWrapperConverter.class
+me\alek\honey\services\ConfiscationService$1.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBoatMove.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateAttributes.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutWorldBorder.class
@@ -182,7 +187,6 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityVelocity.clas
 me\alek\honey\services\ViolationService$CheckKey.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBoss.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInLook.class
-me\alek\honey\checks\item\AcceptStrategy.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$BlockPlace.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutLogin.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockBreakAnimation.class
@@ -278,6 +282,7 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$BlockDig.cla
 me\alek\honey\netty\modelwrappers\nbt\NBTFactory.class
 me\alek\honey\netty\modelwrappers\WrappedBlockPosition.class
 me\alek\honey\checks\item\ItemChecks$MaxBannerPatternsCheck.class
+me\alek\honey\checks\item\ItemAnalysis$ItemCheckerInfo.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutEncryptionRequest.class
 me\alek\honey\utility\Either.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood.class
@@ -327,13 +332,16 @@ me\alek\honey\configuration\ConfigurationOptions$Velocity$Yaw.class
 me\alek\honey\checks\listeners\PositionListener.class
 me\alek\honey\checks\listeners\NettyListener$NettyC.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPosition.class
+me\alek\honey\checks\listeners\HeldItemListener$HeldItemB.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAttachEntity.class
 me\alek\honey\configuration\ConfigurationOptions$Netty.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutSetCompression.class
+me\alek\honey\services\LoggerService$PacketLogger.class
 me\alek\honey\checks\listeners\BlockPlaceListener$PlaceB.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRelEntityMoveLook.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSteerVehicle.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPlayerInfo.class
+me\alek\honey\checks\item\enums\ConfiscationStrategy.class
 me\alek\honey\netty\modelwrappers\nbt\writer\NBTWriter.class
 me\alek\honey\checks\item\ItemChecks$MaxNBTBasesCheck.class
 me\alek\honey\netty\modelwrappers\WrappedPacketDataSerializer.class
@@ -386,7 +394,6 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewDistance.class
 me\alek\honey\checks\listeners\BlockPlaceListener$PlaceD.class
 me\alek\honey\netty\processor\InternalPacketProcessor$1.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodB.class
-me\alek\honey\listeners\PacketLogger.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAutoRecipe.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTransaction.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$Flood$BEdit.class

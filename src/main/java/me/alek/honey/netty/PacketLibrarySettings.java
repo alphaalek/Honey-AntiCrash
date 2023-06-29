@@ -9,19 +9,26 @@ public class PacketLibrarySettings {
     private Protocol fallbackProtocol;
     private final JavaPlugin plugin;
     private final String handlerName;
+    private final String decoderName;
 
     public PacketLibrarySettings(
             JavaPlugin plugin,
             boolean useLateInjection,
-            String handlerName
+            String handlerName,
+            String decoderName
     ) {
         this.useLateInjection = useLateInjection;
         this.plugin = plugin;
         this.handlerName = handlerName;
+        this.decoderName = decoderName;
     }
 
     public String getHandlerName() {
         return handlerName;
+    }
+
+    public String getDecoderName() {
+        return decoderName;
     }
 
     public void setUseLateInjection(boolean value) {
