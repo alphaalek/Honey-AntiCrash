@@ -1,9 +1,13 @@
 package me.alek.honey.netty.modelwrappers.network;
 
+import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -14,8 +18,12 @@ import java.nio.ByteOrder;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
+import java.util.UUID;
 
 public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketDataSerializer> {
+
+    private static final ConstructorInvoker<Object> ITEM_STACK_CONSTRUCTOR
+            = new ConstructorInvoker<>(NMSUtils.getItemStackClass(), NMSUtils.getItemClass(), int.class, int.class);
 
     private final ByteBuf handle;
 
@@ -35,7 +43,7 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         int j = 0;
         do {
             b0 = readByte();
-            i |= (b0 & 0x7F) << j++ * 7;
+            i |= (b0 & Byte.MAX_VALUE) << j++ * 7;
             if (j > 5)
                 throw new RuntimeException("VarInt too big");
         } while ((b0 & 0x80) == 128);
@@ -53,6 +61,25 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
                 throw new RuntimeException("VarLong too big");
         } while ((b0 & 0x80) == 128);
         return i;
+    }
+
+    public UUID readUUID() {
+        return new UUID(this.readLong(), this.readLong());
+    }
+
+    public String readString(int i) {
+        int j = this.readVarInt();
+        if (j > i * 4) {
+            throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + j + " > " + i * 4 + ")");
+        }
+        if (j < 0) {
+            throw new DecoderException("The received encoded string buffer length is less than zero! Weird string!");
+        }
+        String s = new String(this.readBytes(j).array(), Charsets.UTF_8);
+        if (s.length() > i) {
+            throw new DecoderException("The received string length is longer than maximum allowed (" + j + " > " + i + ")");
+        }
+        return s;
     }
 
     public int capacity() {

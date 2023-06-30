@@ -1,10 +1,13 @@
 package me.alek.honey.utility;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 
-public class Tuple2<T1, T2> implements Iterable<Object>, Serializable {
+public class Tuple2<T1, T2> implements Iterable<Object>, Serializable, Cloneable {
 
     private static final long serialVersionUID = -3518082018884860684L;
 
@@ -65,8 +68,20 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable {
             return false;
         }
         Tuple2<?, ?> tuple2 = (Tuple2<?, ?>) o;
-        return t1.equals(tuple2.t1) && t2.equals(tuple2.t2);
-
+        if (t1 == null) {
+            if (tuple2.t1 != null) {
+                return false;
+            }
+        }
+        if (t2 == null) {
+            if (tuple2.t2 != null) {
+                return false;
+            }
+        }
+        if (t1 != null && t2 != null) {
+            return t1.equals(tuple2.t1) && t2.equals(tuple2.t2);
+        }
+        return t1 == tuple2.t1 && t2 == tuple2.t2;
     }
 
     @Override
@@ -78,7 +93,7 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable {
         if (t2 != null) {
             result = 31 * result + t2.hashCode();
         }
-        return result;
+        return result * result ^ (result >>> 7);
     }
 
     public int size() {
@@ -88,5 +103,14 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable {
     @Override
     public final String toString() {
         return "1=" + t1 + ",2=" + t2;
+    }
+
+    @Override
+    public Tuple2<T1, T2> clone() {
+        try {
+            return (Tuple2<T1, T2>) super.clone();
+        } catch (Exception ex) {
+            throw new AssertionError();
+        }
     }
 }

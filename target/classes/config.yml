@@ -159,14 +159,39 @@ item-analysis:
 
 # netty
 netty:
-  # Hvor mange bytes hver packet højest må have.
-  max-bytes-per-packet: 500
 
-  f:
+  a:
+    vls-amount: 5
+    enabled: true
+  b:
+    vls-amount: 3
+    enabled: true
+  c:
     vls-amount: 1
-    threshold: 4500
+    enabled: true
+  d:
+    vls-amount: 3
+    enabled: true
+  e:
+    enabled: true
+    vls-amount: 3
+    max-bytes-per-packet: 15000
+  f:
+    enabled: true
+    vls-amount: 3
+    threshold: 40000
     decay: 1000
-    decay-amount: 850
+    decay-amount: 7500
+  g:
+    vls-amount: 3
+    enabled: true
+  h:
+    enabled: true
+    vls-amount: 3
+    threshold: 500000
+  i:
+    enabled: true
+    vls-amount: 5
 
 # velocity
 velocity:
@@ -321,18 +346,18 @@ packet-flood:
   # common
   common:
     a:
-      max-per-interval: 300
-      interval: 500
+      max-per-interval: 200
+      interval: 600
       vls-amount: 1
     b:
-      max-per-interval: 550
+      max-per-interval: 450
       interval: 1000
       vls-amount: 1
 
   # total
   c:
     max-per-interval: 850
-    interval: 1250
+    interval: 1500
     vls-amount: 1
 
   # specific

@@ -8,4 +8,8 @@ public class WrappedLoginOutSetCompression extends WrappedPacket<WrappedLoginOut
     public WrappedLoginOutSetCompression(Object rawPacket, PacketContainer<WrappedLoginOutSetCompression> packetContainer) {
         super(rawPacket, packetContainer);
     }
+
+    public int getCompressionSize() {
+        return getContainer().getInts().readField(0);
+    }
 }

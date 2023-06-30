@@ -51,16 +51,17 @@ public class PacketWrapperFactory {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static Consumer<AsyncFuture> load() {
         return (future) -> {
-            final BufferedMapCreator<PacketTypeEnum, MethodInvoker> mapCreator = new BufferedMapCreator<>();
+            final BufferedMapCreator<PacketTypeEnum, MethodInvoker<Object>> mapCreator = new BufferedMapCreator<>();
 
             for (Method method : PacketWrapperFactory.class.getDeclaredMethods()) {
                 PacketFactory wrappedPacket = method.getAnnotation(PacketFactory.class);
                 if (wrappedPacket == null) {
                     continue;
                 }
-                final MethodInvoker methodInvoker = Reflection.getMethod(method);
+                final MethodInvoker<Object> methodInvoker = (MethodInvoker<Object>) Reflection.getMethod(method);
                 METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
             }
             PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
@@ -80,20 +81,20 @@ public class PacketWrapperFactory {
     }
 
     private static final Protocol PROTOCOL_VERSION = Protocol.getProtocol();
-    private static final Map<String, MethodInvoker> METHODS_CACHE = new HashMap<>();
-    private static Map<PacketTypeEnum, MethodInvoker> PLAY_CACHE;
-    private static Map<PacketTypeEnum, MethodInvoker> HANDSHAKE_CACHE;
-    private static Map<PacketTypeEnum, MethodInvoker> LOGIN_CACHE;
-    private static Map<PacketTypeEnum, MethodInvoker> STATUS_CACHE;
+    private static final Map<String, MethodInvoker<Object>> METHODS_CACHE = new HashMap<>();
+    private static Map<PacketTypeEnum, MethodInvoker<Object>> PLAY_CACHE;
+    private static Map<PacketTypeEnum, MethodInvoker<Object>> HANDSHAKE_CACHE;
+    private static Map<PacketTypeEnum, MethodInvoker<Object>> LOGIN_CACHE;
+    private static Map<PacketTypeEnum, MethodInvoker<Object>> STATUS_CACHE;
 
-    private static MethodInvoker getCachedInvoker(String name) {
+    private static MethodInvoker<Object> getCachedInvoker(String name) {
         if (METHODS_CACHE.get(name) != null) {
             return METHODS_CACHE.get(name);
         }
         throw new RuntimeException("Ingen packet wrapper for " + name);
     }
 
-    public static MethodInvoker createWrapperInvoker(PacketState state, Class<?> nmsClass) {
+    public static MethodInvoker<Object> createWrapperInvoker(PacketState state, Class<?> nmsClass) {
         switch (state) {
             case PLAY:
                 return createPlayWrapperInvoker(nmsClass);
@@ -115,19 +116,19 @@ public class PacketWrapperFactory {
         String value();
     }
 
-    public static MethodInvoker createPlayWrapperInvoker(Class<?> nmsClass) {
+    public static MethodInvoker<Object> createPlayWrapperInvoker(Class<?> nmsClass) {
         return PLAY_CACHE.get(PacketType.getPacketType(nmsClass));
     }
 
-    public static MethodInvoker createHandshakeWrapper(Class<?> nmsClass) {
+    public static MethodInvoker<Object> createHandshakeWrapper(Class<?> nmsClass) {
         return HANDSHAKE_CACHE.get(PacketType.getPacketType(nmsClass));
     }
 
-    public static MethodInvoker createLoginWrapper(Class<?> nmsClass) {
+    public static MethodInvoker<Object> createLoginWrapper(Class<?> nmsClass) {
         return LOGIN_CACHE.get(PacketType.getPacketType(nmsClass));
     }
 
-    public static MethodInvoker createStatusWrapper(Class<?> nmsClass) {
+    public static MethodInvoker<Object> createStatusWrapper(Class<?> nmsClass) {
         return STATUS_CACHE.get(PacketType.getPacketType(nmsClass));
     }
 

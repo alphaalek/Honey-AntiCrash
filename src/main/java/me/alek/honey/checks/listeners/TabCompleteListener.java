@@ -71,7 +71,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.Commands.get();
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Commands.class);
         }
     }
 }

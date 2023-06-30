@@ -17,7 +17,7 @@ public class NBTConverter implements JavaConverter<Object, NBTBase<?, ?>> {
     }
 
     @Override
-    public NBTBase<?, ?> convertDelegate(Object delegate) {
+    public NBTBase<?, ?> convertDelegate(Object delegate, Object... params) {
         if (delegate == null) {
             return null;
         }

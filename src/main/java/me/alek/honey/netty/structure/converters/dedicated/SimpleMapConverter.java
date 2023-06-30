@@ -27,9 +27,13 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         else {
             declaringMap = new HashMap<>();
         }
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            declaringMap.put(entry.getKey(), entry.getValue());
-            delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
+        synchronized (declaringMap) {
+            for (Map.Entry<K, V> entry : map.entrySet()) {
+                if (!controlDeclaring) {
+                    declaringMap.put(entry.getKey(), entry.getValue());
+                }
+                delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
+            }
         }
         return this;
     }
@@ -125,7 +129,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     }
 
     @Override
-    public SimpleMapConverter<K, V, T> convertDelegate(Map<K, V> delegate) {
+    public SimpleMapConverter<K, V, T> convertDelegate(Map<K, V> delegate, Object... params) {
         checkMap();
 
         return this;

@@ -1,5 +1,7 @@
 package me.alek.honey.netty.utility.reflect;
 
+import org.bukkit.Bukkit;
+
 import java.lang.reflect.Constructor;
 
 public class ConstructorInvoker<T> {
@@ -26,6 +28,10 @@ public class ConstructorInvoker<T> {
             ex.printStackTrace();
             throw new RuntimeException("Reflection fejl");
         }
+    }
+
+    public T invokeWithException(Object... parameters) throws Exception {
+        return constructor.newInstance(parameters);
     }
 
     public Constructor<T> getConstructor() {

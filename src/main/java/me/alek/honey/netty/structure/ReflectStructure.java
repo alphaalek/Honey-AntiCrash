@@ -7,7 +7,6 @@ import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -170,6 +169,38 @@ public class ReflectStructure<T, C> {
             }
         }
         return packetStructure;
+    }
+
+    public ReflectStructure<Integer, Integer> asInt() {
+        return withSpecificType(int.class, null, true);
+    }
+
+    public ReflectStructure<Short, Short> asShort() {
+        return withSpecificType(short.class, null, true);
+    }
+
+    public ReflectStructure<Byte, Byte> asByte() {
+        return withSpecificType(byte.class, null, true);
+    }
+
+    public ReflectStructure<Long, Long> asLong() {
+        return withSpecificType(long.class, null, true);
+    }
+
+    public ReflectStructure<Double, Double> asDouble() {
+        return withSpecificType(double.class, null, true);
+    }
+
+    public ReflectStructure<Float, Float> asFloat() {
+        return withSpecificType(float.class, null, true);
+    }
+
+    public ReflectStructure<Boolean, Boolean> asBoolean() {
+        return withSpecificType(boolean.class, null, true);
+    }
+
+    public ReflectStructure<String, String> asString() {
+        return withSpecificType(String.class, null, true);
     }
 
     public Collection<FieldAccessor<T>> getAccessors() {

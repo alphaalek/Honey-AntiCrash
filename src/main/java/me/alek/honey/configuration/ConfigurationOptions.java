@@ -18,6 +18,7 @@ public class ConfigurationOptions {
     private static FileConfiguration file;
     private static Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
     private static Map<String, VlSetting> channelFloodSettings = new HashMap<>();
+    private static Map<Class<? extends VlSetting>, VlSetting> vlSettingMap = new HashMap<>();
 
     public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
@@ -41,6 +42,7 @@ public class ConfigurationOptions {
 
     public static void load() {
         floodSettings.clear();
+        vlSettingMap.clear();
         load(ConfigurationOptions.class);
     }
 
@@ -56,7 +58,7 @@ public class ConfigurationOptions {
         }
         if (clazz.isAnnotationPresent(Violation.class)) {
             if (VlSetting.class.isAssignableFrom(clazz)) {
-                setIntervalBased(clazz, clazz.getAnnotation(Violation.class).value());
+                setIntervalBased((Class<? extends VlSetting>) clazz, clazz.getAnnotation(Violation.class).value());
             }
         }
         for (Class<?> nestedClass : clazz.getDeclaredClasses()) {
@@ -79,10 +81,11 @@ public class ConfigurationOptions {
             put("ENABLED", ".enabled");
     }};
 
-    public static void setIntervalBased(Class<?> clazz, String[] prefixPaths) {
+    public static void setIntervalBased(Class<? extends VlSetting> clazz, String[] prefixPaths) {
         try {
-            Constructor<?> constructor = clazz.getDeclaredConstructor();
-            VlSetting setting = (VlSetting) constructor.newInstance();
+            Constructor<? extends VlSetting> constructor = clazz.getDeclaredConstructor();
+            VlSetting setting = constructor.newInstance();
+            vlSettingMap.put(clazz, setting);
 
             if (clazz.isAnnotationPresent(Flood.class)) {
                 Flood flood = clazz.getAnnotation(Flood.class);
@@ -94,6 +97,7 @@ public class ConfigurationOptions {
                 ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
                 channelFloodSettings.put(flood.value(), setting);
             }
+
             while (true) {
                 for (Field field : clazz.getDeclaredFields()) {
                     for (String prefixPath : prefixPaths) {
@@ -105,20 +109,22 @@ public class ConfigurationOptions {
 
                         if (file.get(prefixPath + configPath).getClass() == Integer.class) {
                             field.setInt(setting, file.getInt(prefixPath + configPath));
-                        }
-                        else if (file.get(prefixPath + configPath).getClass() == Boolean.class) {
+                        } else if (file.get(prefixPath + configPath).getClass() == Boolean.class) {
                             field.setBoolean(setting, file.getBoolean(prefixPath + configPath));
                         }
                     }
                 }
-                if (VlSetting.class.isAssignableFrom(clazz = clazz.getSuperclass())) {
+                if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
                     continue;
                 }
                 return;
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
         }
+    }
+
+    public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
+        return vlSettingMap.get(clazz);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -162,7 +168,7 @@ public class ConfigurationOptions {
         public int DECAY;
         public int DECAY_AMOUNT;
 
-        private boolean ENABLED;
+        public boolean ENABLED = true;
         private final boolean USE_BUFFER;
 
         public VlSetting(boolean useBuffer) {
@@ -262,14 +268,6 @@ public class ConfigurationOptions {
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
         public static List<String> PROHIBITED_COMMANDS;
         public static List<String> FALLBACK_PREFIXES;
-
-        private static Commands instance;
-        public Commands() {
-            instance = this;
-        }
-        public static Commands get() {
-            return instance;
-        }
 
         public static void load() {
             PROHIBITED_TAB_COMPLETE_COMMANDS = file.getStringList("commands.prohibited-tab-complete-commands");
@@ -468,14 +466,6 @@ public class ConfigurationOptions {
     public static class BlockPlacement extends VlSetting {
         public static double MAX_BLOCK_TO_PLAYER_DISTANCE;
 
-        private static BlockPlacement instance;
-        public BlockPlacement() {
-            instance = this;
-        }
-        public static BlockPlacement get() {
-            return instance;
-        }
-
         public static void load() {
             MAX_BLOCK_TO_PLAYER_DISTANCE = file.getDouble("block-place.max-block-to-player-distance");
         }
@@ -488,28 +478,11 @@ public class ConfigurationOptions {
         @Violation("velocity.new-chunks")
         public static class NewChunks extends VlSetting {
 
-            private static NewChunks instance;
-
-            public NewChunks() {
-                instance = this;
-            }
-
-            public static NewChunks get() {
-                return instance;
-            }
         }
 
         @Setting
         @Violation("velocity.new-unloaded-chunks")
         public static class NewUnloadedChunks extends VlSetting {
-
-            private static NewUnloadedChunks instance;
-            public NewUnloadedChunks() {
-                instance = this;
-            }
-            public static NewUnloadedChunks get() {
-                return instance;
-            }
 
         }
 
@@ -519,14 +492,6 @@ public class ConfigurationOptions {
 
             public static double MAX_DISTANCE;
             public static double MIN_DISTANCE;
-
-            private static Movement instance;
-            public Movement() {
-                instance = this;
-            }
-            public static Movement get() {
-                return instance;
-            }
 
             public static void load() {
                 MAX_DISTANCE = file.getDouble("velocity.movement.max-distance");
@@ -564,26 +529,64 @@ public class ConfigurationOptions {
     @Setting
     public static class Netty {
 
-        public static int MAX_BYTES_PER_PACKET;
+        @Setting
+        @Violation("netty.a")
+        public static class NettyA extends VlSetting {
 
-        public static void load() {
-            MAX_BYTES_PER_PACKET = file.getInt("netty.max-bytes-per-packet");
+        }
+
+        @Setting
+        @Violation("netty.b")
+        public static class NettyB extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("netty.c")
+        public static class NettyC extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("netty.d")
+        public static class NettyD extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("netty.e")
+        public static class NettyE extends VlSetting {
+
+            public static int MAX_BYTES_PER_PACKET;
+
+            public NettyE() {
+                super(true);
+            }
+
+            public static void load() {
+                MAX_BYTES_PER_PACKET = file.getInt("netty.e.max-bytes-per-packet");
+            }
         }
 
         @Setting
         @Violation("netty.f")
         public static class NettyF extends VlSetting {
 
-            private static NettyF INSTANCE;
-
             public NettyF() {
                 super(true);
-                INSTANCE = this;
             }
+        }
 
-            public static NettyF get() {
-                return INSTANCE;
-            }
+        @Setting
+        @Violation("netty.g")
+        public static class NettyG extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("netty.h")
+        public static class NettyH extends VlSetting {
+
         }
     }
 
@@ -594,40 +597,18 @@ public class ConfigurationOptions {
         @Violation("packet-flood.common.a")
         public static class FloodA extends VlSetting {
 
-            private static FloodA instance;
-            public FloodA() {
-                instance = this;
-            }
-            public static FloodA get() {
-                return instance;
-            }
-
         }
 
         @Setting
         @Violation("packet-flood.common.b")
         public static class FloodB extends VlSetting {
 
-            private static FloodB instance;
-            public FloodB() {
-                instance = this;
-            }
-            public static FloodB get() {
-                return instance;
-            }
         }
 
         @Setting
         @Violation("packet-flood.c")
         public static class FloodC extends VlSetting {
 
-            private static FloodC instance;
-            public FloodC() {
-                instance = this;
-            }
-            public static FloodC get() {
-                return instance;
-            }
         }
 
         @Setting

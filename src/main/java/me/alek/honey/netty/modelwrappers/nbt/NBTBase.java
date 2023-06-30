@@ -14,13 +14,14 @@ import java.util.function.Function;
 
 public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> implements Cloneable, Serializable {
 
-    private final Object handle;
+    private Object handle;
     protected IStructureModifier<V> valueStructureModifier;
 
     private NBTRoot root;
     private NBTBase<?, ?> owner;
     private NBTType type;
     private V value;
+
 
     public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner) {
         super(base);
@@ -37,6 +38,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
             getRoot().subscribe(getOwner(), this);
         }
     }
+
 
     public abstract ApplicableConverter<T, V> getConverter();
 

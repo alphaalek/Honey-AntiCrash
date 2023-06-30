@@ -12,10 +12,6 @@ public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends Wrappe
 
     private final PacketContainer<WP> packetContainer;
 
-    public WrappedPacket(Object rawPacket) {
-        this(rawPacket, null);
-    }
-
     public WrappedPacket(Object rawPacket, PacketContainer<WP> packetContainer) {
         super(rawPacket);
         this.packetContainer = packetContainer;
@@ -41,8 +37,8 @@ public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends Wrappe
         return packetContainer.getType();
     }
 
-    public void acceptSerializer(WrappedPacketDataSerializer serializer) {
-        getModifier(void.class).invokeMethod("a", 0, serializer.getHandle());
+    public boolean handleSerializerSafely(WrappedPacketDataSerializer serializer) {
+        return true;
     }
 }
 

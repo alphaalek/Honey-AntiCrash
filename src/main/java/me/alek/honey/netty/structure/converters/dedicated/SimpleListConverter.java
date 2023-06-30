@@ -26,7 +26,9 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
             declaringList = new ArrayList<>();
         }
         for (V value : list) {
-            declaringList.add(value);
+            if (!controlDeclaring) {
+                declaringList.add(value);
+            }
             delegatedList.add(converter.convertDelegate(value));
         }
         return this;
@@ -125,7 +127,7 @@ public class SimpleListConverter<V, T> implements ListConverter<V, T> {
     }
 
     @Override
-    public SimpleListConverter<V, T> convertDelegate(List<V> delegate) {
+    public SimpleListConverter<V, T> convertDelegate(List<V> delegate, Object... params) {
         checkLists();
 
         return this;

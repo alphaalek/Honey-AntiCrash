@@ -161,7 +161,7 @@ public class ViolationService {
         }
     }
 
-    public static class CheckKey extends Tuple2<Object, Object> {
+    public static class CheckKey extends Tuple2<Object, Object> implements Cloneable {
 
         public static CheckKey DEFAULT = new CheckKey(null, null);
         private boolean useBuffer;
@@ -182,9 +182,18 @@ public class ViolationService {
         @Override
         public int hashCode() {
             if (useBuffer) {
-                return super.hashCode() * (-1);
+                return super.hashCode() << 5 ^ 2;
             }
             return super.hashCode();
+        }
+
+        @Override
+        public CheckKey clone() {
+            try {
+                return (CheckKey) super.clone();
+            } catch (Exception ex) {
+                throw new AssertionError();
+            }
         }
     }
 

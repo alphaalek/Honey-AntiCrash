@@ -1,19 +1,23 @@
 package me.alek.honey.checks.listeners;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
@@ -54,18 +58,24 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public void onPacketError(Player player, PacketTypeEnum packetType, PacketContainer<WP> packetContainer) {
-        if (packetContainer != null) {
-            packetContainer.cancel();
+        if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class).ENABLED) {
+
+            if (packetContainer != null) {
+                packetContainer.cancel();
+            }
+            HoneyPlugin.get().getViolationService().punish(player, "Netty.A");
         }
-        HoneyPlugin.get().getViolationService().punish(player, "Netty.A");
     }
 
     public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP> {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (player == null || !player.isOnline()) {
-                return ResponseBuilder.inst().cancel().notify(getViolationName()).terminate().build();
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class).ENABLED) {
+
+                if (player == null || !player.isOnline()) {
+                    return ResponseBuilder.inst().cancel().notify(getViolationName()).terminate().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -118,16 +128,19 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            for (double value : packet.getContainer().getDoubles().readFieldValues()) {
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class).ENABLED) {
 
-                if (NumberConversions.isInvalid(value)) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                for (double value : packet.getContainer().getDoubles().readFieldValues()) {
+
+                    if (NumberConversions.isInvalid(value)) {
+                        return ResponseBuilder.inst().cancel().punish().build();
+                    }
                 }
-            }
-            for (float value : packet.getContainer().getFloats().readFieldValues()) {
+                for (float value : packet.getContainer().getFloats().readFieldValues()) {
 
-                if (NumberConversions.isInvalid(value)) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    if (NumberConversions.isInvalid(value)) {
+                        return ResponseBuilder.inst().cancel().punish().build();
+                    }
                 }
             }
             return ResponseBuilder.SUCCESS;

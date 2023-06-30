@@ -2,6 +2,7 @@ package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.inventory.ItemStack;
@@ -42,5 +43,8 @@ public class WrappedPlayInBlockPlace extends WrappedPacket<WrappedPlayInBlockPla
         return below_1_9 ? getContainer().getFloats().readField(2) : 0;
     }
 
-
+    @Override
+    public boolean handleSerializerSafely(WrappedPacketDataSerializer serializer) {
+        return true;
+    }
 }

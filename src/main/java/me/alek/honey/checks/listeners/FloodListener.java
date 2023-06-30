@@ -108,7 +108,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.PacketFlood.FloodA.get();
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.PacketFlood.FloodA.class);
         }
 
         @Override
@@ -126,7 +126,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.PacketFlood.FloodB.get();
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.PacketFlood.FloodB.class);
         }
 
         @Override
@@ -144,7 +144,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.PacketFlood.FloodC.get();
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.PacketFlood.FloodC.class);
         }
 
         @Override

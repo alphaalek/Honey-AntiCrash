@@ -11,7 +11,10 @@ import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 
 public class CommonChannelInjector {
 
@@ -26,7 +29,7 @@ public class CommonChannelInjector {
         }
     }
 
-    private static void injectPipeline(Map<String, ChannelHandler> handlers, ChannelHandler handler, String minecraftName, String name, Channel channel) {
+    public static void injectPipeline(ChannelHandler handler, String minecraftName, String name, Channel channel) {
         final ChannelPipeline pipeline = channel.pipeline();
 
         if (pipeline.get(name) != null) {
@@ -38,69 +41,63 @@ public class CommonChannelInjector {
             if (minecraftName.equals("packet_handler")) {
                 pipeline.addBefore(minecraftName, name, handler);
             }
-            else if (minecraftName.equals("decoder")) {
-
-                if (pipeline.get("decompress") != null) {
-                    pipeline.addAfter("decompress", name, handler);
-                }
-                else if (pipeline.get("splitter") != null) {
-                    pipeline.addAfter("splitter", name, handler);
-                }
+            else if (minecraftName.equals("decompress")) {
+                pipeline.addAfter(minecraftName, name, handler);
             }
         });
 
-        handlers.put(name, handler);
     }
 
-    private static Map<String, ChannelHandler> injectPipeline(Channel channel) {
-        final Map<String, ChannelHandler> handlers = new HashMap<>();
-
-        final PlayerChannelDuplexHandler handler = new PlayerChannelDuplexHandler();
-        final PlayerPacketDecoder decoder = new PlayerPacketDecoder();
-
+    public static ChannelHandler injectHandler(Channel channel) {
+        final DuplexChannelHandler handler = new DuplexChannelHandler();
         final String handlerName = PacketLibrary.get().getHandlerName();
-        final String decoderName = PacketLibrary.get().getDecoderName();
 
-        injectPipeline(handlers, handler, "packet_handler", handlerName, channel);
-        injectPipeline(handlers, decoder, "decoder", decoderName, channel);
-
-        return handlers;
+        injectPipeline(handler, "packet_handler", handlerName, channel);
+        return handler;
     }
 
-    public static Map<String, ChannelHandler> injectChannel(Channel channel, InjectEvent.InjectType injectType) {
+    public static ChannelHandler injectDecoder(Channel channel) {
+        final InboundPacketDecoder handler = new InboundPacketDecoder();
+        final String handlerName = PacketLibrary.get().getDecoderName();
+
+        injectPipeline(handler, "decompress", handlerName, channel);
+        return handler;
+    }
+
+    public static ChannelHandler injectChannel(Channel channel, InjectEvent.InjectType injectType) {
         UUID uuid = NMSUtils.getUUIDForChannel(channel);
         if (uuid == null || Bukkit.getPlayer(uuid) == null) {
-            return injectPipeline(channel);
+            return injectHandler(channel);
         }
         else {
             return injectPlayer(Bukkit.getPlayer(uuid), injectType, true);
         }
     }
 
-    public static Map<String, ChannelHandler> injectPlayer(Player player, InjectEvent.InjectType injectType, boolean reallyInject) {
+    public static ChannelHandler injectPlayer(Player player, InjectEvent.InjectType injectType, boolean reallyInject) {
         if (injectedPlayers.contains(player.getUniqueId())) {
-            return getChannelHandlers(NMSUtils.getChannel(player));
+            return getHandler(NMSUtils.getChannel(player));
         }
         injectedPlayers.add(player.getUniqueId());
 
         final Channel channel = NMSUtils.getChannel(player);
         final PlayerInjectEvent event;
 
-        Map<String, ChannelHandler> handlers = new HashMap<>();
+        ChannelHandler handler = null;
         if (channel == null) {
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.ERROR);
         }
         else {
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.SUCCESS);
             if (reallyInject) {
-                handlers = injectPipeline(channel);
+                handler = injectHandler(channel);
             }
             else {
-                handlers = getChannelHandlers(channel);
+                handler = getHandler(channel);
             }
         }
         PacketLibrary.get().callSyncEvent(event, false);
-        return handlers;
+        return handler;
     }
 
     public static void ejectPlayer(Player player, InjectEvent.InjectType injectType) {
@@ -176,42 +173,30 @@ public class CommonChannelInjector {
         pipeline.context("encoder").fireChannelRead(rawPacket);
     }
 
-    public static Map<String, ChannelHandler> getChannelHandlers(Channel channel) {
-        final Map<String, ChannelHandler> handlers = new HashMap<>();
-
-        handlers.put(PacketLibrary.get().getHandlerName(), getHandler(channel));
-        handlers.put(PacketLibrary.get().getDecoderName(), getDecoder(channel));
-
-        return handlers;
-    }
-
-    public static ChannelHandler getChannelHandler(Channel channel, String name, boolean recursiveLimit) {
+    private static ChannelHandler getHandler(Channel channel, boolean recursiveLimit) {
         ChannelPipeline pipeline = channel.pipeline();
-        if (pipeline.get(name) == null) {
+        if (pipeline.get(PacketLibrary.get().getHandlerName()) == null) {
             if (recursiveLimit) {
                 return null;
             }
-            return CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.LATE).get(name);
+            return CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.LATE);
         }
         else {
-            ChannelHandler channelHandler = pipeline.get(name);
-            if (channel instanceof PlayerChannelDuplexHandler && !(channelHandler instanceof PlayerChannelDuplexHandler)
-            ||  channel instanceof PlayerPacketDecoder && !(channelHandler instanceof PlayerPacketDecoder)) {
-                return CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.LATE).get(name);
+            ChannelHandler channelHandler = pipeline.get(PacketLibrary.get().getHandlerName());
+            if (channel instanceof DuplexChannelHandler && !(channelHandler instanceof DuplexChannelHandler)
+                    ||  channel instanceof InboundPacketDecoder && !(channelHandler instanceof InboundPacketDecoder)) {
+                return CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.LATE);
             }
             return channelHandler;
         }
     }
 
-    public static PlayerChannelDuplexHandler getHandler(Channel channel, boolean recursiveLimit) {
-        return (PlayerChannelDuplexHandler) getChannelHandler(channel, PacketLibrary.get().getHandlerName(), recursiveLimit);
+    public static DuplexChannelHandler getHandler(Channel channel) {
+        return (DuplexChannelHandler) channel.pipeline().get(PacketLibrary.get().getHandlerName());
     }
 
-    public static PlayerChannelDuplexHandler getHandler(Channel channel) {
-        return getHandler(channel, false);
+    public static InboundPacketDecoder getDecoder(Channel channel) {
+        return (InboundPacketDecoder) channel.pipeline().get(PacketLibrary.get().getDecoderName());
     }
 
-    public static PlayerPacketDecoder getDecoder(Channel channel) {
-        return (PlayerPacketDecoder) getChannelHandler(channel, PacketLibrary.get().getDecoderName(), false);
-    }
 }

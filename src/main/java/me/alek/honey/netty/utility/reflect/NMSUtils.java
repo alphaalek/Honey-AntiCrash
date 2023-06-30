@@ -105,8 +105,20 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     }
 
+    public static Class<Object> getItemClass() {
+        return getFuzzyClass("{nms}.Item", "{nms}.world.item.Item");
+    }
+
+    public static Class<Object> getRegistryMaterialsClass() {
+        return getFuzzyClass("{nms}.RegistryMaterials");
+    }
+
     public static Class<Object> getNBTTagCompoundClass() {
         return getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
+    }
+
+    public static Class<Object> getNBTCompressedToolsClass() {
+        return getFuzzyClass("{nms}.NBTCompressedTools", "{nms}.nbt.NBTCompressedTools");
     }
 
     public static Class<Object> getPacketDataSerializerClass() {

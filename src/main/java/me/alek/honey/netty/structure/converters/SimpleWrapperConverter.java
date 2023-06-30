@@ -12,7 +12,7 @@ public class SimpleWrapperConverter<WO extends WrappedObject<WO>> implements Jav
     }
 
     @Override
-    public WO convertDelegate(Object delegate) {
+    public WO convertDelegate(Object delegate, Object... params) {
         return constructorInvoker.invoke(delegate);
     }
 

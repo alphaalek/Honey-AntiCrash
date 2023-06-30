@@ -24,7 +24,6 @@ public class BukkitEventInternal implements Listener {
 
             final Channel channel = NMSUtils.getChannel(player);
             library.getProxy().getHandler(channel).setPlayer(player);
-            library.getProxy().getDecoder(channel).setPlayer(player);
         }
     }
 

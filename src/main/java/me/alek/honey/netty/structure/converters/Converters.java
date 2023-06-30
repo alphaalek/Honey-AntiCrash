@@ -1,12 +1,10 @@
 package me.alek.honey.netty.structure.converters;
 
 import me.alek.honey.netty.api.packet.IStructureModifier;
-import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedRenderData;
+import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
@@ -52,7 +50,7 @@ public class Converters {
 
         return getConverter(WrappedBlockPosition.class, (clazz) -> new JavaConverter<Object, WrappedBlockPosition>() {
             @Override
-            public WrappedBlockPosition convertDelegate(Object delegate) {
+            public WrappedBlockPosition convertDelegate(Object delegate, Object... params) {
                 if (delegate == null) {
                     return null;
                 }
@@ -89,7 +87,7 @@ public class Converters {
     public static JavaConverter<Object, ItemStack> getItemstackConverter() {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
-            public ItemStack convertDelegate(Object delegate) {
+            public ItemStack convertDelegate(Object delegate, Object... params) {
                 return ItemReflection.asBukkitItem(delegate);
             }
 
@@ -98,6 +96,14 @@ public class Converters {
                 return ItemReflection.asNMSItem(itemStack);
             }
         });
+    }
+
+    public static JavaConverter<Object, WrappedRegistryMaterials<Object, Object>> getRegistryMaterialsConverter() {
+        return getConverter(WrappedRegistryMaterials.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRegistryMaterials.class));
+    }
+
+    public static JavaConverter<Object, WrappedItem> getItemConverter() {
+        return getConverter(WrappedItem.class, (clazz) -> new SimpleWrapperConverter<>(WrappedItem.class));
     }
 
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
@@ -110,10 +116,6 @@ public class Converters {
 
     public static JavaConverter<Object, WrappedEnumProtocol> getEnumProtocolConverter() {
         return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class));
-    }
-
-    public static JavaConverter<Object, WrappedPacket<?>> getPacketConverter() {
-        return getConverter(WrappedPacket.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacket.class));
     }
 
     // nbt

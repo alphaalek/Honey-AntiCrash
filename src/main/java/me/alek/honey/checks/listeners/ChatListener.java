@@ -173,7 +173,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.Commands.get();
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Commands.class);
         }
     }
 

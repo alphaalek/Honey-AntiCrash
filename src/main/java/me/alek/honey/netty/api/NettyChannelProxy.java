@@ -1,8 +1,8 @@
 package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.injector.PlayerChannelDuplexHandler;
-import me.alek.honey.netty.injector.PlayerPacketDecoder;
+import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.injector.InboundPacketDecoder;
 import org.bukkit.entity.Player;
 
 public interface NettyChannelProxy {
@@ -29,9 +29,9 @@ public interface NettyChannelProxy {
 
     void receivePacket(Channel channel, Object rawPacket);
 
-    PlayerChannelDuplexHandler getHandler(Channel channel);
+    DuplexChannelHandler getHandler(Channel channel);
 
-    PlayerPacketDecoder getDecoder(Channel channel);
+    InboundPacketDecoder getDecoder(Channel channel);
 
 }
 

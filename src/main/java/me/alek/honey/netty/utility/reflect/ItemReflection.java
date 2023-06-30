@@ -1,5 +1,7 @@
 package me.alek.honey.netty.utility.reflect;
 
+import me.alek.honey.netty.modelwrappers.WrappedItemStack;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemReflection {
@@ -18,20 +20,18 @@ public class ItemReflection {
         return craftItemStackClass;
     }
 
-    public static ItemStack asBukkitItem(Object item) {
-        if (item != null) {
 
+    public static ItemStack asBukkitItem(Object itemStack) {
+        if (itemStack != null) {
             try {
-                if (itemStackClass.isInstance(item)) {
-                    Object bukkitItem = bukkitCopyInvoker.invoke(null, item);
-                    if (bukkitItem instanceof ItemStack) {
-                        return (ItemStack) bukkitItem;
-                    }
+                if (itemStackClass.isInstance(itemStack)) {
+                    return (ItemStack) bukkitCopyInvoker.invoke(null, itemStack);
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
-        return null;
+        return new WrappedItemStack(itemStack, Material.AIR);
     }
 
     public static Object asNMSItem(ItemStack item) {
