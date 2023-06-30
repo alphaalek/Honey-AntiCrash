@@ -1,0 +1,69 @@
+[22:49:37] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.F. buffer: 43675/40000, 1vls/3vls, 0ms
+[22:52:02] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 1vls/8vls, 0ms
+[22:52:02] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 60/60, 1vls/7vls, 500ms
+[22:52:02] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 2vls/8vls, 0ms
+[22:52:02] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 3vls/8vls, 0ms
+[22:53:52] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Payload.D.
+[22:54:55] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.H. flags: 1/1, 1vls/3vls, 0ms
+[22:54:55] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.H. flags: 1/1, 2vls/3vls, 0ms
+[22:54:55] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.H. flags: 1/1, 3vls/3vls, 0ms
+[22:54:55] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.H.
+[22:58:23] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 25/25, 1vls/6vls, 700ms
+[22:58:23] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 100/100, 1vls/10vls, 1000ms
+[22:58:29] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 25/25, 2vls/6vls, 700ms
+[22:58:29] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 100/100, 2vls/10vls, 1000ms
+[22:58:29] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.A. flags: 200/200, 1vls/1vls, 600ms
+[22:58:36] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 25/25, 1vls/6vls, 700ms
+[22:58:36] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 100/100, 1vls/10vls, 1000ms
+[22:58:29] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Flood.A.
+[23:01:11] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:01:19] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:01:21] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:01:23] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:01:36] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Position.A.
+[23:02:11] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Creative.A.
+[23:02:46] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Payload.C.
+[23:02:52] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Payload.C.
+[23:03:34] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Window.A.
+[23:04:17] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 1vls/8vls, 0ms
+[23:04:17] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 60/60, 1vls/7vls, 500ms
+[23:04:17] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 2vls/8vls, 0ms
+[23:04:17] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 3vls/8vls, 0ms
+[23:04:17] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 4vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 1vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Flood.D. flags: 60/60, 1vls/7vls, 500ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 2vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 3vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 4vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 5vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 6vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 7vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Position.B. flags: 1/1, 8vls/8vls, 0ms
+[23:07:12] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Position.B.
+[23:08:42] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.H. flags: 1/1, 1vls/3vls, 0ms
+[23:08:42] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.H. flags: 1/1, 2vls/3vls, 0ms
+[23:08:42] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.H. flags: 1/1, 3vls/3vls, 0ms
+[23:08:42] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.H.
+[23:13:14] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:13:22] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.D.
+[23:13:27] [Client thread/INFO]: [CHAT] [Honey] XXX fejlede packets Netty.F. buffer: 41279/40000, 1vls/3vls, 0ms
+[23:13:56] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:14:27] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Position.A.
+[23:14:41] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Position.A.
+[23:16:12] [Client thread/INFO]: [CHAT] [Honey] XXX blev kicked for packets Netty.E.
+[23:19:26] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Position.B. flags: 1/1, 1vls/8vls, 0ms
+[23:19:26] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Position.A.
+[23:19:34] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.D. flags: 25/25, 1vls/6vls, 700ms
+[23:19:35] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.A. flags: 200/200, 1vls/1vls, 600ms
+[23:19:35] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Flood.A.
+[23:19:54] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.D. flags: 35/35, 1vls/7vls, 650ms
+[23:19:55] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.D. flags: 35/35, 2vls/7vls, 650ms
+[23:19:58] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.D. flags: 40/40, 1vls/5vls, 1000ms
+[23:19:59] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.D. flags: 40/40, 2vls/5vls, 1000ms
+[23:19:59] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.A. flags: 200/200, 1vls/1vls, 600ms
+[23:19:59] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Flood.A.
+[23:23:02] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Netty.C.
+[23:23:11] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Position.A.
+[23:23:47] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Netty.C.
+[23:31:15] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 fejlede packets Flood.D. flags: 60/60, 1vls/5vls, 700ms
+[23:35:02] [Client thread/INFO]: [CHAT] [Honey] XXX_V2 blev kicked for packets Netty.D.

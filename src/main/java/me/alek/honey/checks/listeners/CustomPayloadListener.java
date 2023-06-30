@@ -178,7 +178,6 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (serializer != null) {
                 serializer.release();
             }
-            ItemStack bukkitItem = container.getItem(0);
             return ResponseBuilder.inst().cancel().punish().terminate().build();
         }
 

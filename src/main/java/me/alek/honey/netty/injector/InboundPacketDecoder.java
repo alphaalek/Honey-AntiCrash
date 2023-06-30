@@ -16,7 +16,6 @@ import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -50,8 +49,8 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
             }
             // ugyldig byte buf og behøver derfor ikke blive decoded
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyD.class).ENABLED) {
-                if (player != null && (byteBuf == null || byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0)) {
-                    if (byteBuf != null && byteBuf.refCnt() > 0) {
+                if (player != null && player.isOnline() && (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0)) {
+                    if (byteBuf.refCnt() > 0) {
                         byteBuf.clear();
                     }
                     HoneyPlugin.get().getViolationService().punish(player, "Netty.D");
@@ -63,7 +62,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                 if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
                     return;
                 }
-                // tjek om den packet størrelse er forbudt eller ej
+                // tjek om den packet størrelse er forbudt
                 if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyE.class).ENABLED) {
 
                     int readableBytes = byteBuf.readableBytes();
@@ -111,7 +110,6 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                         }
                         HoneyPlugin.get().getViolationService().flag(player, byteBuf, new ViolationService.CheckKey(this, "NettyH"), 1, null, "Netty.H", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class));
                     }
-                    Bukkit.getLogger().info(bufferIndex + " " + ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).THRESHOLD);
                 }
             }
         } catch (Exception ex) {

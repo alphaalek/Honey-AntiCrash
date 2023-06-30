@@ -25,7 +25,7 @@ public class AsyncFuture {
         this.listeners.addAll(Arrays.asList(listeners));
     }
 
-    public void andThen(Consumer<AsyncFuture> future) {
+    public void join(Consumer<AsyncFuture> future) {
         waitingFutures.add(future);
     }
 

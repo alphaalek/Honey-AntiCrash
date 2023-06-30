@@ -175,13 +175,13 @@ netty:
   e:
     enabled: true
     vls-amount: 3
-    max-bytes-per-packet: 15000
+    max-bytes-per-packet: 12500
   f:
     enabled: true
-    vls-amount: 3
-    threshold: 40000
+    vls-amount: 1
+    threshold: 30000
     decay: 1000
-    decay-amount: 7500
+    decay-amount: 6000
   g:
     vls-amount: 3
     enabled: true
@@ -192,35 +192,6 @@ netty:
   i:
     enabled: true
     vls-amount: 5
-
-# velocity
-velocity:
-
-  new-chunks:
-    max-per-interval: 32
-    interval: 3000 # 3 sekunder
-    vls-amount: 1
-
-  new-unloaded-chunks:
-    max-per-interval: 5
-    interval: 5000 # 5 sekunder
-    vls-amount: 1
-
-  movement:
-    # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-distance: 30
-    min-distance: 0.001
-    vls-amount: 8
-
-  height:
-    max-height: 2048
-    min-height: -256
-    vls-amount: 1
-
-  yaw:
-    max-yaw-distance: 5000
-    max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
-    min-yaw: -25000
 
 # custom payload
 custom-payload:
@@ -280,6 +251,35 @@ custom-payload:
       vls-amount: 6
 
     # ingen limits på ItemName, PickItem & TrSel, udover den almindelige packet flood længere nede
+
+# velocitye
+velocity:
+
+  new-chunks:
+    max-per-interval: 24
+    interval: 2800 # 3 sekunder
+    vls-amount: 1
+
+  new-unloaded-chunks:
+    max-per-interval: 5
+    interval: 5000 # 5 sekunder
+    vls-amount: 1
+
+  movement:
+    # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
+    max-distance: 30
+    min-distance: 0.001
+    vls-amount: 8
+
+  height:
+    max-height: 2048
+    min-height: -256
+    vls-amount: 1
+
+  yaw:
+    max-yaw-distance: 5000
+    max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
+    min-yaw: -25000
 
 # block placement
 block-place:
@@ -460,7 +460,7 @@ packet-flood:
 
     # settings
     settings:
-      max-per-interval: 40
+      max-per-interval: 200
       interval: 400
 
     # spectate

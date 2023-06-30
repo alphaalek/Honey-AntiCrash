@@ -62,7 +62,7 @@ public class PacketLibrary {
         internalPacketProcessor = new InternalPacketProcessor(eventManager);
 
         future = PacketType.load();
-        future.andThen(PacketWrapperFactory.load());
+        future.join(PacketWrapperFactory.load());
     }
 
     public void callSyncEvent(Event event, boolean isPacket) {

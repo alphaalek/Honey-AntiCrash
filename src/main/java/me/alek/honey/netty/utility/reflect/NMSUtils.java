@@ -85,6 +85,10 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.MinecraftServer", "{nms}.server.MinecraftServer");
     }
 
+    public static Class<Object> getCraftServerClass() {
+        return getFuzzyClass("{obc}.CraftServer");
+    }
+
     public static Class<Object> getServerConnectionClass() {
         return getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection");
     }

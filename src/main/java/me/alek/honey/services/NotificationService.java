@@ -2,6 +2,9 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -51,19 +54,47 @@ public class NotificationService {
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 fejlede packets §e" + type + "§7.");
+                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type + "§7.");
             }
 
             @Override
             public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 fejlede packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
             }
 
             @Override
             public void warn(Player player, String type) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + "§7 blev kicked for packets §e" + type + "§7.");
+                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + formatPing(player) + "§7 blev kicked for §e" + type + "§7.");
             }
         });
+    }
+
+    private int getTPS() {
+        IStructureModifier<Object> craftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftServerClass())
+                .withType(NMSUtils.getMinecraftServerClass()).withTarget(Bukkit.getServer());
+        Object minecraftServer = craftServerModifier.invokeMethod("getServer", 0);
+        IStructureModifier<double[]> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMinecraftServerClass())
+                .withType(double[].class).withTarget(minecraftServer);
+        return (int) minecraftServerModifier.readField(0)[0];
+    }
+
+    private int getPing(Player player) {
+        IStructureModifier<Object> craftPlayerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
+                .withType(NMSUtils.getEntityPlayerClass()).withTarget(player);
+        Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle", 0);
+        IStructureModifier<Integer> entityPlayerModifier
+                = ReflectStructureCache.acquireStructure(entityPlayer.getClass())
+                .asInt().withTarget(entityPlayer);
+        return entityPlayerModifier.readField("ping", 0);
+    }
+
+    private String formatPing(Player player) {
+        int ping = getPing(player);
+        int tps = getTPS();
+        String pingColor = (ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c";
+        String tpsColor = (tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c";
+
+        return " §8(" + pingColor + ping + "ms§7/" + tpsColor + tps + "tps§8)";
     }
 
     public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
