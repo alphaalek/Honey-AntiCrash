@@ -3,7 +3,6 @@ package me.alek.honey.configuration;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -79,6 +78,7 @@ public class ConfigurationOptions {
             put("DECAY", ".decay");
             put ("DECAY_AMOUNT", ".decay-amount");
 
+            put("CLEAR_BUFFER", ".clear-buffer");
             put("ENABLED", ".enabled");
     }};
 
@@ -171,6 +171,7 @@ public class ConfigurationOptions {
         public int DECAY;
         public int DECAY_AMOUNT;
 
+        public boolean CLEAR_BUFFER;
         public boolean ENABLED = true;
         private final boolean USE_BUFFER;
 
@@ -207,6 +208,10 @@ public class ConfigurationOptions {
 
         public boolean isEnabled() {
             return ENABLED;
+        }
+
+        public boolean isClearBuffer() {
+            return CLEAR_BUFFER;
         }
 
         public boolean isUseBuffer() {
@@ -529,53 +534,83 @@ public class ConfigurationOptions {
     public static class Position {
 
         @Setting
-        @Violation("velocity.new-chunks")
-        public static class NewChunks extends VlSetting {
+        @Violation("position.a")
+        public static class PositionA extends VlSetting {
 
-        }
-
-        @Setting
-        @Violation("velocity.new-unloaded-chunks")
-        public static class NewUnloadedChunks extends VlSetting {
-
-        }
-
-        @Setting
-        @Violation("velocity.movement")
-        public static class Movement extends VlSetting {
-
-            public static double MAX_DISTANCE;
-            public static double MIN_DISTANCE;
+            public static int MAX;
+            public static int MIN;
 
             public static void load() {
-                MAX_DISTANCE = file.getDouble("velocity.movement.max-distance");
-                MIN_DISTANCE = file.getDouble("velocity.movement.min-distance");
+                MAX = file.getInt("position.a.max");
+                MIN = file.getInt("position.a.min");
             }
         }
 
         @Setting
-        public static class Height {
+        @Violation("position.b")
+        public static class PositionB extends VlSetting {
 
-            public static int MAX_HEIGHT;
-            public static int MIN_HEIGHT;
+            public static double MAX;
+            public static double MIN;
 
             public static void load() {
-                MAX_HEIGHT = file.getInt("velocity.height.max-height");
-                MIN_HEIGHT = file.getInt("velocity.height.min-height");
+                MAX = file.getDouble("position.b.max");
+                MIN = file.getDouble("position.b.min");
             }
         }
 
         @Setting
-        public static class Yaw {
+        @Violation("position.c")
+        public static class PositionC extends VlSetting {
 
-            public static int MAX_YAW;
-            public static int MIN_YAW;
-            public static int MAX_YAW_DISTANCE;
+            public PositionC() {
+                super(true);
+            }
+        }
 
-            public static void load () {
-                MAX_YAW = file.getInt("velocity.yaw.max-yaw");
-                MIN_YAW = file.getInt("velocity.yaw.min-yaw");
-                MAX_YAW_DISTANCE = file.getInt("velocity.yaw.max-yaw-distance");
+        @Setting
+        @Violation("position.d")
+        public static class PositionD extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("position.e")
+        public static class PositionE extends VlSetting {
+
+        }
+    }
+
+    @Setting
+    public static class Rotation {
+
+        @Setting
+        @Violation("rotation.a")
+        public static class RotationA extends VlSetting {
+
+            public static int MAX;
+
+            public void load() {
+                MAX = file.getInt("rotation.a.max");
+            }
+        }
+
+        @Setting
+        @Violation("rotation.b")
+        public static class RotationB extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("rotation.c")
+        public static class RotationC extends VlSetting {
+
+            public static int MAX;
+            public static int MIN;
+
+            public void load() {
+                MAX = file.getInt("rotation.c.max");
+                MIN = file.getInt("rotation.c.max");
             }
         }
     }
@@ -611,14 +646,14 @@ public class ConfigurationOptions {
         @Violation("netty.e")
         public static class NettyE extends VlSetting {
 
-            public static int MAX_BYTES_PER_PACKET;
+            public static int MAX;
 
             public NettyE() {
                 super(true);
             }
 
             public static void load() {
-                MAX_BYTES_PER_PACKET = file.getInt("netty.e.max-bytes-per-packet");
+                MAX = file.getInt("netty.e.max");
             }
         }
 

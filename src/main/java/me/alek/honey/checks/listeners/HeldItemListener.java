@@ -54,7 +54,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
                     return ResponseBuilder.inst().cancel().punish().build();
@@ -78,7 +78,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {
                     return ResponseBuilder.inst().cancel().punish().build();

@@ -83,7 +83,7 @@ public class ViolationService {
             Player player,
             Object handle,
             CheckKey key,
-            int amount,
+            double amount,
             Runnable onViolation,
             String violationName,
             ConfigurationOptions.VlSetting setting
@@ -204,7 +204,6 @@ public class ViolationService {
 
         private volatile long lastViolationClear;
         private volatile int violations;
-        private volatile boolean violatedForInterval;
 
         public AbstractPacketLimitHandler(Player player, ConfigurationOptions.VlSetting setting) {
             this.player = player;
@@ -220,26 +219,17 @@ public class ViolationService {
             return setting;
         }
 
-        public synchronized void setViolatedForInterval(boolean value) {
-            this.violatedForInterval = value;
-        }
-
         public synchronized boolean violate(Object handle, String violationName, Runnable onViolation) {
             if (onViolation != null) {
                 onViolation.run();
             }
             if (System.currentTimeMillis() - lastViolationClear >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
-                violatedForInterval = false;
                 violations = 0;
                 lastViolationClear = System.currentTimeMillis();
-            }
-            if (violatedForInterval) {
-                return false;
             }
             if (loggerService.isDebug()) {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), violationName, this, getSetting());
             }
-            violatedForInterval = true;
             violations++;
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this);
             if (violations < getSetting().getVlsAmount()) {
@@ -261,7 +251,7 @@ public class ViolationService {
             this.lastViolationClear = System.currentTimeMillis();
         }
 
-        public abstract boolean flag(Object handle, String violationName, int amount, Runnable onViolation);
+        public abstract boolean flag(Object handle, String violationName, double amount, Runnable onViolation);
     }
 
     public class PacketBufferHandler extends AbstractPacketLimitHandler {
@@ -269,6 +259,7 @@ public class ViolationService {
         private int threshold;
         private int decayInterval; // ms
         private int decayAmount;
+        private int bufferIndexCopy;
 
         private volatile long lastDecay;
         private volatile int bufferIndex;
@@ -286,9 +277,8 @@ public class ViolationService {
         }
 
         @Override
-        public synchronized boolean flag(Object handle, String violationName, int amount, Runnable onViolation) {
+        public synchronized boolean flag(Object handle, String violationName, double amount, Runnable onViolation) {
             if (System.currentTimeMillis() - lastDecay > decayInterval) {
-                setViolatedForInterval(false);
                 bufferIndex -= decayAmount;
                 lastDecay = System.currentTimeMillis();
             }
@@ -302,11 +292,13 @@ public class ViolationService {
             if (bufferIndex < threshold) {
                 return false;
             }
+            bufferIndexCopy = bufferIndex;
+            bufferIndex = 0;
             return violate(handle, violationName, onViolation);
         }
 
         public int getBufferIndex() {
-            return bufferIndex;
+            return bufferIndexCopy;
         }
     }
 
@@ -315,6 +307,7 @@ public class ViolationService {
         private int maxPerInterval;
         private int interval; // ms
 
+        private volatile boolean violatedForInterval;
         private volatile long intervalStart;
         private volatile int flagged;
 
@@ -334,9 +327,9 @@ public class ViolationService {
             this.interval = getSetting().getInterval();
         }
 
-        public synchronized boolean flag(Object handle, String violationName, int amount, Runnable onViolation) {
+        public synchronized boolean flag(Object handle, String violationName, double amount, Runnable onViolation) {
             if (System.currentTimeMillis() - intervalStart >= interval) {
-                setViolatedForInterval(false);
+                violatedForInterval = false;
                 flagged = 0;
                 intervalStart = System.currentTimeMillis();
             }
@@ -344,9 +337,10 @@ public class ViolationService {
             if (loggerService.isDebug()) {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
             }
-            if (flagged < maxPerInterval) {
+            if (flagged < maxPerInterval || violatedForInterval) {
                 return false;
             }
+            violatedForInterval = true;
             return violate(handle, violationName, onViolation);
         }
     }

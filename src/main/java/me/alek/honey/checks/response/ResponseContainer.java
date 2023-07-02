@@ -2,7 +2,7 @@ package me.alek.honey.checks.response;
 
 import me.alek.honey.services.ViolationService;
 
-public class ResponseContainer {
+public class ResponseContainer implements Cloneable {
     public boolean ACCEPTED;
     public boolean CANCELLED;
     public boolean PUNISH;
@@ -13,9 +13,18 @@ public class ResponseContainer {
     public ViolationService.CheckKey CUSTOM_KEY;
     public Runnable ON_VIOLATION;
     public String NOTIFICATION_MESSAGE;
-    public int FLAGGED;
+    public double FLAGGED;
 
     public ResponseBuilder builder() {
-        return new ResponseBuilder(this);
+        return new ResponseBuilder(this.clone());
+    }
+
+    @Override
+    public ResponseContainer clone() {
+        try {
+            return (ResponseContainer) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

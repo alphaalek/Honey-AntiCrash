@@ -4,6 +4,7 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
+import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.ReflectToucher;
@@ -313,6 +314,10 @@ public class ReflectStructure<T, C> {
                 if (converter instanceof ListConverter && originalValue instanceof List) {
                     ((ListConverter<V, R>)converter).apply((List<V>) originalValue);
                 }
+                if (converter instanceof SetConverter && originalValue instanceof Set) {
+                    ((SetConverter<V, R>)converter).apply((Set<V>) originalValue);
+                }
+
                 return converter.convertDelegate(originalValue);
             }
             return null;

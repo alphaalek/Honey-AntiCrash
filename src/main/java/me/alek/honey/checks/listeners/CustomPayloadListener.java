@@ -94,7 +94,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 ByteBuf serializer = container.getSerializer(0);
                 if (serializer == null || serializer instanceof EmptyByteBuf) {
@@ -118,7 +118,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 ByteBuf serializer = container.getSerializer(0);
                 if (serializer == null) {
@@ -147,7 +147,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 ItemStack item = container.getItem(0);
                 ItemStack itemInHand = player.getItemInHand();
@@ -185,7 +185,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
                 ItemStack itemInHand = player.getItemInHand();
@@ -222,7 +222,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
                 if (channel.equals("BungeeCord") || channel.contains("FML") || channel.equals("ML|OpenTE") || channel.equals("WECUI")) {
@@ -255,7 +255,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadF.class).ENABLED) {
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadF.class).isEnabled()) {
 
                 if (ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
                     return ResponseBuilder.inst().flag().withKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
@@ -284,7 +284,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
-            if (getSetting().ENABLED) {
+            if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
                 if (channel.equals("WDL|INIT") || channel.equals("WDL|CONTROL") || channel.equals("WDL|REQUEST")) {

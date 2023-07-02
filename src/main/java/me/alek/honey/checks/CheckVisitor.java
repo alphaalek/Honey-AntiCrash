@@ -35,7 +35,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 return;
             }
             if (skipping-- > 0) continue;
-
             ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
             ConfigurationOptions.VlSetting setting = null;
             if (check instanceof ViolationCheck) {
@@ -46,7 +45,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 setting = violationCheck.getSetting(violationCheck.getKey(packetContainer.getPacket()));
             }
 
+            if (response.SKIP_INDICES != 0) {
+                skipping = response.SKIP_INDICES;
+            }
             if (response.SUCCESS) {
+
+                if (response.TERMINATE) {
+                    return;
+                }
                 continue;
             }
             if (response.CANCELLED && !response.ACCEPTED) {
@@ -54,6 +60,10 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (response.FLAGGED != 0) {
                 if (setting == null) {
+
+                    if (response.TERMINATE) {
+                        return;
+                    }
                     continue;
                 }
                 ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check, packetContainer.getType());
@@ -67,9 +77,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (response.TERMINATE) {
                 return;
-            }
-            if (response.SKIP_INDICES != 0) {
-                skipping = response.SKIP_INDICES;
             }
         }
     }

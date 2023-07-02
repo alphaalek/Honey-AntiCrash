@@ -178,7 +178,7 @@ netty:
   e:
     enabled: true
     vls-amount: 3
-    max-bytes-per-packet: 12500
+    max: 12500
 
   f:
     enabled: true
@@ -282,37 +282,59 @@ held-item:
 
   b:
     enabled: true
+    vls-amount: 1
 
 # |--- position ---|
-velocity:
+position:
+  a:
+    enabled: true
+    max: 2048
+    min: -256
+    vls-amount: 1
 
-  new-chunks:
+  b:
+    enabled: true
+    max: 30
+    min: 0.001
+    vls-amount: 6
+
+  c:
+    enabled: true
+    clear-buffer: true
+    threshold: 165
+    decay: 400
+    decay-amount: 35
+    vls-amount: 3
+
+  d:
+    enabled: true
     max-per-interval: 24
-    interval: 2800 # 3 sekunder
+    interval: 2800
     vls-amount: 1
 
-  new-unloaded-chunks:
-    max-per-interval: 5
-    interval: 5000 # 5 sekunder
+  e:
+    enabled: true
+    max-per-interval: 10
+    interval: 5000
     vls-amount: 1
 
-  movement:
-    # tjekker for block distance i mellem en position packet og den nuværende lokation som serveren kender til
-    max-distance: 30
-    min-distance: 0.001
-    vls-amount: 8
+# |--- rotation ---|
+rotation:
+  a:
+    enabled: true
+    vls-amount: 5
+    max: 100
 
-  height:
-    max-height: 2048
-    min-height: -256
+  b:
+    enabled: true
     vls-amount: 1
 
-  yaw:
-    max-yaw-distance: 5000
-    max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
-    min-yaw: -25000
+  c:
+    enabled: true
+    max: 25000
+    min: -25000
 
-# block placement
+# |--- block placement ---|
 block-place:
 
   # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
@@ -389,7 +411,7 @@ packet-flood:
   c:
     max-per-interval: 850
     interval: 1500
-    vls-amount: 3
+    vls-amount: 1
 
   # specific
   d:

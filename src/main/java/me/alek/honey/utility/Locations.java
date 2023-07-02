@@ -48,4 +48,14 @@ public class Locations {
 
         return Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaZ, 2));
     }
+
+    public static double calculate3DDistance(Location loc1, Location loc2) {
+        final double distance2D = calculate2DDistance(loc1, loc2);
+        if (distance2D >= 1_000_000) {
+            return 1_000_000;
+        }
+        final double deltaY = Math.abs(loc1.getY() - loc2.getY());
+
+        return Math.sqrt(Math.pow(distance2D, 2) + Math.pow(deltaY, 2));
+    }
 }

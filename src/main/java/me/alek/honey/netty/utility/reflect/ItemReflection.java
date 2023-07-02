@@ -1,6 +1,5 @@
 package me.alek.honey.netty.utility.reflect;
 
-import me.alek.honey.netty.modelwrappers.WrappedItemStack;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -31,7 +30,7 @@ public class ItemReflection {
                 ex.printStackTrace();
             }
         }
-        return new WrappedItemStack(itemStack, Material.AIR);
+        return new ItemStack(Material.AIR);
     }
 
     public static Object asNMSItem(ItemStack item) {

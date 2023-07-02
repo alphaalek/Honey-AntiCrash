@@ -58,7 +58,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public void onPacketError(Player player, PacketTypeEnum packetType, PacketContainer<WP> packetContainer) {
-        if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class).ENABLED) {
+        if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class).isEnabled()) {
 
             if (packetContainer != null) {
                 packetContainer.cancel();
@@ -71,7 +71,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class).ENABLED) {
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class).isEnabled()) {
 
                 if (player == null || !player.isOnline()) {
                     return ResponseBuilder.inst().cancel().notify(getViolationName()).terminate().build();
@@ -128,7 +128,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class).ENABLED) {
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class).isEnabled()) {
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
 

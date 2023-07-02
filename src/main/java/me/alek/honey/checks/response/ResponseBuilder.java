@@ -62,7 +62,7 @@ public class ResponseBuilder {
         return setFlagged(1);
     }
 
-    public ResponseBuilder setFlagged(int amount) {
+    public ResponseBuilder setFlagged(double amount) {
         responseContainer.FLAGGED = amount;
         return this;
     }

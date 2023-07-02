@@ -126,14 +126,6 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, WrappedRegistryMaterials<Object, Object>> getRegistryMaterialsConverter() {
-        return getConverter(WrappedRegistryMaterials.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRegistryMaterials.class));
-    }
-
-    public static JavaConverter<Object, WrappedItem> getItemConverter() {
-        return getConverter(WrappedItem.class, (clazz) -> new SimpleWrapperConverter<>(WrappedItem.class));
-    }
-
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
         return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
     }
@@ -151,7 +143,29 @@ public class Converters {
     }
 
     public static JavaConverter<Object, WrappedChunkCoordIntPair> getChunkCoordIntConverter() {
-        return getConverter(WrappedChunkCoordIntPair.class, (clazz) -> new SimpleWrapperConverter<>(WrappedChunkCoordIntPair.class));
+        return getConverter(WrappedChunkCoordIntPair.class, (clazz) -> new JavaConverter<Object, WrappedChunkCoordIntPair>() {
+            @Override
+            public WrappedChunkCoordIntPair convertDelegate(Object delegate, Object... params) {
+                return new WrappedChunkCoordIntPair(delegate);
+            }
+
+            @Override
+            public Object convertDeclaring(WrappedChunkCoordIntPair object) {
+                if (object == null) {
+                    return null;
+                }
+                ConstructorInvoker<Object> constructorInvoker = Reflection.getConstructor(
+                        NMSUtils.getChunkCoordIntPairClass(), int.class, int.class
+                );
+                Object chunkPair;
+                try {
+                    chunkPair = constructorInvoker.invoke(object.getX(), object.getZ());
+                } catch (Exception ex) {
+                    throw new RuntimeException("Reflection fejl");
+                }
+                return chunkPair;
+            }
+        });
     }
 
     // nbt

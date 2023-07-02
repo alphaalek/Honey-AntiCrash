@@ -48,7 +48,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                 return;
             }
             // ugyldig byte buf og behøver derfor ikke blive decoded
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyD.class).ENABLED) {
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyD.class).isEnabled()) {
                 if (player != null && player.isOnline() && (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0)) {
                     if (byteBuf.refCnt() > 0) {
                         byteBuf.clear();
@@ -63,10 +63,10 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                     return;
                 }
                 // tjek om den packet størrelse er forbudt
-                if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyE.class).ENABLED) {
+                if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyE.class).isEnabled()) {
 
                     int readableBytes = byteBuf.readableBytes();
-                    if (readableBytes > ConfigurationOptions.Netty.NettyE.MAX_BYTES_PER_PACKET) {
+                    if (readableBytes > ConfigurationOptions.Netty.NettyE.MAX) {
                         if (byteBuf.refCnt() > 0) {
                             byteBuf.clear();
                         }
@@ -75,7 +75,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                     }
                 }
                 // tjek packet buffer
-                if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class).ENABLED) {
+                if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class).isEnabled()) {
                     if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, ViolationService.CheckKey.DEFAULT.clone().setBuffer(true), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
                         return;
                     }
@@ -91,7 +91,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                 int id = dataSerializer.readVarInt();
                 Object packet = enumProtocol.createPacket(WrappedEnumProtocolDirection.SERVERBOUND, id);
 
-                if (packet == null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class).ENABLED) {
+                if (packet == null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class).isEnabled()) {
                     if (byteBuf.refCnt() > 0) {
                         byteBuf.clear();
                     }
@@ -99,12 +99,12 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                     return;
                 }
                 // tjek heavy serializer
-                if (packet != null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).ENABLED) {
+                if (packet != null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).isEnabled()) {
                     int bufferIndex = 0;
                     while (dataSerializer.isReadable()) {
                         bufferIndex += Math.abs(dataSerializer.readByte());
                     }
-                    if (bufferIndex > ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).THRESHOLD) {
+                    if (bufferIndex > ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).getThreshold()) {
                         if (byteBuf.refCnt() > 0) {
                             byteBuf.clear();
                         }

@@ -7,6 +7,7 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -58,12 +59,15 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     public void cleanup(Player player) {
     }
 
-    public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+    public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (Locations.calculateYawDistance(player.getLocation().getYaw(), packet.getYaw()) > ConfigurationOptions.Position.Yaw.MAX_YAW_DISTANCE) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().isEnabled()) {
+
+                if (Locations.calculateYawDistance(player.getLocation().getYaw(), packet.getYaw()) > ConfigurationOptions.Rotation.RotationA.MAX) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -72,15 +76,23 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         public String getViolationName() {
             return "Rotation.A";
         }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationA.class);
+        }
     }
 
-    public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+    public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            float pitch = packet.getPitch();
-            if (pitch < -90 || pitch > 90) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().isEnabled()) {
+
+                float pitch = packet.getPitch();
+                if (pitch < -90 || pitch > 90) {
+                    return ResponseBuilder.inst().cancel().punish().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -89,17 +101,25 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         public String getViolationName() {
             return "Rotation.B";
         }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationB.class);
+        }
     }
 
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (packet.getYaw() > ConfigurationOptions.Position.Yaw.MAX_YAW && ConfigurationOptions.Position.Yaw.MAX_YAW > 360) {
-                packet.setYaw(packet.getYaw() % 360);
-            }
-            else if (packet.getYaw() < ConfigurationOptions.Position.Yaw.MIN_YAW && ConfigurationOptions.Position.Yaw.MIN_YAW < -360) {
-                packet.setYaw(360 - (Math.max(packet.getYaw(), packet.getYaw() * (-1)) % 360));
+            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationC.class).isEnabled()) {
+
+                if (packet.getYaw() > ConfigurationOptions.Rotation.RotationC.MAX && ConfigurationOptions.Rotation.RotationC.MAX > 360) {
+                    packet.setYaw(packet.getYaw() % 360);
+                }
+                else if (packet.getYaw() < ConfigurationOptions.Rotation.RotationC.MIN && ConfigurationOptions.Rotation.RotationC.MIN < -360) {
+                    packet.setYaw(360 - (Math.max(packet.getYaw(), packet.getYaw() * (-1)) % 360));
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
