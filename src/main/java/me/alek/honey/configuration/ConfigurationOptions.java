@@ -3,6 +3,7 @@ package me.alek.honey.configuration;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -106,7 +107,6 @@ public class ConfigurationOptions {
                         if (configPath == null || file.get(prefixPath + configPath) == null) {
                             continue;
                         }
-
                         if (file.get(prefixPath + configPath).getClass() == Integer.class) {
                             field.setInt(setting, file.getInt(prefixPath + configPath));
                         } else if (file.get(prefixPath + configPath).getClass() == Boolean.class) {
@@ -114,8 +114,11 @@ public class ConfigurationOptions {
                         }
                     }
                 }
-                if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
-                    continue;
+                try {
+                    if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
+                        continue;
+                    }
+                } catch (Exception ex) {
                 }
                 return;
             }
@@ -374,89 +377,140 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    @Violation("custom-payload")
     public static class CustomPayload {
 
-        public static int MIN_BYTEBUF_CAPACITY;
-        public static int MAX_BYTEBUF_CAPACITY;
-        public static int MAX_BYTEBUF_SIZE;
-        public static int MAX_SERIALIZED_ITEM_NBT_LENGTH;
-        public static int MAX_PLUGIN_CHANNELS;
+        @Setting
+        @Violation("custom-payload.a")
+        public static class PayloadA extends VlSetting {
 
-        public static void load() {
-            MIN_BYTEBUF_CAPACITY = file.getInt("custom-payload.min-bytebuf-capacity");
-            MAX_BYTEBUF_CAPACITY = file.getInt("custom-payload.max-bytebuf-capacity");
-            MAX_BYTEBUF_SIZE = file.getInt("custom-payload.max-bytebuf-size");
-
-            MAX_SERIALIZED_ITEM_NBT_LENGTH = file.getInt("custom-payload.max-serialized-item-nbt-length");
-            MAX_PLUGIN_CHANNELS = file.getInt("custom-payload.max-plugin-channels");
         }
 
         @Setting
-        public static class Flood {
+        @Violation("custom-payload.b")
+        public static class PayloadB extends VlSetting {
+
+            public static int MAX;
+
+            public static void load() {
+                MAX = file.getInt("custom-payload.b.max");
+            }
+        }
+
+        @Setting
+        @Violation("custom-payload.c")
+        public static class PayloadC extends VlSetting {
+
+            public static int MAX;
+
+            public static void load() {
+                MAX = file.getInt("custom-payload.c.max");
+            }
+        }
+
+        @Setting
+        @Violation("custom-payload.d")
+        public static class PayloadD extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("custom-payload.e")
+        public static class PayloadE extends VlSetting {
+
+            public static int MAX;
+
+            public static void load() {
+                MAX = file.getInt("custom-payload.e.max");
+            }
+        }
+
+        @Setting
+        @Violation("custom-payload.f")
+        public static class PayloadF extends VlSetting {
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.adv-cmd"})
+            @Violation({"custom-payload.f", "custom-payload.f.adv-cmd"})
             @ChannelFlood("MC|AdvCmd")
             public static class AdvCmd extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.auto-cmd"})
+            @Violation({"custom-payload.f", "custom-payload.f.auto-cmd"})
             @ChannelFlood("MC|AutoCmd")
             public static class AutoCmd extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.beacon"})
+            @Violation({"custom-payload.f", "custom-payload.f.beacon"})
             @ChannelFlood("MC|Beacon")
             public static class Beacon extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.b-edit"})
+            @Violation({"custom-payload.f", "custom-payload.f.b-edit"})
             @ChannelFlood("MC|BEdit")
             public static class BEdit extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.b-open"})
+            @Violation({"custom-payload.f", "custom-payload.f.b-open"})
             @ChannelFlood("MC|BOpen")
             public static class BOpen extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.brand"})
+            @Violation({"custom-payload.f", "custom-payload.f.brand"})
             @ChannelFlood("MC|Brand")
             public static class Brand extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.b-sign"})
+            @Violation({"custom-payload.f", "custom-payload.f.b-sign"})
             @ChannelFlood("MC|BSign")
             public static class BSign extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.register"})
+            @Violation({"custom-payload.f", "custom-payload.f.register"})
             @ChannelFlood("REGISTER")
             public static class Register extends VlSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.packet-flood", "custom-payload.packet-flood.unregister"})
+            @Violation({"custom-payload.f", "custom-payload.f.unregister"})
             @ChannelFlood("UNREGISTER")
             public static class Unregister extends VlSetting {
 
             }
+        }
+
+        @Setting
+        @Violation("custom-payload.g")
+        public static class PayloadG extends VlSetting {
+
+        }
+    }
+
+    @Setting
+    public static class HeldItem {
+
+        @Setting
+        @Violation("held-item.a")
+        public static class HeldItemA extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("held-item.b")
+        public static class HeldItemB extends VlSetting {
 
         }
     }
@@ -472,7 +526,7 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class Velocity {
+    public static class Position {
 
         @Setting
         @Violation("velocity.new-chunks")
@@ -726,13 +780,6 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketType.Play.Client.SETTINGS)
-            @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.settings"})
-            public static class Settings extends VlSetting {
-
-            }
-
             @Flood(PacketType.Play.Client.SPECTATE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.spectate"})
@@ -788,7 +835,6 @@ public class ConfigurationOptions {
             public static class WindowClick extends VlSetting {
 
             }
-
         }
     }
 }

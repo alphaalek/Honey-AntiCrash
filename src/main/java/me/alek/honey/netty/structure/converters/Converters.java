@@ -10,10 +10,12 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleListConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleMapConverter;
+import me.alek.honey.netty.structure.converters.dedicated.SimpleSetConverter;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Chunk;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ public class Converters {
 
     private static Map<Class<?>, JavaConverter<?, ?>> CONVERTER_CACHE = new HashMap<>();
     private static Map<Class<?>, ListConverter<?, ?>> LIST_CONVERTER_CACHE = new HashMap<>();
+    private static Map<Class<?>, SetConverter<?, ?>> SET_CONVERTER_CACHE = new HashMap<>();
     private static Map<Class<?>, MapConverter<?, ?, ?>> MAP_CONVERTER_CACHE = new HashMap<>();
     private static Map<NBTBase<?, ?>, NBTConverter> NBT_CONVERTER_CACHE = new HashMap<>();
 
@@ -39,6 +42,11 @@ public class Converters {
     @SuppressWarnings("unchecked")
     private static <R, V, D> MapConverter<R, V, D> getMapConverter(Class<?> clazz, Function<? super Class<?>, ? extends MapConverter<R, V, D>> orElse) {
         return (MapConverter<R, V, D>) MAP_CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R, V> SetConverter<R, V> getSetConverter(Class<?> clazz, Function<? super Class<?>, ? extends SetConverter<R, V>> orElse) {
+        return (SetConverter<R, V>) SET_CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,6 +106,26 @@ public class Converters {
         });
     }
 
+    public static JavaConverter<Object, Chunk> getChunkConverter() {
+        return getConverter(Chunk.class, (clazz) -> new JavaConverter<Object, Chunk>() {
+            @Override
+            public Chunk convertDelegate(Object delegate, Object... params) {
+                IStructureModifier<Chunk> chunkModifier = ReflectStructureCache.acquireStructure(delegate.getClass())
+                        .withType(Chunk.class)
+                        .withTarget(delegate);
+                return chunkModifier.readField("bukkitChunk", 0);
+            }
+
+            @Override
+            public Object convertDeclaring(Chunk object) {
+                IStructureModifier<Object> craftChunkModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftChunkClass())
+                        .withType(NMSUtils.getChunkClass())
+                        .withTarget(object);
+                return craftChunkModifier.invokeMethod("getHandle", 0);
+            }
+        });
+    }
+
     public static JavaConverter<Object, WrappedRegistryMaterials<Object, Object>> getRegistryMaterialsConverter() {
         return getConverter(WrappedRegistryMaterials.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRegistryMaterials.class));
     }
@@ -116,6 +144,14 @@ public class Converters {
 
     public static JavaConverter<Object, WrappedEnumProtocol> getEnumProtocolConverter() {
         return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class));
+    }
+
+    public static <V> JavaConverter<Object, WrappedLongObjectHashMap<V>> getLongObjectHashMapConverter() {
+        return getConverter(WrappedLongObjectHashMap.class, (clazz) -> new SimpleWrapperConverter<>(WrappedLongObjectHashMap.class));
+    }
+
+    public static JavaConverter<Object, WrappedChunkCoordIntPair> getChunkCoordIntConverter() {
+        return getConverter(WrappedChunkCoordIntPair.class, (clazz) -> new SimpleWrapperConverter<>(WrappedChunkCoordIntPair.class));
     }
 
     // nbt
@@ -139,6 +175,15 @@ public class Converters {
 
     public static <K, T> ListConverter<K, T> getListConverterWithoutCache(JavaConverter<K, T> converter, boolean controlDeclaring) {
         return new SimpleListConverter<>(converter, controlDeclaring);
+    }
+
+    // sets
+    public static <K, T> SetConverter<K, T> getSetConverterOf(Class<?> clazz, JavaConverter<K, T> converter, boolean controlDeclaring) {
+        return getSetConverter(clazz, (clazz1) -> new SimpleSetConverter<>(converter, controlDeclaring));
+    }
+
+    public static <K, T> SetConverter<K, T> getSetConverterWithoutCache(JavaConverter<K, T> converter, boolean controlDeclaring) {
+        return new SimpleSetConverter<>(converter, controlDeclaring);
     }
 
     // maps

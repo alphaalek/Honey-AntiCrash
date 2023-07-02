@@ -22,7 +22,7 @@ public enum ListenerRegistry {
     v12(EncryptionBeginListener::new),
     v13(TabCompleteListener::new),
     v14(WindowClickListener::new),
-    v15(LookListener::new);
+    v15(RotationListener::new);
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;

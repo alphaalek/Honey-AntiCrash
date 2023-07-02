@@ -8,6 +8,8 @@ import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -15,8 +17,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInHeldItemSlot;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
@@ -49,12 +50,15 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         return () -> Collections.singletonList(PacketType.Play.Client.HELD_ITEM_SLOT);
     }
 
-    public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot> {
+    public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
-            if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().ENABLED) {
+
+                if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
+                    return ResponseBuilder.inst().cancel().punish().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -63,14 +67,22 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         public String getViolationName() {
             return "HeldItem.A";
         }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemA.class);
+        }
     }
 
-    public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot> {
+    public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
-            if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().ENABLED) {
+
+                if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {
+                    return ResponseBuilder.inst().cancel().punish().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -78,6 +90,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         @Override
         public String getViolationName() {
             return "HeldItem.B";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemB.class);
         }
     }
 

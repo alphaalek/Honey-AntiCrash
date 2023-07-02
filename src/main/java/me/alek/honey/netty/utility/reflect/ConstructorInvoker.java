@@ -1,7 +1,5 @@
 package me.alek.honey.netty.utility.reflect;
 
-import org.bukkit.Bukkit;
-
 import java.lang.reflect.Constructor;
 
 public class ConstructorInvoker<T> {

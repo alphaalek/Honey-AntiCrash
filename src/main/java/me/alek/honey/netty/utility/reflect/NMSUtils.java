@@ -97,6 +97,42 @@ public class NMSUtils {
         return getFuzzyClass("{obc}.entity.CraftPlayer");
     }
 
+    public static Class<Object> getCraftWorldClass() {
+        return getFuzzyClass("{obc}.CraftWorld");
+    }
+
+    public static Class<Object> getCraftChunkClass() {
+        return getFuzzyClass("{obc}.CraftChunk");
+    }
+
+    public static Class<Object> getChunkClass() {
+        return getFuzzyClass("{nms}.Chunk");
+    }
+
+    public static Class<Object> getIChunkLoaderClass() {
+        return getFuzzyClass("{nms}.IChunkLoader");
+    }
+
+    public static Class<Object> getChunkRegionLoaderClass() {
+        return getFuzzyClass("{nms}.ChunkRegionLoader");
+    }
+
+    public static Class<Object> getChunkCoordIntPairClass() {
+        return getFuzzyClass("{nms}.ChunkCoordIntPair");
+    }
+
+    public static Class<Object> getWorldServerClass() {
+        return getFuzzyClass("{nms}.WorldServer");
+    }
+
+    public static Class<Object> getChunkProviderServerClass() {
+        return getFuzzyClass("{nms}.ChunkProviderServer");
+    }
+
+    public static Class<Object> getLongObjectHashMapClass() {
+        return getFuzzyClass("{obc}.util.LongObjectHashMap");
+    }
+
     public static Class<Object> getBaseBlockPositionClass() {
         return getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
     }

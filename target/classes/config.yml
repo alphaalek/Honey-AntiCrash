@@ -157,53 +157,72 @@ item-analysis:
 
 # alle packets som bliver sendt i et interval, efter at spilleren er blevet violated for det tjek, vil blive blokeret
 
-# netty
+# |--- netty ---|
 netty:
-
   a:
+    enabled: true
     vls-amount: 5
-    enabled: true
+
   b:
-    vls-amount: 3
     enabled: true
+    vls-amount: 3
+
   c:
+    enabled: true
     vls-amount: 1
-    enabled: true
+
   d:
-    vls-amount: 3
     enabled: true
+    vls-amount: 3
+
   e:
     enabled: true
     vls-amount: 3
     max-bytes-per-packet: 12500
+
   f:
     enabled: true
     vls-amount: 1
     threshold: 30000
     decay: 1000
     decay-amount: 6000
+
   g:
-    vls-amount: 3
     enabled: true
+    vls-amount: 3
+
   h:
     enabled: true
     vls-amount: 3
     threshold: 500000
+
   i:
     enabled: true
     vls-amount: 5
 
-# custom payload
+# |--- custom payload ---|
 custom-payload:
+  a:
+    enabled: true
 
-  max-bytebuf-size: 10000
-  max-bytebuf-capacity: 10000
+  b:
+    enabled: true
+    max: 10000
 
-  max-serialized-item-nbt-length: 6000
-  max-plugin-channels: 105
+  c:
+    enabled: true
+    max: 6000
 
-  # packet flood for channels
-  packet-flood:
+  d:
+    enabled: true
+
+  e:
+    enabled: true
+    max: 110
+
+  f:
+    enabled: true
+
     # fælles indstillinger
     interval: 1000
     vls-amount: 3
@@ -252,7 +271,19 @@ custom-payload:
 
     # ingen limits på ItemName, PickItem & TrSel, udover den almindelige packet flood længere nede
 
-# velocitye
+  g:
+    enabled: true
+
+# |--- held item ---|
+held-item:
+  a:
+    enabled: true
+    vls-amount: 5
+
+  b:
+    enabled: true
+
+# |--- position ---|
 velocity:
 
   new-chunks:
@@ -348,17 +379,17 @@ packet-flood:
     a:
       max-per-interval: 200
       interval: 600
-      vls-amount: 1
+      vls-amount: 3
     b:
       max-per-interval: 450
       interval: 1000
-      vls-amount: 1
+      vls-amount: 3
 
   # total
   c:
     max-per-interval: 850
     interval: 1500
-    vls-amount: 1
+    vls-amount: 3
 
   # specific
   d:
@@ -374,7 +405,7 @@ packet-flood:
 
     # arm animation
     arm-animation:
-      max-per-interval: 60
+      max-per-interval: 65
       interval: 700
 
     # auto recipe
@@ -384,13 +415,13 @@ packet-flood:
 
     # block dig
     block-dig:
-      max-per-interval: 35
+      max-per-interval: 45
       interval: 600
       vls-amount: 7
 
     # block place
     block-place:
-      max-per-interval: 35
+      max-per-interval: 45
       interval: 650
       vls-amount: 7
 
@@ -458,11 +489,6 @@ packet-flood:
       interval: 850
       max-per-interval: 65
 
-    # settings
-    settings:
-      max-per-interval: 200
-      interval: 400
-
     # spectate
     spectate:
       max-per-interval: 15
@@ -482,8 +508,9 @@ packet-flood:
 
     # use item
     use-item:
-      max-per-interval: 35
+      max-per-interval: 45
       interval: 600
+      vls-amount: 7
 
     # use entity
     use-entity:

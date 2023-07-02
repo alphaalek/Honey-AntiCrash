@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
@@ -40,9 +40,9 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
-        visitor.visit(new LookA<>());
-        visitor.visit(new LookB<>());
-        visitor.visit(new LookC<>());
+        visitor.visit(new RotationA<>());
+        visitor.visit(new RotationB<>());
+        visitor.visit(new RotationC<>());
         return visitor;
     }
 
@@ -58,11 +58,11 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
     public void cleanup(Player player) {
     }
 
-    public static class LookA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+    public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (Locations.calculateYawDistance(player.getLocation().getYaw(), packet.getYaw()) > ConfigurationOptions.Velocity.Yaw.MAX_YAW_DISTANCE) {
+            if (Locations.calculateYawDistance(player.getLocation().getYaw(), packet.getYaw()) > ConfigurationOptions.Position.Yaw.MAX_YAW_DISTANCE) {
                 return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
@@ -70,11 +70,11 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
         @Override
         public String getViolationName() {
-            return "Look.A";
+            return "Rotation.A";
         }
     }
 
-    public static class LookB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+    public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
@@ -87,18 +87,18 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
         @Override
         public String getViolationName() {
-            return "Look.B";
+            return "Rotation.B";
         }
     }
 
-    public static class LookC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+    public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (packet.getYaw() > ConfigurationOptions.Velocity.Yaw.MAX_YAW && ConfigurationOptions.Velocity.Yaw.MAX_YAW > 360) {
+            if (packet.getYaw() > ConfigurationOptions.Position.Yaw.MAX_YAW && ConfigurationOptions.Position.Yaw.MAX_YAW > 360) {
                 packet.setYaw(packet.getYaw() % 360);
             }
-            else if (packet.getYaw() < ConfigurationOptions.Velocity.Yaw.MIN_YAW && ConfigurationOptions.Velocity.Yaw.MIN_YAW < -360) {
+            else if (packet.getYaw() < ConfigurationOptions.Position.Yaw.MIN_YAW && ConfigurationOptions.Position.Yaw.MIN_YAW < -360) {
                 packet.setYaw(360 - (Math.max(packet.getYaw(), packet.getYaw() * (-1)) % 360));
             }
             return ResponseBuilder.SUCCESS;
@@ -106,7 +106,7 @@ public class LookListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPa
 
         @Override
         public String getViolationName() {
-            return "Look.C";
+            return "Rotation.C";
         }
     }
 }

@@ -9,25 +9,32 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.structure.converters.SetConverter;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
+    private static SetConverter<Object, WrappedChunkCoordIntPair> chunks;
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
@@ -68,6 +75,59 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         PositionB.lastPacketLocation.remove(player.getUniqueId());
     }
 
+    // forhindrer den chunk i at blive loadet hvis ikke er det i forvejen
+    public static synchronized boolean isChunkLoaded(World world, int x, int z) {
+        if (chunks == null) {
+            Class<Object> worldServerClass = NMSUtils.getWorldServerClass();
+            IStructureModifier<Object> craftWorldModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftWorldClass())
+                    .withType(worldServerClass)
+                    .withTarget(world);
+
+            Object worldServer = craftWorldModifier.readField("world", 0);
+            Class<Object> chunkProviderServerClass = NMSUtils.getChunkProviderServerClass();
+            IStructureModifier<Object> worldServerModifier = ReflectStructureCache.acquireStructure(worldServerClass)
+                    .withType(chunkProviderServerClass)
+                    .withTarget(worldServer);
+
+            Object chunkProviderServer = worldServerModifier.readField("chunkProviderServer", 0);
+            IStructureModifier<Object> chunkProviderServerModifier = ReflectStructureCache.acquireStructure(chunkProviderServerClass)
+                    .withWeakType(NMSUtils.getIChunkLoaderClass())
+                    .withTarget(chunkProviderServer);
+
+            Object chunkLoader = chunkProviderServerModifier.readField("chunkLoader", 0);
+            IStructureModifier<SetConverter<Object, WrappedChunkCoordIntPair>> chunkLoaderModifier = ReflectStructureCache.acquireStructure(NMSUtils.getChunkRegionLoaderClass())
+                    .withWeakType(Set.class, Converters.getSetConverterOf(NMSUtils.getChunkCoordIntPairClass(), Converters.getChunkCoordIntConverter(), false))
+                    .withTarget(chunkLoader);
+            chunks = chunkLoaderModifier.readFieldAndApplyMapping(0);
+        }
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+
+        return chunks.containsConverted()
+    }
+
+    public static boolean isChunkLoaded(Location location) {
+        return isChunkLoaded(location.getWorld(), location.getBlockX(), location.getBlockZ());
+    }
+
+    public static synchronized Chunk getChunkAt(Location location) {
+        if (isChunkLoaded(location)) {
+            int x = location.getBlockX();
+            int z = location.getBlockZ();
+
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+
+            long longHash = toLong(chunkX, chunkZ);
+            Object chunk = chunkMap.get(longHash);
+            Bukkit.broadcastMessage("chunk: " + chunk);
+            if (chunk != null) {
+                return Converters.getChunkConverter().convertDelegate(chunk);
+            }
+        }
+        return null;
+    }
+
     public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
 
         @Override
@@ -76,7 +136,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             final double y = packet.getY();
             final double z = packet.getZ();
 
-            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Velocity.Height.MIN_HEIGHT || y > ConfigurationOptions.Velocity.Height.MAX_HEIGHT) {
+            if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Position.Height.MIN_HEIGHT || y > ConfigurationOptions.Position.Height.MAX_HEIGHT) {
                 return ResponseBuilder.inst().cancel().punish().build();
             }
             return ResponseBuilder.SUCCESS;
@@ -95,11 +155,8 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             try {
-                if (packet.getLocation().getChunk() == null) {
-                    return ResponseBuilder.inst().cancel().punish().build();
-                }
-                final double maxDistance = ConfigurationOptions.Velocity.Movement.MAX_DISTANCE;
-                final double minDistance = ConfigurationOptions.Velocity.Movement.MIN_DISTANCE;
+                final double maxDistance = ConfigurationOptions.Position.Movement.MAX_DISTANCE;
+                final double minDistance = ConfigurationOptions.Position.Movement.MIN_DISTANCE;
 
                 final Location playerLoc = player.getLocation();
                 final Location packetLoc = packet.getLocation();
@@ -142,7 +199,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Velocity.Movement.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.Movement.class);
         }
     }
 
@@ -152,11 +209,8 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            Chunk chunk = null;
-            try {
-                chunk = packet.getWorld().getBlockAt(packet.getLocation()).getChunk();
-            } catch (Exception ex) {
-            }
+            Chunk chunk = getChunkAt(packet.getLocation());
+            Bukkit.broadcastMessage(chunk + "");
             if (chunk != null) {
                 container.putChunk(chunk);
                 if (lastChunkMap.get(player.getUniqueId()) == chunk) {
@@ -174,7 +228,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Velocity.NewChunks.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.NewChunks.class);
         }
     }
 
@@ -183,7 +237,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             Chunk chunk = container.getChunk(0);
-            if (chunk != null && player.getWorld().isChunkLoaded(chunk) && chunk.isLoaded()) {
+            if (chunk != null) {
                 return ResponseBuilder.SUCCESS;
             }
             return ResponseBuilder.inst().cancel().flag().build();
@@ -196,7 +250,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Velocity.NewUnloadedChunks.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.NewUnloadedChunks.class);
         }
     }
 
