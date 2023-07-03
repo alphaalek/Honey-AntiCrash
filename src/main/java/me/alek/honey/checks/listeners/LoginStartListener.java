@@ -1,14 +1,17 @@
 package me.alek.honey.checks.listeners;
 
-import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
@@ -55,7 +58,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public ResponseContainer accept(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
-            GameProfile profile = packet.getProfile();
+            WrappedGameProfile profile = packet.getProfile();
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {

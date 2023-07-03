@@ -60,13 +60,15 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         visitor.visit(new PositionC<>());
         visitor.visit(new PositionD<>());
         visitor.visit(new PositionE<>());
+        visitor.visit(new PositionF<>());
         return visitor;
     }
 
     @Override
     public void cleanup(Player player) {
-        PositionListener.PositionD.lastChunkMap.remove(player.getUniqueId());
-        PositionListener.PositionB.lastPacketLocation.remove(player.getUniqueId());
+        PositionB.lastPacketLocation.remove(player.getUniqueId());
+        PositionD.lastChunkMap.remove(player.getUniqueId());
+        PositionF.lastDirectionFlowMap.remove(player.getUniqueId());
     }
 
     public static boolean isChunkLoaded(Location location) {
@@ -126,31 +128,30 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
                     final Location playerLoc = player.getLocation();
                     final Location packetLoc = packet.getLocation();
-                    final Location lastKnownPacketLoc = lastPacketLocation.get(player.getUniqueId());
+                    final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
 
-                    if (lastKnownPacketLoc != null) {
-
-                        // for at undgå flag ved lagspikes
-                        final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                        final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-
-                        if ((distance2d_client == 0) || distance2d_client < maxDistance && distance2d_client > minDistance) {
-                            return ResponseBuilder.SUCCESS;
-                        }
-                        if ((distanceY_client == 0) || distanceY_client < maxDistance && distanceY_client > minDistance) {
-                            return ResponseBuilder.SUCCESS;
-                        }
-                    }
                     lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
+                    // 2d distance check
+                    final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
                     final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
+
+                    if (distance2d_client > maxDistance || distance2d_client < minDistance) {
+
+                        if ((distance2d > maxDistance || distance2d < minDistance) && distance2d != 0) {
+                            return ResponseBuilder.inst().cancel().flag().build();
+                        }
+                    }
+
+                    // y distance check
+                    final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
                     final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
 
-                    if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
-                    if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
-                        return ResponseBuilder.inst().cancel().flag().build();
+                    if (distanceY_client > maxDistance || distanceY_client < minDistance) {
+
+                        if ((distanceY > maxDistance || distanceY < minDistance) && distanceY != 0) {
+                            return ResponseBuilder.inst().cancel().flag().build();
+                        }
                     }
                 } catch (Exception ex) {
                     return ResponseBuilder.inst().cancel().flag().build();
@@ -255,22 +256,42 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
     }
 
-    // PositionF
+    public static class PositionF<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-    // interval, percentage-of-vertical-switch, vls-amount
+        private enum Direction {
+            UP,
+            DOWN
+        }
 
-    // tjekker seneste cached model class "VelocityReference", og sammenligner den direction med
-    // den direction som bliver regnet ud ift. til seneste lokation af den VelocityReference
-    // hvis det er en anden direction end den tidligere cached, vil det blive flagged som target,
-    // ellers vil det blive flagged som normal (forestil dig hvis du hopper, vil alle position packets
-    // fra jorden op til det højeste punkt være i et flow af samme direction, men hvis man derimod
-    // spammer en masse packets op og ned i et mønster der ikke er normalt i Minecraft, vil det blive
-    // flagged som target. Når det interval er ovre, tjekker den om target er højere end det antal af
-    // procent som er blevet konfigureret til. jeg tænkte på omkring min. 35-45
+        private static final Map<UUID, Direction> lastDirectionFlowMap = new ConcurrentHashMap<>();
 
-    // put det ind i violation service og lav det som en mulighed for andre modules også, hvis jeg tænker
-    // at det kunne være en god idé at implementere flere steder i fremtiden. Det samme gælder for
-    // buffer violation check, jeg har bare ikke noget konkret sted lige nu at bruge det, men jeg ved det
-    // vil blive nyttigt på et tidspunkt
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
 
+                Direction lastDirection = lastDirectionFlowMap.getOrDefault(player.getUniqueId(), Direction.UP);
+                Direction currentDirection;
+                if (player.getVelocity().getY() > 0) {
+                    currentDirection = Direction.UP;
+                }
+                else {
+                    currentDirection = Direction.DOWN;
+                }
+                if (lastDirection != currentDirection) {
+                    return ResponseBuilder.inst().flag().onViolation(() -> packet.getContainer().cancel()).build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Position.F";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionF.class);
+        }
+    }
 }

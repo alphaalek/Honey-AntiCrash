@@ -26,6 +26,7 @@ import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -98,7 +99,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ByteBuf serializer = container.getSerializer(0);
                 if (serializer == null || serializer instanceof EmptyByteBuf) {
-                    return ResponseBuilder.inst().cancel().punish().terminate().build();
+                    return ResponseBuilder.inst().cancel().flag().terminate().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -126,7 +127,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 }
                 if (serializer.capacity() > ConfigurationOptions.CustomPayload.PayloadB.MAX) {
                     serializer.release();
-                    return ResponseBuilder.inst().cancel().punish().terminate().build();
+                    return ResponseBuilder.inst().cancel().flag().terminate().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -165,7 +166,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (serializer != null && serializer.refCnt() > 0) {
                     serializer.release();
                 }
-                return ResponseBuilder.inst().cancel().punish().terminate().build();
+                return ResponseBuilder.inst().cancel().flag().terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -202,7 +203,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (serializer != null) {
                     serializer.release();
                 }
-                return ResponseBuilder.inst().cancel().punish().terminate().build();
+                return ResponseBuilder.inst().cancel().flag().terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -233,7 +234,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                     if (player.getListeningPluginChannels().size() > ConfigurationOptions.CustomPayload.PayloadE.MAX) {
                         serializer.release();
-                        return ResponseBuilder.inst().cancel().punish().terminate().build();
+                        return ResponseBuilder.inst().cancel().flag().terminate().build();
                     }
                 }
             }
@@ -288,7 +289,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 String channel = packet.getChannel();
                 if (channel.equals("WDL|INIT") || channel.equals("WDL|CONTROL") || channel.equals("WDL|REQUEST")) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

@@ -130,6 +130,10 @@ public class Converters {
         return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
     }
 
+    public static JavaConverter<Object, WrappedGameProfile> getGameProfileConverter() {
+        return getConverter(WrappedGameProfile.class, (clazz) -> new SimpleWrapperConverter<>(WrappedGameProfile.class));
+    }
+
     public static JavaConverter<Object, WrappedPacketDataSerializer> getPacketDataSerializerConverter() {
         return getConverter(WrappedPacketDataSerializer.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacketDataSerializer.class));
     }

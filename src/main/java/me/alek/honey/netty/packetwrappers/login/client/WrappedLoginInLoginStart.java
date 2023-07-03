@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packetwrappers.login.client;
 
-import com.mojang.authlib.GameProfile;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class WrappedLoginInLoginStart extends WrappedPacket<WrappedLoginInLoginStart> {
@@ -10,7 +10,7 @@ public class WrappedLoginInLoginStart extends WrappedPacket<WrappedLoginInLoginS
         super(rawPacket, packetContainer);
     }
 
-    public GameProfile getProfile() {
-        return getContainer().getObjects(GameProfile.class).readField(0);
+    public WrappedGameProfile getProfile() {
+        return getContainer().getGameProfiles().readField(0);
     }
 }

@@ -2,8 +2,8 @@ package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;

@@ -8,6 +8,8 @@ import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -51,12 +53,15 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         return () -> Collections.singletonList(PacketType.Play.Client.SET_CREATIVE_SLOT);
     }
 
-    public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot> {
+    public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
-            if (player.getGameMode() != GameMode.CREATIVE) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().isEnabled()) {
+
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -65,15 +70,23 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         public String getViolationName() {
             return "Creative.A";
         }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeA.class);
+        }
     }
 
-    public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot> {
+    public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
-            int slot = packet.getSlot();
-            if (slot > (player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().isEnabled()) {
+
+                int slot = packet.getSlot();
+                if (slot > (player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -82,14 +95,22 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         public String getViolationName() {
             return "Creative.B";
         }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeB.class);
+        }
     }
 
-    public static class CreativeC implements PacketCheck<WrappedPlayInSetCreativeSlot> {
+    public static class CreativeC implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
-            if (ItemAnalysis.checkItem(player, packet.getItem())) {
-                return ResponseBuilder.inst().cancel().punish().build();
+            if (getSetting().isEnabled()) {
+
+                if (ItemAnalysis.checkItem(player, packet.getItem())) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -97,6 +118,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         @Override
         public String getViolationName() {
             return "Creative.C";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeC.class);
         }
     }
 }

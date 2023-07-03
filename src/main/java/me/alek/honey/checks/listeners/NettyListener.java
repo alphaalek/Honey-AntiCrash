@@ -8,6 +8,7 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -67,14 +68,14 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
-    public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP> {
+    public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class).isEnabled()) {
+            if (getSetting().isEnabled()) {
 
                 if (player == null || !player.isOnline()) {
-                    return ResponseBuilder.inst().cancel().notify(getViolationName()).terminate().build();
+                    return ResponseBuilder.inst().cancel().flag().terminate().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -84,10 +85,15 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public String getViolationName() {
             return "Netty.B";
         }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class);
+        }
     }
 
 
-    public static class NettyC<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener {
+    public static class NettyC<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
         @Override
         public CheckVisitor<WP> getVisitor() {
@@ -128,18 +134,18 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class).isEnabled()) {
+            if (getSetting().isEnabled()) {
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
 
                     if (NumberConversions.isInvalid(value)) {
-                        return ResponseBuilder.inst().cancel().punish().build();
+                        return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }
                 for (float value : packet.getContainer().getFloats().readFieldValues()) {
 
                     if (NumberConversions.isInvalid(value)) {
-                        return ResponseBuilder.inst().cancel().punish().build();
+                        return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }
             }
@@ -154,6 +160,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ListenerPriority getPriority() {
             return ListenerPriority.HIGHEST;
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class);
         }
     }
 }

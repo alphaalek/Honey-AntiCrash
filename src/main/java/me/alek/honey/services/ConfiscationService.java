@@ -5,7 +5,6 @@ import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.checks.item.enums.ConfiscationStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -81,6 +80,5 @@ public class ConfiscationService {
                 item.setType(Material.AIR);
                 break;
         }
-        Bukkit.broadcastMessage("confiscated item " + item + " fra " + player.getName() + " " + check);
     }
 }

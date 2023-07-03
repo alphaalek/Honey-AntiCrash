@@ -6,6 +6,8 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -48,7 +50,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_RESPONSE);
     }
 
-    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse> {
+    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
@@ -68,6 +70,11 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         @Override
         public String getViolationName() {
             return "Encryption.A";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return null;
         }
     }
 }

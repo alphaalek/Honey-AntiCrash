@@ -1,8 +1,10 @@
 package me.alek.honey.configuration;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -127,6 +129,10 @@ public class ConfigurationOptions {
     }
 
     public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
+        if (!vlSettingMap.containsKey(clazz)) {
+            Bukkit.getLogger().severe("Du har skrevet noget vrøvl i config.yml! Slet den og lad den generere en ny!");
+            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+        }
         return vlSettingMap.get(clazz);
     }
 
@@ -521,12 +527,57 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    @Violation("block-place")
-    public static class BlockPlacement extends VlSetting {
-        public static double MAX_BLOCK_TO_PLAYER_DISTANCE;
+    public static class WindowClick {
 
-        public static void load() {
-            MAX_BLOCK_TO_PLAYER_DISTANCE = file.getDouble("block-place.max-block-to-player-distance");
+        @Setting
+        @Violation("window-click.a")
+        public static class WindowA extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("window-click.b")
+        public static class WindowB extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("window-click.c")
+        public static class WindowC extends VlSetting {
+
+        }
+    }
+
+    @Setting
+    public static class BlockPlace {
+
+        @Setting
+        @Violation("block-place.a")
+        public static class PlaceA extends VlSetting {
+
+            public static int MAX;
+
+            public static void load() {
+                MAX = file.getInt("block-place.a.max");
+            }
+        }
+
+        @Setting
+        @Violation("block-place.b")
+        public static class PlaceB extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("block-place.c")
+        public static class PlaceC extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("block-place.d")
+        public static class PlaceD extends VlSetting {
+
         }
     }
 
@@ -579,6 +630,12 @@ public class ConfigurationOptions {
         public static class PositionE extends VlSetting {
 
         }
+
+        @Setting
+        @Violation("position.f")
+        public static class PositionF extends VlSetting {
+
+        }
     }
 
     @Setting
@@ -613,6 +670,45 @@ public class ConfigurationOptions {
                 MIN = file.getInt("rotation.c.max");
             }
         }
+    }
+
+    @Setting
+    public static class Creative {
+
+        @Setting
+        @Violation("set-creative-slot.a")
+        public static class CreativeA extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("set-creative-slot.b")
+        public static class CreativeB extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("set-creative-slot.c")
+        public static class CreativeC extends VlSetting {
+
+        }
+    }
+
+    @Setting
+    public static class Chat {
+
+        @Setting
+        @Violation("chat.a")
+        public static class ChatA extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("chat.b")
+        public static class ChatB extends VlSetting {
+
+        }
+
     }
 
     @Setting

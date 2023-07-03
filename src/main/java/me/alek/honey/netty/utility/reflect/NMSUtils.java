@@ -69,6 +69,10 @@ public class NMSUtils {
         return Reflection.getFuzzyObjectClass(params);
     }
 
+    public static Class<Object> getGameProfileClass() {
+        return getFuzzyClass("com.mojang.authlib.GameProfile");
+    }
+
     public static Class<Object> getEntityPlayerClass() {
         return getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
     }

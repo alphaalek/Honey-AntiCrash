@@ -53,7 +53,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                     if (byteBuf.refCnt() > 0) {
                         byteBuf.clear();
                     }
-                    HoneyPlugin.get().getViolationService().punish(player, "Netty.D");
+                    NMSUtils.getChannel(player).close();
                     return;
                 }
             }

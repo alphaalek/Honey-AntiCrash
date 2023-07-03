@@ -1,8 +1,7 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
 

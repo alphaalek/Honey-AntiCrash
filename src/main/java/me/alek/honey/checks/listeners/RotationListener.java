@@ -91,7 +91,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
                 float pitch = packet.getPitch();
                 if (pitch < -90 || pitch > 90) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

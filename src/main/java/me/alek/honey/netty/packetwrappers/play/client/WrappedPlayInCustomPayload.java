@@ -8,7 +8,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCustomPayload> {
 
-    private static final boolean MODERN = Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9);
+    private static final boolean MODERN = Protocol.getProtocol().isNewerThan(Protocol.v1_12_2);
     private static Class<?> MINECRAFT_KEY_CLASS;
 
     public WrappedPlayInCustomPayload(Object rawPacket, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {

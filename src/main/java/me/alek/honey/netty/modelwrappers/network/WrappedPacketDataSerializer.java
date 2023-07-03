@@ -8,8 +8,8 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

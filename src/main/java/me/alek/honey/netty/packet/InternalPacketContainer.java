@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.cache.PacketWrapperCache;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -206,6 +207,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public IStructureModifier<ItemStack> getItems() {
         return getModifier(NMSUtils.getItemStackClass(), Converters.getItemstackConverter());
+    }
+
+    @Override
+    public IStructureModifier<WrappedGameProfile> getGameProfiles() {
+        return getModifier(NMSUtils.getGameProfileClass(), Converters.getGameProfileConverter());
     }
 
     @Override

@@ -169,11 +169,9 @@ netty:
 
   c:
     enabled: true
-    vls-amount: 1
 
   d:
     enabled: true
-    vls-amount: 3
 
   e:
     enabled: true
@@ -282,6 +280,7 @@ held-item:
 
   b:
     enabled: true
+    vls-amount: 1
 
 # |--- position ---|
 position:
@@ -300,35 +299,90 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 65
+    threshold: 350
     decay: 400
-    decay-amount: 18
+    decay-amount: 35
     vls-amount: 3
 
   d:
     enabled: true
-    max-per-interval: 24
-    interval: 2800
-    vls-amount: 1
+    max-per-interval: 22
+    interval: 3000
 
   e:
     enabled: true
-    max-per-interval: 10
-    interval: 5000
-    vls-amount: 1
+    max-per-interval: 14
+    interval: 4000
+
+  f:
+    enabled: true
+    max-per-interval: 25
+    interval: 800
+    vls-amount: 5
 
 # |--- rotation ---|
-yaw:
-  max-yaw-distance: 5000
-  max-yaw: 25000 # begynder at omregne yaw til en værdi i mellem 0 - 360, så serveren ikke skal døje med store tal
-  min-yaw: -25000
+rotation:
+  a:
+    enabled: true
+    vls-amount: 5
+    max: 100
 
-# block placement
+  b:
+    enabled: true
+    vls-amount: 3
+
+  c:
+    enabled: true
+    max: 25000
+    min: -25000
+
+# |--- block place ---|
 block-place:
+  a:
+    enabled: true
+    vls-amount: 5
+    max: 25
 
-  # tjekker for antal af blocks i mellem spilleren og den lokation spilleren forsøger at sætte en block
-  max-block-to-player-distance: 25
-  vls-amount: 5
+  b:
+    enabled: true
+
+  c:
+    enabled: true
+    vls-amount: 3
+
+  d:
+    enabled: true
+    vls-amount: 3
+
+# |--- set creative slot ---|
+set-creative-slot:
+  a:
+    enabled: true
+
+  b:
+    enabled: true
+
+  c:
+    enabled: true
+
+# |--- chat ---|
+chat:
+  a:
+    enabled: true
+
+  b:
+    enabled: true
+
+# |--- window click ---|
+window-click:
+  a:
+    enabled: true
+
+  b:
+    enabled: true
+
+  c:
+    enabled: true
 
 ############################################################
 # +------------------------------------------------------+ #
@@ -343,7 +397,7 @@ commands:
   # Tab completion af kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando er registreret på serveren.
   prohibited-tab-complete-commands:
     # fast async world edit
-    - "/fargetoffset"
+    - "/targetoffset"
     - "/to"
 
   # Skrevet kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando er registreret på serveren.

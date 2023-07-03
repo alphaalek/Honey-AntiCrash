@@ -57,7 +57,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
             if (getSetting().isEnabled()) {
 
                 if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -81,7 +81,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
             if (getSetting().isEnabled()) {
 
                 if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -97,5 +97,4 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemB.class);
         }
     }
-
 }
