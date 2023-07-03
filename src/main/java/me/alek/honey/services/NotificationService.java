@@ -6,6 +6,8 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -14,9 +16,11 @@ import java.util.Map;
 
 public class NotificationService {
 
-    private final Map<Player, NotificationListener> listenerMap = new HashMap<>();
+    private final Map<CommandSender, NotificationListener> listenerMap = new HashMap<>();
+    private String PREFIX;
 
     public NotificationService() {
+        subscribe(Bukkit.getConsoleSender());
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -35,17 +39,22 @@ public class NotificationService {
                 }
             }
         }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 120L);
+        reload();
     }
 
-    public boolean hasNotifyPermission(Player player) {
-        return player.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION);
+    public void reload() {
+        PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX);
     }
 
-    public boolean isSubscribed(Player player) {
-        return listenerMap.containsKey(player);
+    public boolean hasNotifyPermission(CommandSender observer) {
+        return observer.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION);
     }
 
-    public void subscribe(final Player observer) {
+    public boolean isSubscribed(CommandSender observer) {
+        return listenerMap.containsKey(observer);
+    }
+
+    public void subscribe(final CommandSender observer) {
         listenerMap.put(observer, new NotificationService.NotificationListener() {
             @Override
             public void notify(String notification) {
@@ -54,25 +63,23 @@ public class NotificationService {
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type + "§7.");
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type + "§7.");
             }
 
             @Override
             public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
             }
 
             @Override
             public void warn(Player player, String type) {
-                observer.sendMessage("§8[§6Honey§8] §e" + player.getName() + formatPing(player) + "§7 blev kicked for §e" + type + "§7.");
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 blev kicked for §e" + type + "§7.");
             }
         });
     }
 
     private int getTPS() {
-        IStructureModifier<Object> craftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftServerClass())
-                .withType(NMSUtils.getMinecraftServerClass()).withTarget(Bukkit.getServer());
-        Object minecraftServer = craftServerModifier.invokeMethod("getServer", 0);
+        Object minecraftServer = NMSUtils.getMinecraftServer();
         IStructureModifier<double[]> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMinecraftServerClass())
                 .withType(double[].class).withTarget(minecraftServer);
         return (int) minecraftServerModifier.readField(0)[0];
@@ -115,7 +122,7 @@ public class NotificationService {
     }
 
     public void notify(String notification) {
-        for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : listenerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey())) {
                 continue;
             }
@@ -128,7 +135,7 @@ public class NotificationService {
     }
 
     public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-        for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : listenerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 continue;
             }
@@ -142,7 +149,7 @@ public class NotificationService {
     }
 
     public void warn(Player player, String warning) {
-        for (Map.Entry<Player, NotificationListener> observer : listenerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : listenerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
                 continue;
             }

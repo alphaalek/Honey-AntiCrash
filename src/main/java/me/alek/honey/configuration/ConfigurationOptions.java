@@ -239,6 +239,7 @@ public class ConfigurationOptions {
 
         public static int CLEAR_OLD_VIOLATIONS_TIMESTAMP;
         public static String KICK_MESSAGE;
+        public static String PREFIX;
         public static boolean BYPASS_PERMISSION_ENABLED;
         public static String BYPASS_PERMISSION;
         public static String NOTIFY_PERMISSION;
@@ -246,6 +247,7 @@ public class ConfigurationOptions {
         public static void load() {
             CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp");
             KICK_MESSAGE = file.getString("kick-message");
+            PREFIX = file.getString("prefix");
 
             BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled");
             BYPASS_PERMISSION = file.getString("bypass-permission");
@@ -257,19 +259,15 @@ public class ConfigurationOptions {
     public static class PacketLogger {
 
         public static boolean ENABLED;
-        public static boolean CONSOLE;
         public static boolean DETAILED;
         public static boolean DEBUG;
-        public static boolean TRUNCATE_OLD_LOGS;
         public static List<String> IGNORED_PLAYERS;
         public static List<String> IGNORED_PACKETS;
 
         public static void load() {
             ENABLED = file.getBoolean("packet-logger.enabled");
-            CONSOLE = file.getBoolean("packet-logger.console");
             DETAILED = file.getBoolean("packet-logger.detailed");
             DEBUG = file.getBoolean("packet-logger.debug-mode");
-            TRUNCATE_OLD_LOGS = file.getBoolean("packet-logger.truncate-old-logs");
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
         }

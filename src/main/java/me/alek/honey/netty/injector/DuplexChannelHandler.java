@@ -1,41 +1,60 @@
 package me.alek.honey.netty.injector;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler {
 
     private volatile Player player;
-    private volatile boolean checkHandshake;
+    private volatile boolean hasStartedInjectingTask;
 
     private final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
     public DuplexChannelHandler(Player player) {
         this.player = player;
-        checkHandshake = false;
     }
 
     public DuplexChannelHandler() {
-        checkHandshake = true;
     }
 
     public void setPlayer(final Player player) {
         this.player = player;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void startDecodeInjectorTask(Channel channel) {
+        hasStartedInjectingTask = true;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (player != null && !player.isOnline()) {
+                    cancel();
+                    return;
+                }
+                ChannelPipeline pipeline = channel.pipeline();
+                if (pipeline.get("decompress") == null) return;
+
+                CommonChannelInjector.injectDecoder(channel, player);
+                cancel();
+            }
+        }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 5L);
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+        if (player != null && !hasStartedInjectingTask) {
+            startDecodeInjectorTask(ctx.channel());
+        }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
         if (packetContainer == null) {
@@ -58,31 +77,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
         // decoder inject
         if (packet.getClass().getSimpleName().equals("PacketLoginOutSetCompression")) {
-            new BukkitRunnable() {
-
-                private boolean hasInjected;
-
-                @Override
-                public void run() {
-                    if (player != null && !player.isOnline()) {
-                        cancel();
-                        return;
-                    }
-                    ChannelPipeline pipeline = ctx.channel().pipeline();
-                    if (pipeline.get("decompress") == null) return;
-
-                    if (!hasInjected) {
-                        CommonChannelInjector.injectDecoder(ctx.channel());
-                        hasInjected = true;
-                        return;
-                    }
-                    String name = PacketLibrary.get().getDecoderName();
-                    if (pipeline.get(name) != null) {
-                        ((InboundPacketDecoder)pipeline.get(name)).setPlayer(player);
-                    }
-                    cancel();
-                }
-            }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 5L);
+            startDecodeInjectorTask(ctx.channel());
         }
 
         if (packetContainer == null) {

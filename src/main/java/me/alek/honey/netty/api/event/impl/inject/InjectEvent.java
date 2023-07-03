@@ -1,8 +1,6 @@
 package me.alek.honey.netty.api.event.impl.inject;
 
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.Event;
-import org.bukkit.Bukkit;
 
 public class InjectEvent extends Event {
 
@@ -30,14 +28,14 @@ public class InjectEvent extends Event {
         this.injectCallback = callback;
         this.injectBound = injectBound;
 
-        if (callback == InjectCallback.ERROR) {
+        /*if (callback == InjectCallback.ERROR) {
             Bukkit.getLogger().severe("Fejl ved inject event: " + PacketLibrary.get());
 
             if (injectType == InjectType.EARLY && injectBound == InjectBound.SERVER) {
                 Bukkit.getLogger().info("Sætter proxy til late injection");
-                PacketLibrary.get().setLateProxy();
+               PacketLibrary.get().setLateProxy();
             }
-        }
+        }*/
     }
 
     public InjectType getInjectType() {

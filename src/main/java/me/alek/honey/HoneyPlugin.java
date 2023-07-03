@@ -16,6 +16,7 @@ import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
@@ -41,14 +42,24 @@ public class HoneyPlugin extends JavaPlugin {
         isRunning = true;
         INSTANCE = this;
 
+        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17)) {
+            Bukkit.getLogger().severe("Honey er lige pt. ikke supported af Minecraft Version 1.17+! Bare rolig, det kommer i fremtiden. :-)");
+            Bukkit.getPluginManager().disablePlugin(this);
+        }
+
+        Bukkit.getLogger().info("1");
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
 
         configuration = new DedicatedConfiguration();
 
         loggerService = new LoggerService();
+        Bukkit.getLogger().info("5");
         violationService = new ViolationService();
+        Bukkit.getLogger().info("6");
         notificationService = new NotificationService();
+        Bukkit.getLogger().info("7");
         confiscationService = new ConfiscationService();
+        Bukkit.getLogger().info("8");
 
         commandManager = new CommandManager(this);
         new ReloadCommand(commandManager);
@@ -56,6 +67,7 @@ public class HoneyPlugin extends JavaPlugin {
 
         registerChecks();
         ItemAnalysis.reload();
+        Bukkit.getLogger().info("9");
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }

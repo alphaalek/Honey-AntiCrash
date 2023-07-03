@@ -220,6 +220,14 @@ public class Reflection {
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, String name, Class<?> type) {
+        FieldAccessor<T> accessor = getNullableField(target, name, type);
+        if (accessor == null) {
+            throw new RuntimeException("Reflection fejl");
+        }
+        return accessor;
+    }
+
+    public static <T> FieldAccessor<T> getNullableField(Class<?> target, String name, Class<?> type) {
         for (Field field : target.getDeclaredFields()) {
             if (!field.getName().equals(name) || field.getType()!= type) {
                 continue;
@@ -227,13 +235,18 @@ public class Reflection {
             field.setAccessible(true);
             return new FieldAccessor<>(field);
         }
-        if (target.getSuperclass() != null) {
-            return getField(target.getSuperclass(), name, type);
-        }
-        throw new RuntimeException("Reflection fejl " + name);
+        return null;
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, int index, Class<?> type) {
+        FieldAccessor<T> accessor = getNullableField(target, index, type);
+        if (accessor == null) {
+            throw new RuntimeException("Reflection fejl");
+        }
+        return accessor;
+    }
+
+    public static <T> FieldAccessor<T> getNullableField(Class<?> target, int index, Class<?> type) {
         int currentIndex = 0;
         for (Field field : target.getDeclaredFields()) {
 
@@ -244,10 +257,7 @@ public class Reflection {
                 currentIndex++;
             }
         }
-        if (target.getSuperclass() != null) {
-            return getField(target.getSuperclass(), index, type);
-        }
-        throw new RuntimeException("Reflection fejl " + index);
+        return null;
     }
 
     public static <T> FieldAccessor<T> getParameterizedField(Class<?> target, Class<?> bound, Class<?>... generic) {

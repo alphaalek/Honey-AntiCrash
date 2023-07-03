@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 
 public class LateChannelInjector implements NettyChannelProxy {
 
-
     @Override
     public void inject() {
         CommonChannelInjector.inject(InjectEvent.InjectCallback.SUCCESS, InjectEvent.InjectType.LATE, InjectEvent.InjectBound.SERVER);

@@ -19,10 +19,8 @@ import java.util.List;
 public class LoggerService {
 
     private boolean enabled;
-    private boolean console;
     private boolean detailed;
     private boolean debug;
-    private boolean truncateOld;
     private List<String> ignoredPlayers;
     private List<String> ignoredPackets;
 
@@ -39,10 +37,6 @@ public class LoggerService {
 
     public LoggerService() {
         reload();
-
-        if (truncateOld) {
-            // slet gamle filer her
-        }
     }
 
     public enum LoggingStrategy {
@@ -51,10 +45,8 @@ public class LoggerService {
 
     public void reload() {
         enabled = ConfigurationOptions.PacketLogger.ENABLED;
-        console = ConfigurationOptions.PacketLogger.CONSOLE;
         detailed = ConfigurationOptions.PacketLogger.DETAILED;
         debug = ConfigurationOptions.PacketLogger.DEBUG;
-        truncateOld = ConfigurationOptions.PacketLogger.TRUNCATE_OLD_LOGS;
         ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
         ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
@@ -102,11 +94,7 @@ public class LoggerService {
                 .append(": ")
                 .append(packetContainer.getAll().readFieldValues());
         }
-
-        if (console) {
-            Bukkit.getLogger().info(message.toString());
-        }
-        // log i fil her
+        Bukkit.getLogger().info(message.toString());
     }
 
     public void logPunish(String playerName, String violationName) {
@@ -118,20 +106,12 @@ public class LoggerService {
         return enabled;
     }
 
-    public boolean useConsole() {
-        return console;
-    }
-
     public boolean isDebug() {
         return debug;
     }
 
     public boolean isDetailed() {
         return detailed;
-    }
-
-    public boolean isTruncateOld() {
-        return truncateOld;
     }
 
     public List<String> getIgnoredPlayers() {

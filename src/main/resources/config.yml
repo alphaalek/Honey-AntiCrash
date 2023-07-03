@@ -13,11 +13,10 @@
 # +------------------------------------------------------+ #
 ############################################################
 
-# Beskeden en spiller får når vedkommende bliver kicket.
-kick-message: "§cDu sender dårlige packets! :-("
+prefix: "&6Honey &8\u00BB"
 
 # Hvor lang tid der skal gå før gamle violations bliver ryddet.
-clear-old-violations-timestamp: 300000 # 5 minutter
+clear-old-violations-timestamp: 120000 # 2 minutter
 
 # Permission som ignorerer packet checks. Skal slås til før det virker.
 bypass-permission-enabled: false
@@ -31,9 +30,6 @@ packet-logger:
 
   # Skal packet logger være slået til eller ej.
   enabled: false
-
-  # Skal det logges i console også. Som standard bliver der logget i oprettede filer.
-  console: false
 
   # Skal debug mode være slået til eller ej. Brugbart til udvikling og troubleshooting, men for en normal bruger er det fuldstændig unødvendigt.
   # OBS: viser kun i console når den er slået til, ikke i filer, det vil simpelthen ellers fylde dem for meget op.
@@ -50,9 +46,6 @@ packet-logger:
 
   # Skal packet logger være detaljeret, og vise attributes for hver eneste packet.
   detailed: false
-
-  # Skal gamle logs fjernes ved server start.
-  truncate-old-logs: true
 
 ############################################################
 # +------------------------------------------------------+ #
@@ -294,7 +287,7 @@ position:
     enabled: true
     max: 30
     min: 0.001
-    vls-amount: 6
+    vls-amount: 8
 
   c:
     enabled: true
@@ -302,22 +295,24 @@ position:
     threshold: 350
     decay: 400
     decay-amount: 35
-    vls-amount: 3
+    vls-amount: 5
 
   d:
     enabled: true
-    max-per-interval: 22
+    max-per-interval: 24
     interval: 3000
+    vls-amount: 3
 
   e:
     enabled: true
-    max-per-interval: 14
-    interval: 4000
+    max-per-interval: 12
+    interval: 3000
+    vls-amount: 3
 
   f:
     enabled: true
-    max-per-interval: 25
-    interval: 800
+    max-per-interval: 28
+    interval: 1200
     vls-amount: 5
 
 # |--- rotation ---|
@@ -325,13 +320,13 @@ rotation:
   a:
     enabled: true
     vls-amount: 5
-    max: 100
+    max: 500
 
   b:
     enabled: true
     vls-amount: 3
 
-  c:
+  c: # ingen flags/violations
     enabled: true
     max: 25000
     min: -25000
@@ -454,7 +449,7 @@ packet-flood:
   c:
     max-per-interval: 850
     interval: 1500
-    vls-amount: 1
+    vls-amount: 2
 
   # specific
   d:
@@ -480,13 +475,13 @@ packet-flood:
 
     # block dig
     block-dig:
-      max-per-interval: 45
-      interval: 600
+      max-per-interval: 50
+      interval: 650
       vls-amount: 7
 
     # block place
     block-place:
-      max-per-interval: 45
+      max-per-interval: 50
       interval: 650
       vls-amount: 7
 
@@ -518,12 +513,12 @@ packet-flood:
 
     # entity action
     entity-action:
-      max-per-interval: 40
+      max-per-interval: 50
       interval: 600
 
     # flying
     flying:
-      max-per-interval: 100
+      max-per-interval: 30
       vls-amount: 10
 
     # held item slot
@@ -564,7 +559,7 @@ packet-flood:
 
     # tab complete
     tab-complete:
-      max-per-interval: 40
+      max-per-interval: 45
 
     # update sign
     update-sign:
@@ -579,7 +574,7 @@ packet-flood:
 
     # use entity
     use-entity:
-      max-per-interval: 35
+      max-per-interval: 45
       interval: 600
 
     # window click

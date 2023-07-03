@@ -100,19 +100,12 @@ public class ViolationService {
             }
             punishing.add(player.getUniqueId());
 
-            /*Object handle = PacketFactory.createPacket(PacketType.Play.Server.KICK_DISCONNECT);
-            PacketContainer<WrappedPlayOutKickDisconnect> packetContainer =
-                    new InternalPacketContainer<>(handle, player, NMSUtils.getChannel(player), null, PacketType.Play.Server.KICK_DISCONNECT);
-            packet.getContainer() // chat base components write
-
-            HoneyPlugin.get().getPacketLibrary().getProxy().writePacket(player, handle);*/
-
             HoneyPlugin.get().getNotificationService().warn(player, violationName);
             HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
 
             Channel channel = NMSUtils.getChannel(player);
             if (channel != null) {
-                channel.close();
+                channel.eventLoop().execute(channel::close);
             }
         } finally {
             punishLock.unlock();

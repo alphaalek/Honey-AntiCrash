@@ -37,6 +37,10 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
         this.player = player;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
         // undgå packet decode sendt fra spillere i game state der alligevel ikke er online

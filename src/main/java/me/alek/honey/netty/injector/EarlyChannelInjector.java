@@ -1,11 +1,13 @@
 package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
+import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.NettyChannelProxy;
+import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
-import me.alek.honey.netty.api.NettyChannelProxy;
-import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -80,32 +82,50 @@ public class EarlyChannelInjector implements NettyChannelProxy {
     public void inject() {
         Object minecraftServer = getMinecraftServer.get(Bukkit.getServer());
         Object serverConnection = getServerConnection.get(minecraftServer);
-        boolean looking = true;
-
         try {
             FieldAccessor<Object> field = Reflection.getParameterizedField(serverConnectionClass, List.class, networkManagerClass);
             networkManagers = (List<Object>) field.get(serverConnection);
         } catch (Exception ex) {
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
+
+            Bukkit.getLogger().info("Fejl ved server channel injection. Kontakt Alek for fix!");
+            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
             return;
         }
         createServerChannelHandler();
 
-        for (int i = 0; looking; i++) {
-            List<Object> list = (List<Object>) Reflection.getField(serverConnectionClass, i, List.class).get(serverConnection);
+        FieldAccessor<List<Object>> accessor = Reflection.getParameterizedField(serverConnectionClass, List.class, ChannelFuture.class);
+        List<Object> list = accessor.get(serverConnection);
 
-            for (Object item : list) {
-                if (!ChannelFuture.class.isInstance(item)) {
-                    break;
-                }
-                Channel serverChannel = ((ChannelFuture) item).channel();
+        if (list.isEmpty()) {
+            HoneyPlugin.get().getLogger().info("Ingen server channel fundet! Bruger late injection i stedet for early injection.");
 
-                serverChannels.add(serverChannel);
-                serverChannel.pipeline().addFirst(serverChannelHandler);
-                looking = false;
+            CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
+            PacketLibrary.get().setLateProxy();
+            return;
+        }
+        boolean injectedServerChannel = false;
+        for (Object item : list) {
+            if (!(item instanceof ChannelFuture)) {
+                break;
             }
+            Channel serverChannel = ((ChannelFuture) item).channel();
+            injectServerChannel(serverChannel);
+            injectedServerChannel = true;
+        }
+        if (!injectedServerChannel) {
+            HoneyPlugin.get().getLogger().info("Fejl ved inject af server channel! Bruger late injection i stedet for early injection.");
+
+            CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
+            PacketLibrary.get().setLateProxy();
+            return;
         }
         CommonChannelInjector.inject(InjectEvent.InjectCallback.SUCCESS, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
+    }
+
+    private void injectServerChannel(Channel channel) {
+        serverChannels.add(channel);
+        channel.pipeline().addFirst(serverChannelHandler);
     }
 
     @Override

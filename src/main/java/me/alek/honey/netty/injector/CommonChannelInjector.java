@@ -45,19 +45,18 @@ public class CommonChannelInjector {
                 pipeline.addAfter(minecraftName, name, handler);
             }
         });
-
     }
 
-    public static ChannelHandler injectHandler(Channel channel) {
-        final DuplexChannelHandler handler = new DuplexChannelHandler();
+    public static ChannelHandler injectHandler(Channel channel, Player player) {
+        final DuplexChannelHandler handler = new DuplexChannelHandler(player);
         final String handlerName = PacketLibrary.get().getHandlerName();
 
         injectPipeline(handler, "packet_handler", handlerName, channel);
         return handler;
     }
 
-    public static ChannelHandler injectDecoder(Channel channel) {
-        final InboundPacketDecoder handler = new InboundPacketDecoder();
+    public static ChannelHandler injectDecoder(Channel channel, Player player) {
+        final InboundPacketDecoder handler = new InboundPacketDecoder(player);
         final String handlerName = PacketLibrary.get().getDecoderName();
 
         injectPipeline(handler, "decompress", handlerName, channel);
@@ -67,7 +66,7 @@ public class CommonChannelInjector {
     public static ChannelHandler injectChannel(Channel channel, InjectEvent.InjectType injectType) {
         UUID uuid = NMSUtils.getUUIDForChannel(channel);
         if (uuid == null || Bukkit.getPlayer(uuid) == null) {
-            return injectHandler(channel);
+            return injectHandler(channel, null);
         }
         else {
             return injectPlayer(Bukkit.getPlayer(uuid), injectType, true);
@@ -90,7 +89,7 @@ public class CommonChannelInjector {
         else {
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.SUCCESS);
             if (reallyInject) {
-                handler = injectHandler(channel);
+                handler = injectHandler(channel, player);
             }
             else {
                 handler = getHandler(channel);
