@@ -7,6 +7,7 @@ import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.command.impl.HelpCommand;
+import me.alek.honey.command.impl.NotificationToggleCommand;
 import me.alek.honey.command.impl.ReloadCommand;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
@@ -46,28 +47,27 @@ public class HoneyPlugin extends JavaPlugin {
             Bukkit.getLogger().severe("Honey er lige pt. ikke supported af Minecraft Version 1.17+! Bare rolig, det kommer i fremtiden. :-)");
             Bukkit.getPluginManager().disablePlugin(this);
         }
+        if (Protocol.getProtocol() == Protocol.UNKNOWN) {
+            Bukkit.getLogger().severe("Honey er lige pt. ikke supported af den Minecraft Version serveren bruger!");
+            Bukkit.getPluginManager().disablePlugin(this);
+        }
 
-        Bukkit.getLogger().info("1");
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
 
         configuration = new DedicatedConfiguration();
 
         loggerService = new LoggerService();
-        Bukkit.getLogger().info("5");
         violationService = new ViolationService();
-        Bukkit.getLogger().info("6");
         notificationService = new NotificationService();
-        Bukkit.getLogger().info("7");
         confiscationService = new ConfiscationService();
-        Bukkit.getLogger().info("8");
 
         commandManager = new CommandManager(this);
         new ReloadCommand(commandManager);
         new HelpCommand(commandManager);
+        new NotificationToggleCommand(commandManager);
 
         registerChecks();
         ItemAnalysis.reload();
-        Bukkit.getLogger().info("9");
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }

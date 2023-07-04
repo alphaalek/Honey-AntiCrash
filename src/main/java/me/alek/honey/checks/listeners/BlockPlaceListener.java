@@ -17,7 +17,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -65,7 +64,6 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            Bukkit.broadcastMessage("test");
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();

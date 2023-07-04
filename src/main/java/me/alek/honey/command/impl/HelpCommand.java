@@ -13,9 +13,9 @@ public class HelpCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage("§6Honey v1.0.0 Lavet af Alek05.");
+        sender.sendMessage("§6Honey §bv1.0.0 §6Lavet af §bAlek05§6.");
         for (CommandImpl command : HoneyPlugin.get().getCommandManager().getCommands()) {
-            sender.sendMessage(" §a" + command.getUsage() + " > §7" + command.getDescription());
+            sender.sendMessage(" §a" + command.getUsage() + " §e> §7" + command.getDescription());
         }
     }
 
@@ -41,12 +41,12 @@ public class HelpCommand implements CommandImpl {
 
     @Override
     public boolean isExecutableByConsole() {
-        return false;
+        return true;
     }
 
     @Override
     public int getCooldown() {
-        return 0;
+        return 1;
     }
 
 }

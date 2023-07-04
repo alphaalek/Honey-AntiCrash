@@ -3,6 +3,7 @@ package me.alek.honey.command.impl;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand implements CommandImpl {
@@ -13,7 +14,7 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage("§8[§6Honey§8] §7Reloader pluginnet.");
+        sender.sendMessage(ConfigurationOptions.General.PREFIX + "§7 Reloader pluginnet.");
         HoneyPlugin.get().reload();
     }
 

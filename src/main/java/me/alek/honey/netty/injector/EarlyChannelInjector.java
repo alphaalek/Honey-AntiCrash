@@ -19,11 +19,13 @@ public class EarlyChannelInjector implements NettyChannelProxy {
     private static final Class<?> networkManagerClass = NMSUtils.getNetworkManagerClass();
     private static final Class<?> minecraftServerClass = NMSUtils.getMinecraftServerClass();
     private static final Class<?> serverConnectionClass = NMSUtils.getServerConnectionClass();
-    private static final Class<?> craftServerClass = Reflection.getClass("{obc}.CraftServer");
+    private static final Class<?> craftServerClass = NMSUtils.getCraftServerClass();
     private static final FieldAccessor<Object> getMinecraftServer = Reflection.getField(
-            craftServerClass, 0, minecraftServerClass);
+            craftServerClass, 0, minecraftServerClass
+    );
     private static final FieldAccessor<Object> getServerConnection = Reflection.getField(
-            minecraftServerClass, 0, serverConnectionClass);
+            minecraftServerClass, 0, serverConnectionClass
+    );
 
     private final List<Channel> serverChannels = new ArrayList<>();
     private ChannelInboundHandlerAdapter serverChannelHandler;
@@ -88,7 +90,7 @@ public class EarlyChannelInjector implements NettyChannelProxy {
         } catch (Exception ex) {
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
 
-            Bukkit.getLogger().info("Fejl ved server channel injection. Kontakt Alek for fix!");
+            Bukkit.getLogger().info("Fejl ved server channel injection! Kontakt Alek for fix!");
             Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
             return;
         }

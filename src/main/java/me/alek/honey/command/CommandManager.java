@@ -1,5 +1,6 @@
 package me.alek.honey.command;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,7 +12,7 @@ import java.util.*;
 
 public class CommandManager implements CommandExecutor {
 
-    private final String PREFIX = "§8[§6Honey§8] §7";
+    private final String PREFIX = ConfigurationOptions.General.PREFIX + " §7";
     private final JavaPlugin plugin;
     private final Map<String, CommandImpl> commands = new HashMap<>();
     private final CooldownManager cooldownManager;
@@ -30,12 +31,9 @@ public class CommandManager implements CommandExecutor {
         }
         commands.put(command.getName(), command);
     }
-
     public Collection<CommandImpl> getCommands() {
         return commands.values();
     }
-
-
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (args.length == 0) {
@@ -52,7 +50,6 @@ public class CommandManager implements CommandExecutor {
                 .findFirst();
 
         try {
-
             final Map.Entry<String, CommandImpl> commandImplEntry = commandImplEntryOptional.orElseThrow(() -> new CommandNotFoundException(firstArgument));
             final CommandImpl commandImpl = commandImplEntry.getValue();
 

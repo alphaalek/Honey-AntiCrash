@@ -52,20 +52,16 @@ public class PacketLibrary {
         eventManager = new EventManager();
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), HoneyPlugin.get());
 
-        Bukkit.getLogger().info("use late injection: " + useLateInjection());
         if (useLateInjection()) {
             proxy = new LateChannelInjector();
         }
         else {
             proxy = new EarlyChannelInjector();
         }
-        Bukkit.getLogger().info("using proxy: " + proxy);
         proxy.inject();
-        Bukkit.getLogger().info("3");
         internalPacketProcessor = new InternalPacketProcessor(eventManager);
 
         future = PacketType.load();
-        Bukkit.getLogger().info("4");
         future.join(PacketWrapperFactory.load());
     }
 

@@ -544,6 +544,12 @@ public class ConfigurationOptions {
         public static class WindowC extends VlSetting {
 
         }
+
+        @Setting
+        @Violation("window-click.d")
+        public static class WindowD extends VlSetting {
+
+        }
     }
 
     @Setting

@@ -11,12 +11,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NotificationService {
 
     private final Map<CommandSender, NotificationListener> listenerMap = new HashMap<>();
+    private final List<CommandSender> untoggledlist = new ArrayList<>();
     private String PREFIX;
 
     public NotificationService() {
@@ -27,9 +30,10 @@ public class NotificationService {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!player.isOnline() && isSubscribed(player)) {
                         unsubscribe(player);
+                        untoggledlist.remove(player);
                         return;
                     }
-                    if (hasNotifyPermission(player) && !isSubscribed(player)) {
+                    if (hasNotifyPermission(player) && !isSubscribed(player) && !isUntoggled(player)) {
                         subscribe(player);
                         return;
                     }
@@ -48,6 +52,10 @@ public class NotificationService {
 
     public boolean hasNotifyPermission(CommandSender observer) {
         return observer.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION);
+    }
+
+    public boolean isUntoggled(CommandSender observer) {
+        return untoggledlist.contains(observer);
     }
 
     public boolean isSubscribed(CommandSender observer) {
@@ -76,6 +84,20 @@ public class NotificationService {
                 observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 blev kicked for §e" + type + "§7.");
             }
         });
+    }
+
+    public void unsubscribe(CommandSender observer) {
+        listenerMap.remove(observer);
+    }
+
+    public void untoggle(CommandSender observer) {
+        unsubscribe(observer);
+        untoggledlist.add(observer);
+    }
+
+    public void toggle(CommandSender observer) {
+        subscribe(observer);
+        untoggledlist.remove(observer);
     }
 
     private int getTPS() {
@@ -109,16 +131,12 @@ public class NotificationService {
             return "";
         }
         if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
-            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + setting.getInterval() + "§7ms";
+            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + (setting.getInterval() > 5000 ? + setting.getInterval() + "§7ms" : setting.getInterval()/1000 + "§7s");
         }
         else if (packetLimitHandler instanceof ViolationService.PacketBufferHandler) {
-            return "§7buffer: §e" + ((ViolationService.PacketBufferHandler)packetLimitHandler).getBufferIndex() + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + setting.getInterval() + "§7ms";
+            return "§7buffer: §e" + ((ViolationService.PacketBufferHandler)packetLimitHandler).getBufferIndex() + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + (setting.getInterval() > 5000 ? + setting.getInterval() + "§7ms" : setting.getInterval()/1000 + "§7s");
         }
         return "";
-    }
-
-    public void unsubscribe(Player player) {
-        listenerMap.remove(player);
     }
 
     public void notify(String notification) {

@@ -139,6 +139,7 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                     if (distance2d_client > maxDistance || distance2d_client < minDistance) {
 
                         if ((distance2d > maxDistance || distance2d < minDistance) && distance2d != 0) {
+
                             return ResponseBuilder.inst().cancel().flag().build();
                         }
                     }
@@ -150,7 +151,10 @@ public class PositionListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                     if (distanceY_client > maxDistance || distanceY_client < minDistance) {
 
                         if ((distanceY > maxDistance || distanceY < minDistance) && distanceY != 0) {
-                            return ResponseBuilder.inst().cancel().flag().build();
+
+                            if (!(distanceY < minDistance && player.isFlying())) {
+                                return ResponseBuilder.inst().cancel().flag().build();
+                            }
                         }
                     }
                 } catch (Exception ex) {

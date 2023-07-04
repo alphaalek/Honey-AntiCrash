@@ -15,6 +15,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
@@ -46,6 +47,9 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         visitor.visit(new WindowA());
         visitor.visit(new WindowB());
         visitor.visit(new WindowC());
+        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_14)) {
+            visitor.visit(new WindowD());
+        }
         return visitor;
     }
 
@@ -152,6 +156,33 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowC.class);
+        }
+    }
+
+    public static class WindowD implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+
+        @Override
+        public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+                if (player.getOpenInventory().getType().equals(InventoryType.LECTERN)) {
+
+                    // InventoryClickType.QUICK_MOVE
+                    if (packet.getMode() == 1) {
+                        return ResponseBuilder.inst().cancel().flag().build();
+                    }
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Window.D";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowD.class);
         }
     }
 }

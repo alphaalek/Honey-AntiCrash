@@ -16,7 +16,7 @@
 prefix: "&6Honey &8\u00BB"
 
 # Hvor lang tid der skal gå før gamle violations bliver ryddet.
-clear-old-violations-timestamp: 300000 # 5 minutter
+clear-old-violations-timestamp: 120000 # 2 minutter
 
 # Permission som ignorerer packet checks. Skal slås til før det virker.
 bypass-permission-enabled: false
@@ -286,8 +286,9 @@ position:
   b:
     enabled: true
     max: 30
-    min: 0.001
-    vls-amount: 6
+    min: 0.0000001
+    vls-amount: 8
+    interval: 20000 # 20 sekunder
 
   c:
     enabled: true
@@ -295,22 +296,24 @@ position:
     threshold: 350
     decay: 400
     decay-amount: 35
-    vls-amount: 3
+    vls-amount: 5
 
   d:
     enabled: true
     max-per-interval: 24
     interval: 3000
+    vls-amount: 3
 
   e:
     enabled: true
     max-per-interval: 12
     interval: 3000
+    vls-amount: 3
 
   f:
     enabled: true
-    max-per-interval: 25
-    interval: 800
+    max-per-interval: 28
+    interval: 1200
     vls-amount: 5
 
 # |--- rotation ---|

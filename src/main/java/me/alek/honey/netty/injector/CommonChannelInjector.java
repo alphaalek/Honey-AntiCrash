@@ -11,10 +11,7 @@ import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 public class CommonChannelInjector {
 
@@ -69,7 +66,7 @@ public class CommonChannelInjector {
             return injectHandler(channel, null);
         }
         else {
-            return injectPlayer(Bukkit.getPlayer(uuid), injectType, true);
+            return injectPlayer(Objects.requireNonNull(Bukkit.getPlayer(uuid)), injectType, true);
         }
     }
 

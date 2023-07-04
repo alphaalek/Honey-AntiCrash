@@ -286,8 +286,9 @@ position:
   b:
     enabled: true
     max: 30
-    min: 0.001
+    min: 0.0001
     vls-amount: 8
+    interval: 20000 # 20 sekunder
 
   c:
     enabled: true
@@ -353,9 +354,11 @@ block-place:
 set-creative-slot:
   a:
     enabled: true
+    vls-amount: 3
 
   b:
     enabled: true
+    vls-amount: 3
 
   c:
     enabled: true
@@ -372,12 +375,18 @@ chat:
 window-click:
   a:
     enabled: true
+    vls-amount: 3
 
   b:
     enabled: true
+    vls-amount: 5
 
   c:
     enabled: true
+
+  d:
+    enabled: true
+    vls-amount: 3
 
 ############################################################
 # +------------------------------------------------------+ #
