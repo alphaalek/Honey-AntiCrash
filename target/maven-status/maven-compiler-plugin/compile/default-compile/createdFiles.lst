@@ -80,7 +80,6 @@ me\alek\honey\services\ViolationService$PacketBufferHandler.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutStopSound.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTileNBTQuery.class
 me\alek\honey\services\NotificationService$1.class
-me\alek\honey\command\Cooldown.class
 me\alek\honey\configuration\ConfigurationOptions$ChannelFlood.class
 me\alek\honey\netty\api\event\impl\inject\InjectEvent$InjectCallback.class
 me\alek\honey\netty\api\event\impl\packet\PacketEvent.class
@@ -142,13 +141,16 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$AutoRecipe.c
 me\alek\honey\configuration\ConfigurationOptions$Position$PositionF.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInCloseWindow.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMapChunkBulk.class
+me\alek\honey\command\impl\NotificationToggleCommand.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutMapChunk.class
 me\alek\honey\checks\listeners\CreativeSlotListener$CreativeC.class
 me\alek\honey\checks\item\ItemChecks$MaxBookTitleLengthCheck.class
+me\alek\honey\checks\item\ItemChecks$MaxPageLengthCheck.class
 me\alek\honey\configuration\ConfigurationOptions$BlockPlace$PlaceB.class
 me\alek\honey\configuration\ConfigurationOptions$Creative$CreativeC.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$ClientCommand.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateTime.class
+me\alek\honey\checks\listeners\WindowClickListener$WindowD.class
 me\alek\honey\configuration\ConfigurationOptions$Netty$NettyB.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$TabComplete.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTabComplete.class
@@ -242,6 +244,7 @@ me\alek\honey\services\ViolationService$CheckKey.class
 me\alek\honey\netty\api\event\impl\packet\PacketStatusReceiveEvent.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBoss.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInLook.class
+me\alek\honey\configuration\ConfigurationOptions$WindowClick$WindowD.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$BlockPlace.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutLogin.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockBreakAnimation.class
@@ -449,11 +452,13 @@ me\alek\honey\netty\api\packet\container\ModifiablePacketContainer.class
 me\alek\honey\netty\structure\ReflectStructure$StructureModifier.class
 me\alek\honey\checks\listeners\ChatListener$CommandsA.class
 me\alek\honey\checks\listeners\BlockPlaceListener$PlaceC.class
+me\alek\honey\command\CooldownMdl.class
 me\alek\honey\netty\packet\cache\PacketWrapperCache.class
 me\alek\honey\checks\listeners\PositionListener$PositionF$Direction.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodC.class
 me\alek\honey\netty\listener\FuzzyPacketAdapter.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBlockDig.class
+me\alek\honey\command\impl\PasteLogsCommand.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadD.class
 me\alek\honey\checks\listeners\FloodListener$AbstractCustomizedFlood.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewCentre.class

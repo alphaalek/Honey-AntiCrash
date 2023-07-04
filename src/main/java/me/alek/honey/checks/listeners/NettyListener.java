@@ -21,6 +21,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -59,6 +60,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public void onPacketError(Player player, PacketTypeEnum packetType, PacketContainer<WP> packetContainer) {
+        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
+            return;
+        }
         if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class).isEnabled()) {
 
             if (packetContainer != null) {

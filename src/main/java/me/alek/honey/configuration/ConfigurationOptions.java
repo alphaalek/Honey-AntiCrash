@@ -17,6 +17,7 @@ import java.util.*;
 
 public class ConfigurationOptions {
 
+    private static boolean loading;
     private static FileConfiguration file;
     private static Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
     private static Map<String, VlSetting> channelFloodSettings = new HashMap<>();
@@ -42,10 +43,16 @@ public class ConfigurationOptions {
         return fields;
     }
 
+    public static boolean isLoading() {
+        return loading;
+    }
+
     public static void load() {
+        loading = true;
         floodSettings.clear();
         vlSettingMap.clear();
         load(ConfigurationOptions.class);
+        loading = false;
     }
 
     public static void load(Class<?> clazz) {
@@ -60,7 +67,7 @@ public class ConfigurationOptions {
         }
         if (clazz.isAnnotationPresent(Violation.class)) {
             if (VlSetting.class.isAssignableFrom(clazz)) {
-                setIntervalBased((Class<? extends VlSetting>) clazz, clazz.getAnnotation(Violation.class).value());
+                setViolationSetting((Class<? extends VlSetting>) clazz, clazz.getAnnotation(Violation.class).value());
             }
         }
         for (Class<?> nestedClass : clazz.getDeclaredClasses()) {
@@ -71,7 +78,7 @@ public class ConfigurationOptions {
         }
     }
 
-    private static final Map<String, String> vlFieldLookup = new HashMap<String, String>(){{
+    private static final Map<String, String> violationFieldLookup = new HashMap<String, String>(){{
             put("MAX_PER_INTERVAL", ".max-per-interval");
             put("INTERVAL", ".interval");
             put("VLS_AMOUNT", ".vls-amount");
@@ -80,11 +87,12 @@ public class ConfigurationOptions {
             put("DECAY", ".decay");
             put ("DECAY_AMOUNT", ".decay-amount");
 
+            put("CLEAR_INTERVAL", ".clear-interval");
             put("CLEAR_BUFFER", ".clear-buffer");
             put("ENABLED", ".enabled");
     }};
 
-    public static void setIntervalBased(Class<? extends VlSetting> clazz, String[] prefixPaths) {
+    public static void setViolationSetting(Class<? extends VlSetting> clazz, String[] prefixPaths) {
         try {
             Constructor<? extends VlSetting> constructor = clazz.getDeclaredConstructor();
             VlSetting setting = constructor.newInstance();
@@ -105,7 +113,7 @@ public class ConfigurationOptions {
                 for (Field field : clazz.getDeclaredFields()) {
                     for (String prefixPath : prefixPaths) {
 
-                        String configPath = vlFieldLookup.get(field.getName());
+                        String configPath = violationFieldLookup.get(field.getName());
                         if (configPath == null || file.get(prefixPath + configPath) == null) {
                             continue;
                         }
@@ -129,9 +137,12 @@ public class ConfigurationOptions {
     }
 
     public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
+        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
+            throw new RuntimeException("Honey fortsætter med at gøre ting selvom det er slået fra! Hvad sker der!?");
+        }
         if (!vlSettingMap.containsKey(clazz)) {
-            Bukkit.getLogger().severe("Du har skrevet noget vrøvl i config.yml! Slet den og lad den generere en ny!");
             Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+            throw new RuntimeException("Du har skrevet noget vrøvl i config.yml! Slet den og lad den generere en ny!");
         }
         return vlSettingMap.get(clazz);
     }
@@ -178,6 +189,7 @@ public class ConfigurationOptions {
         public int DECAY_AMOUNT;
 
         public boolean CLEAR_BUFFER;
+        public boolean CLEAR_INTERVAL;
         public boolean ENABLED = true;
         private final boolean USE_BUFFER;
 
@@ -215,6 +227,8 @@ public class ConfigurationOptions {
         public boolean isEnabled() {
             return ENABLED;
         }
+
+        public boolean isClearInterval() {return CLEAR_INTERVAL;}
 
         public boolean isClearBuffer() {
             return CLEAR_BUFFER;
@@ -339,7 +353,6 @@ public class ConfigurationOptions {
                 CONFISCATION_STRATEGY = file.getString("item-analysis.general.confiscation-strategy");
                 IGNORED_PLAYERS = file.getStringList("item-analysis.general.ignored-players");
             }
-
         }
 
         @Setting
@@ -347,6 +360,8 @@ public class ConfigurationOptions {
 
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_LENGTH)
             public static int MAX_NBT_LENGTH;
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_STRING_LENGTH)
+            public static int MAX_NBT_STRING_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_FIREWORK_NBT_LENGTH)
             public static int MAX_FIREWORK_NBT_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_NBT_LENGTH)
@@ -354,7 +369,7 @@ public class ConfigurationOptions {
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_PAGES)
             public static int MAX_BOOK_PAGES;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_PAGE_LENGTH)
-            public static int MAX_NBT_STRING_LENGTH;
+            public static int MAX_BOOK_PAGE_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_TITLE_LENGTH)
             public static int MAX_BOOK_TITLE_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_AUHTOR_LENGTH)
@@ -373,6 +388,7 @@ public class ConfigurationOptions {
                 MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
 
                 MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
+                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
                 MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
                 MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
                 MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");

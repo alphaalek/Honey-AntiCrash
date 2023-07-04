@@ -136,7 +136,9 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
                     return ResponseBuilder.SUCCESS;
                 }
                 Material material = item.getType();
-                if (material == Material.PISTON_MOVING_PIECE || material == Material.PISTON_EXTENSION) {
+                if (
+                    material == Material.PISTON_MOVING_PIECE || material == Material.PISTON_EXTENSION
+                ) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

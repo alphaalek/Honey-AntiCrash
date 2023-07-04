@@ -52,7 +52,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    Bukkit.getLogger().info("§6" + ex.getMessage() + " " + ex.getCause());
                     error(player, packetContainer.getType(), packetContainer);
                 }
             });

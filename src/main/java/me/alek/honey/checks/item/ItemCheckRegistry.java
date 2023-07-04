@@ -15,7 +15,7 @@ public enum ItemCheckRegistry {
     ILLEGAL_CHARACTER_CHECK(ItemChecks.IllegalCharacterCheck::new),
     ILLEGAL_ENCHANTMENTS_CHECK(ItemChecks.IllegalEnchantmentsCheck::new),
     MAX_FIREWORK_EXPLOSIONS(ItemChecks.MaxFireworkExplosionsCheck::new, Material.FIREWORK),
-    MAX_BANNER_PATTERNS(ItemChecks.MaxBannerPatternsCheck::new, Material.BANNER, Material.STANDING_BANNER, Material.WALL_BANNER),
+    MAX_BANNER_PATTERNS(ItemChecks.MaxBannerPatternsCheck::new, Material.BANNER, Material.WALL_BANNER, Material.STANDING_BANNER),
     UNBREAKABLE_ITEM_CHECK(ItemChecks.UnbreakableItemCheck::new),
     CUSTOM_POTION_EFFECTS_CHECK(ItemChecks.CustomPotionEffectsCheck::new, Material.POTION),
     ATTRIBUTE_MODIFIERS_CHECK(ItemChecks.AttributeModifiersCheck::new),
@@ -23,7 +23,8 @@ public enum ItemCheckRegistry {
 
     // nbt
     MAX_NBT_LENGTH(ItemChecks.MaxNBTLengthCheck::new),
-    MAX_BOOK_PAGE_LENGTH(ItemChecks.MaxNBTStringLengthCheck::new),
+    MAX_NBT_STRING_LENGTH(ItemChecks.MaxNBTStringLengthCheck::new),
+    MAX_BOOK_PAGE_LENGTH(ItemChecks.MaxPageLengthCheck::new, Material.WRITTEN_BOOK, Material.BOOK_AND_QUILL),
     MAX_FIREWORK_NBT_LENGTH(ItemChecks.MaxFireworkLengthCheck::new, Material.FIREWORK, Material.FIREWORK_CHARGE),
     MAX_BOOK_NBT_LENGTH(ItemChecks.MaxBookNBTLengthCheck::new, Material.WRITTEN_BOOK, Material.BOOK_AND_QUILL),
     MAX_BOOK_PAGES(ItemChecks.MaxBookPagesCheck::new, Material.WRITTEN_BOOK, Material.BOOK_AND_QUILL),

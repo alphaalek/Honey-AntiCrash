@@ -32,7 +32,6 @@ packet-logger:
   enabled: false
 
   # Skal debug mode være slået til eller ej. Brugbart til udvikling og troubleshooting, men for en normal bruger er det fuldstændig unødvendigt.
-  # OBS: viser kun i console når den er slået til, ikke i filer, det vil simpelthen ellers fylde dem for meget op.
   debug-mode: false
 
   # Spillere som packet logger skal ignorere.
@@ -44,7 +43,7 @@ packet-logger:
     - "PacketPlayInFlying"
     - "PacketPlayInKeepAlive"
 
-  # Skal packet logger være detaljeret, og vise attributes for hver eneste packet.
+  # Skal packet logger være detaljeret, og vise fields for hver eneste packet.
   detailed: false
 
 ############################################################
@@ -104,7 +103,7 @@ item-analysis:
     max-nbt-length: 6000
 
     # Hvor mange bytes må en nbt string højest være.
-    max-nbt-string-length: 275
+    max-nbt-string-length: 800
 
     # Hvor mange bytes må fyrværkeris NBT højest have. Dette gælder også firework charge.
     max-firework-nbt-length: 1500
@@ -118,11 +117,14 @@ item-analysis:
     # Hvor lang titel må en bog højest have. I Vanilla Minecraft er det højest muligt at få 32 bogstaver.
     max-book-title-length: 32
 
+    # Hvor lang må en side i en bog højest være. I Vanilla Minecraft er det højest muligt at få 256 bogstaver.
+    max-book-page-length: 256
+
     # Hvor lang må navnet på en forfatter af en bog højest have. I Vanilla Minecraft er det højest muligt at have 16 bogstaver.
     max-book-author-length: 16
 
     # Hvor mange NBT bases må et items NBT højest have. (den generelle NBT repræsentation, gælder lister, strings, doubles osv ...)
-    max-nbt-bases: 65
+    max-nbt-bases: 80
 
     # Hvor meget NBT nesting må et items NBT højest have. (lister oveni listener oveni compounds osv ...)
     max-nbt-nesting: 4
@@ -285,36 +287,39 @@ position:
 
   b:
     enabled: true
-    max: 30
+    clear-interval: true
+    max: 20
     min: 0.0001
-    vls-amount: 8
-    interval: 20000 # 20 sekunder
+    max-per-interval: 13
+    interval: 5000
+    vls-amount: 5
 
   c:
     enabled: true
     clear-buffer: true
-    threshold: 350
+    threshold: 700
     decay: 400
-    decay-amount: 35
-    vls-amount: 5
+    decay-amount: 150
+    vls-amount: 6
 
   d:
     enabled: true
-    max-per-interval: 24
-    interval: 3000
-    vls-amount: 3
+    max-per-interval: 32
+    interval: 3500
+    vls-amount: 5
 
   e:
     enabled: true
     max-per-interval: 12
-    interval: 3000
+    interval: 3500
     vls-amount: 3
 
   f:
     enabled: true
-    max-per-interval: 28
-    interval: 1200
-    vls-amount: 5
+    clear-interval: true
+    max-per-interval: 16
+    interval: 1250
+    vls-amount: 3
 
 # |--- rotation ---|
 rotation:
@@ -452,13 +457,12 @@ packet-flood:
     b:
       max-per-interval: 450
       interval: 1000
-      vls-amount: 3
+      vls-amount: 2
 
   # total
   c:
     max-per-interval: 850
     interval: 1500
-    vls-amount: 2
 
   # specific
   d:

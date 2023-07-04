@@ -174,6 +174,4 @@ public class PacketLibrary {
     public void disable() {
         proxy.eject();
     }
-
-
 }

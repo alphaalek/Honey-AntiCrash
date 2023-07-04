@@ -310,8 +310,9 @@ public class ItemChecks {
         @Override
         @SuppressWarnings("unchecked")
         public boolean check(ItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> page : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
-                if (page.getValue().length() > MAX_NBT_STRING_LENGTH) {
+            for (NBTElement<String> stringValue : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+                Bukkit.getLogger().info("string length: " + stringValue.getValue().length());
+                if (stringValue.getValue().getBytes().length > MAX_NBT_STRING_LENGTH) {
                     return true;
                 }
             }
@@ -321,6 +322,33 @@ public class ItemChecks {
         @Override
         public void setValue(int value) {
             MAX_NBT_STRING_LENGTH = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
+    public static class MaxPageLengthCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_PAGE_LENGTH;
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            for (NBTElement<String> page : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+
+                if (page.getValue().length() > MAX_PAGE_LENGTH) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void setValue(int value) {
+            MAX_PAGE_LENGTH = value;
         }
 
         @Override
@@ -496,7 +524,7 @@ public class ItemChecks {
             NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
             for (NBTCompound texture : textures.getValues()) {
 
-               if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
+                if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
                     return true;
                 }
                 NBTElement<String> value = texture.get("Value").asElement(String.class);

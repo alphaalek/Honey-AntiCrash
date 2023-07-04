@@ -1,6 +1,7 @@
 package me.alek.honey.command;
 
 import me.alek.honey.configuration.ConfigurationOptions;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,7 +13,7 @@ import java.util.*;
 
 public class CommandManager implements CommandExecutor {
 
-    private final String PREFIX = ConfigurationOptions.General.PREFIX + " §7";
+    private final String PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7";
     private final JavaPlugin plugin;
     private final Map<String, CommandImpl> commands = new HashMap<>();
     private final CooldownManager cooldownManager;

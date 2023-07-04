@@ -115,7 +115,7 @@ public class PacketType {
 
     public static PacketTypeEnum getPacketType(Class<?> clazz) {
         if (!PACKET_DETAILS.containsKey(clazz)) {
-            Bukkit.getLogger().info("NO PACKET DETAILS : " + clazz);
+            throw new RuntimeException("Ingen packet details for " + clazz);
         }
         return PACKET_DETAILS.get(clazz).packetType;
     }
@@ -227,8 +227,6 @@ public class PacketType {
 
         static {
             if (PROTOCOL_VERSION.isNewerThanOrEqual(Protocol.v1_13)) {
-
-                Bukkit.getLogger().info(PROTOCOL_VERSION.toString());
                 CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketLoginInCustomPayload");
                 SERVERBOUND_CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketLoginOutCustomPayload");
             }
@@ -743,9 +741,7 @@ public class PacketType {
                 VIEW_CENTRE_CLASS = Reflection.getClass("{nms}.PacketPlayOutViewCentre");
                 VIEW_DISTANCE_CLASS = Reflection.getClass("{nms}.PacketPlayOutViewDistance");
             }
-            Bukkit.getLogger().info(PROTOCOL_VERSION + "");
             if (PROTOCOL_VERSION.isNewerThanOrEqual(Protocol.v1_14_4)) {
-                Bukkit.getLogger().info("OVER 1.14!!");
                 BLOCK_BREAK_CLASS = Reflection.getClass("{nms}.PacketPlayOutBlockBreak");
             }
             if (PROTOCOL_VERSION.isNewerThanOrEqual(Protocol.v1_17)) {

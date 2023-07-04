@@ -7,6 +7,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -52,6 +53,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+        // decoder inject for late injection
         if (player != null && !hasStartedInjectingTask) {
             startDecodeInjectorTask(ctx.channel());
         }
@@ -62,6 +64,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.isCancelled()) {
+            Bukkit.getLogger().info("cancelled");
             return;
         }
         super.channelRead(ctx, packetContainer.getHandle());
@@ -75,7 +78,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler {
             return;
         }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
-        // decoder inject
+        // decoder inject for early injection
         if (packet.getClass().getSimpleName().equals("PacketLoginOutSetCompression")) {
             startDecodeInjectorTask(ctx.channel());
         }
@@ -88,9 +91,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.getPost() != null) {
-            promise.addListener((f) -> {
-                packetContainer.getPost().run();
-            });
+            promise.addListener((f) -> packetContainer.getPost().run());
         }
         super.write(ctx, packetContainer.getHandle(), promise);
         packetProcessor.postWrite();

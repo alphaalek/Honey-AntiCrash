@@ -26,7 +26,6 @@ import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -195,7 +194,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
                         return ResponseBuilder.SUCCESS;
                     }
-                    if (itemInHand.getType() == Material.BOOK || itemInHand.getType() == Material.BOOK_AND_QUILL || itemInHand.getType() == Material.WRITTEN_BOOK) {
+                    if (itemInHand.getType() == Material.BOOK_AND_QUILL || itemInHand.getType() == Material.WRITTEN_BOOK) {
                         return ResponseBuilder.SUCCESS;
                     }
                 }

@@ -116,6 +116,7 @@ public class CommonChannelInjector {
                 try {
                     channel.eventLoop().execute(() -> {
                         pipeline.remove(PacketLibrary.get().getHandlerName());
+                        pipeline.remove(PacketLibrary.get().getDecoderName());
                     });
                 } catch (NoSuchElementException ex) {
                 }

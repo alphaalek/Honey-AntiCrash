@@ -8,14 +8,14 @@ import java.util.*;
 
 public class CooldownManager {
 
-    private final Map<UUID, List<Cooldown>> cooldownMap = new HashMap<>();
+    private final Map<UUID, List<CooldownMdl>> cooldownMap = new HashMap<>();
 
-    public Cooldown getCooldownModel(Player player, CommandImpl command) {
+    public CooldownMdl getCooldownModel(Player player, CommandImpl command) {
         if (!cooldownMap.containsKey(player.getUniqueId())) {
             return null;
         }
-        final List<Cooldown> cooldowns = cooldownMap.get(player.getUniqueId());
-        final Optional<Cooldown> cooldownOptional = cooldowns
+        final List<CooldownMdl> cooldowns = cooldownMap.get(player.getUniqueId());
+        final Optional<CooldownMdl> cooldownOptional = cooldowns
                 .stream()
                 .filter(cooldown -> cooldown.getCommandImpl() == command)
                 .findFirst();
@@ -23,7 +23,7 @@ public class CooldownManager {
     }
 
     public boolean hasCooldown(Player player, CommandImpl command) {
-        Cooldown cooldownModel = getCooldownModel(player, command);
+        CooldownMdl cooldownModel = getCooldownModel(player, command);
         if (cooldownModel == null) {
             return false;
         }
@@ -31,18 +31,18 @@ public class CooldownManager {
     }
 
     public String getFormattedCooldown(Player player, CommandImpl command) {
-        Cooldown cooldownModel = getCooldownModel(player, command);
+        CooldownMdl cooldownModel = getCooldownModel(player, command);
         return Duration.between(LocalDateTime.now(), cooldownModel.getWhenExpired()).getSeconds() + 1 + " sekunder";
     }
 
     public void setCooldown(Player player, CommandImpl command) {
-        Cooldown cooldownModel = getCooldownModel(player, command);
+        CooldownMdl cooldownModel = getCooldownModel(player, command);
         if (cooldownModel == null) {
             UUID uuid = player.getUniqueId();
             if (!this.cooldownMap.containsKey(uuid)) {
                 this.cooldownMap.put(uuid, new ArrayList<>());
             }
-            Cooldown newCooldownModel = new Cooldown(command, LocalDateTime.now());
+            CooldownMdl newCooldownModel = new CooldownMdl(command, LocalDateTime.now());
             cooldownModel = newCooldownModel;
             this.cooldownMap.get(uuid).add(newCooldownModel);
         }

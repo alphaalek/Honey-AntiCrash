@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand implements CommandImpl {
@@ -14,7 +15,7 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage(ConfigurationOptions.General.PREFIX + "§7 Reloader pluginnet.");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 Reloader konfigurationer.");
         HoneyPlugin.get().reload();
     }
 

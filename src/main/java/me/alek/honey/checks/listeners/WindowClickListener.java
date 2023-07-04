@@ -16,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
@@ -105,6 +106,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                     case 0:
                     case 1:
                     case 2:
+                    case 3:
                     case 4:
                     case 5:
                     case 6:
@@ -164,7 +166,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                if (player.getOpenInventory().getType().equals(InventoryType.LECTERN)) {
+                if (player.getOpenInventory().getType().name().equals("LECTERN")) {
 
                     // InventoryClickType.QUICK_MOVE
                     if (packet.getMode() == 1) {

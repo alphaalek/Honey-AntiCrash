@@ -90,7 +90,7 @@ public class EarlyChannelInjector implements NettyChannelProxy {
         } catch (Exception ex) {
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
 
-            Bukkit.getLogger().info("Fejl ved server channel injection! Kontakt Alek for fix!");
+            HoneyPlugin.get().getLogger().info("Fejl ved server channel injection! Kontakt Alek for fix!");
             Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
             return;
         }
@@ -142,7 +142,6 @@ public class EarlyChannelInjector implements NettyChannelProxy {
                 });
             }
         }
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             ejectPlayer(player);
         }

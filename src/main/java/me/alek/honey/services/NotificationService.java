@@ -131,10 +131,10 @@ public class NotificationService {
             return "";
         }
         if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
-            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + (setting.getInterval() > 5000 ? + setting.getInterval() + "§7ms" : setting.getInterval()/1000 + "§7s");
+            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + (setting.getInterval() < 1000 ? + setting.getInterval() + "§7ms" : ((double)setting.getInterval())/1000 + "§7s");
         }
         else if (packetLimitHandler instanceof ViolationService.PacketBufferHandler) {
-            return "§7buffer: §e" + ((ViolationService.PacketBufferHandler)packetLimitHandler).getBufferIndex() + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + (setting.getInterval() > 5000 ? + setting.getInterval() + "§7ms" : setting.getInterval()/1000 + "§7s");
+            return "§7buffer: §e" + ((ViolationService.PacketBufferHandler)packetLimitHandler).getBufferIndex() + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls";
         }
         return "";
     }

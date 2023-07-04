@@ -286,7 +286,9 @@ public class ViolationService {
                 return false;
             }
             bufferIndexCopy = bufferIndex;
-            bufferIndex = 0;
+            if (getSetting().isClearBuffer()) {
+                bufferIndex = 0;
+            }
             return violate(handle, violationName, onViolation);
         }
 
@@ -303,6 +305,7 @@ public class ViolationService {
         private volatile boolean violatedForInterval;
         private volatile long intervalStart;
         private volatile int flagged;
+        private volatile int flaggedCopy;
 
         public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
@@ -312,7 +315,7 @@ public class ViolationService {
         }
 
         public int getFlagged() {
-            return flagged;
+            return flaggedCopy;
         }
 
         public void reload() {
@@ -320,11 +323,15 @@ public class ViolationService {
             this.interval = getSetting().getInterval();
         }
 
+        private void clearInterval() {
+            violatedForInterval = false;
+            flagged = 0;
+            intervalStart = System.currentTimeMillis();
+        }
+
         public synchronized boolean flag(Object handle, String violationName, double amount, Runnable onViolation) {
             if (System.currentTimeMillis() - intervalStart >= interval) {
-                violatedForInterval = false;
-                flagged = 0;
-                intervalStart = System.currentTimeMillis();
+                clearInterval();
             }
             flagged += amount;
             if (loggerService.isDebug()) {
@@ -334,6 +341,10 @@ public class ViolationService {
                 return false;
             }
             violatedForInterval = true;
+            flaggedCopy = flagged;
+            if (getSetting().isClearInterval()) {
+                clearInterval();
+            }
             return violate(handle, violationName, onViolation);
         }
     }

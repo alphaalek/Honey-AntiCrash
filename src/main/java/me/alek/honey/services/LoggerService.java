@@ -10,7 +10,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -72,7 +71,7 @@ public class LoggerService {
             return;
         }
         String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
-        Bukkit.getLogger().info(
+        HoneyPlugin.get().getLogger().info(
                  logType + " " + playerName + " for " + violationName + ". " + ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, packetLimitHandler))
                 + " (" + handle.getClass().getSimpleName() + ")"
         );
@@ -94,12 +93,12 @@ public class LoggerService {
                 .append(": ")
                 .append(packetContainer.getAll().readFieldValues());
         }
-        Bukkit.getLogger().info(message.toString());
+        HoneyPlugin.get().getLogger().info(message.toString());
     }
 
     public void logPunish(String playerName, String violationName) {
         if (!debug) return;
-        Bukkit.getLogger().info("Kicking " + playerName + " for " + violationName);
+        HoneyPlugin.get().getLogger().info("Kicking " + playerName + " for " + violationName);
     }
 
     public boolean isEnabled() {

@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector;
 import io.netty.channel.Channel;
 import me.alek.honey.netty.api.NettyChannelProxy;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class LateChannelInjector implements NettyChannelProxy {
@@ -14,6 +15,9 @@ public class LateChannelInjector implements NettyChannelProxy {
 
     @Override
     public void eject() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ejectPlayer(player);
+        }
     }
 
     @Override

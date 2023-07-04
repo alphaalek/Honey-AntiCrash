@@ -8,6 +8,7 @@ import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.command.impl.HelpCommand;
 import me.alek.honey.command.impl.NotificationToggleCommand;
+import me.alek.honey.command.impl.PasteLogsCommand;
 import me.alek.honey.command.impl.ReloadCommand;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
@@ -44,11 +45,11 @@ public class HoneyPlugin extends JavaPlugin {
         INSTANCE = this;
 
         if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17)) {
-            Bukkit.getLogger().severe("Honey er lige pt. ikke supported af Minecraft Version 1.17+! Bare rolig, det kommer i fremtiden. :-)");
+            getLogger().severe("Honey er lige pt. ikke supported af Minecraft Version 1.17+! Bare rolig, det kommer i fremtiden. :-)");
             Bukkit.getPluginManager().disablePlugin(this);
         }
         if (Protocol.getProtocol() == Protocol.UNKNOWN) {
-            Bukkit.getLogger().severe("Honey er lige pt. ikke supported af den Minecraft Version serveren bruger!");
+            getLogger().severe("Honey er lige pt. ikke supported af den Minecraft Version serveren bruger!");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
@@ -62,9 +63,10 @@ public class HoneyPlugin extends JavaPlugin {
         confiscationService = new ConfiscationService();
 
         commandManager = new CommandManager(this);
-        new ReloadCommand(commandManager);
         new HelpCommand(commandManager);
         new NotificationToggleCommand(commandManager);
+        new ReloadCommand(commandManager);
+        new PasteLogsCommand(commandManager);
 
         registerChecks();
         ItemAnalysis.reload();

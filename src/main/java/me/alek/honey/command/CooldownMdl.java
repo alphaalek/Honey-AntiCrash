@@ -2,12 +2,12 @@ package me.alek.honey.command;
 
 import java.time.LocalDateTime;
 
-public class Cooldown {
+public class CooldownMdl {
 
     private LocalDateTime localDateTime;
     private final CommandImpl commandImpl;
 
-    public Cooldown(CommandImpl commandImpl, LocalDateTime localDateTime) {
+    public CooldownMdl(CommandImpl commandImpl, LocalDateTime localDateTime) {
         this.commandImpl = commandImpl;
         this.localDateTime = localDateTime;
     }

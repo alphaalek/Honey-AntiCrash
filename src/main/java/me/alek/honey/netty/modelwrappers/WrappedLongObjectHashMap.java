@@ -38,8 +38,6 @@ public class WrappedLongObjectHashMap<V> extends WrappedObject<WrappedLongObject
     }
 
     public V get(long key) {
-        Bukkit.broadcastMessage(getHandle() + " " + clazz);
-        Bukkit.broadcastMessage(getModifier(clazz).methodSize() + " " + size());
         return getModifier(clazz).invokeMethod("get", 0, key);
     }
 
