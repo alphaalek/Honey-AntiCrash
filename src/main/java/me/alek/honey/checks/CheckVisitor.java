@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
@@ -28,13 +29,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
     @SuppressWarnings("unchecked")
     public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) throws Exception {
-        int skipping = 0;
+        AtomicInteger skipping = null;
         for (PacketCheck<WP> check : checks) {
             if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 packetContainer.cancel();
                 return;
             }
-            if (skipping-- > 0) continue;
+            if (skipping != null && skipping.getAndDecrement() > 0) {
+                continue;
+            }
             ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
             ConfigurationOptions.VlSetting setting = null;
             if (check instanceof ViolationCheck) {
@@ -45,7 +48,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 setting = violationCheck.getSetting(violationCheck.getKey(packetContainer.getPacket()));
             }
 
-            if (response.SKIP_INDICES != 0) {
+            if (response.SKIP_INDICES != null) {
                 skipping = response.SKIP_INDICES;
             }
             if (response.SUCCESS) {

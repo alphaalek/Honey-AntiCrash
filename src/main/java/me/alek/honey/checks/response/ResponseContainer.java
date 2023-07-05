@@ -2,6 +2,8 @@ package me.alek.honey.checks.response;
 
 import me.alek.honey.services.ViolationService;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class ResponseContainer implements Cloneable {
     public boolean ACCEPTED;
     public boolean CANCELLED;
@@ -9,7 +11,7 @@ public class ResponseContainer implements Cloneable {
     public boolean NOTIFY;
     public boolean SUCCESS;
     public boolean TERMINATE;
-    public int SKIP_INDICES;
+    public AtomicInteger SKIP_INDICES;
     public ViolationService.CheckKey CUSTOM_KEY;
     public Runnable ON_VIOLATION;
     public String NOTIFICATION_MESSAGE;

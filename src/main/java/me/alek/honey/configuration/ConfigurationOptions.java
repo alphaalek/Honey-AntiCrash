@@ -252,20 +252,18 @@ public class ConfigurationOptions {
     public static class General {
 
         public static int CLEAR_OLD_VIOLATIONS_TIMESTAMP;
-        public static String KICK_MESSAGE;
         public static String PREFIX;
         public static boolean BYPASS_PERMISSION_ENABLED;
         public static String BYPASS_PERMISSION;
         public static String NOTIFY_PERMISSION;
 
         public static void load() {
-            CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp");
-            KICK_MESSAGE = file.getString("kick-message");
-            PREFIX = file.getString("prefix");
+            CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp", 120000);
+            PREFIX = file.getString("prefix", "&6Honey &8»");
 
-            BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled");
-            BYPASS_PERMISSION = file.getString("bypass-permission");
-            NOTIFY_PERMISSION = file.getString("notify-permission");
+            BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled", false);
+            BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");
+            NOTIFY_PERMISSION = file.getString("notify-permission", "honey.notify");
         }
     }
 
@@ -279,9 +277,9 @@ public class ConfigurationOptions {
         public static List<String> IGNORED_PACKETS;
 
         public static void load() {
-            ENABLED = file.getBoolean("packet-logger.enabled");
-            DETAILED = file.getBoolean("packet-logger.detailed");
-            DEBUG = file.getBoolean("packet-logger.debug-mode");
+            ENABLED = file.getBoolean("packet-logger.enabled", false);
+            DETAILED = file.getBoolean("packet-logger.detailed", false);
+            DEBUG = file.getBoolean("packet-logger.debug-mode", false);
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
         }
@@ -327,20 +325,20 @@ public class ConfigurationOptions {
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
 
         public static void load() {
-            MAX_CONTAINER_DATA = file.getInt("item-analysis.max-container-data");
+            MAX_CONTAINER_DATA = file.getInt("item-analysis.max-container-data", 250000);
 
-            MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level");
-            MAX_AMOUNT = file.getInt("item-analysis.max-amount");
+            MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level", 256);
+            MAX_AMOUNT = file.getInt("item-analysis.max-amount", 64);
 
-            MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length");
-            MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length");
+            MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length", 100);
+            MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length", 2000);
 
-            MAX_FIREWORK_EXPLOSIONS = file.getInt("item-analysis.max-firework-explosions");
-            MAX_BANNER_PATTERNS = file.getInt("item-analysis.max-banner-patterns");
+            MAX_FIREWORK_EXPLOSIONS = file.getInt("item-analysis.max-firework-explosions", 17);
+            MAX_BANNER_PATTERNS = file.getInt("item-analysis.max-banner-patterns", 6);
 
-            CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects");
-            CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items");
-            CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers");
+            CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects", false);
+            CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items", false);
+            CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers", false);
         }
 
         @Setting
@@ -382,21 +380,21 @@ public class ConfigurationOptions {
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {
-                MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length");
-                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length");
+                MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length", 15000);
+                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length", 800);
 
-                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
+                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length", 2500);
 
-                MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
-                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
-                MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
-                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
-                MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");
+                MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length", 13500);
+                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length", 256);
+                MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages", 50);
+                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length", 32);
+                MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length", 16);
 
-                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
-                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
+                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases", 80);
+                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting", 4);
 
-                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures");
+                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures", true);
             }
         }
     }
@@ -417,7 +415,7 @@ public class ConfigurationOptions {
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("custom-payload.b.max");
+                MAX = file.getInt("custom-payload.b.max", 10000);
             }
         }
 
@@ -428,7 +426,7 @@ public class ConfigurationOptions {
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("custom-payload.c.max");
+                MAX = file.getInt("custom-payload.c.max", 6000);
             }
         }
 
@@ -445,7 +443,7 @@ public class ConfigurationOptions {
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("custom-payload.e.max");
+                MAX = file.getInt("custom-payload.e.max", 110);
             }
         }
 
@@ -578,7 +576,7 @@ public class ConfigurationOptions {
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("block-place.a.max");
+                MAX = file.getInt("block-place.a.max", 25);
             }
         }
 
@@ -612,8 +610,8 @@ public class ConfigurationOptions {
             public static int MIN;
 
             public static void load() {
-                MAX = file.getInt("position.a.max");
-                MIN = file.getInt("position.a.min");
+                MAX = file.getInt("position.a.max", 2048);
+                MIN = file.getInt("position.a.min", -256);
             }
         }
 
@@ -625,8 +623,8 @@ public class ConfigurationOptions {
             public static double MIN;
 
             public static void load() {
-                MAX = file.getDouble("position.b.max");
-                MIN = file.getDouble("position.b.min");
+                MAX = file.getDouble("position.b.max", 20);
+                MIN = file.getDouble("position.b.min", 0.0001);
             }
         }
 
@@ -656,6 +654,12 @@ public class ConfigurationOptions {
         public static class PositionF extends VlSetting {
 
         }
+
+        @Setting
+        @Violation("position.g")
+        public static class PositionG extends VlSetting {
+
+        }
     }
 
     @Setting
@@ -668,7 +672,7 @@ public class ConfigurationOptions {
             public static int MAX;
 
             public void load() {
-                MAX = file.getInt("rotation.a.max");
+                MAX = file.getInt("rotation.a.max", 500);
             }
         }
 
@@ -686,8 +690,8 @@ public class ConfigurationOptions {
             public static int MIN;
 
             public void load() {
-                MAX = file.getInt("rotation.c.max");
-                MIN = file.getInt("rotation.c.max");
+                MAX = file.getInt("rotation.c.max", 25000);
+                MIN = file.getInt("rotation.c.max", -25000);
             }
         }
     }
@@ -769,7 +773,7 @@ public class ConfigurationOptions {
             }
 
             public static void load() {
-                MAX = file.getInt("netty.e.max");
+                MAX = file.getInt("netty.e.max", 16500);
             }
         }
 

@@ -4,6 +4,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public class ResponseBuilder {
@@ -78,7 +79,7 @@ public class ResponseBuilder {
     }
 
     public ResponseBuilder skip(int indices) {
-        responseContainer.SKIP_INDICES = indices;
+        responseContainer.SKIP_INDICES = new AtomicInteger(indices);
         return this;
     }
 

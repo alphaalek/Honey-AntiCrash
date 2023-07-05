@@ -26,10 +26,6 @@ public class CheckContextContainer {
         putValue(Map.class, map);
     }
 
-    public void putChunk(Chunk chunk) {
-        putValue(Chunk.class, chunk);
-    }
-
     public void putLocation(Location location) {
         putValue(Location.class, location);
     }
@@ -45,10 +41,6 @@ public class CheckContextContainer {
 
     public Map<?, ?> getMap(int index) {
         return getValue(Map.class, index);
-    }
-
-    public Chunk getChunk(int index) {
-        return getValue(Chunk.class, index);
     }
 
     public Location getLocation(int index) {

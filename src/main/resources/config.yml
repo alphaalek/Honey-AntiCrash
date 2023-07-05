@@ -20,10 +20,10 @@ clear-old-violations-timestamp: 120000 # 2 minutter
 
 # Permission som ignorerer packet checks. Skal slås til før det virker.
 bypass-permission-enabled: false
-bypass-permission: honey.bypass
+bypass-permission: "honey.bypass"
 
 # Permission til at få beskeder af spillere der bliver violated.
-notify-permission: honey.notify
+notify-permission: "honey.notify"
 
 # packet logger
 packet-logger:
@@ -100,16 +100,16 @@ item-analysis:
   # NBT
   nbt:
     # Hvor mange bytes må et items NBT højest have.
-    max-nbt-length: 6000
+    max-nbt-length: 15000
 
     # Hvor mange bytes må en nbt string højest være.
     max-nbt-string-length: 800
 
     # Hvor mange bytes må fyrværkeris NBT højest have. Dette gælder også firework charge.
-    max-firework-nbt-length: 1500
+    max-firework-nbt-length: 2500
 
     # Hvor mange bytes må en bogs NBT højest have.
-    max-book-nbt-length: 5000
+    max-book-nbt-length: 13500
 
     # Hvor mange sider må en bog højest have. I Vanilla Minecraft er det højest muligt at få 50 sider.
     max-book-pages: 50
@@ -171,7 +171,7 @@ netty:
   e:
     enabled: true
     vls-amount: 3
-    max: 12500
+    max: 16500
 
   f:
     enabled: true
@@ -187,7 +187,7 @@ netty:
   h:
     enabled: true
     vls-amount: 3
-    threshold: 500000
+    threshold: 250000
 
   i:
     enabled: true
@@ -320,6 +320,12 @@ position:
     max-per-interval: 16
     interval: 1250
     vls-amount: 3
+
+  g:
+    enabled: true
+    max-per-interval: 6
+    interval: 4500
+    vls-amount: 8
 
 # |--- rotation ---|
 rotation:

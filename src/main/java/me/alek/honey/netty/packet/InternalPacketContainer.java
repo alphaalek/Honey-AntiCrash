@@ -27,7 +27,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
 
     public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
-        return new InternalPacketContainer<>(null, null, null, null, null, null, packet);
+        return new InternalPacketContainer<>(packet, null, null, null, null, null, null);
     };
     private final PacketTypeEnum type;
     private final Object handle;
@@ -38,31 +38,17 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final ReflectStructure<Object, ?> packetStructure;
     private boolean cancelled = false;
 
-    public InternalPacketContainer(
-            Object rawPacket,
-            Player player,
-            Channel channel,
-            Runnable postAction,
-            PacketTypeEnum type
-    ) {
-        this.wrappedPacket = (WP) PacketWrapperCache.getWrapper(type, rawPacket, this);
-        this.packetStructure = ReflectStructureCache.acquireStructure(type);
+    public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type) {
         this.player = player;
         this.type = type;
         this.postAction = postAction;
         this.handle = rawPacket;
         this.channel = channel;
+        this.packetStructure = ReflectStructureCache.acquireStructure(type);
+        this.wrappedPacket = (WP) PacketWrapperCache.getWrapper(type, rawPacket, this);
     }
 
-    public InternalPacketContainer(
-        ReflectStructure<Object, Object> packetStructure,
-        WP wrappedPacket,
-        Player player,
-        Channel channel,
-        PacketTypeEnum type,
-        Runnable postAction,
-        Object rawPacket
-    ) {
+    public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type, ReflectStructure<Object, Object> packetStructure, WP wrappedPacket) {
         this.wrappedPacket = wrappedPacket;
         this.player = player;
         this.packetStructure = packetStructure;

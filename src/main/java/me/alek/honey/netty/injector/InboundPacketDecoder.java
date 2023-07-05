@@ -46,17 +46,14 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
         // undgå packet decode sendt fra spillere i game state der alligevel ikke er online
         try {
             if (player != null && !player.isOnline()) {
-                if (byteBuf != null && byteBuf.refCnt() > 0) {
-                    byteBuf.clear();
-                }
+                if (byteBuf.refCnt() > 0) {byteBuf.clear();}
                 return;
             }
             // ugyldig byte buf og behøver derfor ikke blive decoded
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyD.class).isEnabled()) {
                 if (player != null && player.isOnline() && (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0)) {
-                    if (byteBuf.refCnt() > 0) {
-                        byteBuf.clear();
-                    }
+                    if (byteBuf.refCnt() > 0) {byteBuf.clear();}
+
                     NMSUtils.getChannel(player).close();
                     return;
                 }
@@ -71,9 +68,8 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
 
                     int readableBytes = byteBuf.readableBytes();
                     if (readableBytes > ConfigurationOptions.Netty.NettyE.MAX) {
-                        if (byteBuf.refCnt() > 0) {
-                            byteBuf.clear();
-                        }
+                        if (byteBuf.refCnt() > 0) {byteBuf.clear();}
+
                         HoneyPlugin.get().getViolationService().punish(player, "Netty.E");
                         return;
                     }
@@ -81,6 +77,8 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                 // tjek packet buffer
                 if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class).isEnabled()) {
                     if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, ViolationService.CheckKey.DEFAULT.clone().setBuffer(true), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
+                        if (byteBuf.refCnt() > 0) {byteBuf.clear();}
+
                         return;
                     }
                 }
@@ -96,9 +94,8 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                 Object packet = enumProtocol.createPacket(WrappedEnumProtocolDirection.SERVERBOUND, id);
 
                 if (packet == null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class).isEnabled()) {
-                    if (byteBuf.refCnt() > 0) {
-                        byteBuf.clear();
-                    }
+                    if (byteBuf.refCnt() > 0) {byteBuf.clear();}
+
                     HoneyPlugin.get().getViolationService().punish(player, "Netty.G");
                     return;
                 }
@@ -109,9 +106,8 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                         bufferIndex += Math.abs(dataSerializer.readByte());
                     }
                     if (bufferIndex > ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).getThreshold()) {
-                        if (byteBuf.refCnt() > 0) {
-                            byteBuf.clear();
-                        }
+                        if (byteBuf.refCnt() > 0) {byteBuf.clear();}
+
                         HoneyPlugin.get().getViolationService().flag(player, byteBuf, new ViolationService.CheckKey(this, "NettyH"), 1, null, "Netty.H", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class));
                     }
                 }

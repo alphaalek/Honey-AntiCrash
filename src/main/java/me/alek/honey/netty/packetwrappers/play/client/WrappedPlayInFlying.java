@@ -1,57 +1,26 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPositional;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends WrappedPacket<WP> {
-
-    private Location location;
+public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends WrappedAbstractPositional<WP> {
 
     public WrappedPlayInFlying(Object rawPacket, PacketContainer<WP> packetContainer) {
         super(rawPacket, packetContainer);
     }
 
-    public Location getLocation() {
-        if (location == null) {
-            return location = new Location(getWorld(), getX(), getY(), getZ(), getYaw(), getPitch());
-        }
-        return location;
-    }
-
-    public double getX() {
-        if (location != null) {
-            return location.getX();
-        }
-        return getContainer().getDoubles().readField(0);
-    }
-
-    public double getY() {
-        if (location != null) {
-            return location.getY();
-        }
-        return getContainer().getDoubles().readField(1);
-    }
-
-    public double getZ() {
-        if (location != null) {
-            return location.getZ();
-        }
-        return getContainer().getDoubles().readField(2);
-    }
-
-    public float getYaw() {
-        if (location != null) {
-            return location.getYaw();
-        }
-        return getContainer().getFloats().readField(0);
-    }
-
-    public float getPitch() {
-        if (location != null) {
-            return location.getPitch();
-        }
-        return getContainer().getFloats().readField(1);
+    @Override
+    public Location getLocation(PacketContainer<WP> packetContainer) {
+        return new Location(
+                getWorld(),
+                getContainer().getDoubles().readField(0),
+                getContainer().getDoubles().readField(1),
+                getContainer().getDoubles().readField(2),
+                getContainer().getFloats().readField(0),
+                getContainer().getFloats().readField(1)
+        );
     }
 
     public void setX(double x) {
