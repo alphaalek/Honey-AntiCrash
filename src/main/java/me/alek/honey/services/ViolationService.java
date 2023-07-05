@@ -337,8 +337,11 @@ public class ViolationService {
             if (loggerService.isDebug()) {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
             }
-            if (flagged < maxPerInterval || violatedForInterval) {
+            if (flagged < maxPerInterval) {
                 return false;
+            }
+            if (violatedForInterval) {
+                return true;
             }
             violatedForInterval = true;
             flaggedCopy = flagged;

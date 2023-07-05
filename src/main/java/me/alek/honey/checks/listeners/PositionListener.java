@@ -23,7 +23,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -128,48 +127,39 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-                try {
-                    final double maxDistance = ConfigurationOptions.Position.PositionB.MAX;
-                    final double minDistance = ConfigurationOptions.Position.PositionB.MIN;
 
-                    final Location playerLoc = player.getLocation();
-                    final Location packetLoc = packet.getLocation();
-                    final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
-                    container.putLocation(lastKnownPacketLoc);
+                double maxDistance = ConfigurationOptions.Position.PositionB.MAX;
+                double minDistance = ConfigurationOptions.Position.PositionB.MIN;
 
-                    lastPacketLocation.put(player.getUniqueId(), packetLoc);
+                final Location playerLoc = player.getLocation();
+                final Location packetLoc = packet.getLocation();
+                final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
+                container.putLocation(lastKnownPacketLoc);
 
-                    // tjekker om den lokation tilhørende en packet er tæt på den lokation man teleporterede væk fra
-                    // hvis ikke man gør det, kan der komme false flags hvis clientside lagger og bliver teleporteret serverside
-                    if (PositionC.shouldIgnore(player, packet.getLocation())) {
-                        return ResponseBuilder.SUCCESS;
+                lastPacketLocation.put(player.getUniqueId(), packetLoc);
+
+                // 2d distance check
+                final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+                final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
+
+                if (distance2d_client > maxDistance || distance2d_client < minDistance) {
+                    if ((distance2d > maxDistance || distance2d < minDistance) && distance2d != 0) {
+
+                        return ResponseBuilder.inst().cancel().flag().build();
                     }
+                }
 
-                    // 2d distance check
-                    final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                    final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
+                // y distance check
+                final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+                final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
 
-                    if (distance2d_client > maxDistance || distance2d_client < minDistance) {
-                        if ((distance2d > maxDistance || distance2d < minDistance) && distance2d != 0) {
+                if (distanceY_client > maxDistance || distanceY_client < minDistance) {
+                    if ((distanceY > maxDistance || distanceY < minDistance) && distanceY != 0) {
 
+                        if (!(distanceY < minDistance && player.isFlying())) {
                             return ResponseBuilder.inst().cancel().flag().build();
                         }
                     }
-
-                    // y distance check
-                    final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-                    final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
-
-                    if (distanceY_client > maxDistance || distanceY_client < minDistance) {
-                        if ((distanceY > maxDistance || distanceY < minDistance) && distanceY != 0) {
-
-                            if (!(distanceY < minDistance && player.isFlying())) {
-                                return ResponseBuilder.inst().cancel().flag().build();
-                            }
-                        }
-                    }
-                } catch (Exception ex) {
-                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -188,72 +178,70 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionC<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck, Listener {
 
-        private static final Map<UUID, Long> lastTeleportationInstantMap = new ConcurrentHashMap<>();
-        private static final Map<UUID, Location> lastTeleportationMap = new ConcurrentHashMap<>();
-        private static final Map<UUID, Long> lastJoinMap = new ConcurrentHashMap<>();
+        private final Map<UUID, Location> lastFlaggedLocationMap = new HashMap<>();
+        private final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
 
         public PositionC() {
             Bukkit.getPluginManager().registerEvents(this, HoneyPlugin.get());
         }
 
         @EventHandler
-        public void onTeleport(PlayerTeleportEvent event) {
-            lastTeleportationInstantMap.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
-            lastTeleportationMap.put(event.getPlayer().getUniqueId(), event.getFrom());
-        }
-
-        @EventHandler
-        public void onJoin(PlayerJoinEvent event) {
-            lastJoinMap.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
-        }
-
-        @EventHandler
-        public void onQuit(PlayerQuitEvent event) {
-            lastJoinMap.remove(event.getPlayer().getUniqueId());
-        }
-
-        public static boolean shouldIgnore(Player player, Location packetLocation) {
-            UUID uuid = player.getUniqueId();
-            if (lastTeleportationMap.containsKey(uuid)) {
-
-                // tjekker om man lige er joinet
-                if (lastJoinMap.containsKey(uuid) && System.currentTimeMillis() - lastJoinMap.get(uuid) < 3000) {
-                    return false;
-                }
-                // tjekker om man ikke er teleporteret inden for det seneste halve minut
-                if ((System.currentTimeMillis() - lastTeleportationInstantMap.get(uuid))/1000 > 30) {
-                    return false;
-                }
-                // tjekker om den lokation tilhørende en packet er tæt på den lokation man teleporterede væk fra
-                // hvis ikke man gør det, kan der komme false flags hvis clientside lagger og bliver teleporteret serverside
-                return Locations.calculate3DDistance(lastTeleportationMap.get(uuid), packetLocation) < 50;
-            }
-            return false;
+        public void onPlayerTeleport(PlayerTeleportEvent event) {
+            lastTeleportationLocationMap.put(event.getPlayer().getUniqueId(), event.getTo());
         }
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (!player.getAllowFlight()) {
-
-                    // ignorerer når man falder ned
-                    if (player.getVelocity().getY() < 0) {
-                        return ResponseBuilder.SUCCESS;
-                    }
-
-                    // ignorer hvis man lige har teleporteret
-                    if (shouldIgnore(player, packet.getLocation())) {
-                        return ResponseBuilder.SUCCESS;
-                    }
-                    double distance = Locations.calculate3DDistance(player.getLocation(), packet.getLocation());
-                    Bukkit.getLogger().info("distance: " + distance);
-
-                    Location loc = player.getLocation();
-                    Bukkit.getLogger().info("player xyz: " + loc.getX() + "," + loc.getY() + "," + loc.getZ() + " - packet xyz: " + packet.getX() + "," + packet.getY() + "," + packet.getZ());
-
-                    return ResponseBuilder.inst().setFlagged(distance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
+                // tjekker om en spiller flyver, for så kan man sagtens fylde bufferen hurtigt op alligevel
+                if (player.isFlying()) {
+                    return ResponseBuilder.SUCCESS;
                 }
+
+                UUID uuid = player.getUniqueId();
+
+                // ignorerer når man falder ned. bemærk, at hvis den havde været på 0, vil den også ignorere
+                // når man går rundt på jorden, da tyngdekraft er en stor faktor ift. en spillers velocity
+                if (player.getVelocity().getY() < -1.5) {
+                    return ResponseBuilder.SUCCESS;
+                }
+
+                Location priorLocation = container.getLocation(0);
+                // returnerer hvis det er den første lokation packet der bliver sendt
+                if (priorLocation == null) {
+                    return ResponseBuilder.SUCCESS;
+                }
+
+                // ignorerer packets tæt på den seneste teleportering, dadistancen mellem to
+                // position packets ellers være rigtig høj hvis man teleporterer en lang distance
+                synchronized (lastTeleportationLocationMap) {
+
+                    if (lastTeleportationLocationMap.containsKey(uuid)) {
+
+                        Location teleportationLoc = lastTeleportationLocationMap.get(uuid);
+                        double distance = Locations.calculate3DDistance(teleportationLoc, packet.getLocation());
+
+                        if (distance < 10) {
+                            return ResponseBuilder.SUCCESS;
+                        }
+                    }
+                }
+
+                // ignorerer packets tæt på den seneste flag for at minmere false positives ved lagspikes
+                if (lastFlaggedLocationMap.containsKey(uuid)) {
+
+                    if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 5) {
+                        return ResponseBuilder.SUCCESS;
+                    }
+                }
+                lastFlaggedLocationMap.put(player.getUniqueId(), packet.getLocation());
+
+                double distance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
+                if (HoneyPlugin.get().getLoggerService().isDebug()) {
+                    Bukkit.getLogger().info("position distance: " + distance);
+                }
+                return ResponseBuilder.inst().setFlagged(distance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -269,13 +257,40 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
     }
 
-    public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck, Listener {
+
+        public PositionD(){
+            Bukkit.getPluginManager().registerEvents(this, HoneyPlugin.get());
+        }
+
+        @EventHandler
+        public void onQuit(PlayerQuitEvent event) {
+            manipulatedFlightSettingsMap.remove(event.getPlayer().getUniqueId());
+        }
 
         private static final Map<UUID, WrappedChunkCoordIntPair> lastChunkMap = new ConcurrentHashMap<>();
+        private final Set<UUID> manipulatedFlightSettingsMap = new HashSet<>();
+
+        private final ViolationService.CheckKey flightKey = new ViolationService.CheckKey("Position.B", true);
+        private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey("Position.B", false);
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
+
+                ViolationService.CheckKey key = (player.isFlying()) ? flightKey : nonFlightKey;
+
+                // laver en kopi af settings for at lave en til når man flyver, da man kan besøge langt flere chunks så
+                if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
+                    int maxPerInterval = getSetting().getMaxPerInterval();
+                    ConfigurationOptions.VlSetting setting = getSetting().clone();
+                    setting.MAX_PER_INTERVAL = maxPerInterval * 3;
+
+                    // tvinger den nye packet limit handler til at blive oprettet med den nye flight setting
+                    HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
+
+                    manipulatedFlightSettingsMap.add(player.getUniqueId());
+                }
                 WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
 
                 ResponseContainer response = ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
@@ -284,7 +299,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
                     }
                     lastChunkMap.put(player.getUniqueId(), chunk);
-                    return response.builder().skip(1).build();
+                    return response.builder().withKey(key).skip(1).build();
                 }
                 return response;
             }
@@ -394,7 +409,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     int i = -1;
                     for (Direction dir : velocity) {
 
-                        // sørger for der ikke sker uoverensstemmelse i længderne af de forskellige velocities
+                        // sørger for der ikke sker uoverensstemmelse i længderne og indices af de forskellige velocities
                         if (++i == priorVelocity.length) {
                             break;
                         }
@@ -404,7 +419,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new ViolationService.CheckKey(this, axis), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());
                         }
                     }
                 }

@@ -288,7 +288,7 @@ position:
   b:
     enabled: true
     clear-interval: true
-    max: 20
+    max: 25
     min: 0.0001
     max-per-interval: 13
     interval: 5000
@@ -297,16 +297,16 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 700
+    threshold: 450
     decay: 400
-    decay-amount: 150
+    decay-amount: 100
     vls-amount: 6
 
   d:
     enabled: true
-    max-per-interval: 32
+    max-per-interval: 16
     interval: 3500
-    vls-amount: 5
+    vls-amount: 3
 
   e:
     enabled: true
@@ -317,7 +317,7 @@ position:
   f:
     enabled: true
     clear-interval: true
-    max-per-interval: 16
+    max-per-interval: 18
     interval: 1250
     vls-amount: 3
 
