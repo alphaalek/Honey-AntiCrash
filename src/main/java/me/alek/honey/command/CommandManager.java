@@ -55,19 +55,19 @@ public class CommandManager implements CommandExecutor {
             final CommandImpl commandImpl = commandImplEntry.getValue();
 
             if (!commandImpl.isExecutableByConsole() && commandSender instanceof ConsoleCommandSender) {
-                commandSender.sendMessage(PREFIX + "Denne kommando kan ikke bruges af console.");
+                commandSender.sendMessage(PREFIX + "This command can not be used by the console.");
                 return true;
             }
             if (        commandImpl.getPermission() != null
                     && !commandImpl.getPermission().equals("")
                     && !commandSender.hasPermission(commandImpl.getPermission())) {
-                commandSender.sendMessage(PREFIX + "Du har ikke adgang til denne kommando!");
+                commandSender.sendMessage(PREFIX + "You do not have permission to use this command!");
                 return true;
             }
             if (commandSender instanceof Player) {
                 Player player = (Player) commandSender;
                 if (this.cooldownManager.hasCooldown(player, commandImpl)) {
-                    commandSender.sendMessage(PREFIX + "Du har cooldown på denne kommando. Vent "
+                    commandSender.sendMessage(PREFIX + "You have cooldown on this command. Wait "
                             + this.cooldownManager.getFormattedCooldown(player, commandImpl));
                     return true;
                 }
@@ -76,8 +76,8 @@ public class CommandManager implements CommandExecutor {
             commandImpl.perform(commandSender);
         } catch (CommandNotFoundException ex) {
             if (this.helpCommand == null) {
-                commandSender.sendMessage(PREFIX + "Kunne ikke finde nogen kommando med navnet §e" + ex.getMessage()
-                        + "§7. Skriv §e/honey help §7 for at se hvilke kommandoer du kan bruge.");
+                commandSender.sendMessage(PREFIX + "Could not find any command with the name §e" + ex.getMessage()
+                        + "§7. Type §e/honey help §7 to se what commands you can use.");
             }
             else {
                 this.helpCommand.perform(commandSender);

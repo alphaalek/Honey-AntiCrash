@@ -1,6 +1,6 @@
 package me.alek.honey.checks;
 
-import me.alek.honey.checks.listeners.*;
+import me.alek.honey.checks.impl.*;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,10 +1,21 @@
 
 #
-# ...
-# ...
-# ...
-# ...
-# ...
+# Dette er konfigurationsfil til AntiCrash plugin af Alek05.
+#   + Du bruger lige nu version 1.0.0 (BETA) (gratis)
+#   + Den bedste Anti Netty Crasher på det danske marked!
+#
+# Note! Hvis du opdager nogen fejl, så skriv til mig på discord. (kan ses nedenunder)
+# Jeg vil med glæde hjælpe, hvis du skriver de nødvendige oplysninger ift. dit problem.
+# Vær opmærksom på, at du lige nu bruger en BETA version. Fejl kan forekomme, så bær lige over med det.
+#
+# Husk også på, at false flags kan forekomme, og det anbefales ikke at banne en bare fordi en
+# enkelt violation bliver vist i chatten. (kan opstå ved serverside eller clientside lagspikes).
+# Du kan også altid ændre i denne fil, alt er konfigurerbart. Servere er forskellige, og nogle
+# servere har andre behov af indstillinger end andre har. Derfor skal du tilpasse det din server.
+# Har du svært ved dette, så hjælper jeg gerne!
+#
+# Discord: https://discord.gg/FJuKAUDX4C
+# YouTube: https://www.youtube.com/@alek05557
 #
 
 ############################################################
@@ -137,20 +148,6 @@ item-analysis:
 # |              Packet Check Indstillinger              | #
 # +------------------------------------------------------+ #
 ############################################################
-
-#
-# interval er det gældende interval. det er i millisekunder, det vil sige 1000 ms hvert sekund, 60000 ms hvert minut, og så videre
-#
-# max-per-interval er hvor mange positive tjek der må være i det interval, før vedkommende bliver violated
-# hvis max-per-interval ikke er sat, vil man automatisk blive violated når man gør det pågældende tjek (tilsvarende hvis den var på 1)
-# derfor giver det ikke mening at have interval, hvis man ikke bruger max-per-interval
-#
-# vls-amount er hvor mange gange vedkommende må blive violated, før vedkommende bliver kicket. gamle violations bliver
-# automatisk ryddet, du kan ændre hvor typisk ovenover. den er normalt på 5 minutter
-# hvis vls-amount ikke er sat, vil man automatisk blive kicket når man bliver violated (tilsvarende hvis den var på 1)
-#
-
-# alle packets som bliver sendt i et interval, efter at spilleren er blevet violated for det tjek, vil blive blokeret
 
 # |--- netty ---|
 netty:
@@ -304,8 +301,8 @@ position:
 
   d:
     enabled: true
-    max-per-interval: 16
-    interval: 3500
+    max-per-interval: 18
+    interval: 3200
     vls-amount: 3
 
   e:
@@ -506,13 +503,13 @@ packet-flood:
 
     # chat
     chat:
-      max-per-interval: 9
+      max-per-interval: 10
       interval: 500
       vls-amount: 6
 
     # client command - OBS: ikke en chat command
     client-command:
-      max-per-interval: 8
+      max-per-interval: 12
       interval: 500
 
     # close window
@@ -537,18 +534,18 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 30
+      max-per-interval: 60
       vls-amount: 10
 
     # held item slot
     held-item-slot:
-      max-per-interval: 25
+      max-per-interval: 35
       interval: 700
       vls-amount: 6
 
     # keep alive
     keep-alive:
-      max-per-interval: 20
+      max-per-interval: 30
       vls-amount: 10
 
     # look
@@ -559,7 +556,7 @@ packet-flood:
 
     # position
     position:
-      max-per-interval: 60
+      max-per-interval: 65
       interval: 500
       vls-amount: 7
 
@@ -578,7 +575,7 @@ packet-flood:
 
     # tab complete
     tab-complete:
-      max-per-interval: 45
+      max-per-interval: 50
 
     # update sign
     update-sign:
@@ -587,18 +584,18 @@ packet-flood:
 
     # use item
     use-item:
-      max-per-interval: 45
+      max-per-interval: 50
       interval: 600
       vls-amount: 7
 
     # use entity
     use-entity:
-      max-per-interval: 45
+      max-per-interval: 50
       interval: 600
 
     # window click
     window-click:
-      max-per-interval: 65
+      max-per-interval: 70
       interval: 600
       vls-amount: 8
 

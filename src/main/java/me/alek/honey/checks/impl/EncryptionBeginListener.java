@@ -1,4 +1,4 @@
-package me.alek.honey.checks.listeners;
+package me.alek.honey.checks.impl;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;

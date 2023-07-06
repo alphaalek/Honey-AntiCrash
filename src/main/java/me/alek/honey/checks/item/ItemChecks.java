@@ -311,7 +311,6 @@ public class ItemChecks {
         @SuppressWarnings("unchecked")
         public boolean check(ItemStack item, NBTCompound nbt) {
             for (NBTElement<String> stringValue : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
-                Bukkit.getLogger().info("string length: " + stringValue.getValue().length());
                 if (stringValue.getValue().getBytes().length > MAX_NBT_STRING_LENGTH) {
                     return true;
                 }

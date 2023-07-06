@@ -1,4 +1,4 @@
-package me.alek.honey.checks.listeners;
+package me.alek.honey.checks.impl;
 
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -16,7 +16,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;

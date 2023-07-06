@@ -45,11 +45,11 @@ public class HoneyPlugin extends JavaPlugin {
         INSTANCE = this;
 
         if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17)) {
-            getLogger().severe("Honey er lige pt. ikke supported af Minecraft Version 1.17+! Bare rolig, det kommer i fremtiden. :-)");
+            getLogger().severe("Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for sure come in the future! :-)");
             Bukkit.getPluginManager().disablePlugin(this);
         }
         if (Protocol.getProtocol() == Protocol.UNKNOWN) {
-            getLogger().severe("Honey er lige pt. ikke supported af den Minecraft Version serveren bruger!");
+            getLogger().severe("Honey is currently not supported by the Minecraft Version your server are using.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 

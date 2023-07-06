@@ -14,7 +14,7 @@ public class PasteLogsCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cØv! Denne kommando er ikke helt færdig endnu!");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cOh! This command is not done yet!");
     }
 
     @Override
@@ -29,7 +29,7 @@ public class PasteLogsCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Paste logs af violations fra en spiller.";
+        return "Paste the violation logs of a player.";
     }
 
     @Override

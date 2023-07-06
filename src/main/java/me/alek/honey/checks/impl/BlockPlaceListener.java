@@ -1,4 +1,4 @@
-package me.alek.honey.checks.listeners;
+package me.alek.honey.checks.impl;
 
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;

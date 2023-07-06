@@ -71,7 +71,7 @@ public class LoggerService {
             return;
         }
         String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
-        HoneyPlugin.get().getLogger().info(
+        HoneyPlugin.get().getLogger().info("DEBUG: " +
                  logType + " " + playerName + " for " + violationName + ". " + ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, packetLimitHandler))
                 + " (" + handle.getClass().getSimpleName() + ")"
         );
@@ -86,7 +86,7 @@ public class LoggerService {
         }
         StringBuilder message = new StringBuilder()
                 .append(playerName)
-                .append(" sendte ")
+                .append(" sent ")
                 .append(packetContainer.getHandle().getClass().getSimpleName());
         if (detailed) {
             message

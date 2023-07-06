@@ -23,7 +23,7 @@ public class ConfiscationService {
         try {
             confiscationStrategy = ConfiscationStrategy.valueOf(ConfigurationOptions.ItemAnalysis.General.CONFISCATION_STRATEGY.toUpperCase());
         } catch (Exception ex) {
-            HoneyPlugin.get().getLogger().log(Level.SEVERE, "Du har skrevet noget vrøvl i config.yml! Slet filen og lad den generere en ny.");
+            HoneyPlugin.get().getLogger().log(Level.SEVERE, "You have wrote something badly in the config.yml! Delete the file and let it generate a new one.");
             confiscationStrategy = ConfiscationStrategy.LENIENT;
         }
     }

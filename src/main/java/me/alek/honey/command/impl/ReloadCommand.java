@@ -15,7 +15,7 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 Reloader konfigurationer.");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 Reloading the configuration...");
         HoneyPlugin.get().reload();
     }
 
@@ -31,7 +31,7 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Reloader pluginnet.";
+        return "Reloads the configuration.";
     }
 
     @Override

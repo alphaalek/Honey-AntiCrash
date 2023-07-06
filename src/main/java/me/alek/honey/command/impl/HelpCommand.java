@@ -14,7 +14,7 @@ public class HelpCommand implements CommandImpl {
     @Override
     public void perform(CommandSender sender) {
         sender.sendMessage("");
-        sender.sendMessage("§6Honey v1.0.0. Lavet af Alek05.");
+        sender.sendMessage("§6Honey v1.0.0. Made by Alek05.");
         for (CommandImpl command : HoneyPlugin.get().getCommandManager().getCommands()) {
             sender.sendMessage(" §a" + command.getUsage() + " > §7" + command.getDescription());
         }
@@ -32,7 +32,7 @@ public class HelpCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Sender kommandoer du kan bruge.";
+        return "Sends all the commands you can use.";
     }
 
     @Override

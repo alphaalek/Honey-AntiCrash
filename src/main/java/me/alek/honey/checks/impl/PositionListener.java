@@ -1,4 +1,4 @@
-package me.alek.honey.checks.listeners;
+package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
@@ -213,8 +213,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.SUCCESS;
                 }
 
-                // ignorerer packets tæt på den seneste teleportering, dadistancen mellem to
-                // position packets ellers være rigtig høj hvis man teleporterer en lang distance
+                // ignorerer packets tæt på den seneste teleportering, da distancen mellem to
+                // position packets ellers kan være rigtig høj hvis man teleporterer en lang distance
                 synchronized (lastTeleportationLocationMap) {
 
                     if (lastTeleportationLocationMap.containsKey(uuid)) {
@@ -239,7 +239,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 double distance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    Bukkit.getLogger().info("position distance: " + distance);
+                    HoneyPlugin.get().getLogger().info("DEBUG: position distance: " + distance);
                 }
                 return ResponseBuilder.inst().setFlagged(distance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }
@@ -286,7 +286,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     ConfigurationOptions.VlSetting setting = getSetting().clone();
                     setting.MAX_PER_INTERVAL = maxPerInterval * 3;
 
-                    // tvinger den nye packet limit handler til at blive oprettet med den nye flight setting
+                    // tvinger en ny packet limit handler til at blive oprettet med den nye flight setting
                     HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
 
                     manipulatedFlightSettingsMap.add(player.getUniqueId());

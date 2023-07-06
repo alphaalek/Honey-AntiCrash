@@ -5,6 +5,7 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.NotificationService;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -41,7 +42,7 @@ public class NotificationToggleCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Slå notifikationer til/fra for dig.";
+        return "Toggle notifications on/off for you.";
     }
 
     @Override

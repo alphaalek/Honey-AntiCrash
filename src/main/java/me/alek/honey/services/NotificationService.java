@@ -71,17 +71,17 @@ public class NotificationService {
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type + "§7.");
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 failed packets §e" + type + "§7.");
             }
 
             @Override
             public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 fejlede packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 failed packets §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
             }
 
             @Override
             public void warn(Player player, String type) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 blev kicked for §e" + type + "§7.");
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 was kicked for §e" + type + "§7.");
             }
         });
     }

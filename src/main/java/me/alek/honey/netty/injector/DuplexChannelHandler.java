@@ -7,7 +7,6 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -64,7 +63,9 @@ public class DuplexChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (packetContainer.isCancelled()) {
-            Bukkit.getLogger().info("cancelled");
+            if (HoneyPlugin.get().getLoggerService().isDebug()) {
+                HoneyPlugin.get().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
+            }
             return;
         }
         super.channelRead(ctx, packetContainer.getHandle());
