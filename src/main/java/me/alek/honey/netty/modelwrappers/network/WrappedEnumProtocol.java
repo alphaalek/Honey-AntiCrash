@@ -2,12 +2,11 @@ package me.alek.honey.netty.modelwrappers.network;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.jetbrains.annotations.Nullable;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
 
-    public WrappedEnumProtocol(@Nullable Object handle) {
+    public WrappedEnumProtocol(Object handle) {
         super(handle);
     }
 

@@ -111,15 +111,16 @@ public class CommonChannelInjector {
             event = new PlayerEjectEvent(player, injectType, InjectEvent.InjectCallback.SUCCESS);
 
             final ChannelPipeline pipeline = channel.pipeline();
-            if (pipeline.get(PacketLibrary.get().getHandlerName()) != null) {
-
-                try {
-                    channel.eventLoop().execute(() -> {
+            try {
+                channel.eventLoop().execute(() -> {
+                    if (pipeline.get(PacketLibrary.get().getHandlerName()) != null)  {
                         pipeline.remove(PacketLibrary.get().getHandlerName());
+                    }
+                    if (pipeline.get(PacketLibrary.get().getDecoderName()) != null)  {
                         pipeline.remove(PacketLibrary.get().getDecoderName());
-                    });
-                } catch (NoSuchElementException ex) {
-                }
+                    }
+                });
+            } catch (NoSuchElementException ex) {
             }
         }
         PacketLibrary.get().callSyncEvent(event, false);

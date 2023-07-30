@@ -1,18 +1,18 @@
 
 #
-# Dette er konfigurationsfil til AntiCrash plugin af Alek05.
-#   + Du bruger lige nu version 1.0.0 (BETA) (gratis)
-#   + Den bedste Anti Netty Crasher på det danske marked!
+# This is the configuration file for the AntiCrash plugin Honey made by Alek05.
+#   + You are currently using the version 1.0.0 (BETA)
+#   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
-# Note! Hvis du opdager nogen fejl, så skriv til mig på discord. (kan ses nedenunder)
-# Jeg vil med glæde hjælpe, hvis du skriver de nødvendige oplysninger ift. dit problem.
-# Vær opmærksom på, at du lige nu bruger en BETA version. Fejl kan forekomme, så bær lige over med det.
+# Note! If you disover any errors or bugs, write to me on the discord server. (see below)
+# Be aware, that you are currently using a BETA version. Bugs can occur, but I will constantly
+# patch those problems and provide with all the help I possibly can. Write to me, please.
 #
-# Husk også på, at false flags kan forekomme, og det anbefales ikke at banne en bare fordi en
-# enkelt violation bliver vist i chatten. (kan opstå ved serverside eller clientside lagspikes).
-# Du kan også altid ændre i denne fil, alt er konfigurerbart. Servere er forskellige, og nogle
-# servere har andre behov af indstillinger end andre har. Derfor skal du tilpasse det din server.
-# Har du svært ved dette, så hjælper jeg gerne!
+# Also remember, that false flags can occur, so it is not recommended to ban a player just after
+# one single violation shown in chat. (it can emerge at serverside or clientside lagspikes sometimes)
+# That is exactly what this file is for. You should change the values you can see below if that's
+# what your server need. Everything is configurable, and every server is different. That's why
+# you have to set it up to match your server! If you have trouble doing this, I will gladly help you. :-)
 #
 # Discord: https://discord.gg/FJuKAUDX4C
 # YouTube: https://www.youtube.com/@alek05557
@@ -20,46 +20,46 @@
 
 ############################################################
 # +------------------------------------------------------+ #
-# |                 Globale indstillinger                | #
+# |                   Global Settings                    | #
 # +------------------------------------------------------+ #
 ############################################################
 
 prefix: "&6Honey &8\u00BB"
 
-# Hvor lang tid der skal gå før gamle violations bliver ryddet.
+# How long time between each clearing of old violations
 clear-old-violations-timestamp: 120000 # 2 minutter
 
-# Permission som ignorerer packet checks. Skal slås til før det virker.
+# Permission which ignores packet checks. You have to enable it first.
 bypass-permission-enabled: false
 bypass-permission: "honey.bypass"
 
-# Permission til at få beskeder af spillere der bliver violated.
+# Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications
 notify-permission: "honey.notify"
 
 # packet logger
 packet-logger:
 
-  # Skal packet logger være slået til eller ej.
+  # Should the packet logger be enabled or not.
   enabled: false
 
-  # Skal debug mode være slået til eller ej. Brugbart til udvikling og troubleshooting, men for en normal bruger er det fuldstændig unødvendigt.
+  # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false
 
-  # Spillere som packet logger skal ignorere.
+  # Players which the packet logger should ignore.
   ignored-players:
   # - Alek05
 
-  # Packets som packet logger skal ignorere.
+  # packets which the packet logger should ignore.
   ignored-packets:
     - "PacketPlayInFlying"
     - "PacketPlayInKeepAlive"
 
-  # Skal packet logger være detaljeret, og vise fields for hver eneste packet.
+  # Should the packet logger be detailed, which means it shows all the fields of each packet.
   detailed: false
 
 ############################################################
 # +------------------------------------------------------+ #
-# |              Item-Analyse Indstillinger              | #
+# |                Item-Analysis Settings                | #
 # +------------------------------------------------------+ #
 ############################################################
 
@@ -67,85 +67,86 @@ packet-logger:
 item-analysis:
 
   general:
-    # Hvilken strategi skal bruges når et forbudt item bliver fundet. Du kan vælge i mellem følgende:
+    # What strategy should be used when a forbidden item is found. You can choose between the following:
 
-    # - lenient: Ugyldigheden bliver fjernet, eksempelvis bliver siderne i en bog fjernet hvis den stiger grænsen.
-    # - average: Det item bliver konfiskeret, altså det bliver fjernet fra eksistens og er ikke muligt at få igen.
-    # - strict: Hele ens inventory bliver ryddet.
-    confiscation-strategy: "lenient"
+    # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.
+    # - average: The item will be confiscated. It will be removed from existance and can't be obtained again.
+    # - strict: The whole inventory will be removed. I do not recommend to use this, unless you also have strict settings below.
+    confiscation-strategy: "average"
 
-    # Spillere som item-analyse skal ignorere.
+    # Player's which the item-analysis should ignore.
     ignored-players:
     # - Alek05
 
-  # Hvor mange bytes må en container (chest/shulker ...) fylde.
+  # How many bytes may a container (chest/shulker ...) have.
   max-container-data: 250000
 
-  # Hvor højt enchant level må et item højest have.
+  # How high enchantment level may an item have.
   max-enchantment-level: 256
 
-  # Hvor højt antal må et item stack højest have.
+  # How high an amount may an item have.
   max-amount: 64
 
-  # Hvor langt navn må et item højest have.
+  # How long of a name may an item have.
   max-displayname-length: 100
 
-  # Hvor langt må summen af alle længderne på et items lore højest have.
+  # How long may the sum of all the lines in the lore of an item have.
   max-total-lore-length: 2000
 
-  # Hvor mange eksplosioner må et fyrværkeri højest have. I Vanilla Minecraft er det højest muligt at have 17.
+  # How many explosions may a firework have. In Vanilla Minecraft it is not possible to get more than 17.
   max-firework-explosions: 17
 
-  # Hvor mange banner mønstre må et banner højest have. I Vanilla Minecraft er det højest muligt at have 6.
+  # How many banner patterns may a banner have. In Vanilla Minecraft it is not possible to get more than 17.
   max-banner-patterns: 6
 
-  # Må potions ikke have custom potion effects. Kan være bugged i gennem creative.
+  # May potions not have custom potion effects. Can be bugged through creative mode. The wrong potions can lead to crash of the server.
+  # If you have a creative server, this is highly recommended to be toggled on.
   disable-custom-potion-effects: false
 
-  # Må items ikke være unbreakable. Kan være bugged i gennem creative.
+  # May items not be unbreakable. Can be bugged through creative mode.
   disable-unbreakable-items: false
 
-  # Må items ikke have attribute modifiers. Kan være bugged i gennem creative.
+  # May items not have attribute modifiers. Can be bugged through creative mode.
   disable-attribute-modifiers: false
 
   # NBT
   nbt:
-    # Hvor mange bytes må et items NBT højest have.
+    # How many bytes may the NBT of an item have.
     max-nbt-length: 15000
 
-    # Hvor mange bytes må en nbt string højest være.
+    # How many bytes may a NBT string be.
     max-nbt-string-length: 800
 
-    # Hvor mange bytes må fyrværkeris NBT højest have. Dette gælder også firework charge.
+    # How many bytes may the NBT of a firework have. This is also covering firework charges.
     max-firework-nbt-length: 2500
 
-    # Hvor mange bytes må en bogs NBT højest have.
+    # How many bytes may the NBT of a book have.
     max-book-nbt-length: 13500
 
-    # Hvor mange sider må en bog højest have. I Vanilla Minecraft er det højest muligt at få 50 sider.
+    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 50 characters.
     max-book-pages: 50
 
-    # Hvor lang titel må en bog højest have. I Vanilla Minecraft er det højest muligt at få 32 bogstaver.
+    # How long title may a book have. In Vanilla Minecraft it is not possible to get more than 32 characters.
     max-book-title-length: 32
 
-    # Hvor lang må en side i en bog højest være. I Vanilla Minecraft er det højest muligt at få 256 bogstaver.
+    # How long may the page of a book be. In Vanilla Minecraft it is not possible to get more than 256 characters.
     max-book-page-length: 256
 
-    # Hvor lang må navnet på en forfatter af en bog højest have. I Vanilla Minecraft er det højest muligt at have 16 bogstaver.
+    # How long name may the author of a book be. In Vanilla Minecraft it is not possible to get more than 16 characters.
     max-book-author-length: 16
 
-    # Hvor mange NBT bases må et items NBT højest have. (den generelle NBT repræsentation, gælder lister, strings, doubles osv ...)
+    # How many NBT bases may an item have. (the generel representation of NBT data, covers lists, strings, doubles etc...)
     max-nbt-bases: 80
 
-    # Hvor meget NBT nesting må et items NBT højest have. (lister oveni listener oveni compounds osv ...)
+    # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
     max-nbt-nesting: 4
 
-    # Må skulls/heads ikke have ugyldige textures. (behøves kun til op til 1.10.2, da Spigot har patchet det i den version)
+    # May skulls/heads not have invalid textures. Can be exploited to crash servers below Minecraft Version 1.10.2
     check-illegal-skull-textures: true
 
 ############################################################
 # +------------------------------------------------------+ #
-# |              Packet Check Indstillinger              | #
+# |                Packet Check Settings                 | #
 # +------------------------------------------------------+ #
 ############################################################
 
@@ -183,8 +184,11 @@ netty:
 
   h:
     enabled: true
+    clear-buffer: true
     vls-amount: 3
-    threshold: 250000
+    threshold: 180000
+    decay: 600
+    decay-amount: 50000
 
   i:
     enabled: true
@@ -259,8 +263,6 @@ custom-payload:
       max-per-interval: 4
       vls-amount: 6
 
-    # ingen limits på ItemName, PickItem & TrSel, udover den almindelige packet flood længere nede
-
   g:
     enabled: true
 
@@ -286,17 +288,17 @@ position:
     enabled: true
     clear-interval: true
     max: 25
-    min: 0.0001
-    max-per-interval: 13
+    min: 0.00001
+    max-per-interval: 5
     interval: 5000
-    vls-amount: 5
+    vls-amount: 3
 
   c:
     enabled: true
     clear-buffer: true
-    threshold: 450
-    decay: 400
-    decay-amount: 100
+    threshold: 650
+    decay: 550
+    decay-amount: 200
     vls-amount: 6
 
   d:
@@ -314,15 +316,15 @@ position:
   f:
     enabled: true
     clear-interval: true
-    max-per-interval: 18
-    interval: 1250
+    max-per-interval: 22
+    interval: 2000
     vls-amount: 3
 
   g:
     enabled: true
-    max-per-interval: 6
+    max-per-interval: 3
     interval: 4500
-    vls-amount: 8
+    vls-amount: 3
 
 # |--- rotation ---|
 rotation:
@@ -335,7 +337,7 @@ rotation:
     enabled: true
     vls-amount: 3
 
-  c: # ingen flags/violations
+  c: # no violations on this setting, just a thing helping the minecraft packet handler
     enabled: true
     max: 25000
     min: -25000
@@ -398,7 +400,7 @@ window-click:
 
 ############################################################
 # +------------------------------------------------------+ #
-# |           Blokerede Kommando Indstillinger           | #
+# |               Blocked Commands Settings              | #
 # +------------------------------------------------------+ #
 ############################################################
 
@@ -406,13 +408,13 @@ window-click:
 commands:
   vls-amount: 3
 
-  # Tab completion af kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando er registreret på serveren.
+  # Tab completion of commands which starts with the following strings will be blocked, but only if it is registered on the server.
   prohibited-tab-complete-commands:
     # fast async world edit
     - "/targetoffset"
     - "/to"
 
-  # Skrevet kommandoer der starter med følgende strings vil blive blokeret, hvis den kommando er registreret på serveren.
+  # Attempt to execute commands which starts with the following strings will be blocked, but only if it is registered on the server.
   prohibited-commands:
     # spigot
     - "/skill"
@@ -435,17 +437,17 @@ commands:
     - "/mvhelp ^"
     - "/mv help ^"
 
-  # Fallback prefixes der også vil blive tjekket for ved de ovenstående nægtede kommandoer.
-  # Det er eksempelvis hvis man skriver /multiverse-core:mv help ^
+  # Fallback prefixes which also will be checked for at the commands above.
+  # Could eg. be if someone types /multiverse-core:mv help ^
   fallback-prefixes:
     - "fastasyncworldedit"
     - "worldedit"
     - "multiverse-core"
-    - "permissionsex" # staves PermissionsEX ... :]
+    - "permissionsex"
 
 ############################################################
 # +------------------------------------------------------+ #
-# |              Packet Flood Indstillinger              | #
+# |                Packet Flood Settings                 | #
 # +------------------------------------------------------+ #
 ############################################################
 
@@ -469,8 +471,8 @@ packet-flood:
 
   # specific
   d:
-    # fælles indstillinger, hvis du vil have andre skal du ændre det i de forskellige packets
-    # packet indstillinger er højere prioritet end fælles indstillinger
+    # These are common settings, if you want anything other you have to change it in the different
+    # sections below dedicated to that packet. they are higher priority than these common settings.
     vls-amount: 5
     interval: 1000
 
@@ -507,7 +509,7 @@ packet-flood:
       interval: 500
       vls-amount: 6
 
-    # client command - OBS: ikke en chat command
+    # client command
     client-command:
       max-per-interval: 12
       interval: 500
@@ -520,7 +522,7 @@ packet-flood:
 
     # custom payload
     custom-payload:
-      max-per-interval: 55 # mere specifikke indstillinger ift packet flood af bestemte plugin channels, under custom-payload-sektionen
+      max-per-interval: 55 # more specific settings regarding custom payload packets can be seen in the section packet flood under Custom Payload check
       vls-amount: 3
 
     # enchant item

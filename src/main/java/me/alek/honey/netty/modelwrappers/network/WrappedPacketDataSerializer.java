@@ -8,7 +8,6 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,12 +26,12 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
 
     private final ByteBuf handle;
 
-    public WrappedPacketDataSerializer(@Nullable Object handle, ByteBuf byteBufHandle) {
+    public WrappedPacketDataSerializer(Object handle, ByteBuf byteBufHandle) {
         super(handle);
         this.handle = byteBufHandle;
     }
 
-    public WrappedPacketDataSerializer(@Nullable Object handle) {
+    public WrappedPacketDataSerializer(Object handle) {
         super(handle);
         this.handle = getModifier(ByteBuf.class).readField(0);
     }

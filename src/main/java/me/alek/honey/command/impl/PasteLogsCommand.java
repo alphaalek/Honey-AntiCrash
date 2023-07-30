@@ -14,7 +14,7 @@ public class PasteLogsCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cOh! This command is not done yet!");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cOh! This feature is not done yet!");
     }
 
     @Override

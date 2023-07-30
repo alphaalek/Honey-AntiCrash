@@ -131,7 +131,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 double maxDistance = ConfigurationOptions.Position.PositionB.MAX;
                 double minDistance = ConfigurationOptions.Position.PositionB.MIN;
 
-                final Location playerLoc = player.getLocation();
                 final Location packetLoc = packet.getLocation();
                 final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
                 container.putLocation(lastKnownPacketLoc);
@@ -139,27 +138,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
                 // 2d distance check
-                final double distance2d_client = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                final double distance2d = Locations.calculate2DDistance(packetLoc, playerLoc);
-
-                if (distance2d_client > maxDistance || distance2d_client < minDistance) {
-                    if ((distance2d > maxDistance || distance2d < minDistance) && distance2d != 0) {
-
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
+                final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+                if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
-                final double distanceY_client = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-                final double distanceY = Locations.calculateYDistance(packetLoc, playerLoc);
-
-                if (distanceY_client > maxDistance || distanceY_client < minDistance) {
-                    if ((distanceY > maxDistance || distanceY < minDistance) && distanceY != 0) {
-
-                        if (!(distanceY < minDistance && player.isFlying())) {
-                            return ResponseBuilder.inst().cancel().flag().build();
-                        }
-                    }
+                final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+                if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -228,10 +215,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }
                 }
 
-                // ignorerer packets tæt på den seneste flag for at minmere false positives ved lagspikes
+                // ignorerer packets tæt på den seneste flag for at minimere false positives ved lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
 
-                    if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 5) {
+                    if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5) {
                         return ResponseBuilder.SUCCESS;
                     }
                 }
@@ -239,7 +226,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 double distance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    HoneyPlugin.get().getLogger().info("DEBUG: position distance: " + distance);
+                    HoneyPlugin.get().getLogger().info("DEBUG: position distance buffer inc: " + distance);
                 }
                 return ResponseBuilder.inst().setFlagged(distance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }
@@ -396,9 +383,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 Location priorLocation = container.getLocation(0);
                 // når den allerførste lokation packet bliver sendt, er der ikke nogen prior location, og derfor skal den
                 // bare returnere indtil den næste position packet kommer
-                if (priorLocation == null) {
+                if (priorLocation == null)
                     return ResponseBuilder.SUCCESS;
-                }
 
                 Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
                 Direction[] priorVelocity = lastDirectionFlowMap.get(player.getUniqueId());
@@ -410,13 +396,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     for (Direction dir : velocity) {
 
                         // sørger for der ikke sker uoverensstemmelse i længderne og indices af de forskellige velocities
-                        if (++i == priorVelocity.length) {
+                        if (++i == priorVelocity.length)
                             break;
-                        }
+
                         Axis axis = axisLookup.get(dir);
                         Direction corr = priorVelocity[i];
 
-                        if (corr == Direction.STILL || dir == Direction.STILL) continue;
+                        if (corr == Direction.STILL || dir == Direction.STILL)
+                            continue;
 
                         if (corr == axis.getOther(dir)) {
                             HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());

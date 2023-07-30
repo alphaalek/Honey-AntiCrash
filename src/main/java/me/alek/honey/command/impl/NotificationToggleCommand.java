@@ -5,7 +5,6 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.NotificationService;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -21,13 +20,13 @@ public class NotificationToggleCommand implements CommandImpl {
 
         String toggledString;
         if (notificationService.isSubscribed(sender)) {
-            toggledString = "§cfra";
+            toggledString = "§coff";
             notificationService.untoggle(sender);
         } else {
-            toggledString = "§atil";
+            toggledString = "§aon";
             notificationService.toggle(sender);
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7Du har nu slået notifikationer " + toggledString + "§7.");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7You have now toggled notifications " + toggledString + "§7.");
     }
 
     @Override

@@ -1,8 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.bukkit.Bukkit;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -12,11 +10,11 @@ public class WrappedLongObjectHashMap<V> extends WrappedObject<WrappedLongObject
 
     private final Class<V> clazz;
 
-    public WrappedLongObjectHashMap(@Nullable Object handle) {
+    public WrappedLongObjectHashMap(Object handle) {
         this(handle, (Class<V>) NMSUtils.getChunkClass());
     }
 
-    public WrappedLongObjectHashMap(@Nullable Object handle, Class<V> clazz) {
+    public WrappedLongObjectHashMap(Object handle, Class<V> clazz) {
         super(handle);
         this.clazz = clazz;
     }

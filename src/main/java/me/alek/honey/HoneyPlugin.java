@@ -13,6 +13,7 @@ import me.alek.honey.command.impl.ReloadCommand;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.PlayerJoinListener;
+import me.alek.honey.metrics.Metrics;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -44,33 +45,43 @@ public class HoneyPlugin extends JavaPlugin {
         isRunning = true;
         INSTANCE = this;
 
+        // check minecraft version compatibility
         if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17)) {
             getLogger().severe("Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for sure come in the future! :-)");
             Bukkit.getPluginManager().disablePlugin(this);
         }
         if (Protocol.getProtocol() == Protocol.UNKNOWN) {
-            getLogger().severe("Honey is currently not supported by the Minecraft Version your server are using.");
+            getLogger().severe("Honey is currently not supported by the Minecraft Version your server is using.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
+        // setup packet library
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
 
+        // setup configuration
         configuration = new DedicatedConfiguration();
 
+        // setup services
         loggerService = new LoggerService();
         violationService = new ViolationService();
         notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
 
+        // setup checks
+        registerChecks();
+        ItemAnalysis.reload();
+
+        // setup commands
         commandManager = new CommandManager(this);
         new HelpCommand(commandManager);
         new NotificationToggleCommand(commandManager);
         new ReloadCommand(commandManager);
         new PasteLogsCommand(commandManager);
 
-        registerChecks();
-        ItemAnalysis.reload();
+        // setup metrics
+        new Metrics(this, 19028);
 
+        // setup bukkit listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }
 
@@ -141,5 +152,9 @@ public class HoneyPlugin extends JavaPlugin {
 
     public CommandManager getCommandManager() {
         return commandManager;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
     }
 }

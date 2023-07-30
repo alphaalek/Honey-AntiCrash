@@ -6,7 +6,6 @@ import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.jetbrains.annotations.Nullable;
 
 public class WrappedNetworkManager extends WrappedObject<WrappedNetworkManager> {
 
@@ -18,7 +17,7 @@ public class WrappedNetworkManager extends WrappedObject<WrappedNetworkManager> 
         return modifier.readField(0);
     }
 
-    public WrappedNetworkManager(@Nullable Object handle) {
+    public WrappedNetworkManager(Object handle) {
         super(handle);
     }
 }

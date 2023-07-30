@@ -796,6 +796,9 @@ public class ConfigurationOptions {
         @Violation("netty.h")
         public static class NettyH extends VlSetting {
 
+            public NettyH() {
+                super(true);
+            }
         }
     }
 

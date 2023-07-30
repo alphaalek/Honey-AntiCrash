@@ -32,7 +32,7 @@ public class CooldownManager {
 
     public String getFormattedCooldown(Player player, CommandImpl command) {
         CooldownMdl cooldownModel = getCooldownModel(player, command);
-        return Duration.between(LocalDateTime.now(), cooldownModel.getWhenExpired()).getSeconds() + 1 + " sekunder";
+        return Duration.between(LocalDateTime.now(), cooldownModel.getWhenExpired()).getSeconds() + 1 + " seconds";
     }
 
     public void setCooldown(Player player, CommandImpl command) {

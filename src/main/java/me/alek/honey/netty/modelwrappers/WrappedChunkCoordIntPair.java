@@ -1,7 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.jetbrains.annotations.Nullable;
 
 public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
 
@@ -15,7 +14,7 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
         this.z = z;
     }
 
-    public WrappedChunkCoordIntPair(@Nullable Object handle) {
+    public WrappedChunkCoordIntPair(Object handle) {
         super(handle);
 
         this.x = getModifier(int.class).readField("x", 0);

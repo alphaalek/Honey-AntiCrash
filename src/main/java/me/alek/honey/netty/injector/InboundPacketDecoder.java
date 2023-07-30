@@ -101,14 +101,11 @@ public class InboundPacketDecoder extends ByteToMessageDecoder {
                 }
                 // tjek heavy serializer
                 if (packet != null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).isEnabled()) {
-                    int bufferIndex = 0;
-                    while (dataSerializer.isReadable()) {
-                        bufferIndex += Math.abs(dataSerializer.readByte());
-                    }
-                    if (bufferIndex > ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class).getThreshold()) {
-                        if (byteBuf.refCnt() > 0) {byteBuf.clear();}
 
-                        HoneyPlugin.get().getViolationService().flag(player, byteBuf, new ViolationService.CheckKey(this, "NettyH"), 1, null, "Netty.H", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class));
+                    while (dataSerializer.isReadable()) {
+                        int byteSize = Math.abs(dataSerializer.readByte());
+
+                        HoneyPlugin.get().getViolationService().flag(player, byteBuf, new ViolationService.CheckKey(this, "NettyH"), byteSize, null, "Netty.H", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class));
                     }
                 }
             }

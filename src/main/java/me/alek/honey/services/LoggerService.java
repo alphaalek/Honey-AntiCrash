@@ -23,16 +23,14 @@ public class LoggerService {
     private List<String> ignoredPlayers;
     private List<String> ignoredPackets;
 
-    private final FuzzyPacketAdapter packetLoggerListener = new PacketLogger();
-
-    public class PacketLogger extends FuzzyPacketAdapter {
+    private final FuzzyPacketAdapter packetLoggerListener = new FuzzyPacketAdapter() {
 
         @Override
         @SuppressWarnings("unchecked")
         public void onPacketReceive(Player player, PacketContainer packetContainer) {
             logPacket(packetContainer, player.getName());
         }
-    }
+    };
 
     public LoggerService() {
         reload();
@@ -98,7 +96,7 @@ public class LoggerService {
 
     public void logPunish(String playerName, String violationName) {
         if (!debug) return;
-        HoneyPlugin.get().getLogger().info("Kicking " + playerName + " for " + violationName);
+        HoneyPlugin.get().getLogger().info("DEBUG: Kicking " + playerName + " for " + violationName);
     }
 
     public boolean isEnabled() {

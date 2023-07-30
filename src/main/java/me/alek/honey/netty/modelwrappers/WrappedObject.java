@@ -4,14 +4,12 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 
-import org.jetbrains.annotations.Nullable;
-
 public abstract class WrappedObject<T> {
 
     private final Object handle;
     private ReflectStructure<Object, ?> reflectStructure;
 
-    public WrappedObject(@Nullable Object handle) {
+    public WrappedObject(Object handle) {
         this.handle = handle;
 
         if (handle != null) {

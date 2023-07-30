@@ -46,19 +46,19 @@ public class ViolationService {
     }
 
     public boolean isPunishing(Player player) {
-        if (player == null) {
+        if (player == null)
             return false;
-        }
-        if (punishing.isEmpty()) {
+
+        if (punishing.isEmpty())
             return false; // optimized
-        }
+
         return punishing.contains(player.getUniqueId());
     }
 
     public synchronized void addPlayer(Player player) {
-        if (violatedMap.containsKey(player.getUniqueId())) {
+        if (violatedMap.containsKey(player.getUniqueId()))
             return;
-        }
+
         violatedMap.put(player.getUniqueId(), new ViolationContext(player));
         punishing.remove(player.getUniqueId());
     }
@@ -68,9 +68,9 @@ public class ViolationService {
     }
 
     public synchronized ViolationContext getViolationContext(Player player) {
-        if (!violatedMap.containsKey(player.getUniqueId())) {
+        if (!violatedMap.containsKey(player.getUniqueId()))
             addPlayer(player);
-        }
+
         return violatedMap.get(player.getUniqueId());
     }
 
