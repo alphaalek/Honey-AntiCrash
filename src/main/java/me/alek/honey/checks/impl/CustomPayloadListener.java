@@ -12,7 +12,7 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
-import me.alek.honey.checks.types.ViolationConsumerCheck;
+import me.alek.honey.checks.types.ViolationKeyedCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -251,7 +251,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
     }
 
-    public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, ViolationConsumerCheck<WrappedPlayInCustomPayload, String> {
+    public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, ViolationKeyedCheck<WrappedPlayInCustomPayload, String> {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {

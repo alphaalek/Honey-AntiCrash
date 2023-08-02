@@ -188,6 +188,7 @@ me\alek\honey\checks\impl\FloodListener$FloodD.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$Register.class
 me\alek\honey\configuration\ConfigurationOptions$WindowClick.class
 me\alek\honey\checks\impl\CreativeSlotListener$CreativeB.class
+me\alek\honey\checks\types\ViolationKeyedCheck.class
 me\alek\honey\checks\types\ViolationCheck.class
 me\alek\honey\configuration\ConfigurationOptions$ItemAnalysis$General.class
 me\alek\honey\netty\structure\converters\CollectionConverter.class
@@ -333,7 +334,6 @@ me\alek\honey\netty\api\event\EventExecutor.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutKeepAlive.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$Spectate.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$IntWriter.class
-me\alek\honey\checks\types\ViolationConsumerCheck.class
 me\alek\honey\netty\processor\InternalPacketProcessor.class
 me\alek\honey\checks\item\ItemAnalysis.class
 me\alek\honey\netty\bukkit\BukkitEventInternal.class

@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
-import me.alek.honey.checks.types.ViolationConsumerCheck;
+import me.alek.honey.checks.types.ViolationKeyedCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -43,8 +43,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (check instanceof ViolationCheck) {
                 setting = ((ViolationCheck)check).getSetting();
             }
-            else if (check instanceof ViolationConsumerCheck) {
-                ViolationConsumerCheck<WP, Object> violationCheck = (ViolationConsumerCheck<WP, Object>) check;
+            else if (check instanceof ViolationKeyedCheck) {
+                ViolationKeyedCheck<WP, Object> violationCheck = (ViolationKeyedCheck<WP, Object>) check;
                 setting = violationCheck.getSetting(violationCheck.getKey(packetContainer.getPacket()));
             }
 

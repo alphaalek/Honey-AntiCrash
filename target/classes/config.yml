@@ -186,9 +186,9 @@ netty:
     enabled: true
     clear-buffer: true
     vls-amount: 3
-    threshold: 425000
+    threshold: 500000
     decay: 900
-    decay-amount: 65000
+    decay-amount: 85000
 
   i:
     enabled: true

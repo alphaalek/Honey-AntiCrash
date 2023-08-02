@@ -29,6 +29,8 @@ public class ConfiscationService {
     }
 
     public void confiscate(Player player, ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
+        player.sendMessage(check.name());
+
         switch (confiscationStrategy) {
 
             case LENIENT:

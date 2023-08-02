@@ -6,7 +6,7 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ViolationConsumerCheck;
+import me.alek.honey.checks.types.ViolationKeyedCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -64,7 +64,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         };
     }
 
-    public static abstract class AbstractCustomizedFlood<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationConsumerCheck<WP, PacketTypeEnum> {
+    public static abstract class AbstractCustomizedFlood<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
 
         private final Map<PacketTypeEnum, ConfigurationOptions.VlSetting> settingMap = new HashMap<>();
 
@@ -158,7 +158,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
-    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationConsumerCheck<WP, PacketTypeEnum> {
+    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
