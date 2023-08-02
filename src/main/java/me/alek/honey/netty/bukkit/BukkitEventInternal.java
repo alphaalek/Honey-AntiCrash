@@ -32,7 +32,6 @@ public class BukkitEventInternal implements Listener {
 
         if (!library.useLateInjection()) {
             try {
-                Bukkit.broadcastMessage("waiting...");
                 CommonChannelInjector.getInjectedLatch().await();
 
             } catch (Exception ex) {
@@ -41,7 +40,6 @@ public class BukkitEventInternal implements Listener {
 
                 channel.close();
             }
-            Bukkit.broadcastMessage("done waiting");
         }
         boolean injected = false;
 
