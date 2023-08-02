@@ -6,10 +6,17 @@ import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class PlayerJoinListener implements org.bukkit.event.Listener {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class PlayerJoinListener implements Listener {
+
+    private final static Map<UUID, Long> instantJoinedMap = new HashMap<>();
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
@@ -19,9 +26,10 @@ public class PlayerJoinListener implements org.bukkit.event.Listener {
         }
         HoneyPlugin.get().getViolationService().addPlayer(player);
 
-        if (player.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION)) {
+        if (player.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION))
             HoneyPlugin.get().getNotificationService().subscribe(player);
-        }
+
+        instantJoinedMap.put(player.getUniqueId(), System.currentTimeMillis());
     }
 
     @EventHandler
@@ -32,5 +40,12 @@ public class PlayerJoinListener implements org.bukkit.event.Listener {
         }
         HoneyPlugin.get().getViolationService().removePlayer(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
+
+        instantJoinedMap.remove(player.getUniqueId());
     }
+
+    public static Map<UUID, Long> getInstantJoinedMap() {
+        return instantJoinedMap;
+    }
+
 }

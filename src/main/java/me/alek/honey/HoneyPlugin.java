@@ -38,6 +38,7 @@ public class HoneyPlugin extends JavaPlugin {
     private CommandManager commandManager;
     private Configuration configuration;
     private boolean isRunning;
+    private boolean usingOldVersion;
     private PacketLibrary packetLibrary;
 
     @Override
@@ -56,7 +57,7 @@ public class HoneyPlugin extends JavaPlugin {
         }
 
         // setup packet library
-        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
+        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, true, "honey_packet_handler", "honey_packet_decoder"));
 
         // setup configuration
         configuration = new DedicatedConfiguration();
@@ -80,6 +81,9 @@ public class HoneyPlugin extends JavaPlugin {
 
         // setup metrics
         new Metrics(this, 19028);
+
+        // check plugin version
+
 
         // setup bukkit listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);

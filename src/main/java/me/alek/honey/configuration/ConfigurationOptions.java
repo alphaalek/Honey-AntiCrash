@@ -14,10 +14,11 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class ConfigurationOptions {
 
-    private static boolean loading;
+    private static CountDownLatch loadingLatch = new CountDownLatch(0);
     private static FileConfiguration file;
     private static Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
     private static Map<String, VlSetting> channelFloodSettings = new HashMap<>();
@@ -44,15 +45,27 @@ public class ConfigurationOptions {
     }
 
     public static boolean isLoading() {
-        return loading;
+        return loadingLatch.getCount() == 1;
     }
 
     public static void load() {
-        loading = true;
-        floodSettings.clear();
-        vlSettingMap.clear();
-        load(ConfigurationOptions.class);
-        loading = false;
+        try {
+            // venter på threads der allerede loader
+            loadingLatch.await();
+
+            // laver en ny barrier
+            loadingLatch = new CountDownLatch(1);
+
+            floodSettings.clear();
+            vlSettingMap.clear();
+            load(ConfigurationOptions.class);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+
+            loadingLatch.countDown();
+        }
     }
 
     public static void load(Class<?> clazz) {
@@ -137,12 +150,19 @@ public class ConfigurationOptions {
     }
 
     public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
-        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
-            throw new RuntimeException("Honey fortsætter med at gøre ting selvom det er slået fra! Hvad sker der!?");
-        }
-        if (!vlSettingMap.containsKey(clazz)) {
-            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
-            throw new RuntimeException("Du har skrevet noget vrøvl i config.yml! Slet den og lad den generere en ny!");
+        try {
+            if (isLoading())
+                loadingLatch.await();
+
+            if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
+                throw new RuntimeException("Honey is proceeding to run although it is turned off! What is happening!?");
+            }
+            if (!vlSettingMap.containsKey(clazz)) {
+                Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+                throw new RuntimeException("You have typed something odd in the config.yml! Delete the file and let it generate a new one!");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
         return vlSettingMap.get(clazz);
     }
@@ -556,12 +576,6 @@ public class ConfigurationOptions {
         @Setting
         @Violation("window-click.c")
         public static class WindowC extends VlSetting {
-
-        }
-
-        @Setting
-        @Violation("window-click.d")
-        public static class WindowD extends VlSetting {
 
         }
     }

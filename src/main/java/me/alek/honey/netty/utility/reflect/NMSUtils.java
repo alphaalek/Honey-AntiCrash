@@ -1,6 +1,7 @@
 package me.alek.honey.netty.utility.reflect;
 
 import io.netty.channel.Channel;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import org.bukkit.Bukkit;
@@ -10,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class NMSUtils {
 
@@ -26,6 +28,7 @@ public class NMSUtils {
     );
 
     private static final HashMap<UUID, Channel> lookupChannels = new HashMap<>();
+    private static final LinkedBlockingQueue<Channel> lookupQueue = new LinkedBlockingQueue<>();
 
     public static UUID getUUIDForChannel(Channel channel) {
         for (UUID uuid : lookupChannels.keySet()) {
@@ -34,6 +37,43 @@ public class NMSUtils {
             }
         }
         return null;
+    }
+
+    public static void registerChannelLookup(Channel channel) {
+        try {
+            lookupQueue.put(channel);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static Channel acquireChannelLookup(UUID uuid) {
+        Channel channel = null;
+        try {
+            channel = lookupQueue.take();
+            lookupChannels.put(uuid, channel);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return channel;
+    }
+
+    public static Channel getChannel(Player player) {
+        UUID uuid = player.getUniqueId();
+
+        if (!lookupChannels.containsKey(uuid)) {
+
+            Channel playerChannel = null;
+
+            if (PacketLibrary.get().useLateInjection()) {
+                playerChannel = channel.get(getNetworkManager(player));
+            }
+            else {
+                playerChannel = acquireChannelLookup(uuid);
+            }
+            lookupChannels.put(uuid, playerChannel);
+        }
+        return lookupChannels.get(uuid);
     }
 
     public static void removeChannelLookup(UUID uuid) {
@@ -50,14 +90,6 @@ public class NMSUtils {
 
     public static Object getNetworkManager(Player player) {
         return networkManager.get(getPlayerConnection(player));
-    }
-
-    public static Channel getChannel(Player player) {
-        if (!lookupChannels.containsKey(player.getUniqueId())) {
-            Channel playerChannel = channel.get(getNetworkManager(player));
-            lookupChannels.put(player.getUniqueId(), playerChannel);
-        }
-        return lookupChannels.get(player.getUniqueId());
     }
 
     public static Object getMinecraftServer() {

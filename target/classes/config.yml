@@ -186,9 +186,9 @@ netty:
     enabled: true
     clear-buffer: true
     vls-amount: 3
-    threshold: 180000
-    decay: 600
-    decay-amount: 50000
+    threshold: 425000
+    decay: 900
+    decay-amount: 65000
 
   i:
     enabled: true
@@ -296,9 +296,9 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 650
-    decay: 550
-    decay-amount: 200
+    threshold: 1450
+    decay: 800
+    decay-amount: 350
     vls-amount: 6
 
   d:
@@ -316,7 +316,7 @@ position:
   f:
     enabled: true
     clear-interval: true
-    max-per-interval: 22
+    max-per-interval: 26
     interval: 2000
     vls-amount: 3
 
@@ -389,12 +389,8 @@ window-click:
 
   b:
     enabled: true
-    vls-amount: 5
 
   c:
-    enabled: true
-
-  d:
     enabled: true
     vls-amount: 3
 

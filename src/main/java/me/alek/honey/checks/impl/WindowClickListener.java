@@ -46,9 +46,8 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         CheckVisitor<WrappedPlayInWindowClick> visitor = new CheckVisitor<>();
         visitor.visit(new WindowA());
         visitor.visit(new WindowB());
-        visitor.visit(new WindowC());
         if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_14)) {
-            visitor.visit(new WindowD());
+            visitor.visit(new WindowC());
         }
         return visitor;
     }
@@ -94,53 +93,6 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                int mode = packet.getMode();
-                int button = packet.getWindowButton();
-                int windowId = packet.getWindowId();
-
-                if (mode < 0 || mode > 6) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
-                switch (button) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 8:
-                    case 9:
-                    case 10:
-                    case 40:
-                        break;
-                    default:
-                        return ResponseBuilder.inst().cancel().flag().build();
-                }
-
-                /*if (((CraftPlayer)player).getHandle().activeContainer.windowId != windowId) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }*/
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-        @Override
-        public String getViolationName() {
-            return "Window.B";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowB.class);
-        }
-    }
-
-    public static class WindowC implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
-
-        @Override
-        public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-
                 ItemStack item = packet.getItem();
                 if (ItemAnalysis.checkItem(player, item)) {
                     return ResponseBuilder.inst().cancel().flag().build();
@@ -156,11 +108,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowC.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowB.class);
         }
     }
 
-    public static class WindowD implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+    public static class WindowC implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
@@ -183,7 +135,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowD.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowC.class);
         }
     }
 }

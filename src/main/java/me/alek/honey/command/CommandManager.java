@@ -68,7 +68,7 @@ public class CommandManager implements CommandExecutor {
                 Player player = (Player) commandSender;
                 if (this.cooldownManager.hasCooldown(player, commandImpl)) {
                     commandSender.sendMessage(PREFIX + "You have cooldown on this command. Wait "
-                            + this.cooldownManager.getFormattedCooldown(player, commandImpl));
+                            + this.cooldownManager.getFormattedCooldown(player, commandImpl) + ".");
                     return true;
                 }
                 this.cooldownManager.setCooldown(player, commandImpl);

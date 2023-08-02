@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet.cache;
+package me.alek.honey.netty.packet;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -8,7 +8,7 @@ import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PacketWrapperCache {
+public class PacketWrapperInvokerCache {
 
     public static Map<PacketTypeEnum, MethodInvoker<Object>> WRAPPER_CACHE = new ConcurrentHashMap<>();
 

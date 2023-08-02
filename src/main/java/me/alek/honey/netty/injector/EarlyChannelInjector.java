@@ -3,7 +3,6 @@ package me.alek.honey.netty.injector;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.NettyChannelProxy;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
@@ -14,7 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EarlyChannelInjector implements NettyChannelProxy {
+public class EarlyChannelInjector implements AbstractNettyChannelInjector {
 
     private static final Class<?> networkManagerClass = NMSUtils.getNetworkManagerClass();
     private static final Class<?> minecraftServerClass = NMSUtils.getMinecraftServerClass();
@@ -50,7 +49,10 @@ public class EarlyChannelInjector implements NettyChannelProxy {
             protected void initChannel(Channel channel) {
                 try {
                     synchronized (networkManagers) {
-                        channel.eventLoop().submit(() -> CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.EARLY));
+                        channel.eventLoop().submit(() -> {
+                            NMSUtils.registerChannelLookup(channel);
+                            CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.EARLY);
+                        });
                     }
                 } catch (Exception ex) {
                     throw new RuntimeException("Fejl ved inject channel " + channel);

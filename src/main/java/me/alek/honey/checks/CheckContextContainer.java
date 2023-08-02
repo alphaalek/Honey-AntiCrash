@@ -1,7 +1,6 @@
 package me.alek.honey.checks;
 
 import io.netty.buffer.ByteBuf;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
@@ -26,6 +25,10 @@ public class CheckContextContainer {
         putValue(Map.class, map);
     }
 
+    public void putBoolean(boolean bool) {
+        putValue(Boolean.class, bool);
+    }
+
     public void putLocation(Location location) {
         putValue(Location.class, location);
     }
@@ -45,6 +48,10 @@ public class CheckContextContainer {
 
     public Location getLocation(int index) {
         return getValue(Location.class, index);
+    }
+
+    public Boolean getBoolean(int index) {
+        return getValue(Boolean.class, index);
     }
 
     public synchronized <T> void putValue(Class<T> clazz, T value) {

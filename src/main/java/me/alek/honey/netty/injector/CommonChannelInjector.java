@@ -12,10 +12,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class CommonChannelInjector {
 
     private static final List<UUID> injectedPlayers = new ArrayList<>();
+    private static final CountDownLatch injectedLatch = new CountDownLatch(1);
+
+    public static CountDownLatch getInjectedLatch() {
+        return injectedLatch;
+    }
 
     public static void inject(InjectEvent.InjectCallback callback, InjectEvent.InjectType type, InjectEvent.InjectBound bound) {
         final InjectEvent event = new InjectEvent(type, callback, bound);
@@ -26,29 +32,53 @@ public class CommonChannelInjector {
         }
     }
 
-    public static void injectPipeline(ChannelHandler handler, String minecraftName, String name, Channel channel) {
+    public static void injectPipeline(ChannelHandler handler, String nmsName, String name, Channel channel) {
         final ChannelPipeline pipeline = channel.pipeline();
 
-        if (pipeline.get(name) != null) {
-            channel.eventLoop().execute(() -> {
-                pipeline.remove(name);
-            });
-        }
+        // ignored already injected pipelines
+        if (pipeline.get(name) != null)
+            return;
+
         channel.eventLoop().execute(() -> {
-            if (minecraftName.equals("packet_handler")) {
-                pipeline.addBefore(minecraftName, name, handler);
+
+            if (nmsName.equals("packet_handler")) {
+
+                pipeline.addBefore(nmsName, name, handler);
             }
-            else if (minecraftName.equals("decompress")) {
-                pipeline.addAfter(minecraftName, name, handler);
+            else if (nmsName.equals("decompress")) {
+
+                if (pipeline.get(nmsName) == null) {
+
+                    // no decompress in pipeline, moving decoder further to real decoder
+                    pipeline.addBefore("decoder", name, handler);
+                    return;
+                }
+                pipeline.addAfter(nmsName, name, handler);
             }
+
+            // done injecting, so notify every waiting thread
+            injectedLatch.countDown();
         });
     }
 
+    private static void saveInjection(Player player) {
+        if (player == null)
+            return;
+
+        UUID uuid = player.getUniqueId();
+
+        if (!injectedPlayers.contains(uuid))
+            injectedPlayers.add(uuid);
+    }
+
     public static ChannelHandler injectHandler(Channel channel, Player player) {
-        final DuplexChannelHandler handler = new DuplexChannelHandler(player);
+        final DuplexChannelHandler handler = new DuplexChannelHandler(channel, player);
         final String handlerName = PacketLibrary.get().getHandlerName();
 
+        saveInjection(player);
+
         injectPipeline(handler, "packet_handler", handlerName, channel);
+
         return handler;
     }
 
@@ -57,17 +87,20 @@ public class CommonChannelInjector {
         final String handlerName = PacketLibrary.get().getDecoderName();
 
         injectPipeline(handler, "decompress", handlerName, channel);
+
         return handler;
     }
 
     public static ChannelHandler injectChannel(Channel channel, InjectEvent.InjectType injectType) {
         UUID uuid = NMSUtils.getUUIDForChannel(channel);
+
         if (uuid == null || Bukkit.getPlayer(uuid) == null) {
             return injectHandler(channel, null);
         }
         else {
-            return injectPlayer(Objects.requireNonNull(Bukkit.getPlayer(uuid)), injectType, true);
+            //return injectPlayer(Objects.requireNonNull(Bukkit.getPlayer(uuid)), injectType, true);
         }
+        return null;
     }
 
     public static ChannelHandler injectPlayer(Player player, InjectEvent.InjectType injectType, boolean reallyInject) {
@@ -77,6 +110,7 @@ public class CommonChannelInjector {
         injectedPlayers.add(player.getUniqueId());
 
         final Channel channel = NMSUtils.getChannel(player);
+
         final PlayerInjectEvent event;
 
         ChannelHandler handler = null;

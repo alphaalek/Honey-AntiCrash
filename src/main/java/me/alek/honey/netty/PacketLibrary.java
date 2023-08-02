@@ -1,7 +1,7 @@
 package me.alek.honey.netty;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.NettyChannelProxy;
+import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
 import me.alek.honey.netty.api.event.Event;
 import me.alek.honey.netty.api.event.EventManager;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -11,7 +11,7 @@ import me.alek.honey.netty.injector.EarlyChannelInjector;
 import me.alek.honey.netty.injector.LateChannelInjector;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.packet.cache.PacketWrapperFactory;
+import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
@@ -32,7 +32,7 @@ public class PacketLibrary {
     private final EventManager eventManager;
     private AsyncFuture future;
     private final JavaPlugin plugin;
-    private NettyChannelProxy proxy;
+    private AbstractNettyChannelInjector proxy;
 
     private static PacketLibrary INSTANCE;
 
@@ -83,7 +83,7 @@ public class PacketLibrary {
         return eventManager;
     }
 
-    public NettyChannelProxy getProxy() {
+    public AbstractNettyChannelInjector getInjector() {
         return proxy;
     }
 

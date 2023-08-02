@@ -1,13 +1,11 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import me.alek.honey.netty.packet.cache.PacketWrapperCache;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -17,7 +15,6 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -47,7 +44,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.handle = rawPacket;
         this.channel = channel;
         this.packetStructure = ReflectStructureCache.acquireStructure(type);
-        this.wrappedPacket = (WP) PacketWrapperCache.getWrapper(type, rawPacket, this);
+        this.wrappedPacket = (WP) PacketWrapperInvokerCache.getWrapper(type, rawPacket, this);
     }
 
     public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type, ReflectStructure<Object, Object> packetStructure, WP wrappedPacket) {

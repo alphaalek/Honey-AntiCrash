@@ -30,7 +30,18 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener, Listener {
+
+    private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
+
+    public PositionListener() {
+        Bukkit.getPluginManager().registerEvents(this, HoneyPlugin.get());
+    }
+
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        lastTeleportationLocationMap.put(event.getPlayer().getUniqueId(), event.getTo());
+    }
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
@@ -93,6 +104,20 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return null;
     }
 
+    public static double getDistanceToLastLocation(Player player, Location location) {
+        final UUID uuid = player.getUniqueId();
+
+        synchronized (lastTeleportationLocationMap) {
+
+            if (lastTeleportationLocationMap.containsKey(uuid)) {
+
+                Location teleportationLoc = lastTeleportationLocationMap.get(uuid);
+                return Locations.calculate3DDistance(teleportationLoc, location);
+            }
+        }
+        return -1;
+    }
+
     public static class PositionA<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
@@ -137,6 +162,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
+                double locationDistance = getDistanceToLastLocation(player, packet.getLocation());
+                if (locationDistance > 3) {
+                    container.putBoolean(true);
+                    return ResponseBuilder.SUCCESS;
+                }
+
                 // 2d distance check
                 final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
                 if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
@@ -163,19 +194,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
     }
 
-    public static class PositionC<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck, Listener {
+    public static class PositionC<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private final Map<UUID, Location> lastFlaggedLocationMap = new HashMap<>();
-        private final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
-
-        public PositionC() {
-            Bukkit.getPluginManager().registerEvents(this, HoneyPlugin.get());
-        }
-
-        @EventHandler
-        public void onPlayerTeleport(PlayerTeleportEvent event) {
-            lastTeleportationLocationMap.put(event.getPlayer().getUniqueId(), event.getTo());
-        }
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
@@ -202,18 +223,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // ignorerer packets tæt på den seneste teleportering, da distancen mellem to
                 // position packets ellers kan være rigtig høj hvis man teleporterer en lang distance
-                synchronized (lastTeleportationLocationMap) {
-
-                    if (lastTeleportationLocationMap.containsKey(uuid)) {
-
-                        Location teleportationLoc = lastTeleportationLocationMap.get(uuid);
-                        double distance = Locations.calculate3DDistance(teleportationLoc, packet.getLocation());
-
-                        if (distance < 10) {
-                            return ResponseBuilder.SUCCESS;
-                        }
-                    }
-                }
+                Boolean shouldIgnore = container.getBoolean(0);
+                if (shouldIgnore != null && shouldIgnore)
+                    return ResponseBuilder.SUCCESS;
 
                 // ignorerer packets tæt på den seneste flag for at minimere false positives ved lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
@@ -224,11 +236,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 lastFlaggedLocationMap.put(player.getUniqueId(), packet.getLocation());
 
-                double distance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
+                double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    HoneyPlugin.get().getLogger().info("DEBUG: position distance buffer inc: " + distance);
+                    HoneyPlugin.get().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
                 }
-                return ResponseBuilder.inst().setFlagged(distance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
+                return ResponseBuilder.inst().setFlagged(priorDistance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }
             return ResponseBuilder.SUCCESS;
         }

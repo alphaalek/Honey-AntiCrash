@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet.cache;
+package me.alek.honey.netty.packet;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.utility.protocol.Protocol;
