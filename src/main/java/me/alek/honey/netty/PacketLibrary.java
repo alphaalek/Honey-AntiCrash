@@ -30,7 +30,7 @@ public class PacketLibrary {
     private final PacketLibrarySettings settings;
     private PacketProcessor internalPacketProcessor;
     private final EventManager eventManager;
-    private AsyncFuture future;
+    private AsyncFuture packetTypesLoadingFuture;
     private final JavaPlugin plugin;
     private AbstractNettyChannelInjector proxy;
 
@@ -61,8 +61,8 @@ public class PacketLibrary {
         proxy.inject();
         internalPacketProcessor = new InternalPacketProcessor(eventManager);
 
-        future = PacketType.load();
-        future.join(PacketWrapperFactory.load());
+        packetTypesLoadingFuture = PacketType.load();
+        packetTypesLoadingFuture.join(PacketWrapperFactory.load());
     }
 
     public void callSyncEvent(Event event, boolean isPacket) {
@@ -112,11 +112,11 @@ public class PacketLibrary {
     }
 
     private void addListener(Runnable runnable) {
-        if (future.isDone()) {
+        if (packetTypesLoadingFuture.isDone()) {
             runnable.run();
             return;
         }
-        future.addListener(runnable);
+        packetTypesLoadingFuture.addListener(runnable);
     }
 
 

@@ -14,7 +14,7 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable, Cloneable
     final T1 t1;
     final T2 t2;
 
-    protected Tuple2(T1 t1, T2 t2) {
+    public Tuple2(T1 t1, T2 t2) {
         this.t1 = t1;
         this.t2 = t2;
     }

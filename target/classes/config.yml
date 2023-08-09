@@ -150,6 +150,8 @@ item-analysis:
 # +------------------------------------------------------+ #
 ############################################################
 
+# OBS: You SHOULDN'T disable any netty checks. If you do, your server may be very vulnerable by crash exploits!
+
 # |--- netty ---|
 netty:
   a:
@@ -168,13 +170,11 @@ netty:
 
   e:
     enabled: true
-    vls-amount: 3
-    max: 16500
+    threshold: 16500
 
   f:
     enabled: true
-    vls-amount: 2
-    threshold: 22000
+    threshold: 25000
     decay: 1000
     decay-amount: 6000
 
@@ -184,14 +184,13 @@ netty:
 
   h:
     enabled: true
-    vls-amount: 3
-    threshold: 400000
-    decay: 650
-    decay-amount: 65000
+    threshold: 600000
+    decay: 500
+    decay-amount: 150000
 
   i:
     enabled: true
-    vls-amount: 5
+    threshold: 400000
 
 # |--- custom payload ---|
 custom-payload:
@@ -285,20 +284,17 @@ position:
 
   b:
     enabled: true
-    clear-interval: true
-    max: 25
+    max: 10
     min: 0.00001
-    max-per-interval: 5
-    interval: 5000
-    vls-amount: 3
+    vls-amount: 5
 
   c:
     enabled: true
     clear-buffer: true
-    threshold: 1450
-    decay: 800
-    decay-amount: 350
-    vls-amount: 6
+    threshold: 800
+    decay: 500
+    decay-amount: 250
+    vls-amount: 4
 
   d:
     enabled: true
@@ -316,7 +312,7 @@ position:
     enabled: true
     clear-interval: true
     max-per-interval: 26
-    interval: 2000
+    interval: 2500
     vls-amount: 3
 
   g:

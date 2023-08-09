@@ -2,7 +2,6 @@ package me.alek.honey.netty.packetwrappers;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.World;
@@ -37,9 +36,6 @@ public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends Wrappe
         return packetContainer.getType();
     }
 
-    public boolean handleSerializerSafely(WrappedPacketDataSerializer serializer) {
-        return true;
-    }
 }
 
 

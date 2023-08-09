@@ -1,5 +1,6 @@
 package me.alek.honey.services;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ViolationService {
@@ -92,7 +94,15 @@ public class ViolationService {
                 .flag(handle, violationName, amount, onViolation);
     }
 
-    public void punish(Player player, String violationName, ConfigurationOptions.VlSetting setting, AbstractPacketLimitHandler packetLimitHandler) {
+    public void notifySingleOverflowStop(Player player, CheckKey key, ConfigurationOptions.VlSetting setting) {
+        AbstractPacketLimitHandler packetLimitHandler = getLimits(player, key, setting);
+        if (packetLimitHandler instanceof PacketSingleOverflowHandler) {
+
+            ((PacketSingleOverflowHandler)packetLimitHandler).notifyStop();
+        }
+    }
+
+    public void punish(Player player, String violationName) {
         try {
             punishLock.lock();
             if (punishing.contains(player.getUniqueId())) {
@@ -121,10 +131,6 @@ public class ViolationService {
         }.runTaskLaterAsynchronously(HoneyPlugin.get(), 5L);
     }
 
-    public void punish(Player player, String violationName) {
-        punish(player, violationName, null, null);
-    }
-
     public class ViolationContext {
 
         private final Map<CheckKey, AbstractPacketLimitHandler> packetLimitMap = new ConcurrentHashMap<>();
@@ -136,10 +142,21 @@ public class ViolationService {
 
         public synchronized AbstractPacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
-                if (setting.isUseBuffer()) {
-                    packetLimitMap.put(key, new PacketBufferHandler(player, setting));
-                } else {
-                    packetLimitMap.put(key, new PacketIntervalHandler(player, setting));
+
+                switch (setting.getPacketLimitHandlerType()) {
+
+                    case INTERVAL:
+                        packetLimitMap.put(key, new PacketIntervalHandler(player, setting));
+                        break;
+                    case SINGLE_OVERFLOW:
+                        packetLimitMap.put(key, new PacketSingleOverflowHandler(player, setting));
+                        break;
+                    case BUFFER_OVERFLOW:
+                        packetLimitMap.put(key, new PacketBufferOverflowHandler(player, setting));
+                        break;
+                    case BUFFER_THROTTLE:
+                        packetLimitMap.put(key, new PacketBufferThrottleHandler(player, setting));
+                        break;
                 }
             }
             return packetLimitMap.get(key);
@@ -228,7 +245,7 @@ public class ViolationService {
             if (violations < getSetting().getVlsAmount()) {
                 return false;
             }
-            punish(getPlayer(), violationName, getSetting(), this);
+            punish(getPlayer(), violationName);
             return true;
         }
 
@@ -247,53 +264,127 @@ public class ViolationService {
         public abstract boolean flag(Object handle, String violationName, double amount, Runnable onViolation);
     }
 
-    public class PacketBufferHandler extends AbstractPacketLimitHandler {
+    public class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {
 
         private int threshold;
-        private int decayInterval; // ms
-        private int decayAmount;
-        private int bufferIndexCopy;
 
-        private volatile long lastDecay;
-        private volatile int bufferIndex;
+        private final ThreadLocal<AtomicDouble> index = new ThreadLocal<>();
 
-        public PacketBufferHandler(Player player, ConfigurationOptions.VlSetting setting) {
+        public PacketSingleOverflowHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-            lastDecay = System.currentTimeMillis();
         }
 
         @Override
         public void reload() {
-            this.threshold = getSetting().getThreshold();
-            this.decayInterval = getSetting().getDecay();
-            this.decayAmount = getSetting().getDecayAmount();
+            threshold = getSetting().getThreshold();
+
+            super.reload();
+        }
+
+        @Override
+        public boolean flag(Object handle, String violationName, double amount, Runnable onViolation) {
+            synchronized (index) {
+                AtomicDouble index = this.index.get();
+                if (index == null) {
+                    this.index.set(new AtomicDouble());
+                    index = this.index.get();
+                }
+                index.addAndGet(amount);
+
+                if (index.get() < threshold) return false;
+
+                return violate(handle, violationName, onViolation);
+            }
+        }
+
+        public void notifyStop() {
+            synchronized (index) {
+                index.remove();
+            }
+        }
+    }
+
+    public abstract class PacketBufferHandler extends AbstractPacketLimitHandler {
+
+        protected int decayInterval;
+        protected int decayAmount;
+        protected int threshold;
+        protected double bufferIndexCopy;
+        protected boolean hasDecayed;
+
+        protected final AtomicLong lastDecay = new AtomicLong();
+        protected final AtomicDouble bufferIndex = new AtomicDouble();
+
+
+        public PacketBufferHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+            lastDecay.set(System.currentTimeMillis());
+            reload();
+        }
+
+        @Override
+        public void reload() {
+            decayInterval = getSetting().getDecay();
+            decayAmount = getSetting().getDecayAmount();
+            threshold = getSetting().getThreshold();
+
+            super.reload();
         }
 
         @Override
         public synchronized boolean flag(Object handle, String violationName, double amount, Runnable onViolation) {
-            if (System.currentTimeMillis() - lastDecay > decayInterval) {
-                bufferIndex -= decayAmount;
-                lastDecay = System.currentTimeMillis();
+            hasDecayed = false;
+            if (System.currentTimeMillis() - lastDecay.get() > decayInterval) {
+                hasDecayed = true;
+                bufferIndex.addAndGet(-decayAmount);
+                lastDecay.set(System.currentTimeMillis());
             }
-            if (bufferIndex < 0) {
-                bufferIndex = 0;
-            }
-            bufferIndex += amount;
-            if (loggerService.isDebug()) {
+            if (bufferIndex.get() < 0) bufferIndex.set(0);
+            bufferIndex.addAndGet(amount);
+
+            if (loggerService.isDebug())
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
-            }
-            if (bufferIndex < threshold) {
-                return false;
-            }
-            bufferIndexCopy = bufferIndex;
+
+            if (bufferIndex.get() < threshold) return false;
+
+            bufferIndexCopy = bufferIndex.get();
             if (getSetting().isClearBuffer()) {
-                bufferIndex = 0;
+                this.bufferIndex.set(0);
             }
-            return violate(handle, violationName, onViolation);
+            return handle(handle, violationName, onViolation);
         }
 
-        public int getBufferIndex() {
+        public double getBufferIndex() {
             return bufferIndexCopy;
+        }
+
+        public abstract boolean handle(Object handle, String violationName, Runnable onViolation);
+
+    }
+
+    public class PacketBufferThrottleHandler extends PacketBufferHandler {
+
+        public PacketBufferThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+        }
+
+        @Override
+        public boolean handle(Object handle, String violationName, Runnable onViolation) {
+            if (onViolation != null) onViolation.run();
+            return true;
+        }
+    }
+
+    public class PacketBufferOverflowHandler extends PacketBufferHandler {
+
+
+        public PacketBufferOverflowHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+        }
+
+        @Override
+        public boolean handle(Object handle, String violationName, Runnable onViolation) {
+            return violate(handle, violationName, onViolation);
         }
     }
 

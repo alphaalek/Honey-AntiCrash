@@ -153,6 +153,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packet\type\PacketBound.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\command\CommandImpl.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\command\impl\ReloadCommand.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\configuration\PacketLimitHandlerType.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTabComplete.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\configuration\ConfigurationOptions.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRelEntityMoveLook.java

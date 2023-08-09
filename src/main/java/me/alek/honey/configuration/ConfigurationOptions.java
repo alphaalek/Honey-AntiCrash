@@ -211,14 +211,14 @@ public class ConfigurationOptions {
         public boolean CLEAR_BUFFER;
         public boolean CLEAR_INTERVAL;
         public boolean ENABLED = true;
-        private final boolean USE_BUFFER;
+        private final PacketLimitHandlerType packetLimitHandlerType;
 
-        public VlSetting(boolean useBuffer) {
-            USE_BUFFER = useBuffer;
+        public VlSetting(PacketLimitHandlerType packetLimitHandlerType) {
+            this.packetLimitHandlerType = packetLimitHandlerType;
         }
 
         public VlSetting() {
-            this(false);
+            this(PacketLimitHandlerType.INTERVAL);
         }
         public int getMaxPerInterval() {
             return MAX_PER_INTERVAL;
@@ -254,8 +254,8 @@ public class ConfigurationOptions {
             return CLEAR_BUFFER;
         }
 
-        public boolean isUseBuffer() {
-            return USE_BUFFER;
+        public PacketLimitHandlerType getPacketLimitHandlerType() {
+            return packetLimitHandlerType;
         }
 
         @Override
@@ -647,7 +647,7 @@ public class ConfigurationOptions {
         public static class PositionC extends VlSetting {
 
             public PositionC() {
-                super(true);
+                super(PacketLimitHandlerType.BUFFER_OVERFLOW);
             }
         }
 
@@ -780,15 +780,7 @@ public class ConfigurationOptions {
         @Violation("netty.e")
         public static class NettyE extends VlSetting {
 
-            public static int MAX;
-
-            public NettyE() {
-                super(true);
-            }
-
-            public static void load() {
-                MAX = file.getInt("netty.e.max", 16500);
-            }
+            public NettyE() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
         }
 
         @Setting
@@ -796,7 +788,7 @@ public class ConfigurationOptions {
         public static class NettyF extends VlSetting {
 
             public NettyF() {
-                super(true);
+                super(PacketLimitHandlerType.BUFFER_OVERFLOW);
             }
         }
 
@@ -810,15 +802,14 @@ public class ConfigurationOptions {
         @Violation("netty.h")
         public static class NettyH extends VlSetting {
 
-            public NettyH() {
-                super(true);
-            }
+            public NettyH() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
         }
 
         @Setting
         @Violation("netty.i")
         public static class NettyI extends VlSetting {
 
+            public NettyI() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
         }
     }
 

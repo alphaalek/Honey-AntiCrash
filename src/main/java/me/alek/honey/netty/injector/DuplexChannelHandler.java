@@ -85,10 +85,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             return;
         }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
-        // decoder inject for early injection
-        if (packet.getClass().getSimpleName().equals("PacketLoginOutSetCompression")) {
-            startDecodeInjectorTask(this.channel);
-        }
 
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), packetContainer);

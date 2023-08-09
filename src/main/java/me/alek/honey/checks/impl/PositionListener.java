@@ -12,34 +12,120 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPositional;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener, Listener {
+public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
+    private static final Map<UUID, SampleDecayableList<Location>> lastTeleportationLocationMap = new HashMap<>();
 
     public PositionListener() {
-        Bukkit.getPluginManager().registerEvents(this, HoneyPlugin.get());
+        HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutPosition>() {
+
+            @Override
+            public void onPacketSend(Player player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
+                synchronized (lastTeleportationLocationMap) {
+                    UUID uuid = player.getUniqueId();
+
+                    if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(20000, 10));
+                    SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+
+                    sampleDecayableList.put(packetContainer.getPacket().getLocation());
+                }
+            }
+
+        }, ListenerPriority.HIGHEST, () -> PacketType.Play.Server.POSITION);
     }
 
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        lastTeleportationLocationMap.put(event.getPlayer().getUniqueId(), event.getTo());
+    public static class SampleDecayableList<T> {
+
+        private final long collectInterval;
+        private final int sampleSize;
+        private final LinkedList<SampleNode> sampleNodes = new LinkedList<>();
+
+        public SampleDecayableList(long collectInterval, int sampleSize) {
+            this.collectInterval = collectInterval;
+            this.sampleSize = sampleSize;
+        }
+
+        public class SampleNode {
+
+            public SampleNode(T value) { this.value = value; }
+
+            private T value;
+            private long insertionInstant = System.currentTimeMillis();
+
+        }
+
+        public void put(T node) {
+            synchronized (sampleNodes) {
+                sampleNodes.addLast(new SampleNode(node));
+
+                if (sampleNodes.size() > sampleSize) sampleNodes.removeFirst();
+            }
+        }
+
+        private void collect() {
+            synchronized (sampleNodes) {
+
+                Iterator<SampleNode> sampleNodeIterator = sampleNodes.iterator();
+                while (sampleNodeIterator.hasNext()) {
+
+                    SampleNode node = sampleNodeIterator.next();
+                    long diff = System.currentTimeMillis() - node.insertionInstant;
+
+                    if (diff > collectInterval) {
+                        sampleNodeIterator.remove();
+                        continue;
+                    }
+                    break;
+                }
+            }
+        }
+
+        private T getWithoutCollecting(int index) {
+            synchronized (sampleNodes) {
+                return sampleNodes.get(index).value;
+            }
+        }
+
+        public T get(int index) {
+            collect();
+            synchronized (sampleNodes) {
+                return sampleNodes.get(index).value;
+            }
+        }
+
+        public T getLast() {
+            return get(sampleNodes.size());
+        }
+
+        public T getFirst() {
+            return get(0);
+        }
+
+        public List<T> getAll() {
+            collect();
+            List<T> list = new ArrayList<>();
+
+            for (int i = 0; i < sampleNodes.size(); i++) {
+                list.add(getWithoutCollecting(i));
+            }
+
+            return list;
+        }
     }
 
     @Override
@@ -104,18 +190,24 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return null;
     }
 
-    public static double getDistanceToLastLocation(Player player, Location location) {
+    public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, Location currentLocation, double diff) {
         final UUID uuid = player.getUniqueId();
 
         synchronized (lastTeleportationLocationMap) {
 
             if (lastTeleportationLocationMap.containsKey(uuid)) {
 
-                Location teleportationLoc = lastTeleportationLocationMap.get(uuid);
-                return Locations.calculate3DDistance(teleportationLoc, location);
+                SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+                for (Location location : sampleDecayableList.getAll()) {
+
+                    double locationDiff = Locations.calculate3DDistance(location, currentLocation);
+                    if (locationDiff < diff) {
+                        return true;
+                    }
+                }
             }
         }
-        return -1;
+        return false;
     }
 
     public static class PositionA<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
@@ -162,8 +254,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
-                double locationDistance = getDistanceToLastLocation(player, packet.getLocation());
-                if (locationDistance > 3) {
+                if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
                     container.putBoolean(true);
                     return ResponseBuilder.SUCCESS;
                 }
@@ -179,6 +270,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
+
+                System.out.println("2d: " + distance2d + ", y: " + distanceY);
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -224,8 +317,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // ignorerer packets tæt på den seneste teleportering, da distancen mellem to
                 // position packets ellers kan være rigtig høj hvis man teleporterer en lang distance
                 Boolean shouldIgnore = container.getBoolean(0);
-                if (shouldIgnore != null && shouldIgnore)
+                if (shouldIgnore != null && shouldIgnore) {
                     return ResponseBuilder.SUCCESS;
+                }
 
                 // ignorerer packets tæt på den seneste flag for at minimere false positives ved lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
@@ -240,6 +334,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
                     HoneyPlugin.get().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
                 }
+                System.out.println("distance buffer increment: " + priorDistance + "");
+                // this might be a false positive, shouldn't be that high ever. but position B would flag for this otherwise
+                if (priorDistance > 50) return ResponseBuilder.SUCCESS;
+
                 return ResponseBuilder.inst().setFlagged(priorDistance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }
             return ResponseBuilder.SUCCESS;
