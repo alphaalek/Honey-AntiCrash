@@ -261,17 +261,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // 2d distance check
                 final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                if (distance2d > maxDistance || distance2d < minDistance && distance2d != 0) {
+                if (distance2d >= maxDistance || distance2d <= minDistance && distance2d != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
                 final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-                if (distanceY > maxDistance || distanceY < minDistance && distanceY != 0) {
+                if (distanceY >= maxDistance || distanceY <= minDistance && distanceY != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
-
-                System.out.println("2d: " + distance2d + ", y: " + distanceY);
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -334,9 +332,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
                     HoneyPlugin.get().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
                 }
-                System.out.println("distance buffer increment: " + priorDistance + "");
-                // this might be a false positive, shouldn't be that high ever. but position B would flag for this otherwise
-                if (priorDistance > 50) return ResponseBuilder.SUCCESS;
+                // this might be a false positive, shouldn't be that high. but position B would flag for this otherwise
+                if (priorDistance > 20) return ResponseBuilder.SUCCESS;
 
                 return ResponseBuilder.inst().setFlagged(priorDistance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }

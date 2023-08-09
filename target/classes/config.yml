@@ -284,7 +284,7 @@ position:
 
   b:
     enabled: true
-    max: 10
+    max: 9
     min: 0.00001
     vls-amount: 5
 

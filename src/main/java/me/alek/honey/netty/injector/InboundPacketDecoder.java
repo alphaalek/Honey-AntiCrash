@@ -45,6 +45,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
+        Bukkit.broadcastMessage("decode");
         // undgå packet decode sendt fra spillere i game state der alligevel ikke er online
         try {
             if (player == null)
