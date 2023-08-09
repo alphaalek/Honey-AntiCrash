@@ -17,7 +17,6 @@ import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -26,10 +25,6 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     private static final ConstructorInvoker<Object> packetDataSerializerInvoker = Reflection.getConstructor(NMSUtils.getPacketDataSerializerClass(), ByteBuf.class);
     private Player player;
-
-    public InboundPacketDecoder() {
-
-    }
 
     public InboundPacketDecoder(Player player) {
         this.player = player;
@@ -45,7 +40,6 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
-        Bukkit.broadcastMessage("decode");
         // undgå packet decode sendt fra spillere i game state der alligevel ikke er online
         try {
             if (player == null)
@@ -122,29 +116,20 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
                     ViolationService.CheckKey nettyHKey = new ViolationService.CheckKey(this, "NettyH");
                     ViolationService.CheckKey nettyIKey = new ViolationService.CheckKey(this, "NettyI");
 
-                    int totalByteSize = 0;
                     while (dataSerializer.isReadable()) {
                         int byteSize = Math.abs(dataSerializer.readByte());
-                        totalByteSize += byteSize;
 
-                        if (nettyHSetting.isEnabled()) {
-
-                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
-
-                                if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
-                            }
+                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
+                            if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                         }
                         if (nettyISetting.isEnabled()) {
 
                             if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyIKey, byteSize, null, "Netty.I", nettyISetting)) {
-
                                 if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
-                                Bukkit.broadcastMessage("single overflow at " + totalByteSize);
                             }
                         }
                     }
                     HoneyPlugin.get().getViolationService().notifySingleOverflowStop(player, nettyIKey, nettyISetting);
-                    //Bukkit.broadcastMessage(packet.getClass().getName() + " total bytes: " + totalByteSize);
                 }
             }
         } catch (Exception ex) {

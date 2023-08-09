@@ -92,17 +92,18 @@ public class ConfigurationOptions {
     }
 
     private static final Map<String, String> violationFieldLookup = new HashMap<String, String>(){{
-            put("MAX_PER_INTERVAL", ".max-per-interval");
-            put("INTERVAL", ".interval");
-            put("VLS_AMOUNT", ".vls-amount");
+            put("maxPerInterval", ".max-per-interval");
+            put("interval", ".interval");
+            put("vlsAmount", ".vls-amount");
 
-            put("THRESHOLD", ".threshold");
-            put("DECAY", ".decay");
-            put ("DECAY_AMOUNT", ".decay-amount");
+            put("threshold", ".threshold");
+            put("until", ".until");
+            put("decay", ".decay");
+            put("decayAmount", ".decay-amount");
 
-            put("CLEAR_INTERVAL", ".clear-interval");
-            put("CLEAR_BUFFER", ".clear-buffer");
-            put("ENABLED", ".enabled");
+            put("clearInterval", ".clear-interval");
+            put("clearBuffer", ".clear-buffer");
+            put("enabled", ".enabled");
     }};
 
     public static void setViolationSetting(Class<? extends VlSetting> clazz, String[] prefixPaths) {
@@ -201,16 +202,17 @@ public class ConfigurationOptions {
 
     public abstract static class VlSetting implements Cloneable {
 
-        public int MAX_PER_INTERVAL = 1;
-        public int INTERVAL;
-        public int VLS_AMOUNT = 1;
-        public int THRESHOLD;
-        public int DECAY;
-        public int DECAY_AMOUNT;
+        public int maxPerInterval = 1;
+        public int interval;
+        public int vlsAmount = 1;
+        public int threshold;
+        public int until;
+        public int decay;
+        public int decayAmount;
 
-        public boolean CLEAR_BUFFER;
-        public boolean CLEAR_INTERVAL;
-        public boolean ENABLED = true;
+        public boolean clearBuffer;
+        public boolean clearInterval;
+        public boolean enabled = true;
         private final PacketLimitHandlerType packetLimitHandlerType;
 
         public VlSetting(PacketLimitHandlerType packetLimitHandlerType) {
@@ -221,37 +223,39 @@ public class ConfigurationOptions {
             this(PacketLimitHandlerType.INTERVAL);
         }
         public int getMaxPerInterval() {
-            return MAX_PER_INTERVAL;
+            return maxPerInterval;
         }
 
         public int getInterval() {
-            return INTERVAL;
+            return interval;
         }
 
         public int getVlsAmount() {
-            return VLS_AMOUNT;
+            return vlsAmount;
         }
 
         public int getThreshold() {
-            return THRESHOLD;
+            return threshold;
         }
 
+        public int getUntil() { return until; }
+
         public int getDecay() {
-            return DECAY;
+            return decay;
         }
 
         public int getDecayAmount() {
-            return DECAY_AMOUNT;
+            return decayAmount;
         }
 
         public boolean isEnabled() {
-            return ENABLED;
+            return enabled;
         }
 
-        public boolean isClearInterval() {return CLEAR_INTERVAL;}
+        public boolean isClearInterval() {return clearInterval;}
 
         public boolean isClearBuffer() {
-            return CLEAR_BUFFER;
+            return clearBuffer;
         }
 
         public PacketLimitHandlerType getPacketLimitHandlerType() {
@@ -672,6 +676,12 @@ public class ConfigurationOptions {
         @Setting
         @Violation("position.g")
         public static class PositionG extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("position.h")
+        public static class PositionH extends VlSetting {
 
         }
     }

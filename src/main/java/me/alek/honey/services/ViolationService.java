@@ -331,13 +331,18 @@ public class ViolationService {
             super.reload();
         }
 
+        // put into its own method, so it can be overwritten by the buffer throttle
+        public void decay() {
+            bufferIndex.addAndGet(-decayAmount);
+        }
+
         @Override
         public synchronized boolean flag(Object handle, String violationName, double amount, Runnable onViolation) {
             hasDecayed = false;
             if (System.currentTimeMillis() - lastDecay.get() > decayInterval) {
                 hasDecayed = true;
-                bufferIndex.addAndGet(-decayAmount);
                 lastDecay.set(System.currentTimeMillis());
+                decay();
             }
             if (bufferIndex.get() < 0) bufferIndex.set(0);
             bufferIndex.addAndGet(amount);
@@ -364,13 +369,36 @@ public class ViolationService {
 
     public class PacketBufferThrottleHandler extends PacketBufferHandler {
 
+        private int until;
+
         public PacketBufferThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
         }
 
         @Override
+        public void reload() {
+            until = getSetting().getUntil();
+
+            super.reload();
+        }
+
+        @Override
+        public void decay() {
+            if (bufferIndex.get() < threshold) {
+                super.decay();
+                return;
+            }
+            double ratio = (int) ((bufferIndex.get() - threshold) / decayAmount);
+            double amount = decayAmount * Math.pow(1.75, ratio);
+
+            bufferIndex.addAndGet(-amount);
+        }
+
+        @Override
         public boolean handle(Object handle, String violationName, Runnable onViolation) {
             if (onViolation != null) onViolation.run();
+
+            if (bufferIndex.get() > until) violate(handle, violationName, null);
             return true;
         }
     }

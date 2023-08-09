@@ -1,10 +1,13 @@
 package me.alek.honey.checks.impl;
 
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -57,7 +60,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
             for (String prohibitedCommand : prohibitedCommands) {
 
-                if (ChatListener.match(label, prohibitedCommand)) {
+                if (ChatListener.match(prohibitedCommand, label)) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

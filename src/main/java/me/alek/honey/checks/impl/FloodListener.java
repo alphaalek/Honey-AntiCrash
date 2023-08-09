@@ -73,9 +73,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             for (Map.Entry<PacketTypeEnum, ConfigurationOptions.VlSetting> settingEntry : ConfigurationOptions.getFloodSettings().entrySet()) {
 
                 final ConfigurationOptions.VlSetting setting = settingEntry.getValue().clone();
-                setting.INTERVAL = commonSetting.getInterval();
-                setting.MAX_PER_INTERVAL = commonSetting.getMaxPerInterval();
-                setting.VLS_AMOUNT = commonSetting.getVlsAmount();
+                setting.interval = commonSetting.getInterval();
+                setting.maxPerInterval = commonSetting.getMaxPerInterval();
+                setting.vlsAmount = commonSetting.getVlsAmount();
 
                 settingMap.put(settingEntry.getKey(), setting);
             }

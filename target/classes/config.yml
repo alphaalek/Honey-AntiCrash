@@ -174,9 +174,9 @@ netty:
 
   f:
     enabled: true
-    threshold: 25000
-    decay: 1000
-    decay-amount: 6000
+    threshold: 35000
+    decay: 500
+    decay-amount: 8000
 
   g:
     enabled: true
@@ -184,6 +184,7 @@ netty:
 
   h:
     enabled: true
+    until: 1800000
     threshold: 600000
     decay: 500
     decay-amount: 150000

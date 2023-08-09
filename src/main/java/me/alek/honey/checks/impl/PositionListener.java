@@ -162,6 +162,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         visitor.visit(new PositionE<>());
         visitor.visit(new PositionF<>());
         visitor.visit(new PositionG<>());
+        visitor.visit(new PositionH<>());
         return visitor;
     }
 
@@ -250,7 +251,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 final Location packetLoc = packet.getLocation();
                 final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
-                container.putLocation(lastKnownPacketLoc);
+                container.put(Location.class, lastKnownPacketLoc);
 
                 lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
@@ -261,12 +262,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // 2d distance check
                 final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+                container.putDouble(distance2d);
                 if (distance2d >= maxDistance || distance2d <= minDistance && distance2d != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
                 final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+                container.putDouble(distanceY);
                 if (distanceY >= maxDistance || distanceY <= minDistance && distanceY != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
@@ -306,7 +309,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.SUCCESS;
                 }
 
-                Location priorLocation = container.getLocation(0);
+                Location priorLocation = container.get(Location.class, 0);
                 // returnerer hvis det er den første lokation packet der bliver sendt
                 if (priorLocation == null) {
                     return ResponseBuilder.SUCCESS;
@@ -369,7 +372,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
                     int maxPerInterval = getSetting().getMaxPerInterval();
                     ConfigurationOptions.VlSetting setting = getSetting().clone();
-                    setting.MAX_PER_INTERVAL = maxPerInterval * 3;
+                    setting.maxPerInterval = maxPerInterval * 3;
 
                     // tvinger en ny packet limit handler til at blive oprettet med den nye flight setting
                     HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
@@ -478,7 +481,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                Location priorLocation = container.getLocation(0);
+                Location priorLocation = container.get(Location.class, 0);
                 // når den allerførste lokation packet bliver sendt, er der ikke nogen prior location, og derfor skal den
                 // bare returnere indtil den næste position packet kommer
                 if (priorLocation == null)
@@ -548,6 +551,31 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionG.class);
+        }
+    }
+
+    public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private int timesSinceStart;
+        private int guessedDelta;
+
+        @Override
+        public synchronized ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Position.H";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionH.class);
         }
     }
 }
