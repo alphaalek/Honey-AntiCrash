@@ -41,10 +41,9 @@ public class CommonChannelInjector {
 
         channel.eventLoop().execute(() -> {
 
-            if (nmsName.equals("packet_handler")) {
-
+            if (nmsName.equals("packet_handler"))
                 pipeline.addBefore(nmsName, name, handler);
-            }
+
             else if (nmsName.equals("decompress")) {
 
                 if (pipeline.get(nmsName) == null) {
@@ -66,9 +65,7 @@ public class CommonChannelInjector {
             return;
 
         UUID uuid = player.getUniqueId();
-
-        if (!injectedPlayers.contains(uuid))
-            injectedPlayers.add(uuid);
+        if (!injectedPlayers.contains(uuid)) injectedPlayers.add(uuid);
     }
 
     public static ChannelHandler injectHandler(Channel channel, Player player) {
@@ -97,10 +94,7 @@ public class CommonChannelInjector {
         if (uuid == null || Bukkit.getPlayer(uuid) == null) {
             return injectHandler(channel, null);
         }
-        else {
-            //return injectPlayer(Objects.requireNonNull(Bukkit.getPlayer(uuid)), injectType, true);
-        }
-        return null;
+        else return injectPlayer(Objects.requireNonNull(Bukkit.getPlayer(uuid)), injectType, true);
     }
 
     public static ChannelHandler injectPlayer(Player player, InjectEvent.InjectType injectType, boolean reallyInject) {
@@ -114,19 +108,18 @@ public class CommonChannelInjector {
         final PlayerInjectEvent event;
 
         ChannelHandler handler = null;
-        if (channel == null) {
+        if (channel == null)
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.ERROR);
-        }
         else {
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.SUCCESS);
-            if (reallyInject) {
+            if (reallyInject)
                 handler = injectHandler(channel, player);
-            }
-            else {
+            else
                 handler = getHandler(channel);
-            }
+
         }
         PacketLibrary.get().callSyncEvent(event, false);
+
         return handler;
     }
 
@@ -205,18 +198,14 @@ public class CommonChannelInjector {
         pipeline.context("encoder").fireChannelRead(rawPacket);
     }
 
-    private static ChannelHandler getHandler(Channel channel, boolean recursiveLimit) {
+    private static ChannelHandler getHandler0(Channel channel) {
         ChannelPipeline pipeline = channel.pipeline();
         if (pipeline.get(PacketLibrary.get().getHandlerName()) == null) {
-            if (recursiveLimit) {
-                return null;
-            }
             return CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.LATE);
         }
         else {
             ChannelHandler channelHandler = pipeline.get(PacketLibrary.get().getHandlerName());
-            if (channel instanceof DuplexChannelHandler && !(channelHandler instanceof DuplexChannelHandler)
-                    ||  channel instanceof InboundPacketDecoder && !(channelHandler instanceof InboundPacketDecoder)) {
+            if (!(channelHandler instanceof InboundPacketDecoder || channelHandler instanceof DuplexChannelHandler)) {
                 return CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.LATE);
             }
             return channelHandler;

@@ -378,7 +378,6 @@ me\alek\honey\checks\impl\UpdateSignListener.class
 me\alek\honey\checks\impl\ChatListener$ChatA.class
 me\alek\honey\checks\item\ItemChecks$MaxBannerPatternsCheck.class
 me\alek\honey\configuration\ConfigurationOptions$Position$PositionA.class
-me\alek\honey\checks\item\ItemAnalysis$ItemCheckerInfo.class
 me\alek\honey\checks\impl\LoginStartListener$LoginA.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutEncryptionRequest.class
 me\alek\honey\checks\impl\CustomPayloadListener$PayloadE.class

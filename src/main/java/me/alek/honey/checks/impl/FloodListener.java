@@ -87,9 +87,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (useDefaultCheckKey()) {
+            if (useDefaultCheckKey())
                 return ResponseBuilder.FLOOD_FLAG_DEFAULT_KEY.apply(packet.getContainer());
-            }
+
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
         }
 

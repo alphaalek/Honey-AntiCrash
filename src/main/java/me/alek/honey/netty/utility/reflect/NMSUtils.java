@@ -1,7 +1,6 @@
 package me.alek.honey.netty.utility.reflect;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import org.bukkit.Bukkit;
@@ -11,11 +10,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class NMSUtils {
 
-    private static final MethodInvoker getHandle = Reflection.getMethod(
+    private static final MethodInvoker<Object> getHandle = Reflection.getMethod(
             getCraftPlayerClass(), "getHandle", getEntityPlayerClass());
     private static final FieldAccessor<Object> playerConnection = Reflection.getField(
             getEntityPlayerClass(), 0, getPlayerConnectionClass());
@@ -28,7 +26,6 @@ public class NMSUtils {
     );
 
     private static final HashMap<UUID, Channel> lookupChannels = new HashMap<>();
-    private static final LinkedBlockingQueue<Channel> lookupQueue = new LinkedBlockingQueue<>();
 
     public static UUID getUUIDForChannel(Channel channel) {
         for (UUID uuid : lookupChannels.keySet()) {
@@ -39,38 +36,12 @@ public class NMSUtils {
         return null;
     }
 
-    public static void registerChannelLookup(Channel channel) {
-        try {
-            lookupQueue.put(channel);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public static Channel acquireChannelLookup(UUID uuid) {
-        Channel channel = null;
-        try {
-            channel = lookupQueue.take();
-            lookupChannels.put(uuid, channel);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return channel;
-    }
-
     public static Channel getChannel(Player player) {
         UUID uuid = player.getUniqueId();
 
         if (!lookupChannels.containsKey(uuid)) {
 
-            Channel playerChannel = null;
-
-            if (PacketLibrary.get().useLateInjection()) {
-                playerChannel = channel.get(getNetworkManager(player));
-            }
-            else {
-                playerChannel = acquireChannelLookup(uuid);
-            }
+            Channel playerChannel = channel.get(getNetworkManager(player));
             lookupChannels.put(uuid, playerChannel);
         }
         return lookupChannels.get(uuid);

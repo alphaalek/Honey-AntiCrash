@@ -23,7 +23,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
@@ -83,6 +82,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     @Override
     public void cleanup(Player player) {
         PositionB.lastPacketLocation.remove(player.getUniqueId());
+        PositionD.manipulatedFlightSettingsMap.remove(player.getUniqueId());
         PositionD.lastChunkMap.remove(player.getUniqueId());
         PositionF.lastDirectionFlowMap.remove(player.getUniqueId());
     }
@@ -256,19 +256,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
     }
 
-    public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck, Listener {
-
-        public PositionD(){
-            Bukkit.getPluginManager().registerEvents(this, HoneyPlugin.get());
-        }
-
-        @EventHandler
-        public void onQuit(PlayerQuitEvent event) {
-            manipulatedFlightSettingsMap.remove(event.getPlayer().getUniqueId());
-        }
+    public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final Map<UUID, WrappedChunkCoordIntPair> lastChunkMap = new ConcurrentHashMap<>();
-        private final Set<UUID> manipulatedFlightSettingsMap = new HashSet<>();
+        private static final Set<UUID> manipulatedFlightSettingsMap = new HashSet<>();
 
         private final ViolationService.CheckKey flightKey = new ViolationService.CheckKey("Position.B", true);
         private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey("Position.B", false);

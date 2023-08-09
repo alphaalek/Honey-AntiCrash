@@ -103,7 +103,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getViolationName() {
-            return "Window.C";
+            return "Window.B";
         }
 
         @Override
@@ -130,7 +130,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getViolationName() {
-            return "Window.D";
+            return "Window.C";
         }
 
         @Override

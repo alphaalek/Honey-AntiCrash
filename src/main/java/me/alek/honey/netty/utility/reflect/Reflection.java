@@ -160,15 +160,15 @@ public class Reflection {
         }
     }
 
-    public static MethodInvoker<?> getMethod(Method method) {
+    public static MethodInvoker<Object> getMethod(Method method) {
         return new MethodInvoker<>(method);
     }
 
-    public static MethodInvoker<?> getMethod(String target, String name, Class<?>... parameters) {
+    public static MethodInvoker<Object> getMethod(String target, String name, Class<?>... parameters) {
         return getMethod(getClass(target), name, parameters);
     }
 
-    public static MethodInvoker<?> getMethodFromParameters(Class<?> target, int index, Class<?>... parameters) {
+    public static MethodInvoker<Object> getMethodFromParameters(Class<?> target, int index, Class<?>... parameters) {
         int currentIndex = -1;
 
         for (Method method : target.getDeclaredMethods()) {
@@ -185,7 +185,7 @@ public class Reflection {
         throw new RuntimeException("Reflection fejl " + index + " " + target.getName());
     }
 
-    public static MethodInvoker<?> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
+    public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
         int currentIndex = 0;
         for (Method method : target.getDeclaredMethods()) {
 
@@ -202,7 +202,7 @@ public class Reflection {
         throw new RuntimeException("Reflection fejl " + index + " " + target.getName() + " " + returnType);
     }
 
-    public static MethodInvoker<?> getMethod(Class<?> target, String name, Class<?>... parameters) {
+    public static MethodInvoker<Object> getMethod(Class<?> target, String name, Class<?>... parameters) {
         for (Method method : target.getDeclaredMethods()) {
             if (!method.getName().equals(name) || method.getParameterTypes() == parameters) {
                 continue;

@@ -57,7 +57,7 @@ public class HoneyPlugin extends JavaPlugin {
         }
 
         // setup packet library
-        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
+        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, true, "honey_packet_handler", "honey_packet_decoder"));
 
         // setup configuration
         configuration = new DedicatedConfiguration();

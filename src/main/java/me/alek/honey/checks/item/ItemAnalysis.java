@@ -1,24 +1,21 @@
 package me.alek.honey.checks.item;
 
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.util.*;
 
 public class ItemAnalysis {
 
     private static final Map<ItemCheckRegistry, ItemChecker> checkRegistryLookup = new HashMap<>();
+    private static final Map<Class<? extends ItemChecker>, ItemCheckRegistry> reversedCheckRegistryLookup = new HashMap<>();
     private static final List<ItemChecker> disabledChecks = new ArrayList<>();
     private static List<String> ignoredPlayers;
 
@@ -32,6 +29,7 @@ public class ItemAnalysis {
                 continue;
             }
             checkRegistryLookup.put(registry, registry.getCheck());
+            reversedCheckRegistryLookup.put(registry.getCheck().getClass(), registry);
         }
     }
 
@@ -106,8 +104,12 @@ public class ItemAnalysis {
         if (flaggedCheck == null) {
             return false;
         }
-        HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
-        return true;
+        Bukkit.getLogger().info("DEBUG: " + flaggedCheck.name());
+
+        //HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
+        //return true;
+
+        return false;
     }
 
     private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {
@@ -144,12 +146,12 @@ public class ItemAnalysis {
 
     private static ItemCheckRegistry getRegistryFrom(ItemChecker checker) {
         Class<? extends ItemChecker> clazz = checker.getClass();
-        ItemCheckerInfo info = clazz.getAnnotation(ItemCheckerInfo.class);
+        ItemCheckRegistry registry = reversedCheckRegistryLookup.get(clazz);
 
-        if (info == null) {
+        if (registry == null) {
             return ItemCheckRegistry.UNKNOWN;
         }
-        return info.value();
+        return registry;
     }
 
     private static boolean checkAcceptance(AcceptStrategy strategy, ItemStack item, NBTCompound nbt) {
@@ -172,12 +174,5 @@ public class ItemAnalysis {
         void setValue(int value);
 
         AcceptStrategy getAcceptStrategy();
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
-    public @interface ItemCheckerInfo {
-
-        ItemCheckRegistry value();
     }
 }

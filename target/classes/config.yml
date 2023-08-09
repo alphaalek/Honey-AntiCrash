@@ -45,7 +45,7 @@ packet-logger:
   # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false
 
-  # Players which the packet logger should ignore.
+  # Players which the packet logger should ignore. This is not covering Minecraft exploits, just the packet logger.
   ignored-players:
   # - Alek05
 
@@ -79,7 +79,7 @@ item-analysis:
     # - Alek05
 
   # How many bytes may a container (chest/shulker ...) have.
-  max-container-data: 250000
+  max-container-data: 500000
 
   # How high enchantment level may an item have.
   max-enchantment-level: 256
@@ -91,7 +91,7 @@ item-analysis:
   max-displayname-length: 100
 
   # How long may the sum of all the lines in the lore of an item have.
-  max-total-lore-length: 2000
+  max-total-lore-length: 2500
 
   # How many explosions may a firework have. In Vanilla Minecraft it is not possible to get more than 17.
   max-firework-explosions: 17
@@ -112,7 +112,7 @@ item-analysis:
   # NBT
   nbt:
     # How many bytes may the NBT of an item have.
-    max-nbt-length: 15000
+    max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
     max-nbt-string-length: 800
@@ -121,9 +121,9 @@ item-analysis:
     max-firework-nbt-length: 2500
 
     # How many bytes may the NBT of a book have.
-    max-book-nbt-length: 13500
+    max-book-nbt-length: 15000
 
-    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 50 characters.
+    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 50 pages.
     max-book-pages: 50
 
     # How long title may a book have. In Vanilla Minecraft it is not possible to get more than 32 characters.
@@ -173,8 +173,8 @@ netty:
 
   f:
     enabled: true
-    vls-amount: 1
-    threshold: 30000
+    vls-amount: 2
+    threshold: 22000
     decay: 1000
     decay-amount: 6000
 
@@ -184,11 +184,10 @@ netty:
 
   h:
     enabled: true
-    clear-buffer: true
     vls-amount: 3
-    threshold: 500000
-    decay: 900
-    decay-amount: 85000
+    threshold: 400000
+    decay: 650
+    decay-amount: 65000
 
   i:
     enabled: true

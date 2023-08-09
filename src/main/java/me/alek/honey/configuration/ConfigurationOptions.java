@@ -814,6 +814,12 @@ public class ConfigurationOptions {
                 super(true);
             }
         }
+
+        @Setting
+        @Violation("netty.i")
+        public static class NettyI extends VlSetting {
+
+        }
     }
 
     @Setting

@@ -132,6 +132,7 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCustomPayload.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\impl\FloodListener.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\types\ViolationCheck.java
+C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\types\ViolationKeyedCheck.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInArmAnimation.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\item\enums\ConfiscationStrategy.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\IPacketListener.java
@@ -214,7 +215,6 @@ C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrapper
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packet\PacketWrapperFactory.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAutoRecipe.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityExperienceOrb.java
-C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\checks\types\ViolationConsumerCheck.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutStopSound.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\nbt\NBTAbstractList.java
 C:\Users\Alexander\Desktop\Honey\src\main\java\me\alek\honey\netty\modelwrappers\network\WrappedPacketDataSerializer.java

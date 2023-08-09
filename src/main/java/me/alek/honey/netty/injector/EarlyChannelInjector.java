@@ -50,7 +50,6 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
                 try {
                     synchronized (networkManagers) {
                         channel.eventLoop().submit(() -> {
-                            NMSUtils.registerChannelLookup(channel);
                             CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.EARLY);
                         });
                     }
