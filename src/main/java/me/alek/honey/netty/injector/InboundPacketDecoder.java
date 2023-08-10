@@ -105,10 +105,16 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             if (packet != null) {
 
                 // ignorerer brand packets
-                boolean isCustomPayloadPacket = packet.getClass().getName().equals("PacketPlayInCustomPayload");
-                long timeSinceJoined = System.currentTimeMillis() - PlayerJoinListener.getInstantJoinedMap().get(player.getUniqueId());
+                boolean isNotBrand = true;
+                if (PlayerJoinListener.getInstantJoinedMap().containsKey(player.getUniqueId())) {
 
-                if (!(isCustomPayloadPacket && timeSinceJoined < 1000)) {
+                    boolean isCustomPayloadPacket = packet.getClass().getName().equals("PacketPlayInCustomPayload");
+                    long timeSinceJoined = System.currentTimeMillis() - PlayerJoinListener.getInstantJoinedMap().get(player.getUniqueId());
+
+                    isNotBrand = !(isCustomPayloadPacket && timeSinceJoined < 1000);
+                }
+
+                if (isNotBrand) {
 
                     ConfigurationOptions.VlSetting nettyHSetting = ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class);
                     ConfigurationOptions.VlSetting nettyISetting = ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);

@@ -11,8 +11,8 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable, Cloneable
 
     private static final long serialVersionUID = -3518082018884860684L;
 
-    final T1 t1;
-    final T2 t2;
+    protected T1 t1;
+    protected T2 t2;
 
     public Tuple2(T1 t1, T2 t2) {
         this.t1 = t1;

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -212,8 +213,8 @@ public class ViolationService {
         private final Player player;
         private final ConfigurationOptions.VlSetting setting;
 
-        private volatile long lastViolationClear;
-        private volatile int violations;
+        private AtomicLong lastViolationClear = new AtomicLong();
+        private AtomicInteger violations = new AtomicInteger();
 
         public AbstractPacketLimitHandler(Player player, ConfigurationOptions.VlSetting setting) {
             this.player = player;
@@ -233,16 +234,16 @@ public class ViolationService {
             if (onViolation != null) {
                 onViolation.run();
             }
-            if (System.currentTimeMillis() - lastViolationClear >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
-                violations = 0;
-                lastViolationClear = System.currentTimeMillis();
+            if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
+                violations.set(0);
+                lastViolationClear.set(System.currentTimeMillis());
             }
             if (loggerService.isDebug()) {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), violationName, this, getSetting());
             }
-            violations++;
+            violations.incrementAndGet();
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this);
-            if (violations < getSetting().getVlsAmount()) {
+            if (violations.get() < getSetting().getVlsAmount()) {
                 return false;
             }
             punish(getPlayer(), violationName);
@@ -254,11 +255,11 @@ public class ViolationService {
         }
 
         public int getViolations() {
-            return violations;
+            return violations.get();
         }
 
         public void reload() {
-            this.lastViolationClear = System.currentTimeMillis();
+            this.lastViolationClear.set(System.currentTimeMillis());
         }
 
         public abstract boolean flag(Object handle, String violationName, double amount, Runnable onViolation);

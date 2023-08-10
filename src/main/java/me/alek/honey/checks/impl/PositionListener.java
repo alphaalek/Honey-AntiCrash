@@ -163,6 +163,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         visitor.visit(new PositionF<>());
         visitor.visit(new PositionG<>());
         visitor.visit(new PositionH<>());
+        visitor.visit(new PositionI<>());
         return visitor;
     }
 
@@ -317,8 +318,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // ignorerer packets tæt på den seneste teleportering, da distancen mellem to
                 // position packets ellers kan være rigtig høj hvis man teleporterer en lang distance
-                Boolean shouldIgnore = container.getBoolean(0);
-                if (shouldIgnore != null && shouldIgnore) {
+                boolean shouldIgnore = container.getBoolean(0);
+                if (shouldIgnore) {
                     return ResponseBuilder.SUCCESS;
                 }
 
@@ -381,13 +382,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
 
-                ResponseContainer response = ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+                ResponseContainer response = ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer()).builder().withKey(key).build();
                 if (chunk != null) {
                     if (lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
                         return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
                     }
                     lastChunkMap.put(player.getUniqueId(), chunk);
-                    return response.builder().withKey(key).skip(1).build();
+                    return response.builder().skip(1).build(); // skipper unloaded chunk check
                 }
                 return response;
             }
@@ -556,16 +557,46 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private int timesSinceStart;
-        private int guessedDelta;
+        private double guessedDelta2D;
+        private double guessedDeltaY;
 
         @Override
         public synchronized ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+
+            ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
             if (getSetting().isEnabled()) {
 
+                double delta2D = container.getDouble(0);
+                double deltaY = container.getDouble(1);
 
+                boolean closeToTeleportLocation = container.getBoolean(0);
+
+                if (closeToTeleportLocation) return response;
+                if (delta2D == 0 && deltaY == 0) return response;
+
+                ViolationService.CheckKey key = new ViolationService.CheckKey(this, this);
+
+                boolean hasPattern = false;
+                if (delta2D != 0) {
+                    if (guessedDelta2D == delta2D) {
+
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, 1, null, "Position.H", getSetting());
+                        hasPattern = true;
+                    }
+                    guessedDelta2D = delta2D;
+                }
+                if (deltaY != 0) {
+                    if (guessedDeltaY == deltaY) {
+
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, 1, null, "Position.H", getSetting());
+                        hasPattern = true;
+                    }
+                    guessedDeltaY = deltaY;
+                }
+
+                if (hasPattern) return ResponseBuilder.SUCCESS;
             }
-            return ResponseBuilder.SUCCESS;
+            return response;
         }
 
         @Override
@@ -576,6 +607,28 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionH.class);
+        }
+    }
+
+    public static class PositionI<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        @Override
+        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                return ResponseBuilder.inst().flag().build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Position.I";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionI.class);
         }
     }
 }

@@ -98,6 +98,17 @@ public class CheckContextContainer {
         return structure.get(index);
     }
 
+    public synchronized <T> T getLast(Class<T> clazz) {
+        ContainerStructure<T> structure = getStructure(clazz);
+        if (structure == null) return null;
+
+        return structure.get(structure.getSize());
+    }
+
+    public <T> T peek(Class<T> clazz) {
+        return get(clazz, 0);
+    }
+
     public <T> T poll(Class<T> clazz) {
         return take(clazz, 0);
     }
@@ -136,6 +147,10 @@ public class CheckContextContainer {
 
         public boolean has(int index) {
             return values.size() > index;
+        }
+
+        public int getSize() {
+            return values.size();
         }
 
         public List<T> getValues() {

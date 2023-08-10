@@ -684,6 +684,12 @@ public class ConfigurationOptions {
         public static class PositionH extends VlSetting {
 
         }
+
+        @Setting
+        @Violation("position.i")
+        public static class PositionI extends VlSetting {
+
+        }
     }
 
     @Setting

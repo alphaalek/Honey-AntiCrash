@@ -2,6 +2,7 @@ me\alek\honey\checks\item\ItemChecks$MaxFireworkLengthCheck.class
 me\alek\honey\netty\structure\converters\dedicated\SimpleMapConverter.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutNBTQuery.class
 me\alek\honey\checks\impl\RotationListener.class
+me\alek\honey\configuration\ConfigurationOptions$Position$PositionI.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$BOpen.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInDifficultyLock.class
 me\alek\honey\configuration\ConfigurationOptions.class
@@ -115,6 +116,7 @@ me\alek\honey\metrics\Metrics$CustomChart.class
 me\alek\honey\netty\packet\type\PacketType$Handshake$Client.class
 me\alek\honey\metrics\Metrics$MetricsBase.class
 me\alek\honey\checks\impl\TabCompleteListener.class
+me\alek\honey\utility\MutableTuple2.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUnloadChunk.class
 me\alek\honey\checks\CheckContextContainer.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$CustomPayload.class
@@ -245,6 +247,7 @@ me\alek\honey\configuration\ConfigurationOptions$Position$PositionE.class
 me\alek\honey\checks\impl\CustomPayloadListener$PayloadA.class
 me\alek\honey\services\NotificationService$NotificationListener.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutNamedEntitySpawn.class
+me\alek\honey\configuration\ConfigurationOptions$Position$PositionH.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInClientCommand.class
 me\alek\honey\checks\impl\RotationListener$RotationC.class
 me\alek\honey\netty\api\packet\IStructureModifier.class
@@ -321,6 +324,7 @@ me\alek\honey\netty\packet\PacketFactory.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCompression.class
 me\alek\honey\checks\impl\PositionListener.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$IntArrayWriter.class
+me\alek\honey\checks\impl\PositionListener$PositionH.class
 me\alek\honey\netty\utility\reflect\MethodInvoker.class
 me\alek\honey\netty\packetwrappers\status\client\WrappedStatusInStart.class
 me\alek\honey\checks\IPacketListener.class
@@ -474,6 +478,7 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$SetCreativeS
 me\alek\honey\checks\item\ItemChecks$MaxNBTStringLengthCheck.class
 me\alek\honey\netty\api\packet\container\ModifiablePacketContainer.class
 me\alek\honey\netty\structure\ReflectStructure$StructureModifier.class
+me\alek\honey\checks\impl\PositionListener$PositionI.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodC.class
 me\alek\honey\netty\listener\FuzzyPacketAdapter.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBlockDig.class
