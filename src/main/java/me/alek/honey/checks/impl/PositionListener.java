@@ -20,8 +20,8 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -159,7 +159,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
         UUID uuid = player.getUniqueId();
-        if (wasMovement.get(player.getUniqueId())) timeSinceLastMovement.put(uuid, System.currentTimeMillis());
+        if (wasMovement.get(uuid)) timeSinceLastMovement.put(uuid, System.currentTimeMillis());
     }
 
     @Override
@@ -190,6 +190,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         PositionD.manipulatedFlightSettingsMap.remove(uuid);
         PositionD.lastChunkMap.remove(uuid);
         PositionF.lastDirectionFlowMap.remove(uuid);
+        PositionH.guessedDelta2D.remove(uuid);
+        PositionH.guessedDeltaY.remove(uuid);
 
         lastTeleportationLocationMap.remove(uuid);
         timeSinceLastMovement.remove(uuid);
@@ -584,8 +586,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private double guessedDelta2D;
-        private double guessedDeltaY;
+        private static final Map<UUID, Double> guessedDelta2D = new HashMap<>();
+        private static final Map<UUID, Double> guessedDeltaY = new HashMap<>();
 
         @Override
         public synchronized ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
@@ -601,24 +603,36 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (closeToTeleportLocation) return response;
                 if (delta2D == 0 && deltaY == 0) return response;
 
-                ViolationService.CheckKey key = new ViolationService.CheckKey(this, this);
+                UUID uuid = player.getUniqueId();
+                if (!guessedDelta2D.containsKey(uuid)) guessedDelta2D.put(uuid, 0d);
+                if (!guessedDeltaY.containsKey(uuid)) guessedDeltaY.put(uuid, 0d);
+
+                ViolationService.CheckKey key = new ViolationService.CheckKey("Position.H", this);
 
                 boolean hasPattern = false;
-                if (delta2D != 0) {
-                    if (guessedDelta2D == delta2D) {
+                if (delta2D > 0.05) {
+                    if (guessedDelta2D.get(uuid) == delta2D) {
 
                         HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, 1, null, "Position.H", getSetting());
                         hasPattern = true;
                     }
-                    guessedDelta2D = delta2D;
+                    guessedDelta2D.put(uuid, delta2D);
                 }
-                if (deltaY != 0) {
-                    if (guessedDeltaY == deltaY) {
+                if (deltaY > 0.5) {
+                    if (guessedDeltaY.get(uuid) == deltaY) {
 
+                        Material material = player.getEyeLocation().getBlock().getType();
+                        if (material == Material.STATIONARY_WATER || material == Material.WATER || material == Material.LAVA || material == Material.STATIONARY_LAVA) {
+                            return response;
+                        }
+
+                        if (deltaY % 0.375 < 0.000001) {
+                            return response;
+                        }
                         HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, 1, null, "Position.H", getSetting());
                         hasPattern = true;
                     }
-                    guessedDeltaY = deltaY;
+                    guessedDeltaY.put(uuid, deltaY);
                 }
 
                 if (hasPattern) return ResponseBuilder.SUCCESS;

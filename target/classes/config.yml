@@ -292,9 +292,9 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 800
-    decay: 500
-    decay-amount: 250
+    threshold: 700
+    decay: 1000
+    decay-amount: 150
     vls-amount: 4
 
   d:
@@ -324,14 +324,14 @@ position:
 
   h:
     enabled: true
-    max-per-interval: 30
-    interval: 2500
+    max-per-interval: 35
+    interval: 1000
     vls-amount: 4
 
   i:
     enabled: true
     max-per-interval: 100
-    interval: 3500
+    interval: 2500
 
 # |--- rotation ---|
 rotation:
