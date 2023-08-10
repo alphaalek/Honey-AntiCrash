@@ -24,6 +24,7 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -39,6 +40,7 @@ public class HoneyPlugin extends JavaPlugin {
     private Configuration configuration;
     private boolean isRunning;
     private boolean usingOldVersion;
+    private UpdateChecker updateChecker;
     private PacketLibrary packetLibrary;
 
     @Override
@@ -81,6 +83,10 @@ public class HoneyPlugin extends JavaPlugin {
 
         // setup metrics
         new Metrics(this, 19028);
+
+        // update checker
+        this.updateChecker = new UpdateChecker();
+        this.usingOldVersion = updateChecker.isOldVersion();
 
         // setup bukkit listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
@@ -153,6 +159,14 @@ public class HoneyPlugin extends JavaPlugin {
 
     public CommandManager getCommandManager() {
         return commandManager;
+    }
+
+    public boolean isUsingOldVersion() {
+        return usingOldVersion;
+    }
+
+    public UpdateChecker getUpdateChecker() {
+        return updateChecker;
     }
 
     public boolean isRunning() {

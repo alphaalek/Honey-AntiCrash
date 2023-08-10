@@ -17,15 +17,14 @@ import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.utility.Locations;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-        return false;
+        return true;
     }
 
     @Override
@@ -57,15 +56,25 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     @Override
     public void cleanup(Player player) {
+        RotationA.lastYawMap.remove(player.getUniqueId());
     }
 
     public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final Map<UUID, Float> lastYawMap = new HashMap<>();
+
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+
+            UUID uuid = player.getUniqueId();
+            if (!lastYawMap.containsKey(uuid)) lastYawMap.put(uuid, packet.getYaw());
+
+            container.putFloat(lastYawMap.get(uuid));
+            lastYawMap.put(uuid, packet.getYaw());
+
             if (getSetting().isEnabled()) {
 
-                if (Locations.calculateYawDistance(player.getLocation().getYaw(), packet.getYaw()) > ConfigurationOptions.Rotation.RotationA.MAX) {
+                if (Locations.calculateYawDistance(lastYawMap.get(uuid), packet.getYaw()) > ConfigurationOptions.Rotation.RotationA.MAX) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -108,18 +117,19 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
     }
 
-    public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP> {
+    public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationC.class).isEnabled()) {
+            if (getSetting().isEnabled()) {
 
-                if (packet.getYaw() > ConfigurationOptions.Rotation.RotationC.MAX && ConfigurationOptions.Rotation.RotationC.MAX > 360) {
-                    packet.setYaw(packet.getYaw() % 360);
-                }
-                else if (packet.getYaw() < ConfigurationOptions.Rotation.RotationC.MIN && ConfigurationOptions.Rotation.RotationC.MIN < -360) {
-                    packet.setYaw(360 - (Math.max(packet.getYaw(), packet.getYaw() * (-1)) % 360));
-                }
+                float yaw = packet.getYaw();
+                float lastYaw = container.getFloat(0);
+
+                float deltaYaw = Math.abs(lastYaw - yaw);
+
+                if (deltaYaw != 0)
+                    return ResponseBuilder.inst().setFlagged(deltaYaw).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -127,6 +137,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public String getViolationName() {
             return "Rotation.C";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationC.class);
         }
     }
 }

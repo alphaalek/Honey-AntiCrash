@@ -174,22 +174,18 @@ netty:
 
   f:
     enabled: true
-    threshold: 35000
+    threshold: 26500
     decay: 500
-    decay-amount: 8000
+    decay-amount: 5000
 
   g:
     enabled: true
-    vls-amount: 3
-
-  h:
-    enabled: true
-    until: 2000000
-    threshold: 600000
+    until: 1750000
+    threshold: 550000
     decay: 500
     decay-amount: 150000
 
-  i:
+  h:
     enabled: true
     threshold: 400000
 
@@ -293,8 +289,8 @@ position:
     enabled: true
     clear-buffer: true
     threshold: 600
-    decay: 1000
-    decay-amount: 150
+    decay: 1250
+    decay-amount: 100
     vls-amount: 4
 
   d:
@@ -330,8 +326,9 @@ position:
 
   i:
     enabled: true
-    max-per-interval: 100
+    max-per-interval: 120
     interval: 2500
+    vls-amount: 1
 
 # |--- rotation ---|
 rotation:
@@ -344,10 +341,13 @@ rotation:
     enabled: true
     vls-amount: 3
 
-  c: # no violations on this setting, just a thing helping the minecraft packet handler
+  c:
     enabled: true
-    max: 25000
-    min: -25000
+    clear-buffer: true
+    threshold: 7000
+    decay: 600
+    decay-amount: 1500
+    vls-amount: 3
 
 # |--- block place ---|
 block-place:
@@ -519,8 +519,8 @@ packet-flood:
 
     # close window
     close-window:
-      max-per-interval: 10
-      interval: 700
+      max-per-interval: 8
+      interval: 1200
       vls-amount: 4
 
     # custom payload

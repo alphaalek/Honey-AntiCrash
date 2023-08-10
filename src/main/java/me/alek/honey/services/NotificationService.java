@@ -20,7 +20,7 @@ public class NotificationService {
 
     private final Map<CommandSender, NotificationListener> listenerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
-    private String PREFIX;
+    public static String PREFIX;
 
     public NotificationService() {
         subscribe(Bukkit.getConsoleSender());

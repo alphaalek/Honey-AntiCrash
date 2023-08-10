@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,6 +31,11 @@ public class PlayerJoinListener implements Listener {
             HoneyPlugin.get().getNotificationService().subscribe(player);
 
         instantJoinedMap.put(player.getUniqueId(), System.currentTimeMillis());
+
+        if (player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
+
+            HoneyPlugin.get().getUpdateChecker().sendWarning(player);
+        }
     }
 
     @EventHandler

@@ -13,8 +13,11 @@ public class HelpCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender) {
-        sender.sendMessage("");
-        sender.sendMessage("§6Honey v1.0.0. Made by Alek05.");
+        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
+        String version = HoneyPlugin.get().getDescription().getVersion();
+
+        sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
+
         for (CommandImpl command : HoneyPlugin.get().getCommandManager().getCommands()) {
             sender.sendMessage(" §a" + command.getUsage() + " > §7" + command.getDescription());
         }

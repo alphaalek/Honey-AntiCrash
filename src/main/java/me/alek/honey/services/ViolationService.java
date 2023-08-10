@@ -351,8 +351,6 @@ public class ViolationService {
             if (loggerService.isDebug())
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
 
-            if (violationName.contains("Position")) Bukkit.broadcastMessage(bufferIndex + "/" + threshold);
-
             if (bufferIndex.get() < threshold) return false;
 
             bufferIndexCopy = bufferIndex.get();
@@ -459,7 +457,6 @@ public class ViolationService {
             if (loggerService.isDebug()) {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
             }
-            if (violationName.equals("Position.H")) Bukkit.broadcastMessage(flagged + "/" + maxPerInterval);
 
             if (flagged < maxPerInterval) {
                 return false;

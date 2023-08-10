@@ -78,7 +78,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             }
             // tjek packet buffer
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class).isEnabled()) {
-                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, ViolationService.CheckKey.DEFAULT.clone().setBuffer(true), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
+                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, new ViolationService.CheckKey(this, "NettyF"), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
                     if (byteBuf.refCnt() > 0) {byteBuf.clear();}
 
                     return;
@@ -95,12 +95,6 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             int id = dataSerializer.readVarInt();
             Object packet = enumProtocol.createPacket(WrappedEnumProtocolDirection.SERVERBOUND, id);
 
-            if (packet == null && ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class).isEnabled()) {
-                if (byteBuf.refCnt() > 0) {byteBuf.clear();}
-
-                HoneyPlugin.get().getViolationService().punish(player, "Netty.G");
-                return;
-            }
             // tjek heavy serializers
             if (packet != null) {
 
@@ -116,26 +110,26 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
                 if (isNotBrand) {
 
+                    ConfigurationOptions.VlSetting nettyGSetting = ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class);
                     ConfigurationOptions.VlSetting nettyHSetting = ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class);
-                    ConfigurationOptions.VlSetting nettyISetting = ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
 
+                    ViolationService.CheckKey nettyGKey = new ViolationService.CheckKey(this, "NettyG");
                     ViolationService.CheckKey nettyHKey = new ViolationService.CheckKey(this, "NettyH");
-                    ViolationService.CheckKey nettyIKey = new ViolationService.CheckKey(this, "NettyI");
 
                     while (dataSerializer.isReadable()) {
                         int byteSize = Math.abs(dataSerializer.readByte());
 
-                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
+                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyGKey, byteSize, null, "Netty.G", nettyGSetting)) {
                             if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                         }
-                        if (nettyISetting.isEnabled()) {
+                        if (nettyHSetting.isEnabled()) {
 
-                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyIKey, byteSize, null, "Netty.I", nettyISetting)) {
+                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
                                 if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                             }
                         }
                     }
-                    HoneyPlugin.get().getViolationService().notifySingleOverflowStop(player, nettyIKey, nettyISetting);
+                    HoneyPlugin.get().getViolationService().notifySingleOverflowStop(player, nettyHKey, nettyHSetting);
                 }
             }
         } catch (Exception ex) {

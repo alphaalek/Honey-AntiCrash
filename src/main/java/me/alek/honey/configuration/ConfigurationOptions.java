@@ -701,7 +701,7 @@ public class ConfigurationOptions {
 
             public static int MAX;
 
-            public void load() {
+            public static void load() {
                 MAX = file.getInt("rotation.a.max", 500);
             }
         }
@@ -716,13 +716,7 @@ public class ConfigurationOptions {
         @Violation("rotation.c")
         public static class RotationC extends VlSetting {
 
-            public static int MAX;
-            public static int MIN;
-
-            public void load() {
-                MAX = file.getInt("rotation.c.max", 25000);
-                MIN = file.getInt("rotation.c.max", -25000);
-            }
+            public RotationC() { super(PacketLimitHandlerType.BUFFER_OVERFLOW); }
         }
     }
 
@@ -812,20 +806,14 @@ public class ConfigurationOptions {
         @Violation("netty.g")
         public static class NettyG extends VlSetting {
 
+            public NettyG() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
         }
 
         @Setting
         @Violation("netty.h")
         public static class NettyH extends VlSetting {
 
-            public NettyH() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
-        }
-
-        @Setting
-        @Violation("netty.i")
-        public static class NettyI extends VlSetting {
-
-            public NettyI() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
+            public NettyH() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
         }
     }
 
