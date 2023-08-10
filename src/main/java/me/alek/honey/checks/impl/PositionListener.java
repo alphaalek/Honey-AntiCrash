@@ -20,6 +20,7 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -30,6 +31,8 @@ import java.util.function.Supplier;
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, SampleDecayableList<Location>> lastTeleportationLocationMap = new HashMap<>();
+    private static final Map<UUID, Long> timeSinceLastMovement = new HashMap<>();
+    private static final Map<UUID, Boolean> wasMovement = new HashMap<>();
 
     public PositionListener() {
         HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutPosition>() {
@@ -139,12 +142,24 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-        return !Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation());
+        UUID uuid = player.getUniqueId();
+
+        boolean isMovement = !Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation());
+        synchronized (wasMovement) {
+            wasMovement.put(uuid, isMovement);
+        }
+
+        synchronized (timeSinceLastMovement) {
+            if (!timeSinceLastMovement.containsKey(uuid)) timeSinceLastMovement.put(uuid, 0L);
+
+            return isMovement;
+        }
     }
 
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
-
+        UUID uuid = player.getUniqueId();
+        if (wasMovement.get(player.getUniqueId())) timeSinceLastMovement.put(uuid, System.currentTimeMillis());
     }
 
     @Override
@@ -169,10 +184,16 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     @Override
     public void cleanup(Player player) {
-        PositionB.lastPacketLocation.remove(player.getUniqueId());
-        PositionD.manipulatedFlightSettingsMap.remove(player.getUniqueId());
-        PositionD.lastChunkMap.remove(player.getUniqueId());
-        PositionF.lastDirectionFlowMap.remove(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+
+        PositionB.lastPacketLocation.remove(uuid);
+        PositionD.manipulatedFlightSettingsMap.remove(uuid);
+        PositionD.lastChunkMap.remove(uuid);
+        PositionF.lastDirectionFlowMap.remove(uuid);
+
+        lastTeleportationLocationMap.remove(uuid);
+        timeSinceLastMovement.remove(uuid);
+        wasMovement.remove(uuid);
     }
 
     public static boolean isChunkLoaded(Location location) {
@@ -196,16 +217,22 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         final UUID uuid = player.getUniqueId();
 
         synchronized (lastTeleportationLocationMap) {
+            synchronized (timeSinceLastMovement) {
+                if (lastTeleportationLocationMap.containsKey(uuid)) {
 
-            if (lastTeleportationLocationMap.containsKey(uuid)) {
+                    SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+                    for (Location location : sampleDecayableList.getAll()) {
 
-                SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
-                for (Location location : sampleDecayableList.getAll()) {
-
-                    double locationDiff = Locations.calculate3DDistance(location, currentLocation);
-                    if (locationDiff < diff) {
-                        return true;
+                        double locationDiff = Locations.calculate3DDistance(location, currentLocation);
+                        if (locationDiff < diff) {
+                            return true;
+                        }
                     }
+                }
+                if (timeSinceLastMovement.containsKey(uuid)) {
+
+                    long timeDiff = System.currentTimeMillis() - timeSinceLastMovement.get(uuid);
+                    if (timeDiff > 1000) return true;
                 }
             }
         }

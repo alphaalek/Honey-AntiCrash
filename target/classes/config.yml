@@ -79,7 +79,7 @@ item-analysis:
     # - Alek05
 
   # How many bytes may a container (chest/shulker ...) have.
-  max-container-data: 500000
+  max-container-data: 1000000
 
   # How high enchantment level may an item have.
   max-enchantment-level: 256
@@ -115,7 +115,7 @@ item-analysis:
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 800
+    max-nbt-string-length: 1000
 
     # How many bytes may the NBT of a firework have. This is also covering firework charges.
     max-firework-nbt-length: 2500
@@ -136,7 +136,7 @@ item-analysis:
     max-book-author-length: 16
 
     # How many NBT bases may an item have. (the generel representation of NBT data, covers lists, strings, doubles etc...)
-    max-nbt-bases: 80
+    max-nbt-bases: 100
 
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
     max-nbt-nesting: 4
@@ -330,7 +330,7 @@ position:
 
   i:
     enabled: true
-    max-per-interval: 80
+    max-per-interval: 100
     interval: 3500
 
 # |--- rotation ---|
