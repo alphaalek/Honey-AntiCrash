@@ -630,6 +630,23 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class TabComplete {
+
+        @Setting
+        @Violation("tab-complete.a")
+        public static class TabA extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("tab-complete.b")
+        public static class TabB extends VlSetting {
+
+            public TabB() { super (PacketLimitHandlerType.BUFFER_THROTTLE); }
+        }
+    }
+
+    @Setting
     public static class Position {
 
         @Setting

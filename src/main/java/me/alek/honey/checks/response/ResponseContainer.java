@@ -5,7 +5,6 @@ import me.alek.honey.services.ViolationService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResponseContainer implements Cloneable {
-    public boolean ACCEPTED;
     public boolean CANCELLED;
     public boolean PUNISH;
     public boolean NOTIFY;

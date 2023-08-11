@@ -57,6 +57,9 @@ packet-logger:
   # Should the packet logger be detailed, which means it shows all the fields of each packet.
   detailed: false
 
+# BE AWARE, THAT YOU SHOULD ONLY EDIT VALUES BELOW IF YOU KNOW WHAT YOU ARE DOING!
+# IF YOU DISABLE SOMETHING OR CHANGE SOME VALUES, IT COULD POSSIBLY MAKE YOUR SERVER VULNERABLE!
+
 ############################################################
 # +------------------------------------------------------+ #
 # |                Item-Analysis Settings                | #
@@ -383,6 +386,19 @@ block-interact:
     enabled: true
     vls-amount: 5
     max: 25
+
+# |--- tab complete ---|
+tab-complete:
+  a:
+    enabled: true
+
+  b:
+    enabled: true
+    threshold: 5000
+    until: 30000
+    decay: 500
+    decay-amount: 800
+    vls-amount: 3
 
 # |--- set creative slot ---|
 set-creative-slot:

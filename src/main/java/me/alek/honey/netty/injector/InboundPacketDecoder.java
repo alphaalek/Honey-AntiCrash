@@ -1,12 +1,23 @@
 package me.alek.honey.netty.injector;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.impl.NettyListener;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.listeners.PlayerJoinListener;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocolDirection;
+import me.alek.honey.netty.modelwrappers.network.WrappedNetworkManager;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -30,7 +41,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
-        /*// undgå packet decode sendt fra spillere i game state der alligevel ikke er online
+        // undgå packet decode sendt fra spillere i game state der alligevel ikke er online
         try {
             if (player == null)
                 return;
@@ -124,7 +135,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-        }*/
+        }
         if (player != null) NettyListener.NettyI.registerDecodeFor(player);
 
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));

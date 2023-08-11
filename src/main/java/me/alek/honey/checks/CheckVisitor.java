@@ -58,7 +58,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
                 continue;
             }
-            if (response.CANCELLED && !response.ACCEPTED) {
+            if (response.CANCELLED) {
                 packetContainer.cancel();
             }
             if (response.FLAGGED != 0) {

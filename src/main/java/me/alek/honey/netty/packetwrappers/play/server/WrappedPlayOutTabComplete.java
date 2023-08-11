@@ -8,4 +8,8 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
     public WrappedPlayOutTabComplete(Object rawPacket, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
         super(rawPacket, packetContainer);
     }
+
+    public String[] getSuggestions() {
+        return getContainer().getStringArrays().readField(0);
+    }
 }

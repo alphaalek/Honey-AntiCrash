@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -11,13 +12,16 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
 public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTabComplete> implements IPacketListener {
@@ -42,12 +46,18 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     public CheckVisitor<WrappedPlayInTabComplete> getVisitor() {
         CheckVisitor<WrappedPlayInTabComplete> visitor = new CheckVisitor<>();
         visitor.visit(new TabA());
+        visitor.visit(new TabB());
         return visitor;
     }
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Play.Client.TAB_COMPLETE);
+    }
+
+    @Override
+    public void cleanup(Player player) {
+        TabB.tabCompleteQueueMap.remove(player.getUniqueId());
     }
 
     public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
@@ -75,6 +85,69 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Commands.class);
+        }
+    }
+
+    public static class TabB implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
+
+        private static final ViolationService.CheckKey key = new ViolationService.CheckKey(TabB.class, "TabB");
+        private static final Map<UUID, LinkedBlockingQueue<ResponseListener>> tabCompleteQueueMap = new HashMap<>();
+
+        private interface ResponseListener {
+
+            void accept(int size);
+
+        }
+
+        public TabB() {
+
+            HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutTabComplete>() {
+
+                @Override
+                public void onPacketSend(Player player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
+
+                    int size = packetContainer.getPacket().getSuggestions().length;
+
+                    try {
+                        ResponseListener listener = tabCompleteQueueMap.get(player.getUniqueId()).poll();
+
+                        if (listener != null) listener.accept(size);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+            }, ListenerPriority.NORMAL, () -> PacketType.Play.Server.TAB_COMPLETE);
+        }
+
+        @Override
+        public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                UUID uuid = player.getUniqueId();
+                if (!tabCompleteQueueMap.containsKey(uuid)) tabCompleteQueueMap.put(uuid, new LinkedBlockingQueue<>());
+
+                tabCompleteQueueMap.get(uuid).add(new ResponseListener() {
+                    @Override
+                    public void accept(int size) {
+
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, size, null, getViolationName(), getSetting());
+                    }
+                });
+                // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
+                // and therefore will block this packet
+                return ResponseBuilder.inst().flag().withKey(key).onViolation(() -> packet.getContainer().cancel()).build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() { return "Tab.B"; }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.TabComplete.TabB.class);
         }
     }
 }

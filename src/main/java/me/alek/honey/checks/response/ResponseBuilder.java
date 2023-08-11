@@ -18,7 +18,6 @@ public class ResponseBuilder {
     public static Function<PacketContainer<? extends WrappedPacket<?>>, ResponseContainer> FLOOD_FLAG
              = (packet) -> ResponseBuilder
                           .inst()
-                          .accept()
                           .flag()
                           .onViolation(packet::cancel)
                           .build();
@@ -46,11 +45,6 @@ public class ResponseBuilder {
 
     public ResponseBuilder success() {
         responseContainer.SUCCESS = true;
-        return this;
-    }
-
-    public ResponseBuilder accept() {
-        responseContainer.ACCEPTED = true;
         return this;
     }
 
