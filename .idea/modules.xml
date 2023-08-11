@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Honey.iml" filepath="$PROJECT_DIR$/Honey.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Honey-AntiCrash.iml" filepath="$PROJECT_DIR$/Honey-AntiCrash.iml" />
     </modules>
   </component>
 </project>

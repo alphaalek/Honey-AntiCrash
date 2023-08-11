@@ -17,6 +17,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -46,11 +48,11 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
     @Override
     public CheckVisitor<WrappedPlayInBlockPlace> getVisitor() {
         CheckVisitor<WrappedPlayInBlockPlace> visitor = new CheckVisitor<>();
-        visitor.visit(new PlaceA());
-        visitor.visit(new PlaceB());
-        visitor.visit(new PlaceC());
+        visitor.visit(new BlockInteractA());
+        visitor.visit(new BlockInteractB());
+        visitor.visit(new BlockInteractC());
         if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
-            visitor.visit(new PlaceD());
+            visitor.visit(new BlockInteractD());
         }
         return visitor;
     }
@@ -60,48 +62,63 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
     }
 
-    public static class PlaceA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
+    public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance) {
+
+        // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
+        // blocks in there
+        if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld())))
+            return ResponseBuilder.inst().cancel().flag().build();
+
+        if (blockPosition.isInvalid())
+            return ResponseBuilder.inst().cancel().flag().terminate().build();
+
+        // checks distance between the player and the block placed
+        Location playerLocation = PositionListener.PositionB.getLastLocationFor(player);
+        if (playerLocation == null) playerLocation = player.getLocation();
+
+        double distance = blockPosition.distance(playerLocation);
+        Bukkit.broadcastMessage(distance + "");
+
+        // the distance is higher than the recent client location
+        if (distance > maxDistance) {
+
+            // lets now check the distance to the recent server locations, and see if that is also way off
+            if (!PositionListener.isAnyLatelyTeleportationLocationsCloseTo(player, blockPosition.toLocation(player.getWorld()), maxDistance)) {
+
+                return ResponseBuilder.inst().cancel().flag().build();
+            }
+        }
+        return ResponseBuilder.SUCCESS;
+    }
+
+    public static class BlockInteractA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null) {
+                if (blockPosition == null || blockPosition.equals(WrappedBlockPosition.DEFAULT))
                     return ResponseBuilder.SUCCESS;
-                }
-                if (!blockPosition.equals(WrappedBlockPosition.DEFAULT)) {
 
-                    if (blockPosition.isInvalid()) {
-                        return ResponseBuilder.inst().cancel().flag().terminate().build();
-                    }
-                    double distance = blockPosition.distance(player.getLocation());
-                    if (distance > ConfigurationOptions.BlockPlace.PlaceA.MAX) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
-                    if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld()))) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
-                }
+                return checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractA.MAX);
             }
             return ResponseBuilder.SUCCESS;
         }
 
         @Override
-        public String getViolationName() {
-            return "Place.A";
-        }
+        public String getViolationName() { return "BlockInteract.A"; }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockPlace.PlaceA.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractA.class);
         }
     }
 
-    public static class PlaceB implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractB implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = packet.getItem();
@@ -116,19 +133,19 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "Place.B";
+            return "BlockInteract.B";
         }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockPlace.PlaceB.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractB.class);
         }
     }
 
-    public static class PlaceC implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractC implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = packet.getItem();
@@ -147,22 +164,23 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "Place.C";
+            return "BlockInteract.C";
         }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockPlace.PlaceC.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractC.class);
         }
     }
 
-    public static class PlaceD implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractD implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 final int placedBlockDirection = packet.getPlacedBlockDirection();
+
                 final float facingX = packet.getFacingX();
                 final float facingY = packet.getFacingY();
                 final float facingZ = packet.getFacingZ();
@@ -179,12 +197,12 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getViolationName() {
-            return "Place.D";
+            return "BlockInteract.D";
         }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockPlace.PlaceD.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractD.class);
         }
     }
 }

@@ -12,6 +12,7 @@ import me.alek.honey.command.impl.PasteLogsCommand;
 import me.alek.honey.command.impl.ReloadCommand;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
+import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.metrics.Metrics;
 import me.alek.honey.netty.PacketLibrary;
@@ -90,6 +91,7 @@ public class HoneyPlugin extends JavaPlugin {
 
         // setup bukkit listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
+        Bukkit.getPluginManager().registerEvents(new DispenserListener(), this);
     }
 
     @Override

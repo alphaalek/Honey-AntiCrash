@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Honey" />
+        <module name="Honey-AntiCrash" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Honey" target="1.8" />
+      <module name="Honey-AntiCrash" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -55,7 +55,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         private final String[] prohibitedCommands = ChatListener.getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
             String label = packet.getMessage().split(" ")[0];
 
             for (String prohibitedCommand : prohibitedCommands) {

@@ -53,7 +53,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
     public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

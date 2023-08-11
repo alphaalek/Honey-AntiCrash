@@ -585,34 +585,46 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class BlockPlace {
+    public static class BlockInteract {
 
         @Setting
-        @Violation("block-place.a")
-        public static class PlaceA extends VlSetting {
+        @Violation("block-interact.a")
+        public static class BlockInteractA extends VlSetting {
 
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("block-place.a.max", 25);
+                MAX = file.getInt("block-interact.a.max", 10);
             }
         }
 
         @Setting
-        @Violation("block-place.b")
-        public static class PlaceB extends VlSetting {
+        @Violation("block-interact.b")
+        public static class BlockInteractB extends VlSetting {
 
         }
 
         @Setting
-        @Violation("block-place.c")
-        public static class PlaceC extends VlSetting {
+        @Violation("block-interact.c")
+        public static class BlockInteractC extends VlSetting {
 
         }
 
         @Setting
-        @Violation("block-place.d")
-        public static class PlaceD extends VlSetting {
+        @Violation("block-interact.d")
+        public static class BlockInteractD extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("block-interact.E")
+        public static class BlockInteractE extends VlSetting {
+
+            public static int MAX;
+
+            public static void load() {
+                MAX = file.getInt("block-interact.e.max", 10);
+            }
 
         }
     }
@@ -624,13 +636,6 @@ public class ConfigurationOptions {
         @Violation("position.a")
         public static class PositionA extends VlSetting {
 
-            public static int MAX;
-            public static int MIN;
-
-            public static void load() {
-                MAX = file.getInt("position.a.max", 2048);
-                MIN = file.getInt("position.a.min", -256);
-            }
         }
 
         @Setting
@@ -688,6 +693,20 @@ public class ConfigurationOptions {
         @Setting
         @Violation("position.i")
         public static class PositionI extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("position.j")
+        public static class PositionJ extends VlSetting {
+
+            public static int MAX;
+            public static int MIN;
+
+            public static void load() {
+                MAX = file.getInt("position.a.max", 2048);
+                MIN = file.getInt("position.a.min", -256);
+            }
 
         }
     }
@@ -814,6 +833,44 @@ public class ConfigurationOptions {
         public static class NettyH extends VlSetting {
 
             public NettyH() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
+        }
+
+        @Setting
+        @Violation("netty.i")
+        public static class NettyI extends VlSetting {
+
+            public static int MAX;
+
+            public static void load() {
+                MAX = file.getInt("netty.i.max", 4000);
+            }
+
+        }
+    }
+
+    @Setting
+    public static class UseEntity {
+
+        @Setting
+        @Violation("use-entity.a")
+        public static class UseEntityA extends VlSetting {
+
+        }
+
+        @Setting
+        @Violation("use-entity.b")
+        public static class UseEntityB extends VlSetting {
+
+            public static double MAX_X;
+            public static double MAX_Y;
+            public static double MAX_Z;
+
+            public static void load() {
+                MAX_X = file.getDouble("use-entity.b.max-x");
+                MAX_Y = file.getDouble("use-entity.b.max-y");
+                MAX_Z = file.getDouble("use-entity.b.max-z");
+            }
+
         }
     }
 

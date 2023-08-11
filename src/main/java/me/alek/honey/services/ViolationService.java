@@ -175,7 +175,6 @@ public class ViolationService {
     public static class CheckKey extends Tuple2<Object, Object> implements Cloneable {
 
         public static CheckKey DEFAULT = new CheckKey(null, null);
-        private boolean useBuffer;
 
         public CheckKey(Object object1, Object object2) {
             super(object1, object2);
@@ -185,16 +184,8 @@ public class ViolationService {
             return new CheckKey(object1, object2);
         }
 
-        public CheckKey setBuffer(boolean buffer) {
-            useBuffer = buffer;
-            return this;
-        }
-
         @Override
         public int hashCode() {
-            if (useBuffer) {
-                return super.hashCode() << 5 ^ 2;
-            }
             return super.hashCode();
         }
 
@@ -238,14 +229,14 @@ public class ViolationService {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());
             }
-            if (loggerService.isDebug()) {
+            if (loggerService.isDebug())
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), violationName, this, getSetting());
-            }
+
             violations.incrementAndGet();
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this);
-            if (violations.get() < getSetting().getVlsAmount()) {
-                return false;
-            }
+
+            if (violations.get() < getSetting().getVlsAmount()) return false;
+
             punish(getPlayer(), violationName);
             return true;
         }
@@ -354,9 +345,8 @@ public class ViolationService {
             if (bufferIndex.get() < threshold) return false;
 
             bufferIndexCopy = bufferIndex.get();
-            if (getSetting().isClearBuffer()) {
-                this.bufferIndex.set(0);
-            }
+            if (getSetting().isClearBuffer()) this.bufferIndex.set(0);
+
             return handle(handle, violationName, onViolation);
         }
 
@@ -424,8 +414,8 @@ public class ViolationService {
 
         private volatile boolean violatedForInterval;
         private volatile long intervalStart;
-        private volatile int flagged;
-        private volatile int flaggedCopy;
+        private AtomicDouble flagged = new AtomicDouble();
+        private volatile double flaggedCopy;
 
         public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
@@ -435,7 +425,7 @@ public class ViolationService {
         }
 
         public int getFlagged() {
-            return flaggedCopy;
+            return (int) flaggedCopy;
         }
 
         public void reload() {
@@ -445,7 +435,7 @@ public class ViolationService {
 
         private void clearInterval() {
             violatedForInterval = false;
-            flagged = 0;
+            flagged.set(0);
             intervalStart = System.currentTimeMillis();
         }
 
@@ -453,22 +443,20 @@ public class ViolationService {
             if (System.currentTimeMillis() - intervalStart >= interval) {
                 clearInterval();
             }
-            flagged += amount;
+            flagged.addAndGet(amount);
             if (loggerService.isDebug()) {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName, this, getSetting());
             }
 
-            if (flagged < maxPerInterval) {
-                return false;
-            }
-            if (violatedForInterval) {
-                return true;
-            }
+            if (flagged.get() < maxPerInterval) return false;
+
+            if (violatedForInterval) return true;
+
             violatedForInterval = true;
-            flaggedCopy = flagged;
-            if (getSetting().isClearInterval()) {
-                clearInterval();
-            }
+            flaggedCopy = flagged.get();
+
+            if (getSetting().isClearInterval()) clearInterval();
+
             return violate(handle, violationName, onViolation);
         }
     }

@@ -60,7 +60,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowA implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int slot = packet.getWindowSlot();
@@ -90,7 +90,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowB implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = packet.getItem();
@@ -115,7 +115,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowC implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 if (player.getOpenInventory().getType().name().equals("LECTERN")) {
 

@@ -56,7 +56,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (player.getGameMode() != GameMode.CREATIVE) {
@@ -80,7 +80,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int slot = packet.getSlot();
@@ -105,7 +105,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     public static class CreativeC implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (ItemAnalysis.checkItem(player, packet.getItem())) {

@@ -86,7 +86,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public abstract boolean useDefaultCheckKey();
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (useDefaultCheckKey())
                 return ResponseBuilder.FLOOD_FLAG_DEFAULT_KEY.apply(packet.getContainer());
 
@@ -160,7 +160,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
         }
 

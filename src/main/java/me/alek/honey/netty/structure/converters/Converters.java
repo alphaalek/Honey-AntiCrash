@@ -5,6 +5,7 @@ import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInUseEntity;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
@@ -17,6 +18,7 @@ import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import org.bukkit.Chunk;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -144,6 +146,66 @@ public class Converters {
 
     public static <V> JavaConverter<Object, WrappedLongObjectHashMap<V>> getLongObjectHashMapConverter() {
         return getConverter(WrappedLongObjectHashMap.class, (clazz) -> new SimpleWrapperConverter<>(WrappedLongObjectHashMap.class));
+    }
+
+    public static JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction> getEntityUseActionConverter() {
+        return getConverter(WrappedPlayInUseEntity.EnumEntityUseAction.class, (clazz) -> new JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction>() {
+
+            private final Class<Object> enumEntityUseActionClass = NMSUtils.getEntityUseActionClass();
+
+            @Override
+            public WrappedPlayInUseEntity.EnumEntityUseAction convertDelegate(Object delegate, Object... params) {
+                if (delegate == null) return null;
+                return WrappedPlayInUseEntity.EnumEntityUseAction.valueOf(delegate.toString());
+            }
+
+            @Override
+            public Object convertDeclaring(WrappedPlayInUseEntity.EnumEntityUseAction object) {
+                if (object == null) return null;
+                return enumEntityUseActionClass.getEnumConstants()[object.ordinal()];
+            }
+        });
+    }
+
+    public static JavaConverter<Object, Vector> getVector3DConverter() {
+        return getConverter(Vector.class, (clazz) -> new JavaConverter<Object, Vector>() {
+
+            private final Class<Object> vec3DClass = NMSUtils.getVec3DClass();
+
+            @Override
+            public Vector convertDelegate(Object delegate, Object... params) {
+                if (delegate == null) return null;
+
+                IStructureModifier<Double> modifier = ReflectStructureCache.acquireStructure(delegate.getClass())
+                        .asDouble()
+                        .withTarget(delegate);
+
+                double x = modifier.readField(0);
+                double y = modifier.readField(1);
+                double z = modifier.readField(2);
+
+                return new Vector(x, y ,z);
+            }
+
+            @Override
+            public Object convertDeclaring(Vector vector) {
+                if (vector == null) return null;
+
+                ConstructorInvoker<Object> vectorConstructor = new ConstructorInvoker<>(vec3DClass);
+
+                double x = vector.getX();
+                double y = vector.getY();
+                double z = vector.getZ();
+
+                try {
+                    return vectorConstructor.invokeWithException(x, y, z);
+
+                } catch (Exception ex) {
+                    return null;
+                }
+            }
+        });
+
     }
 
     public static JavaConverter<Object, WrappedChunkCoordIntPair> getChunkCoordIntConverter() {

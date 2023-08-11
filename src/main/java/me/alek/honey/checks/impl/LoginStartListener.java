@@ -57,7 +57,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     public static class LoginA implements PacketCheck<WrappedLoginInLoginStart> {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
@@ -77,7 +77,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     public static class LoginB implements PacketCheck<WrappedLoginInLoginStart> {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

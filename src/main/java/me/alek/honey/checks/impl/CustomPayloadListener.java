@@ -93,7 +93,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadA implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ByteBuf serializer = container.get(ByteBuf.class, 0);
@@ -117,7 +117,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
     public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ByteBuf serializer = container.get(ByteBuf.class,0);
@@ -146,7 +146,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadC implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = container.poll(ItemStack.class);
@@ -184,7 +184,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadD implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
@@ -221,7 +221,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadE implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
@@ -254,7 +254,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, ViolationKeyedCheck<WrappedPlayInCustomPayload, String> {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadF.class).isEnabled()) {
 
                 if (ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
@@ -283,7 +283,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadG implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();

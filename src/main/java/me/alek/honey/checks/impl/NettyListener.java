@@ -24,8 +24,7 @@ import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -45,6 +44,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
         visitor.visit(new NettyB<>());
+        visitor.visit(new NettyI<>());
         return visitor;
     }
 
@@ -56,6 +56,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
 
+    }
+
+    @Override
+    public void cleanup(Player player) {
+        NettyI.decodeStartMap.remove(player.getUniqueId());
     }
 
     @Override
@@ -75,7 +80,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (player == null || !player.isOnline()) {
@@ -137,7 +142,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
@@ -169,6 +174,42 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class);
+        }
+    }
+
+    public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final Map<UUID, Long> decodeStartMap = new HashMap<>();
+
+        public static void registerDecodeFor(Player player) {
+            decodeStartMap.put(player.getUniqueId(), System.currentTimeMillis());
+        }
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                if (player != null && decodeStartMap.containsKey(player.getUniqueId())) {
+
+                    long decodeStart = decodeStartMap.get(player.getUniqueId());
+                    long decodeTime = System.currentTimeMillis() - decodeStart;
+
+                    if (decodeTime > ConfigurationOptions.Netty.NettyI.MAX) {
+                        return ResponseBuilder.inst().cancel().flag().build();
+                    }
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Netty.I";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
         }
     }
 }

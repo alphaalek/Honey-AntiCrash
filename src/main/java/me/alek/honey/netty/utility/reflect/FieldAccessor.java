@@ -19,6 +19,7 @@ public class FieldAccessor<T> implements ReflectToucher<T> {
         try {
             return (T) field.get(object);
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Reflection fejl");
         }
     }

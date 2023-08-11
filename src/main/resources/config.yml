@@ -189,6 +189,10 @@ netty:
     enabled: true
     threshold: 400000
 
+  i:
+    enabled: true
+    max: 5000
+
 # |--- custom payload ---|
 custom-payload:
   a:
@@ -273,11 +277,12 @@ held-item:
 
 # |--- position ---|
 position:
+
   a:
     enabled: true
-    max: 2048
-    min: -256
-    vls-amount: 1
+    max-per-interval: 10
+    interval: 1750
+    vls-amount: 3
 
   b:
     enabled: true
@@ -330,6 +335,12 @@ position:
     interval: 2500
     vls-amount: 1
 
+  j:
+    enabled: true
+    max: 2048
+    min: -256
+    vls-amount: 1
+
 # |--- rotation ---|
 rotation:
   a:
@@ -349,15 +360,16 @@ rotation:
     decay-amount: 1500
     vls-amount: 3
 
-# |--- block place ---|
-block-place:
+# |--- block interact ---|
+block-interact:
   a:
     enabled: true
     vls-amount: 5
-    max: 25
+    max: 10
 
   b:
     enabled: true
+    vls-amount: 1
 
   c:
     enabled: true
@@ -366,6 +378,11 @@ block-place:
   d:
     enabled: true
     vls-amount: 3
+
+  e:
+    enabled: true
+    vls-amount: 5
+    max: 25
 
 # |--- set creative slot ---|
 set-creative-slot:
@@ -396,10 +413,24 @@ window-click:
 
   b:
     enabled: true
+    vls-amount: 1
 
   c:
     enabled: true
     vls-amount: 3
+
+# |--- use entity ---|
+use-entity:
+  a:
+    enabled: true
+    vls-amount: 3
+
+  b:
+    enabled: true
+    vls-amount: 3
+    max-x: 16.0
+    max-y: 12.6
+    max-z: 16.0
 
 ############################################################
 # +------------------------------------------------------+ #
@@ -561,8 +592,8 @@ packet-flood:
 
     # position
     position:
-      max-per-interval: 65
-      interval: 500
+      max-per-interval: 60
+      interval: 600
       vls-amount: 7
 
     # set creative slot

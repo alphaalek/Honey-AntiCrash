@@ -53,7 +53,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
@@ -77,7 +77,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {

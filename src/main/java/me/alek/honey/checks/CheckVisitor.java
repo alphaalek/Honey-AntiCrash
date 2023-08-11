@@ -38,7 +38,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (skipping != null && skipping.getAndDecrement() > 0) {
                 continue;
             }
-            ResponseContainer response = check.accept(player, packetContainer.getPacket(), container);
+            ResponseContainer response = check.check(player, packetContainer.getPacket(), container);
             ConfigurationOptions.VlSetting setting = null;
             if (check instanceof ViolationCheck) {
                 setting = ((ViolationCheck)check).getSetting();

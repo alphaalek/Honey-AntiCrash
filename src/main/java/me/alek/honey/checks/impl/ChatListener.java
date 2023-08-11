@@ -61,7 +61,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
     public static class ChatA implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String message = packet.getMessage();
@@ -93,7 +93,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         private final boolean below_1_11 = Protocol.getProtocol().isOlderThan(Protocol.v1_11);
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int maxLength = below_1_11 ? 100 : 256;
@@ -170,7 +170,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         private final String[] prohibitedCommands = getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
 
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
@@ -187,7 +187,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getViolationName() {
-            return "Commands.A";
+            return "Command.A";
         }
 
         @Override

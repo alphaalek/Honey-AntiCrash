@@ -101,11 +101,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         return player;
     }
 
-    private <T> IStructureModifier<T> getModifier(Class<T> clazz) {
+    public <T> IStructureModifier<T> getModifier(Class<T> clazz) {
         return getModifier(clazz, null);
     }
 
-    private <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter) {
+    public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter) {
         return packetStructure.withType(clazz, converter).withTarget(handle);
     }
 

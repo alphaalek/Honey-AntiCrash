@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 
 public interface AbstractPipelineProxy {
 
-    public void setPlayer(Player player);
+    void setPlayer(Player player);
 
     Player getPlayer();
 }

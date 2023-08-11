@@ -4,6 +4,7 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
@@ -52,4 +53,7 @@ public interface ModifiablePacketContainer{
 
     <T> IStructureModifier<T> getObjects(Class<T> target);
 
+    <T> IStructureModifier<T> getModifier(Class<T> clazz);
+
+    <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter);
 }

@@ -64,7 +64,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         private static final Map<UUID, Float> lastYawMap = new HashMap<>();
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
 
             UUID uuid = player.getUniqueId();
             if (!lastYawMap.containsKey(uuid)) lastYawMap.put(uuid, packet.getYaw());
@@ -95,7 +95,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 float pitch = packet.getPitch();
@@ -120,7 +120,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 float yaw = packet.getYaw();

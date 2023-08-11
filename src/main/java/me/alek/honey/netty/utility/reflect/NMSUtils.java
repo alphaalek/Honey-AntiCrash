@@ -173,6 +173,14 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     }
 
+    public static Class<Object> getEntityUseActionClass() {
+        return getFuzzyClass("{nms}.PacketPlayInUseEntity$EnumEntityUseAction", "{nms}.network.protocol.game.PacketPlayInUseEntity$EnumEntityUseAction");
+    }
+
+    public static Class<Object> getVec3DClass() {
+        return getFuzzyClass("{nms}.Vec3D", "{nms}.world.phys.Vec3D");
+    }
+
     public static Class<Object> getItemClass() {
         return getFuzzyClass("{nms}.Item", "{nms}.world.item.Item");
     }

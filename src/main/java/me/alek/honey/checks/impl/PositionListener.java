@@ -16,6 +16,7 @@ import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPositional;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
@@ -27,12 +28,11 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, SampleDecayableList<Location>> lastTeleportationLocationMap = new HashMap<>();
-    private static final Map<UUID, Long> timeSinceLastMovement = new HashMap<>();
-    private static final Map<UUID, Boolean> wasMovement = new HashMap<>();
 
     public PositionListener() {
         HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutPosition>() {
@@ -42,7 +42,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 synchronized (lastTeleportationLocationMap) {
                     UUID uuid = player.getUniqueId();
 
-                    if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(20000, 10));
+                    if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(20000, 10, 1));
                     SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
                     sampleDecayableList.put(packetContainer.getPacket().getLocation());
@@ -56,11 +56,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         private final long collectInterval;
         private final int sampleSize;
+        private final int lockAmount;
         private final LinkedList<SampleNode> sampleNodes = new LinkedList<>();
+        private final LinkedList<T> lockedNodes = new LinkedList<>();
 
-        public SampleDecayableList(long collectInterval, int sampleSize) {
+        public SampleDecayableList(long collectInterval, int sampleSize, int lockAmount) {
             this.collectInterval = collectInterval;
             this.sampleSize = sampleSize;
+            this.lockAmount = lockAmount;
         }
 
         public class SampleNode {
@@ -77,6 +80,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 sampleNodes.addLast(new SampleNode(node));
 
                 if (sampleNodes.size() > sampleSize) sampleNodes.removeFirst();
+
+                if (lockAmount > 0) {
+
+                    lockedNodes.addLast(node);
+                    if (lockedNodes.size() > lockAmount) lockedNodes.removeFirst();
+                }
             }
         }
 
@@ -129,6 +138,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             return list;
         }
+
+        public List<T> getLocked() {
+            return lockedNodes;
+        }
     }
 
     @Override
@@ -136,30 +149,20 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return () -> Arrays.asList(
                 PacketType.Play.Client.POSITION,
                 PacketType.Play.Client.POSITION_LOOK,
-                PacketType.Play.Client.VEHICLE_MOVE
+                PacketType.Play.Client.VEHICLE_MOVE,
+                PacketType.Play.Client.GROUND,
+                PacketType.Play.Client.FLYING
         );
     }
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-        UUID uuid = player.getUniqueId();
-
-        boolean isMovement = !Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation());
-        synchronized (wasMovement) {
-            wasMovement.put(uuid, isMovement);
-        }
-
-        synchronized (timeSinceLastMovement) {
-            if (!timeSinceLastMovement.containsKey(uuid)) timeSinceLastMovement.put(uuid, 0L);
-
-            return isMovement;
-        }
+        return !Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation());
     }
 
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
-        UUID uuid = player.getUniqueId();
-        if (wasMovement.get(uuid)) timeSinceLastMovement.put(uuid, System.currentTimeMillis());
+
     }
 
     @Override
@@ -170,7 +173,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
-        visitor.visit(new PositionA<>());
+        visitor.visit(new PositionA());
         visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
         visitor.visit(new PositionD<>());
@@ -179,6 +182,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         visitor.visit(new PositionG<>());
         visitor.visit(new PositionH<>());
         visitor.visit(new PositionI<>());
+        visitor.visit(new PositionJ<>());
         return visitor;
     }
 
@@ -194,8 +198,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         PositionH.guessedDeltaY.remove(uuid);
 
         lastTeleportationLocationMap.remove(uuid);
-        timeSinceLastMovement.remove(uuid);
-        wasMovement.remove(uuid);
     }
 
     public static boolean isChunkLoaded(Location location) {
@@ -219,42 +221,53 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         final UUID uuid = player.getUniqueId();
 
         synchronized (lastTeleportationLocationMap) {
-            synchronized (timeSinceLastMovement) {
-                if (lastTeleportationLocationMap.containsKey(uuid)) {
+            if (lastTeleportationLocationMap.containsKey(uuid)) {
 
-                    SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
-                    for (Location location : sampleDecayableList.getAll()) {
+                SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
-                        double locationDiff = Locations.calculate3DDistance(location, currentLocation);
-                        if (locationDiff < diff) {
-                            return true;
+                List<Location> recentLocations = sampleDecayableList.getAll();
+                List<Location> lockedLocations = sampleDecayableList.getLocked();
+
+                Stream<Location> allLocations = Stream.concat(recentLocations.stream(), lockedLocations.stream());
+
+                Optional<Location> isCloseTo = allLocations
+                    .filter(
+                        (location) -> {
+                            double locationDiff = Locations.calculate3DDistance(location, currentLocation);
+                            return locationDiff < diff;
                         }
-                    }
-                }
-                if (timeSinceLastMovement.containsKey(uuid)) {
+                    ).findFirst();
 
-                    long timeDiff = System.currentTimeMillis() - timeSinceLastMovement.get(uuid);
-                    if (timeDiff > 1000) return true;
-                }
+                return isCloseTo.isPresent();
             }
         }
         return false;
     }
 
-    public static class PositionA<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final Map<UUID, Boolean> lastOnGroundMap = new HashMap<>();
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-                final double x = packet.getX();
-                final double y = packet.getY();
-                final double z = packet.getZ();
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND)) return ResponseBuilder.SUCCESS;
 
-                if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Position.PositionA.MIN || y > ConfigurationOptions.Position.PositionA.MAX) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+            ResponseContainer response = ResponseBuilder.inst().terminate().build();
+            if (getSetting().isEnabled()) {
+
+                UUID uuid = player.getUniqueId();
+                if (!lastOnGroundMap.containsKey(uuid)) lastOnGroundMap.put(uuid, packet.onGround());
+
+                boolean onGround = packet.onGround();
+                boolean wasOnGround = lastOnGroundMap.get(uuid);
+
+                lastOnGroundMap.put(uuid, onGround);
+
+                if (onGround != wasOnGround) {
+                    return response.builder().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return response;
         }
 
         @Override
@@ -273,38 +286,45 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Location> lastPacketLocation = new ConcurrentHashMap<>();
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            final Location packetLoc = packet.getLocation();
+
+            final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
+            container.put(Location.class, lastKnownPacketLoc);
+
+            lastPacketLocation.put(player.getUniqueId(), packetLoc);
+
+            if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
+                container.putBoolean(true);
+                return ResponseBuilder.SUCCESS;
+            }
+
+            final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+            container.putDouble(distance2d);
+
+            final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+            container.putDouble(distanceY);
+
             if (getSetting().isEnabled()) {
 
                 double maxDistance = ConfigurationOptions.Position.PositionB.MAX;
                 double minDistance = ConfigurationOptions.Position.PositionB.MIN;
 
-                final Location packetLoc = packet.getLocation();
-                final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
-                container.put(Location.class, lastKnownPacketLoc);
-
-                lastPacketLocation.put(player.getUniqueId(), packetLoc);
-
-                if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
-                    container.putBoolean(true);
-                    return ResponseBuilder.SUCCESS;
-                }
-
                 // 2d distance check
-                final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-                container.putDouble(distance2d);
                 if (distance2d >= maxDistance || distance2d <= minDistance && distance2d != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
-                final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-                container.putDouble(distanceY);
                 if (distanceY >= maxDistance || distanceY <= minDistance && distanceY != 0) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        public static Location getLastLocationFor(Player player) {
+            return lastPacketLocation.get(player.getUniqueId());
         }
 
         @Override
@@ -323,7 +343,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private final Map<UUID, Location> lastFlaggedLocationMap = new HashMap<>();
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 // tjekker om en spiller flyver, for så kan man sagtens fylde bufferen hurtigt op alligevel
@@ -393,7 +413,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey("Position.B", false);
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ViolationService.CheckKey key = (player.isFlying()) ? flightKey : nonFlightKey;
@@ -438,7 +458,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionE<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().cancel().flag().build();
             }
@@ -508,7 +528,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Direction[]> lastDirectionFlowMap = new ConcurrentHashMap<>();
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 Location priorLocation = container.get(Location.class, 0);
@@ -559,7 +579,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionG<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 // tjekker om den packet er en vehicle move packet
@@ -590,7 +610,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Double> guessedDeltaY = new HashMap<>();
 
         @Override
-        public synchronized ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public synchronized ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
 
             ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
             if (getSetting().isEnabled()) {
@@ -654,7 +674,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionI<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer accept(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 return ResponseBuilder.inst().flag().build();
@@ -670,6 +690,33 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionI.class);
+        }
+    }
+
+    public static class PositionJ<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled()) {
+                final double x = packet.getX();
+                final double y = packet.getY();
+                final double z = packet.getZ();
+
+                if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Position.PositionJ.MIN || y > ConfigurationOptions.Position.PositionJ.MAX) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Position.J";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionJ.class);
         }
     }
 }

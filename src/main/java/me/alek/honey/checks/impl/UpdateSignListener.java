@@ -52,7 +52,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
         };
 
         @Override
-        public ResponseContainer accept(Player player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
                     return ResponseBuilder.inst().cancel().punish().build();
