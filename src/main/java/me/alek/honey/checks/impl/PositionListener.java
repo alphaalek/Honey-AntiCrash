@@ -557,7 +557,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                             continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());
                         }
                     }
                 }
@@ -633,7 +633,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, 1, null, "Position.H", getSetting());
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting());
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
@@ -649,7 +649,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (deltaY % 0.375 < 0.000001) {
                             return response;
                         }
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, 1, null, "Position.H", getSetting());
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting());
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);

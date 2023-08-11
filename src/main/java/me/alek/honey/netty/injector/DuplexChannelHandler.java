@@ -7,7 +7,6 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.atomic.AtomicBoolean;

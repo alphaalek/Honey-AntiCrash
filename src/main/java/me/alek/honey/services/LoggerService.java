@@ -10,7 +10,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -60,19 +59,19 @@ public class LoggerService {
             LoggingStrategy strategy,
             Object handle,
             String playerName,
-            String violationName,
-            ViolationService.AbstractPacketLimitHandler packetLimitHandler,
-            ConfigurationOptions.VlSetting setting
+            String violationName
     ) {
         if (!debug) return;
         if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(handle.getClass().getSimpleName())) {
             return;
         }
         String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
-        HoneyPlugin.get().getLogger().info("DEBUG: " +
-                 logType + " " + playerName + " for " + violationName + ". " + ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, packetLimitHandler))
-                + " (" + handle.getClass().getSimpleName() + ")"
-        );
+
+        if (logType.equals("flagged")) {
+            if (violationName.equals("Netty.G") || violationName.equals("Netty.F") || violationName.equals("Rotation.C") || violationName.contains("Flood")) return;
+        }
+
+        HoneyPlugin.get().getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(

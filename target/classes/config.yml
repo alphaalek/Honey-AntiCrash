@@ -385,7 +385,7 @@ block-interact:
   e:
     enabled: true
     vls-amount: 5
-    max: 25
+    max: 10
 
 # |--- tab complete ---|
 tab-complete:

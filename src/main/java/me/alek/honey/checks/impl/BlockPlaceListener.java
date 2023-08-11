@@ -77,7 +77,6 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         if (playerLocation == null) playerLocation = player.getLocation();
 
         double distance = blockPosition.distance(playerLocation);
-        Bukkit.broadcastMessage(distance + "");
 
         // the distance is higher than the recent client location
         if (distance > maxDistance) {

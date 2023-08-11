@@ -69,8 +69,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     }
                     continue;
                 }
-                ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check, packetContainer.getType());
-                HoneyPlugin.get().getViolationService().flag(player, packetContainer, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting);
+                ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check.getClass(), packetContainer.getType());
+                HoneyPlugin.get().getViolationService().flag(player, packetContainer.getHandle(), packetContainer, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting);
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null) {
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);

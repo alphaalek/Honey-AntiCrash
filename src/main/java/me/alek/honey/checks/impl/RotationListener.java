@@ -129,7 +129,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 float deltaYaw = Math.abs(lastYaw - yaw);
 
                 if (deltaYaw != 0)
-                    return ResponseBuilder.inst().setFlagged(deltaYaw).build();
+                    return ResponseBuilder.inst().setFlagged(deltaYaw).onViolation(() -> packet.getContainer().cancel()).build();
             }
             return ResponseBuilder.SUCCESS;
         }

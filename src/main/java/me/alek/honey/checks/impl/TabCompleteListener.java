@@ -132,7 +132,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                     @Override
                     public void accept(int size) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), key, size, null, getViolationName(), getSetting());
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, size, null, getViolationName(), getSetting());
                     }
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,

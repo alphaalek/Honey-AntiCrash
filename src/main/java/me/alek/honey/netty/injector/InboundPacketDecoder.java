@@ -70,7 +70,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
                 int readableBytes = byteBuf.readableBytes();
                 ViolationService.CheckKey key = new ViolationService.CheckKey(this, "NettyE");
 
-                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, key, readableBytes, null, "Netty.E", nettyESetting)) {
+                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, key, readableBytes, null, "Netty.E", nettyESetting)) {
                     if (byteBuf.refCnt() > 0) {byteBuf.clear();}
 
                     return;
@@ -79,7 +79,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             }
             // tjek packet buffer
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class).isEnabled()) {
-                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, new ViolationService.CheckKey(this, "NettyF"), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
+                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, new ViolationService.CheckKey(this, "NettyF"), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
                     if (byteBuf.refCnt() > 0) {byteBuf.clear();}
 
                     return;
@@ -120,12 +120,12 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
                     while (dataSerializer.isReadable()) {
                         int byteSize = Math.abs(dataSerializer.readByte());
 
-                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyGKey, byteSize, null, "Netty.G", nettyGSetting)) {
+                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, nettyGKey, byteSize, null, "Netty.G", nettyGSetting)) {
                             if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                         }
                         if (nettyHSetting.isEnabled()) {
 
-                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
+                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
                                 if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                             }
                         }
