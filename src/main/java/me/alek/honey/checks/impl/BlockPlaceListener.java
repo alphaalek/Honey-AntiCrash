@@ -17,7 +17,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -64,11 +63,13 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
     public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance) {
 
+        if (blockPosition.equals(WrappedBlockPosition.ORIGIN) || blockPosition.equals(WrappedBlockPosition.DEFAULT))
+            return ResponseBuilder.SUCCESS;
+
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
         if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld())))
             return ResponseBuilder.inst().cancel().flag().build();
-
 
         if (blockPosition.isInvalid())
             return ResponseBuilder.inst().cancel().flag().terminate().build();
@@ -98,8 +99,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null || blockPosition.equals(WrappedBlockPosition.DEFAULT))
-                    return ResponseBuilder.SUCCESS;
+                if (blockPosition == null) return ResponseBuilder.SUCCESS;
 
                 return checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractA.MAX);
             }
