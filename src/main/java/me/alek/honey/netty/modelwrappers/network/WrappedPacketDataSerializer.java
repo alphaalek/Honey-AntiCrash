@@ -6,8 +6,6 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +18,6 @@ import java.nio.charset.Charset;
 import java.util.UUID;
 
 public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketDataSerializer> {
-
-    private static final ConstructorInvoker<Object> ITEM_STACK_CONSTRUCTOR
-            = new ConstructorInvoker<>(NMSUtils.getItemStackClass(), NMSUtils.getItemClass(), int.class, int.class);
 
     private final ByteBuf handle;
 

@@ -69,6 +69,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld())))
             return ResponseBuilder.inst().cancel().flag().build();
 
+
         if (blockPosition.isInvalid())
             return ResponseBuilder.inst().cancel().flag().terminate().build();
 

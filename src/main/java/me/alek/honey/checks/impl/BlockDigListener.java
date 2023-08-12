@@ -15,6 +15,7 @@ import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockDig;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -57,7 +58,7 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null) return ResponseBuilder.SUCCESS;
+                if (blockPosition == null || blockPosition.equals(WrappedBlockPosition.ORIGIN)) return ResponseBuilder.SUCCESS;
 
                 return BlockPlaceListener.checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractE.MAX);
             }

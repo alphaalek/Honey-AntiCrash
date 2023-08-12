@@ -41,7 +41,7 @@ public class PacketLibrary {
     }
 
     public static PacketLibrary set(PacketLibrarySettings settings) {
-        new PacketLibrary(settings);
+        if (INSTANCE == null) new PacketLibrary(settings);
         return INSTANCE;
     }
 

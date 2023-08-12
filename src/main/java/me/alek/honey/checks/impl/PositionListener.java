@@ -547,14 +547,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     for (Direction dir : velocity) {
 
                         // sørger for der ikke sker uoverensstemmelse i længderne og indices af de forskellige velocities
-                        if (++i == priorVelocity.length)
-                            break;
+                        if (++i == priorVelocity.length) break;
 
                         Axis axis = axisLookup.get(dir);
                         Direction corr = priorVelocity[i];
 
-                        if (corr == Direction.STILL || dir == Direction.STILL)
-                            continue;
+                        if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
                             HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());
@@ -609,6 +607,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Double> guessedDelta2D = new HashMap<>();
         private static final Map<UUID, Double> guessedDeltaY = new HashMap<>();
 
+        private static final ViolationService.CheckKey key = new ViolationService.CheckKey(PositionH.class, "PositionH");
+
         @Override
         public synchronized ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
 
@@ -627,8 +627,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (!guessedDelta2D.containsKey(uuid)) guessedDelta2D.put(uuid, 0d);
                 if (!guessedDeltaY.containsKey(uuid)) guessedDeltaY.put(uuid, 0d);
 
-                ViolationService.CheckKey key = new ViolationService.CheckKey("Position.H", this);
-
                 boolean hasPattern = false;
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
@@ -638,6 +636,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }
                     guessedDelta2D.put(uuid, delta2D);
                 }
+
                 if (deltaY > 0.5) {
                     if (guessedDeltaY.get(uuid) == deltaY) {
 
@@ -698,11 +697,18 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
+
                 final double x = packet.getX();
                 final double y = packet.getY();
                 final double z = packet.getZ();
 
-                if (x > 3.0E7 || x < -3.0E7 || z > 3.0E7 || z < -3.0E7 || y < ConfigurationOptions.Position.PositionJ.MIN || y > ConfigurationOptions.Position.PositionJ.MAX) {
+                if (x > 3.0E7 || x < -3.0E7) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
+                if (z > 3.0E7 || z < -3.0E7) {
+                    return ResponseBuilder.inst().cancel().flag().build();
+                }
+                if (y < ConfigurationOptions.Position.PositionJ.MIN || y > ConfigurationOptions.Position.PositionJ.MAX) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

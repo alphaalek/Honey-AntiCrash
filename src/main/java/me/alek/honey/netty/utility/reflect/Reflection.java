@@ -54,7 +54,7 @@ public class Reflection {
                 return subClass;
             }
         }
-        throw new RuntimeException("Reflection fejl " + name);
+        throw new RuntimeException("Reflection fejl (subclass): " + superClass.getName() + ", " + name);
     }
 
     public static Class<Object> getSubClass(String superClass, String name) {
@@ -92,7 +92,7 @@ public class Reflection {
             } catch (Exception ex) {
             }
         }
-        throw new RuntimeException("Reflection fejl " + names);
+        throw new RuntimeException("Reflection fejl (class): " + Arrays.toString(names));
     }
 
     public static Class<Object> getFuzzyObjectClass(String... names) {
@@ -156,7 +156,7 @@ public class Reflection {
         try {
             return (ConstructorInvoker<Object>) new ConstructorInvoker<>(target.getConstructor(parameters));
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection fejl");
+            throw new RuntimeException("Reflection fejl (constructor): " + target.getName() + ", " + Arrays.toString(parameters));
         }
     }
 
@@ -182,7 +182,7 @@ public class Reflection {
         if (target.getSuperclass() != null) {
             return getMethodFromParameters(target.getSuperclass(), index, parameters);
         }
-        throw new RuntimeException("Reflection fejl " + index + " " + target.getName());
+        throw new RuntimeException("Reflection fejl (method): " + target.getName() + ", " + index + ", " + Arrays.toString(parameters));
     }
 
     public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
@@ -199,7 +199,7 @@ public class Reflection {
         if (target.getSuperclass() != null) {
             return getMethodFromReturnType(target.getSuperclass(), index, returnType);
         }
-        throw new RuntimeException("Reflection fejl " + index + " " + target.getName() + " " + returnType);
+        throw new RuntimeException("Reflection fejl (method):" + index + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
     public static MethodInvoker<Object> getMethod(Class<?> target, String name, Class<?>... parameters) {
@@ -212,38 +212,17 @@ public class Reflection {
         if (target.getSuperclass() != null) {
             return getMethod(target.getSuperclass(), name, parameters);
         }
-        throw new RuntimeException("Reflection fejl " + name);
-    }
-
-    public static <T> FieldAccessor<T> getField(String target, String name, Class<?> type) {
-        return getField(getClass(target), name, type);
-    }
-
-    public static <T> FieldAccessor<T> getField(Class<?> target, String name, Class<?> type) {
-        FieldAccessor<T> accessor = getNullableField(target, name, type);
-        if (accessor == null) {
-            throw new RuntimeException("Reflection fejl");
-        }
-        return accessor;
+        throw new RuntimeException("Reflection fejl (method): " + target.getName() + ", " + name + ", " + Arrays.toString(parameters));
     }
 
     public static <T> FieldAccessor<T> getNullableField(Class<?> target, String name, Class<?> type) {
         for (Field field : target.getDeclaredFields()) {
-            if (!field.getName().equals(name) || field.getType()!= type) {
+            if (!field.getName().equals(name) || field.getType() != type) {
                 continue;
             }
-            field.setAccessible(true);
             return new FieldAccessor<>(field);
         }
         return null;
-    }
-
-    public static <T> FieldAccessor<T> getField(Class<?> target, int index, Class<?> type) {
-        FieldAccessor<T> accessor = getNullableField(target, index, type);
-        if (accessor == null) {
-            throw new RuntimeException("Reflection fejl");
-        }
-        return accessor;
     }
 
     public static <T> FieldAccessor<T> getNullableField(Class<?> target, int index, Class<?> type) {
@@ -251,13 +230,75 @@ public class Reflection {
         for (Field field : target.getDeclaredFields()) {
 
             if (field.getType() == type) {
-                if (currentIndex == index) {
+                if (currentIndex++ == index) {
                     return new FieldAccessor<>(field);
                 }
-                currentIndex++;
             }
         }
         return null;
+    }
+
+    public static <T> FieldAccessor<T> getNullableFieldAssignableFrom(Class<?> target, String name, Class<?> type) {
+        for (Field field : target.getDeclaredFields()) {
+            if (!field.getName().equals(name) || type.isAssignableFrom(field.getType())) {
+                continue;
+            }
+            return new FieldAccessor<>(field);
+        }
+        return null;
+    }
+
+    public static <T> FieldAccessor<T> getNullableFieldAssignableFrom(Class<?> target, int index, Class<?> type) {
+        int currentIndex = 0;
+        for (Field field : target.getDeclaredFields()) {
+
+            if (type.isAssignableFrom(field.getType())) {
+                if (currentIndex++ == index) {
+                    return new FieldAccessor<>(field);
+                }
+            }
+        }
+        return null;
+    }
+
+    public static <T> FieldAccessor<T> getField(String target, String name, Class<?> type) {
+        return getField(getClass(target), name, type);
+    }
+
+    public static <T> FieldAccessor<T> getField(Class<?> target, String name, Class<?>... types) {
+        for (Class<?> type : types) {
+            FieldAccessor<T> accessor = getNullableField(target, name, type);
+
+            if (accessor != null) return accessor;
+        }
+        throw new RuntimeException("Reflection fejl (field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
+    }
+
+    public static <T> FieldAccessor<T> getField(Class<?> target, int index, Class<?>... types) {
+        for (Class<?> type : types) {
+            FieldAccessor<T> accessor = getNullableField(target, index, type);
+
+            if (accessor != null) return accessor;
+        }
+        throw new RuntimeException("Reflection fejl (field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
+    }
+
+    public static <T> FieldAccessor<T> getFieldAssignableFrom(Class<?> target, String name, Class<?>... types) {
+        for (Class<?> type : types) {
+            FieldAccessor<T> accessor = getNullableFieldAssignableFrom(target, name, type);
+
+            if (accessor != null) return accessor;
+        }
+        throw new RuntimeException("Reflection fejl (assignable type field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
+    }
+
+    public static <T> FieldAccessor<T> getFieldAssignableFrom(Class<?> target, int index, Class<?>... types) {
+        for (Class<?> type : types) {
+            FieldAccessor<T> accessor = getNullableFieldAssignableFrom(target, index, type);
+
+            if (accessor != null) return accessor;
+        }
+        throw new RuntimeException("Reflection fejl (assignable type field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
     }
 
     public static <T> FieldAccessor<T> getParameterizedField(Class<?> target, Class<?> bound, Class<?>... generic) {
@@ -268,12 +309,11 @@ public class Reflection {
                 ParameterizedType parameterizedType = (ParameterizedType) fieldType;
 
                 if (Arrays.equals(generic, parameterizedType.getActualTypeArguments())) {
-                    field.setAccessible(true);
                     return new FieldAccessor<>(field);
                 }
             }
         }
-        throw new RuntimeException("Reflection fejl " + bound);
+        throw new RuntimeException("Reflection fejl (parameterized field):" + target.getName() + ", " + bound + ", " + Arrays.toString(generic));
     }
 
     public static Enum<?> getEnumAtIndex(Class<Enum<?>> enumClass, int ordinal) {
@@ -282,7 +322,7 @@ public class Reflection {
                 return enumValue;
             }
         }
-        throw new RuntimeException("Reflection fejl " + ordinal);
+        throw new RuntimeException("Reflection fejl (enum): " + enumClass.getName() + ", " + ordinal);
     }
 
     public static Enum<?> getEnumForName(Class<Enum<?>> enumClass, String name) {
@@ -291,7 +331,7 @@ public class Reflection {
                 return enumValue;
             }
         }
-        throw new RuntimeException("Reflection fejl " + name);
+        throw new RuntimeException("Reflection fejl (enum): " + enumClass.getName() + ", " + name);
     }
 
     public static String getVersion() {

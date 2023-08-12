@@ -19,7 +19,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
     private static final Class<?> minecraftServerClass = NMSUtils.getMinecraftServerClass();
     private static final Class<?> serverConnectionClass = NMSUtils.getServerConnectionClass();
     private static final Class<?> craftServerClass = NMSUtils.getCraftServerClass();
-    private static final FieldAccessor<Object> getMinecraftServer = Reflection.getField(
+    private static final FieldAccessor<Object> getMinecraftServer = Reflection.getFieldAssignableFrom(
             craftServerClass, 0, minecraftServerClass
     );
     private static final FieldAccessor<Object> getServerConnection = Reflection.getField(

@@ -333,7 +333,6 @@ me\alek\honey\configuration\ConfigurationOptions$Chat$ChatA.class
 me\alek\honey\checks\impl\PositionListener$PositionA.class
 me\alek\honey\checks\impl\NettyListener.class
 me\alek\honey\configuration\ConfigurationOptions$Netty$NettyF.class
-me\alek\honey\netty\packet\PacketFactory.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCompression.class
 me\alek\honey\checks\impl\PositionListener.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$IntArrayWriter.class

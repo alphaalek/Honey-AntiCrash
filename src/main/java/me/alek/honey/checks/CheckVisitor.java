@@ -31,15 +31,16 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) throws Exception {
         AtomicInteger skipping = null;
         for (PacketCheck<WP> check : checks) {
+
             if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 packetContainer.cancel();
                 return;
             }
-            if (skipping != null && skipping.getAndDecrement() > 0) {
-                continue;
-            }
+            if (skipping != null && skipping.getAndDecrement() > 0) continue;
+
             ResponseContainer response = check.check(player, packetContainer.getPacket(), container);
             ConfigurationOptions.VlSetting setting = null;
+
             if (check instanceof ViolationCheck) {
                 setting = ((ViolationCheck)check).getSetting();
             }
@@ -48,39 +49,31 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 setting = violationCheck.getSetting(violationCheck.getKey(packetContainer.getPacket()));
             }
 
-            if (response.SKIP_INDICES != null) {
-                skipping = response.SKIP_INDICES;
-            }
+            if (response.SKIP_INDICES != null) skipping = response.SKIP_INDICES;
+
             if (response.SUCCESS) {
 
-                if (response.TERMINATE) {
-                    return;
-                }
+                if (response.TERMINATE) return;
                 continue;
             }
-            if (response.CANCELLED) {
-                packetContainer.cancel();
-            }
+            if (response.CANCELLED) packetContainer.cancel();
+
             if (response.FLAGGED != 0) {
                 if (setting == null) {
 
-                    if (response.TERMINATE) {
-                        return;
-                    }
+                    if (response.TERMINATE) return;
                     continue;
                 }
                 ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check.getClass(), packetContainer.getType());
                 HoneyPlugin.get().getViolationService().flag(player, packetContainer.getHandle(), packetContainer, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting);
             }
-            if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null) {
+            if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);
-            }
-            if (response.PUNISH) {
+
+            if (response.PUNISH)
                 HoneyPlugin.get().getViolationService().punish(player, check.getViolationName());
-            }
-            if (response.TERMINATE) {
-                return;
-            }
+
+            if (response.TERMINATE) return;
         }
     }
 }

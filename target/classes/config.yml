@@ -26,14 +26,14 @@
 
 prefix: "&6Honey &8\u00BB"
 
-# How long time between each clearing of old violations
-clear-old-violations-timestamp: 120000 # 2 minutter
+# How long time between each clearing of old violations (in millis).
+clear-old-violations-timestamp: 120000 # 2 minutes
 
 # Permission which ignores packet checks. You have to enable it first.
 bypass-permission-enabled: false
 bypass-permission: "honey.bypass"
 
-# Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications
+# Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications.
 notify-permission: "honey.notify"
 
 # packet logger
@@ -184,9 +184,9 @@ netty:
   g:
     enabled: true
     until: 1750000
-    threshold: 550000
-    decay: 500
-    decay-amount: 150000
+    threshold: 500000
+    decay: 750
+    decay-amount: 115000
 
   h:
     enabled: true
@@ -539,7 +539,7 @@ packet-flood:
     # auto recipe
     auto-recipe:
       max-per-interval: 15
-      vls-amount: 4
+      vls-amount: 3
 
     # block dig
     block-dig:
