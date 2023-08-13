@@ -709,7 +709,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
                 if (y < ConfigurationOptions.Position.PositionJ.MIN || y > ConfigurationOptions.Position.PositionJ.MAX) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+
+                    double y_ = y;
+                    while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR || y_ < 0) {
+
+                    }
+                    player.teleport(new Location(player.getWorld(), x, y_ + 2, z));
+
+                    return ResponseBuilder.inst().cancel().punish().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
