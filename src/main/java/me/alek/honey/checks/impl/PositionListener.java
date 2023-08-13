@@ -711,10 +711,20 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (y < ConfigurationOptions.Position.PositionJ.MIN || y > ConfigurationOptions.Position.PositionJ.MAX) {
 
                     double y_ = y;
-                    while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR || y_ < 0) {
+                    if (y < ConfigurationOptions.Position.PositionJ.MIN) {
+                        while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
 
+                            if (y_ > ConfigurationOptions.Position.PositionJ.MAX - 3) break;
+                        }
                     }
-                    player.teleport(new Location(player.getWorld(), x, y_ + 2, z));
+                    if (y > ConfigurationOptions.Position.PositionJ.MAX) {
+                        while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
+
+                            if (y_ < 0) break;
+                        }
+                        y_ += 2;
+                    }
+                    player.teleport(new Location(player.getWorld(), x, y_, z));
 
                     return ResponseBuilder.inst().cancel().punish().build();
                 }
