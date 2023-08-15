@@ -27,7 +27,7 @@ public class NMSUtils {
 
     private static final HashMap<UUID, Channel> lookupChannels = new HashMap<>();
 
-    public static UUID getUUIDForChannel(Channel channel) {
+    public static synchronized UUID getUUIDForChannel(Channel channel) {
         for (UUID uuid : lookupChannels.keySet()) {
             if (lookupChannels.get(uuid) == channel) {
                 return uuid;
@@ -36,7 +36,7 @@ public class NMSUtils {
         return null;
     }
 
-    public static Channel getChannel(Player player) {
+    public static synchronized Channel getChannel(Player player) {
         UUID uuid = player.getUniqueId();
 
         if (!lookupChannels.containsKey(uuid)) {

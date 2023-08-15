@@ -99,13 +99,13 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
                     double maxY = ConfigurationOptions.UseEntity.UseEntityB.MAX_Y;
                     double maxZ = ConfigurationOptions.UseEntity.UseEntityB.MAX_Z / 2;
 
-                    if (y < 0 || y > maxY) {
+                    if (Math.abs(y) > maxY) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
-                    if (x > maxX || x < -maxX) {
+                    if (Math.abs(x) > maxX) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
-                    if (z > maxZ || z < -maxZ) {
+                    if (Math.abs(z) > maxZ) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }

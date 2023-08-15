@@ -720,7 +720,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     if (y > ConfigurationOptions.Position.PositionJ.MAX) {
                         while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
 
-                            if (y_ < 0) break;
+                            if (y_ < 16) break;
                         }
                         y_ += 2;
                     }
