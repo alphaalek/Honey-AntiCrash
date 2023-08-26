@@ -158,8 +158,7 @@ item-analysis:
 # |--- netty ---|
 netty:
   a:
-    enabled: true
-    vls-amount: 5
+    enabled: false
 
   b:
     enabled: true

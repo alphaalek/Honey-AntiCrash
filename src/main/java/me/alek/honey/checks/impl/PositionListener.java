@@ -21,6 +21,7 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -434,12 +435,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
             if (chunk != null) {
                 // den chunk er loaded, og vi skal derfor sørge for, at alle responses skipper næste check i pipeline
-                if (getSetting().isEnabled()) {
 
-                    if (lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
-                        // spilleren er inde i den samme chunk som sidste position update, og derfor skal der ikke flagges
-                        return ResponseBuilder.SUCCESS.builder().skip(1).build();
-                    }
+                if (!getSetting().isEnabled() || lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
+                    // spilleren er inde i den samme chunk som sidste position update, og derfor skal der ikke flagges
+                    return ResponseBuilder.SUCCESS.builder().skip(1).build();
                 }
                 // spilleren er bevæget sig ind i en ny chunk, og vi skal derfor registrere den chunk som den nuværende samt flag for dette check
                 lastChunkMap.put(player.getUniqueId(), chunk);

@@ -632,6 +632,8 @@ public class ItemChecks {
         public boolean check(ItemStack item, NBTCompound nbt) {
             MapView mapView = Bukkit.getMap(item.getDurability());
 
+            if (mapView == null) return false;
+
             MapConverter<Object, Object, WrappedRenderData> renderCache = ReflectStructureCache.acquireStructure(mapView.getClass())
                     .withWeakType(Map.class, Converters.getMapConverterOf(WrappedRenderData.class, Converters.getRenderDataConverter(), false))
                     .withTarget(mapView)
