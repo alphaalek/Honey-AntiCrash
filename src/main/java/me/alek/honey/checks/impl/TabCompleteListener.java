@@ -96,11 +96,9 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         private interface ResponseListener {
 
             void accept(int size);
-
         }
 
         public TabB() {
-
             HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutTabComplete>() {
 
                 @Override
