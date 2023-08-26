@@ -414,33 +414,38 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
 
-                ViolationService.CheckKey key = (player.isFlying()) ? flightKey : nonFlightKey;
+            ViolationService.CheckKey key = (player.isFlying()) ? flightKey : nonFlightKey;
 
-                // laver en kopi af settings for at lave en til når man flyver, da man kan besøge langt flere chunks så
-                if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
-                    int maxPerInterval = getSetting().getMaxPerInterval();
-                    ConfigurationOptions.VlSetting setting = getSetting().clone();
-                    setting.maxPerInterval = maxPerInterval * 3;
+            // laver en kopi af settings for at lave en til når man flyver, da man kan besøge langt flere chunks så
+            if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
+                int maxPerInterval = getSetting().getMaxPerInterval();
+                ConfigurationOptions.VlSetting setting = getSetting().clone();
+                setting.maxPerInterval = maxPerInterval * 3;
 
-                    // tvinger en ny packet limit handler til at blive oprettet med den nye flight setting
-                    HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
+                // tvinger en ny packet limit handler til at blive oprettet med den nye flight setting
+                HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
 
-                    manipulatedFlightSettingsMap.add(player.getUniqueId());
-                }
-                WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
-
-                ResponseContainer response = ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer()).builder().withKey(key).build();
-                if (chunk != null) {
-                    if (lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
-                        return ResponseBuilder.SUCCESS.builder().skip(1).build(); // skipper unloaded chunk check
-                    }
-                    lastChunkMap.put(player.getUniqueId(), chunk);
-                    return response.builder().skip(1).build(); // skipper unloaded chunk check
-                }
-                return response;
+                manipulatedFlightSettingsMap.add(player.getUniqueId());
             }
+            // får chunk på spillerens lokation som skal sammenlignes ift. sidste chunk hos spilleren, og på den måde vurdere
+            // om spilleren bevæger sig for hurtigt rundt på mappet, og måske forsøger at crash serveren på den måde, ved at
+            // load alt for mange chunks
+            WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
+            if (chunk != null) {
+                // den chunk er loaded, og vi skal derfor sørge for, at alle responses skipper næste check i pipeline
+                if (getSetting().isEnabled()) {
+
+                    if (lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
+                        // spilleren er inde i den samme chunk som sidste position update, og derfor skal der ikke flagges
+                        return ResponseBuilder.SUCCESS.builder().skip(1).build();
+                    }
+                }
+                // spilleren er bevæget sig ind i en ny chunk, og vi skal derfor registrere den chunk som den nuværende samt flag for dette check
+                lastChunkMap.put(player.getUniqueId(), chunk);
+                return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer()).builder().withKey(key).skip(1).build();
+            }
+            // den chunk er unloaded og derfor skal Position.E flagges
             return ResponseBuilder.SUCCESS;
         }
 
