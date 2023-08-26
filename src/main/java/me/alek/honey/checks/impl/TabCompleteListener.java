@@ -107,7 +107,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                     int size = packetContainer.getPacket().getSuggestions().length;
 
                     try {
-                        ResponseListener listener = tabCompleteQueueMap.get(player.getUniqueId()).poll();
+                        ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
 
                         if (listener != null) listener.accept(size);
 
@@ -124,9 +124,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
             if (getSetting().isEnabled()) {
 
                 UUID uuid = player.getUniqueId();
-                if (!tabCompleteQueueMap.containsKey(uuid)) tabCompleteQueueMap.put(uuid, new LinkedBlockingQueue<>());
-
-                tabCompleteQueueMap.get(uuid).add(new ResponseListener() {
+                tabCompleteQueueMap.computeIfAbsent(uuid, (d) -> new LinkedBlockingQueue<>()).add(new ResponseListener() {
                     @Override
                     public void accept(int size) {
 
