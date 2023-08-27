@@ -165,7 +165,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+            if (getSetting(packet.getType()).isEnabled()) {
+
+                return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
+            }
+            return ResponseBuilder.SUCCESS;
         }
 
         @Override
