@@ -217,6 +217,7 @@ me\alek\honey\configuration\ConfigurationOptions$Commands.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTabComplete.class
 me\alek\honey\checks\AbstractPacketListener.class
 me\alek\honey\configuration\ConfigurationOptions$Setting.class
+me\alek\honey\checks\impl\NettyListener$NettyI$1.class
 me\alek\honey\netty\packetwrappers\login\client\WrappedLoginInEncryptionResponse.class
 me\alek\honey\checks\impl\CustomPayloadListener$PayloadC.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityHeadRotation.class

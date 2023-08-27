@@ -23,8 +23,10 @@ import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -181,10 +183,23 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final Map<UUID, Long> decodeStartMap = new HashMap<>();
+        private static final Map<UUID, LinkedBlockingQueue<Long>> decodeStartMap = new HashMap<>();
+        private int recentTPS = 20;
 
-        public static void registerDecodeFor(Player player) {
-            decodeStartMap.put(player.getUniqueId(), System.currentTimeMillis());
+        public NettyI() {
+
+            new BukkitRunnable() {
+
+                @Override
+                public void run() {
+                    recentTPS = HoneyPlugin.get().getNotificationService().getTPS();
+                }
+            }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 60L);
+
+        }
+
+        public static void registerDecodeFor(Player player) throws Exception {
+            decodeStartMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).put(System.currentTimeMillis());
         }
 
         @Override
@@ -193,9 +208,17 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             if (player != null && decodeStartMap.containsKey(player.getUniqueId())) {
 
-                long decodeStart = decodeStartMap.get(player.getUniqueId());
-                decodeTime = System.currentTimeMillis() - decodeStart;
+                // poll the unix time of the matching packet and evaluate the duration of decoding this packet
+                Long decodeStart = decodeStartMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
+                if (decodeStart == null)
+                    return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
+                // disable this check if the TPS is really low
+                if (recentTPS <= 15)
+                    return ResponseBuilder.SUCCESS.builder().skip(1).build();
+
+                // evaluate the duration of decoding this packet
+                decodeTime = System.currentTimeMillis() - decodeStart;
                 container.putLong(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {

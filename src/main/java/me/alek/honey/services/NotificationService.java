@@ -103,14 +103,14 @@ public class NotificationService {
         untoggledlist.remove(observer);
     }
 
-    private int getTPS() {
+    public int getTPS() {
         Object minecraftServer = NMSUtils.getMinecraftServer();
         IStructureModifier<double[]> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMinecraftServerClass())
                 .withType(double[].class).withTarget(minecraftServer);
         return (int) minecraftServerModifier.readField(0)[0];
     }
 
-    private int getPing(Player player) {
+    public int getPing(Player player) {
         IStructureModifier<Object> craftPlayerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
                 .withType(NMSUtils.getEntityPlayerClass()).withTarget(player);
         Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle", 0);

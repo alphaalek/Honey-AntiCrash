@@ -177,15 +177,15 @@ netty:
 
   f:
     enabled: true
-    threshold: 32500
-    decay: 500
-    decay-amount: 5000
+    threshold: 35000
+    decay: 650
+    decay-amount: 7500
 
   g:
     enabled: true
     until: 3500000
     threshold: 500000
-    decay: 650
+    decay: 750
     decay-amount: 150000
 
   h:
@@ -194,13 +194,13 @@ netty:
 
   i:
     enabled: true
-    max: 500
+    max: 400
 
   j:
     enabled: true
-    threshold: 200
-    until: 1250
-    decay: 100
+    threshold: 125
+    until: 1000
+    decay: 60
     decay-amount: 1000
 
 # |--- custom payload ---|
@@ -540,7 +540,7 @@ packet-flood:
 
     # arm animation
     arm-animation:
-      max-per-interval: 65
+      max-per-interval: 75
       interval: 700
 
     # auto recipe
@@ -562,18 +562,18 @@ packet-flood:
 
     # chat
     chat:
-      max-per-interval: 10
-      interval: 500
+      max-per-interval: 8
+      interval: 800
       vls-amount: 6
 
     # client command
     client-command:
       max-per-interval: 12
-      interval: 500
+      interval: 600
 
     # close window
     close-window:
-      max-per-interval: 8
+      max-per-interval: 7
       interval: 1200
       vls-amount: 4
 
@@ -622,7 +622,7 @@ packet-flood:
     # set creative slot
     set-creative-slot:
       interval: 850
-      max-per-interval: 65
+      max-per-interval: 80
 
     # spectate
     spectate:
