@@ -389,7 +389,7 @@ public class ViolationService {
         public boolean handle(Object handle, PacketContainer<?> packetContainer, String violationName, Runnable onViolation) {
             if (onViolation != null) onViolation.run();
 
-            if (bufferIndex.get() > until) violate(handle, packetContainer, violationName, null);
+            if (bufferIndex.get() > until && getSetting().isEnabled()) violate(handle, packetContainer, violationName, null);
             return true;
         }
     }
@@ -403,6 +403,9 @@ public class ViolationService {
 
         @Override
         public boolean handle(Object handle, PacketContainer<?> packetContainer, String violationName, Runnable onViolation) {
+            // if the exploit check has come this far without the setting even being enabled, then we shouldn't violate the player
+            if (!getSetting().isEnabled()) return false;
+
             return violate(handle, packetContainer, violationName, onViolation);
         }
     }
@@ -414,7 +417,7 @@ public class ViolationService {
 
         private volatile boolean violatedForInterval;
         private volatile long intervalStart;
-        private AtomicDouble flagged = new AtomicDouble();
+        private final AtomicDouble flagged = new AtomicDouble();
         private volatile double flaggedCopy;
 
         public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {

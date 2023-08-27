@@ -21,7 +21,6 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -231,6 +230,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 Stream<Location> allLocations = Stream.concat(recentLocations.stream(), lockedLocations.stream());
 
+                // check if any of those locations is within the distance specified
                 Optional<Location> isCloseTo = allLocations
                     .filter(
                         (location) -> {
@@ -389,7 +389,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // this might be a false positive, shouldn't be that high. but position B would flag for this otherwise
                 if (priorDistance > 20) return ResponseBuilder.SUCCESS;
 
-                return ResponseBuilder.inst().setFlagged(priorDistance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
+                return ResponseBuilder.inst().flag(priorDistance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
             }
             return ResponseBuilder.SUCCESS;
         }

@@ -54,10 +54,10 @@ public class ResponseBuilder {
     }
 
     public ResponseBuilder flag() {
-        return setFlagged(1);
+        return flag(1);
     }
 
-    public ResponseBuilder setFlagged(double amount) {
+    public ResponseBuilder flag(double amount) {
         responseContainer.FLAGGED = amount;
         return this;
     }

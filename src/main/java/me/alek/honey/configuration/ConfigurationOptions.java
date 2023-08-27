@@ -863,6 +863,14 @@ public class ConfigurationOptions {
             }
 
         }
+
+        @Setting
+        @Violation("netty.j")
+        public static class NettyJ extends VlSetting {
+
+            public NettyJ() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
+
+        }
     }
 
     @Setting

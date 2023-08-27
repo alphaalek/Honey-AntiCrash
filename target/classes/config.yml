@@ -1,7 +1,7 @@
 
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
-#   + You are currently using the version 1.0.0 (BETA)
+#   + You are currently using the version 1.0-BETA-2
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you disover any errors or bugs, write to me on the discord server. (see below)
@@ -27,7 +27,7 @@
 prefix: "&6Honey &8\u00BB"
 
 # How long time between each clearing of old violations (in millis).
-clear-old-violations-timestamp: 120000 # 2 minutes
+clear-old-violations-timestamp: 60000 # 1 minute as default
 
 # Permission which ignores packet checks. You have to enable it first.
 bypass-permission-enabled: false
@@ -45,7 +45,7 @@ packet-logger:
   # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false
 
-  # Players which the packet logger should ignore. This is not covering Minecraft exploits, just the packet logger.
+  # Players which the packet logger should ignore. This is not covering the exploit checks, but only the packet logger.
   ignored-players:
   # - Alek05
 
@@ -73,7 +73,7 @@ item-analysis:
     # What strategy should be used when a forbidden item is found. You can choose between the following:
 
     # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.
-    # - average: The item will be confiscated. It will be removed from existance and can't be obtained again.
+    # - average: The item will be confiscated. It will be removed from existence and can't be obtained again.
     # - strict: The whole inventory will be removed. I do not recommend to use this, unless you also have strict settings below.
     confiscation-strategy: "average"
 
@@ -153,7 +153,8 @@ item-analysis:
 # +------------------------------------------------------+ #
 ############################################################
 
-# OBS: You SHOULDN'T disable any netty checks. If you do, your server may be very vulnerable by crash exploits!
+# OBS: You SHOULDN'T touch any netty checks on a production server.
+# If you do, your server may be very vulnerable by crash exploits!
 
 # |--- netty ---|
 netty:
@@ -176,16 +177,16 @@ netty:
 
   f:
     enabled: true
-    threshold: 26500
+    threshold: 32500
     decay: 500
     decay-amount: 5000
 
   g:
     enabled: true
-    until: 1750000
+    until: 3500000
     threshold: 500000
-    decay: 750
-    decay-amount: 115000
+    decay: 650
+    decay-amount: 150000
 
   h:
     enabled: true
@@ -193,7 +194,14 @@ netty:
 
   i:
     enabled: true
-    max: 5000
+    max: 500
+
+  j:
+    enabled: true
+    threshold: 200
+    until: 1250
+    decay: 100
+    decay-amount: 1000
 
 # |--- custom payload ---|
 custom-payload:

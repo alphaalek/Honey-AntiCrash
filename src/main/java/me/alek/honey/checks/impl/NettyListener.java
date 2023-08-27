@@ -43,8 +43,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
+        // all the other netty checks (C - H) are in the packet decoder
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
+        visitor.visit(new NettyJ<>());
         return visitor;
     }
 
@@ -187,16 +189,18 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
+            long decodeTime = 0;
 
-                if (player != null && decodeStartMap.containsKey(player.getUniqueId())) {
+            if (player != null && decodeStartMap.containsKey(player.getUniqueId())) {
 
-                    long decodeStart = decodeStartMap.get(player.getUniqueId());
-                    long decodeTime = System.currentTimeMillis() - decodeStart;
+                long decodeStart = decodeStartMap.get(player.getUniqueId());
+                decodeTime = System.currentTimeMillis() - decodeStart;
 
-                    if (decodeTime > ConfigurationOptions.Netty.NettyI.MAX) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
+                container.putLong(decodeTime);
+            }
+            if (getSetting().isEnabled() && decodeTime > 0) {
+                if (decodeTime > ConfigurationOptions.Netty.NettyI.MAX) {
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -210,6 +214,32 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
+        }
+    }
+
+    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                long decodeTime = container.getLong(0);
+                if (decodeTime > 0) {
+
+                    return ResponseBuilder.inst().flag(decodeTime).build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Netty.J";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
         }
     }
 }

@@ -48,6 +48,7 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$Position.cla
 me\alek\honey\netty\api\packet\container\PacketContainer.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSelectAdvancementTab.class
 me\alek\honey\checks\impl\PositionListener$PositionB.class
+me\alek\honey\checks\impl\NettyListener$NettyJ.class
 me\alek\honey\netty\listener\SyncPacketAdapter.class
 me\alek\honey\metrics\Metrics$SimpleBarChart.class
 me\alek\honey\checks\item\ItemChecks$IllegalCharacterCheck.class
@@ -113,6 +114,7 @@ me\alek\honey\netty\packet\PacketWrapperFactory$PacketFactory.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCommands.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutBlockChange.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutResourcePackSend.class
+me\alek\honey\configuration\ConfigurationOptions$Netty$NettyJ.class
 me\alek\honey\metrics\Metrics$CustomChart.class
 me\alek\honey\netty\packet\type\PacketType$Handshake$Client.class
 me\alek\honey\metrics\Metrics$MetricsBase.class

@@ -33,7 +33,13 @@ public class CheckContextContainer {
         put(Byte.class, byteValue);
     }
 
-    public void putDouble(double doubleValue) {put(Double.class, doubleValue);}
+    public void putDouble(double doubleValue) {
+        put(Double.class, doubleValue);
+    }
+
+    public void putLong(long longValue) {
+        put(Long.class, longValue);
+    }
 
     public boolean getBoolean(int index) {
         Boolean bool = get(Boolean.class, index);
@@ -76,9 +82,16 @@ public class CheckContextContainer {
 
     public double getDouble(int index) {
         Double doubleValue = get(Double.class, index);
-        if (doubleValue == null) return 0;
+        if (doubleValue == null) return 0d;
 
         return doubleValue;
+    }
+
+    public long getLong(int index) {
+        Long longValue = get(Long.class, index);
+        if (longValue == null) return 0L;
+
+        return longValue;
     }
 
     public synchronized <T> void put(Class<T> clazz, T value) {
