@@ -81,7 +81,7 @@ public class ItemChecks {
     public static class MaxEnchantmentLevelCheck implements ItemAnalysis.ItemChecker {
 
         private int MAX_ENCHANTMENT_LEVEL;
-        private String[] enchantmentKeys = new String[]{"ench", "StoredEnchantments", "Enchantments"};
+        private final String[] enchantmentKeys = new String[]{"ench", "StoredEnchantments", "Enchantments"};
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {

@@ -106,8 +106,8 @@ public class ItemAnalysis {
         }
         Bukkit.getLogger().info("DEBUG: " + flaggedCheck.name());
 
-        //HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
-        //return true;
+        // HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
+        // return true;
 
         return false;
     }
@@ -125,6 +125,7 @@ public class ItemAnalysis {
         }
         if (nbt != null) {
             for (String key : nbt.getKeys()) {
+
                 if (directAvailableNBTChecks.containsKey(key)) {
                     for (ItemChecker checker : directAvailableNBTChecks.get(key)) {
 

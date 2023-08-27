@@ -104,15 +104,17 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 @Override
                 public void onPacketSend(Player player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
 
-                    int size = packetContainer.getPacket().getSuggestions().length;
+                    synchronized (tabCompleteQueueMap) {
+                        int size = packetContainer.getPacket().getSuggestions().length;
 
-                    try {
-                        ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
+                        try {
+                            ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
 
-                        if (listener != null) listener.accept(size);
+                            if (listener != null) listener.accept(size);
 
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
 
@@ -124,15 +126,17 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
             if (getSetting().isEnabled()) {
 
                 UUID uuid = player.getUniqueId();
-                tabCompleteQueueMap.computeIfAbsent(uuid, (d) -> new LinkedBlockingQueue<>()).add(new ResponseListener() {
-                    @Override
-                    public void accept(int size) {
+                synchronized (tabCompleteQueueMap) {
+                    tabCompleteQueueMap.computeIfAbsent(uuid, (d) -> new LinkedBlockingQueue<>()).add(new ResponseListener() {
+                        @Override
+                        public void accept(int size) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, size, null, getViolationName(), getSetting());
-                    }
-                });
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, size, null, getViolationName(), getSetting());
+                        }
+                    });
+                }
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
-                // and therefore will block this packet
+                // and therefore will block this packet. I do this by just flagging with 1.
                 return ResponseBuilder.inst().flag().withKey(key).onViolation(() -> packet.getContainer().cancel()).build();
             }
             return ResponseBuilder.SUCCESS;

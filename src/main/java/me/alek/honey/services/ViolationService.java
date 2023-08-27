@@ -28,9 +28,11 @@ public class ViolationService {
     private final ReentrantLock punishLock = new ReentrantLock();
 
     public void reload() {
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
             ViolationContext violationContext = violatedMap.get(uuid);
+
             if (violationContext == null) {
                 addPlayer(player);
                 continue;

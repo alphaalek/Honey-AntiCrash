@@ -24,10 +24,12 @@ public class NotificationService {
 
     public NotificationService() {
         subscribe(Bukkit.getConsoleSender());
+
         new BukkitRunnable() {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
+
                     if (!player.isOnline() && isSubscribed(player)) {
                         unsubscribe(player);
                         untoggledlist.remove(player);
@@ -43,6 +45,7 @@ public class NotificationService {
                 }
             }
         }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 120L);
+
         reload();
     }
 
