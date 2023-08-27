@@ -1,5 +1,6 @@
 package me.alek.honey.configuration;
 
+import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -20,13 +21,9 @@ public class ConfigurationOptions {
 
     private static CountDownLatch loadingLatch = new CountDownLatch(0);
     private static FileConfiguration file;
-    private static Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
-    private static Map<String, VlSetting> channelFloodSettings = new HashMap<>();
-    private static Map<Class<? extends VlSetting>, VlSetting> vlSettingMap = new HashMap<>();
-
-    public static void setFile(FileConfiguration file) {
-        ConfigurationOptions.file = file;
-    }
+    private static final Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
+    private static final Map<String, VlSetting> channelFloodSettings = new HashMap<>();
+    private static final Map<Class<? extends VlSetting>, VlSetting> vlSettingMap = new HashMap<>();
 
     public static Map<PacketTypeEnum, VlSetting> getFloodSettings() {
         return floodSettings;
@@ -34,6 +31,10 @@ public class ConfigurationOptions {
 
     public static Map<String, VlSetting> getChannelFloodSettings() {
         return channelFloodSettings;
+    }
+
+    public static void setFile(FileConfiguration file) {
+        ConfigurationOptions.file = file;
     }
 
     public static List<Field> getItemAnalysisSettings() {
@@ -122,22 +123,36 @@ public class ConfigurationOptions {
                 ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
                 channelFloodSettings.put(flood.value(), setting);
             }
+            // check if the configuration is misconfigured or just from an old version
+            for (String prefixPath : prefixPaths) {
 
+                if (file.get(prefixPath) == null) {
+                    HoneyPlugin.get().resetConfiguration();
+                    Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+                    throw new RuntimeException("You have typed something odd in the config.yml! Delete the file and let it generate a new one!");
+                }
+            }
             while (true) {
                 for (Field field : clazz.getDeclaredFields()) {
                     for (String prefixPath : prefixPaths) {
 
                         String configPath = violationFieldLookup.get(field.getName());
-                        if (configPath == null || file.get(prefixPath + configPath) == null) {
+                        Object value = file.get(prefixPath + configPath);
+
+                        // check if this value is not present or if this field is not an interval check setting
+                        if (configPath == null || value == null) {
                             continue;
                         }
-                        if (file.get(prefixPath + configPath).getClass() == Integer.class) {
+
+                        if (value.getClass() == Integer.class) {
                             field.setInt(setting, file.getInt(prefixPath + configPath));
-                        } else if (file.get(prefixPath + configPath).getClass() == Boolean.class) {
+                        }
+                        else if (value.getClass() == Boolean.class) {
                             field.setBoolean(setting, file.getBoolean(prefixPath + configPath));
                         }
                     }
                 }
+                // check further for subclasses which are also violation settings
                 try {
                     if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
                         continue;
@@ -152,13 +167,19 @@ public class ConfigurationOptions {
 
     public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
         try {
-            if (isLoading())
-                loadingLatch.await();
+            // check if the configuration options are still loading, and if it is, wait for it to be done.
+            if (isLoading()) loadingLatch.await();
 
             if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
-                throw new RuntimeException("Honey is proceeding to run although it is turned off! What is happening!?");
+                throw new RuntimeException(
+                        "Honey is proceeding to run although it is turned off! What is happening!? " +
+                        "Some plugin (not Bukkit) may have disabled Honey without doing it properly. " +
+                        "Check your server plugins for malware and related things, or plugins" +
+                        " disabling/loading other plugins during runtime."
+                );
             }
             if (!vlSettingMap.containsKey(clazz)) {
+                HoneyPlugin.get().resetConfiguration();
                 Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
                 throw new RuntimeException("You have typed something odd in the config.yml! Delete the file and let it generate a new one!");
             }
@@ -200,17 +221,82 @@ public class ConfigurationOptions {
         ItemCheckRegistry value();
     }
 
-    public abstract static class VlSetting implements Cloneable {
+    private String getFilePathName(VlSettingImplType type) {
+        return type.name().toLowerCase().replace("_", "-");
+    }
 
+    private enum VlSettingImplType {
+
+        MAX_PER_INTERVAL,
+
+        INTERVAL,
+
+        VLS_AMOUNT,
+
+        THRESHOLD,
+
+        UNTIL,
+
+        DECAY,
+
+        DECAY_AMOUNT,
+
+        CLEAR_BUFFER,
+
+        CLEAR_INTERVAL
+
+    }
+
+    private @interface VlSettingImpl {
+
+        VlSettingImplType value();
+
+    }
+
+    public interface VlRequiredContentsSetting {
+
+        Set<VlSettingImplType> getRequiredTypes();
+
+    }
+
+    public interface VlSimpleSingletonRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Collections.singleton(VlSettingImplType.VLS_AMOUNT);
+        }
+    }
+
+    public interface VlSimpleIntervalRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.MAX_PER_INTERVAL,
+                    VlSettingImplType.INTERVAL,
+                    VlSettingImplType.VLS_AMOUNT
+            );
+        }
+    }
+
+    public static class VlSetting implements Cloneable {
+
+        @VlSettingImpl(VlSettingImplType.MAX_PER_INTERVAL)
         public int maxPerInterval = 1;
+        @VlSettingImpl(VlSettingImplType.INTERVAL)
         public int interval;
+        @VlSettingImpl(VlSettingImplType.VLS_AMOUNT)
         public int vlsAmount = 1;
+        @VlSettingImpl(VlSettingImplType.THRESHOLD)
         public int threshold;
+        @VlSettingImpl(VlSettingImplType.THRESHOLD)
         public int until;
+        @VlSettingImpl(VlSettingImplType.UNTIL)
         public int decay;
+        @VlSettingImpl(VlSettingImplType.DECAY)
         public int decayAmount;
 
+        @VlSettingImpl(VlSettingImplType.CLEAR_BUFFER)
         public boolean clearBuffer;
+        @VlSettingImpl(VlSettingImplType.CLEAR_INTERVAL)
         public boolean clearInterval;
         public boolean enabled = true;
         private final PacketLimitHandlerType packetLimitHandlerType;
@@ -222,6 +308,7 @@ public class ConfigurationOptions {
         public VlSetting() {
             this(PacketLimitHandlerType.INTERVAL);
         }
+
         public int getMaxPerInterval() {
             return maxPerInterval;
         }
@@ -551,7 +638,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("held-item.a")
-        public static class HeldItemA extends VlSetting {
+        public static class HeldItemA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
@@ -567,7 +654,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("window-click.a")
-        public static class WindowA extends VlSetting {
+        public static class WindowA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
@@ -579,7 +666,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("window-click.c")
-        public static class WindowC extends VlSetting {
+        public static class WindowC extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
     }
@@ -589,12 +676,12 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("block-interact.a")
-        public static class BlockInteractA extends VlSetting {
+        public static class BlockInteractA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("block-interact.a.max", 10);
+                MAX = file.getInt("block-interact.a.max", 15);
             }
         }
 
@@ -606,24 +693,24 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("block-interact.c")
-        public static class BlockInteractC extends VlSetting {
+        public static class BlockInteractC extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("block-interact.d")
-        public static class BlockInteractD extends VlSetting {
+        public static class BlockInteractD extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("block-interact.e")
-        public static class BlockInteractE extends VlSetting {
+        public static class BlockInteractE extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("block-interact.e.max", 10);
+                MAX = file.getInt("block-interact.e.max", 15);
             }
 
         }
@@ -640,9 +727,20 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("tab-complete.b")
-        public static class TabB extends VlSetting {
+        public static class TabB extends VlSetting implements VlRequiredContentsSetting {
 
             public TabB() { super (PacketLimitHandlerType.BUFFER_THROTTLE); }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.THRESHOLD,
+                        VlSettingImplType.UNTIL,
+                        VlSettingImplType.DECAY,
+                        VlSettingImplType.DECAY_AMOUNT,
+                        VlSettingImplType.VLS_AMOUNT
+                );
+            }
         }
     }
 
@@ -651,65 +749,75 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("position.a")
-        public static class PositionA extends VlSetting {
+        public static class PositionA extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("position.b")
-        public static class PositionB extends VlSetting {
+        public static class PositionB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
             public static double MAX;
             public static double MIN;
 
             public static void load() {
-                MAX = file.getDouble("position.b.max", 20);
-                MIN = file.getDouble("position.b.min", 0.0001);
+                MAX = file.getDouble("position.b.max", 15);
+                MIN = file.getDouble("position.b.min", 0.00001);
             }
         }
 
         @Setting
         @Violation("position.c")
-        public static class PositionC extends VlSetting {
+        public static class PositionC extends VlSetting implements VlRequiredContentsSetting {
 
             public PositionC() {
                 super(PacketLimitHandlerType.BUFFER_OVERFLOW);
+            }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.THRESHOLD,
+                        VlSettingImplType.DECAY,
+                        VlSettingImplType.DECAY_AMOUNT,
+                        VlSettingImplType.VLS_AMOUNT
+                );
             }
         }
 
         @Setting
         @Violation("position.d")
-        public static class PositionD extends VlSetting {
+        public static class PositionD extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("position.e")
-        public static class PositionE extends VlSetting {
+        public static class PositionE extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("position.f")
-        public static class PositionF extends VlSetting {
+        public static class PositionF extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("position.g")
-        public static class PositionG extends VlSetting {
+        public static class PositionG extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("position.h")
-        public static class PositionH extends VlSetting {
+        public static class PositionH extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("position.i")
-        public static class PositionI extends VlSetting {
+        public static class PositionI extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
@@ -733,7 +841,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("rotation.a")
-        public static class RotationA extends VlSetting {
+        public static class RotationA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
             public static int MAX;
 
@@ -744,15 +852,25 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("rotation.b")
-        public static class RotationB extends VlSetting {
+        public static class RotationB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("rotation.c")
-        public static class RotationC extends VlSetting {
+        public static class RotationC extends VlSetting implements VlRequiredContentsSetting {
 
             public RotationC() { super(PacketLimitHandlerType.BUFFER_OVERFLOW); }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.THRESHOLD,
+                        VlSettingImplType.DECAY,
+                        VlSettingImplType.DECAY_AMOUNT,
+                        VlSettingImplType.VLS_AMOUNT
+                );
+            }
         }
     }
 
@@ -761,13 +879,13 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("set-creative-slot.a")
-        public static class CreativeA extends VlSetting {
+        public static class CreativeA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("set-creative-slot.b")
-        public static class CreativeB extends VlSetting {
+        public static class CreativeB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
@@ -806,7 +924,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("netty.b")
-        public static class NettyB extends VlSetting {
+        public static class NettyB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
@@ -824,32 +942,61 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("netty.e")
-        public static class NettyE extends VlSetting {
+        public static class NettyE extends VlSetting implements VlRequiredContentsSetting {
 
             public NettyE() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Collections.singleton(VlSettingImplType.THRESHOLD);
+            }
         }
 
         @Setting
         @Violation("netty.f")
-        public static class NettyF extends VlSetting {
+        public static class NettyF extends VlSetting implements VlRequiredContentsSetting {
 
             public NettyF() {
                 super(PacketLimitHandlerType.BUFFER_OVERFLOW);
+            }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.THRESHOLD,
+                        VlSettingImplType.DECAY,
+                        VlSettingImplType.DECAY_AMOUNT
+                );
             }
         }
 
         @Setting
         @Violation("netty.g")
-        public static class NettyG extends VlSetting {
+        public static class NettyG extends VlSetting implements VlRequiredContentsSetting {
 
             public NettyG() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.UNTIL,
+                        VlSettingImplType.THRESHOLD,
+                        VlSettingImplType.DECAY,
+                        VlSettingImplType.DECAY_AMOUNT
+                );
+            }
         }
 
         @Setting
         @Violation("netty.h")
-        public static class NettyH extends VlSetting {
+        public static class NettyH extends VlSetting implements VlRequiredContentsSetting {
 
             public NettyH() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Collections.singleton(VlSettingImplType.THRESHOLD);
+            }
         }
 
         @Setting
@@ -859,17 +1006,25 @@ public class ConfigurationOptions {
             public static int MAX;
 
             public static void load() {
-                MAX = file.getInt("netty.i.max", 4000);
+                MAX = file.getInt("netty.i.max", 550);
             }
-
         }
 
         @Setting
         @Violation("netty.j")
-        public static class NettyJ extends VlSetting {
+        public static class NettyJ extends VlSetting implements VlRequiredContentsSetting {
 
             public NettyJ() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
 
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.THRESHOLD,
+                        VlSettingImplType.UNTIL,
+                        VlSettingImplType.DECAY,
+                        VlSettingImplType.DECAY_AMOUNT
+                );
+            }
         }
     }
 
@@ -878,22 +1033,22 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("use-entity.a")
-        public static class UseEntityA extends VlSetting {
+        public static class UseEntityA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("use-entity.b")
-        public static class UseEntityB extends VlSetting {
+        public static class UseEntityB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
 
             public static double MAX_X;
             public static double MAX_Y;
             public static double MAX_Z;
 
             public static void load() {
-                MAX_X = file.getDouble("use-entity.b.max-x");
-                MAX_Y = file.getDouble("use-entity.b.max-y");
-                MAX_Z = file.getDouble("use-entity.b.max-z");
+                MAX_X = file.getDouble("use-entity.b.max-x", 16.0);
+                MAX_Y = file.getDouble("use-entity.b.max-y", 12.6);
+                MAX_Z = file.getDouble("use-entity.b.max-z", 16.0);
             }
 
         }
@@ -904,19 +1059,19 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation("packet-flood.common.a")
-        public static class FloodA extends VlSetting {
+        public static class FloodA extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("packet-flood.common.b")
-        public static class FloodB extends VlSetting {
+        public static class FloodB extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation("packet-flood.c")
-        public static class FloodC extends VlSetting {
+        public static class FloodC extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
         }
 
@@ -926,48 +1081,48 @@ public class ConfigurationOptions {
             @Flood(PacketType.Play.Client.ABILITIES)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.abilities"})
-            public static class Abilities extends VlSetting {
+            public static class Abilities extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ARM_ANIMATION)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.arm-animation"})
-            public static class ArmAnimation extends VlSetting {
+            public static class ArmAnimation extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
             }
 
             @Flood(PacketType.Play.Client.AUTO_RECIPE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.auto-recipe"})
-            public static class AutoRecipe extends VlSetting {
+            public static class AutoRecipe extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.BLOCK_DIG)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.block-dig"})
-            public static class BlockDig extends VlSetting {
+            public static class BlockDig extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.BLOCK_PLACE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.block-place"})
-            public static class BlockPlace extends VlSetting {
+            public static class BlockPlace extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CLIENT_COMMAND)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.client-command"})
-            public static class ClientCommand extends VlSetting {
+            public static class ClientCommand extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CLOSE_WINDOW)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.close-window"})
-            public static class CloseWindow extends VlSetting {
+            public static class CloseWindow extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
@@ -975,119 +1130,119 @@ public class ConfigurationOptions {
             @Flood(PacketType.Play.Client.CHAT)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.chat"})
-            public static class Chat extends VlSetting {
+            public static class Chat extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CUSTOM_PAYLOAD)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.custom-payload"})
-            public static class CustomPayload extends VlSetting {
+            public static class CustomPayload extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.HELD_ITEM_SLOT)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.held-item-slot"})
-            public static class HeldItemSlot extends VlSetting {
+            public static class HeldItemSlot extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ENCHANT_ITEM)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.enchant-item"})
-            public static class EnchantItem extends VlSetting {
+            public static class EnchantItem extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ENTITY_ACTION)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.entity-action"})
-            public static class EntityAction extends VlSetting {
+            public static class EntityAction extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.KEEP_ALIVE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.keep-alive"})
-            public static class KeepAlive extends VlSetting {
+            public static class KeepAlive extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.LOOK)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.look"})
-            public static class Look extends VlSetting {
+            public static class Look extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.FLYING)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.flying"})
-            public static class Flying extends VlSetting {
+            public static class Flying extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SET_CREATIVE_SLOT)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.set-creative-slot"})
-            public static class SetCreativeSlot extends VlSetting {
+            public static class SetCreativeSlot extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SPECTATE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.spectate"})
-            public static class Spectate extends VlSetting {
+            public static class Spectate extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.STEER_VEHICLE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.steer-vehicle"})
-            public static class SteerVehicle extends VlSetting {
+            public static class SteerVehicle extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood({PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK})
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.position"})
-            public static class Position extends VlSetting {
+            public static class Position extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.UPDATE_SIGN)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.update-sign"})
-            public static class UpdateSign extends VlSetting {
+            public static class UpdateSign extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.USE_ITEM)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.use-item"})
-            public static class UseItem extends VlSetting {
+            public static class UseItem extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.USE_ENTITY)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.use-entity"})
-            public static class UseEntity extends VlSetting {
+            public static class UseEntity extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.TAB_COMPLETE)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.tab-complete"})
-            public static class TabComplete extends VlSetting {
+            public static class TabComplete extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.WINDOW_CLICK)
             @Setting
             @Violation({"packet-flood.d", "packet-flood.d.window-click"})
-            public static class WindowClick extends VlSetting {
+            public static class WindowClick extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
         }

@@ -29,6 +29,9 @@ import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.nio.file.Files;
+
 public class HoneyPlugin extends JavaPlugin {
 
     private static HoneyPlugin INSTANCE;
@@ -117,6 +120,18 @@ public class HoneyPlugin extends JavaPlugin {
                 continue;
             }
             PacketLibrary.get().getEventManager().addListener(check);
+        }
+    }
+
+    public void resetConfiguration() {
+        File file = new File(getDataFolder(), "config.yml");
+
+        if (file.exists()) {
+            try {
+                Files.delete(file.toPath());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

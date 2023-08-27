@@ -38,6 +38,7 @@ me\alek\honey\checks\impl\WindowClickListener.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$LongArrayWriter.class
 me\alek\honey\netty\utility\protocol\Protocol.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInTrSel.class
+me\alek\honey\checks\impl\FloodListener$AbstractCustomizableFloodCheck.class
 me\alek\honey\netty\api\event\impl\packet\PacketStatusSendEvent.class
 me\alek\honey\netty\packet\type\PacketState.class
 me\alek\honey\netty\utility\AsyncFuture.class
@@ -554,7 +555,6 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutRecipes.class
 me\alek\honey\netty\api\event\EventManager$1$2.class
 me\alek\honey\checks\impl\PositionListener$PositionE.class
 me\alek\honey\metrics\Metrics$SimplePie.class
-me\alek\honey\checks\impl\FloodListener$AbstractCustomizedFlood.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$HeldItemSlot.class
 me\alek\honey\netty\modelwrappers\network\WrappedPacketDataSerializer.class
 me\alek\honey\netty\structure\converters\Converters$2.class
