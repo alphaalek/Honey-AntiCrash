@@ -174,7 +174,7 @@ netty:
 
   e:
     enabled: true
-    threshold: 16500
+    #threshold: 16500
 
   f:
     enabled: true
@@ -526,6 +526,7 @@ packet-flood:
   c:
     max-per-interval: 850
     interval: 1500
+    vls-amount: 1
 
   # specific
   d:

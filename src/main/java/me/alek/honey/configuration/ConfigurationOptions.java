@@ -49,7 +49,7 @@ public class ConfigurationOptions {
         return loadingLatch.getCount() == 1;
     }
 
-    public static void load() {
+    public static boolean load() {
         try {
             // venter på threads der allerede loader
             loadingLatch.await();
@@ -63,10 +63,13 @@ public class ConfigurationOptions {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            return true;
+
         } finally {
 
             loadingLatch.countDown();
         }
+        return false;
     }
 
     public static void load(Class<?> clazz) {
@@ -92,63 +95,89 @@ public class ConfigurationOptions {
         }
     }
 
-    private static final Map<String, String> violationFieldLookup = new HashMap<String, String>(){{
-            put("maxPerInterval", ".max-per-interval");
-            put("interval", ".interval");
-            put("vlsAmount", ".vls-amount");
-
-            put("threshold", ".threshold");
-            put("until", ".until");
-            put("decay", ".decay");
-            put("decayAmount", ".decay-amount");
-
-            put("clearInterval", ".clear-interval");
-            put("clearBuffer", ".clear-buffer");
-            put("enabled", ".enabled");
-    }};
-
     public static void setViolationSetting(Class<? extends VlSetting> clazz, String[] prefixPaths) {
+        boolean misconfiguredConfiguration = false;
         try {
-            Constructor<? extends VlSetting> constructor = clazz.getDeclaredConstructor();
-            VlSetting setting = constructor.newInstance();
+            // makes a new violation setting instance and register it
+            final Constructor<? extends VlSetting> constructor = clazz.getDeclaredConstructor();
+            final VlSetting setting = constructor.newInstance();
             vlSettingMap.put(clazz, setting);
 
+            // checks if this violation setting is a flood setting, so we can register it to the map of flood settings
             if (clazz.isAnnotationPresent(Flood.class)) {
                 Flood flood = clazz.getAnnotation(Flood.class);
+
                 for (PacketTypeEnum packetType : flood.value()) {
                     floodSettings.put(packetType, setting);
                 }
             }
+            // just like the condition above, checks if it is a custom payload channel flood setting instead
             if (clazz.isAnnotationPresent(ChannelFlood.class)) {
                 ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
                 channelFloodSettings.put(flood.value(), setting);
             }
+            final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();
+
+            if (setting instanceof VlRequiredContentsSetting) {
+                VlRequiredContentsSetting vlRequiredContentsSetting = (VlRequiredContentsSetting) setting;
+                requiredVlSettingImplTypes.addAll(vlRequiredContentsSetting.getRequiredTypes());
+            }
+
             // check if the configuration is misconfigured or just from an old version
             for (String prefixPath : prefixPaths) {
 
+                // check if this memory section exists, if it does not then disable the plugin
                 if (file.get(prefixPath) == null) {
                     HoneyPlugin.get().resetConfiguration();
                     Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
-                    throw new RuntimeException("You have typed something odd in the config.yml! Delete the file and let it generate a new one!");
+                    misconfiguredConfiguration = true;
+
+                    throw new RuntimeException();
+                }
+                Iterator<VlSettingImplType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();
+
+                // loop through all the required paths for this violation setting, and check if they are present
+                while (requiredVlSettingImplTypesIterator.hasNext()) {
+                    VlSettingImplType vlSettingImplType = requiredVlSettingImplTypesIterator.next();
+
+                    String requiredPath = prefixPath + "." + vlSettingImplType.getPathName();
+                    // check if this required path is in the memory section
+                    if (file.get(requiredPath) != null) {
+                        // remove the required value if is present
+                        requiredVlSettingImplTypesIterator.remove();
+                    }
                 }
             }
+            // check if there is anymore required values left which have not been removed (because they were present)
+            if (!requiredVlSettingImplTypes.isEmpty()) {
+                HoneyPlugin.get().resetConfiguration();
+                Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+                misconfiguredConfiguration = true;
+
+                throw new RuntimeException();
+            }
+
+            // set the values of the violation setting
             while (true) {
                 for (Field field : clazz.getDeclaredFields()) {
+
+                    // check if this field is associated with a setting value
+                    VlSettingImpl vlSettingImpl = field.getAnnotation(VlSettingImpl.class);
+                    if (vlSettingImpl == null) continue;
+
                     for (String prefixPath : prefixPaths) {
 
-                        String configPath = violationFieldLookup.get(field.getName());
-                        Object value = file.get(prefixPath + configPath);
+                        final String configPath = prefixPath + "." + vlSettingImpl.value().getPathName();
+                        final Object value = file.get(configPath);
 
                         // check if this value is not present or if this field is not an interval check setting
-                        if (configPath == null || value == null) {
-                            continue;
-                        }
+                        if (value == null) continue;
 
                         if (value.getClass() == Integer.class) {
-                            field.setInt(setting, file.getInt(prefixPath + configPath));
+                            field.setInt(setting, file.getInt(configPath));
                         }
                         else if (value.getClass() == Boolean.class) {
-                            field.setBoolean(setting, file.getBoolean(prefixPath + configPath));
+                            field.setBoolean(setting, file.getBoolean(configPath));
                         }
                     }
                 }
@@ -162,29 +191,33 @@ public class ConfigurationOptions {
                 return;
             }
         } catch (Exception ex) {
+            Bukkit.getLogger().severe("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
+            if (misconfiguredConfiguration) throw new RuntimeException(ex.getCause());
         }
     }
 
     public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
+        // check if the configuration options are still loading, and if it is, wait for it to be done.
         try {
-            // check if the configuration options are still loading, and if it is, wait for it to be done.
             if (isLoading()) loadingLatch.await();
 
-            if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
-                throw new RuntimeException(
-                        "Honey is proceeding to run although it is turned off! What is happening!? " +
-                        "Some plugin (not Bukkit) may have disabled Honey without doing it properly. " +
-                        "Check your server plugins for malware and related things, or plugins" +
-                        " disabling/loading other plugins during runtime."
-                );
-            }
-            if (!vlSettingMap.containsKey(clazz)) {
-                HoneyPlugin.get().resetConfiguration();
-                Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
-                throw new RuntimeException("You have typed something odd in the config.yml! Delete the file and let it generate a new one!");
-            }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+
+        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
+            throw new RuntimeException(
+                    "Honey is proceeding to run although it is turned off! What is happening!? " +
+                    "Some plugin (not Bukkit) may have disabled Honey without doing it properly. " +
+                    "Check your server plugins for malware and related things, or plugins" +
+                    " disabling/loading other plugins during runtime."
+            );
+        }
+        if (!vlSettingMap.containsKey(clazz)) {
+            HoneyPlugin.get().resetConfiguration();
+            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+
+            throw new RuntimeException("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
         }
         return vlSettingMap.get(clazz);
     }
@@ -211,7 +244,6 @@ public class ConfigurationOptions {
     private @interface ChannelFlood {
 
         String value();
-
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -221,36 +253,19 @@ public class ConfigurationOptions {
         ItemCheckRegistry value();
     }
 
-    private String getFilePathName(VlSettingImplType type) {
-        return type.name().toLowerCase().replace("_", "-");
-    }
-
-    private enum VlSettingImplType {
-
-        MAX_PER_INTERVAL,
-
-        INTERVAL,
-
-        VLS_AMOUNT,
-
-        THRESHOLD,
-
-        UNTIL,
-
-        DECAY,
-
-        DECAY_AMOUNT,
-
-        CLEAR_BUFFER,
-
-        CLEAR_INTERVAL
-
-    }
-
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
     private @interface VlSettingImpl {
 
         VlSettingImplType value();
+    }
 
+    private enum VlSettingImplType {
+        MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, ENABLED;
+
+        public String getPathName() {
+            return name().toLowerCase().replace("_", "-");
+        }
     }
 
     public interface VlRequiredContentsSetting {
@@ -287,67 +302,46 @@ public class ConfigurationOptions {
         public int vlsAmount = 1;
         @VlSettingImpl(VlSettingImplType.THRESHOLD)
         public int threshold;
-        @VlSettingImpl(VlSettingImplType.THRESHOLD)
-        public int until;
         @VlSettingImpl(VlSettingImplType.UNTIL)
-        public int decay;
+        public int until;
         @VlSettingImpl(VlSettingImplType.DECAY)
+        public int decay;
+        @VlSettingImpl(VlSettingImplType.DECAY_AMOUNT)
         public int decayAmount;
 
         @VlSettingImpl(VlSettingImplType.CLEAR_BUFFER)
         public boolean clearBuffer;
         @VlSettingImpl(VlSettingImplType.CLEAR_INTERVAL)
         public boolean clearInterval;
+        @VlSettingImpl(VlSettingImplType.ENABLED)
         public boolean enabled = true;
         private final PacketLimitHandlerType packetLimitHandlerType;
 
-        public VlSetting(PacketLimitHandlerType packetLimitHandlerType) {
-            this.packetLimitHandlerType = packetLimitHandlerType;
-        }
+        public VlSetting(PacketLimitHandlerType packetLimitHandlerType) { this.packetLimitHandlerType = packetLimitHandlerType; }
 
-        public VlSetting() {
-            this(PacketLimitHandlerType.INTERVAL);
-        }
+        public VlSetting() { this(PacketLimitHandlerType.INTERVAL); }
 
-        public int getMaxPerInterval() {
-            return maxPerInterval;
-        }
+        public int getMaxPerInterval() { return maxPerInterval; }
 
-        public int getInterval() {
-            return interval;
-        }
+        public int getInterval() { return interval; }
 
-        public int getVlsAmount() {
-            return vlsAmount;
-        }
+        public int getVlsAmount() { return vlsAmount; }
 
-        public int getThreshold() {
-            return threshold;
-        }
+        public int getThreshold() { return threshold; }
 
         public int getUntil() { return until; }
 
-        public int getDecay() {
-            return decay;
-        }
+        public int getDecay() { return decay; }
 
-        public int getDecayAmount() {
-            return decayAmount;
-        }
+        public int getDecayAmount() { return decayAmount; }
 
-        public boolean isEnabled() {
-            return enabled;
-        }
+        public boolean isEnabled() { return enabled; }
 
-        public boolean isClearInterval() {return clearInterval;}
+        public boolean isClearInterval() { return clearInterval; }
 
-        public boolean isClearBuffer() {
-            return clearBuffer;
-        }
+        public boolean isClearBuffer() { return clearBuffer; }
 
-        public PacketLimitHandlerType getPacketLimitHandlerType() {
-            return packetLimitHandlerType;
-        }
+        public PacketLimitHandlerType getPacketLimitHandlerType() { return packetLimitHandlerType; }
 
         @Override
         public VlSetting clone() {
@@ -565,63 +559,63 @@ public class ConfigurationOptions {
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.adv-cmd"})
             @ChannelFlood("MC|AdvCmd")
-            public static class AdvCmd extends VlSetting {
+            public static class AdvCmd extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.auto-cmd"})
             @ChannelFlood("MC|AutoCmd")
-            public static class AutoCmd extends VlSetting {
+            public static class AutoCmd extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.beacon"})
             @ChannelFlood("MC|Beacon")
-            public static class Beacon extends VlSetting {
+            public static class Beacon extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.b-edit"})
             @ChannelFlood("MC|BEdit")
-            public static class BEdit extends VlSetting {
+            public static class BEdit extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.b-open"})
             @ChannelFlood("MC|BOpen")
-            public static class BOpen extends VlSetting {
+            public static class BOpen extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.brand"})
             @ChannelFlood("MC|Brand")
-            public static class Brand extends VlSetting {
+            public static class Brand extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.b-sign"})
             @ChannelFlood("MC|BSign")
-            public static class BSign extends VlSetting {
+            public static class BSign extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.register"})
             @ChannelFlood("REGISTER")
-            public static class Register extends VlSetting {
+            public static class Register extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
 
             @Setting
             @Violation({"custom-payload.f", "custom-payload.f.unregister"})
             @ChannelFlood("UNREGISTER")
-            public static class Unregister extends VlSetting {
+            public static class Unregister extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
 
             }
         }
@@ -832,7 +826,6 @@ public class ConfigurationOptions {
                 MAX = file.getInt("position.a.max", 2048);
                 MIN = file.getInt("position.a.min", -256);
             }
-
         }
     }
 

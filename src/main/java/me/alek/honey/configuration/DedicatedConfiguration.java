@@ -1,27 +1,33 @@
 package me.alek.honey.configuration;
 
 import me.alek.honey.HoneyPlugin;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 public class DedicatedConfiguration implements Configuration {
 
+    private boolean misConfigured;
+
     public DedicatedConfiguration() {
         HoneyPlugin.get().saveDefaultConfig();
-        loadFile();
+
+        misConfigured = loadFile();
     }
 
-    public void loadFile() {
+    public boolean loadFile() {
         FileConfiguration configuration = HoneyPlugin.get().getConfig();
         ConfigurationOptions.setFile(configuration);
 
-        ConfigurationOptions.load();
+        return ConfigurationOptions.load();
     }
 
     public void reload() {
         HoneyPlugin.get().reloadConfig();
-        loadFile();
+        misConfigured = loadFile();
+    }
+
+    @Override
+    public boolean isMisConfigured() {
+        return misConfigured;
     }
 
 }

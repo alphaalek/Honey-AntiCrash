@@ -4,4 +4,6 @@ public interface Configuration {
 
     void reload();
 
+    boolean isMisConfigured();
+
 }

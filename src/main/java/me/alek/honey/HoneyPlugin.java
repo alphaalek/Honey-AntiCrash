@@ -62,11 +62,22 @@ public class HoneyPlugin extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
         }
 
+        // setup configuration and check if it is misconfigured
+        configuration = new DedicatedConfiguration();
+
+        if (configuration.isMisConfigured()) {
+
+            if (getServer().getPluginManager().isPluginEnabled(this)) {
+                resetConfiguration();
+                getServer().getPluginManager().disablePlugin(this);
+
+                throw new RuntimeException("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
+            }
+            return;
+        }
+
         // setup packet library
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
-
-        // setup configuration
-        configuration = new DedicatedConfiguration();
 
         // setup services
         loggerService = new LoggerService();
@@ -101,7 +112,7 @@ public class HoneyPlugin extends JavaPlugin {
     public void onDisable() {
         isRunning = false;
 
-        PacketLibrary.get().disable();
+        if (PacketLibrary.get() != null) PacketLibrary.get().disable();
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
