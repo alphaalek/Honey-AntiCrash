@@ -296,7 +296,7 @@ position:
 
   b:
     enabled: true
-    max: 12
+    max: 15
     min: 0.00001
     vls-amount: 5
 
@@ -323,8 +323,8 @@ position:
   f:
     enabled: true
     clear-interval: true
-    max-per-interval: 26
-    interval: 2500
+    max-per-interval: 45
+    interval: 2250
     vls-amount: 3
 
   g:
@@ -375,7 +375,7 @@ block-interact:
   a:
     enabled: true
     vls-amount: 5
-    max: 10
+    max: 15
 
   b:
     enabled: true
@@ -392,7 +392,7 @@ block-interact:
   e:
     enabled: true
     vls-amount: 5
-    max: 10
+    max: 15
 
 # |--- tab complete ---|
 tab-complete:

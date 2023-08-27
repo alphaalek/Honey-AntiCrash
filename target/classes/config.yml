@@ -194,14 +194,14 @@ netty:
 
   i:
     enabled: true
-    max: 400
+    max: 550
 
   j:
     enabled: true
-    threshold: 125
-    until: 1000
-    decay: 60
-    decay-amount: 1000
+    threshold: 95
+    until: 850
+    decay: 50
+    decay-amount: 950
 
 # |--- custom payload ---|
 custom-payload:

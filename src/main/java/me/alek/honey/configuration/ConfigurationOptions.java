@@ -617,7 +617,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation("block-interact.E")
+        @Violation("block-interact.e")
         public static class BlockInteractE extends VlSetting {
 
             public static int MAX;
