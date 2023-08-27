@@ -64,11 +64,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         };
     }
 
-    public static abstract class AbstractCustomizedFlood<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
+    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
 
         private final Map<PacketTypeEnum, ConfigurationOptions.VlSetting> settingMap = new HashMap<>();
 
-        public AbstractCustomizedFlood() {
+        public AbstractCustomizableFloodCheck() {
             final ConfigurationOptions.VlSetting commonSetting = getSetting();
             for (Map.Entry<PacketTypeEnum, ConfigurationOptions.VlSetting> settingEntry : ConfigurationOptions.getFloodSettings().entrySet()) {
 
@@ -104,7 +104,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
-    public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizedFlood<WP> {
+    public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
@@ -122,7 +122,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
-    public static class FloodB<WP extends WrappedPacket<WP>> extends AbstractCustomizedFlood<WP> {
+    public static class FloodB<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
@@ -140,7 +140,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
-    public static class FloodC<WP extends WrappedPacket<WP>> extends AbstractCustomizedFlood<WP> {
+    public static class FloodC<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
