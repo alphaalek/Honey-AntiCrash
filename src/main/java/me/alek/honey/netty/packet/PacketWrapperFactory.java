@@ -1,24 +1,28 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.channel.Channel;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.Reflection;
-import me.alek.honey.netty.packetwrappers.login.server.*;
-import me.alek.honey.netty.packetwrappers.play.client.*;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.utility.AsyncFuture;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInCustomPayload;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
+import me.alek.honey.netty.packetwrappers.login.server.*;
+import me.alek.honey.netty.packetwrappers.play.client.*;
 import me.alek.honey.netty.packetwrappers.play.server.*;
 import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInPing;
 import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInStart;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutPong;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutServerInfo;
+import me.alek.honey.netty.utility.AsyncFuture;
+import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.reflect.MethodInvoker;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.entity.Player;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -94,6 +98,10 @@ public class PacketWrapperFactory {
         throw new RuntimeException("Ingen packet wrapper for " + name);
     }
 
+    public static MethodInvoker<Object> createWrapperInvoker(PacketState state, PacketTypeEnum packetType) {
+        return createWrapperInvoker(state, packetType.getNmsClass());
+    }
+
     public static MethodInvoker<Object> createWrapperInvoker(PacketState state, Class<?> nmsClass) {
         switch (state) {
             case PLAY:
@@ -114,6 +122,21 @@ public class PacketWrapperFactory {
     private @interface PacketFactory {
 
         String value();
+    }
+
+    public static <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(Player player, PacketTypeEnum packetTypeEnum) {
+        Channel channel = NMSUtils.getChannel(player);
+
+        Object rawPacket;
+        try {
+            rawPacket = packetTypeEnum.getNmsClass().newInstance();
+
+        } catch (Exception ex) {
+            return null;
+        }
+        PacketContainer<WP> packetContainer = new InternalPacketContainer<>(rawPacket, player, channel, null, packetTypeEnum);
+
+        return packetContainer.getPacket();
     }
 
     public static MethodInvoker<Object> createPlayWrapperInvoker(Class<?> nmsClass) {

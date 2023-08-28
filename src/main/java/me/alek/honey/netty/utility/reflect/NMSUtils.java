@@ -214,6 +214,14 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.Packet", "{nms}.network.protocol.Packet");
     }
 
+    public static Class<Object> getSuggestionsClass() {
+        return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestions");
+    }
+
+    public static Class<Object> getSuggestionClass() {
+        return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestion");
+    }
+
     public static boolean isFakeChannel(Channel channel) {
         if (channel == null) {
             return true;

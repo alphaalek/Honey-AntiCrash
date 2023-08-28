@@ -10,9 +10,9 @@ import me.alek.honey.checks.impl.NettyListener;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocolDirection;
 import me.alek.honey.netty.modelwrappers.network.WrappedNetworkManager;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
@@ -70,7 +70,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
                 int readableBytes = byteBuf.readableBytes();
                 ViolationService.CheckKey key = new ViolationService.CheckKey(this, "NettyE");
 
-                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, key, readableBytes, null, "Netty.E", nettyESetting)) {
+                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, key, readableBytes, null, "Netty.E", nettyESetting, null)) {
                     if (byteBuf.refCnt() > 0) {byteBuf.clear();}
 
                     return;
@@ -79,7 +79,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             }
             // tjek packet buffer
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class).isEnabled()) {
-                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, new ViolationService.CheckKey(this, "NettyF"), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class))) {
+                if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, new ViolationService.CheckKey(this, "NettyF"), byteBuf.readableBytes(), null, "Netty.F", ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class), null)) {
                     if (byteBuf.refCnt() > 0) {byteBuf.clear();}
 
                     return;
@@ -94,7 +94,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
             );
 
             int id = dataSerializer.readVarInt();
-            Object packet = enumProtocol.createPacket(WrappedEnumProtocolDirection.SERVERBOUND, id);
+            Object packet = enumProtocol.createPacket(PacketBound.SERVER, id);
 
             // tjek heavy serializers
             if (packet != null) {
@@ -120,12 +120,12 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
                     while (dataSerializer.isReadable()) {
                         int byteSize = Math.abs(dataSerializer.readByte());
 
-                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, nettyGKey, byteSize, null, "Netty.G", nettyGSetting)) {
+                        if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, nettyGKey, byteSize, null, "Netty.G", nettyGSetting, null)) {
                             if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                         }
                         if (nettyHSetting.isEnabled()) {
 
-                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, nettyHKey, byteSize, null, "Netty.H", nettyHSetting)) {
+                            if (HoneyPlugin.get().getViolationService().flag(player, byteBuf, null, nettyHKey, byteSize, null, "Netty.H", nettyHSetting, null)) {
                                 if (byteBuf.refCnt() > 0) { byteBuf.clear(); }
                             }
                         }

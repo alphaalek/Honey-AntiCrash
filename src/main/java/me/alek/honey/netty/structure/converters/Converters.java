@@ -5,6 +5,8 @@ import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
+import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInUseEntity;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -146,6 +148,14 @@ public class Converters {
 
     public static <V> JavaConverter<Object, WrappedLongObjectHashMap<V>> getLongObjectHashMapConverter() {
         return getConverter(WrappedLongObjectHashMap.class, (clazz) -> new SimpleWrapperConverter<>(WrappedLongObjectHashMap.class));
+    }
+
+    public static JavaConverter<Object, WrappedSuggestions> getSuggestionsConverter() {
+        return getConverter(WrappedSuggestions.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestions.class));
+    }
+
+    public static JavaConverter<Object, WrappedSuggestion> getSuggestionConverter() {
+        return getConverter(WrappedSuggestion.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestion.class));
     }
 
     public static JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction> getEntityUseActionConverter() {

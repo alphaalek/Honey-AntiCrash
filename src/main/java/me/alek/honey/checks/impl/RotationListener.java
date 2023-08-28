@@ -69,7 +69,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             UUID uuid = player.getUniqueId();
             if (!lastYawMap.containsKey(uuid)) lastYawMap.put(uuid, packet.getYaw());
 
-            container.putFloat(lastYawMap.get(uuid));
+            container.getStorage().putFloat(lastYawMap.get(uuid));
             lastYawMap.put(uuid, packet.getYaw());
 
             if (getSetting().isEnabled()) {
@@ -124,7 +124,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             if (getSetting().isEnabled()) {
 
                 float yaw = packet.getYaw();
-                float lastYaw = container.getFloat(0);
+                float lastYaw = container.getStorage().getFloat(0);
 
                 float deltaYaw = Math.abs(lastYaw - yaw);
 

@@ -1,6 +1,6 @@
 package me.alek.honey.netty.structure.converters;
 
-public interface CollectionConverter<K, V> {
+public interface CollectionConverter<K, V> extends Iterable<V> {
 
     int size();
 

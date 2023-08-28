@@ -1,10 +1,14 @@
 package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -18,7 +22,7 @@ import java.util.Map;
 
 public class NotificationService {
 
-    private final Map<CommandSender, NotificationListener> listenerMap = new HashMap<>();
+    private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
     public static String PREFIX;
 
@@ -62,11 +66,11 @@ public class NotificationService {
     }
 
     public boolean isSubscribed(CommandSender observer) {
-        return listenerMap.containsKey(observer);
+        return observerMap.containsKey(observer);
     }
 
     public void subscribe(final CommandSender observer) {
-        listenerMap.put(observer, new NotificationService.NotificationListener() {
+        observerMap.put(observer, new NotificationService.NotificationListener() {
             @Override
             public void notify(String notification) {
                 observer.sendMessage(notification);
@@ -74,23 +78,44 @@ public class NotificationService {
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 failed §e" + type + "§7.");
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type + "§7.");
             }
 
             @Override
-            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+
+                if (developmentData != null) {
+
+                    StringBuilder hoverableTextBuilder = new StringBuilder();
+                    for (String dataSetEntry : developmentData.getDataSet()) {
+                        hoverableTextBuilder.append(dataSetEntry).append("\n");
+                    }
+                    String hoverableText = hoverableTextBuilder.substring(0, hoverableTextBuilder.length() - 1);
+
+                    TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                    message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
+
+                    if (observer instanceof Player) {
+                        Player observerPlayer = (Player) observer;
+
+                        observerPlayer.spigot().sendMessage(message);
+                    } else {
+                        observer.sendMessage(message.getText());
+                    }
+                    return;
+                }
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
             }
 
             @Override
             public void warn(Player player, String type) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatPing(player) + "§7 was kicked for §e" + type + "§7.");
+                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 was kicked for §e" + type + "§7.");
             }
         });
     }
 
     public void unsubscribe(CommandSender observer) {
-        listenerMap.remove(observer);
+        observerMap.remove(observer);
     }
 
     public void untoggle(CommandSender observer) {
@@ -120,13 +145,21 @@ public class NotificationService {
         return entityPlayerModifier.readField("ping", 0);
     }
 
-    private String formatPing(Player player) {
-        int ping = getPing(player);
-        int tps = getTPS();
-        String pingColor = (ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c";
-        String tpsColor = (tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c";
+    public String formatPing(Player player, boolean cache) {
+        int ping = cache ? HoneyPlugin.get().getRecentPing(player) : getPing(player);
+        return ((ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c") + ping;
+    }
 
-        return " §8(" + pingColor + ping + "ms§7/" + tpsColor + tps + "tps§8)";
+    public String formatTPS(boolean cache) {
+        int tps = cache ? HoneyPlugin.get().getRecentTPS() : getTPS();
+        return ((tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c") + tps;
+    }
+
+    private String formatNetwork(Player player) {
+        String ping = formatPing(player, false);
+        String tps = formatTPS(false);
+
+        return " §8(" + ping + "ms§7/" + tps + "tps§8)";
     }
 
     public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
@@ -143,7 +176,7 @@ public class NotificationService {
     }
 
     public void notify(String notification) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : listenerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey())) {
                 continue;
             }
@@ -151,26 +184,17 @@ public class NotificationService {
         }
     }
 
-    public void notify(Player player, String notification) {
-        notify(player, notification, null, null);
-    }
-
-    public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : listenerMap.entrySet()) {
+    public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 continue;
             }
-            if (setting == null || packetLimitHandler == null) {
-                observer.getValue().notify(player, notification);
-            }
-            else {
-                observer.getValue().notify(player, notification, setting, packetLimitHandler);
-            }
+            observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData);
         }
     }
 
     public void warn(Player player, String warning) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : listenerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
                 continue;
             }
@@ -184,7 +208,7 @@ public class NotificationService {
 
         void notify(Player player, String notification);
 
-        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler);
+        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData);
 
         void warn(Player player, String notification);
     }

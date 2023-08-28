@@ -4,6 +4,7 @@ import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -158,8 +159,18 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
     }
 
     @Override
+    public <WP extends WrappedPacket<WP>> void writePacket(Player player, WrappedPacket<WP> packet) {
+        CommonChannelInjector.writePacket(player, packet);
+    }
+
+    @Override
     public void writePacket(Channel channel, Object rawPacket) {
         CommonChannelInjector.writePacket(channel, rawPacket);
+    }
+
+    @Override
+    public <WP extends WrappedPacket<WP>> void writePacket(Channel channel, WrappedPacket<WP> packet) {
+        CommonChannelInjector.writePacket(channel, packet);
     }
 
     @Override

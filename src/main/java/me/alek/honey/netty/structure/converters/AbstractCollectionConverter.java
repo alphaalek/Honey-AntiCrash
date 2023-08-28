@@ -1,6 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 public class AbstractCollectionConverter<K, V> implements CollectionConverter<K, V> {
 
@@ -19,7 +20,7 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     protected void checkCollections() {
         if (declaringCollection == null) {
-            throw new RuntimeException("Ingen delegated list for wrapper list");
+            throw new RuntimeException("No delegated list for wrapper list");
         }
         int delegatedSize = delegatedCollection.size();
         int declaringSize = declaringCollection.size();
@@ -93,4 +94,8 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
         return add(converter.convertDeclaring(value));
     }
 
+    @Override
+    public Iterator<V> iterator() {
+        return delegatedCollection.iterator();
+    }
 }

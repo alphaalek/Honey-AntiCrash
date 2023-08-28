@@ -105,7 +105,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 public void onPacketSend(Player player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
 
                     synchronized (tabCompleteQueueMap) {
-                        int size = packetContainer.getPacket().getSuggestions().length;
+                        int size = packetContainer.getPacket().getSuggestionsSize();
 
                         try {
                             ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
@@ -131,7 +131,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         @Override
                         public void accept(int size) {
 
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, size, null, getViolationName(), getSetting());
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, size, null, getViolationName(), getSetting(), container.getDevelopmentData(TabB.this));
                         }
                     });
                 }

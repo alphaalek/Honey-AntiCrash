@@ -254,15 +254,16 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND)) return ResponseBuilder.SUCCESS;
 
             ResponseContainer response = ResponseBuilder.inst().terminate().build();
+
+            UUID uuid = player.getUniqueId();
+            if (!lastOnGroundMap.containsKey(uuid)) lastOnGroundMap.put(uuid, packet.onGround());
+
+            boolean onGround = packet.onGround();
+            boolean wasOnGround = lastOnGroundMap.get(uuid);
+
+            lastOnGroundMap.put(uuid, onGround);
+
             if (getSetting().isEnabled()) {
-
-                UUID uuid = player.getUniqueId();
-                if (!lastOnGroundMap.containsKey(uuid)) lastOnGroundMap.put(uuid, packet.onGround());
-
-                boolean onGround = packet.onGround();
-                boolean wasOnGround = lastOnGroundMap.get(uuid);
-
-                lastOnGroundMap.put(uuid, onGround);
 
                 if (onGround != wasOnGround) {
                     return response.builder().flag().build();
@@ -291,20 +292,20 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             final Location packetLoc = packet.getLocation();
 
             final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
-            container.put(Location.class, lastKnownPacketLoc);
+            container.getStorage().put(Location.class, lastKnownPacketLoc);
 
             lastPacketLocation.put(player.getUniqueId(), packetLoc);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
-                container.putBoolean(true);
+                container.getStorage().putBoolean(true);
                 return ResponseBuilder.SUCCESS;
             }
 
             final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-            container.putDouble(distance2d);
+            container.getStorage().putDouble(distance2d);
 
             final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
-            container.putDouble(distanceY);
+            container.getStorage().putDouble(distanceY);
 
             if (getSetting().isEnabled()) {
 
@@ -360,7 +361,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.SUCCESS;
                 }
 
-                Location priorLocation = container.get(Location.class, 0);
+                Location priorLocation = container.getStorage().get(Location.class, 0);
                 // returnerer hvis det er den første lokation packet der bliver sendt
                 if (priorLocation == null) {
                     return ResponseBuilder.SUCCESS;
@@ -368,7 +369,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // ignorerer packets tæt på den seneste teleportering, da distancen mellem to
                 // position packets ellers kan være rigtig høj hvis man teleporterer en lang distance
-                boolean shouldIgnore = container.getBoolean(0);
+                boolean shouldIgnore = container.getStorage().getBoolean(0);
                 if (shouldIgnore) {
                     return ResponseBuilder.SUCCESS;
                 }
@@ -535,7 +536,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                Location priorLocation = container.get(Location.class, 0);
+                Location priorLocation = container.getStorage().get(Location.class, 0);
                 // når den allerførste lokation packet bliver sendt, er der ikke nogen prior location, og derfor skal den
                 // bare returnere indtil den næste position packet kommer
                 if (priorLocation == null)
@@ -559,7 +560,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting());
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting(), container.getDevelopmentData(this));
                         }
                     }
                 }
@@ -619,10 +620,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
             if (getSetting().isEnabled()) {
 
-                double delta2D = container.getDouble(0);
-                double deltaY = container.getDouble(1);
+                double delta2D = container.getStorage().getDouble(0);
+                double deltaY = container.getStorage().getDouble(1);
 
-                boolean closeToTeleportLocation = container.getBoolean(0);
+                boolean closeToTeleportLocation = container.getStorage().getBoolean(0);
 
                 if (closeToTeleportLocation) return response;
                 if (delta2D == 0 && deltaY == 0) return response;
@@ -635,7 +636,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting());
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
@@ -652,7 +653,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (deltaY % 0.375 < 0.000001) {
                             return response;
                         }
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting());
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);

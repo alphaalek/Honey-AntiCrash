@@ -1,13 +1,45 @@
 package me.alek.honey.configuration;
 
+import com.google.common.collect.Sets;
+
+import java.util.Set;
+
 public enum PacketLimitHandlerType {
 
-    INTERVAL,
+    INTERVAL(Sets.newHashSet(
+            ConfigurationOptions.VlSettingImplType.INTERVAL,
+            ConfigurationOptions.VlSettingImplType.MAX_PER_INTERVAL,
+            ConfigurationOptions.VlSettingImplType.CLEAR_INTERVAL,
+            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT)),
+    SINGLE_OVERFLOW(Sets.newHashSet(
+            ConfigurationOptions.VlSettingImplType.THRESHOLD
+    )),
 
-    SINGLE_OVERFLOW,
+    BUFFER_OVERFLOW(Sets.newHashSet(
+            ConfigurationOptions.VlSettingImplType.DECAY,
+            ConfigurationOptions.VlSettingImplType.DECAY_AMOUNT,
+            ConfigurationOptions.VlSettingImplType.THRESHOLD,
+            ConfigurationOptions.VlSettingImplType.CLEAR_BUFFER,
+            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+    )),
 
-    BUFFER_OVERFLOW,
+    BUFFER_THROTTLE(Sets.newHashSet(
+            ConfigurationOptions.VlSettingImplType.DECAY,
+            ConfigurationOptions.VlSettingImplType.DECAY_AMOUNT,
+            ConfigurationOptions.VlSettingImplType.THRESHOLD,
+            ConfigurationOptions.VlSettingImplType.UNTIL,
+            ConfigurationOptions.VlSettingImplType.CLEAR_BUFFER,
+            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+    ));
 
-    BUFFER_THROTTLE
+    private final Set<ConfigurationOptions.VlSettingImplType> vlSettingImplTypes;
+
+    PacketLimitHandlerType(Set<ConfigurationOptions.VlSettingImplType> vlSettingImplTypes) {
+        this.vlSettingImplTypes = vlSettingImplTypes;
+    }
+
+    public Set<ConfigurationOptions.VlSettingImplType> getVlSettingImplTypes() {
+        return vlSettingImplTypes;
+    }
 
 }

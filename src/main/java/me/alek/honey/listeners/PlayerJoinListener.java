@@ -4,7 +4,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -48,6 +47,8 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
 
         instantJoinedMap.remove(player.getUniqueId());
+
+        HoneyPlugin.get().removeRecentPingLookup(player);
     }
 
     public static Map<UUID, Long> getInstantJoinedMap() {

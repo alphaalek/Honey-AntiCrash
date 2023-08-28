@@ -26,7 +26,6 @@ import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -58,8 +57,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         } catch (Exception ex) {
         }
 
-        container.put(ByteBuf.class, priorSerializer);
-        container.put(ItemStack.class, bukkitItem);
+        container.getStorage().put(ByteBuf.class, priorSerializer);
+        container.getStorage().put(ItemStack.class, bukkitItem);
         return true;
     }
 
@@ -97,7 +96,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ByteBuf serializer = container.get(ByteBuf.class, 0);
+                ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (serializer == null || serializer instanceof EmptyByteBuf) {
                     return ResponseBuilder.inst().cancel().flag().terminate().build();
                 }
@@ -121,7 +120,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ByteBuf serializer = container.get(ByteBuf.class,0);
+                ByteBuf serializer = container.getStorage().get(ByteBuf.class,0);
                 if (serializer == null) {
                     return ResponseBuilder.SUCCESS; // burde aldrig ske, for så vil PayloadA være blevet flagged
                 }
@@ -150,7 +149,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ItemStack item = container.poll(ItemStack.class);
+                ItemStack item = container.getStorage().poll(ItemStack.class);
                 ItemStack itemInHand = player.getItemInHand();
 
                 if (!(ItemAnalysis.checkItem(player, itemInHand) || ItemAnalysis.checkItem(player, item))) {
@@ -162,7 +161,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                         return ResponseBuilder.SUCCESS;
                     }
                 }
-                ByteBuf serializer = container.poll(ByteBuf.class);
+                ByteBuf serializer = container.getStorage().poll(ByteBuf.class);
                 if (serializer != null && serializer.refCnt() > 0) {
                     serializer.release();
                 }
@@ -199,7 +198,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                         return ResponseBuilder.SUCCESS;
                     }
                 }
-                ByteBuf serializer = container.get(ByteBuf.class, 0);
+                ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (serializer != null) {
                     serializer.release();
                 }
@@ -229,7 +228,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (channel.equals("BungeeCord") || channel.contains("FML") || channel.equals("ML|OpenTE") || channel.equals("WECUI")) {
                     return ResponseBuilder.SUCCESS; // ingen grund til at tjekke for Community channels
                 }
-                ByteBuf serializer = container.get(ByteBuf.class, 0);
+                ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (channel.equalsIgnoreCase("register")) {
 
                     if (player.getListeningPluginChannels().size() > ConfigurationOptions.CustomPayload.PayloadE.MAX) {

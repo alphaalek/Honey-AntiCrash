@@ -6,9 +6,10 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> {
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
     private CheckVisitor<WP> cachedVisitor;
 
@@ -19,6 +20,15 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             }
         }
         CheckContextContainer checkContextContainer = new CheckContextContainer();
+
+        if (player != null) {
+            CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+
+            defaultDevelopmentData.addEmpty();
+            defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
+            defaultDevelopmentData.addValue(" Version", Bukkit.getServer().getVersion());
+        }
+
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {
             return;
         }

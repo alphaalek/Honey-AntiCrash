@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -39,8 +40,18 @@ public class LateChannelInjector implements AbstractNettyChannelInjector {
     }
 
     @Override
+    public <WP extends WrappedPacket<WP>> void writePacket(Player player, WrappedPacket<WP> packet) {
+        CommonChannelInjector.writePacket(player, packet);
+    }
+
+    @Override
     public void writePacket(Channel channel, Object rawPacket) {
         CommonChannelInjector.writePacket(channel, rawPacket);
+    }
+
+    @Override
+    public <WP extends WrappedPacket<WP>> void writePacket(Channel channel, WrappedPacket<WP> packet) {
+        CommonChannelInjector.writePacket(channel, packet);
     }
 
     @Override

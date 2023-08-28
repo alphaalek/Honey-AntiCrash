@@ -7,6 +7,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import me.alek.honey.netty.api.event.impl.inject.PlayerEjectEvent;
 import me.alek.honey.netty.api.event.impl.inject.PlayerInjectEvent;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -161,6 +162,10 @@ public class CommonChannelInjector {
         return injectedPlayers.contains(player.getUniqueId()) || channel.pipeline().get(PacketLibrary.get().getHandlerName()) != null;
     }
 
+    public static <WP extends WrappedPacket<WP>> void writePacket(Player player, WrappedPacket<WP> packet) {
+        writePacket(player, packet.getHandle());
+    }
+
     public static void writePacket(Player player, Object rawPacket) {
         writePacket(NMSUtils.getChannel(player), rawPacket);
     }
@@ -170,6 +175,10 @@ public class CommonChannelInjector {
             return;
         }
         channel.writeAndFlush(rawPacket);
+    }
+
+    public static <WP extends WrappedPacket<WP>> void writePacket(Channel channel, WrappedPacket<WP> packet) {
+        writePacket(channel, packet.getHandle());
     }
 
     public static void flushPackets(Player player) {

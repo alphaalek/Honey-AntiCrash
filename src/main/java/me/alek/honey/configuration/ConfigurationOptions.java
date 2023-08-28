@@ -255,12 +255,12 @@ public class ConfigurationOptions {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    private @interface VlSettingImpl {
+    public @interface VlSettingImpl {
 
         VlSettingImplType value();
     }
 
-    private enum VlSettingImplType {
+   public enum VlSettingImplType {
         MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, ENABLED;
 
         public String getPathName() {

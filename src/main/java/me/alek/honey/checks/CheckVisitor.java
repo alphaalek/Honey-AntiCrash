@@ -28,9 +28,12 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     @SuppressWarnings("unchecked")
-    public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) throws Exception {
+    public void check(AbstractPacketListener<WP> packetListener, Player player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer) throws Exception {
         AtomicInteger skipping = null;
         for (PacketCheck<WP> check : checks) {
+
+            if (player != null)
+                checkContextContainer.getDevelopmentData(check).setLine(0, "§8* §7Player " + player.getName() + " flagged " + check.getViolationName() + " §8*");
 
             if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 packetContainer.cancel();
@@ -38,7 +41,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (skipping != null && skipping.getAndDecrement() > 0) continue;
 
-            ResponseContainer response = check.check(player, packetContainer.getPacket(), container);
+            ResponseContainer response = check.check(player, packetContainer.getPacket(), checkContextContainer);
             ConfigurationOptions.VlSetting setting = null;
 
             if (check instanceof ViolationCheck) {
@@ -65,7 +68,9 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     continue;
                 }
                 ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check.getClass(), packetContainer.getType());
-                HoneyPlugin.get().getViolationService().flag(player, packetContainer.getHandle(), packetContainer, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting);
+                CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
+
+                HoneyPlugin.get().getViolationService().flag(player, packetContainer.getHandle(), packetContainer, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting, developmentData);
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);

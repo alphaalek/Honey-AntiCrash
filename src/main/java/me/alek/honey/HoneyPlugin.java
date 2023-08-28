@@ -27,10 +27,15 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class HoneyPlugin extends JavaPlugin {
 
@@ -46,6 +51,8 @@ public class HoneyPlugin extends JavaPlugin {
     private boolean usingOldVersion;
     private UpdateChecker updateChecker;
     private PacketLibrary packetLibrary;
+    private int recentTPS = 20;
+    private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -106,6 +113,19 @@ public class HoneyPlugin extends JavaPlugin {
         // setup bukkit listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), this);
+
+        // setup runnable getting the TPS and ping of the server and players
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                recentTPS = HoneyPlugin.get().getNotificationService().getTPS();
+
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
+                }
+            }
+        }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 60L);
     }
 
     @Override
@@ -199,5 +219,17 @@ public class HoneyPlugin extends JavaPlugin {
 
     public boolean isRunning() {
         return isRunning;
+    }
+
+    public int getRecentTPS() {
+        return recentTPS;
+    }
+
+    public int getRecentPing(Player player) {
+        return recentPingLookup.getOrDefault(player.getUniqueId(), notificationService.getPing(player));
+    }
+
+    public void removeRecentPingLookup(Player player) {
+        recentPingLookup.remove(player.getUniqueId());
     }
 }

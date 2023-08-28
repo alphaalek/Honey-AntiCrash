@@ -23,7 +23,6 @@ import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -184,19 +183,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final Map<UUID, LinkedBlockingQueue<Long>> decodeStartMap = new HashMap<>();
-        private int recentTPS = 20;
-
-        public NettyI() {
-
-            new BukkitRunnable() {
-
-                @Override
-                public void run() {
-                    recentTPS = HoneyPlugin.get().getNotificationService().getTPS();
-                }
-            }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 60L);
-
-        }
 
         public static void registerDecodeFor(Player player) throws Exception {
             decodeStartMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).put(System.currentTimeMillis());
@@ -214,12 +200,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
                 // disable this check if the TPS is really low
-                if (recentTPS <= 15)
+                if (HoneyPlugin.get().getRecentTPS() <= 15)
                     return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
                 // evaluate the duration of decoding this packet
                 decodeTime = System.currentTimeMillis() - decodeStart;
-                container.putLong(decodeTime);
+                container.getStorage().putLong(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
                 if (decodeTime > ConfigurationOptions.Netty.NettyI.MAX) {
@@ -246,7 +232,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                long decodeTime = container.getLong(0);
+                long decodeTime = container.getStorage().getLong(0);
                 if (decodeTime > 0) {
 
                     return ResponseBuilder.inst().flag(decodeTime).build();

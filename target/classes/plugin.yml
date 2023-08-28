@@ -4,4 +4,3 @@ version: 1.0-BETA-2
 main: me.alek.honey.HoneyPlugin
 commands:
   honey:
-    aliases: [crash, anticrash, anticrasher, antiexploit]
