@@ -1,9 +1,10 @@
 package me.alek.honey.netty.api.packet;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.entity.Player;
 
@@ -15,6 +16,8 @@ public interface PacketProcessor {
 
     PacketContainer<? extends WrappedPacket<?>> write(Channel channel, Player player, Object packet);
 
+    void callDecode(Player player, ByteBuf byteBuf);
+
     void removeListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetType);
 
     void removeListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetType);
@@ -22,6 +25,8 @@ public interface PacketProcessor {
     void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetType);
 
     void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetType);
+
+    void addDecodeListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority);
 
     <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> packetAdapter);
 

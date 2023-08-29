@@ -72,6 +72,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeA.class);
         }
@@ -97,6 +102,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeB.class);
         }
@@ -118,6 +128,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         @Override
         public String getViolationName() {
             return "Creative.C";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

@@ -1,9 +1,6 @@
 package me.alek.honey;
 
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.IListener;
-import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.ListenerRegistry;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.command.impl.HelpCommand;
@@ -138,15 +135,15 @@ public class HoneyPlugin extends JavaPlugin {
     public <WP extends WrappedPacket<WP>> void registerChecks() {
         for (IListener check : ListenerRegistry.getChecks()) {
 
-            if (check instanceof IPacketListener && check instanceof SyncPacketAdapter) {
-                ListenerPriority priority;
-                if (check instanceof AbstractPacketListener) {
-                    priority = ((AbstractPacketListener<WP>)check).getPriority();
+            if (check instanceof SyncPacketAdapter) {
+                ListenerPriority priority = check.getPriority();
+
+                if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener) {
+                    PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
                 }
-                else {
-                    priority = ListenerPriority.NORMAL;
+                if (check.getCheckType() == HoneyCheckType.DECODE) {
+                    PacketLibrary.get().addDecodeListener((SyncPacketAdapter<?>) check, priority);
                 }
-                PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
                 check.load();
                 continue;
             }

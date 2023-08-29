@@ -1,5 +1,6 @@
 package me.alek.honey.netty.listener;
 
+import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -21,6 +22,10 @@ public class SyncPacketAdapter<WP extends WrappedPacket<WP>> {
     }
 
     public void onPacketError(Player player, PacketTypeEnum packetType, PacketContainer<WP> packetContainer) {
+
+    }
+
+    public void onByteBufDecode(Player player, ByteBuf byteBuf) {
 
     }
 }

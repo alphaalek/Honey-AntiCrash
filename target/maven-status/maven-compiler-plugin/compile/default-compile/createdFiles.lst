@@ -20,6 +20,7 @@ me\alek\honey\netty\modelwrappers\nbt\writer\Writers$LongWriter.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutGameStateChange.class
 me\alek\honey\checks\impl\PositionListener$PositionG.class
 me\alek\honey\netty\utility\reflect\NMSUtils.class
+me\alek\honey\checks\HoneyCheckType.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutCustomPayload.class
 me\alek\honey\netty\utility\reflect\Reflection$1.class
 me\alek\honey\configuration\ConfigurationOptions$Netty$NettyE.class
@@ -82,6 +83,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntitySound.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutHeldItemSlot.class
 me\alek\honey\configuration\ConfigurationOptions$Position$PositionB.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$UseItem.class
+me\alek\honey\netty\packet\cancellables\CancellablePacketDelegateImpl.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$CloseWindow.class
 me\alek\honey\netty\packet\type\RangedPacketTypeEnum.class
 me\alek\honey\netty\modelwrappers\suggestion\WrappedSuggestions.class
@@ -205,7 +207,6 @@ me\alek\honey\checks\impl\FloodListener$FloodD.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$Register.class
 me\alek\honey\configuration\ConfigurationOptions$WindowClick.class
 me\alek\honey\checks\impl\CreativeSlotListener$CreativeB.class
-me\alek\honey\checks\types\ViolationKeyedCheck.class
 me\alek\honey\checks\types\ViolationCheck.class
 me\alek\honey\configuration\ConfigurationOptions$ItemAnalysis$General.class
 me\alek\honey\netty\structure\converters\CollectionConverter.class
@@ -311,6 +312,7 @@ me\alek\honey\checks\impl\FloodListener$FloodB.class
 me\alek\honey\netty\api\event\EventManager$1$3.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSettings.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF.class
+me\alek\honey\netty\packet\CancellablePacketObserver.class
 me\alek\honey\checks\impl\TabCompleteListener$TabB$2.class
 me\alek\honey\checks\impl\TabCompleteListener$TabA.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetSlot.class
@@ -372,6 +374,7 @@ me\alek\honey\command\CooldownManager.class
 me\alek\honey\netty\api\event\EventManager.class
 me\alek\honey\configuration\ConfigurationOptions$Position$PositionC.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInEntityNBTQuery.class
+me\alek\honey\checks\AbstractDecodeListener.class
 me\alek\honey\netty\injector\EarlyChannelInjector$3.class
 me\alek\honey\netty\PacketLibrarySettings.class
 me\alek\honey\checks\types\PacketCheck.class
@@ -380,6 +383,7 @@ me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBEdit.class
 me\alek\honey\services\LoggerService$LoggingStrategy.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutScoreboardObjective.class
 me\alek\honey\netty\utility\reflect\FieldAccessor.class
+me\alek\honey\checks\types\DecodeCheck.class
 me\alek\honey\netty\modelwrappers\WrappedObject.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSetCooldown.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutLightUpdate.class
@@ -393,6 +397,7 @@ me\alek\honey\checks\impl\WindowClickListener$WindowB.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload.class
 me\alek\honey\checks\item\ItemChecks$UnbreakableItemCheck.class
 me\alek\honey\netty\api\event\impl\packet\PacketLoginReceiveEvent.class
+me\alek\honey\netty\packet\cancellables\CancellableByteBufImpl.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCollect.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSpawnEntityLiving.class
 me\alek\honey\checks\item\ItemAnalysis$1.class
@@ -400,6 +405,7 @@ me\alek\honey\configuration\ConfigurationOptions$UseEntity.class
 me\alek\honey\checks\CheckContextContainer$Storage$ContainerStructure.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInKeepAlive.class
+me\alek\honey\checks\types\KeyedViolationCheck.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInChat.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$BlockDig.class
 me\alek\honey\netty\modelwrappers\nbt\NBTFactory.class
@@ -483,6 +489,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPosition.class
 me\alek\honey\services\ViolationService$PacketSingleOverflowHandler.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAttachEntity.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$BEdit.class
+me\alek\honey\checks\impl\NettyDecodeListener$NettyG.class
 me\alek\honey\configuration\ConfigurationOptions$Netty.class
 me\alek\honey\netty\packetwrappers\login\server\WrappedLoginOutSetCompression.class
 me\alek\honey\checks\impl\NettyListener$NettyB.class
@@ -509,6 +516,7 @@ me\alek\honey\netty\api\packet\container\ModifiablePacketContainer.class
 me\alek\honey\netty\structure\ReflectStructure$StructureModifier.class
 me\alek\honey\checks\impl\PositionListener$PositionI.class
 me\alek\honey\listeners\DispenserListener.class
+me\alek\honey\checks\impl\NettyDecodeListener$NettyH.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodC.class
 me\alek\honey\netty\listener\FuzzyPacketAdapter.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInBlockDig.class
@@ -541,8 +549,10 @@ me\alek\honey\configuration\ConfigurationOptions$HeldItem$HeldItemA.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadE.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInUseEntity.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTransaction.class
+me\alek\honey\checks\impl\NettyDecodeListener$NettyF.class
 me\alek\honey\checks\impl\PositionListener$PositionC.class
 me\alek\honey\netty\modelwrappers\nbt\lists\NBTListOfCompound.class
+me\alek\honey\checks\types\HoneyCheck.class
 me\alek\honey\netty\structure\converters\Converters$3.class
 me\alek\honey\checks\item\ItemChecks$MaxTotalLoreLengthCheck.class
 me\alek\honey\checks\item\ItemAnalysis$ItemChecker.class
@@ -554,6 +564,7 @@ me\alek\honey\checks\CheckVisitor.class
 me\alek\honey\netty\api\event\EventManager$1$1.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$ByteArrayWriter.class
 me\alek\honey\netty\packet\PacketWrapperFactory$1.class
+me\alek\honey\checks\impl\NettyDecodeListener$NettyD.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewDistance.class
 me\alek\honey\netty\processor\InternalPacketProcessor$1.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodB.class
@@ -595,5 +606,7 @@ me\alek\honey\netty\injector\LateChannelInjector.class
 me\alek\honey\checks\item\ItemChecks$AttributeModifiersCheck.class
 me\alek\honey\checks\CheckContextContainer$Storage.class
 me\alek\honey\netty\api\event\impl\inject\PlayerEjectEvent.class
+me\alek\honey\checks\impl\NettyDecodeListener$NettyE.class
 me\alek\honey\command\CommandImpl.class
+me\alek\honey\checks\impl\NettyDecodeListener.class
 me\alek\honey\configuration\ConfigurationOptions$Rotation$RotationA.class

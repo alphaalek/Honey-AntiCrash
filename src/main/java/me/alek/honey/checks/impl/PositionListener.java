@@ -14,6 +14,7 @@ import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
+import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
@@ -278,6 +279,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionA.class);
         }
@@ -332,6 +338,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -401,6 +412,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionC.class);
         }
@@ -455,6 +471,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionD.class);
         }
@@ -473,6 +494,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.E";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -560,7 +586,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting(), container.getDevelopmentData(this));
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting(), container.getDevelopmentData(this));
                         }
                     }
                 }
@@ -571,6 +597,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.F";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -599,6 +630,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.G";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -636,7 +672,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
@@ -653,7 +689,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (deltaY % 0.375 < 0.000001) {
                             return response;
                         }
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);
@@ -667,6 +703,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.H";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -689,6 +730,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.I";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -740,6 +786,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getViolationName() {
             return "Position.J";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

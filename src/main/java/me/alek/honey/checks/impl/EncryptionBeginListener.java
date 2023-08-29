@@ -73,6 +73,11 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return null;
         }

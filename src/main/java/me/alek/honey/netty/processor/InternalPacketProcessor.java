@@ -1,19 +1,19 @@
 package me.alek.honey.netty.processor;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.EventManager;
+import me.alek.honey.netty.api.event.impl.packet.*;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.api.event.impl.packet.*;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.*;
-import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -25,6 +25,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private final ConcurrentHashMap<Object, PacketState> LOOKUP_PACKET_STATES = new ConcurrentHashMap<>();
     private final Map<Class<?>, ListModifier<?>> PACKET_ADAPTERS = new HashMap<>();
+    private final ListModifier<?> DECODE_LIST_MODIFIER = new ListModifier<>();
     private final Map<PacketTypeEnum, Runnable> POST_ACTION_MAP = new HashMap<>();
     private final EventManager EVENT_MANAGER;
 
@@ -54,6 +55,12 @@ public class InternalPacketProcessor implements PacketProcessor {
                     ex.printStackTrace();
                     error(player, packetContainer.getType(), packetContainer);
                 }
+            });
+        }
+
+        public void callDecode(Player player, ByteBuf byteBuf) {
+            callPriority((packetAdapter) -> {
+                packetAdapter.onByteBufDecode(player, byteBuf);
             });
         }
 
@@ -159,6 +166,10 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
+    public void addDecodeListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority) {
+        DECODE_LIST_MODIFIER.addListener(packetAdapter, priority);
+    }
+
     public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
@@ -204,6 +215,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean checkListModifier(ListModifier<WP2> listModifier, SyncPacketAdapter<WP> check) {
         for (List<SyncPacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
             for (SyncPacketAdapter<WP2> packetAdapter : packetAdapters) {
+
                 if (packetAdapter == check) {
                     return true;
                 }
@@ -234,6 +246,10 @@ public class InternalPacketProcessor implements PacketProcessor {
             return;
         }
         PACKET_ADAPTERS.get(clazz).call(player, packetContainer, isRead);
+    }
+
+    public void callDecode(Player player, ByteBuf byteBuf) {
+        DECODE_LIST_MODIFIER.callDecode(player, byteBuf);
     }
 
     public void errorListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer) {

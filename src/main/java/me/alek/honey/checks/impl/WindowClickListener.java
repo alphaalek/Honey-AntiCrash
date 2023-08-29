@@ -82,6 +82,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowA.class);
         }
@@ -104,6 +109,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public String getViolationName() {
             return "Window.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -131,6 +141,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public String getViolationName() {
             return "Window.C";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

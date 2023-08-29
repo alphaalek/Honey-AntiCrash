@@ -1,6 +1,6 @@
 package me.alek.honey.checks;
 
-import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.HoneyCheck;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,15 +10,15 @@ import java.util.Map;
 public class CheckContextContainer {
 
     private final Storage storage = new Storage();
-    private final Map<PacketCheck<?>, DevelopmentData> developmentDataMap = new HashMap<>();
+    private final Map<HoneyCheck, DevelopmentData> developmentDataMap = new HashMap<>();
     private final DevelopmentData defaultDevelopmentData = new DevelopmentData();
 
     public Storage getStorage() {
         return storage;
     }
 
-    public DevelopmentData getDevelopmentData(PacketCheck<?> packetListener) {
-        return developmentDataMap.computeIfAbsent(packetListener, (d) -> new DevelopmentData());
+    public DevelopmentData getDevelopmentData(HoneyCheck check) {
+        return developmentDataMap.computeIfAbsent(check, (d) -> new DevelopmentData());
     }
 
     public DevelopmentData getDefaultDevelopmentData() {

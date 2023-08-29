@@ -12,7 +12,7 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
-import me.alek.honey.checks.types.ViolationKeyedCheck;
+import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -110,6 +110,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadA.class);
         }
@@ -135,6 +140,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public String getViolationName() {
             return "Payload.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -176,6 +186,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadC.class);
         }
@@ -213,6 +228,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadD.class);
         }
@@ -246,12 +266,17 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadE.class);
         }
     }
 
-    public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, ViolationKeyedCheck<WrappedPlayInCustomPayload, String> {
+    public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, KeyedViolationCheck<WrappedPlayInCustomPayload, String> {
 
         @Override
         public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
@@ -267,6 +292,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public String getViolationName() {
             return "Payload.F";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -297,6 +327,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public String getViolationName() {
             return "Payload.G";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

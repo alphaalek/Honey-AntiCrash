@@ -17,7 +17,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final Channel channel;
     private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
 
-    private final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+    private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
     public DuplexChannelHandler(Channel channel, Player player) {
         this.channel = channel;

@@ -87,6 +87,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationA.class);
         }
@@ -109,6 +114,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public String getViolationName() {
             return "Rotation.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -137,6 +147,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public String getViolationName() {
             return "Rotation.C";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

@@ -83,6 +83,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Chat.ChatA.class);
         }
@@ -107,6 +112,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         @Override
         public String getViolationName() {
             return "Chat.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -188,6 +198,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         @Override
         public String getViolationName() {
             return "Command.A";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

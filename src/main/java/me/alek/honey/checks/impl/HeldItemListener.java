@@ -69,6 +69,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemA.class);
         }
@@ -90,6 +95,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         @Override
         public String getViolationName() {
             return "HeldItem.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

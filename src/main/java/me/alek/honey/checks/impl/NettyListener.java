@@ -44,7 +44,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
-        // all the other netty checks (C - H) are in the packet decoder
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
@@ -96,6 +95,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public String getViolationName() {
             return "Netty.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -170,6 +174,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ListenerPriority getPriority() {
             return ListenerPriority.HIGHEST;
         }
@@ -186,6 +195,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         public static void registerDecodeFor(Player player) throws Exception {
             decodeStartMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).put(System.currentTimeMillis());
+        }
+
+        public static void unregisterDecodeFor(Player player) {
+            decodeStartMap.remove(player.getUniqueId());
         }
 
         @Override
@@ -221,6 +234,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
         }
@@ -244,6 +262,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public String getViolationName() {
             return "Netty.J";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

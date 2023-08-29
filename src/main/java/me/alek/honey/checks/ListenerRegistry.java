@@ -15,16 +15,17 @@ public enum ListenerRegistry {
     v5(CustomPayloadListener::new),
     v6(NettyListener::new),
     v7(NettyListener.NettyC::new),
-    v8(LoginStartListener::new),
-    v9(UpdateSignListener::new),
-    v10(BlockPlaceListener::new),
-    v11(ChatListener::new),
-    v12(EncryptionBeginListener::new),
-    v13(TabCompleteListener::new),
+    v8(NettyDecodeListener::new),
+    v9(LoginStartListener::new),
+    v10(UpdateSignListener::new),
+    v11(BlockPlaceListener::new),
+    v12(ChatListener::new),
+    v13(EncryptionBeginListener::new),
     v14(WindowClickListener::new),
     v15(RotationListener::new),
     v16(UseEntityListener::new),
-    v17(BlockDigListener::new);
+    v17(BlockDigListener::new),
+    v18(TabCompleteListener::new);
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;

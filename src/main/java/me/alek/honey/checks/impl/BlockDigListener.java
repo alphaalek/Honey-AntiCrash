@@ -70,6 +70,11 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
         }
 
         @Override
+        public String getDescription() {
+            return "Interacting with block too far away";
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractE.class);
         }

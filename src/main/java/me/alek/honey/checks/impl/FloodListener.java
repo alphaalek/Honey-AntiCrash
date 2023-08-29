@@ -6,7 +6,7 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.ViolationKeyedCheck;
+import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -64,7 +64,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         };
     }
 
-    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
+    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
 
         private final Map<PacketTypeEnum, ConfigurationOptions.VlSetting> settingMap = new HashMap<>();
 
@@ -124,6 +124,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public String getViolationName() {
             return "Flood.A";
         }
+
+        @Override
+        public String getDescription() {
+            return null;
+        }
     }
 
     public static class FloodB<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
@@ -141,6 +146,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public String getViolationName() {
             return "Flood.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
     }
 
@@ -160,9 +170,14 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public String getViolationName() {
             return "Flood.C";
         }
+
+        @Override
+        public String getDescription() {
+            return null;
+        }
     }
 
-    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationKeyedCheck<WP, PacketTypeEnum> {
+    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting(packet.getType()).isEnabled()) {
@@ -175,6 +190,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public String getViolationName() {
             return "Flood.D";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

@@ -1,7 +1,6 @@
 package me.alek.honey.checks;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -32,7 +31,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {
             return;
         }
-        getCachedVisitor().check(this, player, packetContainer, checkContextContainer);
+        getCachedVisitor().check(player, packetContainer, checkContextContainer);
         onPostPacketReceive(player, packetContainer);
     }
 
@@ -49,5 +48,4 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public abstract void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer);
 
-    public abstract ListenerPriority getPriority();
 }

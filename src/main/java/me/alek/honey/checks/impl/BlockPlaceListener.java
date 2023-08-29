@@ -110,6 +110,11 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         public String getViolationName() { return "BlockInteract.A"; }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractA.class);
         }
@@ -134,6 +139,11 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         @Override
         public String getViolationName() {
             return "BlockInteract.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override
@@ -168,6 +178,11 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractC.class);
         }
@@ -198,6 +213,11 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         @Override
         public String getViolationName() {
             return "BlockInteract.D";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

@@ -28,9 +28,9 @@ import java.util.function.Supplier;
 public class PacketLibrary {
 
     private final PacketLibrarySettings settings;
-    private PacketProcessor internalPacketProcessor;
+    private final PacketProcessor packetProcessor;
     private final EventManager eventManager;
-    private AsyncFuture packetTypesLoadingFuture;
+    private final AsyncFuture packetTypesLoadingFuture;
     private final JavaPlugin plugin;
     private AbstractNettyChannelInjector proxy;
 
@@ -59,7 +59,7 @@ public class PacketLibrary {
             proxy = new EarlyChannelInjector();
         }
         proxy.inject();
-        internalPacketProcessor = new InternalPacketProcessor(eventManager);
+        packetProcessor = new InternalPacketProcessor(eventManager);
 
         packetTypesLoadingFuture = PacketType.load();
         packetTypesLoadingFuture.join(PacketWrapperFactory.load());
@@ -108,7 +108,7 @@ public class PacketLibrary {
     }
 
     public PacketProcessor getPacketProcessor() {
-        return internalPacketProcessor;
+        return packetProcessor;
     }
 
     private void addListener(Runnable runnable) {
@@ -129,15 +129,19 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
-        addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
+        addListener(() -> packetProcessor.addListener(adapter, priority, packetTypes.get()));
     }
 
     public <WP extends WrappedPacket<WP>> void addListeners(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
-        addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
+        addListener(() -> packetProcessor.addListener(adapter, priority, packetTypes.get()));
     }
 
     public void addFuzzyListeners(FuzzyPacketAdapter adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
-        addListener(() -> internalPacketProcessor.addListener(adapter, priority, packetTypes.get()));
+        addListener(() -> packetProcessor.addListener(adapter, priority, packetTypes.get()));
+    }
+
+    public void addDecodeListener(SyncPacketAdapter<?> adapter, ListenerPriority priority) {
+        packetProcessor.addDecodeListener(adapter, priority);
     }
 
     public <WP extends WrappedPacket<WP>> void removeListener(SyncPacketAdapter<WP> adapter) {
@@ -145,7 +149,7 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void removeListeners(SyncPacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {
-        internalPacketProcessor.removeListener(adapter, packetTypes);
+        packetProcessor.removeListener(adapter, packetTypes);
     }
 
     @SuppressWarnings("unchecked")
@@ -159,7 +163,7 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> adapter) {
-        return internalPacketProcessor.isRegistered(adapter);
+        return packetProcessor.isRegistered(adapter);
     }
 
     @SuppressWarnings("unchecked")
@@ -168,7 +172,7 @@ public class PacketLibrary {
     }
 
     public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {
-        internalPacketProcessor.setPostAction(packetType, postAction);
+        packetProcessor.setPostAction(packetType, postAction);
     }
 
     public void disable() {

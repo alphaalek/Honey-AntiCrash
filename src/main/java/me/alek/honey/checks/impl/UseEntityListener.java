@@ -72,6 +72,11 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.UseEntity.UseEntityA.class);
         }
@@ -116,6 +121,11 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
         @Override
         public String getViolationName() {
             return "UseEntity.B";
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
         }
 
         @Override

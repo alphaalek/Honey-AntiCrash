@@ -13,6 +13,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
@@ -83,6 +84,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Commands.class);
         }
@@ -131,7 +137,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         @Override
                         public void accept(int size) {
 
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), packet.getContainer(), key, size, null, getViolationName(), getSetting(), container.getDevelopmentData(TabB.this));
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, size, null, getViolationName(), getSetting(), container.getDevelopmentData(TabB.this));
                         }
                     });
                 }
@@ -144,6 +150,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getViolationName() { return "Tab.B"; }
+
+        @Override
+        public String getDescription() {
+            return null;
+        }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
