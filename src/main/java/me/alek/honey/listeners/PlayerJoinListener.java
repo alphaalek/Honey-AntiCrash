@@ -43,12 +43,13 @@ public class PlayerJoinListener implements Listener {
         for (IListener check : ListenerRegistry.getChecks()) {
             check.cleanup(player);
         }
+        instantJoinedMap.remove(player.getUniqueId());
+
         HoneyPlugin.get().getViolationService().removePlayer(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
 
-        instantJoinedMap.remove(player.getUniqueId());
-
         HoneyPlugin.get().removeRecentPingLookup(player);
+        HoneyPlugin.get().getPacketHandleTimeTracker().removePlayer(player);
     }
 
     public static Map<UUID, Long> getInstantJoinedMap() {

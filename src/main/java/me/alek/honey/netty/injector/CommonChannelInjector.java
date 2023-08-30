@@ -33,19 +33,19 @@ public class CommonChannelInjector {
         }
     }
 
-    public static void injectPipeline(ChannelHandler handler, String nmsName, String name, Channel channel) {
+    private enum PipelineInjectionRelative {
+        BEFORE, AFTER
+    }
+
+    public static void injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel) {
         final ChannelPipeline pipeline = channel.pipeline();
 
         // ignored already injected pipelines
-        if (pipeline.get(name) != null)
-            return;
+        if (pipeline.get(name) != null) return;
 
         channel.eventLoop().execute(() -> {
 
-            if (nmsName.equals("packet_handler"))
-                pipeline.addBefore(nmsName, name, handler);
-
-            else if (nmsName.equals("decompress")) {
+            if (nmsName.equals("decompress")) {
 
                 if (pipeline.get(nmsName) == null) {
 
@@ -54,10 +54,11 @@ public class CommonChannelInjector {
                     return;
                 }
                 pipeline.addAfter(nmsName, name, handler);
-            }
 
-            // done injecting, so notify every waiting thread
-            injectedLatch.countDown();
+            } else {
+                if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
+                if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);
+            }
         });
     }
 
@@ -75,7 +76,10 @@ public class CommonChannelInjector {
 
         saveInjection(player);
 
-        injectPipeline(handler, "packet_handler", handlerName, channel);
+        injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel);
+
+        // done injecting, so notify every waiting thread
+        injectedLatch.countDown();
 
         return handler;
     }
@@ -84,7 +88,7 @@ public class CommonChannelInjector {
         final InboundPacketDecoder handler = new InboundPacketDecoder(player);
         final String handlerName = PacketLibrary.get().getDecoderName();
 
-        injectPipeline(handler, "decompress", handlerName, channel);
+        injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.BEFORE, channel);
 
         return handler;
     }

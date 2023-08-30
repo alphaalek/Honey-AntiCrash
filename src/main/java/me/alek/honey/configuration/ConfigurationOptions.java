@@ -903,6 +903,17 @@ public class ConfigurationOptions {
     public static class Netty {
 
         @Setting
+        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class NettyA extends VlSetting {
+
+            public static double MAX_QUOTIENT;
+
+            public static void load() {
+                MAX_QUOTIENT = file.getDouble("netty.a.max-quotient", 1.75d);
+            }
+        }
+
+        @Setting
         @Violation(prefixPaths = "netty.b", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class NettyB extends VlSetting implements VlSimpleRequiredContentsSetting {
 

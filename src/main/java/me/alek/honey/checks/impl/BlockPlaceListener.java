@@ -87,7 +87,8 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             if (distance != -1 && !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(player, blockPosition.toLocation(player.getWorld()), maxDistance)) {
 
                 // add the distance to the development data
-                developmentData.addPoint("Distance", (distance == -1 ? "-1 (Invalid BlockPos)" : distance + " blocks"));
+                developmentData.addPoint("BlockPos", blockPosition);
+                developmentData.addPoint("Distance", (distance == -1 ? "-1 (Invalid BlockPos)" : distance));
                 return ResponseBuilder.inst().cancel().flag().build();
             }
         }

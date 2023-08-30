@@ -61,7 +61,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         container.getStorage().put(ItemStack.class, bukkitItem);
 
         container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
-        container.getDefaultDevelopmentData().addPoint("ByteBuf", newSerializer);
+        container.getDefaultDevelopmentData().addPoint("ByteBuf", newSerializer.readableBytes() + " bytes");
         return true;
     }
 

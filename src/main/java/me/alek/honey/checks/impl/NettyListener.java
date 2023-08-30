@@ -14,6 +14,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.injector.PacketHandleTimeTracker;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -24,14 +25,15 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
+    private static final DecimalFormat formatter = new DecimalFormat("#.####");
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
@@ -46,6 +48,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
+        visitor.visit(new NettyA<>());
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
@@ -65,6 +68,43 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public void cleanup(Player player) {
         NettyI.packetDecoderMap.remove(player.getUniqueId());
+    }
+
+    public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled()) {
+
+                PacketHandleTimeTracker packetHandleTimeTracker = HoneyPlugin.get().getPacketHandleTimeTracker();
+
+                // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
+                // sure it's a more correct average being evaluated and compared in this check
+                if (packetHandleTimeTracker.getTrackSize() > 10) {
+
+                    double timeToAverageQuotient = HoneyPlugin.get().getPacketHandleTimeTracker().getTimeToAverageQuotient(player);
+                    if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyA.MAX_QUOTIENT) {
+                        return ResponseBuilder.inst().flag().build();
+                    }
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getViolationName() {
+            return "Netty.A";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too high netty thread quotient";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class);
+        }
     }
 
     public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
@@ -183,7 +223,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            long decodeTime = 0;
+            double decodeTime = 0;
 
             if (player != null) {
 
@@ -191,20 +231,18 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
                 // poll the unix time of the matching packet and evaluate the duration of decoding this packet
-                long decodeStart = packetDecoder.getRecentDecodeStart();
+                double decodeStart = packetDecoder.getRecentDecodeStart();
 
                 // disable this check if the TPS is really low
                 if (HoneyPlugin.get().getRecentTPS() <= 15)
                     return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
                 // evaluate the duration of decoding this packet
-                decodeTime = System.currentTimeMillis() - decodeStart;
-                container.getStorage().putLong(decodeTime);
+                decodeTime = (((double)System.nanoTime()) / 1_000) - decodeStart;
+                container.getStorage().putDouble(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
-                Bukkit.broadcastMessage(decodeTime + "");
-
-                container.getDevelopmentData(this).addPoint("Decode Time (in millis)", decodeTime);
+                container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime / 1_000) + " ms");
                 return ResponseBuilder.inst().flag(decodeTime).build();
             }
             return ResponseBuilder.SUCCESS;
@@ -232,10 +270,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                long decodeTime = container.getStorage().getLong(0);
+                double decodeTime = container.getStorage().getDouble(0);
                 if (decodeTime > 0) {
 
-                    container.getDevelopmentData(this).addPoint("Decode Time (in millis)", decodeTime);
+                    container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime / 1_000) + " ms");
                     return ResponseBuilder.inst().flag(decodeTime).build();
                 }
             }

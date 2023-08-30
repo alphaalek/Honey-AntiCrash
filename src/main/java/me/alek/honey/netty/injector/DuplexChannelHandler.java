@@ -7,6 +7,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,6 +17,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private volatile Player player;
     private final Channel channel;
     private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
+    private InboundPacketDecoder inboundPacketDecoder;
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
@@ -62,6 +64,19 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         if (player != null && !hasStartedInjectingTask.get()) {
             startDecodeInjectorTask(this.channel);
         }
+
+        if (inboundPacketDecoder == null && player != null) {
+
+            AbstractPipelineProxy proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player));
+            if (proxy instanceof InboundPacketDecoder) {
+                inboundPacketDecoder = (InboundPacketDecoder) proxy;
+            }
+        }
+        // register the handle time between the last handled packet and this one
+        if (inboundPacketDecoder != null) {
+            HoneyPlugin.get().getPacketHandleTimeTracker().registerPacketHandleTime(player, (((double)System.nanoTime()) / 1_000) - inboundPacketDecoder.getRecentDecodeStart());
+        }
+
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
         if (packetContainer == null) {

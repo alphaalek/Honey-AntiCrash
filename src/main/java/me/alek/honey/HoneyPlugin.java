@@ -1,6 +1,9 @@
 package me.alek.honey;
 
-import me.alek.honey.checks.*;
+import me.alek.honey.checks.HoneyCheckType;
+import me.alek.honey.checks.IListener;
+import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.command.impl.HelpCommand;
@@ -15,6 +18,7 @@ import me.alek.honey.metrics.Metrics;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
+import me.alek.honey.netty.injector.PacketHandleTimeTracker;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
@@ -44,6 +48,7 @@ public class HoneyPlugin extends JavaPlugin {
     private LoggerService loggerService;
     private CommandManager commandManager;
     private Configuration configuration;
+    private PacketHandleTimeTracker packetHandleTimeTracker;
     private boolean isRunning;
     private boolean usingOldVersion;
     private UpdateChecker updateChecker;
@@ -88,6 +93,9 @@ public class HoneyPlugin extends JavaPlugin {
         violationService = new ViolationService();
         notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
+
+        // setup packet handle time tracker
+        packetHandleTimeTracker = new PacketHandleTimeTracker(this);
 
         // setup checks
         registerChecks();
@@ -196,6 +204,10 @@ public class HoneyPlugin extends JavaPlugin {
 
     public LoggerService getLoggerService() {
         return loggerService;
+    }
+
+    public PacketHandleTimeTracker getPacketHandleTimeTracker() {
+        return packetHandleTimeTracker;
     }
 
     public Configuration getConfiguration() {

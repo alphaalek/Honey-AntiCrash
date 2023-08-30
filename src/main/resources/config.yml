@@ -160,7 +160,8 @@ item-analysis:
 # |--- netty ---|
 netty:
   a:
-    enabled: false
+    enabled: true
+    max-quotient: 1.75
 
   b:
     enabled: true
@@ -179,8 +180,8 @@ netty:
 
   f:
     enabled: true
-    threshold: 37500
-    decay: 775
+    threshold: 40000
+    decay: 850
     decay-amount: 9500
     vls-amount: 3
 
@@ -189,25 +190,25 @@ netty:
     until: 3750000
     threshold: 675000
     decay: 650
-    decay-amount: 140000
+    decay-amount: 170000
     vls-amount: 1
 
   h:
     enabled: true
-    threshold: 500000
+    threshold: 525000
     vls-amount: 1
 
   i:
     enabled: true
-    threshold: 75
+    threshold: 40000
     vls-amount: 1
 
   j:
     enabled: true
-    threshold: 25
-    until: 130
-    decay: 10
-    decay-amount: 1500
+    until: 180000
+    threshold: 65000
+    decay: 750
+    decay-amount: 15000
     vls-amount: 1
 
 # |--- custom payload ---|
@@ -602,7 +603,7 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 60
+      max-per-interval: 70
       vls-amount: 10
 
     # held item slot

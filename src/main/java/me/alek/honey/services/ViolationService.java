@@ -364,8 +364,6 @@ public class ViolationService {
             if (bufferIndex.get() < 0) bufferIndex.set(0);
             bufferIndex.addAndGet(amount);
 
-            if (violationName.equals("Netty.J")) Bukkit.broadcastMessage(bufferIndex.get() + "/" + threshold);
-
             if (loggerService.isDebug())
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName);
 
@@ -402,7 +400,6 @@ public class ViolationService {
 
         @Override
         public void decay() {
-            if (until < 4000) Bukkit.broadcastMessage("decay: " + bufferIndex.get() + "/" + until);
             if (bufferIndex.get() < threshold) {
                 super.decay();
                 return;
