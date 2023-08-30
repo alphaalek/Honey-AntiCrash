@@ -3,7 +3,6 @@ package me.alek.honey.netty.injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import me.alek.honey.checks.impl.NettyListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import org.bukkit.entity.Player;
@@ -13,6 +12,7 @@ import java.util.List;
 public class InboundPacketDecoder extends ByteToMessageDecoder implements AbstractPipelineProxy {
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+    private long recentDecodeStart;
     private Player player;
 
     public InboundPacketDecoder(Player player) {
@@ -31,8 +31,12 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
         packetProcessor.callDecode(player, byteBuf);
 
-        if (player != null && player.isOnline()) NettyListener.NettyI.registerDecodeFor(player);
+        if (player != null && player.isOnline()) recentDecodeStart = System.currentTimeMillis();
 
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
+    }
+
+    public long getRecentDecodeStart() {
+        return recentDecodeStart;
     }
 }

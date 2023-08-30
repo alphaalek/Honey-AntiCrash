@@ -10,8 +10,10 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.injector.InboundPacketDecoder;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -20,11 +22,12 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -61,7 +64,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public void cleanup(Player player) {
-        NettyI.decodeStartMap.remove(player.getUniqueId());
+        NettyI.packetDecoderMap.remove(player.getUniqueId());
     }
 
     public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
@@ -176,26 +179,19 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final Map<UUID, LinkedBlockingQueue<Long>> decodeStartMap = new HashMap<>();
-
-        public static void registerDecodeFor(Player player) throws Exception {
-            decodeStartMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).put(System.currentTimeMillis());
-        }
-
-        public static void unregisterDecodeFor(Player player) {
-            decodeStartMap.remove(player.getUniqueId());
-        }
+        private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             long decodeTime = 0;
 
-            if (player != null && decodeStartMap.containsKey(player.getUniqueId())) {
+            if (player != null) {
+
+                InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(), (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(NMSUtils.getChannel(player)));
+                if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
                 // poll the unix time of the matching packet and evaluate the duration of decoding this packet
-                Long decodeStart = decodeStartMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
-                if (decodeStart == null)
-                    return ResponseBuilder.SUCCESS.builder().skip(1).build();
+                long decodeStart = packetDecoder.getRecentDecodeStart();
 
                 // disable this check if the TPS is really low
                 if (HoneyPlugin.get().getRecentTPS() <= 15)
@@ -206,8 +202,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 container.getStorage().putLong(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
+                Bukkit.broadcastMessage(decodeTime + "");
+
                 container.getDevelopmentData(this).addPoint("Decode Time (in millis)", decodeTime);
-                return ResponseBuilder.inst().cancel().flag(decodeTime).build();
+                return ResponseBuilder.inst().flag(decodeTime).build();
             }
             return ResponseBuilder.SUCCESS;
         }

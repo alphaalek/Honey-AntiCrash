@@ -179,35 +179,35 @@ netty:
 
   f:
     enabled: true
-    threshold: 28000
-    decay: 650
-    decay-amount: 6750
+    threshold: 37500
+    decay: 775
+    decay-amount: 9500
     vls-amount: 3
 
   g:
     enabled: true
-    until: 3250000
-    threshold: 500000
-    decay: 750
-    decay-amount: 150000
+    until: 3750000
+    threshold: 675000
+    decay: 650
+    decay-amount: 140000
     vls-amount: 1
 
   h:
     enabled: true
-    threshold: 400000
+    threshold: 500000
     vls-amount: 1
 
   i:
     enabled: true
-    threshold: 550
+    threshold: 75
     vls-amount: 1
 
   j:
     enabled: true
-    threshold: 95
-    until: 850
-    decay: 50
-    decay-amount: 950
+    threshold: 25
+    until: 130
+    decay: 10
+    decay-amount: 1500
     vls-amount: 1
 
 # |--- custom payload ---|

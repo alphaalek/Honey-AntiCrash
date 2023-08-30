@@ -811,7 +811,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         }
                         y_ += 2;
                     }
+                    // teleport the player and set the health to max to ensure he is not stuck and will not die on this illegal spot
                     player.teleport(new Location(player.getWorld(), x, y_, z));
+                    player.setHealth(20);
 
                     return ResponseBuilder.inst().cancel().punish().build();
                 }

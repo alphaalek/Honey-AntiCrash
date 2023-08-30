@@ -126,7 +126,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-
             ByteBuf wrappedByteBuf = Unpooled.wrappedBuffer(byteBuf);
             WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(packetDataSerializerInvoker.invoke(wrappedByteBuf), wrappedByteBuf);
 
@@ -162,7 +161,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-
             if (getSetting().isEnabled()) {
                 int byteSize = container.getStorage().getInt(0);
 
