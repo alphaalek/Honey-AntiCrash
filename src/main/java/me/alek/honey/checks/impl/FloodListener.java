@@ -17,6 +17,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -98,8 +99,8 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting(PacketTypeEnum packetType) {
-            return settingMap.get(packetType);
+        public ConfigurationOptions.VlSetting getSetting(WP packet) {
+            return settingMap.get(packet.getType());
         }
 
         @Override
@@ -180,7 +181,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (getSetting(packet.getType()).isEnabled()) {
+            if (getSetting(packet).isEnabled()) {
 
                 return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer());
             }
@@ -198,15 +199,14 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting(PacketTypeEnum packetType) {
-            return ConfigurationOptions.getFloodSettings().get(packetType);
+        public ConfigurationOptions.VlSetting getSetting(WP packet) {
+            return ConfigurationOptions.getFloodSettings().get(packet.getType());
         }
 
         @Override
         public PacketTypeEnum getKey(WP packet) {
             return packet.getType();
         }
-
     }
 
 }

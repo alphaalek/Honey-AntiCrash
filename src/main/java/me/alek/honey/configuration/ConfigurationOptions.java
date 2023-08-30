@@ -904,7 +904,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class NettyA extends VlSetting {
+        public static class NettyA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static double MAX_QUOTIENT;
 

@@ -23,7 +23,6 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -350,20 +349,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // 2d distance check
                 if (distance2d >= maxDistance || distance2d <= minDistance && distance2d != 0) {
-                    Bukkit.broadcastMessage(packetLoc + ", " + lastKnownPacketLoc);
-                    Bukkit.broadcastMessage(Locations.compare3DLocation(packetLoc, originLocation) + "");
-                    Bukkit.broadcastMessage(Locations.compare3DBlockLocation(packetLoc, originLocation) + "");
-
                     container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
                 if (distanceY >= maxDistance || distanceY <= minDistance && distanceY != 0) {
-                    Bukkit.broadcastMessage(packetLoc + ", " + lastKnownPacketLoc);
-                    Bukkit.broadcastMessage(Locations.compare3DLocation(packetLoc, originLocation) + "");
-                    Bukkit.broadcastMessage(Locations.compare3DBlockLocation(packetLoc, originLocation) + "");
-
                     container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }

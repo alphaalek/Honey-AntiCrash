@@ -306,8 +306,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting(String key) {
-            return ConfigurationOptions.getChannelFloodSettings().get(key);
+        public ConfigurationOptions.VlSetting getSetting(WrappedPlayInCustomPayload packet) {
+            return ConfigurationOptions.getChannelFloodSettings().get(packet.getChannel());
         }
 
         @Override

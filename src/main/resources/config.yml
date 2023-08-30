@@ -161,7 +161,8 @@ item-analysis:
 netty:
   a:
     enabled: true
-    max-quotient: 1.75
+    max-quotient: 3.75
+    vls-amount: 2
 
   b:
     enabled: true
@@ -206,7 +207,7 @@ netty:
   j:
     enabled: true
     until: 180000
-    threshold: 65000
+    threshold: 62500
     decay: 750
     decay-amount: 15000
     vls-amount: 1

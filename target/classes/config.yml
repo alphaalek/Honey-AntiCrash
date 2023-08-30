@@ -161,7 +161,8 @@ item-analysis:
 netty:
   a:
     enabled: true
-    max-quotient: 1.75
+    max-quotient: 3.75
+    vls-amount: 2
 
   b:
     enabled: true
@@ -180,8 +181,8 @@ netty:
 
   f:
     enabled: true
-    threshold: 37500
-    decay: 775
+    threshold: 40000
+    decay: 850
     decay-amount: 9500
     vls-amount: 3
 
@@ -190,12 +191,12 @@ netty:
     until: 3750000
     threshold: 675000
     decay: 650
-    decay-amount: 140000
+    decay-amount: 170000
     vls-amount: 1
 
   h:
     enabled: true
-    threshold: 500000
+    threshold: 525000
     vls-amount: 1
 
   i:
@@ -205,10 +206,10 @@ netty:
 
   j:
     enabled: true
-    until: 200000
-    threshold: 75000
-    decay: 600
-    decay-amount: 18000
+    until: 180000
+    threshold: 62500
+    decay: 750
+    decay-amount: 15000
     vls-amount: 1
 
 # |--- custom payload ---|

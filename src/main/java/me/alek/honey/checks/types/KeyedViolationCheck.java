@@ -5,7 +5,8 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public interface KeyedViolationCheck<WP extends WrappedPacket<WP>, T> {
 
-    ConfigurationOptions.VlSetting getSetting(T key);
+    ConfigurationOptions.VlSetting getSetting(WP packet);
 
     T getKey(WP packet);
+
 }

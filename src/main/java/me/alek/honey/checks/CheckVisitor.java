@@ -66,7 +66,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             else if (check instanceof KeyedViolationCheck) {
                 KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
-                setting = keyedViolationCheck.getSetting(keyedViolationCheck.getKey(packet));
+                setting = keyedViolationCheck.getSetting(packet);
+                response.CUSTOM_KEY = new ViolationService.CheckKey(check.getClass(), keyedViolationCheck.getKey(packet));
             }
 
             // checks the contents of the response container and do whatever action it represents
@@ -92,7 +93,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);
 
-            if (response.PUNISH)
+            if (response.PUNISH && player != null)
                 HoneyPlugin.get().getViolationService().punish(player, check.getViolationName());
 
             if (response.TERMINATE) return;
