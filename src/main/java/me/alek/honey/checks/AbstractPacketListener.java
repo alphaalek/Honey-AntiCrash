@@ -12,21 +12,29 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     private CheckVisitor<WP> cachedVisitor;
 
+    public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
+        developmentData.addValue(" Version", Bukkit.getServer().getVersion());
+        developmentData.addEmpty();
+        developmentData.addHeader("Description", null);
+        developmentData.addEmpty();
+    }
+
     public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {
+        if (player == null) return;
+
         if (packetContainer.getState() == PacketState.PLAY) {
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return;
             }
         }
+
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
-        if (player != null) {
-            CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+        CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
-            defaultDevelopmentData.addEmpty();
-            defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
-            defaultDevelopmentData.addValue(" Version", Bukkit.getServer().getVersion());
-        }
+        defaultDevelopmentData.addEmpty();
+        defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
+        applyCommonDevelopmentData(defaultDevelopmentData);
 
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {
             return;

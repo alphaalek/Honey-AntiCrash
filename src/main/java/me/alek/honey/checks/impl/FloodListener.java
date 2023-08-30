@@ -127,7 +127,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Packet flood for specific packet type";
         }
     }
 
@@ -150,7 +150,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Packet flood for specific packet type";
         }
     }
 
@@ -173,7 +173,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Packet flood for all packet types";
         }
     }
 
@@ -194,7 +194,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Packet flood for specific packet type";
         }
 
         @Override

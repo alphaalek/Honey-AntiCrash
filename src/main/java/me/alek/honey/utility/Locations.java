@@ -4,11 +4,19 @@ import org.bukkit.Location;
 
 public class Locations {
 
-    public static boolean compare3DLocation(Location loc1, Location loc2) {
-        return loc1.getX() == loc2.getX() && loc1.getY() == loc2.getY() && loc1.getZ() == loc2.getZ();
+    private static boolean compare(double x1, double x2, double y1, double y2, double z1, double z2) {
+        return x1 == x2 && y1 == y2 && z1 == z2;
     }
 
-    public static boolean compareCompleteLocation(Location loc1, Location loc2) {
+    public static boolean compare3DLocation(Location loc1, Location loc2) {
+        return compare(loc1.getX(), loc2.getX(), loc1.getY(), loc2.getY(), loc1.getZ(), loc2.getZ());
+    }
+
+    public static boolean compare3DBlockLocation(Location loc1, Location loc2) {
+        return compare((int) loc1.getX(), (int) loc2.getX(), (int) loc1.getY(), (int) loc2.getY(), (int) loc1.getZ(), (int) loc2.getZ());
+    }
+
+    public static boolean compareLocation(Location loc1, Location loc2) {
         if (!compare3DLocation(loc1, loc2)) {
             return false;
         }

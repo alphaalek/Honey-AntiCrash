@@ -48,6 +48,7 @@ me\alek\honey\netty\utility\AsyncFuture.class
 me\alek\honey\checks\impl\BlockPlaceListener$BlockInteractC.class
 me\alek\honey\services\ViolationService$PacketBufferOverflowHandler.class
 me\alek\honey\checks\impl\NettyListener$NettyC.class
+me\alek\honey\configuration\ConfigurationOptions$VlBufferThrottleRequiredContentsSetting.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$Position.class
 me\alek\honey\netty\api\packet\container\PacketContainer.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutSelectAdvancementTab.class
@@ -180,7 +181,6 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$ClientComman
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateTime.class
 me\alek\honey\checks\impl\LoginStartListener.class
 me\alek\honey\configuration\ConfigurationOptions$Netty$NettyB.class
-me\alek\honey\configuration\ConfigurationOptions$VlSimpleIntervalRequiredContentsSetting.class
 me\alek\honey\checks\impl\BlockPlaceListener$BlockInteractA.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$TabComplete.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutTabComplete.class
@@ -240,7 +240,6 @@ me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$WindowClick.
 me\alek\honey\netty\utility\reflect\Reflection.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutUpdateSign.class
 me\alek\honey\netty\structure\converters\JavaConverter.class
-me\alek\honey\configuration\ConfigurationOptions$Netty$NettyA.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInSetCommandMinecart.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityTeleport.class
 me\alek\honey\services\NotificationService.class
@@ -356,6 +355,7 @@ me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$Brand.cl
 me\alek\honey\netty\modelwrappers\nbt\NBTElement$1.class
 me\alek\honey\netty\api\event\impl\inject\InjectEvent$InjectType.class
 me\alek\honey\configuration\ConfigurationOptions$Creative$CreativeA.class
+me\alek\honey\configuration\ConfigurationOptions$VlSimpleRequiredContentsSetting.class
 me\alek\honey\checks\impl\ChatListener$CommandsA.class
 me\alek\honey\configuration\ConfigurationOptions$Position$PositionJ.class
 me\alek\honey\configuration\ConfigurationOptions$TabComplete$TabA.class
@@ -364,7 +364,6 @@ me\alek\honey\netty\api\event\EventExecutor.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutKeepAlive.class
 me\alek\honey\configuration\ConfigurationOptions$PacketFlood$FloodD$Spectate.class
 me\alek\honey\netty\modelwrappers\nbt\writer\Writers$IntWriter.class
-me\alek\honey\configuration\ConfigurationOptions$VlSimpleSingletonRequiredContentsSetting.class
 me\alek\honey\netty\processor\InternalPacketProcessor.class
 me\alek\honey\checks\item\ItemAnalysis.class
 me\alek\honey\netty\bukkit\BukkitEventInternal.class
@@ -372,6 +371,7 @@ me\alek\honey\netty\api\event\impl\inject\PlayerBoundInjectEvent.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCamera.class
 me\alek\honey\command\CooldownManager.class
 me\alek\honey\netty\api\event\EventManager.class
+me\alek\honey\services\ViolationService$PacketSimpleHandler.class
 me\alek\honey\configuration\ConfigurationOptions$Position$PositionC.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInEntityNBTQuery.class
 me\alek\honey\checks\AbstractDecodeListener.class
@@ -396,6 +396,7 @@ me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityStatus.class
 me\alek\honey\checks\impl\WindowClickListener$WindowB.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload.class
 me\alek\honey\checks\item\ItemChecks$UnbreakableItemCheck.class
+me\alek\honey\configuration\ConfigurationOptions$VlSingleOverflowRequiredContentsSetting.class
 me\alek\honey\netty\api\event\impl\packet\PacketLoginReceiveEvent.class
 me\alek\honey\netty\packet\cancellables\CancellableByteBufImpl.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCollect.class
@@ -486,6 +487,7 @@ me\alek\honey\configuration\ConfigurationOptions$HeldItem$HeldItemB.class
 me\alek\honey\netty\packet\type\PacketType$Status$Client.class
 me\alek\honey\metrics\Metrics$SingleLineChart.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutPosition.class
+me\alek\honey\configuration\ConfigurationOptions$VlBufferOverflowRequiredContentsSetting.class
 me\alek\honey\services\ViolationService$PacketSingleOverflowHandler.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutAttachEntity.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$BEdit.class
@@ -526,6 +528,7 @@ me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadD.class
 me\alek\honey\checks\impl\CustomPayloadListener.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutViewCentre.class
 me\alek\honey\configuration\ConfigurationOptions$CustomPayload$PayloadF$AutoCmd.class
+me\alek\honey\configuration\ConfigurationOptions$VlIntervalRequiredContentsSetting.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInAdvancements.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInFlying.class
 me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutOpenWindowHorse.class

@@ -59,6 +59,9 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         container.getStorage().put(ByteBuf.class, priorSerializer);
         container.getStorage().put(ItemStack.class, bukkitItem);
+
+        container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
+        container.getDefaultDevelopmentData().addPoint("ByteBuf", newSerializer);
         return true;
     }
 
@@ -111,7 +114,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Empty serializer for payload";
         }
 
         @Override
@@ -129,10 +132,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (serializer == null) {
                     return ResponseBuilder.SUCCESS; // burde aldrig ske, for så vil PayloadA være blevet flagged
                 }
-                if (serializer.capacity() > ConfigurationOptions.CustomPayload.PayloadB.MAX) {
-                    serializer.release();
-                    return ResponseBuilder.inst().cancel().flag().terminate().build();
-                }
+                container.getDevelopmentData(this).addPoint("Serializer Capacity", serializer.capacity());
+                return ResponseBuilder.inst().flag(serializer.capacity()).onViolation(serializer::release).terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -144,7 +145,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too big serializer for payload";
         }
 
         @Override
@@ -166,15 +167,18 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     if (item == null) {
                         return ResponseBuilder.SUCCESS;
                     }
-                    NBTCompound tag = NBTFactory.fromItem(item);
-                    if (tag == null || tag.toString().getBytes().length <= ConfigurationOptions.CustomPayload.PayloadC.MAX) {
-                        return ResponseBuilder.SUCCESS;
-                    }
                 }
+                NBTCompound tag = NBTFactory.fromItem(item);
+                int byteSize;
+                if (tag == null || (byteSize = tag.toString().getBytes().length) <= ConfigurationOptions.CustomPayload.PayloadC.MAX) {
+                    return ResponseBuilder.SUCCESS;
+                }
+
                 ByteBuf serializer = container.getStorage().poll(ByteBuf.class);
                 if (serializer != null && serializer.refCnt() > 0) {
                     serializer.release();
                 }
+                container.getDevelopmentData(this).addPoint("NBT Byte Size", byteSize);
                 return ResponseBuilder.inst().cancel().flag().terminate().build();
             }
             return ResponseBuilder.SUCCESS;
@@ -187,7 +191,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal item in payload";
         }
 
         @Override
@@ -229,7 +233,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal usage book channel";
         }
 
         @Override
@@ -253,6 +257,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                     if (player.getListeningPluginChannels().size() > ConfigurationOptions.CustomPayload.PayloadE.MAX) {
                         serializer.release();
+                        container.getDevelopmentData(this).addPoint("Channel Size", player.getListeningPluginChannels().size());
+
                         return ResponseBuilder.inst().cancel().flag().terminate().build();
                     }
                 }
@@ -267,7 +273,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too many registered channels";
         }
 
         @Override
@@ -296,7 +302,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Packet flood for payload channels";
         }
 
         @Override
@@ -331,7 +337,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return null;
+            return "Using world download mod";
         }
 
         @Override

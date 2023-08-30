@@ -56,7 +56,10 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         public ResponseContainer check(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                if (packet.getSlot() >= 36 || packet.getSlot() < 0) {
+                int slot = packet.getSlot();
+                if (slot >= 36 || slot < 0) {
+
+                    container.getDevelopmentData(this).addPoint("Slot", slot);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -70,7 +73,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getDescription() {
-            return null;
+            return "Switching to illegal item slot";
         }
 
         @Override
@@ -99,7 +102,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getDescription() {
-            return null;
+            return "Switching to illegal item";
         }
 
         @Override

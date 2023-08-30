@@ -1,7 +1,7 @@
 
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
-#   + You are currently using the version 1.0-BETA-2
+#   + You are currently using the version 1.0-BETA-3
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you disover any errors or bugs, write to me on the discord server. (see below)
@@ -174,28 +174,33 @@ netty:
 
   e:
     enabled: true
+    vls-amount: 1
     threshold: 16500
 
   f:
     enabled: true
-    threshold: 35000
+    threshold: 28000
     decay: 650
-    decay-amount: 7500
+    decay-amount: 6750
+    vls-amount: 3
 
   g:
     enabled: true
-    until: 3500000
+    until: 3250000
     threshold: 500000
     decay: 750
     decay-amount: 150000
+    vls-amount: 1
 
   h:
     enabled: true
     threshold: 400000
+    vls-amount: 1
 
   i:
     enabled: true
-    max: 550
+    threshold: 550
+    vls-amount: 1
 
   j:
     enabled: true
@@ -203,6 +208,7 @@ netty:
     until: 850
     decay: 50
     decay-amount: 950
+    vls-amount: 1
 
 # |--- custom payload ---|
 custom-payload:
@@ -211,7 +217,8 @@ custom-payload:
 
   b:
     enabled: true
-    max: 10000
+    threshold: 10000
+    vls-amount: 1
 
   c:
     enabled: true
@@ -304,9 +311,9 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 600
+    threshold: 450
     decay: 1250
-    decay-amount: 100
+    decay-amount: 70
     vls-amount: 4
 
   d:
@@ -356,8 +363,8 @@ position:
 rotation:
   a:
     enabled: true
+    threshold: 500
     vls-amount: 5
-    max: 500
 
   b:
     enabled: true
@@ -514,18 +521,18 @@ packet-flood:
   # common
   common:
     a:
-      max-per-interval: 200
-      interval: 600
+      max-per-interval: 180
+      interval: 800
       vls-amount: 3
     b:
-      max-per-interval: 450
-      interval: 1000
+      max-per-interval: 375
+      interval: 1300
       vls-amount: 2
 
   # total
   c:
-    max-per-interval: 850
-    interval: 1500
+    max-per-interval: 650
+    interval: 2500
     vls-amount: 1
 
   # specific

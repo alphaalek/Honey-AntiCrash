@@ -73,7 +73,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal sign text";
         }
     }
 

@@ -2,12 +2,15 @@ package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyCheck;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CheckContextContainer {
+
+    private static final DecimalFormat decimalFormatter = new DecimalFormat("#.##");
 
     private final Storage storage = new Storage();
     private final Map<HoneyCheck, DevelopmentData> developmentDataMap = new HashMap<>();
@@ -33,42 +36,68 @@ public class CheckContextContainer {
             if (defaultDevelopmentData != null && defaultDevelopmentData != this) developmentDataSet.addAll(defaultDevelopmentData.getDataSet());
         }
 
-        public void addLine(String line) {
+        public void addText(String line) {
             developmentDataSet.add(line);
 
             if (defaultDevelopmentData == this) {
                 for (DevelopmentData developmentDataDelegate : developmentDataMap.values()) {
-                    developmentDataDelegate.addLine(line);
+                    developmentDataDelegate.addText(line);
                 }
             }
         }
 
-        public void setLine(int index, String line) {
+        public void setText(int index, String line) {
             developmentDataSet.set(index, line);
 
             if (defaultDevelopmentData == this) {
                 for (DevelopmentData developmentDataDelegate : developmentDataMap.values()) {
-                    developmentDataDelegate.setLine(index, line);
+                    developmentDataDelegate.setText(index, line);
                 }
             }
-        }
-
-        public void addValue(String key, Object value) {
-            addLine("§6" + key + ": §e" + value);
-        }
-
-        public void setValue(int index, String key, Object value) {
-            setLine(index, "§6" + key + ": §e" + value);
         }
 
         public void addEmpty() {
-            developmentDataSet.add("");
+            addText("");
+        }
 
-            if (defaultDevelopmentData == this) {
-                for (DevelopmentData developmentDataDelegate : developmentDataMap.values()) {
-                    developmentDataDelegate.addEmpty();
-                }
-            }
+        public void addLine(String line) {
+            addText(" §7" + line);
+        }
+
+        public void addHeader(String line, String specification) {
+            addText("§6* §e" + line + ":" + (specification == null ? "" : " (" + specification + ")"));
+        }
+
+        public void addPoint(String key, Object value) {
+            if (value instanceof Number) value = decimalFormatter.format(value);
+            addText(" §8* " + key + ": " + value);
+        }
+
+        public void addValue(String key, Object value) {
+            if (value instanceof Number) value = decimalFormatter.format(value);
+            addText("§6" + key + ": §e" + value);
+        }
+
+        public void setEmpty(int index) {
+            setText(index, "");
+        }
+
+        public void setLine(int index, String line) {
+            setText(index, " §7" + line);
+        }
+
+        public void setHeader(int index, String line, String specification) {
+            setText(index, "§6* §e" + line + ":" + (specification == null ? "" : " (" + specification + ")"));
+        }
+
+        public void setPoint(int index, String key, Object value) {
+            if (value instanceof Number) value = decimalFormatter.format(value);
+            setText(index, " §8* " + key + ": " + value);
+        }
+
+        public void setValue(int index, String key, Object value) {
+            if (value instanceof Number) value = decimalFormatter.format(value);
+            setText(index, "§6" + key + ": §e" + value);
         }
 
         public List<String> getDataSet() {

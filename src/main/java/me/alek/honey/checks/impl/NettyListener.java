@@ -21,7 +21,6 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -65,20 +64,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         NettyI.decodeStartMap.remove(player.getUniqueId());
     }
 
-    @Override
-    public void onPacketError(Player player, PacketTypeEnum packetType, PacketContainer<WP> packetContainer) {
-        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
-            return;
-        }
-        if (ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class).isEnabled()) {
-
-            if (packetContainer != null) {
-                packetContainer.cancel();
-            }
-            HoneyPlugin.get().getViolationService().punish(player, "Netty.A");
-        }
-    }
-
     public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
@@ -99,7 +84,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Sending packet without being online";
         }
 
         @Override
@@ -175,7 +160,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Structure with illegal attributes";
         }
 
         @Override
@@ -221,9 +206,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 container.getStorage().putLong(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
-                if (decodeTime > ConfigurationOptions.Netty.NettyI.MAX) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
+                container.getDevelopmentData(this).addPoint("Decode Time (in millis)", decodeTime);
+                return ResponseBuilder.inst().cancel().flag(decodeTime).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -235,7 +219,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too long decode time";
         }
 
         @Override
@@ -253,6 +237,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 long decodeTime = container.getStorage().getLong(0);
                 if (decodeTime > 0) {
 
+                    container.getDevelopmentData(this).addPoint("Decode Time (in millis)", decodeTime);
                     return ResponseBuilder.inst().flag(decodeTime).build();
                 }
             }
@@ -266,7 +251,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return null;
+            return "Buffer of decode time exceeded";
         }
 
         @Override

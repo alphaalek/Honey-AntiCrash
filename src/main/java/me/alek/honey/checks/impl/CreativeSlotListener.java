@@ -73,7 +73,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getDescription() {
-            return null;
+            return "Using creative without being in right mode";
         }
 
         @Override
@@ -89,7 +89,9 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
             if (getSetting().isEnabled()) {
 
                 int slot = packet.getSlot();
+
                 if (slot > (player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
+                    container.getDevelopmentData(this).addPoint("Slot", slot);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -103,7 +105,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getDescription() {
-            return null;
+            return "Exceeding max slots of inventory";
         }
 
         @Override
@@ -132,7 +134,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getDescription() {
-            return null;
+            return "Clicking on illegal item";
         }
 
         @Override

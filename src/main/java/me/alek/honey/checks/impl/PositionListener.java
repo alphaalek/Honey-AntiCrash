@@ -13,6 +13,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -22,10 +23,12 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -34,6 +37,9 @@ import java.util.stream.Stream;
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, SampleDecayableList<Location>> lastTeleportationLocationMap = new HashMap<>();
+    private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
+    private static final DecimalFormat decimalFormatter = new DecimalFormat("#.##");
+    private static Location originLocation;
 
     public PositionListener() {
         HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutPosition>() {
@@ -158,7 +164,33 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-        return !Locations.compare3DLocation(packetContainer.getPacket().getLocation(), player.getLocation());
+        final Location currentLocation = packetContainer.getPacket().getLocation();
+        final Location lastLocation = lastPacketLocation.getOrDefault(player.getUniqueId(), currentLocation);
+
+        // sets the origin location if it's not already set
+        if (originLocation == null) {
+            synchronized (this) {
+                originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
+            }
+        }
+        // check if the packet has any valid location to be checked, or just origin location
+        if (Locations.compare3DLocation(currentLocation, originLocation)) return false;
+        lastPacketLocation.put(player.getUniqueId(), currentLocation);
+
+        // check if the player has moved by checking if the last location is equal to the current location
+        if (Locations.compare3DLocation(currentLocation, lastLocation)) return false;
+
+        // sharing this last location with the pipeline, so other checks can take use of it
+        container.getStorage().put(Location.class, lastLocation);
+
+        String x = decimalFormatter.format(currentLocation.getX());
+        String y = decimalFormatter.format(currentLocation.getY());
+        String z = decimalFormatter.format(currentLocation.getZ());
+
+        container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
+        container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
+
+        return true;
     }
 
     @Override
@@ -191,7 +223,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public void cleanup(Player player) {
         UUID uuid = player.getUniqueId();
 
-        PositionB.lastPacketLocation.remove(uuid);
+        lastPacketLocation.remove(uuid);
         PositionD.manipulatedFlightSettingsMap.remove(uuid);
         PositionD.lastChunkMap.remove(uuid);
         PositionF.lastDirectionFlowMap.remove(uuid);
@@ -199,6 +231,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         PositionH.guessedDeltaY.remove(uuid);
 
         lastTeleportationLocationMap.remove(uuid);
+    }
+
+    public static Location getLastLocationFor(Player player) {
+        return lastPacketLocation.getOrDefault(player.getUniqueId(), player.getLocation());
     }
 
     public static boolean isChunkLoaded(Location location) {
@@ -280,7 +316,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Switching between ground and air too quickly";
         }
 
         @Override
@@ -291,16 +327,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionB<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final Map<UUID, Location> lastPacketLocation = new ConcurrentHashMap<>();
-
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             final Location packetLoc = packet.getLocation();
-
-            final Location lastKnownPacketLoc = lastPacketLocation.getOrDefault(player.getUniqueId(), packetLoc);
-            container.getStorage().put(Location.class, lastKnownPacketLoc);
-
-            lastPacketLocation.put(player.getUniqueId(), packetLoc);
+            final Location lastKnownPacketLoc = container.getStorage().get(Location.class, 0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
                 container.getStorage().putBoolean(true);
@@ -320,19 +350,25 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // 2d distance check
                 if (distance2d >= maxDistance || distance2d <= minDistance && distance2d != 0) {
+                    Bukkit.broadcastMessage(packetLoc + ", " + lastKnownPacketLoc);
+                    Bukkit.broadcastMessage(Locations.compare3DLocation(packetLoc, originLocation) + "");
+                    Bukkit.broadcastMessage(Locations.compare3DBlockLocation(packetLoc, originLocation) + "");
+
+                    container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
                 if (distanceY >= maxDistance || distanceY <= minDistance && distanceY != 0) {
+                    Bukkit.broadcastMessage(packetLoc + ", " + lastKnownPacketLoc);
+                    Bukkit.broadcastMessage(Locations.compare3DLocation(packetLoc, originLocation) + "");
+                    Bukkit.broadcastMessage(Locations.compare3DBlockLocation(packetLoc, originLocation) + "");
+
+                    container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
-        }
-
-        public static Location getLastLocationFor(Player player) {
-            return lastPacketLocation.get(player.getUniqueId());
         }
 
         @Override
@@ -342,7 +378,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too high delta movement";
         }
 
         @Override
@@ -413,7 +449,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Buffer of position distance exceeded";
         }
 
         @Override
@@ -472,7 +508,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too many chunks discovered";
         }
 
         @Override
@@ -498,7 +534,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too many unloaded chunks discovered";
         }
 
         @Override
@@ -601,7 +637,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Switching directions too quickly";
         }
 
         @Override
@@ -634,7 +670,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Moving vehicle without being in one";
         }
 
         @Override
@@ -707,7 +743,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too many identical delta movements";
         }
 
         @Override
@@ -734,7 +770,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too many identical delta movements";
         }
 
         @Override
@@ -790,7 +826,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too high up in air or below bedrock";
         }
 
         @Override

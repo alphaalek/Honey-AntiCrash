@@ -74,7 +74,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
 
         @Override
         public String getDescription() {
-            return null;
+            return "Encryption response with invalid ping";
         }
 
         @Override

@@ -73,10 +73,10 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             lastYawMap.put(uuid, packet.getYaw());
 
             if (getSetting().isEnabled()) {
+                double deltaYaw = Locations.calculateYawDistance(lastYawMap.get(uuid), packet.getYaw());
 
-                if (Locations.calculateYawDistance(lastYawMap.get(uuid), packet.getYaw()) > ConfigurationOptions.Rotation.RotationA.MAX) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
+                container.getDevelopmentData(this).addPoint("Delta Yaw", deltaYaw);
+                return ResponseBuilder.inst().cancel().flag(deltaYaw).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -88,7 +88,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too high delta rotation";
         }
 
         @Override
@@ -105,6 +105,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
                 float pitch = packet.getPitch();
                 if (pitch < -90 || pitch > 90) {
+                    container.getDevelopmentData(this).addPoint("Pitch", pitch);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -118,7 +119,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal pitch rotation";
         }
 
         @Override
@@ -138,8 +139,10 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
                 float deltaYaw = Math.abs(lastYaw - yaw);
 
-                if (deltaYaw != 0)
+                if (deltaYaw != 0) {
+                    container.getDevelopmentData(this).addPoint("Delta Yaw", deltaYaw);
                     return ResponseBuilder.inst().flag(deltaYaw).onViolation(() -> packet.getContainer().cancel()).build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -151,7 +154,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return null;
+            return "Buffer of yaw rotation exceeded";
         }
 
         @Override

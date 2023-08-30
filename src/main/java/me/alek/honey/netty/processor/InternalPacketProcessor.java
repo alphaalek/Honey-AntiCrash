@@ -38,7 +38,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final EnumMap<ListenerPriority, List<SyncPacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
-        public void call(Player player, PacketContainer<?> packetContainer, boolean isRead) {
+        public void callPacket(Player player, PacketContainer<?> packetContainer, boolean isRead) {
             callPriority((packetAdapter) -> {
                 try {
                     if (isRead) {
@@ -245,7 +245,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (!hasListeners(clazz)) {
             return;
         }
-        PACKET_ADAPTERS.get(clazz).call(player, packetContainer, isRead);
+        PACKET_ADAPTERS.get(clazz).callPacket(player, packetContainer, isRead);
     }
 
     public void callDecode(Player player, ByteBuf byteBuf) {

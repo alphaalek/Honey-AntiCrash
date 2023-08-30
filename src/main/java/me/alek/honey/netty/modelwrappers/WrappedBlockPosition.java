@@ -76,7 +76,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     public double distance(double x, double y, double z) {
         if (me.alek.honey.utility.NumberConversions.isInvalid(new double[]{x, y, z})) {
-            return 1000000;
+            return -1;
         }
         double deltaX = Math.abs(this.x - x);
         double deltaY = Math.abs(this.y - y);

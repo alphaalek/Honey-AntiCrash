@@ -84,7 +84,8 @@ public class ConfigurationOptions {
         }
         if (clazz.isAnnotationPresent(Violation.class)) {
             if (VlSetting.class.isAssignableFrom(clazz)) {
-                setViolationSetting((Class<? extends VlSetting>) clazz, clazz.getAnnotation(Violation.class).value());
+                Violation violation = clazz.getAnnotation(Violation.class);
+                setViolationSetting((Class<? extends VlSetting>) clazz, violation.packetHandler(), violation.prefixPaths());
             }
         }
         for (Class<?> nestedClass : clazz.getDeclaredClasses()) {
@@ -95,12 +96,14 @@ public class ConfigurationOptions {
         }
     }
 
-    public static void setViolationSetting(Class<? extends VlSetting> clazz, String[] prefixPaths) {
+    public static void setViolationSetting(Class<? extends VlSetting> clazz, PacketLimitHandlerType packetLimitHandlerType, String[] prefixPaths) {
         boolean misconfiguredConfiguration = false;
         try {
             // makes a new violation setting instance and register it
             final Constructor<? extends VlSetting> constructor = clazz.getDeclaredConstructor();
             final VlSetting setting = constructor.newInstance();
+            setting.packetLimitHandlerType = packetLimitHandlerType;
+
             vlSettingMap.put(clazz, setting);
 
             // checks if this violation setting is a flood setting, so we can register it to the map of flood settings
@@ -229,7 +232,9 @@ public class ConfigurationOptions {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     private @interface Violation {
-        String[] value();
+        String[] prefixPaths();
+
+        PacketLimitHandlerType packetHandler();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -274,19 +279,54 @@ public class ConfigurationOptions {
 
     }
 
-    public interface VlSimpleSingletonRequiredContentsSetting extends VlRequiredContentsSetting {
+    public interface VlSimpleRequiredContentsSetting extends VlRequiredContentsSetting {
 
         default Set<VlSettingImplType> getRequiredTypes() {
             return Collections.singleton(VlSettingImplType.VLS_AMOUNT);
         }
     }
 
-    public interface VlSimpleIntervalRequiredContentsSetting extends VlRequiredContentsSetting {
+    public interface VlIntervalRequiredContentsSetting extends VlRequiredContentsSetting {
 
         default Set<VlSettingImplType> getRequiredTypes() {
             return Sets.newHashSet(
                     VlSettingImplType.MAX_PER_INTERVAL,
                     VlSettingImplType.INTERVAL,
+                    VlSettingImplType.VLS_AMOUNT
+            );
+        }
+    }
+
+    public interface VlBufferOverflowRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.DECAY,
+                    VlSettingImplType.DECAY_AMOUNT,
+                    VlSettingImplType.THRESHOLD,
+                    VlSettingImplType.VLS_AMOUNT
+            );
+        }
+    }
+
+    public interface VlBufferThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.DECAY,
+                    VlSettingImplType.DECAY_AMOUNT,
+                    VlSettingImplType.UNTIL,
+                    VlSettingImplType.THRESHOLD,
+                    VlSettingImplType.VLS_AMOUNT
+            );
+        }
+    }
+
+    public interface VlSingleOverflowRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.THRESHOLD,
                     VlSettingImplType.VLS_AMOUNT
             );
         }
@@ -315,7 +355,7 @@ public class ConfigurationOptions {
         public boolean clearInterval;
         @VlSettingImpl(VlSettingImplType.ENABLED)
         public boolean enabled = true;
-        private final PacketLimitHandlerType packetLimitHandlerType;
+        private PacketLimitHandlerType packetLimitHandlerType;
 
         public VlSetting(PacketLimitHandlerType packetLimitHandlerType) { this.packetLimitHandlerType = packetLimitHandlerType; }
 
@@ -391,8 +431,8 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    @Violation("commands")
-    public static class Commands extends VlSetting {
+    @Violation(prefixPaths = "commands", packetHandler = PacketLimitHandlerType.SIMPLE)
+    public static class Commands extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
         public static List<String> PROHIBITED_COMMANDS;
@@ -508,24 +548,19 @@ public class ConfigurationOptions {
     public static class CustomPayload {
 
         @Setting
-        @Violation("custom-payload.a")
+        @Violation(prefixPaths = "custom-payload.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadA extends VlSetting {
 
         }
 
         @Setting
-        @Violation("custom-payload.b")
-        public static class PayloadB extends VlSetting {
+        @Violation(prefixPaths = "custom-payload.b", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class PayloadB extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("custom-payload.b.max", 10000);
-            }
         }
 
         @Setting
-        @Violation("custom-payload.c")
+        @Violation(prefixPaths = "custom-payload.c", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadC extends VlSetting {
 
             public static int MAX;
@@ -536,13 +571,13 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation("custom-payload.d")
+        @Violation(prefixPaths = "custom-payload.d", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadD extends VlSetting {
 
         }
 
         @Setting
-        @Violation("custom-payload.e")
+        @Violation(prefixPaths = "custom-payload.e", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadE extends VlSetting {
 
             public static int MAX;
@@ -553,75 +588,75 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation("custom-payload.f")
+        @Violation(prefixPaths = "custom-payload.f", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class PayloadF extends VlSetting {
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.adv-cmd"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.adv-cmd"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|AdvCmd")
-            public static class AdvCmd extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class AdvCmd extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.auto-cmd"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.auto-cmd"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|AutoCmd")
-            public static class AutoCmd extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class AutoCmd extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.beacon"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.beacon"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|Beacon")
-            public static class Beacon extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class Beacon extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.b-edit"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.b-edit"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|BEdit")
-            public static class BEdit extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class BEdit extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.b-open"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.b-open"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|BOpen")
-            public static class BOpen extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class BOpen extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.brand"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.brand"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|Brand")
-            public static class Brand extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class Brand extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.b-sign"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.b-sign"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("MC|BSign")
-            public static class BSign extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class BSign extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.register"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.register"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("REGISTER")
-            public static class Register extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class Register extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Setting
-            @Violation({"custom-payload.f", "custom-payload.f.unregister"})
+            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.unregister"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             @ChannelFlood("UNREGISTER")
-            public static class Unregister extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            public static class Unregister extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
         }
 
         @Setting
-        @Violation("custom-payload.g")
+        @Violation(prefixPaths = "custom-payload.g", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadG extends VlSetting {
 
         }
@@ -631,13 +666,13 @@ public class ConfigurationOptions {
     public static class HeldItem {
 
         @Setting
-        @Violation("held-item.a")
-        public static class HeldItemA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "held-item.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class HeldItemA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("held-item.b")
+        @Violation(prefixPaths = "held-item.b", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class HeldItemB extends VlSetting {
 
         }
@@ -647,20 +682,20 @@ public class ConfigurationOptions {
     public static class WindowClick {
 
         @Setting
-        @Violation("window-click.a")
-        public static class WindowA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "window-click.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class WindowA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("window-click.b")
+        @Violation(prefixPaths = "window-click.b", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class WindowB extends VlSetting {
 
         }
 
         @Setting
-        @Violation("window-click.c")
-        public static class WindowC extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "window-click.c", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class WindowC extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
     }
@@ -669,8 +704,8 @@ public class ConfigurationOptions {
     public static class BlockInteract {
 
         @Setting
-        @Violation("block-interact.a")
-        public static class BlockInteractA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "block-interact.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class BlockInteractA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static int MAX;
 
@@ -680,33 +715,32 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation("block-interact.b")
+        @Violation(prefixPaths = "block-interact.b", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class BlockInteractB extends VlSetting {
 
         }
 
         @Setting
-        @Violation("block-interact.c")
-        public static class BlockInteractC extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "block-interact.c", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class BlockInteractC extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("block-interact.d")
-        public static class BlockInteractD extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "block-interact.d", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class BlockInteractD extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("block-interact.e")
-        public static class BlockInteractE extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "block-interact.e", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class BlockInteractE extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static int MAX;
 
             public static void load() {
                 MAX = file.getInt("block-interact.e.max", 15);
             }
-
         }
     }
 
@@ -714,27 +748,15 @@ public class ConfigurationOptions {
     public static class TabComplete {
 
         @Setting
-        @Violation("tab-complete.a")
+        @Violation(prefixPaths = "tab-complete.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class TabA extends VlSetting {
 
         }
 
         @Setting
-        @Violation("tab-complete.b")
-        public static class TabB extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "tab-complete.b", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class TabB extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
-            public TabB() { super (PacketLimitHandlerType.BUFFER_THROTTLE); }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.THRESHOLD,
-                        VlSettingImplType.UNTIL,
-                        VlSettingImplType.DECAY,
-                        VlSettingImplType.DECAY_AMOUNT,
-                        VlSettingImplType.VLS_AMOUNT
-                );
-            }
         }
     }
 
@@ -742,14 +764,14 @@ public class ConfigurationOptions {
     public static class Position {
 
         @Setting
-        @Violation("position.a")
-        public static class PositionA extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.a", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionA extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.b")
-        public static class PositionB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class PositionB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static double MAX;
             public static double MIN;
@@ -761,62 +783,49 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation("position.c")
-        public static class PositionC extends VlSetting implements VlRequiredContentsSetting {
-
-            public PositionC() {
-                super(PacketLimitHandlerType.BUFFER_OVERFLOW);
-            }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.THRESHOLD,
-                        VlSettingImplType.DECAY,
-                        VlSettingImplType.DECAY_AMOUNT,
-                        VlSettingImplType.VLS_AMOUNT
-                );
-            }
-        }
-
-        @Setting
-        @Violation("position.d")
-        public static class PositionD extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.c", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
+        public static class PositionC extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.e")
-        public static class PositionE extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.d", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionD extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.f")
-        public static class PositionF extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.e", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionE extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.g")
-        public static class PositionG extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.f", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionF extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.h")
-        public static class PositionH extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.g", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionG extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.i")
-        public static class PositionI extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "position.h", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionH extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("position.j")
+        @Violation(prefixPaths = "position.i", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionI extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "position.j", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PositionJ extends VlSetting {
 
             public static int MAX;
@@ -833,37 +842,21 @@ public class ConfigurationOptions {
     public static class Rotation {
 
         @Setting
-        @Violation("rotation.a")
-        public static class RotationA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
-
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("rotation.a.max", 500);
-            }
-        }
-
-        @Setting
-        @Violation("rotation.b")
-        public static class RotationB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "rotation.a", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class RotationA extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("rotation.c")
-        public static class RotationC extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "rotation.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class RotationB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
-            public RotationC() { super(PacketLimitHandlerType.BUFFER_OVERFLOW); }
+        }
 
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.THRESHOLD,
-                        VlSettingImplType.DECAY,
-                        VlSettingImplType.DECAY_AMOUNT,
-                        VlSettingImplType.VLS_AMOUNT
-                );
-            }
+        @Setting
+        @Violation(prefixPaths = "rotation.c", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
+        public static class RotationC extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
+
         }
     }
 
@@ -871,19 +864,19 @@ public class ConfigurationOptions {
     public static class Creative {
 
         @Setting
-        @Violation("set-creative-slot.a")
-        public static class CreativeA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "set-creative-slot.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class CreativeA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("set-creative-slot.b")
-        public static class CreativeB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "set-creative-slot.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class CreativeB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("set-creative-slot.c")
+        @Violation(prefixPaths = "set-creative-slot.c", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class CreativeC extends VlSetting {
 
         }
@@ -893,13 +886,13 @@ public class ConfigurationOptions {
     public static class Chat {
 
         @Setting
-        @Violation("chat.a")
+        @Violation(prefixPaths = "chat.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class ChatA extends VlSetting {
 
         }
 
         @Setting
-        @Violation("chat.b")
+        @Violation(prefixPaths = "chat.b", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class ChatB extends VlSetting {
 
         }
@@ -910,114 +903,57 @@ public class ConfigurationOptions {
     public static class Netty {
 
         @Setting
-        @Violation("netty.a")
-        public static class NettyA extends VlSetting {
+        @Violation(prefixPaths = "netty.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class NettyB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("netty.b")
-        public static class NettyB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation("netty.c")
+        @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class NettyC extends VlSetting {
 
         }
 
         @Setting
-        @Violation("netty.d")
+        @Violation(prefixPaths = "netty.d", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class NettyD extends VlSetting {
 
         }
 
         @Setting
-        @Violation("netty.e")
-        public static class NettyE extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.e", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyE extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
-            public NettyE() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Collections.singleton(VlSettingImplType.THRESHOLD);
-            }
         }
 
         @Setting
-        @Violation("netty.f")
-        public static class NettyF extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.f", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
+        public static class NettyF extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
 
-            public NettyF() {
-                super(PacketLimitHandlerType.BUFFER_OVERFLOW);
-            }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.THRESHOLD,
-                        VlSettingImplType.DECAY,
-                        VlSettingImplType.DECAY_AMOUNT
-                );
-            }
         }
 
         @Setting
-        @Violation("netty.g")
-        public static class NettyG extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.g", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyG extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
-            public NettyG() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.UNTIL,
-                        VlSettingImplType.THRESHOLD,
-                        VlSettingImplType.DECAY,
-                        VlSettingImplType.DECAY_AMOUNT
-                );
-            }
         }
 
         @Setting
-        @Violation("netty.h")
-        public static class NettyH extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.h", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyH extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
-            public NettyH() { super(PacketLimitHandlerType.SINGLE_OVERFLOW); }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Collections.singleton(VlSettingImplType.THRESHOLD);
-            }
         }
 
         @Setting
-        @Violation("netty.i")
-        public static class NettyI extends VlSetting {
+        @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyI extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("netty.i.max", 550);
-            }
         }
 
         @Setting
-        @Violation("netty.j")
-        public static class NettyJ extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyJ extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
-            public NettyJ() { super(PacketLimitHandlerType.BUFFER_THROTTLE); }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.THRESHOLD,
-                        VlSettingImplType.UNTIL,
-                        VlSettingImplType.DECAY,
-                        VlSettingImplType.DECAY_AMOUNT
-                );
-            }
         }
     }
 
@@ -1025,14 +961,14 @@ public class ConfigurationOptions {
     public static class UseEntity {
 
         @Setting
-        @Violation("use-entity.a")
-        public static class UseEntityA extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "use-entity.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class UseEntityA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("use-entity.b")
-        public static class UseEntityB extends VlSetting implements VlSimpleSingletonRequiredContentsSetting {
+        @Violation(prefixPaths = "use-entity.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class UseEntityB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static double MAX_X;
             public static double MAX_Y;
@@ -1051,20 +987,20 @@ public class ConfigurationOptions {
     public static class PacketFlood extends VlSetting {
 
         @Setting
-        @Violation("packet-flood.common.a")
-        public static class FloodA extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "packet-flood.common.a", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class FloodA extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("packet-flood.common.b")
-        public static class FloodB extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "packet-flood.common.b", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class FloodB extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation("packet-flood.c")
-        public static class FloodC extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+        @Violation(prefixPaths = "packet-flood.c", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class FloodC extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
@@ -1073,169 +1009,169 @@ public class ConfigurationOptions {
 
             @Flood(PacketType.Play.Client.ABILITIES)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.abilities"})
-            public static class Abilities extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.abilities"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Abilities extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ARM_ANIMATION)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.arm-animation"})
-            public static class ArmAnimation extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.arm-animation"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class ArmAnimation extends VlSetting implements VlIntervalRequiredContentsSetting {
             }
 
             @Flood(PacketType.Play.Client.AUTO_RECIPE)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.auto-recipe"})
-            public static class AutoRecipe extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.auto-recipe"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class AutoRecipe extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.BLOCK_DIG)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.block-dig"})
-            public static class BlockDig extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.block-dig"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class BlockDig extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.BLOCK_PLACE)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.block-place"})
-            public static class BlockPlace extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.block-place"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class BlockPlace extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CLIENT_COMMAND)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.client-command"})
-            public static class ClientCommand extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.client-command"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class ClientCommand extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CLOSE_WINDOW)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.close-window"})
-            public static class CloseWindow extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.close-window"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class CloseWindow extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
 
             @Flood(PacketType.Play.Client.CHAT)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.chat"})
-            public static class Chat extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.chat"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Chat extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.CUSTOM_PAYLOAD)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.custom-payload"})
-            public static class CustomPayload extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.custom-payload"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class CustomPayload extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.HELD_ITEM_SLOT)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.held-item-slot"})
-            public static class HeldItemSlot extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.held-item-slot"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class HeldItemSlot extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ENCHANT_ITEM)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.enchant-item"})
-            public static class EnchantItem extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.enchant-item"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class EnchantItem extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.ENTITY_ACTION)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.entity-action"})
-            public static class EntityAction extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.entity-action"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class EntityAction extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.KEEP_ALIVE)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.keep-alive"})
-            public static class KeepAlive extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.keep-alive"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class KeepAlive extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.LOOK)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.look"})
-            public static class Look extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.look"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Look extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.FLYING)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.flying"})
-            public static class Flying extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.flying"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Flying extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SET_CREATIVE_SLOT)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.set-creative-slot"})
-            public static class SetCreativeSlot extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.set-creative-slot"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class SetCreativeSlot extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.SPECTATE)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.spectate"})
-            public static class Spectate extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.spectate"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Spectate extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.STEER_VEHICLE)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.steer-vehicle"})
-            public static class SteerVehicle extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.steer-vehicle"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class SteerVehicle extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood({PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK})
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.position"})
-            public static class Position extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.position"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Position extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.UPDATE_SIGN)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.update-sign"})
-            public static class UpdateSign extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.update-sign"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class UpdateSign extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.USE_ITEM)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.use-item"})
-            public static class UseItem extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.use-item"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class UseItem extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.USE_ENTITY)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.use-entity"})
-            public static class UseEntity extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.use-entity"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class UseEntity extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.TAB_COMPLETE)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.tab-complete"})
-            public static class TabComplete extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.tab-complete"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class TabComplete extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
             @Flood(PacketType.Play.Client.WINDOW_CLICK)
             @Setting
-            @Violation({"packet-flood.d", "packet-flood.d.window-click"})
-            public static class WindowClick extends VlSetting implements VlSimpleIntervalRequiredContentsSetting {
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.window-click"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class WindowClick extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
         }

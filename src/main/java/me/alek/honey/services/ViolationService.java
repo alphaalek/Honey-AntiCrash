@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
@@ -147,6 +148,9 @@ public class ViolationService {
 
                 switch (setting.getPacketLimitHandlerType()) {
 
+                    case SIMPLE:
+                        packetLimitMap.put(key, new PacketSimpleHandler(player, setting));
+                        break;
                     case INTERVAL:
                         packetLimitMap.put(key, new PacketIntervalHandler(player, setting));
                         break;
@@ -245,7 +249,9 @@ public class ViolationService {
 
         private void showCheckSettingsToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
             developmentData.addEmpty();
-            developmentData.addLine("§eSettings: (" + setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ") + ")");
+
+            PacketLimitHandlerType handlerType = setting.getPacketLimitHandlerType();
+            developmentData.addHeader("Settings", (handlerType == PacketLimitHandlerType.SIMPLE ? null : setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ")));
 
             for (Field field : VIOLATION_SETTING_FIELDS) {
 
@@ -261,7 +267,7 @@ public class ViolationService {
                     }
 
                     // add the line to the development data
-                    developmentData.addLine(" §7" + field.getName() + ": " + value);
+                    developmentData.addText(" §7" + field.getName() + ": " + value);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -278,6 +284,19 @@ public class ViolationService {
         }
 
         public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData);
+    }
+
+    public class PacketSimpleHandler extends AbstractPacketLimitHandler {
+
+
+        public PacketSimpleHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+        }
+
+        @Override
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
+            return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+        }
     }
 
     public class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {

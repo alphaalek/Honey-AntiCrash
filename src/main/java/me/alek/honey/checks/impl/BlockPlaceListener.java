@@ -61,7 +61,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
     }
 
-    public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance) {
+    public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
 
         if (blockPosition.equals(WrappedBlockPosition.ORIGIN) || blockPosition.equals(WrappedBlockPosition.DEFAULT))
             return ResponseBuilder.SUCCESS;
@@ -75,17 +75,19 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
             return ResponseBuilder.inst().cancel().flag().terminate().build();
 
         // checks distance between the player and the block placed
-        Location playerLocation = PositionListener.PositionB.getLastLocationFor(player);
+        Location playerLocation = PositionListener.getLastLocationFor(player);
         if (playerLocation == null) playerLocation = player.getLocation();
 
         double distance = blockPosition.distance(playerLocation);
 
         // the distance is higher than the recent client location
-        if (distance > maxDistance) {
+        if (distance > maxDistance || distance == -1) {
 
-            // lets now check the distance to the recent server locations, and see if that is also way off
-            if (!PositionListener.isAnyLatelyTeleportationLocationsCloseTo(player, blockPosition.toLocation(player.getWorld()), maxDistance)) {
+            // let's now check the distance to the recent server locations, and see if that is also way off
+            if (distance != -1 && !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(player, blockPosition.toLocation(player.getWorld()), maxDistance)) {
 
+                // add the distance to the development data
+                developmentData.addPoint("Distance", (distance == -1 ? "-1 (Invalid BlockPos)" : distance + " blocks"));
                 return ResponseBuilder.inst().cancel().flag().build();
             }
         }
@@ -101,7 +103,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
                 if (blockPosition == null) return ResponseBuilder.SUCCESS;
 
-                return checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractA.MAX);
+                return checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractA.MAX, container.getDevelopmentData(this));
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -111,7 +113,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getDescription() {
-            return null;
+            return "Placing block too far away";
         }
 
         @Override
@@ -143,7 +145,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getDescription() {
-            return null;
+            return "Right clicking with illegal item";
         }
 
         @Override
@@ -179,7 +181,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getDescription() {
-            return null;
+            return "Placing illegal block";
         }
 
         @Override
@@ -200,10 +202,16 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
                 final float facingY = packet.getFacingY();
                 final float facingZ = packet.getFacingZ();
 
+                CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
+                    developmentData.addPoint("Block Direction", placedBlockDirection);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
                 if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
+                    developmentData.addPoint("Facing X", facingX);
+                    developmentData.addPoint("Facing Y", facingY);
+                    developmentData.addPoint("Facing Z", facingZ);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -217,7 +225,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal facing or direction";
         }
 
         @Override

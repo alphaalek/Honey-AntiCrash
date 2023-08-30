@@ -67,11 +67,14 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
-            String label = packet.getMessage().split(" ")[0];
+            String message = packet.getMessage();
+            String label = message.split(" ")[0];
 
             for (String prohibitedCommand : prohibitedCommands) {
 
                 if (ChatListener.match(prohibitedCommand, label)) {
+                    String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "..." : message;
+                    container.getDevelopmentData(this).addPoint("Message", messageFormatted);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -85,7 +88,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getDescription() {
-            return null;
+            return "Tab completing prohibited command";
         }
 
         @Override
@@ -137,13 +140,14 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         @Override
                         public void accept(int size) {
 
+                            container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
                             HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, size, null, getViolationName(), getSetting(), container.getDevelopmentData(TabB.this));
                         }
                     });
                 }
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
                 // and therefore will block this packet. I do this by just flagging with 1.
-                return ResponseBuilder.inst().flag().withKey(key).onViolation(() -> packet.getContainer().cancel()).build();
+                return ResponseBuilder.inst().flag().withKey(key).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -153,7 +157,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getDescription() {
-            return null;
+            return "Buffer of tab complete suggestions exceeded";
         }
 
         @Override

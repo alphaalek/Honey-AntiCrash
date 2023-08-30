@@ -73,7 +73,7 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal action enum presence";
         }
 
         @Override
@@ -95,6 +95,12 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
                     double x = targetVector.getX();
                     double y = targetVector.getY();
                     double z = targetVector.getZ();
+
+                    CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+
+                    developmentData.addPoint("Vector X", x);
+                    developmentData.addPoint("Vector Y", y);
+                    developmentData.addPoint("Vector Z", z);
 
                     if (NumberConversions.isInvalid(new double[]{x, y, z})) {
                         return ResponseBuilder.inst().cancel().flag().build();
@@ -125,7 +131,7 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal entity target vector";
         }
 
         @Override

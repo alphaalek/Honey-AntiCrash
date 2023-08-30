@@ -55,7 +55,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return null;
+            return "No bytes to be decoded";
         }
 
         @Override
@@ -83,7 +83,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too big packet to be decoded";
         }
 
         @Override
@@ -111,7 +111,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return null;
+            return "Buffer of packet bytes exceeded";
         }
 
         @Override
@@ -149,7 +149,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return null;
+            return "Buffer of absolute bits exceeded";
         }
 
         @Override
@@ -178,7 +178,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too high absolute bit amount";
         }
 
         @Override

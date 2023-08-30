@@ -62,6 +62,8 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
+
+                    NMSUtils.getChannel(player).close();
                     return ResponseBuilder.inst().cancel().build();
                 }
             }
@@ -75,7 +77,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public String getDescription() {
-            return null;
+            return "Player name already online";
         }
     }
 
@@ -103,7 +105,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public String getDescription() {
-            return null;
+            return "Login start with invalid ping";
         }
     }
 

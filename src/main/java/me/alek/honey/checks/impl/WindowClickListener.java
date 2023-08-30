@@ -70,6 +70,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                     inventorySlots += 4; // armor slots
                 }
                 if (player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
+                    container.getDevelopmentData(this).addPoint("Slot", slot);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -83,7 +84,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return null;
+            return "Exceeding max slots of inventory";
         }
 
         @Override
@@ -113,7 +114,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return null;
+            return "Clicking on illegal item";
         }
 
         @Override
@@ -129,7 +130,6 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
             if (getSetting().isEnabled()) {
                 if (player.getOpenInventory().getType().name().equals("LECTERN")) {
 
-                    // InventoryClickType.QUICK_MOVE
                     if (packet.getMode() == 1) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
@@ -145,7 +145,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return null;
+            return "Illegal lectern quick move";
         }
 
         @Override

@@ -3,7 +3,6 @@ package me.alek.honey.checks;
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
@@ -28,7 +27,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
 
         defaultDevelopmentData.addEmpty();
         defaultDevelopmentData.addValue(" ByteBuf", byteBuf.readableBytes() + " bytes");
-        defaultDevelopmentData.addValue(" Version", Bukkit.getServer().getVersion());
+        AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
 
         getCachedVisitor().check(player, byteBuf, checkContextContainer);
     }

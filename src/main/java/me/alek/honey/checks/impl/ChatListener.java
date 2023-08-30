@@ -84,7 +84,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return null;
+            return "Bad character in chat message";
         }
 
         @Override
@@ -102,7 +102,10 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             if (getSetting().isEnabled()) {
 
                 int maxLength = below_1_11 ? 100 : 256;
-                if (packet.getMessage().length() > maxLength) {
+                int messageLength = packet.getMessage().length();
+
+                if (messageLength > maxLength) {
+                    container.getDevelopmentData(this).addPoint("Message length", messageLength);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -116,7 +119,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return null;
+            return "Too long chat message";
         }
 
         @Override
@@ -189,6 +192,8 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             for (String prohibitedCommand : this.prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
+                    String messageFormatted = message.length() > 20 ? message.substring(0, 20) + "..." : message;
+                    container.getDevelopmentData(this).addPoint("Command", messageFormatted);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -202,7 +207,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return null;
+            return "Trying to execute prohibited command";
         }
 
         @Override
