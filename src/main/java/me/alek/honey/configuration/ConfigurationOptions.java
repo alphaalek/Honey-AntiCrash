@@ -410,6 +410,22 @@ public class ConfigurationOptions {
             BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");
             NOTIFY_PERMISSION = file.getString("notify-permission", "honey.notify");
         }
+
+        @Setting
+        public static class Exempt {
+
+            public static int MIN_TPS;
+            public static int MAX_PING;
+            public static int MAX_TIME_BETWEEN;
+            public static int SPIKE_INTERVAL;
+
+            public static void load() {
+                MIN_TPS = file.getInt("exempt.min-tps", 18);
+                MAX_PING = file.getInt("exempt.max-ping", 70);
+                MAX_TIME_BETWEEN = file.getInt("exempt.max-time-between", 550);
+                SPIKE_INTERVAL = file.getInt("exempt.spike-interval", 700);
+            }
+        }
     }
 
     @Setting
@@ -774,11 +790,9 @@ public class ConfigurationOptions {
         public static class PositionB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static double MAX;
-            public static double MIN;
 
             public static void load() {
                 MAX = file.getDouble("position.b.max", 15);
-                MIN = file.getDouble("position.b.min", 0.00001);
             }
         }
 
@@ -998,7 +1012,7 @@ public class ConfigurationOptions {
     public static class PacketFlood extends VlSetting {
 
         @Setting
-        @Violation(prefixPaths = "packet-flood.common.a", packetHandler = PacketLimitHandlerType.INTERVAL)
+        @Violation(prefixPaths = "packet-flood.a", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class FloodA extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
@@ -1010,7 +1024,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "packet-flood.c", packetHandler = PacketLimitHandlerType.INTERVAL)
+        @Violation(prefixPaths = "packet-flood.common.c", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class FloodC extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }

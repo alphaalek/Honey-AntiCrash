@@ -37,6 +37,21 @@ bypass-permission: "honey.bypass"
 # Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications.
 notify-permission: "honey.notify"
 
+# exempt flood and related checks
+exempt:
+
+  # Honey will stop doing flood and related checks at the following things:
+
+  # if the TPS / ping of the server or player gets above or below these values
+  min-tps: 18
+  max-ping: 80
+
+  # if the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored
+  max-time-between: 500
+
+  # the following interval will be blocked after the max-time-between value has been discovered
+  spike-interval: 650
+
 # packet logger
 packet-logger:
 
@@ -201,7 +216,7 @@ netty:
 
   i:
     enabled: true
-    threshold: 40000
+    threshold: 52500
     vls-amount: 1
 
   j:
@@ -300,14 +315,13 @@ position:
 
   a:
     enabled: true
-    max-per-interval: 10
-    interval: 1750
+    max-per-interval: 18
+    interval: 1500
     vls-amount: 3
 
   b:
     enabled: true
-    max: 15
-    min: 0.00001
+    max: 20
     vls-amount: 5
 
   c:
@@ -320,13 +334,13 @@ position:
 
   d:
     enabled: true
-    max-per-interval: 18
+    max-per-interval: 20
     interval: 3200
     vls-amount: 3
 
   e:
     enabled: true
-    max-per-interval: 12
+    max-per-interval: 14
     interval: 3500
     vls-amount: 3
 
@@ -375,9 +389,9 @@ rotation:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 7000
-    decay: 600
-    decay-amount: 1500
+    threshold: 20000
+    decay: 750
+    decay-amount: 6000
     vls-amount: 3
 
 # |--- block interact ---|
@@ -520,22 +534,22 @@ commands:
 
 packet-flood:
 
+  # total
+  a:
+    max-per-interval: 480
+    interval: 2300
+    vls-amount: 1
+
   # common
   common:
-    a:
-      max-per-interval: 180
-      interval: 800
-      vls-amount: 3
     b:
-      max-per-interval: 375
-      interval: 1300
-      vls-amount: 2
-
-  # total
-  c:
-    max-per-interval: 650
-    interval: 2500
-    vls-amount: 1
+      max-per-interval: 155
+      interval: 900
+      vls-amount: 3
+    c:
+      max-per-interval: 275
+      interval: 1400
+      vls-amount: 1
 
   # specific
   d:
@@ -561,13 +575,13 @@ packet-flood:
 
     # block dig
     block-dig:
-      max-per-interval: 50
+      max-per-interval: 60
       interval: 650
       vls-amount: 7
 
     # block place
     block-place:
-      max-per-interval: 50
+      max-per-interval: 60
       interval: 650
       vls-amount: 7
 
@@ -604,7 +618,7 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 70
+      max-per-interval: 125
       vls-amount: 10
 
     # held item slot
@@ -626,8 +640,8 @@ packet-flood:
 
     # position
     position:
-      max-per-interval: 60
-      interval: 600
+      max-per-interval: 85
+      interval: 650
       vls-amount: 7
 
     # set creative slot
@@ -654,14 +668,14 @@ packet-flood:
 
     # use item
     use-item:
-      max-per-interval: 50
-      interval: 600
+      max-per-interval: 60
+      interval: 650
       vls-amount: 7
 
     # use entity
     use-entity:
-      max-per-interval: 50
-      interval: 600
+      max-per-interval: 60
+      interval: 650
 
     # window click
     window-click:

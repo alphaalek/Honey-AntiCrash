@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.impl.FloodListener;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
@@ -34,14 +35,26 @@ public class ViolationService {
 
     public void reload() {
 
+        // update the setting for the ignoring flood handlers
+        ConfigurationOptions.VlSetting sharedIgnoringSetting = FloodListener.getSharedIgnoringSetting();
+        if (sharedIgnoringSetting != null) {
+            // set the interval of this setting to be the spike interval specified in the configuration
+            sharedIgnoringSetting.interval = ConfigurationOptions.General.Exempt.SPIKE_INTERVAL;
+        }
+
+        // loop through all the players and update their packet limit handlers
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
+            // get the violation context of this player
             ViolationContext violationContext = violatedMap.get(uuid);
 
+            // register a violation context instance to this player if he doesn't have any, although he should have
             if (violationContext == null) {
                 addPlayer(player);
                 continue;
             }
+
+            // reload all the packet limit handlers for this player
             for (AbstractPacketLimitHandler packetLimitHandler : violationContext.getPacketlimitMap().values()) {
                 packetLimitHandler.reload();
             }
@@ -97,12 +110,14 @@ public class ViolationService {
             CheckKey key,
             double amount,
             Runnable onViolation,
+            Runnable onFlag,
             String violationName,
             ConfigurationOptions.VlSetting setting,
-            CheckContextContainer.DevelopmentData developmentData
+            CheckContextContainer.DevelopmentData developmentData,
+            boolean ignoreSpike
     ) {
         return getLimits(player, key, setting)
-                .flag(handle, cancellablePacketObserver, violationName, amount, onViolation, developmentData);
+                .flag(handle, cancellablePacketObserver, violationName, amount, onViolation, onFlag, developmentData, ignoreSpike);
     }
 
     public void punish(Player player, String violationName) {
@@ -172,6 +187,10 @@ public class ViolationService {
             return packetLimitMap;
         }
 
+        public AbstractPacketLimitHandler getHandler(CheckKey key) {
+            return packetLimitMap.get(key);
+        }
+
         public Player getPlayer() {
             return player;
         }
@@ -183,6 +202,10 @@ public class ViolationService {
 
         public CheckKey(Object object1, Object object2) {
             super(object1, object2);
+        }
+
+        public CheckKey() {
+            super(UUID.randomUUID(), UUID.randomUUID());
         }
 
         public static CheckKey of(Object object1, Object object2) {
@@ -283,7 +306,7 @@ public class ViolationService {
             this.lastViolationClear.set(System.currentTimeMillis());
         }
 
-        public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData);
+        public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike);
     }
 
     public class PacketSimpleHandler extends AbstractPacketLimitHandler {
@@ -294,7 +317,9 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+            if (onFlag != null) onFlag.run();
+
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
         }
     }
@@ -315,9 +340,12 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
-            if (amount > threshold) return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
-            return false;
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+            if (amount < threshold) return false;
+
+            if (onFlag != null) onFlag.run();
+
+            return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
         }
     }
 
@@ -354,7 +382,7 @@ public class ViolationService {
         }
 
         @Override
-        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
+        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             hasDecayed = false;
             if (System.currentTimeMillis() - lastDecay.get() > decayInterval) {
                 hasDecayed = true;
@@ -363,6 +391,8 @@ public class ViolationService {
             }
             if (bufferIndex.get() < 0) bufferIndex.set(0);
             bufferIndex.addAndGet(amount);
+
+            if (onFlag != null) onFlag.run();
 
             if (loggerService.isDebug())
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName);
@@ -441,6 +471,7 @@ public class ViolationService {
         private int interval; // ms
 
         private volatile boolean violatedForInterval;
+        private volatile boolean ignoringSpikeForInterval;
         private volatile long intervalStart;
         private final AtomicDouble flagged = new AtomicDouble();
         private volatile double flaggedCopy;
@@ -461,21 +492,32 @@ public class ViolationService {
             this.interval = getSetting().getInterval();
         }
 
-        private void clearInterval() {
+        private synchronized void clearInterval() {
             violatedForInterval = false;
+            ignoringSpikeForInterval = false;
             flagged.set(0);
             intervalStart = System.currentTimeMillis();
         }
 
-        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
+        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             if (System.currentTimeMillis() - intervalStart >= interval) {
                 clearInterval();
             }
-            flagged.addAndGet(amount);
-            if (loggerService.isDebug()) {
-                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName);
+            if (ignoreSpike) {
+                clearInterval();
+                ignoringSpikeForInterval = true;
             }
 
+            if (ignoringSpikeForInterval) {
+                if (violatedForInterval) cancellablePacketObserver.cancel();
+
+                if (HoneyPlugin.get().getLoggerService().isDebug()) Bukkit.getLogger().info("DEBUG: ignoring packet spike for interval check " + violationName);
+                return false;
+            }
+
+            if (onFlag != null) onFlag.run();
+
+            flagged.addAndGet(amount);
             if (flagged.get() < maxPerInterval) return false;
 
             if (violatedForInterval) {

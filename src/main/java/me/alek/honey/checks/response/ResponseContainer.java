@@ -7,14 +7,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ResponseContainer implements Cloneable {
     public boolean CANCELLED;
     public boolean PUNISH;
+    public boolean IGNORE_SPIKE;
     public boolean NOTIFY;
     public boolean SUCCESS;
     public boolean TERMINATE;
     public AtomicInteger SKIP_INDICES;
-    public ViolationService.CheckKey CUSTOM_KEY;
+    public ViolationService.CheckKey KEY;
     public Runnable ON_VIOLATION;
+    public Runnable ON_FLAG;
+    public Runnable ON_BLOCK;
     public String NOTIFICATION_MESSAGE;
-    public double FLAGGED;
+    public double FLAG = -1;
 
     public ResponseBuilder builder() {
         return new ResponseBuilder(this.clone());

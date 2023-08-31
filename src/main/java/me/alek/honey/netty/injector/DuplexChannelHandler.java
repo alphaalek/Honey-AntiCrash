@@ -10,6 +10,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
+import java.text.DecimalFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
@@ -74,7 +75,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         }
         // register the handle time between the last handled packet and this one
         if (inboundPacketDecoder != null) {
-            HoneyPlugin.get().getPacketHandleTimeTracker().registerPacketHandleTime(player, (((double)System.nanoTime()) / 1_000) - inboundPacketDecoder.getRecentDecodeStart());
+            HoneyPlugin.get().getPacketHandleTimeTracker().registerPacketHandleTime(player, inboundPacketDecoder.getRecentDecodeDelta());
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
@@ -83,6 +84,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
+        // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {
             if (HoneyPlugin.get().getLoggerService().isDebug()) {
                 HoneyPlugin.get().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());

@@ -141,13 +141,13 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         public void accept(int size) {
 
                             container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, size, null, getViolationName(), getSetting(), container.getDevelopmentData(TabB.this));
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, size, null, null, getViolationName(), getSetting(), container.getDevelopmentData(TabB.this), false);
                         }
                     });
                 }
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
-                // and therefore will block this packet. I do this by just flagging with 1.
-                return ResponseBuilder.inst().flag().withKey(key).build();
+                // and therefore will block this packet. I do this by just flagging with 0.
+                return ResponseBuilder.inst().flag(0).withKey(key).build();
             }
             return ResponseBuilder.SUCCESS;
         }

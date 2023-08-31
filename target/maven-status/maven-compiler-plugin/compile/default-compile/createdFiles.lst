@@ -149,6 +149,7 @@ me\alek\honey\netty\packet\type\PacketType$Status$Server.class
 me\alek\honey\checks\CheckContextContainer$DevelopmentData.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInRecipeSettings.class
 me\alek\honey\command\CommandManager.class
+me\alek\honey\configuration\ConfigurationOptions$General$Exempt.class
 me\alek\honey\netty\packetwrappers\play\client\WrappedPlayInRecipeDisplayed.class
 me\alek\honey\checks\impl\PositionListener$PositionF$Direction.class
 me\alek\honey\netty\utility\reflect\ItemReflection.class

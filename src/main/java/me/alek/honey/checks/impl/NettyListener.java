@@ -25,6 +25,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -230,15 +231,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(), (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(NMSUtils.getChannel(player)));
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
-                // poll the unix time of the matching packet and evaluate the duration of decoding this packet
-                double decodeStart = packetDecoder.getRecentDecodeStart();
-
-                // disable this check if the TPS is really low
-                if (HoneyPlugin.get().getRecentTPS() <= 15)
-                    return ResponseBuilder.SUCCESS.builder().skip(1).build();
+                // disable this check if the TPS is really low or ping of the player is too high
+                if (HoneyPlugin.get().getRecentTPS() < ConfigurationOptions.General.Exempt.MIN_TPS
+                        || HoneyPlugin.get().getRecentPing(player) > ConfigurationOptions.General.Exempt.MAX_PING)
+                    return ResponseBuilder.SUCCESS.builder().terminate().build();
 
                 // evaluate the duration of decoding this packet
-                decodeTime = (((double)System.nanoTime()) / 1_000) - decodeStart;
+                decodeTime = packetDecoder.getRecentDecodeDelta();
                 container.getStorage().putDouble(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {

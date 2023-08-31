@@ -1,11 +1,8 @@
 package me.alek.honey.checks.response;
 
-import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 public class ResponseBuilder {
 
@@ -14,20 +11,6 @@ public class ResponseBuilder {
             .inst()
             .success()
             .build();
-
-    public static Function<PacketContainer<? extends WrappedPacket<?>>, ResponseContainer> FLOOD_FLAG
-             = (packet) -> ResponseBuilder
-                          .inst()
-                          .flag()
-                          .onViolation(packet::cancel)
-                          .build();
-
-    public static Function<PacketContainer<? extends WrappedPacket<?>>, ResponseContainer> FLOOD_FLAG_DEFAULT_KEY
-             = (packet) -> FLOOD_FLAG
-                          .apply(packet)
-                          .builder()
-                          .withKey(ViolationService.CheckKey.DEFAULT)
-                          .build();
 
     public static ResponseBuilder inst() {
         return new ResponseBuilder();
@@ -58,7 +41,7 @@ public class ResponseBuilder {
     }
 
     public ResponseBuilder flag(double amount) {
-        responseContainer.FLAGGED = amount;
+        responseContainer.FLAG = amount;
         return this;
     }
 
@@ -72,18 +55,33 @@ public class ResponseBuilder {
         return this;
     }
 
+    public ResponseBuilder ignoreSpike() {
+        responseContainer.IGNORE_SPIKE = true;
+        return this;
+    }
+
     public ResponseBuilder skip(int indices) {
         responseContainer.SKIP_INDICES = new AtomicInteger(indices);
         return this;
     }
 
     public ResponseBuilder withKey(ViolationService.CheckKey key) {
-        responseContainer.CUSTOM_KEY = key;
+        responseContainer.KEY = key;
         return this;
     }
 
     public ResponseBuilder onViolation(Runnable runnable) {
         responseContainer.ON_VIOLATION = runnable;
+        return this;
+    }
+
+    public ResponseBuilder onFlag(Runnable runnable) {
+        responseContainer.ON_FLAG = runnable;
+        return this;
+    }
+
+    public ResponseBuilder onBlock(Runnable runnable) {
+        responseContainer.ON_BLOCK = runnable;
         return this;
     }
 

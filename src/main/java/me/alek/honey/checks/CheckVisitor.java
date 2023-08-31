@@ -67,7 +67,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             else if (check instanceof KeyedViolationCheck) {
                 KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
                 setting = keyedViolationCheck.getSetting(packet);
-                response.CUSTOM_KEY = new ViolationService.CheckKey(check.getClass(), keyedViolationCheck.getKey(packet));
+                if (response.KEY == null) response.KEY = new ViolationService.CheckKey(check.getClass(), keyedViolationCheck.getKey(packet));
             }
 
             // checks the contents of the response container and do whatever action it represents
@@ -80,15 +80,17 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (response.CANCELLED) cancellablePacketObserver.cancel();
 
-            if (response.FLAGGED != 0) {
+            if (response.FLAG != -1) {
                 if (setting == null) {
+
+                    if (response.ON_BLOCK != null) response.ON_BLOCK.run();
 
                     if (response.TERMINATE) return;
                     continue;
                 }
-                ViolationService.CheckKey key = (response.CUSTOM_KEY != null) ? response.CUSTOM_KEY : new ViolationService.CheckKey(check.getClass(), check.getViolationName());
+                ViolationService.CheckKey key = (response.KEY != null) ? response.KEY : new ViolationService.CheckKey(check.getClass(), check.getViolationName());
 
-                HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.FLAGGED, response.ON_VIOLATION, check.getViolationName(), setting, developmentData);
+                HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.FLAG, response.ON_VIOLATION, response.ON_FLAG, check.getViolationName(), setting, developmentData, response.IGNORE_SPIKE);
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);

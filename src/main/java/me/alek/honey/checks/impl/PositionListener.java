@@ -345,16 +345,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 double maxDistance = ConfigurationOptions.Position.PositionB.MAX;
-                double minDistance = ConfigurationOptions.Position.PositionB.MIN;
 
                 // 2d distance check
-                if (distance2d >= maxDistance || distance2d <= minDistance && distance2d != 0) {
+                if (distance2d >= maxDistance && distance2d != 0) {
                     container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
 
                 // y distance check
-                if (distanceY >= maxDistance || distanceY <= minDistance && distanceY != 0) {
+                if (distanceY >= maxDistance && distanceY != 0) {
                     container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
@@ -428,7 +427,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // this might be a false positive, shouldn't be that high. but position B would flag for this otherwise
                 if (priorDistance > 20) return ResponseBuilder.SUCCESS;
 
-                return ResponseBuilder.inst().flag(priorDistance).onViolation(() -> packet.getContainer().cancel()).withKey(new ViolationService.CheckKey(this, "PositionC")).build();
+                return ResponseBuilder.inst().flag(priorDistance).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -486,7 +485,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 // spilleren er bevæget sig ind i en ny chunk, og vi skal derfor registrere den chunk som den nuværende samt flag for dette check
                 lastChunkMap.put(player.getUniqueId(), chunk);
-                return ResponseBuilder.FLOOD_FLAG.apply(packet.getContainer()).builder().withKey(key).skip(1).build();
+                return ResponseBuilder.inst().flag().skip(1).withKey(key).build();
             }
             // den chunk er unloaded og derfor skal Position.E flagges
             return ResponseBuilder.SUCCESS;
@@ -613,7 +612,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), getViolationName(), getSetting(), container.getDevelopmentData(this));
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), null, getViolationName(), getSetting(), container.getDevelopmentData(this), false);
                         }
                     }
                 }
@@ -699,7 +698,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, 1, null, null, "Position.H", getSetting(), container.getDevelopmentData(this), false);
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
@@ -716,7 +715,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (deltaY % 0.375 < 0.000001) {
                             return response;
                         }
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, 1, null, "Position.H", getSetting(), container.getDevelopmentData(this));
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, 1, null, null, "Position.H", getSetting(), container.getDevelopmentData(this), false);
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);

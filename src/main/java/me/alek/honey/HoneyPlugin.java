@@ -122,15 +122,21 @@ public class HoneyPlugin extends JavaPlugin {
         // setup runnable getting the TPS and ping of the server and players
         new BukkitRunnable() {
 
+            int index = 0;
+
             @Override
             public void run() {
                 recentTPS = HoneyPlugin.get().getNotificationService().getTPS();
 
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
+                if (index++ > 2) {
+                    index = 0;
+
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
+                    }
                 }
             }
-        }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 60L);
+        }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 20L);
     }
 
     @Override
