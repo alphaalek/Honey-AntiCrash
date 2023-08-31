@@ -6,10 +6,7 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
-import me.alek.honey.command.impl.HelpCommand;
-import me.alek.honey.command.impl.NotificationToggleCommand;
-import me.alek.honey.command.impl.PasteLogsCommand;
-import me.alek.honey.command.impl.ReloadCommand;
+import me.alek.honey.command.impl.*;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.DispenserListener;
@@ -18,7 +15,6 @@ import me.alek.honey.metrics.Metrics;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
-import me.alek.honey.netty.injector.PacketHandleTimeTracker;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
@@ -26,6 +22,10 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.impl.CheckHandleTracker;
+import me.alek.honey.tracker.HandleTracker;
+import me.alek.honey.tracker.impl.PlayerPacketHandleTracker;
+import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -48,7 +48,8 @@ public class HoneyPlugin extends JavaPlugin {
     private LoggerService loggerService;
     private CommandManager commandManager;
     private Configuration configuration;
-    private PacketHandleTimeTracker packetHandleTimeTracker;
+    private HandleTracker<Double, Player> packetHandleTimeTracker;
+    private MarkableHandleTracker<Double, String> checkHandleTracker;
     private boolean isRunning;
     private boolean usingOldVersion;
     private UpdateChecker updateChecker;
@@ -94,8 +95,9 @@ public class HoneyPlugin extends JavaPlugin {
         notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
 
-        // setup packet handle time tracker
-        packetHandleTimeTracker = new PacketHandleTimeTracker(this);
+        // setup trackers
+        packetHandleTimeTracker = new PlayerPacketHandleTracker(this);
+        checkHandleTracker = new CheckHandleTracker(this);
 
         // setup checks
         registerChecks();
@@ -107,6 +109,7 @@ public class HoneyPlugin extends JavaPlugin {
         new NotificationToggleCommand(commandManager);
         new ReloadCommand(commandManager);
         new PasteLogsCommand(commandManager);
+        new PerformanceMonitorCommand(commandManager);
 
         // setup metrics
         new Metrics(this, 19028);
@@ -212,8 +215,12 @@ public class HoneyPlugin extends JavaPlugin {
         return loggerService;
     }
 
-    public PacketHandleTimeTracker getPacketHandleTimeTracker() {
+    public HandleTracker<Double, Player> getPacketHandleTimeTracker() {
         return packetHandleTimeTracker;
+    }
+
+    public MarkableHandleTracker<Double, String> getCheckHandleTracker() {
+        return checkHandleTracker;
     }
 
     public Configuration getConfiguration() {
@@ -241,7 +248,7 @@ public class HoneyPlugin extends JavaPlugin {
     }
 
     public int getRecentPing(Player player) {
-        return recentPingLookup.getOrDefault(player.getUniqueId(), notificationService.getPing(player));
+        return recentPingLookup.computeIfAbsent(player.getUniqueId(), (d) -> notificationService.getPing(player));
     }
 
     public void removeRecentPingLookup(Player player) {

@@ -65,7 +65,7 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "BlockInteract.E";
         }
 

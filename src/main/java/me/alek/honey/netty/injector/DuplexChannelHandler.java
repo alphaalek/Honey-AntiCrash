@@ -74,7 +74,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         }
         // register the handle time between the last handled packet and this one
         if (inboundPacketDecoder != null) {
-            HoneyPlugin.get().getPacketHandleTimeTracker().registerPacketHandleTime(player, inboundPacketDecoder.getRecentDeltaDecode());
+            HoneyPlugin.get().getPacketHandleTimeTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);

@@ -108,7 +108,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.A";
         }
 
@@ -139,7 +139,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.B";
         }
 
@@ -185,7 +185,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.C";
         }
 
@@ -227,7 +227,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.D";
         }
 
@@ -267,7 +267,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.E";
         }
 
@@ -296,7 +296,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.F";
         }
 
@@ -331,7 +331,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Payload.G";
         }
 

@@ -196,17 +196,17 @@ netty:
 
   f:
     enabled: true
-    threshold: 40000
-    decay: 850
-    decay-amount: 9500
+    threshold: 42500
+    decay: 650
+    decay-amount: 13500
     vls-amount: 3
 
   g:
     enabled: true
-    until: 3750000
-    threshold: 675000
+    until: 5500000
+    threshold: 800000
     decay: 650
-    decay-amount: 170000
+    decay-amount: 400000
     vls-amount: 1
 
   h:
@@ -216,13 +216,13 @@ netty:
 
   i:
     enabled: true
-    threshold: 52500
+    threshold: 40000
     vls-amount: 1
 
   j:
     enabled: true
-    until: 180000
-    threshold: 65000
+    until: 220000
+    threshold: 75000
     decay: 750
     decay-amount: 15000
     vls-amount: 1

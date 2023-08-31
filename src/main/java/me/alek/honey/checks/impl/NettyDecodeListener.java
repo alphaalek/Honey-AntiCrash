@@ -49,7 +49,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.D";
         }
 
@@ -77,7 +77,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.E";
         }
 
@@ -105,7 +105,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.F";
         }
 
@@ -142,7 +142,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.G";
         }
 
@@ -170,7 +170,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.H";
         }
 

@@ -2,7 +2,7 @@ package me.alek.honey.checks.types;
 
 public interface HoneyCheck {
 
-    String getViolationName();
+    String getCheckName();
 
     String getDescription();
 }

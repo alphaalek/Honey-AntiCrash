@@ -22,7 +22,6 @@ public class CommandManager implements CommandExecutor {
     private final CooldownManager cooldownManager;
     private CommandImpl helpCommand;
 
-
     public CommandManager(JavaPlugin plugin) {
         plugin.getCommand("honey").setExecutor(this);
         this.plugin = plugin;

@@ -14,7 +14,6 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.InboundPacketDecoder;
-import me.alek.honey.netty.injector.PacketHandleTimeTracker;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -24,6 +23,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.tracker.HandleTracker;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 
@@ -76,11 +76,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                PacketHandleTimeTracker packetHandleTimeTracker = HoneyPlugin.get().getPacketHandleTimeTracker();
+                HandleTracker<Double, Player> packetHandleTimeTracker = HoneyPlugin.get().getPacketHandleTimeTracker();
 
                 // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
-                if (packetHandleTimeTracker.getTrackSize() > 10) {
+                if (packetHandleTimeTracker.getTrackerSize() > 10) {
 
                     double timeToAverageQuotient = HoneyPlugin.get().getPacketHandleTimeTracker().getTimeToAverageQuotient(player);
                     if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyA.MAX_QUOTIENT) {
@@ -92,7 +92,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.A";
         }
 
@@ -121,7 +121,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.B";
         }
 
@@ -197,7 +197,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.C";
         }
 
@@ -247,7 +247,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.I";
         }
 
@@ -279,7 +279,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Netty.J";
         }
 

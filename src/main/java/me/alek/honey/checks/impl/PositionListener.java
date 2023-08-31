@@ -309,7 +309,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.A";
         }
 
@@ -362,7 +362,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.B";
         }
 
@@ -433,7 +433,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.C";
         }
 
@@ -492,7 +492,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.D";
         }
 
@@ -518,7 +518,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.E";
         }
 
@@ -612,7 +612,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), null, getViolationName(), getSetting(), container.getDevelopmentData(this), false);
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey("Position.F", axis.ordinal()), 1, () -> packet.getContainer().cancel(), null, getCheckName(), getSetting(), container.getDevelopmentData(this), false);
                         }
                     }
                 }
@@ -621,7 +621,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.F";
         }
 
@@ -654,7 +654,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.G";
         }
 
@@ -727,7 +727,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.H";
         }
 
@@ -754,7 +754,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.I";
         }
 
@@ -812,7 +812,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Position.J";
         }
 

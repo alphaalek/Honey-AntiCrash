@@ -434,8 +434,8 @@ public class ViolationService {
                 super.decay();
                 return;
             }
-            double ratio = (int) ((bufferIndex.get() - threshold) / decayAmount);
-            double amount = decayAmount * Math.pow(1.75, ratio);
+            double ratio = (int) ((bufferIndex.get() - threshold) / (decayAmount * 1.8));
+            double amount = decayAmount * Math.pow(1.4, ratio);
 
             bufferIndex.addAndGet(-amount);
         }

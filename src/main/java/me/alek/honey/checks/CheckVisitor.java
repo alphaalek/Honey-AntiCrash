@@ -45,7 +45,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
 
             if (player != null)
-                developmentData.setText(0, "§8* §7Player " + player.getName() + " flagged " + check.getViolationName() + " §8*");
+                developmentData.setText(0, "§8* §7Player " + player.getName() + " flagged " + check.getCheckName() + " §8*");
 
             // add information to the development data
             developmentData.setLine(5, check.getDescription());
@@ -56,8 +56,10 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (skipping != null && skipping.getAndDecrement() > 0) continue;
 
-            // do the check and get the response
+            // do the check and get the response, and register the time taken to the check handle tracker
+            HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getCheckName());
             ResponseContainer response = responseGeneratorFunction.apply(check);
+            HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getCheckName());
 
             // get the setting for this check
             ConfigurationOptions.VlSetting setting = null;
@@ -88,15 +90,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     if (response.TERMINATE) return;
                     continue;
                 }
-                ViolationService.CheckKey key = (response.KEY != null) ? response.KEY : new ViolationService.CheckKey(check.getClass(), check.getViolationName());
+                ViolationService.CheckKey key = (response.KEY != null) ? response.KEY : new ViolationService.CheckKey(check.getClass(), check.getCheckName());
 
-                HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.FLAG, response.ON_VIOLATION, response.ON_FLAG, check.getViolationName(), setting, developmentData, response.IGNORE_SPIKE);
+                HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.FLAG, response.ON_VIOLATION, response.ON_FLAG, check.getCheckName(), setting, developmentData, response.IGNORE_SPIKE);
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);
 
             if (response.PUNISH && player != null)
-                HoneyPlugin.get().getViolationService().punish(player, check.getViolationName());
+                HoneyPlugin.get().getViolationService().punish(player, check.getCheckName());
 
             if (response.TERMINATE) return;
         }

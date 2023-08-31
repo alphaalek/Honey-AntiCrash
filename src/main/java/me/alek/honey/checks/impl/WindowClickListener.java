@@ -78,7 +78,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Window.A";
         }
 
@@ -108,7 +108,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Window.B";
         }
 
@@ -139,7 +139,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         }
 
         @Override
-        public String getViolationName() {
+        public String getCheckName() {
             return "Window.C";
         }
 
