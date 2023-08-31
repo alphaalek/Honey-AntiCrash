@@ -25,6 +25,7 @@ import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.tracker.HandleTracker;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -84,7 +85,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     double timeToAverageQuotient = HoneyPlugin.get().getPacketHandleTimeTracker().getTimeToAverageQuotient(player);
                     if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyA.MAX_QUOTIENT) {
-                        return ResponseBuilder.inst().flag().build();
+
+                        Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);
+                        //return ResponseBuilder.inst().flag().build();
                     }
                 }
             }

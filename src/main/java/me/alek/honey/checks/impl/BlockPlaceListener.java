@@ -69,7 +69,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
         if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld())))
-            return ResponseBuilder.inst().cancel().flag().build();
+            return ResponseBuilder.inst().cancel().build();
 
         if (blockPosition.isInvalid())
             return ResponseBuilder.inst().cancel().flag().terminate().build();

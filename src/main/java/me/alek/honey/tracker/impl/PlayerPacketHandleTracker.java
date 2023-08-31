@@ -11,11 +11,12 @@ public class PlayerPacketHandleTracker extends UpdatingHandleTrackerTask<Double,
 
     private final Map<UUID, Double> oldTimeTrackerMap = new HashMap<>();
     private final Map<UUID, Double> currentTimeTrackerMap = new HashMap<>();
+
     private double recentAverage;
     private double recentTotal;
 
     public PlayerPacketHandleTracker(JavaPlugin plugin) {
-        super(plugin, 30L);
+        super(plugin, 40L);
         update();
     }
 
@@ -36,10 +37,7 @@ public class PlayerPacketHandleTracker extends UpdatingHandleTrackerTask<Double,
         double totalTime = getTimeForOldTrack(player);
         if (recentAverage == 0 || totalTime == 0) return 1d;
 
-        double oldQuotient = totalTime / recentAverage;
-        double currentQuotient = getTimeForCurrentTrack(player) / recentAverage;
-
-        return Math.max(oldQuotient, currentQuotient);
+        return totalTime / recentAverage;
     }
 
     @Override

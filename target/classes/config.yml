@@ -216,15 +216,15 @@ netty:
 
   i:
     enabled: true
-    threshold: 40000
+    threshold: 450000
     vls-amount: 1
 
   j:
     enabled: true
-    until: 220000
-    threshold: 75000
+    until: 650000
+    threshold: 325000
     decay: 750
-    decay-amount: 15000
+    decay-amount: 100000
     vls-amount: 1
 
 # |--- custom payload ---|

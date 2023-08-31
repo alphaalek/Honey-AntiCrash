@@ -176,7 +176,7 @@ item-analysis:
 netty:
   a:
     enabled: true
-    max-quotient: 5.5
+    max-quotient: 20
     vls-amount: 2
 
   b:
@@ -216,15 +216,15 @@ netty:
 
   i:
     enabled: true
-    threshold: 40000
+    threshold: 300000
     vls-amount: 1
 
   j:
     enabled: true
-    until: 220000
-    threshold: 75000
+    until: 625000
+    threshold: 275000
     decay: 750
-    decay-amount: 15000
+    decay-amount: 100000
     vls-amount: 1
 
 # |--- custom payload ---|

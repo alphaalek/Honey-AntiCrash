@@ -30,7 +30,7 @@ public class PerformanceMonitorCommand implements CommandImpl {
 
             sender.sendMessage("§e" + trackName + ": §7" + formatter.format(timeToTotalQuotient * 100) + "% §8(to total)§7, " + formatter.format(timeToAverageQuotient * 100) + "% §8(to average)");
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 All this work is done in the netty threads, so it wont affect the server thread at all...");
+        sender.sendMessage("§7Remember, that all this work is done on the netty threads, so it wont affect the server thread at all!");
     }
 
     @Override

@@ -189,6 +189,7 @@ C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\pac
 C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutEntityDestroy.java
 C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\api\packet\container\ModifiablePacketContainer.java
 C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutCombatEvent.java
+C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\command\impl\PerformanceMonitorCommand.java
 C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\packetwrappers\play\server\WrappedPlayOutLogin.java
 C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\api\packet\container\PacketContainer.java
 C:\Users\Alexander\Desktop\Honey-AntiCrash\src\main\java\me\alek\honey\netty\modelwrappers\nbt\NBTCompound.java

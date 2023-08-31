@@ -269,10 +269,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // check if any of those locations is within the distance specified
                 Optional<Location> isCloseTo = allLocations
                     .filter(
-                        (location) -> {
-                            double locationDiff = Locations.calculate3DDistance(location, currentLocation);
-                            return locationDiff < diff;
-                        }
+                        (location) -> Locations.calculate3DDistance(location, currentLocation) < diff
                     ).findFirst();
 
                 return isCloseTo.isPresent();
