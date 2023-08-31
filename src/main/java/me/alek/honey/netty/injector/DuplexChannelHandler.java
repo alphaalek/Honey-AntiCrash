@@ -10,7 +10,6 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
@@ -75,7 +74,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         }
         // register the handle time between the last handled packet and this one
         if (inboundPacketDecoder != null) {
-            HoneyPlugin.get().getPacketHandleTimeTracker().registerPacketHandleTime(player, inboundPacketDecoder.getRecentDecodeDelta());
+            HoneyPlugin.get().getPacketHandleTimeTracker().registerPacketHandleTime(player, inboundPacketDecoder.getRecentDeltaDecode());
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);

@@ -13,7 +13,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
     private double recentDecodeStart = getCurrentTime();
-    private double recentDecodeDelta = 0;
+    private double recentDeltaReceived = 0;
     private Player player;
 
     public InboundPacketDecoder(Player player) {
@@ -33,9 +33,8 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
         packetProcessor.callDecode(player, byteBuf);
 
         double currentTime = getCurrentTime();
-        recentDecodeDelta = currentTime - recentDecodeStart;
-
-        if (player != null && player.isOnline()) recentDecodeStart = currentTime;
+        recentDeltaReceived = currentTime - recentDecodeStart;
+        recentDecodeStart = currentTime;
 
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
     }
@@ -45,14 +44,14 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     }
 
     public double getRecentDeltaReceived() {
-        return recentDecodeDelta;
+        return recentDeltaReceived;
     }
 
-    public double getRecentDecodeDelta() {
+    public double getRecentDeltaDecode() {
         return getCurrentTime() - recentDecodeStart;
     }
 
-    public double getRecentDecodeStart() {
+    public double getRecentStartDecode() {
         return recentDecodeStart;
     }
 }

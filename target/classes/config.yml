@@ -40,16 +40,16 @@ notify-permission: "honey.notify"
 # exempt flood and related checks
 exempt:
 
-  # Honey will stop doing flood and related checks at the following things:
+  # Honey will stop doing flood checks (except for Flood A) at the following things
 
   # if the TPS / ping of the server or player gets above or below these values
-  min-tps: 18
-  max-ping: 80
+  min-tps: 17
+  max-ping: 100
 
   # if the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored
   max-time-between: 500
 
-  # the following interval will be blocked after the max-time-between value has been discovered
+  # the following interval will be blocked after the max-time-between value has been exceeded
   spike-interval: 650
 
 # packet logger
@@ -176,7 +176,7 @@ item-analysis:
 netty:
   a:
     enabled: true
-    max-quotient: 3.75
+    max-quotient: 5.5
     vls-amount: 2
 
   b:
@@ -222,7 +222,7 @@ netty:
   j:
     enabled: true
     until: 180000
-    threshold: 62500
+    threshold: 65000
     decay: 750
     decay-amount: 15000
     vls-amount: 1
@@ -329,8 +329,8 @@ position:
     clear-buffer: true
     threshold: 450
     decay: 1250
-    decay-amount: 70
-    vls-amount: 4
+    decay-amount: 130
+    vls-amount: 3
 
   d:
     enabled: true
@@ -348,7 +348,7 @@ position:
     enabled: true
     clear-interval: true
     max-per-interval: 45
-    interval: 2250
+    interval: 2000
     vls-amount: 3
 
   g:
@@ -365,7 +365,7 @@ position:
 
   i:
     enabled: true
-    max-per-interval: 120
+    max-per-interval: 100
     interval: 2500
     vls-amount: 1
 
@@ -389,7 +389,7 @@ rotation:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 20000
+    threshold: 22500
     decay: 750
     decay-amount: 6000
     vls-amount: 3

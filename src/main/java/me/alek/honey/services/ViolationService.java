@@ -290,7 +290,7 @@ public class ViolationService {
                     }
 
                     // add the line to the development data
-                    developmentData.addText(" §7" + field.getName() + ": " + value);
+                    developmentData.addLine(field.getName() + ": " + value);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();

@@ -25,7 +25,6 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -237,7 +236,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     return ResponseBuilder.SUCCESS.builder().terminate().build();
 
                 // evaluate the duration of decoding this packet
-                decodeTime = packetDecoder.getRecentDecodeDelta();
+                decodeTime = packetDecoder.getRecentDeltaDecode();
                 container.getStorage().putDouble(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
