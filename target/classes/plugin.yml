@@ -1,6 +1,0 @@
-name: Honey
-description: One of the best plugins securing servers for Minecraft Exploits and Netty Crashes.
-version: 1.0-BETA-3
-main: me.alek.honey.HoneyPlugin
-commands:
-  honey:
