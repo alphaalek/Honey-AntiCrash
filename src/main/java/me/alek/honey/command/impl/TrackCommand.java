@@ -46,7 +46,7 @@ public class TrackCommand implements CommandImpl {
                     double thirtySeconds = serverThreadHandleTracker.getStatistic(player, 2);
                     double sixtySeconds = serverThreadHandleTracker.getStatistic(player, 3);
 
-                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
+                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(100 - fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(100 - fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(100 - thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(100 - sixtySeconds * 100) + "% §8(60s)");
                 }
                 break;
             case "checks":
@@ -64,7 +64,7 @@ public class TrackCommand implements CommandImpl {
                     double timeToTotalQuotient = checkTimeHandleTracker.getTimeToTotalQuotient(trackName);
                     double timeToAverageQuotient = checkTimeHandleTracker.getTimeToAverageQuotient(trackName);
 
-                    sender.sendMessage("§e" + trackName + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(to total)§7, " + FORMATTER.format(timeToAverageQuotient * 100) + "% §8(to average)");
+                    sender.sendMessage("§e" + trackName + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(of total)§7, " + FORMATTER.format(100 - timeToAverageQuotient * 100) + "% §8(to average)");
                 }
                 sender.sendMessage("§7Remember, that all this work is done on the netty threads, so it wont affect the server thread at all!");
                 break;

@@ -465,7 +465,8 @@ public class ViolationService {
 
         @Override
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
-            return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            return true;
         }
     }
 

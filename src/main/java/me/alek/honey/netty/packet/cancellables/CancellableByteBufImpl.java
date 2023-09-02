@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet.cancellables;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
+import org.bukkit.Bukkit;
 
 public class CancellableByteBufImpl implements CancellablePacketObserver {
 
@@ -13,6 +14,7 @@ public class CancellableByteBufImpl implements CancellablePacketObserver {
 
     @Override
     public void cancel() {
+        Bukkit.broadcastMessage("cancelled bytebuf");
         if (byteBuf.refCnt() > 0) byteBuf.clear();
     }
 }

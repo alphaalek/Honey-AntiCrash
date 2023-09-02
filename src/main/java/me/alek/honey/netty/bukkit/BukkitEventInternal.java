@@ -24,7 +24,7 @@ public class BukkitEventInternal implements Listener {
 
         if (channel == null || channel.pipeline().toMap().size() == 0) {
 
-            player.kickPlayer("Error occurred when injecting pipeline. Try connecting again.");
+            player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
             return;
         }
 

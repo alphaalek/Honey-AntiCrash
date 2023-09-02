@@ -426,6 +426,26 @@ public class ConfigurationOptions {
                 SPIKE_INTERVAL = file.getInt("exempt.spike-interval", 700);
             }
         }
+
+        @Setting
+        public static class SQL {
+
+            public static boolean ENABLED;
+            public static String HOST;
+            public static int PORT;
+            public static String USERNAME;
+            public static String PASSWORD;
+            public static String DATBASE;
+
+            public static void load() {
+                ENABLED = file.getBoolean("mysql.enabled");
+                HOST = file.getString("mysql.enabled");
+                PORT = file.getInt("mysql.enabled");
+                USERNAME = file.getString("mysql.enabled");
+                PASSWORD = file.getString("mysql.enabled");
+                DATBASE = file.getString("mysql.enabled");
+            }
+        }
     }
 
     @Setting

@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet.cancellables;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
+import org.bukkit.Bukkit;
 
 public class CancellablePacketDelegateImpl implements CancellablePacketObserver {
 
@@ -13,6 +14,7 @@ public class CancellablePacketDelegateImpl implements CancellablePacketObserver 
 
     @Override
     public void cancel() {
+        Bukkit.broadcastMessage("cancelled packet");
         packetContainer.cancel();
     }
 }

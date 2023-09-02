@@ -37,6 +37,26 @@ bypass-permission: "honey.bypass"
 # Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications.
 notify-permission: "honey.notify"
 
+# mysql settings for storage
+mysql:
+  # should storing of data in mysql database be enabled
+  enabled: false
+
+  # host of the database
+  host: "localhost"
+
+  # port of the database
+  port: 3306
+
+  # root username to the database
+  username: "rootuser"
+
+  # root password to the database
+  password: "rootpass"
+
+  # name of the database which data should be stored in
+  name: "sample"
+
 # exempt flood and related checks
 exempt:
 

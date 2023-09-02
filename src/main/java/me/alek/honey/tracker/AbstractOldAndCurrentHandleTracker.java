@@ -26,7 +26,7 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
         this.statisticInSecondsIndices = statisticInSecondsIndices;
     }
 
-    public StatisticProvider getStatisticProvider(Player player) {
+    public synchronized StatisticProvider getStatisticProvider(Player player) {
         return statisticProviders.computeIfAbsent(player.getUniqueId(), (d) -> new StatisticProvider(statisticInSecondsIndices));
     }
 
@@ -62,7 +62,7 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
         remove(player.getUniqueId());
     }
 
-    public void remove(UUID uuid) {
+    public synchronized void remove(UUID uuid) {
 
         oldTimeTrackerMap.remove(uuid);
         currentTimeTrackerMap.remove(uuid);
