@@ -194,27 +194,23 @@ item-analysis:
 
 # |--- netty ---|
 netty:
+
   a:
     enabled: true
-    max-quotient: 20
-    vls-amount: 2
+    vls-amount: 3
 
   b:
     enabled: true
-    vls-amount: 3
 
   c:
     enabled: true
 
   d:
     enabled: true
-
-  e:
-    enabled: true
     vls-amount: 1
     threshold: 16500
 
-  f:
+  e:
     enabled: true
     until: 85000
     threshold: 32500
@@ -222,7 +218,7 @@ netty:
     decay-amount: 9500
     vls-amount: 3
 
-  g:
+  f:
     enabled: true
     until: 5500000
     threshold: 1500000
@@ -230,23 +226,33 @@ netty:
     decay-amount: 400000
     vls-amount: 1
 
-  h:
+  g:
     enabled: true
     threshold: 525000
     vls-amount: 1
 
-  i:
+  h:
     enabled: true
     threshold: 80000
     vls-amount: 1
 
-  j:
+  i:
     enabled: true
     until: 350000
     threshold: 125000
     decay: 750
     decay-amount: 35000
     vls-amount: 1
+
+  j:
+    enabled: true
+    max-quotient: 5
+    vls-amount: 2
+
+  k:
+    enabled: true
+    max-quotient: 5
+    vls-amount: 2
 
 # |--- custom payload ---|
 custom-payload:
@@ -361,7 +367,7 @@ position:
 
   e:
     enabled: true
-    max-per-interval: 14
+    max-per-interval: 12
     interval: 3500
     vls-amount: 3
 

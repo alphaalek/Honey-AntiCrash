@@ -33,9 +33,8 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
     }
 
     public CheckVisitor<?> getCachedVisitor() {
-        if (cachedVisitor == null) {
-            cachedVisitor = getVisitor();
-        }
+        if (cachedVisitor == null) cachedVisitor = getVisitor();
+
         return cachedVisitor;
     }
 

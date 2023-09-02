@@ -1,4 +1,4 @@
-package me.alek.honey.sql;
+package me.alek.honey.storage.sql;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.Bukkit;

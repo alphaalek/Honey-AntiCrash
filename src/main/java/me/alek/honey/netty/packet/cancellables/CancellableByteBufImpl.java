@@ -14,7 +14,6 @@ public class CancellableByteBufImpl implements CancellablePacketObserver {
 
     @Override
     public void cancel() {
-        Bukkit.broadcastMessage("cancelled bytebuf");
         if (byteBuf.refCnt() > 0) byteBuf.clear();
     }
 }

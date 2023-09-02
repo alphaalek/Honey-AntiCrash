@@ -24,6 +24,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.tracker.HandleTracker;
+import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -53,6 +54,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
+        visitor.visit(new NettyK<>());
         return visitor;
     }
 
@@ -68,49 +70,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public void cleanup(Player player) {
-        NettyI.packetDecoderMap.remove(player.getUniqueId());
+        NettyH.packetDecoderMap.remove(player.getUniqueId());
     }
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
-
-        @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-
-                HandleTracker<Double, Player> packetHandleTimeTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
-
-                // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
-                // sure it's a more correct average being evaluated and compared in this check
-                if (packetHandleTimeTracker.getTrackerSize() > 10) {
-
-                    double timeToAverageQuotient = HoneyPlugin.get().getNettyPacketHandleTracker().getTimeToAverageQuotient(player);
-                    if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyA.MAX_QUOTIENT) {
-
-                        Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);
-                        //return ResponseBuilder.inst().flag().build();
-                    }
-                }
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getCheckName() {
-            return "Netty.A";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Too high netty thread quotient";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class);
-        }
-    }
-
-    public static class NettyB<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
@@ -125,7 +88,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getCheckName() {
-            return "Netty.B";
+            return "Netty.A";
         }
 
         @Override
@@ -135,12 +98,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class);
         }
     }
 
 
-    public static class NettyC<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
+    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
         @Override
         public CheckVisitor<WP> getVisitor() {
@@ -201,7 +164,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getCheckName() {
-            return "Netty.C";
+            return "Netty.B";
         }
 
         @Override
@@ -216,11 +179,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class);
         }
     }
 
-    public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
 
@@ -251,7 +214,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getCheckName() {
-            return "Netty.I";
+            return "Netty.H";
         }
 
         @Override
@@ -261,11 +224,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class);
         }
     }
 
-    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
@@ -283,7 +246,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getCheckName() {
-            return "Netty.J";
+            return "Netty.I";
         }
 
         @Override
@@ -293,7 +256,88 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
+        }
+    }
+
+    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+
+                // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
+                // sure it's a more correct average being evaluated and compared in this check
+
+                //if (packetHandleTimeTracker.getTrackerSize() > 10) {
+
+                    double timeToAverageQuotient = serverThreadHandleTracker.getStatistic(player, 0);
+
+                    if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
+
+                        Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient);
+                        //return ResponseBuilder.inst().flag().build();
+                    }
+                //}
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getCheckName() {
+            return "Netty.J";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too high server thread quotient";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
+        }
+    }
+
+    public static class NettyK<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled()) {
+
+                StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+
+                // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
+                // sure it's a more correct average being evaluated and compared in this check
+                //if (packetHandleTimeTracker.getTrackerSize() > 10) {
+
+                double timeToAverageQuotient = nettyThreadHandleTracker.getStatistic(player, 1);
+
+                if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyK.MAX_QUOTIENT) {
+
+                    Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);
+                    //return ResponseBuilder.inst().flag().build();
+                }
+                //}
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getCheckName() {
+            return "Netty.K";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too high netty thread quotient";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
         }
     }
 }

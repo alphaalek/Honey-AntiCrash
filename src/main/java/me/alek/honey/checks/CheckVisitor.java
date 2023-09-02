@@ -44,15 +44,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
 
-            if (player != null)
-                developmentData.setText(0, "§8* §7Player " + player.getName() + " flagged " + check.getCheckName() + " §8*");
-
             // add information to the development data
-            developmentData.setLine(5, check.getDescription());
+            if (player != null) {
+                developmentData.setText(0, "§8* §7Player " + player.getName() + " flagged " + check.getCheckName() + " §8*");
+                developmentData.setLine(5, check.getDescription());
 
-            if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
-                cancellablePacketObserver.cancel();
-                return;
+                if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
+                    cancellablePacketObserver.cancel();
+                    return;
+                }
             }
             if (skipping != null && skipping.getAndDecrement() > 0) continue;
 

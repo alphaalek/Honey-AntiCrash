@@ -940,16 +940,11 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class NettyA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
-            public static double MAX_QUOTIENT;
-
-            public static void load() {
-                MAX_QUOTIENT = file.getDouble("netty.a.max-quotient", 20d);
-            }
         }
 
         @Setting
         @Violation(prefixPaths = "netty.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class NettyB extends VlSetting implements VlSimpleRequiredContentsSetting {
+        public static class NettyB extends VlSetting {
 
         }
 
@@ -960,14 +955,14 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.d", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class NettyD extends VlSetting {
+        @Violation(prefixPaths = "netty.d", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyD extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.e", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class NettyE extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.e", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyE extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
         }
 
@@ -978,8 +973,8 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.g", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
-        public static class NettyG extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.g", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyG extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 
@@ -990,15 +985,31 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class NettyI extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyI extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
-        public static class NettyJ extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class NettyJ extends VlSetting implements VlSimpleRequiredContentsSetting {
 
+            public static double MAX_QUOTIENT;
+
+            public static void load() {
+                MAX_QUOTIENT = file.getDouble("netty.j.max-quotient", 10d);
+            }
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class NettyK extends VlSetting implements VlSimpleRequiredContentsSetting {
+
+            public static double MAX_QUOTIENT;
+
+            public static void load() {
+                MAX_QUOTIENT = file.getDouble("netty.k.max-quotient", 10d);
+            }
         }
     }
 

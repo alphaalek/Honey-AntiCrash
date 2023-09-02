@@ -20,11 +20,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     @Override
     public CheckVisitor<?> getVisitor() {
         CheckVisitor<?> visitor = new CheckVisitor<>();
+        visitor.visit(new NettyC());
         visitor.visit(new NettyD());
         visitor.visit(new NettyE());
         visitor.visit(new NettyF());
         visitor.visit(new NettyG());
-        visitor.visit(new NettyH());
         return visitor;
     }
 
@@ -33,7 +33,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         return HoneyCheckType.DECODE;
     }
 
-    public static class NettyD implements DecodeCheck, ViolationCheck {
+    public static class NettyC implements DecodeCheck, ViolationCheck {
 
         @Override
         public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
@@ -50,12 +50,40 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getCheckName() {
-            return "Netty.D";
+            return "Netty.C";
         }
 
         @Override
         public String getDescription() {
             return "No bytes to be decoded";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class);
+        }
+    }
+
+    public static class NettyD implements DecodeCheck, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                int readableBytes = byteBuf.readableBytes();
+                return ResponseBuilder.inst().flag(readableBytes).build();
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getCheckName() {
+            return "Netty.D";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too big packet to be decoded";
         }
 
         @Override
@@ -83,7 +111,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too big packet to be decoded";
+            return "Buffer of packet bytes exceeded";
         }
 
         @Override
@@ -93,34 +121,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     }
 
     public static class NettyF implements DecodeCheck, ViolationCheck {
-
-        @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-
-                int readableBytes = byteBuf.readableBytes();
-                return ResponseBuilder.inst().flag(readableBytes).build();
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getCheckName() {
-            return "Netty.F";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Buffer of packet bytes exceeded";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class);
-        }
-    }
-
-    public static class NettyG implements DecodeCheck, ViolationCheck {
 
         private static final ConstructorInvoker<Object> packetDataSerializerInvoker = Reflection.getConstructor(NMSUtils.getPacketDataSerializerClass(), ByteBuf.class);
 
@@ -143,7 +143,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getCheckName() {
-            return "Netty.G";
+            return "Netty.F";
         }
 
         @Override
@@ -153,11 +153,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class);
         }
     }
 
-    public static class NettyH implements DecodeCheck, ViolationCheck {
+    public static class NettyG implements DecodeCheck, ViolationCheck {
 
         @Override
         public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
@@ -171,7 +171,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getCheckName() {
-            return "Netty.H";
+            return "Netty.G";
         }
 
         @Override
@@ -181,7 +181,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class);
         }
     }
 }

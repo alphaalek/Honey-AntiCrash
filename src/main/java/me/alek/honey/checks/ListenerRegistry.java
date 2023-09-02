@@ -14,7 +14,7 @@ public enum ListenerRegistry {
     v4(CreativeSlotListener::new),
     v5(CustomPayloadListener::new),
     v6(NettyListener::new),
-    v7(NettyListener.NettyC::new),
+    v7(NettyListener.NettyB::new),
     v8(NettyDecodeListener::new),
     v9(LoginStartListener::new),
     v10(UpdateSignListener::new),

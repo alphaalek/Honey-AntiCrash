@@ -37,25 +37,26 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         StringBuilder message = new StringBuilder();
 
         for (double percentage : percentages) {
-            message.append(", ").append(formatter.format(100 - percentage * 100)).append("%");
+            message.append(", ").append(formatter.format(percentage * 100)).append("%");
         }
         return message.substring(2, message.length());
     }
 
     public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {
-        if (player == null) return;
-
         if (packetContainer.getState() == PacketState.PLAY) {
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return;
             }
         }
         CheckContextContainer checkContextContainer = new CheckContextContainer();
-        CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
-        defaultDevelopmentData.addEmpty();
-        defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
-        applyCommonDevelopmentData(player, defaultDevelopmentData);
+        if (player != null) {
+            CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+
+            defaultDevelopmentData.addEmpty();
+            defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
+            applyCommonDevelopmentData(player, defaultDevelopmentData);
+        }
 
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {
             return;
@@ -65,9 +66,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public CheckVisitor<WP> getCachedVisitor() {
-        if (cachedVisitor == null) {
-            cachedVisitor = getVisitor();
-        }
+        if (cachedVisitor == null) cachedVisitor = getVisitor();
+
         return cachedVisitor;
     }
 

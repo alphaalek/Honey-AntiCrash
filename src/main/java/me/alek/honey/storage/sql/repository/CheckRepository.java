@@ -1,7 +1,7 @@
-package me.alek.honey.sql.repository;
+package me.alek.honey.storage.sql.repository;
 
-import me.alek.honey.sql.QueryFactory;
-import me.alek.honey.sql.RepositoryComponent;
+import me.alek.honey.storage.sql.RepositoryComponent;
+import me.alek.honey.storage.sql.QueryFactory;
 
 public class CheckRepository implements RepositoryComponent {
 

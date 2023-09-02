@@ -1,4 +1,4 @@
-package me.alek.honey.sql;
+package me.alek.honey.storage.sql;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
