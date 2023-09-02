@@ -90,10 +90,6 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                 }
                 recentPollStart = System.nanoTime();
 
-                // set the author of the current packet
-                UUID author = packetSendQueue.poll();
-                recentPacketAuthor.set(author != null ? author : recentPacketAuthor.get());
-
                 Object value = super.poll();
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 if (value == null || delegatedIgnoreList.contains(value)) {
@@ -102,6 +98,10 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
                     if (value == null) packetSendQueue.clear();
                 }
+                // set the author of the current packet
+                UUID author = packetSendQueue.poll();
+                recentPacketAuthor.set(author != null ? author : recentPacketAuthor.get());
+
                 return value;
             }
         }
