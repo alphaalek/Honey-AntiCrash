@@ -24,7 +24,6 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.impl.CheckHandleTracker;
-import me.alek.honey.tracker.HandleTracker;
 import me.alek.honey.tracker.impl.PlayerNettyPacketHandleTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
@@ -113,7 +112,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         new NotificationToggleCommand(commandManager);
         new ReloadCommand(commandManager);
         new PasteLogsCommand(commandManager);
-        new PerformanceMonitorCommand(commandManager);
+        new TrackCommand(commandManager);
 
         // setup metrics
         new Metrics(this, 19028);

@@ -12,7 +12,7 @@ public class HelpCommand implements CommandImpl {
     }
 
     @Override
-    public void perform(CommandSender sender) {
+    public void perform(CommandSender sender, String[] args) {
         String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
         String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 

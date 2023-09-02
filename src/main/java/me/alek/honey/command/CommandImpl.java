@@ -16,5 +16,5 @@ public interface CommandImpl {
 
     int getCooldown();
 
-    void perform(CommandSender sender);
+    void perform(CommandSender sender, String[] args);
 }

@@ -41,7 +41,7 @@ public class CommandManager implements CommandExecutor {
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (args.length == 0) {
             if (this.helpCommand != null) {
-                this.helpCommand.perform(commandSender);
+                this.helpCommand.perform(commandSender, new String[0]);
             }
             return true;
         }
@@ -51,6 +51,9 @@ public class CommandManager implements CommandExecutor {
                 .stream()
                 .filter(commandLabel -> commandLabel.getKey().equals(firstArgument))
                 .findFirst();
+
+        String[] implArgs = new String[args.length - 1];
+        if (implArgs.length > 0) System.arraycopy(args, 1, implArgs, 0, implArgs.length);
 
         try {
             final Map.Entry<String, CommandImpl> commandImplEntry = commandImplEntryOptional.orElseThrow(() -> new CommandNotFoundException(firstArgument));
@@ -75,14 +78,14 @@ public class CommandManager implements CommandExecutor {
                 }
                 this.cooldownManager.setCooldown(player, commandImpl);
             }
-            commandImpl.perform(commandSender);
+            commandImpl.perform(commandSender, implArgs);
         } catch (CommandNotFoundException ex) {
             if (this.helpCommand == null) {
                 commandSender.sendMessage(PREFIX + "Could not find any command with the name §e" + ex.getMessage()
                         + "§7. Type §e/honey help §7 to se what commands you can use.");
             }
             else {
-                this.helpCommand.perform(commandSender);
+                this.helpCommand.perform(commandSender, implArgs);
             }
         }
         return true;

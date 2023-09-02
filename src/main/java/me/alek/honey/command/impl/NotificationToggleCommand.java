@@ -15,7 +15,7 @@ public class NotificationToggleCommand implements CommandImpl {
     }
 
     @Override
-    public void perform(CommandSender sender) {
+    public void perform(CommandSender sender, String[] args) {
         NotificationService notificationService = HoneyPlugin.get().getNotificationService();
 
         String toggledString;
