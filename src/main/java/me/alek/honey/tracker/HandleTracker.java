@@ -9,13 +9,13 @@ public interface HandleTracker<I extends Number, T> {
 
     void registerTime(T key, I value);
 
-    I getTimeToAverageQuotient(T key);
+    double getTimeToAverageQuotient(T key);
 
-    I getTimeToTotalQuotient(T key);
+    double getTimeToTotalQuotient(T key);
 
     int getTrackerSize();
 
-    I getAverage();
+    double getAverage();
 
     I getTotal();
 

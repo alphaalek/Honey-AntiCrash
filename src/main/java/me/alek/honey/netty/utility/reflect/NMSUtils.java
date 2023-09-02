@@ -66,14 +66,17 @@ public class NMSUtils {
     public static Object getMinecraftServer() {
         IStructureModifier<Object> craftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftServerClass())
                 .withType(NMSUtils.getMinecraftServerClass()).withTarget(Bukkit.getServer());
+
         return craftServerModifier.invokeMethod("getServer", 0);
     }
 
     public static Object getServerConnection() {
         Object minecraftServer = getMinecraftServer();
+
         IStructureModifier<Object> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMinecraftServerClass())
                 .withType(NMSUtils.getServerConnectionClass())
                 .withTarget(minecraftServer);
+
         return minecraftServerModifier.invokeMethod("getServerConnection", 0);
     }
 

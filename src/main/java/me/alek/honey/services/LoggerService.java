@@ -71,7 +71,7 @@ public class LoggerService {
             if (violationName.equals("Netty.G") || violationName.equals("Netty.F") || violationName.equals("Rotation.C") || violationName.contains("Flood")) return;
         }
 
-        HoneyPlugin.get().getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
+        HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(
@@ -90,12 +90,12 @@ public class LoggerService {
                 .append(": ")
                 .append(packetContainer.getAll().readFieldValues());
         }
-        HoneyPlugin.get().getLogger().info(message.toString());
+        HoneyPlugin.get().getPlugin().getLogger().info(message.toString());
     }
 
     public void logPunish(String playerName, String violationName) {
         if (!debug) return;
-        HoneyPlugin.get().getLogger().info("DEBUG: Kicking " + playerName + " for " + violationName);
+        HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: Kicking " + playerName + " for " + violationName);
     }
 
     public boolean isEnabled() {

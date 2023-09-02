@@ -192,7 +192,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             for (String prohibitedCommand : this.prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
-                    String messageFormatted = message.length() > 20 ? message.substring(0, 20) + "..." : message;
+                    String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
                     container.getDevelopmentData(this).addPoint("Command", messageFormatted);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
@@ -207,7 +207,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return "Trying to execute prohibited command";
+            return "Executing prohibited command";
         }
 
         @Override

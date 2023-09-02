@@ -14,7 +14,7 @@ public class HelpCommand implements CommandImpl {
     @Override
     public void perform(CommandSender sender) {
         String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
-        String version = HoneyPlugin.get().getDescription().getVersion();
+        String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 
         sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
 

@@ -22,10 +22,12 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.impl.CheckHandleTracker;
 import me.alek.honey.tracker.HandleTracker;
-import me.alek.honey.tracker.impl.PlayerPacketHandleTracker;
+import me.alek.honey.tracker.impl.PlayerNettyPacketHandleTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
+import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -38,7 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class HoneyPlugin extends JavaPlugin {
+public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     private static HoneyPlugin INSTANCE;
 
@@ -48,7 +50,8 @@ public class HoneyPlugin extends JavaPlugin {
     private LoggerService loggerService;
     private CommandManager commandManager;
     private Configuration configuration;
-    private HandleTracker<Double, Player> packetHandleTimeTracker;
+    private StatisticHandleTracker<Double, Player> packetServerThreadHandleTimeTracker;
+    private StatisticHandleTracker<Double, Player> packetNettyHandleTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
     private boolean isRunning;
     private boolean usingOldVersion;
@@ -96,7 +99,8 @@ public class HoneyPlugin extends JavaPlugin {
         confiscationService = new ConfiscationService();
 
         // setup trackers
-        packetHandleTimeTracker = new PlayerPacketHandleTracker(this);
+        packetNettyHandleTracker = new PlayerNettyPacketHandleTracker(this);
+        packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker(this);
         checkHandleTracker = new CheckHandleTracker(this);
 
         // setup checks
@@ -139,7 +143,7 @@ public class HoneyPlugin extends JavaPlugin {
                     }
                 }
             }
-        }.runTaskTimerAsynchronously(HoneyPlugin.get(), 0L, 20L);
+        }.runTaskTimerAsynchronously(HoneyPlugin.get().getPlugin(), 0L, 20L);
     }
 
     @Override
@@ -191,8 +195,12 @@ public class HoneyPlugin extends JavaPlugin {
         ItemAnalysis.reload();
     }
 
-    public static HoneyPlugin get() {
+    public static HoneyAPI get() {
         return INSTANCE;
+    }
+
+    public JavaPlugin getPlugin() {
+        return this;
     }
 
     public PacketLibrary getPacketLibrary() {
@@ -215,8 +223,12 @@ public class HoneyPlugin extends JavaPlugin {
         return loggerService;
     }
 
-    public HandleTracker<Double, Player> getPacketHandleTimeTracker() {
-        return packetHandleTimeTracker;
+    public StatisticHandleTracker<Double, Player> getNettyPacketHandleTracker() {
+        return packetNettyHandleTracker;
+    }
+
+    public StatisticHandleTracker<Double, Player> getServerThreadHandleTracker() {
+        return packetServerThreadHandleTimeTracker;
     }
 
     public MarkableHandleTracker<Double, String> getCheckHandleTracker() {

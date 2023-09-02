@@ -132,7 +132,7 @@ public class ConfigurationOptions {
                 // check if this memory section exists, if it does not then disable the plugin
                 if (file.get(prefixPath) == null) {
                     HoneyPlugin.get().resetConfiguration();
-                    Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+                    Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
                     misconfiguredConfiguration = true;
 
                     throw new RuntimeException();
@@ -154,7 +154,7 @@ public class ConfigurationOptions {
             // check if there is anymore required values left which have not been removed (because they were present)
             if (!requiredVlSettingImplTypes.isEmpty()) {
                 HoneyPlugin.get().resetConfiguration();
-                Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+                Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
                 misconfiguredConfiguration = true;
 
                 throw new RuntimeException();
@@ -208,7 +208,7 @@ public class ConfigurationOptions {
             ex.printStackTrace();
         }
 
-        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get())) {
+        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get().getPlugin())) {
             throw new RuntimeException(
                     "Honey is proceeding to run although it is turned off! What is happening!? " +
                     "Some plugin (not Bukkit) may have disabled Honey without doing it properly. " +
@@ -218,7 +218,7 @@ public class ConfigurationOptions {
         }
         if (!vlSettingMap.containsKey(clazz)) {
             HoneyPlugin.get().resetConfiguration();
-            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
 
             throw new RuntimeException("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
         }
@@ -923,7 +923,7 @@ public class ConfigurationOptions {
             public static double MAX_QUOTIENT;
 
             public static void load() {
-                MAX_QUOTIENT = file.getDouble("netty.a.max-quotient", 1.75d);
+                MAX_QUOTIENT = file.getDouble("netty.a.max-quotient", 20d);
             }
         }
 
@@ -952,8 +952,8 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.f", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
-        public static class NettyF extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.f", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyF extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
         }
 

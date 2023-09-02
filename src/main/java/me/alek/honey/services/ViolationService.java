@@ -146,7 +146,7 @@ public class ViolationService {
                     punishing.remove(player.getUniqueId());
                 }
             }
-        }.runTaskLaterAsynchronously(HoneyPlugin.get(), 5L);
+        }.runTaskLaterAsynchronously(HoneyPlugin.get().getPlugin(), 5L);
     }
 
     public class ViolationContext {
@@ -327,6 +327,7 @@ public class ViolationService {
     public class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {
 
         private int threshold;
+        private double amount;
 
         public PacketSingleOverflowHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
@@ -341,11 +342,15 @@ public class ViolationService {
 
         @Override
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
-            if (amount < threshold) return false;
+            if ((this.amount = amount) < threshold) return false;
 
             if (onFlag != null) onFlag.run();
 
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+        }
+
+        public double getAmount() {
+            return amount;
         }
     }
 
@@ -444,6 +449,8 @@ public class ViolationService {
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
             if (onViolation != null) onViolation.run();
 
+            cancellablePacketObserver.cancel();
+
             if (bufferIndex.get() > until && getSetting().isEnabled()) violate(handle, cancellablePacketObserver, violationName, null, developmentData);
             return true;
         }
@@ -458,9 +465,6 @@ public class ViolationService {
 
         @Override
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
-            // if the exploit check has come this far without the setting even being enabled, then we shouldn't violate the player
-            if (!getSetting().isEnabled()) return false;
-
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
         }
     }

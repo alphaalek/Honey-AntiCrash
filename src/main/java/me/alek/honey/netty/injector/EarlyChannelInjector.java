@@ -92,8 +92,8 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         } catch (Exception ex) {
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
 
-            HoneyPlugin.get().getLogger().info("Failed to inject the server channel! Contact Alek for a fix!");
-            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get());
+            HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel! Contact Alek for a fix!");
+            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
             return;
         }
         createServerChannelHandler();
@@ -102,7 +102,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         List<Object> list = accessor.get(serverConnection);
 
         if (list.isEmpty()) {
-            HoneyPlugin.get().getLogger().info("No valid server channel was found to inject! I'm switching over to late injection instead.");
+            HoneyPlugin.get().getPlugin().getLogger().info("No valid server channel was found to inject! I'm switching over to late injection instead.");
 
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
             PacketLibrary.get().setLateProxy();
@@ -118,7 +118,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             injectedServerChannel = true;
         }
         if (!injectedServerChannel) {
-            HoneyPlugin.get().getLogger().info("Failed to inject the server channel! I'm switching over to late injection instead.");
+            HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel! I'm switching over to late injection instead.");
 
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
             PacketLibrary.get().setLateProxy();

@@ -8,20 +8,20 @@ public class DedicatedConfiguration implements Configuration {
     private boolean misConfigured;
 
     public DedicatedConfiguration() {
-        HoneyPlugin.get().saveDefaultConfig();
+        HoneyPlugin.get().getPlugin().saveDefaultConfig();
 
         misConfigured = loadFile();
     }
 
     public boolean loadFile() {
-        FileConfiguration configuration = HoneyPlugin.get().getConfig();
+        FileConfiguration configuration = HoneyPlugin.get().getPlugin().getConfig();
         ConfigurationOptions.setFile(configuration);
 
         return ConfigurationOptions.load();
     }
 
     public void reload() {
-        HoneyPlugin.get().reloadConfig();
+        HoneyPlugin.get().getPlugin().reloadConfig();
         misConfigured = loadFile();
     }
 

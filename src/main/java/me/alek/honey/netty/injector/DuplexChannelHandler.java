@@ -74,7 +74,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         }
         // register the handle time between the last handled packet and this one
         if (inboundPacketDecoder != null) {
-            HoneyPlugin.get().getPacketHandleTimeTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
+            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
@@ -86,7 +86,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {
             if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                HoneyPlugin.get().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
+                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
             }
             return;
         }

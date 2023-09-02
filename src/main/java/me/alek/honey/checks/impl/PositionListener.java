@@ -419,7 +419,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    HoneyPlugin.get().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
+                    HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
                 }
                 // this might be a false positive, shouldn't be that high. but position B would flag for this otherwise
                 if (priorDistance > 20) return ResponseBuilder.SUCCESS;

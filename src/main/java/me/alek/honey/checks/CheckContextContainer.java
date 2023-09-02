@@ -36,6 +36,8 @@ public class CheckContextContainer {
             if (defaultDevelopmentData != null && defaultDevelopmentData != this) developmentDataSet.addAll(defaultDevelopmentData.getDataSet());
         }
 
+        public int size() { return developmentDataSet.size(); }
+
         public void addText(String line) {
             developmentDataSet.add(line);
 

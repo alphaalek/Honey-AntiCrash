@@ -6,6 +6,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.tracker.StatisticHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -14,14 +15,31 @@ import java.text.DecimalFormat;
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
     private CheckVisitor<WP> cachedVisitor;
-    private static final DecimalFormat formatter = new DecimalFormat("###.####");
+    private static final DecimalFormat formatter = new DecimalFormat("###.#");
 
     public static void applyCommonDevelopmentData(Player player, CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
         developmentData.addEmpty();
         developmentData.addHeader("Description", null);
         developmentData.addEmpty();
-        developmentData.addPoint("Netty Thread Quotient", formatter.format(HoneyPlugin.get().getPacketHandleTimeTracker().getTimeToAverageQuotient(player) * 100) + "%");
+
+        StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+        StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+
+        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
+        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
+
+        developmentData.addPoint("STQ", serverThreadPoint);
+        developmentData.addPoint("NTQ", nettyThreadPoint);
+    }
+
+    private static String formatPercentages(double[] percentages) {
+        StringBuilder message = new StringBuilder();
+
+        for (double percentage : percentages) {
+            message.append(", ").append(formatter.format(percentage * 100)).append("%");
+        }
+        return message.substring(2, message.length());
     }
 
     public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {

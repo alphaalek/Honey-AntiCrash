@@ -49,7 +49,7 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
 
         HoneyPlugin.get().removeRecentPingLookup(player);
-        HoneyPlugin.get().getPacketHandleTimeTracker().remove(player);
+        HoneyPlugin.get().getNettyPacketHandleTracker().remove(player);
     }
 
     public static Map<UUID, Long> getInstantJoinedMap() {

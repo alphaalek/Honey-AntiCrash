@@ -8,9 +8,12 @@ import me.alek.honey.netty.api.packet.PacketProcessor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class InboundPacketDecoder extends ByteToMessageDecoder implements AbstractPipelineProxy {
 
+    private static final ConcurrentLinkedQueue<UUID> packetSendQueue = new ConcurrentLinkedQueue<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
     private double recentDecodeStart = getCurrentTime();
     private double recentDeltaReceived = 0;
@@ -30,6 +33,10 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
+        synchronized (packetSendQueue) {
+            packetSendQueue.add(player.getUniqueId());
+        }
+
         packetProcessor.callDecode(player, byteBuf);
 
         double currentTime = getCurrentTime();
@@ -53,5 +60,9 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     public double getRecentStartDecode() {
         return recentDecodeStart;
+    }
+
+    public static ConcurrentLinkedQueue<UUID> getPacketSendQueue() {
+        return packetSendQueue;
     }
 }

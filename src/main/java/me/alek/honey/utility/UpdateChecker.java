@@ -19,7 +19,7 @@ public class UpdateChecker {
     private final String latestVersion;
 
     public UpdateChecker() {
-        this.version = HoneyPlugin.get().getDescription().getVersion();
+        this.version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
         this.latestVersion = getLatestVersion();
     }
 
@@ -51,7 +51,7 @@ public class UpdateChecker {
                 player.sendMessage(NotificationService.PREFIX + " §7Found an update: v" + latestVersion + ". Download:");
                 player.sendMessage("§ahttps://github.com/alphaalek/Honey-AntiCrash/releases/");
             }
-        }.runTaskLater(HoneyPlugin.get(), 40L);
+        }.runTaskLater(HoneyPlugin.get().getPlugin(), 40L);
     }
 
 }

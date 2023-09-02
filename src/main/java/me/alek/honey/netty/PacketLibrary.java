@@ -50,7 +50,7 @@ public class PacketLibrary {
         this.settings = settings;
         this.plugin = settings.getPlugin();
         eventManager = new EventManager();
-        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), HoneyPlugin.get());
+        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
         if (useLateInjection()) {
             proxy = new LateChannelInjector();

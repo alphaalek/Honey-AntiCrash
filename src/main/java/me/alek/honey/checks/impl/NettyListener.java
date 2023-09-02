@@ -77,13 +77,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                HandleTracker<Double, Player> packetHandleTimeTracker = HoneyPlugin.get().getPacketHandleTimeTracker();
+                HandleTracker<Double, Player> packetHandleTimeTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
                 // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
                 if (packetHandleTimeTracker.getTrackerSize() > 10) {
 
-                    double timeToAverageQuotient = HoneyPlugin.get().getPacketHandleTimeTracker().getTimeToAverageQuotient(player);
+                    double timeToAverageQuotient = HoneyPlugin.get().getNettyPacketHandleTracker().getTimeToAverageQuotient(player);
                     if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyA.MAX_QUOTIENT) {
 
                         Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);

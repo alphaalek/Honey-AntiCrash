@@ -334,6 +334,21 @@ public class Reflection {
         throw new RuntimeException("Reflection fejl (enum): " + enumClass.getName() + ", " + name);
     }
 
+    public static void setFinalField(Object instance, FieldAccessor<?> accessor, Object value) throws Exception {
+        setFinalField(instance, accessor.getField(), value);
+    }
+
+    public static void setFinalField(Object instance, Field field, Object value) throws Exception {
+        if (!field.isAccessible()) field.setAccessible(true);
+
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+
+        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+        field.set(instance, value);
+    }
+
     public static String getVersion() {
         return VERSION;
     }
