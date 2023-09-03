@@ -22,6 +22,7 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.storage.sql.BeanRepositoryCollection;
 import me.alek.honey.storage.sql.SQLHandler;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.impl.CheckHandleTracker;
@@ -98,6 +99,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         violationService = new ViolationService();
         notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
+
+        // setup sql handler
+        sqlHandler = new SQLHandler(new BeanRepositoryCollection());
 
         // setup trackers
         packetNettyHandleTracker = new PlayerNettyPacketHandleTracker(this);

@@ -1,6 +1,6 @@
 package me.alek.honey.tracker.impl;
 
-import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -14,16 +14,17 @@ import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandleTracker {
 
-    private final ConcurrentLinkedQueue<UUID> packetSendQueue = InboundPacketDecoder.getPacketSendQueue();
+    private final ConcurrentLinkedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
     private boolean workingProperly;
     private boolean initiallyInjected;
 
     public PlayerServerThreadHandleTracker(JavaPlugin plugin) {
-        super(plugin, 201L, 5, 15, 30, 60);
+        super(plugin, 100L, 5, 15, 30, 60);
         update();
 
         try {
@@ -61,6 +62,8 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
         private final List<Object> delegatedIgnoreList = new ArrayList<>();
         private final AtomicReference<UUID> recentPacketAuthor = new AtomicReference<>();
         private long recentPollStart = -1;
+        private boolean startup;
+        private boolean initiallyTickRound;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
 
@@ -73,35 +76,41 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
         @Override
         public Object poll() {
             synchronized (packetSendQueue) {
+                if (!startup) {
+                    initiallyTickRound = true;
+                    startup = true;
+                }
+                if (initiallyTickRound) packetSendQueue.clear();
                 workingProperly = true;
 
-                // check if this packet is not the first one handled in this tick
-                if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
+                if (!initiallyTickRound) {
+                    // check if this packet is not the first one handled in this tick
+                    if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
-                    // evaluate the difference in time
-                    double deltaTime = ((double) (System.nanoTime() - recentPollStart)) / 1_000_000;
+                        // evaluate the difference in time
+                        double deltaTime = ((double) (System.nanoTime() - recentPollStart)) / 1_000_000;
 
-                    Player player = Bukkit.getPlayer(recentPacketAuthor.get());
-                    // cancel this packet and return if the player has quit the server while packets were still waiting in the queue
-                    if (player == null || !player.isOnline()) return null;
+                        Player player = Bukkit.getPlayer(recentPacketAuthor.get());
+                        recentPacketAuthor.set(null);
 
-                    registerTime(player, deltaTime);
-                    recentPacketAuthor.set(null);
+                        if (player != null && player.isOnline()) {
+                            registerTime(player, deltaTime);
+                        }
+                    }
+                    recentPollStart = System.nanoTime();
                 }
-                recentPollStart = System.nanoTime();
+                // set the author of the current packet
+                recentPacketAuthor.set(packetSendQueue.poll());
 
                 Object value = super.poll();
-                // all packets in the queue has been handled, and no packets for this tick remains to be checked
-                if (value == null || delegatedIgnoreList.contains(value)) {
+                // all packets in the queue has been handled, and no packets for this tick remains to be checked, or it's just
+                // an async to sync operation which isn't a netty packet handle task
+                if (size() == 0 || delegatedIgnoreList.contains(value)) {
                     recentPollStart = -1;
                     delegatedIgnoreList.remove(value);
 
-                    if (value == null) packetSendQueue.clear();
+                    if (size() == 0 && initiallyTickRound) initiallyTickRound = false;
                 }
-                // set the author of the current packet
-                UUID author = packetSendQueue.poll();
-                recentPacketAuthor.set(author != null ? author : recentPacketAuthor.get());
-
                 return value;
             }
         }

@@ -1,6 +1,10 @@
 package me.alek.honey.storage.sql;
 
+import org.bukkit.entity.Player;
+
 public interface RepositoryComponent {
 
-    boolean prepare(QueryFactory queryFactory);
+    void prepare(QueryFactory queryFactory);
+
+    void preparePlayer(QueryFactory queryFactory, Player player);
 }

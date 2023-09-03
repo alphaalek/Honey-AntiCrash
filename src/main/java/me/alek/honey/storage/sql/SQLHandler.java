@@ -2,9 +2,12 @@ package me.alek.honey.storage.sql;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.sql.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SQLHandler implements QueryFactory {
 
@@ -17,9 +20,13 @@ public class SQLHandler implements QueryFactory {
 
     private Connection connection;
 
+    private final ReentrantLock databaseQueryLock = new ReentrantLock();
+    private final BeanRepositoryCollection repositoryCollection;
+
     public SQLHandler(BeanRepositoryCollection repositoryCollection) {
         reload();
 
+        this.repositoryCollection = repositoryCollection;
         if (isEnabled) {
 
             try {
@@ -39,16 +46,9 @@ public class SQLHandler implements QueryFactory {
                 Bukkit.getLogger().info(host + ":" + port + "/" + database);
 
                 // prepare repositories
-                boolean errorOccurred = false;
                 for (RepositoryComponent repository : repositoryCollection) {
-                    if (repository.prepare(this)) errorOccurred = true;
+                    repository.prepare(this);
                 }
-
-                // tell the log if it was successful or not
-                if (errorOccurred)
-                    Bukkit.getLogger().severe("Error occurred when preparing repositories!");
-                else
-                    Bukkit.getLogger().info("Successfully prepared " + repositoryCollection.size() + " repositories.");
 
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -56,6 +56,16 @@ public class SQLHandler implements QueryFactory {
                 Bukkit.getLogger().severe("Error occurred when making connection to database!");
                 Bukkit.getLogger().severe(host + ":" + port + "/" + database + ", username: " + username + ", password: " + password);
             }
+        }
+    }
+
+    public boolean isEnabled() {
+        return this.isEnabled;
+    }
+
+    public void  preparePlayer(Player player) {
+        for (RepositoryComponent repositoryComponent : repositoryCollection) {
+            repositoryComponent.preparePlayer(this, player);
         }
     }
 
@@ -76,6 +86,22 @@ public class SQLHandler implements QueryFactory {
         if (!isConnectionEstablished()) throw new IllegalArgumentException();
     }
 
+    public <T> T sync(Callable<T> callable) {
+        T value = null;
+
+        databaseQueryLock.lock();
+        try {
+            value = callable.call();
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        finally {
+            databaseQueryLock.unlock();
+        }
+        return value;
+    }
+
     public void reload() {
         this.isEnabled = ConfigurationOptions.General.SQL.ENABLED;
         this.port = ConfigurationOptions.General.SQL.PORT;
@@ -86,7 +112,7 @@ public class SQLHandler implements QueryFactory {
     }
 
     public CompletableFuture<PreparedStatement> runStatement(String query, Object... values) {
-        return CompletableFuture.supplyAsync(() -> {
+        return sync(() -> CompletableFuture.supplyAsync(() -> {
             try {
                 PreparedStatement statement = this.connection.prepareStatement(query);
 
@@ -100,7 +126,7 @@ public class SQLHandler implements QueryFactory {
                 ex.printStackTrace();
             }
             return null;
-        });
+        }));
     }
 
     public CompletableFuture<ResultSet> runQuery(String query, Object... values) {

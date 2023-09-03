@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.storage.sql.SQLHandler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,8 +33,12 @@ public class PlayerJoinListener implements Listener {
         instantJoinedMap.put(player.getUniqueId(), System.currentTimeMillis());
 
         if (player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
-
             HoneyPlugin.get().getUpdateChecker().sendWarning(player);
+        }
+
+        SQLHandler sqlHandler = HoneyPlugin.get().getSQLHandler();
+        if (sqlHandler.isEnabled()) {
+            sqlHandler.preparePlayer(player);
         }
     }
 
@@ -49,7 +54,9 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
 
         HoneyPlugin.get().removeRecentPingLookup(player);
+
         HoneyPlugin.get().getNettyPacketHandleTracker().remove(player);
+        HoneyPlugin.get().getServerThreadHandleTracker().remove(player);
     }
 
     public static Map<UUID, Long> getInstantJoinedMap() {

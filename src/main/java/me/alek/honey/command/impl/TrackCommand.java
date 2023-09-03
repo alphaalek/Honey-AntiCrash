@@ -32,7 +32,7 @@ public class TrackCommand implements CommandImpl {
             case "players":
                 StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
-                if (serverThreadHandleTracker.getTrackers().size() == 0) {
+                if (serverThreadHandleTracker.getTrackerSize() == 0) {
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cNo data to be shown yet!");
                     return;
                 }
@@ -52,7 +52,7 @@ public class TrackCommand implements CommandImpl {
             case "checks":
                 MarkableHandleTracker<Double, String> checkTimeHandleTracker = HoneyPlugin.get().getCheckHandleTracker();
 
-                if (checkTimeHandleTracker.getTrackers().size() == 0) {
+                if (checkTimeHandleTracker.getTrackerSize() == 0) {
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cNo data to be shown yet!");
                     return;
                 }

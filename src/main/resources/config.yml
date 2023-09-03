@@ -38,6 +38,7 @@ bypass-permission: "honey.bypass"
 notify-permission: "honey.notify"
 
 # mysql settings for storage
+# OBS: this is not done yet, and you therefore won't get anything out of changing the values below yet
 mysql:
   # should storing of data in mysql database be enabled
   enabled: false

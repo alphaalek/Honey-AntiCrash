@@ -6,11 +6,15 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
 
@@ -18,6 +22,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final Channel channel;
     private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
     private InboundPacketDecoder inboundPacketDecoder;
+
+    private static final ConcurrentLinkedQueue<UUID> packetSendQueue = new ConcurrentLinkedQueue<>();
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
@@ -36,6 +42,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     public Player getPlayer() {
         return player;
+    }
+
+    public static ConcurrentLinkedQueue<UUID> getPacketSendQueue() {
+        return packetSendQueue;
     }
 
     public void startDecodeInjectorTask(Channel channel) {
@@ -90,6 +100,12 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             }
             return;
         }
+        if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
+            synchronized (packetSendQueue) {
+                packetSendQueue.add(player.getUniqueId());
+            }
+        }
+
         super.channelRead(ctx, packetContainer.getHandle());
         packetProcessor.postRead();
     }

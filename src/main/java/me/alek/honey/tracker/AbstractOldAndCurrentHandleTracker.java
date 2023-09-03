@@ -63,7 +63,6 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
     }
 
     public synchronized void remove(UUID uuid) {
-
         oldTimeTrackerMap.remove(uuid);
         currentTimeTrackerMap.remove(uuid);
         statisticProviders.remove(uuid);
@@ -101,7 +100,7 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
     }
 
     public int getTrackerSize() {
-        return currentTimeTrackerMap.size();
+        return oldTimeTrackerMap.size();
     }
 
     @Override
@@ -111,12 +110,16 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
 
         List<Player> players = new ArrayList<>();
         // update the average
-        for (UUID uuid : currentTimeTrackerMap.keySet()) {
+        Iterator<UUID> keySetIterator = currentTimeTrackerMap.keySet().iterator();
+        while (keySetIterator.hasNext()) {
+            UUID uuid = keySetIterator.next();
+
             double time = currentTimeTrackerMap.get(uuid);
             oldTimeTrackerMap.put(uuid, time);
 
             Player player = Bukkit.getPlayer(uuid);
             if (player == null || !player.isOnline()) {
+                keySetIterator.remove();
                 remove(uuid);
                 continue;
             }
@@ -127,7 +130,7 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
         currentTimeTrackerMap.clear();
 
         if (totalReferencedTime != currentSize.get()) currentSize.set(totalReferencedTime);
-        recentAverage = currentSize.get() / trackerSize;
+        recentAverage = currentSize.get() / (trackerSize == 0 ? 1 : trackerSize);
 
         oldSize.set(currentSize.get());
         currentSize.set(0);
