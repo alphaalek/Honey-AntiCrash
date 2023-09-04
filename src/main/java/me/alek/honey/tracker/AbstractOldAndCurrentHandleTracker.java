@@ -1,10 +1,8 @@
 package me.alek.honey.tracker;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
@@ -20,14 +18,14 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
 
     private final StatisticHandleTracker<Double, Player> statisticHandleTracker;
 
-    public AbstractOldAndCurrentHandleTracker(JavaPlugin plugin, long updateInterval, int... statisticInSecondsIndices) {
-        super(plugin, updateInterval);
+    public AbstractOldAndCurrentHandleTracker(long updateInterval, int... statisticInSecondsIndices) {
+        super(updateInterval);
 
         this.statisticHandleTracker = new StatisticWrappedHandleTracker<>(this, statisticInSecondsIndices);
     }
 
-    public AbstractOldAndCurrentHandleTracker(JavaPlugin plugin, long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
-        super(plugin, updateInterval);
+    public AbstractOldAndCurrentHandleTracker(long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
+        super(updateInterval);
 
         this.statisticHandleTracker = statisticHandleTracker;
     }

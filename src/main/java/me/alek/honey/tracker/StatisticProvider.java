@@ -68,6 +68,16 @@ public class StatisticProvider implements Statistic<Double> {
         statisticWindow.updateAverage();
     }
 
+    public int size() {
+        return statisticInSecondsIndices.length;
+    }
+
+    public int getUpdateTime(int index) {
+        if (index >= size()) return statisticInSecondsIndices[size() - 1];
+
+        return statisticInSecondsIndices[index];
+    }
+
     public int[] getStatisticInSecondsIndices() {
         return statisticInSecondsIndices;
     }

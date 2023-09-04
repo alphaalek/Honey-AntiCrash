@@ -1,21 +1,16 @@
 package me.alek.honey.tracker;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public abstract class UpdatingHandleTrackerTask<I extends Number, T> implements HandleTracker<I, T> {
 
-    public UpdatingHandleTrackerTask(JavaPlugin plugin, long updateInterval) {
+    public UpdatingHandleTrackerTask(long updateInterval) {
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-        BukkitRunnable runnable = new BukkitRunnable() {
-            @Override
-            public void run() {
-                synchronized (this) { update(); }
-            }
-        };
-        runnable.runTaskTimerAsynchronously(plugin, 0L, updateInterval);
+        executorService.scheduleAtFixedRate(this::update, 0L, updateInterval / 20, TimeUnit.SECONDS);
     }
 
     public abstract void update();
-
 }

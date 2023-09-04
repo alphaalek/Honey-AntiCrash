@@ -247,12 +247,12 @@ netty:
 
   j:
     enabled: true
-    max-quotient: 6.5
+    max-quotient: 7.5
     vls-amount: 2
 
   k:
     enabled: true
-    max-quotient: 6.5
+    max-quotient: 7.5
     vls-amount: 2
 
 # |--- custom payload ---|

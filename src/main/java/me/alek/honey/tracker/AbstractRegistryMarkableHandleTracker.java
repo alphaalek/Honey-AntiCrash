@@ -1,7 +1,5 @@
 package me.alek.honey.tracker;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -11,8 +9,8 @@ public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingH
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
     private final Map<T, Deque<Long>> checkHandleRegistryDeque = new HashMap<>();
 
-    public AbstractRegistryMarkableHandleTracker(JavaPlugin plugin, long updateInterval) {
-        super(plugin, updateInterval);
+    public AbstractRegistryMarkableHandleTracker(long updateInterval) {
+        super(updateInterval);
     }
 
     public synchronized Deque<Long> getCheckRegistryQueue(T key) {

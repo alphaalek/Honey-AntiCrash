@@ -7,7 +7,6 @@ import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.tracker.AbstractOldAndCurrentHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,8 +21,8 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
     private boolean workingProperly;
     private boolean initiallyInjected;
 
-    public PlayerServerThreadHandleTracker(JavaPlugin plugin) {
-        super(plugin, 120L, 5, 12, 30, 60);
+    public PlayerServerThreadHandleTracker() {
+        super(100, 5, 10, 30, 60);
         update();
 
         try {

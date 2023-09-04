@@ -104,9 +104,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
 
         // setup trackers
-        packetNettyHandleTracker = new PlayerNettyPacketHandleTracker(this);
-        packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker(this);
-        checkHandleTracker = new CheckHandleTracker(this);
+        packetNettyHandleTracker = new PlayerNettyPacketHandleTracker();
+        packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker();
+        checkHandleTracker = new CheckHandleTracker();
 
         // setup checks
         registerChecks();
