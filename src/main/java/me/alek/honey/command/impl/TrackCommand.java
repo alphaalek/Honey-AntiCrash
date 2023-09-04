@@ -17,7 +17,7 @@ public class TrackCommand implements CommandImpl {
     private static final DecimalFormat FORMATTER = new DecimalFormat("##.##");
 
     public TrackCommand(CommandManager manager) {
-        manager.registerCommand(this, false);
+        manager.registerCommand(this);
     }
 
     @Override

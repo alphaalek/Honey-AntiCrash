@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 public class NotificationToggleCommand implements CommandImpl {
 
     public NotificationToggleCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this, false);
+        commandManager.registerCommand(this);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.alek.honey.command;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -20,7 +21,6 @@ public class CommandManager implements CommandExecutor {
     private final JavaPlugin plugin;
     private final Map<String, CommandImpl> commands = new HashMap<>();
     private final CooldownManager cooldownManager;
-    private CommandImpl helpCommand;
 
     public CommandManager(JavaPlugin plugin) {
         plugin.getCommand("honey").setExecutor(this);
@@ -28,21 +28,30 @@ public class CommandManager implements CommandExecutor {
         cooldownManager = new CooldownManager();
     }
 
-    public void registerCommand(CommandImpl command, boolean isHelpCommand) {
-        if (isHelpCommand) {
-            helpCommand = command;
-        }
+    public void registerCommand(CommandImpl command) {
         commands.put(command.getName(), command);
     }
+
     public Collection<CommandImpl> getCommands() {
         return commands.values();
     }
+
+    public void showInfo(CommandSender sender) {
+        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
+        String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
+
+        sender.sendMessage("§6Honey v" + version + ". §aMade by Alek05." + outdatedVersion);
+        sender.sendMessage("");
+        sender.sendMessage("§6* §8Discord: §7https://discord.gg/FJuKAUDX4C");
+        sender.sendMessage("§6* §8Sourcecode: §7https://github.com/alphaalek/Honey-AntiCrash");
+        sender.sendMessage("");
+        sender.sendMessage("§7Type §e/honey help §7for help on command usage.");
+    }
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            if (this.helpCommand != null) {
-                this.helpCommand.perform(commandSender, new String[0]);
-            }
+            showInfo(commandSender);
             return true;
         }
         final String firstArgument = args[0];
@@ -80,13 +89,7 @@ public class CommandManager implements CommandExecutor {
             }
             commandImpl.perform(commandSender, implArgs);
         } catch (CommandNotFoundException ex) {
-            if (this.helpCommand == null) {
-                commandSender.sendMessage(PREFIX + "Could not find any command with the name §e" + ex.getMessage()
-                        + "§7. Type §e/honey help §7 to se what commands you can use.");
-            }
-            else {
-                this.helpCommand.perform(commandSender, implArgs);
-            }
+            showInfo(commandSender);
         }
         return true;
     }

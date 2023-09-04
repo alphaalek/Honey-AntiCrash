@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 public class QuotientInfoCommand implements CommandImpl {
 
     public QuotientInfoCommand(CommandManager manager) {
-        manager.registerCommand(this, false);
+        manager.registerCommand(this);
     }
 
     @Override

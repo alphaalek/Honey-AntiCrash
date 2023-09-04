@@ -15,7 +15,7 @@ import java.text.DecimalFormat;
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
     private CheckVisitor<WP> cachedVisitor;
-    private static final DecimalFormat formatter = new DecimalFormat("###.#");
+    private static final DecimalFormat formatter = new DecimalFormat("###.##");
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());

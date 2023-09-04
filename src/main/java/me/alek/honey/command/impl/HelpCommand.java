@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender;
 public class HelpCommand implements CommandImpl {
 
     public HelpCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this, true);
+        commandManager.registerCommand(this);
     }
 
     @Override

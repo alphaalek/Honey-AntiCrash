@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender;
 public class ReloadCommand implements CommandImpl {
 
     public ReloadCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this, false);
+        commandManager.registerCommand(this);
     }
 
     @Override

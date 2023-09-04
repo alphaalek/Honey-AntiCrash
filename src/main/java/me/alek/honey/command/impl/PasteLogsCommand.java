@@ -13,7 +13,7 @@ public class PasteLogsCommand implements CommandImpl {
     private final SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
 
     public PasteLogsCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this, false);
+        commandManager.registerCommand(this);
     }
 
     @Override

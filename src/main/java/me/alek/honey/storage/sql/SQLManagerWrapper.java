@@ -27,10 +27,10 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     private final QueryFactory queryFactory;
 
     public SQLManagerWrapper(BeanRepositoryCollection repositoryCollection) {
-        reload();
-
         this.repositoryCollection = repositoryCollection;
         this.componentBridge = new SimpleComponentBridge(repositoryCollection, this);
+
+        reload();
 
         tryConnect();
         this.queryFactory = new AsyncQueryFactoryHelper(connection);
@@ -113,7 +113,6 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         return queryFactory.getConnection();
     }
 
-    @Override
     public void setConnection(Connection connection) {
         queryFactory.setConnection(connection);
     }
