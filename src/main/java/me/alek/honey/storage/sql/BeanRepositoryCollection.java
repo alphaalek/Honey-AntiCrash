@@ -9,11 +9,11 @@ import java.util.Iterator;
 public class BeanRepositoryCollection implements Iterable<RepositoryComponent> {
 
     public PlayerRepository playerRepository = new PlayerRepository();
-    public ViolationRepository flagRepository = new ViolationRepository();
+    public ViolationRepository violationRepository = new ViolationRepository();
 
     @Override
     public Iterator<RepositoryComponent> iterator() {
-        return Arrays.asList(playerRepository, flagRepository).iterator();
+        return Arrays.asList(playerRepository, violationRepository).iterator();
     }
 
     public int size() {

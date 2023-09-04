@@ -1,5 +1,7 @@
 package me.alek.honey.storage.sql;
 
+import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -68,36 +70,32 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            return null;
+            throw new SQLFactoryException();
         }));
     }
 
     public CompletableFuture<ResultSet> runQuery(String query, Object... values) {
         return runStatement(query, values).thenApply((statement) -> {
             try {
-                if (statement == null) return null;
-
                 return statement.executeQuery();
 
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            return null;
+            throw new SQLFactoryException();
         });
     }
 
     public CompletableFuture<Boolean> runInsert(String query, Object... values) {
         return runStatement(query, values).thenApply((statement) -> {
             try {
-                if (statement == null) return false;
-
                 int rows = statement.executeUpdate();
-                return rows > 0;
 
+                return rows > 0;
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            return false;
+            throw new SQLFactoryException();
         });
     }
 }

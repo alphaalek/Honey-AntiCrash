@@ -38,7 +38,11 @@ public class PlayerJoinListener implements Listener {
 
         SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
         if (sqlHandler.isEnabled()) {
-            sqlHandler.preparePlayer(player);
+            try {
+                sqlHandler.preparePlayer(player);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

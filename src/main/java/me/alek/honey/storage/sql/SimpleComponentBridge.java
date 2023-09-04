@@ -2,10 +2,13 @@ package me.alek.honey.storage.sql;
 
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
+import me.alek.honey.storage.sql.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.sql.model.ViolationEntry;
 import org.bukkit.entity.Player;
 
-import java.sql.ResultSet;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.UUID;
 
 public class SimpleComponentBridge implements ComponentBridge {
 
@@ -23,43 +26,51 @@ public class SimpleComponentBridge implements ComponentBridge {
         this.enabled = ConfigurationOptions.General.SQL.ENABLED;
     }
 
-    public void preparePlayer(Player player) {
+    public void preparePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) return;
 
         repositoryCollection.playerRepository.preparePlayer(queryFactory, player);
+    }
+
+    @Override
+    public List<ViolationEntry> getViolations(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return repositoryCollection.violationRepository.getViolations(this, queryFactory, playerName);
+    }
+
+    @Override
+    public List<ViolationEntry> getViolationsOf(String playerName, String violationName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return repositoryCollection.violationRepository.getViolationsOf(this, queryFactory, playerName, violationName);
+    }
+
+    @Override
+    public List<ViolationEntry> getViolationsBefore(String playerName, int unixTime) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return repositoryCollection.violationRepository.getViolationsBefore(this, queryFactory, playerName, unixTime);
     }
 
     private boolean checkInvalid() {
         return !enabled || queryFactory.isConnectionClosed();
     }
 
-    public void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) {
+    public void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) return;
 
-        repositoryCollection.flagRepository.postViolation(queryFactory, player, violationName, setting, developmentData);
+        repositoryCollection.violationRepository.postViolation(this, queryFactory, player, violationName, setting, developmentData);
     }
 
-    public int getPlayerId(String playerName) {
+    public int getPlayerId(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) throw new UnsupportedOperationException();
 
-        CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "SELECT p.playerId FROM players AS p " +
-                "WHERE p.playerName = ?",
-                playerName
-        );
-        try {
-            ResultSet resultSet = resultSetFuture.get();
-
-            if (resultSet != null && resultSet.next()) {
-                return resultSet.getInt(1);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return -1;
+        return repositoryCollection.playerRepository.getPlayerId(queryFactory, playerName);
     }
 
-    public int getPlayerId(Player player) {
+    public int getPlayerId(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
         return getPlayerId(player.getName());
+    }
+
+    @Override
+    public UUID getPlayerUUID(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        if (checkInvalid()) throw new UnsupportedOperationException();
+
+        return repositoryCollection.playerRepository.getPlayerUUID(queryFactory, playerName);
     }
 }

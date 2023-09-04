@@ -1,5 +1,7 @@
 package me.alek.honey.storage.sql;
 
+import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

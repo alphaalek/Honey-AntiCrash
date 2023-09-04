@@ -2,6 +2,9 @@ package me.alek.honey.storage.sql;
 
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
+import me.alek.honey.storage.sql.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.sql.model.ViolationEntry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -9,6 +12,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
@@ -76,6 +81,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         this.componentBridge.reload();
 
         this.isEnabled = ConfigurationOptions.General.SQL.ENABLED;
+
         this.port = ConfigurationOptions.General.SQL.PORT;
         this.host = ConfigurationOptions.General.SQL.HOST;
         this.username = ConfigurationOptions.General.SQL.USERNAME;
@@ -93,20 +99,40 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         return this.isEnabled;
     }
 
-    public void preparePlayer(Player player) {
+    public void preparePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
         componentBridge.preparePlayer(player);
     }
 
-    public void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) {
+    @Override
+    public List<ViolationEntry> getViolations(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return componentBridge.getViolations(playerName);
+    }
+
+    @Override
+    public List<ViolationEntry> getViolationsOf(String playerName, String violationName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return componentBridge.getViolationsOf(playerName, violationName);
+    }
+
+    @Override
+    public List<ViolationEntry> getViolationsBefore(String playerName, int unixTime) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return componentBridge.getViolationsBefore(playerName, unixTime);
+    }
+
+    public void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         componentBridge.postViolation(player, violationName, setting, developmentData);
     }
 
-    public int getPlayerId(String playerName) {
+    public int getPlayerId(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
         return componentBridge.getPlayerId(playerName);
     }
 
-    public int getPlayerId(Player player) {
+    public int getPlayerId(Player player) throws SQLPlayerNotFoundException,SQLFactoryException {
         return componentBridge.getPlayerId(player);
+    }
+
+    @Override
+    public UUID getPlayerUUID(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return componentBridge.getPlayerUUID(playerName);
     }
 
     public Connection getConnection() {
