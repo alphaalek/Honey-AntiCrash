@@ -37,13 +37,27 @@ public class StatisticProvider implements Statistic<Double> {
     }
 
 
-    public void updateStatistics() {
+    public void checkUpdateStatistics() {
         for (StatisticWindow statisticWindow : statisticWindows.values()) {
 
             if (statisticWindow.shouldUpdate()) {
                 statisticWindow.updateAverage();
             }
         }
+    }
+
+    public void checkUpdateStatistic(int index) {
+        StatisticWindow statisticWindow = getStatisticWindow(index);
+
+        if (statisticWindow.shouldUpdate()) {
+            statisticWindow.updateAverage();
+        }
+    }
+
+    public void forceUpdateStatistic(int index) {
+        StatisticWindow statisticWindow = getStatisticWindow(index);
+
+        statisticWindow.updateAverage();
     }
 
     public int[] getStatisticInSecondsIndices() {
@@ -77,13 +91,13 @@ public class StatisticProvider implements Statistic<Double> {
         }
 
         private double getAverageInBelowStatistic() {
-            if (statisticWindowIndex == 0) return 1d;
+            if (statisticWindowIndex == 0) return 0;
 
             return getStatisticWindow(statisticWindowIndex - 1).average();
         }
 
         private double evaluateAverage() {
-            if (currentMeanSize == 0 || currentTotalFlatMean == 0) return getAverageInBelowStatistic();
+            if (currentMeanSize == 0) return getAverageInBelowStatistic();
 
             return currentTotalFlatMean / currentMeanSize;
         }

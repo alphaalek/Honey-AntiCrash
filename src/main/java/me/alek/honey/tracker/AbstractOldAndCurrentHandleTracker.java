@@ -1,6 +1,7 @@
 package me.alek.honey.tracker;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -12,103 +13,140 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
     private final Map<UUID, Double> oldTimeTrackerMap = new HashMap<>();
     private final Map<UUID, Double> currentTimeTrackerMap = new HashMap<>();
 
-    private double recentAverage;
+    private double lastEvaluatedAverage;
 
-    private final AtomicDouble oldSize = new AtomicDouble();
-    private final AtomicDouble currentSize = new AtomicDouble();
+    private final AtomicDouble oldFlatMean = new AtomicDouble();
+    private final AtomicDouble currentFlatMean = new AtomicDouble();
 
-    private final int[] statisticInSecondsIndices;
-    private final Map<UUID, StatisticProvider> statisticProviders = new HashMap<>();
+    private final StatisticHandleTracker<Double, Player> statisticHandleTracker;
 
     public AbstractOldAndCurrentHandleTracker(JavaPlugin plugin, long updateInterval, int... statisticInSecondsIndices) {
         super(plugin, updateInterval);
 
-        this.statisticInSecondsIndices = statisticInSecondsIndices;
+        this.statisticHandleTracker = new StatisticWrappedHandleTracker<>(this, statisticInSecondsIndices);
     }
 
-    public synchronized StatisticProvider getStatisticProvider(Player player) {
-        return statisticProviders.computeIfAbsent(player.getUniqueId(), (d) -> new StatisticProvider(statisticInSecondsIndices));
+    public AbstractOldAndCurrentHandleTracker(JavaPlugin plugin, long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
+        super(plugin, updateInterval);
+
+        this.statisticHandleTracker = statisticHandleTracker;
     }
 
-    public double[] getStatistics(Player player) {
-        double[] statistics = new double[statisticInSecondsIndices.length];
-
-        for (int i = 0; i < statisticInSecondsIndices.length; i++) {
-            statistics[i] = getStatistic(player, i);
-        }
-        return statistics;
+    @Override
+    public StatisticProvider getStatisticProvider(Player key) {
+        return statisticHandleTracker.getStatisticProvider(key);
     }
 
-    public double getStatistic(Player player, int index) {
-        return getStatisticProvider(player).getStatistic(index);
+    @Override
+    public Double[] getStatistics(Player key) {
+        return statisticHandleTracker.getStatistics(key);
     }
 
-    public void updateStatistics(Player player) {
-        getStatisticProvider(player).updateStatistics();
+    @Override
+    public Double getStatistic(Player key, int index) {
+        return statisticHandleTracker.getStatistic(key, index);
     }
 
-    public void putStatistic(Player player, int index, double value) {
-        getStatisticProvider(player).putStatistic(index, value);
+    @Override
+    public Double tryUpdateAndGetStatistic(Player key, int index) {
+        return statisticHandleTracker.tryUpdateAndGetStatistic(key, index);
     }
 
-    public void registerToStatistics(Player player, double value) {
-        for (int i = 0; i < statisticInSecondsIndices.length; i++) {
-            putStatistic(player, i, value);
-        }
+    @Override
+    public Double[] tryUpdateAndGetStatistics(Player key) {
+        return statisticHandleTracker.tryUpdateAndGetStatistics(key);
+    }
+
+    @Override
+    public void updateStatistics(Player key) {
+        statisticHandleTracker.updateStatistics(key);
+    }
+
+    @Override
+    public void updateStatistic(Player key, int index) {
+        statisticHandleTracker.updateStatistic(key, index);
+    }
+
+    @Override
+    public void putStatistic(Player key, int index, Double value) {
+        statisticHandleTracker.putStatistic(key, index, value);
+    }
+
+    @Override
+    public void registerToStatistics(Player key, Double value) {
+        statisticHandleTracker.registerToStatistics(key, value);
     }
 
     @Override
     public void remove(Player player) {
-        remove(player.getUniqueId());
-    }
+        statisticHandleTracker.remove(player);
 
-    public synchronized void remove(UUID uuid) {
+        UUID uuid = player.getUniqueId();
         oldTimeTrackerMap.remove(uuid);
         currentTimeTrackerMap.remove(uuid);
-        statisticProviders.remove(uuid);
     }
 
     @Override
     public synchronized void registerTime(Player player, Double value) {
         double priorTotalTime = currentTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d);
 
-        currentSize.addAndGet(value);
+        currentFlatMean.addAndGet(value);
         currentTimeTrackerMap.put(player.getUniqueId(), priorTotalTime + value);
     }
 
     public synchronized double getTimeToAverageQuotient(Player player) {
-        double time = getTimeForOldTrack(player);
-        if (time == 0d) return 1;
+        final double average = getAverageWithout(player);
+        if (average == 0) return 0;
 
-        return time / getAverage();
+        return Math.max(getTimeForOldTrack(player) / average, getTimeForCurrentTrack(player) / average);
     }
 
     @Override
     public double getTimeToTotalQuotient(Player player) {
-        double time = getTimeForOldTrack(player);
-        if (time == 0d) return 1;
-
-        return time / getTotal();
+        return getTimeForOldTrack(player) / getTotal();
     }
 
-    public synchronized int getTimeForOldTrack(Player player) {
-        return (int) oldTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d).doubleValue();
+    public synchronized double getTimeForOldTrack(Player player) {
+        return oldTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d);
     }
 
-    public synchronized int getTimeForCurrentTrack(Player player) {
-        return (int) currentTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d).doubleValue();
+    public synchronized double getTimeForCurrentTrack(Player player) {
+        return currentTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d);
+    }
+
+    public int getOldTrackerSize() {
+        return oldTimeTrackerMap.size();
     }
 
     public int getTrackerSize() {
-        return oldTimeTrackerMap.size();
+        return currentTimeTrackerMap.size();
+    }
+
+    public double getAverageWithout(Player player) {
+        if (getTrackerSize() == 1 || getOldTrackerSize() == 1) return getAverage();
+
+        return Math.max((oldFlatMean.get() - getTimeForOldTrack(player)) / (getOldTrackerSize() - 1), (currentFlatMean.get() - getTimeForCurrentTrack(player)) / (getTrackerSize() - 1));
+    }
+
+    @Override
+    public double getAverage() {
+        if (getTrackerSize() == 0) return lastEvaluatedAverage;
+
+        return Math.max(lastEvaluatedAverage, currentFlatMean.get() / getTrackerSize());
+    }
+
+    @Override
+    public Double getTotal() {
+        return oldFlatMean.get();
     }
 
     @Override
     public synchronized void update() {
-        int trackerSize = currentTimeTrackerMap.size();
-        int totalReferencedTime = 0;
+        int trackerSize = getTrackerSize();
+        if (trackerSize == 0) return;
 
-        List<Player> players = new ArrayList<>();
+        double totalReferencedTime = 0;
+
         // update the average
         Iterator<UUID> keySetIterator = currentTimeTrackerMap.keySet().iterator();
         while (keySetIterator.hasNext()) {
@@ -120,36 +158,24 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
             Player player = Bukkit.getPlayer(uuid);
             if (player == null || !player.isOnline()) {
                 keySetIterator.remove();
-                remove(uuid);
+                remove(player);
                 continue;
             }
             totalReferencedTime += time;
-
-            players.add(player);
         }
         currentTimeTrackerMap.clear();
 
-        if (totalReferencedTime != currentSize.get()) currentSize.set(totalReferencedTime);
-        recentAverage = currentSize.get() / (trackerSize == 0 ? 1 : trackerSize);
+        if (totalReferencedTime != currentFlatMean.get()) currentFlatMean.set(totalReferencedTime);
+        lastEvaluatedAverage = currentFlatMean.get() / getOldTrackerSize();
 
-        oldSize.set(currentSize.get());
-        currentSize.set(0);
+        oldFlatMean.set(currentFlatMean.get());
+        currentFlatMean.set(0);
 
-        // update the statistics
-        for (Player player : players) {
+        // update the statistics post change
+        for (Player player : Bukkit.getOnlinePlayers()) {
             registerToStatistics(player, getTimeToAverageQuotient(player));
             updateStatistics(player);
         }
-    }
-
-    @Override
-    public double getAverage() {
-        return recentAverage;
-    }
-
-    @Override
-    public Double getTotal() {
-        return oldSize.get();
     }
 
     @Override

@@ -32,7 +32,7 @@ public class TrackCommand implements CommandImpl {
             case "players":
                 StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
-                if (serverThreadHandleTracker.getTrackerSize() == 0) {
+                if (serverThreadHandleTracker.getOldTrackerSize() == 0) {
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cNo data to be shown yet!");
                     return;
                 }
@@ -48,6 +48,10 @@ public class TrackCommand implements CommandImpl {
 
                     sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
                 }
+                sender.sendMessage("");
+                sender.sendMessage(" §8What is this showing?");
+                sender.sendMessage(" §7Type §e/honey stq§7 to see information.");
+
                 break;
             case "checks":
                 MarkableHandleTracker<Double, String> checkTimeHandleTracker = HoneyPlugin.get().getCheckHandleTracker();
@@ -72,7 +76,6 @@ public class TrackCommand implements CommandImpl {
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cUsage: /honey track <players/checks>");
         }
     }
-
     @Override
     public String getName() {
         return "track";

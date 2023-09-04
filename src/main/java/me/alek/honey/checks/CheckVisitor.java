@@ -40,8 +40,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             CheckContextContainer checkContextContainer
     ) {
         AtomicInteger skipping = null;
-        for (HoneyCheck check : checks) {
 
+        for (HoneyCheck check : checks) {
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
 
             // add information to the development data

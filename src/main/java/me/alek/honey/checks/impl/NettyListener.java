@@ -268,19 +268,22 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
-                // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
+                // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
 
-                //if (packetHandleTimeTracker.getTrackerSize() > 10) {
+                if (serverThreadHandleTracker.getTrackerSize() > 5) {
 
-                    double timeToAverageQuotient = serverThreadHandleTracker.getStatistic(player, 0);
+                    Double[] timeToAverageQuotients = serverThreadHandleTracker.getStatistics(player);
+                    for (double timeToAverageQuotient : timeToAverageQuotients) {
 
-                    if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
+                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
 
-                        Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient);
-                        //return ResponseBuilder.inst().flag().build();
+                            Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient);
+                            //return ResponseBuilder.inst().flag().build();
+                            break;
+                        }
                     }
-                //}
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -309,18 +312,21 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
-                // only use the quotient tracker check if there is more than 10 different records being tracked, just to make
+                // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
-                //if (packetHandleTimeTracker.getTrackerSize() > 10) {
+                if (nettyThreadHandleTracker.getTrackerSize() > 5) {
 
-                double timeToAverageQuotient = nettyThreadHandleTracker.getStatistic(player, 1);
+                    Double[] timeToAverageQuotients = nettyThreadHandleTracker.getStatistics(player);
+                    for (double timeToAverageQuotient : timeToAverageQuotients) {
 
-                if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyK.MAX_QUOTIENT) {
+                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyK.MAX_QUOTIENT) {
 
-                    Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);
-                    //return ResponseBuilder.inst().flag().build();
+                            Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);
+                            //return ResponseBuilder.inst().flag().build();
+                            break;
+                        }
+                    }
                 }
-                //}
             }
             return ResponseBuilder.SUCCESS;
         }

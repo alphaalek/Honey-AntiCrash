@@ -3,6 +3,7 @@ package me.alek.honey.services;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.impl.FloodListener;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -261,7 +262,10 @@ public class ViolationService {
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), violationName);
 
             violations.incrementAndGet();
-            if (developmentData != null) showCheckSettingsToDevelopmentData(developmentData);
+            if (developmentData != null) {
+                AbstractPacketListener.applyQuotients(player, developmentData);
+                applyInfomationToDevelopmentData(developmentData);
+            }
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this, developmentData);
 
             if (violations.get() < getSetting().getVlsAmount()) return false;
@@ -270,7 +274,7 @@ public class ViolationService {
             return true;
         }
 
-        private void showCheckSettingsToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
+        private void applyInfomationToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
             developmentData.addEmpty();
 
             PacketLimitHandlerType handlerType = setting.getPacketLimitHandlerType();

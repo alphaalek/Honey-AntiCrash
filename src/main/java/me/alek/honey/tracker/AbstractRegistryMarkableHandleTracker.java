@@ -65,6 +65,10 @@ public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingH
         return checkHandleTimeMap.size();
     }
 
+    public int getOldTrackerSize() {
+        return getTrackerSize();
+    }
+
     @Override
     public double getAverage() {
         return getTotal() / getTrackerSize();

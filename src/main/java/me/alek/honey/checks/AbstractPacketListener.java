@@ -17,23 +17,29 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     private CheckVisitor<WP> cachedVisitor;
     private static final DecimalFormat formatter = new DecimalFormat("###.#");
 
-    public static void applyCommonDevelopmentData(Player player, CheckContextContainer.DevelopmentData developmentData) {
+    public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
         developmentData.addEmpty();
         developmentData.addHeader("Description", null);
-        developmentData.addEmpty();
 
+        // temporary placeholders
+        developmentData.addEmpty();
+        developmentData.addEmpty();
+        developmentData.addEmpty();
+    }
+
+    public static void applyQuotients(Player player, CheckContextContainer.DevelopmentData developmentData) {
         StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
         StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
-        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
-        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
+        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.tryUpdateAndGetStatistics(player));
+        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.tryUpdateAndGetStatistics(player));
 
-        developmentData.addPoint("STQ", serverThreadPoint);
-        developmentData.addPoint("NTQ", nettyThreadPoint);
+        developmentData.setPoint(6, "STQ", serverThreadPoint);
+        developmentData.setPoint(7, "NTQ", nettyThreadPoint);
     }
 
-    private static String formatPercentages(double[] percentages) {
+    private static String formatPercentages(Double[] percentages) {
         StringBuilder message = new StringBuilder();
 
         for (double percentage : percentages) {
@@ -55,7 +61,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
             defaultDevelopmentData.addEmpty();
             defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
-            applyCommonDevelopmentData(player, defaultDevelopmentData);
+            applyCommonDevelopmentData(defaultDevelopmentData);
         }
 
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {

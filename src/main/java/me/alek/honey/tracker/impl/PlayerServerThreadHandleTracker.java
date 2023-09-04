@@ -9,12 +9,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandleTracker {
@@ -24,7 +23,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
     private boolean initiallyInjected;
 
     public PlayerServerThreadHandleTracker(JavaPlugin plugin) {
-        super(plugin, 100L, 5, 15, 30, 60);
+        super(plugin, 110L, 5, 15, 30, 60);
         update();
 
         try {
@@ -83,6 +82,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                 if (initiallyTickRound) packetSendQueue.clear();
                 workingProperly = true;
 
+                // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
                 if (!initiallyTickRound) {
                     // check if this packet is not the first one handled in this tick
                     if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
@@ -121,5 +121,18 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
             return super.add(value);
         }
+    }
+
+    @Override
+    public List<Player> getTrackersOrdered() {
+        List<Player> trackersList = new ArrayList<>(getTrackers());
+        trackersList.sort(new Comparator<Player>() {
+
+            @Override
+            public int compare(Player o1, Player o2) {
+                return Double.compare(getStatistic(o1, 0), getStatistic(o2, 0));
+            }
+        });
+        return trackersList;
     }
 }

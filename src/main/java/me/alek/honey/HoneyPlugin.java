@@ -119,6 +119,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         new ReloadCommand(commandManager);
         new PasteLogsCommand(commandManager);
         new TrackCommand(commandManager);
+        new QuotientInfoCommand(commandManager);
 
         // setup metrics
         new Metrics(this, 19028);
