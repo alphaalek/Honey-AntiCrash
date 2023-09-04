@@ -100,7 +100,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public String getCheckName() {
-            return "LoginB";
+            return "Login.B";
         }
 
         @Override

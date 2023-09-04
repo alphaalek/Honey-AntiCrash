@@ -23,7 +23,7 @@ import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.sql.BeanRepositoryCollection;
-import me.alek.honey.storage.sql.SQLHandler;
+import me.alek.honey.storage.sql.SQLManagerWrapper;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.impl.CheckHandleTracker;
 import me.alek.honey.tracker.impl.PlayerNettyPacketHandleTracker;
@@ -50,7 +50,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private ConfiscationService confiscationService;
     private LoggerService loggerService;
     private CommandManager commandManager;
-    private SQLHandler sqlHandler;
+    private SQLManagerWrapper sqlManager;
     private Configuration configuration;
     private StatisticHandleTracker<Double, Player> packetServerThreadHandleTimeTracker;
     private StatisticHandleTracker<Double, Player> packetNettyHandleTracker;
@@ -101,7 +101,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         confiscationService = new ConfiscationService();
 
         // setup sql handler
-        sqlHandler = new SQLHandler(new BeanRepositoryCollection());
+        sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
 
         // setup trackers
         packetNettyHandleTracker = new PlayerNettyPacketHandleTracker(this);
@@ -198,7 +198,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         violationService.reload();
         loggerService.reload();
         confiscationService.reload();
-        sqlHandler.reload();
+        sqlManager.reload();
         ItemAnalysis.reload();
     }
 
@@ -227,8 +227,8 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     }
 
     @Override
-    public SQLHandler getSQLHandler() {
-        return sqlHandler;
+    public SQLManagerWrapper getSQLManager() {
+        return sqlManager;
     }
 
     public LoggerService getLoggerService() {

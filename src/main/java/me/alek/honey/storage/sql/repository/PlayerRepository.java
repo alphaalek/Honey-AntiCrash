@@ -17,9 +17,7 @@ public class PlayerRepository implements RepositoryComponent {
         );
     }
 
-    @Override
     public void preparePlayer(QueryFactory queryFactory, Player player) {
-
 
 
     }

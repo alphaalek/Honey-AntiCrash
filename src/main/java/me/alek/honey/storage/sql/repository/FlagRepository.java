@@ -1,5 +1,7 @@
 package me.alek.honey.storage.sql.repository;
 
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.sql.RepositoryComponent;
 import me.alek.honey.storage.sql.QueryFactory;
 import org.bukkit.entity.Player;
@@ -20,9 +22,7 @@ public class FlagRepository implements RepositoryComponent {
         );
     }
 
-    @Override
-    public void preparePlayer(QueryFactory queryFactory, Player player) {
-
+    public void postViolation(QueryFactory queryFactory, Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) {
 
     }
 }

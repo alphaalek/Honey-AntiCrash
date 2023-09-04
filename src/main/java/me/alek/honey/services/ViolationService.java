@@ -254,6 +254,8 @@ public class ViolationService {
             if (onViolation != null) onViolation.run();
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
+            HoneyPlugin.get().getSQLManager().postViolation(player, violationName, setting, developmentData);
+
             if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());

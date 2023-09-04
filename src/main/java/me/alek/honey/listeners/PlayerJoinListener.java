@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.storage.sql.SQLHandler;
+import me.alek.honey.storage.sql.SQLManagerWrapper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,7 +36,7 @@ public class PlayerJoinListener implements Listener {
             HoneyPlugin.get().getUpdateChecker().sendWarning(player);
         }
 
-        SQLHandler sqlHandler = HoneyPlugin.get().getSQLHandler();
+        SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
         if (sqlHandler.isEnabled()) {
             sqlHandler.preparePlayer(player);
         }

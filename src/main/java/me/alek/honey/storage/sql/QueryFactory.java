@@ -7,9 +7,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface QueryFactory {
 
-    boolean isConnectionEstablished();
+    boolean isConnectionClosed();
 
     Connection getConnection();
+
+    void setConnection(Connection connection);
 
     CompletableFuture<PreparedStatement> runStatement(String query, Object... values);
 

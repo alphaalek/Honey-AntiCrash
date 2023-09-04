@@ -3,19 +3,14 @@ package me.alek.honey.command.impl;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
-import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.storage.sql.SQLHandler;
-import me.alek.honey.tracker.HandleTracker;
+import me.alek.honey.storage.sql.SQLManagerWrapper;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
-import java.text.DecimalFormat;
 
 public class PasteLogsCommand implements CommandImpl {
 
-    private final SQLHandler sqlHandler = HoneyPlugin.get().getSQLHandler();
+    private final SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
 
     public PasteLogsCommand(CommandManager commandManager) {
         commandManager.registerCommand(this, false);
@@ -27,7 +22,7 @@ public class PasteLogsCommand implements CommandImpl {
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cYou don't have MySQL enabled in the configuration.");
             return;
         }
-        if (!sqlHandler.isConnectionEstablished()) {
+        if (!sqlHandler.isConnectionClosed()) {
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cConnection is not established with the MySQL database. Try again later or fix the connection values.");
             return;
         }

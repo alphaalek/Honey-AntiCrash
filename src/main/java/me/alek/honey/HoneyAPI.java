@@ -7,7 +7,7 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.storage.sql.SQLHandler;
+import me.alek.honey.storage.sql.SQLManagerWrapper;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
@@ -30,7 +30,7 @@ public interface HoneyAPI {
 
     ConfiscationService getConfiscationService();
 
-    SQLHandler getSQLHandler();
+    SQLManagerWrapper getSQLManager();
 
     LoggerService getLoggerService();
 
