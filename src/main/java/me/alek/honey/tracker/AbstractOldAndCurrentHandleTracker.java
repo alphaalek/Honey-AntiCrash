@@ -21,7 +21,7 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
     public AbstractOldAndCurrentHandleTracker(long updateInterval, int... statisticInSecondsIndices) {
         super(updateInterval);
 
-        this.statisticHandleTracker = new StatisticWrappedHandleTracker<>(this, statisticInSecondsIndices);
+        this.statisticHandleTracker = new StatisticWrappedHandleTrackerDelegate<>(this, statisticInSecondsIndices);
     }
 
     public AbstractOldAndCurrentHandleTracker(long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {

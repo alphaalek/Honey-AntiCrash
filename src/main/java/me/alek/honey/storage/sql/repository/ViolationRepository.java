@@ -6,12 +6,12 @@ import me.alek.honey.storage.sql.RepositoryComponent;
 import me.alek.honey.storage.sql.QueryFactory;
 import org.bukkit.entity.Player;
 
-public class FlagRepository implements RepositoryComponent {
+public class ViolationRepository implements RepositoryComponent {
 
     @Override
     public void prepare(QueryFactory queryFactory) {
         queryFactory.runInsert(
-                "CREATE TABLE IF NOT EXISTS flags (" +
+                "CREATE TABLE IF NOT EXISTS violations (" +
                 "playerId INT, " +
                 "unixTime LONG, " +
                 "checkName VARCHAR(16), " +
