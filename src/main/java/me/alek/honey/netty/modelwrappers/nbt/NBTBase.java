@@ -187,7 +187,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         if (base.getType() != getType()) {
             return false;
         }
-        return Objects.equals(this, object);
+        return this == object;
     }
 
     @Override

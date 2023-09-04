@@ -26,9 +26,17 @@ public class StatisticProvider implements Statistic<Double> {
         return statisticWindows.getOrDefault(index, DEFAULT_STATISTIC_WINDOW);
     }
 
+    public long getTimeSinceLastUpdate(int index) {
+        return getStatisticWindow(index).getTimeSinceLastUpdate();
+    }
+
     @Override
     public Double getStatistic(int index) {
         return getStatisticWindow(index).average();
+    }
+
+    public Double getStatisticDirectly(int index) {
+        return getStatisticWindow(index).evaluateAverage();
     }
 
     @Override
@@ -69,7 +77,7 @@ public class StatisticProvider implements Statistic<Double> {
         private final int statisticInSeconds;
         private final int statisticWindowIndex;
 
-        private long lastStatisticUpdate;
+        private long lastStatisticUpdate = System.currentTimeMillis();
 
         private double average;
 
@@ -114,6 +122,10 @@ public class StatisticProvider implements Statistic<Double> {
             if (average == 0) return evaluateAverage();
 
             return average;
+        }
+
+        public long getTimeSinceLastUpdate() {
+            return System.currentTimeMillis() - lastStatisticUpdate;
         }
     }
 }

@@ -27,6 +27,11 @@ public class StatisticWrappedHandleTracker<T> implements StatisticHandleTracker<
         return statistics;
     }
 
+    @Override
+    public Double getStatisticDirectly(T key, int index) {
+        return getStatisticProvider(key).getStatisticDirectly(index);
+    }
+
     public Double getStatistic(T key, int index) {
         return getStatisticProvider(key).getStatistic(index);
     }

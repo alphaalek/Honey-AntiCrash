@@ -6,7 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PlayerNettyPacketHandleTracker extends AbstractOldAndCurrentHandleTracker {
 
     public PlayerNettyPacketHandleTracker(JavaPlugin plugin) {
-        super(plugin, 110L, 5, 15, 30);
+        super(plugin, 120L, 5, 12, 30);
         update();
     }
 }

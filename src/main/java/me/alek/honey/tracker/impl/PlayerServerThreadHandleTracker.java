@@ -23,7 +23,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
     private boolean initiallyInjected;
 
     public PlayerServerThreadHandleTracker(JavaPlugin plugin) {
-        super(plugin, 110L, 5, 15, 30, 60);
+        super(plugin, 120L, 5, 12, 30, 60);
         update();
 
         try {

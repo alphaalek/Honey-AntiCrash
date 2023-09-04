@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
-public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player> {
+public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player> {
 
     private final Map<UUID, Double> oldTimeTrackerMap = new HashMap<>();
     private final Map<UUID, Double> currentTimeTrackerMap = new HashMap<>();
@@ -40,6 +40,11 @@ public abstract class AbstractOldAndCurrentHandleTracker extends UpdatingHandleT
     @Override
     public Double[] getStatistics(Player key) {
         return statisticHandleTracker.getStatistics(key);
+    }
+
+    @Override
+    public Double getStatisticDirectly(Player key, int index) {
+        return statisticHandleTracker.getStatisticDirectly(key, index);
     }
 
     @Override

@@ -266,22 +266,22 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+                final StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
                 // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
 
                 if (serverThreadHandleTracker.getTrackerSize() > 5) {
+                    double timeToAverageQuotient = serverThreadHandleTracker.getStatistic(player, 1);
 
-                    Double[] timeToAverageQuotients = serverThreadHandleTracker.getStatistics(player);
-                    for (double timeToAverageQuotient : timeToAverageQuotients) {
+                    if (serverThreadHandleTracker.getStatisticProvider(player).getTimeSinceLastUpdate(1) > 12000) {
+                        timeToAverageQuotient = Math.max(timeToAverageQuotient, serverThreadHandleTracker.getStatisticDirectly(player, 1));
+                    }
 
-                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
+                    if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
 
-                            Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient);
-                            //return ResponseBuilder.inst().flag().build();
-                            break;
-                        }
+                        Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient + " (" + player.getName() + ")");
+                        //return ResponseBuilder.inst().flag().build();
                     }
                 }
             }
@@ -310,21 +310,21 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+                final StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
                 // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
                 if (nettyThreadHandleTracker.getTrackerSize() > 5) {
+                    double timeToAverageQuotient = nettyThreadHandleTracker.getStatistic(player, 1);
 
-                    Double[] timeToAverageQuotients = nettyThreadHandleTracker.getStatistics(player);
-                    for (double timeToAverageQuotient : timeToAverageQuotients) {
+                    if (nettyThreadHandleTracker.getStatisticProvider(player).getTimeSinceLastUpdate(1) > 12000) {
+                        timeToAverageQuotient = Math.max(timeToAverageQuotient, nettyThreadHandleTracker.getStatisticDirectly(player, 1));
+                    }
 
-                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyK.MAX_QUOTIENT) {
+                    if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyK.MAX_QUOTIENT) {
 
-                            Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient);
-                            //return ResponseBuilder.inst().flag().build();
-                            break;
-                        }
+                        Bukkit.getLogger().info("DEBUG: Netty Thread Quotient Max exceeded: " + timeToAverageQuotient + " (" + player.getName() + ")");
+                        //return ResponseBuilder.inst().flag().build();
                     }
                 }
             }

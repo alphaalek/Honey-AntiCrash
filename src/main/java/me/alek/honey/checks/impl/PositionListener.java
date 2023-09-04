@@ -77,8 +77,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             public SampleNode(T value) { this.value = value; }
 
-            private T value;
-            private long insertionInstant = System.currentTimeMillis();
+            private final T value;
+            private final long insertionInstant = System.currentTimeMillis();
 
         }
 
@@ -330,8 +330,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             final Location lastKnownPacketLoc = container.getStorage().get(Location.class, 0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
-                container.getStorage().putBoolean(true);
-                return ResponseBuilder.SUCCESS;
+                return ResponseBuilder.SUCCESS.builder().skip(3).build();
             }
 
             final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
@@ -384,37 +383,25 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 // tjekker om en spiller flyver, for så kan man sagtens fylde bufferen hurtigt op alligevel
-                if (player.isFlying()) {
+                if (player.isFlying())
                     return ResponseBuilder.SUCCESS;
-                }
-
-                UUID uuid = player.getUniqueId();
 
                 // ignorerer når man falder ned. bemærk, at hvis den havde været på 0, vil den også ignorere
                 // når man går rundt på jorden, da tyngdekraft er en stor faktor ift. en spillers velocity
-                if (player.getVelocity().getY() < -1.5) {
+                if (player.getVelocity().getY() < -1.5)
                     return ResponseBuilder.SUCCESS;
-                }
 
                 Location priorLocation = container.getStorage().get(Location.class, 0);
                 // returnerer hvis det er den første lokation packet der bliver sendt
-                if (priorLocation == null) {
+                if (priorLocation == null)
                     return ResponseBuilder.SUCCESS;
-                }
 
-                // ignorerer packets tæt på den seneste teleportering, da distancen mellem to
-                // position packets ellers kan være rigtig høj hvis man teleporterer en lang distance
-                boolean shouldIgnore = container.getStorage().getBoolean(0);
-                if (shouldIgnore) {
-                    return ResponseBuilder.SUCCESS;
-                }
-
+                UUID uuid = player.getUniqueId();
                 // ignorerer packets tæt på den seneste flag for at minimere false positives ved lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
 
-                    if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5) {
+                    if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5)
                         return ResponseBuilder.SUCCESS;
-                    }
                 }
                 lastFlaggedLocationMap.put(player.getUniqueId(), packet.getLocation());
 
@@ -423,7 +410,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
                 }
                 // this might be a false positive, shouldn't be that high. but position B would flag for this otherwise
-                if (priorDistance > 20) return ResponseBuilder.SUCCESS;
+                if (priorDistance > 20)
+                    return ResponseBuilder.SUCCESS;
 
                 return ResponseBuilder.inst().flag(priorDistance).build();
             }
@@ -683,9 +671,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 double delta2D = container.getStorage().getDouble(0);
                 double deltaY = container.getStorage().getDouble(1);
 
-                boolean closeToTeleportLocation = container.getStorage().getBoolean(0);
-
-                if (closeToTeleportLocation) return response;
                 if (delta2D == 0 && deltaY == 0) return response;
 
                 UUID uuid = player.getUniqueId();

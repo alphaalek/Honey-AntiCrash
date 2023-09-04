@@ -40,7 +40,7 @@ public class CommandManager implements CommandExecutor {
         String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
         String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 
-        sender.sendMessage("§6Honey v" + version + ". §aMade by Alek05." + outdatedVersion);
+        sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
         sender.sendMessage("");
         sender.sendMessage("§6* §8Discord: §7https://discord.gg/FJuKAUDX4C");
         sender.sendMessage("§6* §8Sourcecode: §7https://github.com/alphaalek/Honey-AntiCrash");
