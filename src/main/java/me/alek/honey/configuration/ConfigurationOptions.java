@@ -391,6 +391,40 @@ public class ConfigurationOptions {
                 throw new AssertionError();
             }
         }
+
+        public Set<Map.Entry<String, Object>> getValues() {
+            Map<String, Object> valueMap = new HashMap<>();
+
+            for (Field field : getClass().getFields()) {
+
+                try {
+                    ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
+                    if (settingImpl == null && field.getDeclaringClass() == ConfigurationOptions.VlSetting.class) continue;
+
+                    Object value = field.get(this);
+
+                    // check if this field is associated with a setting value from this check
+                    if (settingImpl != null && !getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())) {
+                        continue;
+                    }
+                    valueMap.put(field.getName(), value);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return valueMap.entrySet();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+
+            for (Map.Entry<String, Object> valueEntry : getValues()) {
+                builder.append(valueEntry.getKey()).append("=").append(valueEntry.getValue()).append(",");
+            }
+            return builder.substring(0, builder.length() - 1);
+        }
     }
 
     @Setting
@@ -401,6 +435,7 @@ public class ConfigurationOptions {
         public static boolean BYPASS_PERMISSION_ENABLED;
         public static String BYPASS_PERMISSION;
         public static String NOTIFY_PERMISSION;
+        public static String PASTEBIN_DEVELOPER_KEY;
 
         public static void load() {
             CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp", 120000);
@@ -409,6 +444,8 @@ public class ConfigurationOptions {
             BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled", false);
             BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");
             NOTIFY_PERMISSION = file.getString("notify-permission", "honey.notify");
+
+            PASTEBIN_DEVELOPER_KEY = file.getString("pastebin-developer-key");
         }
 
         @Setting
@@ -439,11 +476,11 @@ public class ConfigurationOptions {
 
             public static void load() {
                 ENABLED = file.getBoolean("mysql.enabled");
-                HOST = file.getString("mysql.enabled");
-                PORT = file.getInt("mysql.enabled");
-                USERNAME = file.getString("mysql.enabled");
-                PASSWORD = file.getString("mysql.enabled");
-                DATBASE = file.getString("mysql.enabled");
+                HOST = file.getString("mysql.host");
+                PORT = file.getInt("mysql.port");
+                USERNAME = file.getString("mysql.username");
+                PASSWORD = file.getString("mysql.password");
+                DATBASE = file.getString("mysql.name");
             }
         }
     }

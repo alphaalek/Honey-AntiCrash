@@ -26,7 +26,7 @@ public class NotificationToggleCommand implements CommandImpl {
             toggledString = "§aon";
             notificationService.toggle(sender);
         }
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7You have now toggled notifications " + toggledString + "§7.");
+        sender.sendMessage(CommandManager.PREFIX + " §7You have now toggled notifications " + toggledString + "§7.");
     }
 
     @Override

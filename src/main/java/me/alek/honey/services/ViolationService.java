@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -254,12 +255,6 @@ public class ViolationService {
             if (onViolation != null) onViolation.run();
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
-            try {
-                HoneyPlugin.get().getSQLManager().postViolation(player, violationName, setting, developmentData);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
             if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());
@@ -270,41 +265,31 @@ public class ViolationService {
             violations.incrementAndGet();
             if (developmentData != null) {
                 AbstractPacketListener.applyQuotients(player, developmentData);
-                applyInfomationToDevelopmentData(developmentData);
+                applySettingsToDevelopmentData(developmentData);
             }
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this, developmentData);
 
+            try {
+                HoneyPlugin.get().getSQLManager().postViolation(player, violationName, ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             if (violations.get() < getSetting().getVlsAmount()) return false;
 
             punish(getPlayer(), violationName);
             return true;
         }
 
-        private void applyInfomationToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
+        private void applySettingsToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
             developmentData.addEmpty();
 
             PacketLimitHandlerType handlerType = setting.getPacketLimitHandlerType();
             developmentData.addHeader("Settings", (handlerType == PacketLimitHandlerType.SIMPLE ? null : setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ")));
 
-            for (Field field : VIOLATION_SETTING_FIELDS) {
+            for (Map.Entry<String, Object> valueEntry : setting.getValues()) {
 
-                try {
-                    ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
-                    if (settingImpl == null && field.getDeclaringClass() == ConfigurationOptions.VlSetting.class) continue;
-
-                    Object value = field.get(setting);
-
-                    // check if this field is associated with a setting value from this check
-                    if (settingImpl != null && !setting.getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())) {
-                        continue;
-                    }
-
-                    // add the line to the development data
-                    developmentData.addLine(field.getName() + ": " + value);
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+                // add the line to the development data
+                 developmentData.addLine(valueEntry.getKey() + ": " +valueEntry.getValue());
             }
         }
 

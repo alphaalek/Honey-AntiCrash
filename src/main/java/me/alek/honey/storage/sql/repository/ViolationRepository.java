@@ -24,20 +24,19 @@ public class ViolationRepository implements RepositoryComponent {
                 "playerId INT, " +
                 "unixTime LONG, " +
                 "violationName VARCHAR(16), " +
-                "settings VARCHAR(255), " +
-                "quotients VARCHAR(255), " +
-                "devData VARCHAR(255), " +
+                "context VARCHAR(255), " +
+                "devData VARCHAR(255)" +
                 ");"
         );
     }
 
-    public void postViolation(ComponentBridge componentBridge, QueryFactory queryFactory, Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void postViolation(ComponentBridge componentBridge, QueryFactory queryFactory, Player player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         int playerId = componentBridge.getPlayerId(player.getName());
 
         CompletableFuture<Boolean> insertFuture = queryFactory.runInsert(
-                "INSERT INTO violations (playerId, unixTime, violationName, settings, quotients, devData) " +
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                playerId, System.currentTimeMillis(), violationName, setting.toString(), null, developmentData.toString()
+                "INSERT INTO violations (playerId, unixTime, violationName, context, devData) " +
+                "VALUES (?, ?, ?, ?, ?)",
+                playerId, System.currentTimeMillis(), violationName, context, developmentData.toString()
         );
         try {
             boolean insertSuccessful = insertFuture.get();
@@ -55,7 +54,7 @@ public class ViolationRepository implements RepositoryComponent {
         int playerId = componentBridge.getPlayerId(playerName);
 
         CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "SELECT v.unixTime, v.violationName, v.settings, v.quotients, v.devData FROM violations AS v " +
+                "SELECT v.unixTime, v.violationName, v.context, v.devData FROM violations AS v " +
                 "WHERE v.playerId = ?",
                 playerId
         );
@@ -64,7 +63,7 @@ public class ViolationRepository implements RepositoryComponent {
 
             if (resultSet != null && resultSet.next()) {
                 while (resultSet.next()) {
-                    violations.add(new ViolationEntry(resultSet.getLong(1), playerName, resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5)));
+                    violations.add(new ViolationEntry(resultSet.getLong(1), playerName, resultSet.getString(2), resultSet.getString(3), resultSet.getString(4)));
                 }
             }
         } catch (Exception ex) {

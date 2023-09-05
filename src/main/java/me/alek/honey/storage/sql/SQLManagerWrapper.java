@@ -35,17 +35,26 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         this.repositoryCollection = repositoryCollection;
         this.componentBridge = new SimpleComponentBridge(repositoryCollection, this);
 
-        reload();
+        reload(true);
 
         tryConnect();
-        this.queryFactory = new AsyncQueryFactoryHelper(connection);
+        this.queryFactory = new AsyncQueryFactoryHelper(this.connection);
+
+        // prepare repositories
+        prepareRepositories();
+    }
+
+    public void prepareRepositories() {
+        for (RepositoryComponent repository : repositoryCollection) {
+            repository.prepare(this);
+        }
     }
 
     public void tryConnect() {
         if (!isEnabled) return;
 
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.jdbc.Driver");
         } catch (Exception ex) {
             ex.printStackTrace();
 
@@ -53,23 +62,17 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
             return;
         }
 
+        final String url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?characterEncoding=utf8";
         try {
-            final String url = "jdbc:mysql://" + host + ":" + port + "/" + database;
-
             this.connection = DriverManager.getConnection(url, username, password);
 
-            Bukkit.getLogger().info("Successfully connected to database");
-            Bukkit.getLogger().info(host + ":" + port + "/" + database);
-
-            // prepare repositories
-            for (RepositoryComponent repository : repositoryCollection) {
-                repository.prepare(this);
-            }
+            Bukkit.getLogger().info("[Honey] Successfully connected to database");
+            Bukkit.getLogger().info("[Honey] " + url + ", username: " + username + ", password: " + password);
         } catch (Exception ex) {
             ex.printStackTrace();
 
-            Bukkit.getLogger().severe("Error occurred when making connection to database!");
-            Bukkit.getLogger().severe(host + ":" + port + "/" + database + ", username: " + username + ", password: " + password);
+            Bukkit.getLogger().severe("[Honey] Error occurred when making connection to database!");
+            Bukkit.getLogger().severe("[Honey] " + url + ", username: " + username + ", password: " + password);
         }
     }
 
@@ -78,6 +81,10 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     }
 
     public void reload() {
+        reload(false);
+    }
+
+    public void reload(boolean initiallyReload) {
         this.componentBridge.reload();
 
         this.isEnabled = ConfigurationOptions.General.SQL.ENABLED;
@@ -89,9 +96,12 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         this.database = ConfigurationOptions.General.SQL.DATBASE;
 
         // try connecting again if there isn't any connection and mysql is enabled
-        if (this.isEnabled && queryFactory.isConnectionClosed()) {
+        if (!initiallyReload && this.isEnabled && queryFactory.isConnectionClosed()) {
             tryConnect();
             queryFactory.setConnection(this.connection);
+
+            // prepare repositories
+            if (!queryFactory.isConnectionClosed()) prepareRepositories();
         }
     }
 
@@ -101,6 +111,26 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
 
     public void preparePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
         componentBridge.preparePlayer(player);
+    }
+
+    @Override
+    public void updatePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
+        componentBridge.updatePlayer(player);
+    }
+
+    @Override
+    public void setupPlayer(Player player) throws SQLFactoryException {
+        componentBridge.setupPlayer(player);
+    }
+
+    @Override
+    public boolean existsPlayer(String playerName) {
+        return componentBridge.existsPlayer(playerName);
+    }
+
+    @Override
+    public boolean containsUUID(String UUID) throws SQLFactoryException {
+        return componentBridge.containsUUID(UUID);
     }
 
     @Override
@@ -118,8 +148,8 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         return componentBridge.getViolationsBefore(playerName, unixTime);
     }
 
-    public void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
-        componentBridge.postViolation(player, violationName, setting, developmentData);
+    public void postViolation(Player player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+        componentBridge.postViolation(player, violationName, context, developmentData);
     }
 
     public int getPlayerId(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {

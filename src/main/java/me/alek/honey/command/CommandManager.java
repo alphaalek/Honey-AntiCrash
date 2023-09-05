@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public class CommandManager implements CommandExecutor {
 
-    private final String PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7";
+    public static final String PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7";
     private final JavaPlugin plugin;
     private final Map<String, CommandImpl> commands = new HashMap<>();
     private final CooldownManager cooldownManager;

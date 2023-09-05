@@ -18,9 +18,17 @@ public interface ComponentBridge {
 
     UUID getPlayerUUID(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException;;
 
-    void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException;
-
     void preparePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException;
+
+    void updatePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException;
+
+    void setupPlayer(Player player) throws SQLFactoryException;
+
+    boolean existsPlayer(String playerName);
+
+    boolean containsUUID(String UUID) throws SQLFactoryException;
+
+    void postViolation(Player player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException;
 
     List<ViolationEntry> getViolations(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException;
 

@@ -15,7 +15,7 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender, String[] args) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 Reloading the configuration...");
+        sender.sendMessage(CommandManager.PREFIX + "§7 Reloading the configuration...");
         HoneyPlugin.get().reload();
     }
 

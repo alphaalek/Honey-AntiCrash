@@ -33,6 +33,26 @@ public class SimpleComponentBridge implements ComponentBridge {
     }
 
     @Override
+    public void updatePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
+        repositoryCollection.playerRepository.updatePlayer(queryFactory, player);
+    }
+
+    @Override
+    public void setupPlayer(Player player) throws SQLFactoryException {
+        repositoryCollection.playerRepository.setupPlayer(queryFactory, player);
+    }
+
+    @Override
+    public boolean existsPlayer(String playerName) {
+        return repositoryCollection.playerRepository.existsPlayer(queryFactory, playerName);
+    }
+
+    @Override
+    public boolean containsUUID(String UUID) throws SQLFactoryException {
+        return repositoryCollection.playerRepository.containsUUID(queryFactory, UUID);
+    }
+
+    @Override
     public List<ViolationEntry> getViolations(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
         return repositoryCollection.violationRepository.getViolations(this, queryFactory, playerName);
     }
@@ -51,10 +71,10 @@ public class SimpleComponentBridge implements ComponentBridge {
         return !enabled || queryFactory.isConnectionClosed();
     }
 
-    public void postViolation(Player player, String violationName, ConfigurationOptions.VlSetting setting, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void postViolation(Player player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) return;
 
-        repositoryCollection.violationRepository.postViolation(this, queryFactory, player, violationName, setting, developmentData);
+        repositoryCollection.violationRepository.postViolation(this, queryFactory, player, violationName, context, developmentData);
     }
 
     public int getPlayerId(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {

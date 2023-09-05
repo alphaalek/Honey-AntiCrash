@@ -24,7 +24,7 @@ public class TrackCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
 
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cUsage: /honey track <players/checks>");
+            sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey track <players/checks>");
             return;
         }
 
@@ -33,11 +33,10 @@ public class TrackCommand implements CommandImpl {
                 StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
                 if (serverThreadHandleTracker.getOldTrackerSize() == 0) {
-                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cNo data to be shown yet!");
+                    sender.sendMessage(CommandManager.PREFIX + " §cNo data to be shown yet!");
                     return;
                 }
-
-                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 Sending information about the space occupation of server thread by players...");
+                sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the space occupation of server thread by players...");
 
                 for (Player player : serverThreadHandleTracker.getTrackersOrdered()) {
 
@@ -57,11 +56,10 @@ public class TrackCommand implements CommandImpl {
                 MarkableHandleTracker<Double, String> checkTimeHandleTracker = HoneyPlugin.get().getCheckHandleTracker();
 
                 if (checkTimeHandleTracker.getTrackerSize() == 0) {
-                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cNo data to be shown yet!");
+                    sender.sendMessage(CommandManager.PREFIX + " §cNo data to be shown yet!");
                     return;
                 }
-
-                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + "§7 Sending information about the work of checks...");
+                sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the work of checks...");
 
                 for (String trackName : checkTimeHandleTracker.getTrackersOrdered()) {
 
@@ -73,7 +71,7 @@ public class TrackCommand implements CommandImpl {
                 sender.sendMessage("§7Remember, that all this work is done on the netty threads, so it wont affect the server thread at all!");
                 break;
             default:
-                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §cUsage: /honey track <players/checks>");
+                sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey track <players/checks>");
         }
     }
     @Override
@@ -83,7 +81,7 @@ public class TrackCommand implements CommandImpl {
 
     @Override
     public String getUsage() {
-        return "/honey track <players/checks>";
+        return "/honey track";
     }
 
     @Override

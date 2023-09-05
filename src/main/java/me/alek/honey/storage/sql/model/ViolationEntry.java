@@ -5,16 +5,14 @@ public class ViolationEntry {
     private final long unixTime;
     private final String playerName;
     private final String violationName;
-    private final String settings;
-    private final String quotients;
+    private final String context;
     private final String devData;
 
-    public ViolationEntry(long unixTime, String playerName, String violationName, String settings, String quotients, String devData) {
+    public ViolationEntry(long unixTime, String playerName, String violationName, String context,String devData) {
         this.unixTime = unixTime;
         this.playerName = playerName;
         this.violationName = violationName;
-        this.settings = settings;
-        this.quotients = quotients;
+        this.context = context;
         this.devData = devData;
     }
 
@@ -30,15 +28,11 @@ public class ViolationEntry {
         return violationName;
     }
 
-    public String getSettings() {
-        return settings;
-    }
-
-    public String getQuotients() {
-        return quotients;
-    }
-
     public String getDevData() {
         return devData;
+    }
+
+    public String getContext() {
+        return context;
     }
 }

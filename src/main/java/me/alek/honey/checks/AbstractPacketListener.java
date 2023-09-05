@@ -37,6 +37,9 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
         developmentData.setPoint(6, "STQ", serverThreadPoint);
         developmentData.setPoint(7, "NTQ", nettyThreadPoint);
+
+        developmentData.addInvisibleData("STQ: " + serverThreadPoint);
+        developmentData.addInvisibleData("NTQ: " + nettyThreadPoint);
     }
 
     private static String formatPercentages(Double[] percentages) {
@@ -60,7 +63,10 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
             defaultDevelopmentData.addEmpty();
-            defaultDevelopmentData.addValue(" Packet", packetContainer.getHandle().getClass().getSimpleName());
+
+            String packet = packetContainer.getHandle().getClass().getSimpleName();
+            defaultDevelopmentData.addValue(" Packet", packet);
+            defaultDevelopmentData.addInvisibleData("packet: " + packet);
             applyCommonDevelopmentData(defaultDevelopmentData);
         }
 

@@ -1,10 +1,12 @@
 package me.alek.honey.storage.sql;
 
 import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
+import org.bukkit.Bukkit;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,6 +70,7 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
                 return statement;
 
             } catch (Exception ex) {
+                Bukkit.getLogger().severe("SQL ERROR: " + query + " " + Arrays.toString(values));
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();
@@ -80,6 +83,7 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
                 return statement.executeQuery();
 
             } catch (Exception ex) {
+                Bukkit.getLogger().severe("SQL ERROR: " + query + " " + Arrays.toString(values));
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();
@@ -93,6 +97,7 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
 
                 return rows > 0;
             } catch (Exception ex) {
+                Bukkit.getLogger().severe("SQL ERROR: " + query + " " + Arrays.toString(values));
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();

@@ -37,8 +37,12 @@ bypass-permission: "honey.bypass"
 # Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications.
 notify-permission: "honey.notify"
 
+# Pastebin developer key. This is used to paste data of violations of players.
+# You can see here how you get this key: https://pastebin.com/doc_api
+# OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
+pastebin-developer-key: ""
+
 # mysql settings for storage
-# OBS: this is not done yet, and you therefore won't get anything out of changing the values below yet
 mysql:
   # should storing of data in mysql database be enabled
   enabled: false
@@ -60,7 +64,6 @@ mysql:
 
 # exempt flood and related checks
 exempt:
-
   # Honey will stop doing flood checks (except for Flood A) at the following things
 
   # if the TPS / ping of the server or player gets above or below these values
@@ -71,7 +74,7 @@ exempt:
   max-time-between: 500
 
   # the following interval will be blocked after the max-time-between value has been exceeded
-  spike-interval: 650
+  spike-interval: 750
 
 # packet logger
 packet-logger:
@@ -571,13 +574,13 @@ packet-flood:
   # common
   common:
     b:
-      max-per-interval: 155
+      max-per-interval: 175
       interval: 900
       vls-amount: 3
     c:
-      max-per-interval: 275
-      interval: 1400
-      vls-amount: 1
+      max-per-interval: 290
+      interval: 1450
+      vls-amount: 2
 
   # specific
   d:
@@ -675,7 +678,7 @@ packet-flood:
     # set creative slot
     set-creative-slot:
       interval: 700
-      max-per-interval: 85
+      max-per-interval: 100
 
     # spectate
     spectate:
@@ -707,7 +710,7 @@ packet-flood:
 
     # window click
     window-click:
-      max-per-interval: 70
+      max-per-interval: 90
       interval: 600
       vls-amount: 8
 

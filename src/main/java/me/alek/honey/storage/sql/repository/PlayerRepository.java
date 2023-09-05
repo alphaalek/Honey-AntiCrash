@@ -16,7 +16,7 @@ public class PlayerRepository implements RepositoryComponent {
     public void prepare(QueryFactory queryFactory) {
         queryFactory.runInsert(
                 "CREATE TABLE IF NOT EXISTS players (" +
-                "playerId PRIMARY KEY, " +
+                "playerId INT AUTO_INCREMENT PRIMARY KEY, " +
                 "playerUUID VARCHAR(36), " +
                 "playerName VARCHAR(16)" +
                 ");"
@@ -98,7 +98,7 @@ public class PlayerRepository implements RepositoryComponent {
         CompletableFuture<Boolean> resultSetFuture = queryFactory.runInsert(
                 "INSERT INTO players (playerUUID, playerName) " +
                 "VALUES (?, ?)",
-                player.getUniqueId(), player.getName()
+                player.getUniqueId().toString(), player.getName()
         );
         try {
             boolean insertSuccessful = resultSetFuture.get();

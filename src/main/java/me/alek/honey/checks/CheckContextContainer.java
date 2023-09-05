@@ -31,12 +31,20 @@ public class CheckContextContainer {
     public class DevelopmentData {
 
         private final List<String> developmentDataSet = new ArrayList<>();
+        private final List<String> invisibleData = new ArrayList<>();
 
         public DevelopmentData() {
-            if (defaultDevelopmentData != null && defaultDevelopmentData != this) developmentDataSet.addAll(defaultDevelopmentData.getDataSet());
+            if (defaultDevelopmentData != null && defaultDevelopmentData != this) {
+                developmentDataSet.addAll(defaultDevelopmentData.developmentDataSet);
+                invisibleData.addAll(defaultDevelopmentData.invisibleData);
+            }
         }
 
         public int size() { return developmentDataSet.size(); }
+
+        public void addInvisibleData(String data) {
+            invisibleData.add(data);
+        }
 
         public void addText(String line) {
             developmentDataSet.add(line);
@@ -106,6 +114,15 @@ public class CheckContextContainer {
             return developmentDataSet;
         }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+
+            for (String data : invisibleData) {
+                builder.append(data).append(" ");
+            }
+            return builder.substring(0, builder.length() - 1);
+        }
     }
 
     public static class Storage {
