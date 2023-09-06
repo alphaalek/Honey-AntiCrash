@@ -1,5 +1,6 @@
 package me.alek.honey.storage.sql;
 
+import com.google.common.base.Strings;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
@@ -67,12 +68,12 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
             this.connection = DriverManager.getConnection(url, username, password);
 
             Bukkit.getLogger().info("[Honey] Successfully connected to database");
-            Bukkit.getLogger().info("[Honey] " + url + ", username: " + username + ", password: " + password);
+            Bukkit.getLogger().info("[Honey] " + url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
         } catch (Exception ex) {
             ex.printStackTrace();
 
             Bukkit.getLogger().severe("[Honey] Error occurred when making connection to database!");
-            Bukkit.getLogger().severe("[Honey] " + url + ", username: " + username + ", password: " + password);
+            Bukkit.getLogger().severe("[Honey] " + url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
         }
     }
 

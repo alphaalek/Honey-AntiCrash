@@ -50,6 +50,8 @@ public interface HoneyAPI {
 
     boolean isRunning();
 
+    boolean isLoaded();
+
     int getRecentTPS();
 
     int getRecentPing(Player player);

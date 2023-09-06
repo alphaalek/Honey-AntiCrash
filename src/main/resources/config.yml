@@ -567,7 +567,7 @@ packet-flood:
 
   # total
   a:
-    max-per-interval: 480
+    max-per-interval: 500
     interval: 2300
     vls-amount: 1
 
@@ -618,8 +618,8 @@ packet-flood:
 
     # chat
     chat:
-      max-per-interval: 8
-      interval: 800
+      max-per-interval: 10
+      interval: 750
       vls-amount: 6
 
     # client command

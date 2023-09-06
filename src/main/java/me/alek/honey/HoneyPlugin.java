@@ -55,6 +55,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private StatisticHandleTracker<Double, Player> packetServerThreadHandleTimeTracker;
     private StatisticHandleTracker<Double, Player> packetNettyHandleTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
+    private boolean isLoaded;
     private boolean isRunning;
     private boolean usingOldVersion;
     private UpdateChecker updateChecker;
@@ -63,24 +64,29 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
 
     @Override
-    public void onEnable() {
-        isRunning = true;
-        INSTANCE = this;
+    public synchronized void onEnable() {
+        // check compatability and conflicts of runtime load or minecraft version
+        String conflict = null;
+        if (isLoaded)
+            conflict = "Honey has been reloaded during runtime! You SHOULDN'T do this, never! Stop that, and restart the server instead.";
+        else if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17))
+            conflict = "Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for sure come in the future! :-)";
+        else if (Protocol.getProtocol() == Protocol.UNKNOWN)
+            conflict = "Honey is currently not supported by the Minecraft Version your server is using.";
 
-        // check minecraft version compatibility
-        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17)) {
-            getLogger().severe("Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for sure come in the future! :-)");
+        if (conflict != null) {
             Bukkit.getPluginManager().disablePlugin(this);
+            throw new RuntimeException(conflict);
         }
-        if (Protocol.getProtocol() == Protocol.UNKNOWN) {
-            getLogger().severe("Honey is currently not supported by the Minecraft Version your server is using.");
-            Bukkit.getPluginManager().disablePlugin(this);
-        }
+
+        isRunning = true;
+        isLoaded = true;
+        INSTANCE = this;
 
         // setup configuration and check if it is misconfigured
         configuration = new DedicatedConfiguration();
 
-        if (configuration.isMisConfigured()) {
+        if (configuration.isMisconfigured()) {
 
             if (getServer().getPluginManager().isPluginEnabled(this)) {
                 resetConfiguration();
@@ -133,6 +139,10 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), this);
 
         // setup runnable getting the TPS and ping of the server and players
+        setupRecentPingLookupRunnable();
+    }
+
+    private void setupRecentPingLookupRunnable() {
         new BukkitRunnable() {
 
             int index = 0;
@@ -149,7 +159,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
                     }
                 }
             }
-        }.runTaskTimerAsynchronously(HoneyPlugin.get().getPlugin(), 0L, 20L);
+        }.runTaskTimerAsynchronously(this, 0L, 20L);
     }
 
     @Override
@@ -265,6 +275,11 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     public boolean isRunning() {
         return isRunning;
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return isLoaded;
     }
 
     public int getRecentTPS() {

@@ -26,7 +26,7 @@ public class DedicatedConfiguration implements Configuration {
     }
 
     @Override
-    public boolean isMisConfigured() {
+    public boolean isMisconfigured() {
         return misConfigured;
     }
 
