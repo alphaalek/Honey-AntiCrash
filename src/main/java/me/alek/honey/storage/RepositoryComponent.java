@@ -1,4 +1,4 @@
-package me.alek.honey.storage.sql;
+package me.alek.honey.storage;
 
 public interface RepositoryComponent {
 

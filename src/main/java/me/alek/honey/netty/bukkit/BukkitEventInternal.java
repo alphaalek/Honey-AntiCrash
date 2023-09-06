@@ -42,11 +42,9 @@ public class BukkitEventInternal implements Listener {
             }
         }
         boolean injected = false;
-
         if (!library.useLateInjection()) {
 
             AbstractPipelineProxy packetHandler = injector.getHandler(channel);
-
             if (packetHandler != null) {
                 injected = true;
                 packetHandler.setPlayer(player);

@@ -1,6 +1,6 @@
-package me.alek.honey.storage.sql;
+package me.alek.honey.storage;
 
-import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
+import me.alek.honey.storage.exceptions.SQLFactoryException;
 import org.bukkit.Bukkit;
 
 import java.sql.Connection;

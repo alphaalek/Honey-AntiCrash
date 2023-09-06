@@ -1,15 +1,13 @@
 package me.alek.honey.command.impl;
 
 import com.pastebin.api.*;
-import com.pastebin.api.model.Paste;
 import com.pastebin.api.request.PasteRequest;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.storage.sql.SQLManagerWrapper;
-import me.alek.honey.storage.sql.model.ViolationEntry;
-import org.bukkit.Bukkit;
+import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.storage.model.ViolationEntry;
 import org.bukkit.command.CommandSender;
 
 import java.util.Date;
@@ -65,7 +63,7 @@ public class PasteLogsCommand implements CommandImpl {
                     .visibility(Visibility.PUBLIC)
                     .format(Format.PYTHON)
                     .name("Violation log for player " + playerName)
-                    .expiration(Expiration.ONE_HOUR)
+                    .expiration(Expiration.ONE_DAY)
                     .build();
 
             final PastebinClient pastebinClient = PastebinClient.builder()

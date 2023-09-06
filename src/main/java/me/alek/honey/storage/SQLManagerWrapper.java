@@ -1,11 +1,11 @@
-package me.alek.honey.storage.sql;
+package me.alek.honey.storage;
 
 import com.google.common.base.Strings;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
-import me.alek.honey.storage.sql.exceptions.SQLPlayerNotFoundException;
-import me.alek.honey.storage.sql.model.ViolationEntry;
+import me.alek.honey.storage.exceptions.SQLFactoryException;
+import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.model.ViolationEntry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

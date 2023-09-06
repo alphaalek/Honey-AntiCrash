@@ -1,7 +1,7 @@
-package me.alek.honey.storage.sql;
+package me.alek.honey.storage;
 
-import me.alek.honey.storage.sql.repository.ViolationRepository;
-import me.alek.honey.storage.sql.repository.PlayerRepository;
+import me.alek.honey.storage.repository.ViolationRepository;
+import me.alek.honey.storage.repository.PlayerRepository;
 
 import java.util.Arrays;
 import java.util.Iterator;

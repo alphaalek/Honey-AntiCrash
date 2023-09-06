@@ -1,4 +1,4 @@
-package me.alek.honey.storage.sql.model;
+package me.alek.honey.storage.model;
 
 public class ViolationEntry {
 

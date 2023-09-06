@@ -1,13 +1,12 @@
-package me.alek.honey.storage.sql.repository;
+package me.alek.honey.storage.repository;
 
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.storage.sql.ComponentBridge;
-import me.alek.honey.storage.sql.QueryFactory;
-import me.alek.honey.storage.sql.RepositoryComponent;
-import me.alek.honey.storage.sql.exceptions.SQLFactoryException;
-import me.alek.honey.storage.sql.exceptions.SQLPlayerNotFoundException;
-import me.alek.honey.storage.sql.model.ViolationEntry;
+import me.alek.honey.storage.ComponentBridge;
+import me.alek.honey.storage.QueryFactory;
+import me.alek.honey.storage.RepositoryComponent;
+import me.alek.honey.storage.exceptions.SQLFactoryException;
+import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.model.ViolationEntry;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
