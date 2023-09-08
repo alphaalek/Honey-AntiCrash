@@ -404,11 +404,11 @@ public class ConfigurationOptions {
                     Object value = field.get(this);
 
                     // check if this field is associated with a setting value from this check
-                    if (settingImpl != null && !getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())) {
-                        continue;
-                    }
-                    valueMap.put(field.getName(), value);
+                    if (settingImpl != null && value != null) {
+                        if (!getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())) continue;
 
+                        valueMap.put(field.getName(), value);
+                    }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
