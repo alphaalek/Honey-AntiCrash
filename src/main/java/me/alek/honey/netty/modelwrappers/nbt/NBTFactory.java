@@ -19,34 +19,9 @@ import java.util.Map;
 
 public class NBTFactory {
 
-    private static final class NBTCacheValue {
-
-        private final NBTCompound compound;
-        private final long created;
-
-        public NBTCacheValue(NBTCompound compound, long created) {
-            this.compound = compound;
-            this.created = created;
-        }
-
-        public NBTCompound getCompound() {
-            return compound;
-        }
-
-        public long getCreated() {
-            return created;
-        }
-    }
-
-    private static final Map<ItemStack, NBTCacheValue> ITEM_NBT_CACHE = new HashMap<>();
-
     public static NBTCompound fromItem(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
             return null;
-        }
-        NBTCacheValue cacheValue = ITEM_NBT_CACHE.get(item);
-        if (cacheValue != null && (System.currentTimeMillis() - cacheValue.getCreated() < 10000)) {
-            return cacheValue.getCompound();
         }
         Object nmsItem = ItemReflection.asNMSItem(item);
         if (nmsItem == null) {
@@ -62,7 +37,6 @@ public class NBTFactory {
         if (base == null) {
             return null;
         }
-        ITEM_NBT_CACHE.put(item, new NBTCacheValue((NBTCompound) base, System.currentTimeMillis()));
         return (NBTCompound) base;
     }
 

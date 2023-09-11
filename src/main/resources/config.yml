@@ -128,7 +128,7 @@ item-analysis:
   max-enchantment-level: 256
 
   # How high an amount may an item have.
-  max-amount: 64
+  max-amount: 127
 
   # How long of a name may an item have.
   max-displayname-length: 100
@@ -574,11 +574,11 @@ packet-flood:
   # common
   common:
     b:
-      max-per-interval: 175
+      max-per-interval: 220
       interval: 900
       vls-amount: 3
     c:
-      max-per-interval: 290
+      max-per-interval: 360
       interval: 1450
       vls-amount: 2
 
@@ -678,7 +678,7 @@ packet-flood:
     # set creative slot
     set-creative-slot:
       interval: 700
-      max-per-interval: 100
+      max-per-interval: 110
 
     # spectate
     spectate:
@@ -710,7 +710,7 @@ packet-flood:
 
     # window click
     window-click:
-      max-per-interval: 90
+      max-per-interval: 95
       interval: 600
       vls-amount: 8
 
