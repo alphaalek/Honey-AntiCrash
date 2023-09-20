@@ -289,7 +289,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadF.class).isEnabled()) {
 
                 if (ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
-                    return ResponseBuilder.inst().flag().withKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
+                    return ResponseBuilder.inst().flag().withLimitsKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
                 }
             }
             return ResponseBuilder.SUCCESS;

@@ -16,7 +16,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,8 +32,6 @@ public class ViolationService {
     private final List<UUID> punishing = new CopyOnWriteArrayList<>();
     private final LoggerService loggerService = HoneyPlugin.get().getLoggerService();
     private final ReentrantLock punishLock = new ReentrantLock();
-
-    private static final Field[] VIOLATION_SETTING_FIELDS = ConfigurationOptions.VlSetting.class.getFields();
 
     public void reload() {
 
@@ -57,8 +55,8 @@ public class ViolationService {
             }
 
             // reload all the packet limit handlers for this player
-            for (AbstractPacketLimitHandler packetLimitHandler : violationContext.getPacketlimitMap().values()) {
-                packetLimitHandler.reload();
+            for (ViolationDistributor violationDistributor : violationContext.getPacketlimitMap().values()) {
+                violationDistributor.reload();
             }
         }
     }
@@ -100,7 +98,7 @@ public class ViolationService {
         return violatedMap.get(player.getUniqueId());
     }
 
-    public AbstractPacketLimitHandler getLimits(Player player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
+    public ViolationDistributor getLimits(Player player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
         ViolationContext context = getViolationContext(player);
         return context.getLimits(checkKey, setting);
     }
@@ -109,7 +107,8 @@ public class ViolationService {
             Player player,
             Object handle,
             CancellablePacketObserver cancellablePacketObserver,
-            CheckKey key,
+            CheckKey violationContextKey,
+            CheckKey checkKey,
             double amount,
             Runnable onViolation,
             Runnable onFlag,
@@ -118,8 +117,8 @@ public class ViolationService {
             CheckContextContainer.DevelopmentData developmentData,
             boolean ignoreSpike
     ) {
-        return getLimits(player, key, setting)
-                .flag(handle, cancellablePacketObserver, violationName, amount, onViolation, onFlag, developmentData, ignoreSpike);
+        return getLimits(player, violationContextKey, setting)
+                .flag(checkKey, handle, cancellablePacketObserver, violationName, amount, onViolation, onFlag, developmentData, ignoreSpike);
     }
 
     public void punish(Player player, String violationName) {
@@ -153,48 +152,58 @@ public class ViolationService {
 
     public class ViolationContext {
 
-        private final Map<CheckKey, AbstractPacketLimitHandler> packetLimitMap = new ConcurrentHashMap<>();
+        private final Map<CheckKey, ViolationDistributor> packetLimitMap = new ConcurrentHashMap<>();
         private final Player player;
 
         public ViolationContext(Player player) {
             this.player = player;
         }
 
-        public synchronized AbstractPacketLimitHandler getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
+        public synchronized ViolationDistributor getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
 
-                switch (setting.getPacketLimitHandlerType()) {
+                AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
+                if (packetLimitHandler == null)
+                    throw new RuntimeException("No packet limit handler could be created.");
 
-                    case SIMPLE:
-                        packetLimitMap.put(key, new PacketSimpleHandler(player, setting));
-                        break;
-                    case INTERVAL:
-                        packetLimitMap.put(key, new PacketIntervalHandler(player, setting));
-                        break;
-                    case SINGLE_OVERFLOW:
-                        packetLimitMap.put(key, new PacketSingleOverflowHandler(player, setting));
-                        break;
-                    case BUFFER_OVERFLOW:
-                        packetLimitMap.put(key, new PacketBufferOverflowHandler(player, setting));
-                        break;
-                    case BUFFER_THROTTLE:
-                        packetLimitMap.put(key, new PacketBufferThrottleHandler(player, setting));
-                        break;
-                }
+                ViolationDistributor distributor;
+                if (setting.getKeyedAnnotation() != null)
+                    distributor = new ViolationDistributor(player,
+                            new KeyedViolationLookupGenerator(packetLimitHandler, setting));
+                else
+                    distributor = new ViolationDistributor(player, packetLimitHandler);
+                packetLimitMap.put(key, distributor);
             }
             return packetLimitMap.get(key);
         }
 
-        public Map<CheckKey, AbstractPacketLimitHandler> getPacketlimitMap() {
+        public Map<CheckKey, ViolationDistributor> getPacketlimitMap() {
             return packetLimitMap;
         }
 
-        public AbstractPacketLimitHandler getHandler(CheckKey key) {
+        public ViolationDistributor getHandler(CheckKey key) {
             return packetLimitMap.get(key);
         }
 
         public Player getPlayer() {
             return player;
+        }
+    }
+
+    private AbstractPacketLimitHandler generatePacketLimitHandler(PacketLimitHandlerType type, Player player, ConfigurationOptions.VlSetting setting) {
+        switch (type) {
+            case SIMPLE:
+                return new PacketSimpleHandler(player, setting);
+            case INTERVAL:
+                return new PacketIntervalHandler(player, setting);
+            case SINGLE_OVERFLOW:
+                return new PacketSingleOverflowHandler(player, setting);
+            case BUFFER_OVERFLOW:
+                return new PacketBufferOverflowHandler(player, setting);
+            case BUFFER_THROTTLE:
+                return new PacketBufferThrottleHandler(player, setting);
+            default:
+                return null;
         }
     }
 
@@ -204,6 +213,10 @@ public class ViolationService {
 
         public CheckKey(Object object1, Object object2) {
             super(object1, object2);
+        }
+
+        public CheckKey(Object object1) {
+            super(object1, null);
         }
 
         public CheckKey() {
@@ -225,6 +238,90 @@ public class ViolationService {
                 return (CheckKey) super.clone();
             } catch (Exception ex) {
                 throw new AssertionError();
+            }
+        }
+    }
+
+    public class KeyedViolationLookupGenerator {
+
+        private final AbstractPacketLimitHandler handler;
+        private final ConfigurationOptions.VlSetting setting;
+
+        public KeyedViolationLookupGenerator(AbstractPacketLimitHandler handler, ConfigurationOptions.VlSetting setting) {
+            this.handler = handler;
+            this.setting = setting;
+        }
+
+        public Map<CheckKey, AbstractPacketLimitHandler> generateMap(Player player) {
+            if (setting.getKeyedAnnotation() == null || setting.getKeyedAnnotation().keys().length == 0) {
+                return new HashMap<CheckKey, AbstractPacketLimitHandler>(){{
+                    put(CheckKey.DEFAULT, handler);
+                }};
+            }
+            final Map<CheckKey, AbstractPacketLimitHandler> map = new HashMap<>();
+            for (final String key : setting.getKeyedAnnotation().keys()) {
+                map.put(new CheckKey(key), generatePacketLimitHandler(handler.getType(), player, setting));
+            }
+            return map;
+        }
+    }
+
+    public static class ViolationDistributor {
+
+        private final Player player;
+        private final Map<CheckKey, AbstractPacketLimitHandler> packetLimitHandlerDelegateLookup = new HashMap<>();
+        private AbstractPacketLimitHandler cachedDefaultPacketLimitHandler;
+
+        public ViolationDistributor(Player player, KeyedViolationLookupGenerator generator) {
+            this.player = player;
+            packetLimitHandlerDelegateLookup.putAll(generator.generateMap(player));
+        }
+
+        public ViolationDistributor(Player player, AbstractPacketLimitHandler defaultPacketLimitHandler) {
+            this.player = player;
+            packetLimitHandlerDelegateLookup.put(CheckKey.DEFAULT, defaultPacketLimitHandler);
+        }
+
+        public AbstractPacketLimitHandler getAnyPacketLimitHandler() {
+            if (packetLimitHandlerDelegateLookup.size() == 0) return null;
+
+            return packetLimitHandlerDelegateLookup.values().iterator().next();
+        }
+
+        public Player getPlayer() {
+            return this.player;
+        }
+
+        public AbstractPacketLimitHandler getPacketLimitHandler(CheckKey key) {
+            if (key == null) {
+                return getAnyPacketLimitHandler();
+            }
+            return packetLimitHandlerDelegateLookup.getOrDefault(key, getAnyPacketLimitHandler());
+        }
+
+        public Map<CheckKey, AbstractPacketLimitHandler> getPacketLimitHandlers() {
+            return packetLimitHandlerDelegateLookup;
+        }
+
+        public synchronized boolean flag(CheckKey checkKey, Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+            AbstractPacketLimitHandler delegate = null;
+            if (checkKey == null || !packetLimitHandlerDelegateLookup.containsKey(checkKey)) {
+                if (packetLimitHandlerDelegateLookup.size() == 0) return false;
+
+                delegate =
+                    cachedDefaultPacketLimitHandler == null
+                        ? (cachedDefaultPacketLimitHandler = packetLimitHandlerDelegateLookup.values().iterator().next())
+                        : cachedDefaultPacketLimitHandler;
+            }
+            if (delegate == null)
+                delegate = packetLimitHandlerDelegateLookup.get(checkKey);
+
+            return delegate.flag(handle, cancellablePacketObserver, violationName, amount, onViolation, onFlag, developmentData, ignoreSpike);
+        }
+
+        public void reload() {
+            for (final AbstractPacketLimitHandler packetLimitHandler : packetLimitHandlerDelegateLookup.values()) {
+                packetLimitHandler.reload();
             }
         }
     }
@@ -302,6 +399,8 @@ public class ViolationService {
         }
 
         public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike);
+
+        public abstract PacketLimitHandlerType getType();
     }
 
     public class PacketSimpleHandler extends AbstractPacketLimitHandler {
@@ -316,6 +415,11 @@ public class ViolationService {
             if (onFlag != null) onFlag.run();
 
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.SIMPLE;
         }
     }
 
@@ -340,8 +444,12 @@ public class ViolationService {
             if ((this.amount = amount) < threshold) return false;
 
             if (onFlag != null) onFlag.run();
-
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.SINGLE_OVERFLOW;
         }
 
         public double getAmount() {
@@ -429,6 +537,11 @@ public class ViolationService {
         }
 
         @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.BUFFER_THROTTLE;
+        }
+
+        @Override
         public void decay() {
             if (bufferIndex.get() < threshold) {
                 super.decay();
@@ -445,7 +558,6 @@ public class ViolationService {
             if (onViolation != null) onViolation.run();
 
             cancellablePacketObserver.cancel();
-
             if (bufferIndex.get() > until && getSetting().isEnabled()) violate(handle, cancellablePacketObserver, violationName, null, developmentData);
             return true;
         }
@@ -462,6 +574,11 @@ public class ViolationService {
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
             violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
             return true;
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.BUFFER_OVERFLOW;
         }
     }
 
@@ -531,6 +648,11 @@ public class ViolationService {
             if (getSetting().isClearInterval()) clearInterval();
 
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.INTERVAL;
         }
     }
 }

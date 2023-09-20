@@ -12,7 +12,8 @@ public class ResponseContainer implements Cloneable {
     public boolean SUCCESS;
     public boolean TERMINATE;
     public AtomicInteger SKIP_INDICES;
-    public ViolationService.CheckKey KEY;
+    public ViolationService.CheckKey LIMITS_KEY;
+    public ViolationService.CheckKey VIOLATION_KEY;
     public Runnable ON_VIOLATION;
     public Runnable ON_FLAG;
     public Runnable ON_BLOCK;

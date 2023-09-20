@@ -135,7 +135,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer getResponse(Player player) {
-            ResponseContainer response = ResponseBuilder.inst().flag().withKey(ViolationService.CheckKey.DEFAULT).build();
+            ResponseContainer response = ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
 
             if (HoneyPlugin.get().getRecentTPS() < ConfigurationOptions.General.Exempt.MIN_TPS || HoneyPlugin.get().getRecentPing(player) > ConfigurationOptions.General.Exempt.MAX_PING) {
                 return response.builder().terminate().build();
@@ -233,13 +233,13 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     // check if the delta time is high enough to exempt the next packet spike for this player
                     if (packetDecoderMap.get(uuid).getRecentDeltaReceived() > (ConfigurationOptions.General.Exempt.MAX_TIME_BETWEEN * 1_000)) {
 
-                        return ResponseBuilder.inst().ignoreSpike().flag(0).withKey(sharedIgnoringKey).build();
+                        return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
                     }
                 }
                 // flag the player for the shared ignoring key to check if it's currently ignoring a packet spike of the player,
                 // if it isn't, and it gets flagged, then the real flood setting and values will be flagged afterwards
-                return ResponseBuilder.inst().flag(0).withKey(sharedIgnoringKey).onFlag(() -> {
-                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(this, getKey(packet)), 1, null, null, getCheckName(), getSetting(packet), container.getDevelopmentData(FloodD.this), false);
+                return ResponseBuilder.inst().flag(0).withLimitsKey(sharedIgnoringKey).onFlag(() -> {
+                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(this, getKey(packet)), null, 1, null, null, getCheckName(), getSetting(packet), container.getDevelopmentData(FloodD.this), false);
                 }).build();
             }
             return ResponseBuilder.SUCCESS;

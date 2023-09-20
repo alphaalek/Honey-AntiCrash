@@ -253,11 +253,6 @@ netty:
     max-quotient: 7.5
     vls-amount: 2
 
-  k:
-    enabled: true
-    max-quotient: 7.5
-    vls-amount: 2
-
 # |--- custom payload ---|
 custom-payload:
   a:

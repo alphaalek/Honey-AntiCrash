@@ -10,7 +10,9 @@ public enum PacketLimitHandlerType {
             ConfigurationOptions.VlSettingImplType.INTERVAL,
             ConfigurationOptions.VlSettingImplType.MAX_PER_INTERVAL,
             ConfigurationOptions.VlSettingImplType.CLEAR_INTERVAL,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT)),
+            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+    )),
+
     SINGLE_OVERFLOW(Sets.newHashSet(
             ConfigurationOptions.VlSettingImplType.THRESHOLD,
             ConfigurationOptions.VlSettingImplType.VLS_AMOUNT

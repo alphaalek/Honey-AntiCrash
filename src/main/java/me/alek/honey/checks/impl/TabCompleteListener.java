@@ -147,7 +147,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 }
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
                 // and therefore will block this packet. I do this by just flagging with 0.
-                return ResponseBuilder.inst().flag(0).withKey(key).build();
+                return ResponseBuilder.inst().flag(0).withLimitsKey(key).build();
             }
             return ResponseBuilder.SUCCESS;
         }

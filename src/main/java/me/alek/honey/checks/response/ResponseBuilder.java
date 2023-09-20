@@ -65,8 +65,13 @@ public class ResponseBuilder {
         return this;
     }
 
-    public ResponseBuilder withKey(ViolationService.CheckKey key) {
-        responseContainer.KEY = key;
+    public ResponseBuilder withLimitsKey(ViolationService.CheckKey key) {
+        responseContainer.LIMITS_KEY = key;
+        return this;
+    }
+
+    public ResponseBuilder withViolationKey(ViolationService.CheckKey key) {
+        responseContainer.VIOLATION_KEY = key;
         return this;
     }
 

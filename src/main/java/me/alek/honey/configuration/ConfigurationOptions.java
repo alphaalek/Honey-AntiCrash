@@ -5,6 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -119,8 +120,12 @@ public class ConfigurationOptions {
                 ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
                 channelFloodSettings.put(flood.value(), setting);
             }
-            final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();
+            if (clazz.isAnnotationPresent(Keyed.class)) {
+                Keyed keyed = clazz.getAnnotation(Keyed.class);
+                setting.keyedAnnotation = keyed;
+            }
 
+            final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();
             if (setting instanceof VlRequiredContentsSetting) {
                 VlRequiredContentsSetting vlRequiredContentsSetting = (VlRequiredContentsSetting) setting;
                 requiredVlSettingImplTypes.addAll(vlRequiredContentsSetting.getRequiredTypes());
@@ -228,6 +233,13 @@ public class ConfigurationOptions {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     private @interface Setting {}
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public @interface Keyed {
+
+        String[] keys();
+    }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
@@ -355,6 +367,8 @@ public class ConfigurationOptions {
         public boolean clearInterval;
         @VlSettingImpl(VlSettingImplType.ENABLED)
         public boolean enabled = true;
+        public Keyed keyedAnnotation;
+
         private PacketLimitHandlerType packetLimitHandlerType;
 
         public VlSetting(PacketLimitHandlerType packetLimitHandlerType) { this.packetLimitHandlerType = packetLimitHandlerType; }
@@ -376,6 +390,8 @@ public class ConfigurationOptions {
         public int getDecayAmount() { return decayAmount; }
 
         public boolean isEnabled() { return enabled; }
+
+        public Keyed getKeyedAnnotation() { return keyedAnnotation; }
 
         public boolean isClearInterval() { return clearInterval; }
 
@@ -1029,23 +1045,13 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.SIMPLE)
+        @Keyed(keys = {"stq", "ntq"})
         public static class NettyJ extends VlSetting implements VlSimpleRequiredContentsSetting {
 
             public static double MAX_QUOTIENT;
 
             public static void load() {
                 MAX_QUOTIENT = file.getDouble("netty.j.max-quotient", 10d);
-            }
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class NettyK extends VlSetting implements VlSimpleRequiredContentsSetting {
-
-            public static double MAX_QUOTIENT;
-
-            public static void load() {
-                MAX_QUOTIENT = file.getDouble("netty.k.max-quotient", 10d);
             }
         }
     }

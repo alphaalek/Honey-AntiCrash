@@ -23,6 +23,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.StatisticProvider;
 import me.alek.honey.utility.NumberConversions;
@@ -263,9 +264,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
-            StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
+            final StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
 
-            double[] statistics = new double[statisticProvider.size() - 1];
+            final double[] statistics = new double[statisticProvider.size() - 1];
             for (int i = 1; i < statistics.length + 1; i++) {
                 statistics[i - 1] = statisticHandleTracker.getStatistic(player, i);
 
@@ -277,24 +278,36 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                final StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+                final StatisticHandleTracker<Double, Player>[] trackers = (StatisticHandleTracker<Double, Player>[])
+                    new StatisticHandleTracker[]{
+                        HoneyPlugin.get().getServerThreadHandleTracker(),
+                        HoneyPlugin.get().getNettyPacketHandleTracker()
+                    };
+                final String[] keys = new String[]{"stq", "ntq"};
 
                 // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                 // sure it's a more correct average being evaluated and compared in this check
-                if (serverThreadHandleTracker.getTrackerSize() > 5) {
+                if (trackers[0].getTrackerSize() > 5) {
 
-                    int index = 1;
-                    for (double timeToAverageQuotient : getStatisticsAfterFirst(player, serverThreadHandleTracker)) {
+                    for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
 
-                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
-                            Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient + " (" + player.getName() + ") (" + index + ")");
-                            //return ResponseBuilder.inst().flag().build();
-                            break;
+                        int index = 1;
+                        for (final double timeToAverageQuotient : getStatisticsAfterFirst(player, tracker)) {
+
+                            if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
+                                Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient + " (" + player.getName() + ") (" + index + ")");
+
+                                /*
+                                return ResponseBuilder.inst().flag().withViolationKey(
+                                        new ViolationService.CheckKey(keys[index - 1])).build();
+                                */
+                            }
+                            index++;
                         }
-                        index++;
                     }
                 }
             }
@@ -308,52 +321,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Too high server thread quotient";
+            return "Too high server/netty thread quotient";
         }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
-        }
-    }
-
-    public static class NettyK<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
-
-        @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-                final StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
-
-                if (nettyThreadHandleTracker.getTrackerSize() > 5) {
-
-                    int index = 1;
-                    for (double timeToAverageQuotient : NettyJ.getStatisticsAfterFirst(player, nettyThreadHandleTracker)) {
-
-                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
-                            Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient + " (" + player.getName() + ") (" + index + ")");
-                            //return ResponseBuilder.inst().flag().build();
-                            break;
-                        }
-                        index++;
-                    }
-                }
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getCheckName() {
-            return "Netty.K";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Too high netty thread quotient";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
         }
     }
 }
