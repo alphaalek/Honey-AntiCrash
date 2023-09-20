@@ -23,29 +23,28 @@ public class CooldownManager {
     }
 
     public boolean hasCooldown(Player player, CommandImpl command) {
-        Cooldown cooldownModel = getCooldownModel(player, command);
-        if (cooldownModel == null) {
+        Cooldown cooldown = getCooldownModel(player, command);
+        if (cooldown == null) {
             return false;
         }
-        return LocalDateTime.now().isBefore(cooldownModel.getWhenExpired());
+        return LocalDateTime.now().isBefore(cooldown.getWhenExpired());
     }
 
     public String getFormattedCooldown(Player player, CommandImpl command) {
-        Cooldown cooldownModel = getCooldownModel(player, command);
-        return Duration.between(LocalDateTime.now(), cooldownModel.getWhenExpired()).getSeconds() + 1 + " seconds";
+        final Cooldown cooldown = getCooldownModel(player, command);
+        return Duration.between(LocalDateTime.now(), cooldown.getWhenExpired()).getSeconds() + 1 + " seconds";
     }
 
     public void setCooldown(Player player, CommandImpl command) {
-        Cooldown cooldownModel = getCooldownModel(player, command);
-        if (cooldownModel == null) {
-            UUID uuid = player.getUniqueId();
+        Cooldown cooldown = getCooldownModel(player, command);
+        if (cooldown == null) {
+            final UUID uuid = player.getUniqueId();
             if (!this.cooldownMap.containsKey(uuid)) {
                 this.cooldownMap.put(uuid, new ArrayList<>());
             }
-            Cooldown newCooldownModel = new Cooldown(command, LocalDateTime.now());
-            cooldownModel = newCooldownModel;
-            this.cooldownMap.get(uuid).add(newCooldownModel);
+            cooldown = new Cooldown(command, LocalDateTime.now());
+            this.cooldownMap.get(uuid).add(cooldown);
         }
-        cooldownModel.setCooldownNow();
+        cooldown.setCooldownNow();
     }
 }

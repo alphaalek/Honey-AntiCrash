@@ -2,7 +2,7 @@ package me.alek.honey.netty.utility.reflect;
 
 import java.lang.reflect.Field;
 
-public class FieldAccessor<T> implements ReflectToucher<T> {
+public class FieldAccessor<T> implements IReflectResolver<T> {
 
     private final Field field;
 

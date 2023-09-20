@@ -44,9 +44,7 @@ public class CommonChannelInjector {
         if (pipeline.get(name) != null) return;
 
         channel.eventLoop().execute(() -> {
-
             if (nmsName.equals("decompress")) {
-
                 if (pipeline.get(nmsName) == null) {
 
                     // no decompress in pipeline, moving decoder further to real decoder
@@ -54,7 +52,6 @@ public class CommonChannelInjector {
                     return;
                 }
                 pipeline.addAfter(nmsName, name, handler);
-
             } else {
                 if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
                 if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);

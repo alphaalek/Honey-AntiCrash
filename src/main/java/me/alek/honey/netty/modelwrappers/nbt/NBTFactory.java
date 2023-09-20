@@ -23,17 +23,17 @@ public class NBTFactory {
         if (item == null || item.getType() == Material.AIR) {
             return null;
         }
-        Object nmsItem = ItemReflection.asNMSItem(item);
+        final Object nmsItem = ItemReflection.asNMSItem(item);
         if (nmsItem == null) {
             return null;
         }
-        NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES + 10);
-        ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
-        IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
+        final NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES + 10);
+        final ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
+        final IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))
                 .withTarget(nmsItem);
 
-        NBTBase<?, ?> base = structureModifier.readField(0);
+        final NBTBase<?, ?> base = structureModifier.readField(0);
         if (base == null) {
             return null;
         }
@@ -53,7 +53,7 @@ public class NBTFactory {
         if (type == null || type == NBTType.UNKNOWN) {
             return null;
         }
-        ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker = (ConstructorInvoker<? extends NBTBase<?,?>>) type.getConstructorInvoker();
+        final ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker = type.getConstructorInvoker();
         if (constructorInvoker == null) {
             return null;
         }
@@ -79,21 +79,21 @@ public class NBTFactory {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
-        ReflectStructure<Object, ?> reflectStructure = getNBTStructure(handle);
-        IStructureModifier<Byte> byteModifier = reflectStructure
+        final ReflectStructure<Object, ?> reflectStructure = getNBTStructure(handle);
+        final IStructureModifier<Byte> byteModifier = reflectStructure
                 .withType(byte.class)
                 .withTarget(handle);
-        byte type = byteModifier.readField("type", 0);
+        final byte type = byteModifier.readField("type", 0);
         if (type != 0) {
             return NBTType.getFromTypeId(type);
         }
 
-        IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
+        final IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = reflectStructure
             .withWeakType(List.class, Converters.<NBTBase<?, ?>>getNBTListConverter(owner))
             .withTarget(handle);
 
-        List<? extends NBTBase<?, ?>> list = listModifier.readFieldAndApplyMapping(0).getDelegatedList();
-        NBTBase<?, ?> value = list.get(0);
+        final List<? extends NBTBase<?, ?>> list = listModifier.readFieldAndApplyMapping(0).getDelegatedList();
+        final NBTBase<?, ?> value = list.get(0);
 
         if (value == null)
             return NBTType.UNKNOWN;
@@ -105,19 +105,17 @@ public class NBTFactory {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
-        ReflectStructure<Object, ?> reflectStructure = getNBTStructure(handle);
-        IStructureModifier<Byte> structureModifier = reflectStructure
+        final ReflectStructure<Object, ?> reflectStructure = getNBTStructure(handle);
+        final IStructureModifier<Byte> structureModifier = reflectStructure
                 .withType(byte.class)
                 .withTarget(handle);
         Validate.notNull(structureModifier);
 
-        byte typeId = structureModifier.invokeMethod("getTypeId", 0);
-        NBTType type = NBTType.getFromTypeId(typeId);
+        final byte typeId = structureModifier.invokeMethod("getTypeId", 0);
+        final NBTType type = NBTType.getFromTypeId(typeId);
 
         if (type == NBTType.LIST && !ignoreNestedLists) {
-
             switch (getListType(handle, owner)) {
-
                 case COMPOUND:
                     return NBTType.LISTOFCOMOUND;
                 case LIST:

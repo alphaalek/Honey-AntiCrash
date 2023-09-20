@@ -284,6 +284,4 @@ public class Converters {
     public static <K, T, D> MapConverter<K, T, D> getMapConverterWithoutCache(JavaConverter<T, D> converter, boolean controlDeclaring) {
         return new SimpleMapConverter<>(converter, controlDeclaring);
     }
-
-
 }

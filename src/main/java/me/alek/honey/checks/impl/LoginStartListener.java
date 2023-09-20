@@ -17,6 +17,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_8_R3.block.CraftSkull;
 import org.bukkit.entity.Player;
 
 import java.net.InetSocketAddress;

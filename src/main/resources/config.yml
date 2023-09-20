@@ -1,7 +1,7 @@
 
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
-#   + You are currently using the version 1.0-BETA-3
+#   + You are currently using the version 1.2
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you disover any errors or bugs, write to me on the discord server. (see below)
@@ -237,7 +237,7 @@ netty:
 
   h:
     enabled: true
-    threshold: 80000
+    threshold: 100000
     vls-amount: 1
 
   i:
@@ -352,7 +352,7 @@ position:
 
   b:
     enabled: true
-    max: 20
+    max: 25
     vls-amount: 5
 
   c:
@@ -569,18 +569,18 @@ packet-flood:
   a:
     max-per-interval: 500
     interval: 2300
-    vls-amount: 1
+    vls-amount: 2
 
   # common
   common:
     b:
       max-per-interval: 220
       interval: 900
-      vls-amount: 3
+      vls-amount: 4
     c:
       max-per-interval: 360
       interval: 1450
-      vls-amount: 2
+      vls-amount: 3
 
   # specific
   d:

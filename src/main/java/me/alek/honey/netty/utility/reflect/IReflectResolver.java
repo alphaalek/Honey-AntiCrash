@@ -1,6 +1,6 @@
 package me.alek.honey.netty.utility.reflect;
 
-public interface ReflectToucher<T> {
+public interface IReflectResolver<T> {
 
     Class<T> getType();
 

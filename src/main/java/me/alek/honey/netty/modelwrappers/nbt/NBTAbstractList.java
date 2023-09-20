@@ -41,7 +41,7 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     public void write(DataOutput output) throws Exception {
         output.writeByte((byte) getType().getTypeId());
         output.writeInt(size());
-        for (T value : getValue().getDelegatedList()) {
+        for (final T value : getValue().getDelegatedList()) {
             value.write(output);
         }
     }

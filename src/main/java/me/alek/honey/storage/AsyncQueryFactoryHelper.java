@@ -70,7 +70,7 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
                 return statement;
 
             } catch (Exception ex) {
-                Bukkit.getLogger().severe("SQL ERROR: " + query + " " + Arrays.toString(values));
+                Bukkit.getLogger().severe("SQL ERROR: (STATEMENT) " + query + " " + Arrays.toString(values));
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();
@@ -83,7 +83,7 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
                 return statement.executeQuery();
 
             } catch (Exception ex) {
-                Bukkit.getLogger().severe("SQL ERROR: " + query + " " + Arrays.toString(values));
+                Bukkit.getLogger().severe("SQL ERROR: (QUERY) " + query + " " + Arrays.toString(values));
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();
@@ -97,7 +97,7 @@ public class AsyncQueryFactoryHelper implements QueryFactory {
 
                 return rows > 0;
             } catch (Exception ex) {
-                Bukkit.getLogger().severe("SQL ERROR: " + query + " " + Arrays.toString(values));
+                Bukkit.getLogger().severe("SQL ERROR: (INSERT) " + query + " " + Arrays.toString(values));
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();

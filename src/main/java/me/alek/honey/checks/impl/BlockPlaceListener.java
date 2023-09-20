@@ -17,6 +17,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.utility.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -63,8 +64,13 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
     public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
 
-        if (blockPosition.equals(WrappedBlockPosition.ORIGIN) || blockPosition.equals(WrappedBlockPosition.DEFAULT))
+        // check if the block position is close to the origin block position, just ignore if it is
+        if (Locations.calculate3DDistance(
+                blockPosition.toLocation(player.getWorld()),
+                WrappedBlockPosition.ORIGIN.toLocation(player.getWorld())
+        ) < 10) {
             return ResponseBuilder.SUCCESS;
+        }
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
@@ -84,7 +90,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         if (distance > maxDistance || distance == -1) {
 
             // let's now check the distance to the recent server locations, and see if that is also way off
-            if (distance != -1 && !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(player, blockPosition.toLocation(player.getWorld()), maxDistance)) {
+            if (!PositionListener.isAnyLatelyTeleportationLocationsCloseTo(player, blockPosition.toLocation(player.getWorld()), maxDistance)) {
 
                 // add the distance to the development data
                 developmentData.addPoint("BlockPos", blockPosition);
@@ -161,14 +167,14 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ItemStack item = packet.getItem();
-                if (item == null) {
+                final ItemStack item = packet.getItem();
+                if (item == null)
                     return ResponseBuilder.SUCCESS;
-                }
-                Material material = item.getType();
-                if (
-                    material == Material.PISTON_MOVING_PIECE || material == Material.PISTON_EXTENSION
-                ) {
+
+                final Material material = item.getType();
+
+                if (material == Material.PISTON_MOVING_PIECE
+                        || material == Material.PISTON_EXTENSION) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -182,7 +188,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public String getDescription() {
-            return "Placing illegal block";
+            return "Placing illegal piston block";
         }
 
         @Override
@@ -203,7 +209,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
                 final float facingY = packet.getFacingY();
                 final float facingZ = packet.getFacingZ();
 
-                CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+                final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
                     developmentData.addPoint("Block Direction", placedBlockDirection);

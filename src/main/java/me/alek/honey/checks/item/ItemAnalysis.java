@@ -94,13 +94,13 @@ public class ItemAnalysis {
         if (item == null || item.getType() == Material.AIR) {
             return false;
         }
-        for (String ignoredPlayer : ignoredPlayers) {
+        for (final String ignoredPlayer : ignoredPlayers) {
             if (player.getName().equalsIgnoreCase(ignoredPlayer) || player.getUniqueId().toString().equalsIgnoreCase(ignoredPlayer)) {
                 return false;
             }
         }
-        NBTCompound nbt = NBTFactory.fromItem(item);
-        ItemCheckRegistry flaggedCheck = checkItem(item, nbt);
+        final NBTCompound nbt = NBTFactory.fromItem(item);
+        final ItemCheckRegistry flaggedCheck = checkItem(item, nbt);
         if (flaggedCheck == null) {
             return false;
         }
@@ -113,10 +113,10 @@ public class ItemAnalysis {
     }
 
     private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {
-        Material material = item.getType();
+        final Material material = item.getType();
 
         if (directAvailableMaterialChecks.containsKey(material)) {
-            for (ItemChecker checker : directAvailableMaterialChecks.get(material)) {
+            for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
 
                 if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                     return getRegistryFrom(checker);
@@ -124,10 +124,10 @@ public class ItemAnalysis {
             }
         }
         if (nbt != null) {
-            for (String key : nbt.getKeys()) {
+            for (final String key : nbt.getKeys()) {
 
                 if (directAvailableNBTChecks.containsKey(key)) {
-                    for (ItemChecker checker : directAvailableNBTChecks.get(key)) {
+                    for (final ItemChecker checker : directAvailableNBTChecks.get(key)) {
 
                         if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                             return getRegistryFrom(checker);
@@ -136,7 +136,7 @@ public class ItemAnalysis {
                 }
             }
         }
-        for (ItemChecker checker : globalAvailableChecks) {
+        for (final ItemChecker checker : globalAvailableChecks) {
 
             if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                 return getRegistryFrom(checker);
