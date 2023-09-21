@@ -121,6 +121,21 @@ public class ViolationService {
                 .flag(checkKey, handle, cancellablePacketObserver, violationName, amount, onViolation, onFlag, developmentData, ignoreSpike);
     }
 
+    public boolean flag(
+            Player player,
+            Object handle,
+            CancellablePacketObserver cancellablePacketObserver,
+            CheckKey violationContextKey,
+            CheckKey checkKey,
+            double amount,
+            String violationName,
+            ConfigurationOptions.VlSetting setting,
+            CheckContextContainer.DevelopmentData developmentData,
+            boolean ignoreSpike
+    ) {
+        return flag(player, handle, cancellablePacketObserver, violationContextKey, checkKey, amount, null, null, violationName, setting, developmentData, ignoreSpike);
+    }
+
     public void punish(Player player, String violationName) {
         try {
             punishLock.lock();
@@ -323,6 +338,7 @@ public class ViolationService {
             for (final AbstractPacketLimitHandler packetLimitHandler : packetLimitHandlerDelegateLookup.values()) {
                 packetLimitHandler.reload();
             }
+            if (cachedDefaultPacketLimitHandler != null) cachedDefaultPacketLimitHandler.reload();
         }
     }
 
@@ -441,9 +457,10 @@ public class ViolationService {
 
         @Override
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+            if (onFlag != null) onFlag.run();
+
             if ((this.amount = amount) < threshold) return false;
 
-            if (onFlag != null) onFlag.run();
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
         }
 
@@ -557,7 +574,7 @@ public class ViolationService {
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
             if (onViolation != null) onViolation.run();
 
-            cancellablePacketObserver.cancel();
+            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
             if (bufferIndex.get() > until && getSetting().isEnabled()) violate(handle, cancellablePacketObserver, violationName, null, developmentData);
             return true;
         }
@@ -631,20 +648,17 @@ public class ViolationService {
                 if (HoneyPlugin.get().getLoggerService().isDebug()) Bukkit.getLogger().info("DEBUG: ignoring packet spike for interval check " + violationName);
                 return false;
             }
-
             if (onFlag != null) onFlag.run();
 
             flagged.addAndGet(amount);
             if (flagged.get() < maxPerInterval) return false;
 
-            if (violatedForInterval) {
-                cancellablePacketObserver.cancel();
-                return true;
-            }
+            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+
+            if (violatedForInterval) return true;
 
             violatedForInterval = true;
             flaggedCopy = flagged.get();
-
             if (getSetting().isClearInterval()) clearInterval();
 
             return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);

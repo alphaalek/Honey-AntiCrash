@@ -282,8 +282,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND))
                 return ResponseBuilder.SUCCESS;
 
-            final ResponseContainer response = ResponseBuilder.inst().terminate().build();
-
             final UUID uuid = player.getUniqueId();
             if (!lastOnGroundMap.containsKey(uuid)) lastOnGroundMap.put(uuid, packet.onGround());
 
@@ -292,6 +290,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             lastOnGroundMap.put(uuid, onGround);
 
+            final ResponseContainer response = ResponseBuilder.inst().terminate().build();
             if (getSetting().isEnabled()) {
 
                 if (onGround != wasOnGround) {
@@ -593,7 +592,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey("Position.F", axis.ordinal()), null, 1, () -> packet.getContainer().cancel(), null, getCheckName(), getSetting(), container.getDevelopmentData(this), false);
+                            HoneyPlugin.get().getViolationService().flag(
+                                    player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()),
+                                    new ViolationService.CheckKey("Position.F", axis.ordinal()), new ViolationService.CheckKey(axis.name().toLowerCase()),
+                                    1, () -> packet.getContainer().cancel(), null, getCheckName(), getSetting(), container.getDevelopmentData(this), false);
                         }
                     }
                 }
@@ -676,7 +678,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
 
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, 1, null, null, "Position.H", getSetting(), container.getDevelopmentData(this), false);
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, new ViolationService.CheckKey("2d"), 1, "Position.H", getSetting(), container.getDevelopmentData(this), false);
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
@@ -686,14 +688,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     if (guessedDeltaY.get(uuid) == deltaY) {
 
                         final Material material = player.getEyeLocation().getBlock().getType();
-                        if (material == Material.STATIONARY_WATER || material == Material.WATER || material == Material.LAVA || material == Material.STATIONARY_LAVA) {
+                        if (material.name().contains("WATER") || material.name().contains("LAVA")) {
                             return response;
                         }
 
                         if (deltaY % 0.375 < 0.000001) {
                             return response;
                         }
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, 1, null, null, "Position.H", getSetting(), container.getDevelopmentData(this), false);
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, new ViolationService.CheckKey("y"), 1, "Position.H", getSetting(), container.getDevelopmentData(this), false);
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);

@@ -20,6 +20,10 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         this.controlDeclaring = controlDeclaring;
     }
 
+    public boolean isInvalid() {
+        return declaringMap == null;
+    }
+
     public SimpleMapConverter<K, V, T> apply(Map<K, V> map) {
         if (controlDeclaring) {
             declaringMap = map;

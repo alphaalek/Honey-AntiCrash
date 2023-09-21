@@ -63,6 +63,13 @@ public class NMSUtils {
         return networkManager.get(getPlayerConnection(player));
     }
 
+    public static Object getWorld(Player player) {
+        IStructureModifier<Object> craftWorldModifier = ReflectStructureCache.acquireStructure(getCraftWorldClass())
+                .withType(NMSUtils.getWorldServerClass()).withTarget(player.getWorld());
+
+        return craftWorldModifier.invokeMethod(0);
+    }
+
     public static Object getMinecraftServer() {
         IStructureModifier<Object> craftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftServerClass())
                 .withType(NMSUtils.getMinecraftServerClass()).withTarget(Bukkit.getServer());
@@ -153,7 +160,10 @@ public class NMSUtils {
     }
 
     public static Class<Object> getWorldServerClass() {
-        return getFuzzyClass("{nms}.WorldServer");
+        return getFuzzyClass("{nms}.server.level.WorldServer", "{nms}.WorldServer");
+    }
+    public static Class<Object> getWorldClass() {
+        return getFuzzyClass("{nms}.world.level.World", "{nms}.World");
     }
 
     public static Class<Object> getChunkProviderServerClass() {
@@ -223,6 +233,26 @@ public class NMSUtils {
 
     public static Class<Object> getSuggestionClass() {
         return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestion");
+    }
+
+    public static Class<Object> getMovingObjectPositionClass() {
+        return getFuzzyClass("{nms}.world.phys.MovingObjectPosition", "{nms}.MovingObjectPosition");
+    }
+
+    public static Class<Object> getMovingObjectPositionBlockClass() {
+        return getFuzzyClass("{nms}.world.phys.MovingObjectPositionBlock", "{nms}.MovingObjectPositionBlock");
+    }
+
+    public static Class<Object> getIBlockAccessClass() {
+        return getFuzzyClass("{nms}.world.level.IBlockAccess", "{nms}.IBlockAccess");
+    }
+
+    public static Class<Object> getRayTraceClass() {
+        return getFuzzyClass("{nms}.world.level.RayTrace", "{nms}.RayTrace");
+    }
+
+    public static Class<Object> getEntityClass() {
+        return getFuzzyClass("{nms}.world.entity.Entity", "{nms}.Entity");
     }
 
     public static boolean isFakeChannel(Channel channel) {

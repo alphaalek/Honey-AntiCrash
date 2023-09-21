@@ -141,7 +141,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         public void accept(int size) {
 
                             container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, size, null, null, getCheckName(), getSetting(), container.getDevelopmentData(TabB.this), false);
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, getCheckName(), getSetting(), container.getDevelopmentData(TabB.this), false);
                         }
                     });
                 }

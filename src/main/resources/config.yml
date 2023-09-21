@@ -353,9 +353,9 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 375
+    threshold: 330
     decay: 1250
-    decay-amount: 130
+    decay-amount: 120
     vls-amount: 3
 
   d:
@@ -443,6 +443,12 @@ block-interact:
     enabled: true
     vls-amount: 5
     max: 100
+
+  f:
+    enabled: true
+    max-per-interval: 20
+    interval: 1000
+    vls-amount: 3
 
 # |--- tab complete ---|
 tab-complete:

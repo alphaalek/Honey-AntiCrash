@@ -15,15 +15,31 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
+    private static final Map<UUID, Float> lastYawMap = new HashMap<>();
+    private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
+
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+        Location location = packetContainer.getPacket().getLocation();
+
+        if (location.getPitch() == 0 && location.getYaw() == 0) {
+            return false;
+        }
+        float lastYaw = getLastYawFor(player);
+        container.getStorage().putFloat(lastYaw);
+
+        lastYawMap.put(player.getUniqueId(), location.getYaw());
+        lastPitchMap.put(player.getUniqueId(), location.getPitch());
+
         return true;
     }
 
@@ -56,24 +72,40 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     @Override
     public void cleanup(Player player) {
-        RotationA.lastYawMap.remove(player.getUniqueId());
+        lastYawMap.remove(player.getUniqueId());
+        lastPitchMap.remove(player.getUniqueId());
+    }
+
+    public static Vector getLastDirectionVectorFor(Player player) {
+        final Vector vector = new Vector();
+        final double rotY = getLastPitchFor(player);
+
+        vector.setY(-Math.sin(Math.toRadians(rotY)));
+
+        final double xz = Math.cos(Math.toRadians(rotY));
+        final double rotX = getLastYawFor(player);
+        vector.setX(-xz * Math.sin(Math.toRadians(rotX)));
+
+        vector.setZ(xz * Math.cos(Math.toRadians(rotX)));
+
+        return vector;
+    }
+
+    public static float getLastYawFor(Player player) {
+        return lastYawMap.getOrDefault(player.getUniqueId(), 0f);
+    }
+
+    public static float getLastPitchFor(Player player) {
+        return lastPitchMap.getOrDefault(player.getUniqueId(), 0f);
     }
 
     public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final Map<UUID, Float> lastYawMap = new HashMap<>();
-
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
 
-            UUID uuid = player.getUniqueId();
-            if (!lastYawMap.containsKey(uuid)) lastYawMap.put(uuid, packet.getYaw());
-
-            container.getStorage().putFloat(lastYawMap.get(uuid));
-            lastYawMap.put(uuid, packet.getYaw());
-
             if (getSetting().isEnabled()) {
-                double deltaYaw = Locations.calculateYawDistance(lastYawMap.get(uuid), packet.getYaw());
+                final double deltaYaw = Locations.calculateYawDistance(container.getStorage().getFloat(0), packet.getYaw());
 
                 container.getDevelopmentData(this).addPoint("Delta Yaw", deltaYaw);
                 return ResponseBuilder.inst().flag(deltaYaw).build();
@@ -103,7 +135,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                float pitch = packet.getPitch();
+                final float pitch = packet.getPitch();
                 if (pitch < -90 || pitch > 90) {
                     container.getDevelopmentData(this).addPoint("Pitch", pitch);
                     return ResponseBuilder.inst().flag().build();
@@ -133,12 +165,10 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
+                final float yaw = packet.getYaw();
+                final float lastYaw = container.getStorage().getFloat(0);
 
-                float yaw = packet.getYaw();
-                float lastYaw = container.getStorage().getFloat(0);
-
-                float deltaYaw = Math.abs(lastYaw - yaw);
-
+                final float deltaYaw = Locations.calculateYawDistance(yaw, lastYaw);
                 if (deltaYaw != 0) {
                     container.getDevelopmentData(this).addPoint("Delta Yaw", deltaYaw);
                     return ResponseBuilder.inst().flag(deltaYaw).build();

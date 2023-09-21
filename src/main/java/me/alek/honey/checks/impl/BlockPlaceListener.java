@@ -10,33 +10,45 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
+import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
+import me.alek.honey.netty.utility.reflect.MethodInvoker;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
-public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBlockPlace> implements IPacketListener {
+public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInBlockPlace> packetContainer, CheckContextContainer container) {
-        final ItemStack itemInHand = player.getItemInHand();
-        return itemInHand.getType() != Material.AIR;
+    public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+        return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInBlockPlace> packetContainer) {
+    public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
 
     }
 
@@ -46,29 +58,31 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInBlockPlace> getVisitor() {
-        CheckVisitor<WrappedPlayInBlockPlace> visitor = new CheckVisitor<>();
-        visitor.visit(new BlockInteractA());
-        visitor.visit(new BlockInteractB());
-        visitor.visit(new BlockInteractC());
+    public CheckVisitor<WP> getVisitor() {
+        CheckVisitor<WP> visitor = new CheckVisitor<>();
+        visitor.visit(new BlockInteractA<>());
+        visitor.visit(new BlockInteractB<>());
+        visitor.visit(new BlockInteractC<>());
         if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
-            visitor.visit(new BlockInteractD());
+            visitor.visit(new BlockInteractD<>());
         }
+        visitor.visit(new BlockInteractF<>());
         return visitor;
     }
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
+        return () -> Arrays.asList(PacketType.Play.Client.BLOCK_PLACE, PacketType.Play.Client.USE_ITEM);
     }
 
     public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
 
-        // check if the block position is close to the origin block position, just ignore if it is
-        if (Locations.calculate3DDistance(
-                blockPosition.toLocation(player.getWorld()),
-                WrappedBlockPosition.ORIGIN.toLocation(player.getWorld())
-        ) < 10) {
+        // check if the block position is close to the origin block position, just ignore this packet if it is
+        final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
+        final Location lastPlayerLocation = PositionListener.getLastLocationFor(player);
+
+        if (Locations.calculate3DDistance(blockPosition.toLocation(player.getWorld()), originLocation) < 10
+         && Locations.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
             return ResponseBuilder.SUCCESS;
         }
 
@@ -84,7 +98,7 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         Location playerLocation = PositionListener.getLastLocationFor(player);
         if (playerLocation == null) playerLocation = player.getLocation();
 
-        double distance = blockPosition.distance(playerLocation);
+        final double distance = blockPosition.distance(playerLocation);
 
         // the distance is higher than the recent client location
         if (distance > maxDistance || distance == -1) {
@@ -101,10 +115,10 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         return ResponseBuilder.SUCCESS;
     }
 
-    public static class BlockInteractA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
+    public static class BlockInteractA<WP extends WrappedAbstractBlockInteraction<WP>> implements ViolationCheck, PacketCheck<WP> {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
@@ -129,14 +143,15 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         }
     }
 
-    public static class BlockInteractB implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractB<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
+                final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
 
-                ItemStack item = packet.getItem();
-                ItemStack itemInHand = player.getItemInHand();
+                final ItemStack item = blockPlacePacket.getItem();
+                final ItemStack itemInHand = player.getItemInHand();
 
                 if (ItemAnalysis.checkItem(player, item) || ItemAnalysis.checkItem(player, itemInHand)) {
                     return ResponseBuilder.inst().cancel().flag().build();
@@ -161,13 +176,14 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         }
     }
 
-    public static class BlockInteractC implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractC<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
+                final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
 
-                final ItemStack item = packet.getItem();
+                final ItemStack item = blockPlacePacket.getItem();
                 if (item == null)
                     return ResponseBuilder.SUCCESS;
 
@@ -197,17 +213,18 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         }
     }
 
-    public static class BlockInteractD implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractD<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
+                final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
 
-                final int placedBlockDirection = packet.getPlacedBlockDirection();
+                final int placedBlockDirection = blockPlacePacket.getPlacedBlockDirection();
 
-                final float facingX = packet.getFacingX();
-                final float facingY = packet.getFacingY();
-                final float facingZ = packet.getFacingZ();
+                final float facingX = blockPlacePacket.getFacingX();
+                final float facingY = blockPlacePacket.getFacingY();
+                final float facingZ = blockPlacePacket.getFacingZ();
 
                 final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
@@ -238,6 +255,140 @@ public class BlockPlaceListener extends AbstractPacketListener<WrappedPlayInBloc
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractD.class);
+        }
+    }
+
+    public static class BlockInteractF<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static int cachedInvokerIndex = -1;
+        private static ConstructorInvoker<Object> rayTraceInvoker;
+
+        private static Object blockCollisionOption;
+        private static Object fluidCollisionOption;
+
+        private boolean isValidBlockType(Material type) {
+            return type.name().contains("CHEST")
+                    || type.name().contains("ANVIL")
+                    || type.name().contains("WORKBENCH") // because of legacy material
+                    || type.name().contains("ENCHANTMENT_TABLE") // because of legacy material
+                    || type == Material.NOTE_BLOCK
+                    || type == Material.JUKEBOX
+                    || type == Material.HOPPER
+                    || type == Material.DISPENSER
+                    || type == Material.DROPPER
+                    || type == Material.BEACON;
+        }
+
+        static {
+            final Class<?>[] declaredClasses = NMSUtils.getRayTraceClass().getDeclaredClasses();
+            final Optional<Class<?>> blockCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("BlockCollisionOption")).findFirst();
+            final Optional<Class<?>> fluidCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("FluidCollisionOption")).findFirst();
+
+            if (blockCollisionOptionOptional.isPresent() && fluidCollisionOptionOptional.isPresent()) {
+                final Class<?> blockCollisionOptionClass = blockCollisionOptionOptional.get();
+                final Class<?> fluidCollisionOptionClass  = fluidCollisionOptionOptional.get();
+
+                try {
+                    blockCollisionOption = blockCollisionOptionClass.getDeclaredFields()[1].get(null);
+                    fluidCollisionOption = fluidCollisionOptionClass.getDeclaredFields()[0].get(null);
+
+                    rayTraceInvoker = Reflection.getConstructor(NMSUtils.getRayTraceClass(),
+                            NMSUtils.getVec3DClass(), NMSUtils.getVec3DClass(), blockCollisionOptionClass, fluidCollisionOptionClass, NMSUtils.getEntityClass());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+        private Block getTargetBlock(Player player, int maxDistance) {
+            final Vector eyeUnitDirection = RotationListener.getLastDirectionVectorFor(player);
+            final Location eyeLocation = player.getEyeLocation();
+
+            final Vector dir = eyeUnitDirection.clone().normalize().multiply(maxDistance);
+
+            final Vector vec3D1 = new Vector(eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ());
+            final Vector vec3D2 = new Vector(eyeLocation.getX() + dir.getX(), eyeLocation.getY() + dir.getY(), eyeLocation.getZ() + dir.getZ());
+
+            final JavaConverter<Object, Vector> vec3DConverter = Converters.getVec3DConverter();
+            final Object vec3D1converted = vec3DConverter.convertDeclaring(vec3D1);
+            final Object vec3D2converted = vec3DConverter.convertDeclaring(vec3D2);
+
+            final Object world = NMSUtils.getWorld(player);
+
+            Object movingObjectPosition = null;
+            if (Protocol.getProtocol().isOlderThan(Protocol.v1_14)) {
+                final IStructureModifier<Object> movingObjectPositionModifier = ReflectStructureCache.acquireStructure(NMSUtils.getWorldClass())
+                        .withType(NMSUtils.getMovingObjectPositionClass()).withTarget(world);
+
+                movingObjectPosition = movingObjectPositionModifier.invokeMethod(1, vec3D1converted, vec3D2converted);
+            }
+            else {
+                final IStructureModifier<Object> movingObjectPositionModifier = ReflectStructureCache.acquireStructure(NMSUtils.getIBlockAccessClass())
+                        .withType(NMSUtils.getMovingObjectPositionBlockClass()).withTarget(world);
+
+                if (cachedInvokerIndex == -1) {
+                    synchronized (this) {
+                        int index = 0;
+                        for (final MethodInvoker<?> invoker : movingObjectPositionModifier.getInvokers()) {
+                            final Class<?>[] parameters = invoker.getMethod().getParameterTypes();
+
+                            if (parameters.length == 1 && parameters[0] == NMSUtils.getRayTraceClass()) {
+                                cachedInvokerIndex = index;
+                                break;
+                            }
+                            index++;
+                        }
+                    }
+                }
+                if (blockCollisionOption != null && fluidCollisionOption != null) {
+                    final Object raytrace = rayTraceInvoker.invoke(
+                            vec3D1converted, vec3D2converted, blockCollisionOption, fluidCollisionOption, null);
+
+                    movingObjectPosition = movingObjectPositionModifier.invokeMethod(cachedInvokerIndex, raytrace);
+                    Bukkit.broadcastMessage(movingObjectPosition + "");
+                }
+            }
+            if (movingObjectPosition == null) return null;
+
+            final IStructureModifier<Vector> vec3DModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMovingObjectPositionBlockClass())
+                    .withType(NMSUtils.getVec3DClass(), Converters.getVec3DConverter()).withTarget(movingObjectPosition);
+
+            final Vector vector = vec3DModifier.readField(0);
+            if (vector == null) return null;
+
+            return vector.toLocation(player.getWorld()).getBlock();
+        }
+
+        @Override
+        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled()) {
+
+                final WrappedBlockPosition position = packet.getBlockPosition();
+                if (position != null) {
+                    final Material type = position.toLocation(player.getWorld()).getBlock().getType();
+                    Bukkit.broadcastMessage("type: " + type);
+                    if (isValidBlockType(type)) {
+                        Bukkit.broadcastMessage("valid " + getSetting().getMaxPerInterval());
+                        return ResponseBuilder.inst().flag().build();
+                    }
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getCheckName() {
+            return "BlockInteract.F";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Interacting too quickly with tile entities";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractF.class);
         }
     }
 }

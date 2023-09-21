@@ -107,7 +107,7 @@ public class Reflection {
         try {
             return getCanonicalClassWithException(name);
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection fejl " + name);
+            throw new RuntimeException("Reflection fejl (canonical class): " + name);
         }
     }
 

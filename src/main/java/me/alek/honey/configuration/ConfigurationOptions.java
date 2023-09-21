@@ -831,6 +831,12 @@ public class ConfigurationOptions {
                 MAX = file.getInt("block-interact.e.max", 15);
             }
         }
+
+        @Setting
+        @Violation(prefixPaths = "block-interact.f", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class BlockInteractF extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
     }
 
     @Setting
@@ -889,6 +895,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.f", packetHandler = PacketLimitHandlerType.INTERVAL)
+        @Keyed(keys = {"horizontal_1", "horizontal_2", "vertical"})
         public static class PositionF extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
@@ -901,6 +908,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.h", packetHandler = PacketLimitHandlerType.INTERVAL)
+        @Keyed(keys = {"2d", "y"})
         public static class PositionH extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }

@@ -49,7 +49,7 @@ public class TrackCommand implements CommandImpl {
                 }
                 sender.sendMessage("");
                 sender.sendMessage(" §8What is this showing?");
-                sender.sendMessage(" §7Type §e/honey stq§7 to see information.");
+                sender.sendMessage(" §7Type §e/honey stq§7 to see more information.");
 
                 break;
             case "checks":

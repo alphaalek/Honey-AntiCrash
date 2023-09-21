@@ -9,14 +9,20 @@ public class Locations {
     }
 
     public static boolean compare3DLocation(Location loc1, Location loc2) {
+        if (loc1 == null || loc2 == null) return loc1 == loc2;
+
         return compare(loc1.getX(), loc2.getX(), loc1.getY(), loc2.getY(), loc1.getZ(), loc2.getZ());
     }
 
     public static boolean compare3DBlockLocation(Location loc1, Location loc2) {
-        return compare((int) loc1.getX(), (int) loc2.getX(), (int) loc1.getY(), (int) loc2.getY(), (int) loc1.getZ(), (int) loc2.getZ());
+        if (loc1 == null || loc2 == null) return loc1 == loc2;
+
+        return compare(loc1.getBlockX(), loc2.getBlockX(), loc1.getBlockY(), loc2.getBlockY(), loc1.getBlockZ(), loc2.getBlockZ());
     }
 
     public static boolean compareLocation(Location loc1, Location loc2) {
+        if (loc1 == null || loc2 == null) return loc1 == loc2;
+
         if (!compare3DLocation(loc1, loc2)) {
             return false;
         }
@@ -25,6 +31,7 @@ public class Locations {
 
     public static boolean checkInvalidLocation(Location... locations) {
         for (Location location : locations) {
+            if (location == null) continue;
 
             if (NumberConversions.isInvalid(new double[]{location.getX(), location.getZ(), location.getY()}) || NumberConversions.isInvalid(new float[]{location.getPitch(), location.getPitch()})) {
                 return true;
@@ -34,6 +41,8 @@ public class Locations {
     }
 
     public static double calculateYDistance(Location loc1, Location loc2) {
+        if (loc1 == null || loc2 == null) return 0d;
+
         if (checkInvalidLocation(loc1, loc2)) {
             return 1_000_000;
         }
@@ -48,6 +57,8 @@ public class Locations {
     }
 
     public static double calculate2DDistance(Location loc1, Location loc2) {
+        if (loc1 == null || loc2 == null) return 0d;
+
         if (checkInvalidLocation(loc1, loc2)) {
             return 1_000_000;
         }
@@ -58,6 +69,8 @@ public class Locations {
     }
 
     public static double calculate3DDistance(Location loc1, Location loc2) {
+        if (loc1 == null || loc2 == null) return 0d;
+
         final double distance2D = calculate2DDistance(loc1, loc2);
         if (distance2D >= 1_000_000) {
             return 1_000_000;

@@ -88,15 +88,15 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
         public ResponseContainer check(Player player, WrappedPlayInUseEntity packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                Optional<Vector> targetVectorOptional = packet.getTarget();
+                final Optional<Vector> targetVectorOptional = packet.getTarget();
                 if (targetVectorOptional.isPresent()) {
 
-                    Vector targetVector = targetVectorOptional.get();
-                    double x = targetVector.getX();
-                    double y = targetVector.getY();
-                    double z = targetVector.getZ();
+                    final Vector targetVector = targetVectorOptional.get();
+                    final double x = targetVector.getX();
+                    final double y = targetVector.getY();
+                    final double z = targetVector.getZ();
 
-                    CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+                    final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
                     developmentData.addPoint("Vector X", x);
                     developmentData.addPoint("Vector Y", y);
@@ -106,17 +106,11 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
 
-                    double maxX = ConfigurationOptions.UseEntity.UseEntityB.MAX_X / 2;
-                    double maxY = ConfigurationOptions.UseEntity.UseEntityB.MAX_Y;
-                    double maxZ = ConfigurationOptions.UseEntity.UseEntityB.MAX_Z / 2;
+                    final double maxX = ConfigurationOptions.UseEntity.UseEntityB.MAX_X / 2;
+                    final double maxY = ConfigurationOptions.UseEntity.UseEntityB.MAX_Y;
+                    final double maxZ = ConfigurationOptions.UseEntity.UseEntityB.MAX_Z / 2;
 
-                    if (Math.abs(y) > maxY) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
-                    if (Math.abs(x) > maxX) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
-                    if (Math.abs(z) > maxZ) {
+                    if (Math.abs(y) > maxY || Math.abs(x) > maxX || Math.abs(z) > maxZ) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }

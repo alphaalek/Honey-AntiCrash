@@ -16,7 +16,7 @@ public class MethodInvoker<T> implements IReflectResolver<T> {
             return invokeWithException(instance, parameters);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection fejl");
+            throw new RuntimeException("Reflection fejl (method invoke): " + method.getName() + " " + ex.getMessage());
         }
     }
 

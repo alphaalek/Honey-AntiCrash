@@ -37,12 +37,11 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             Function<HoneyCheck, ResponseContainer> responseGeneratorFunction,
             WP packet,
             CancellablePacketObserver cancellablePacketObserver,
-            CheckContextContainer checkContextContainer
-    ) {
+            CheckContextContainer checkContextContainer) {
         AtomicInteger skipping = null;
 
         for (HoneyCheck check : checks) {
-            CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
+            final CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
 
             // add information to the development data
             if (player != null) {
@@ -58,7 +57,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
             // do the check and get the response, and register the time taken to the check handle tracker
             HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getCheckName());
-            ResponseContainer response = responseGeneratorFunction.apply(check);
+            final ResponseContainer response = responseGeneratorFunction.apply(check);
             HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getCheckName());
 
             // get the setting for this check
@@ -90,9 +89,9 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     if (response.TERMINATE) return;
                     continue;
                 }
-                ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getCheckName());
+                final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getCheckName());
 
-                HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.FLAG, response.ON_VIOLATION, response.ON_FLAG, check.getCheckName(), setting, developmentData, response.IGNORE_SPIKE);
+                HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_VIOLATION, response.ON_FLAG, check.getCheckName(), setting, developmentData, response.IGNORE_SPIKE);
             }
             if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
                 HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);
@@ -105,7 +104,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     public void check(Player player, ByteBuf byteBuf, CheckContextContainer checkContextContainer) {
-        CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(byteBuf);
+        final CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(byteBuf);
         handleCommonCheck(player, null, (check) -> {
             try {
                 return ((DecodeCheck)check).check(player, byteBuf, checkContextContainer);
@@ -118,7 +117,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
     @SuppressWarnings("unchecked")
     public void check(Player player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer) throws Exception {
-        CancellablePacketObserver cancellablePacketObserver = new CancellablePacketDelegateImpl(packetContainer);
+        final CancellablePacketObserver cancellablePacketObserver = new CancellablePacketDelegateImpl(packetContainer);
         handleCommonCheck(player, packetContainer.getHandle(), (check) -> {
             try {
                 return ((PacketCheck<WP>)check).check(player, packetContainer.getPacket(), checkContextContainer);

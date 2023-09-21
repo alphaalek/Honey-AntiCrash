@@ -18,9 +18,13 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
         this.delegatedCollection = collection2;
     }
 
+    public boolean isInvalid() {
+        return declaringCollection == null || delegatedCollection == null;
+    }
+
     protected void checkCollections() {
         if (declaringCollection == null) {
-            throw new RuntimeException("No delegated list for wrapper list");
+            return;
         }
         int delegatedSize = delegatedCollection.size();
         int declaringSize = declaringCollection.size();

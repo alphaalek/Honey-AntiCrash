@@ -70,7 +70,7 @@ public class Converters {
                     return null;
                 }
                 ReflectStructure<Object, ?> blockPositionStructure = ReflectStructureCache.acquireStructure(NMSUtils.getBaseBlockPositionClass());
-                IStructureModifier<Integer> intStructure = blockPositionStructure.withType(int.class).withTarget(delegate);
+                IStructureModifier<Integer> intStructure = blockPositionStructure.asInt().withTarget(delegate);
 
                 if (intStructure.fieldSize() < 3) {
                     throw new RuntimeException("Reflection fejl");
@@ -89,6 +89,41 @@ public class Converters {
                 try {
                     return blockPositionConstructor.invoke(
                             blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+                } catch (Exception ex) {
+                    throw new RuntimeException("Reflection fejl");
+                }
+            }
+        });
+    }
+
+    public static JavaConverter<Object, Vector> getVec3DConverter() {
+        return getConverter(Vector.class, (clazz) -> new JavaConverter<Object, Vector>() {
+            @Override
+            public Vector convertDelegate(Object delegate, Object... params) {
+                if (delegate == null) {
+                    return null;
+                }
+
+                ReflectStructure<Object, ?> vec3DModifier = ReflectStructureCache.acquireStructure(NMSUtils.getVec3DClass());
+                IStructureModifier<Double> doubleModifier = vec3DModifier.asDouble().withTarget(delegate);
+
+                if (doubleModifier.fieldSize() < 3) {
+                    throw new RuntimeException("Reflection fejl");
+                }
+
+                return new Vector(doubleModifier.readField(0), doubleModifier.readField(1), doubleModifier.readField(2));
+            }
+
+            @Override
+            public Object convertDeclaring(Vector object) {
+                if (object == null) {
+                    return null;
+                }
+                ConstructorInvoker<Object> blockPositionConstructor = Reflection.getConstructor(
+                        NMSUtils.getVec3DClass(), double.class, double.class, double.class);
+                try {
+                    return blockPositionConstructor.invoke(
+                            object.getX(), object.getY(), object.getZ());
                 } catch (Exception ex) {
                     throw new RuntimeException("Reflection fejl");
                 }
@@ -175,47 +210,6 @@ public class Converters {
                 return enumEntityUseActionClass.getEnumConstants()[object.ordinal()];
             }
         });
-    }
-
-    public static JavaConverter<Object, Vector> getVector3DConverter() {
-        return getConverter(Vector.class, (clazz) -> new JavaConverter<Object, Vector>() {
-
-            private final Class<Object> vec3DClass = NMSUtils.getVec3DClass();
-
-            @Override
-            public Vector convertDelegate(Object delegate, Object... params) {
-                if (delegate == null) return null;
-
-                IStructureModifier<Double> modifier = ReflectStructureCache.acquireStructure(delegate.getClass())
-                        .asDouble()
-                        .withTarget(delegate);
-
-                double x = modifier.readField(0);
-                double y = modifier.readField(1);
-                double z = modifier.readField(2);
-
-                return new Vector(x, y ,z);
-            }
-
-            @Override
-            public Object convertDeclaring(Vector vector) {
-                if (vector == null) return null;
-
-                ConstructorInvoker<Object> vectorConstructor = new ConstructorInvoker<>(vec3DClass);
-
-                double x = vector.getX();
-                double y = vector.getY();
-                double z = vector.getZ();
-
-                try {
-                    return vectorConstructor.invokeWithException(x, y, z);
-
-                } catch (Exception ex) {
-                    return null;
-                }
-            }
-        });
-
     }
 
     public static JavaConverter<Object, WrappedChunkCoordIntPair> getChunkCoordIntConverter() {

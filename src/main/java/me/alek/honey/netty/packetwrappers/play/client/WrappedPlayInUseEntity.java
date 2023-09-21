@@ -25,14 +25,14 @@ public class WrappedPlayInUseEntity extends WrappedPacket<WrappedPlayInUseEntity
     }
 
     public Optional<Vector> getTarget() {
-        Vector vector = getContainer().getModifier(vec3DClass, Converters.getVector3DConverter()).readField(0);
+        Vector vector = getContainer().getModifier(vec3DClass, Converters.getVec3DConverter()).readField(0);
         return Optional.ofNullable(vector);
     }
 
     public void setTarget(Vector vector) {
         if (getAction() != EnumEntityUseAction.INTERACT_AT) return;
 
-        IStructureModifier<Vector> modifier = getContainer().getModifier(vec3DClass, Converters.getVector3DConverter());
+        IStructureModifier<Vector> modifier = getContainer().getModifier(vec3DClass, Converters.getVec3DConverter());
         modifier.writeField(0, vector);
     }
 

@@ -8,6 +8,7 @@ import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.IReflectResolver;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -301,7 +302,7 @@ public class ReflectStructure<T, C> {
             if (!hasField(index)) {
                 return null;
             }
-            if (converter == null) { // hvad skal den dog apply til?
+            if (converter == null) { // what should it apply to?
                 return readField(index);
             }
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
@@ -309,15 +310,29 @@ public class ReflectStructure<T, C> {
 
                 T originalValue = accessor.get(handle);
                 if (converter instanceof MapConverter && originalValue instanceof Map) {
-                    ((MapConverter<K, V, R>)converter).apply((Map<K, V>) originalValue);
+                    MapConverter<K, V, R> mapConverter = (MapConverter<K, V, R>) converter;
+                    mapConverter.apply((Map<K, V>) originalValue);
+
+                    if (mapConverter.isInvalid()) {
+                        return null;
+                    }
                 }
                 if (converter instanceof ListConverter && originalValue instanceof List) {
-                    ((ListConverter<V, R>)converter).apply((List<V>) originalValue);
+                    ListConverter<V, R> listConverter = (ListConverter<V, R>) converter;
+                    listConverter.apply((List<V>) originalValue);
+
+                    if (listConverter.isInvalid()) {
+                        return null;
+                    }
                 }
                 if (converter instanceof SetConverter && originalValue instanceof Set) {
-                    ((SetConverter<V, R>)converter).apply((Set<V>) originalValue);
-                }
+                    SetConverter<V, R> setConverter = (SetConverter<V, R>) converter;
+                    setConverter.apply((Set<V>) originalValue);
 
+                    if (setConverter.isInvalid()) {
+                        return null;
+                    }
+                }
                 return converter.convertDelegate(originalValue);
             }
             return null;
@@ -349,7 +364,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(index, params);
             } catch (Exception ex) {
-                throw new RuntimeException("Reflection fejl");
+                throw new RuntimeException("Reflection fejl (method invoke): " + ex.getMessage());
             }
         }
 
@@ -358,7 +373,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(name, index, params);
             } catch (Exception ex) {
-                throw new RuntimeException("Reflection fejl");
+                throw new RuntimeException("Reflection fejl (method invoke): " + ex.getMessage());
             }
         }
 

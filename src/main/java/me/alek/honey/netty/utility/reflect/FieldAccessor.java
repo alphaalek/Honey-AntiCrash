@@ -20,7 +20,7 @@ public class FieldAccessor<T> implements IReflectResolver<T> {
             return (T) field.get(object);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection fejl");
+            throw new RuntimeException("Reflection fejl (field get): " + field.getName() + " " + ex.getMessage());
         }
     }
 
@@ -38,7 +38,7 @@ public class FieldAccessor<T> implements IReflectResolver<T> {
         try {
             field.set(object, value);
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection fejl");
+            throw new RuntimeException("Reflection fejl (field set): " + field.getName() + " " + ex.getMessage());
         }
     }
 
