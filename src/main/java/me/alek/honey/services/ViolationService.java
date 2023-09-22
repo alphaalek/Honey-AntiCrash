@@ -16,15 +16,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public class ViolationService {
 
@@ -322,6 +320,8 @@ public class ViolationService {
 
         public synchronized boolean flag(CheckKey checkKey, Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             AbstractPacketLimitHandler delegate = null;
+            // if (violationName.equals("Netty.K"))
+                // Bukkit.getLogger().info(packetLimitHandlerDelegateLookup.get(checkKey) + "");
             if (checkKey == null || !packetLimitHandlerDelegateLookup.containsKey(checkKey)) {
                 if (packetLimitHandlerDelegateLookup.size() == 0) return false;
 
@@ -366,9 +366,6 @@ public class ViolationService {
         }
 
         public synchronized boolean violate(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
-            if (onViolation != null) onViolation.run();
-            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
-
             if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());
@@ -388,6 +385,9 @@ public class ViolationService {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            if (onViolation != null) onViolation.run();
+            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+
             if (violations.get() < getSetting().getVlsAmount()) return false;
 
             punish(getPlayer(), violationName);
@@ -677,6 +677,7 @@ public class ViolationService {
         private double threshold;
         private double until;
 
+        private double amount;
         private boolean currentlyCancelling;
         private long intervalStart = System.currentTimeMillis();
 
@@ -687,20 +688,23 @@ public class ViolationService {
         @Override
         public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             if (currentlyCancelling) {
+                Bukkit.getLogger().info(getPlayer().getName() + ": cancelled packet");
 
                 if (System.currentTimeMillis() - intervalStart > interval) {
+                    Bukkit.getLogger().info(getPlayer().getName() + ": resetting cancelling");
                     intervalStart = System.currentTimeMillis();
                     currentlyCancelling = false;
                 }
                 else cancellablePacketObserver.cancel();
             }
-            if (amount > threshold) {
+            if ((this.amount = amount) > threshold) {
+                if (!currentlyCancelling) Bukkit.getLogger().info(getPlayer().getName() + ": starting cancelling " + amount);
                 intervalStart = System.currentTimeMillis();
-                currentlyCancelling = true;
 
-                if (amount > until) {
+                if (amount > until && !currentlyCancelling) {
                     violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
                 }
+                currentlyCancelling = true;
                 return true;
             }
             return false;
@@ -718,6 +722,10 @@ public class ViolationService {
             interval = getSetting().getInterval();
 
             super.reload();
+        }
+
+        public double getAmount() {
+            return amount;
         }
     }
 }

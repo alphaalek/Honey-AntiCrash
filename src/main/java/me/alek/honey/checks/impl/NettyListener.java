@@ -54,8 +54,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new NettyA<>());
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
-        visitor.visit(new NettyTrackerChecks.NettyJ<>());
-        visitor.visit(new NettyTrackerChecks.NettyK<>());
+        // visitor.visit(new NettyTrackerChecks.NettyJ<>());
+        // visitor.visit(new NettyTrackerChecks.NettyK<>());
         return visitor;
     }
 
@@ -72,6 +72,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public void cleanup(Player player) {
         NettyH.packetDecoderMap.remove(player.getUniqueId());
+        NettyTrackerChecks.NettyJ.lastFlagMap.remove(player.getUniqueId());
     }
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
@@ -273,6 +274,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+            private static final Map<UUID, Double> lastFlagMap = new HashMap<>();
+
             private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
                 final StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
 
@@ -294,24 +297,28 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
-                    if (trackers[0].getTrackerSize() > 5) {
+                    if (trackers[0].getActiveTrackerSize() > 5) {
 
                         final ResponseBuilder builder = ResponseBuilder.inst();
+                        int index = 0;
                         for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
 
-                            int index = 0;
-                            for (final double timeToAverageQuotient : getStatisticsAfterFirst(player, tracker)) {
+                            final double timeToAverageQuotient = tracker.getStatistic(player, 0);
 
-                                if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
-                                    container.getDevelopmentData(this).addPoint("Quotient", timeToAverageQuotient);
-                                    container.getDevelopmentData(this).addPoint("Statistic Index", index + " (" + keys[index] + ")");
-
+                            if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
+                                if (lastFlagMap.containsKey(player.getUniqueId())
+                                        && lastFlagMap.get(player.getUniqueId()) == timeToAverageQuotient) {
+                                    packet.getContainer().cancel();
+                                } else {
                                     builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                            new ViolationService.CheckKey(keys[index])).build());
+                                        new ViolationService.CheckKey(keys[index])
+                                    ).onViolation(() -> tracker.updateStatistic(player, 0)).build());
+
+                                    lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
                                     break;
                                 }
-                                index++;
                             }
+                            index++;
                         }
                         final ResponseContainer responseContainer = builder.build();
                         if (!responseContainer.SUB_CONTAINERS.isEmpty())
@@ -323,7 +330,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             @Override
             public String getCheckName() {
-                return "Netty.J";
+                return "Netty.J (experimental)";
             }
 
             @Override
@@ -346,14 +353,17 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
-                    if (trackers[0].getTrackerSize() > 5) {
+                    if (trackers[0].getActiveTrackerSize() > 5) {
 
                         final ResponseBuilder builder = ResponseBuilder.inst();
                         int index = 0;
                         for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
-                            builder.add(
-                                ResponseBuilder.inst().flag(tracker.getStatisticDirectly(player, 0)).withViolationKey(
-                                    new ViolationService.CheckKey(keys[index++])).build());
+
+                            if (tracker.getStatisticProvider(player).getTimeSinceLastUpdate(0) > 500) {
+                                builder.add(
+                                        ResponseBuilder.inst().flag(tracker.getStatistic(player, 0)).withViolationKey(
+                                                new ViolationService.CheckKey(keys[index++])).build());
+                            }
                         }
                         return builder.build();
                     }
@@ -363,7 +373,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             @Override
             public String getCheckName() {
-                return "Netty.K";
+                return "Netty.K (experimental)";
             }
 
             @Override

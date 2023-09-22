@@ -15,6 +15,8 @@ public interface HandleTracker<I extends Number, T> {
 
     int getTrackerSize();
 
+    int getActiveTrackerSize();
+
     int getOldTrackerSize();
 
     double getAverage();

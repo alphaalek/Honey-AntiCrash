@@ -188,8 +188,14 @@ public class ConfigurationOptions {
                         // check if this value is not present or if this field is not an interval check setting
                         if (value == null) continue;
 
-                        if (value.getClass() == Integer.class) {
-                            field.setInt(setting, file.getInt(configPath));
+                        if (value.getClass() == Double.class) {
+                            field.setDouble(setting, file.getDouble(configPath));
+                        }
+                        else if (value.getClass() == Integer.class) {
+                            if (field.getType() == Double.class)
+                                field.setDouble(setting, file.getInt(configPath));
+                            else
+                                field.setInt(setting, file.getInt(configPath));
                         }
                         else if (value.getClass() == Boolean.class) {
                             field.setBoolean(setting, file.getBoolean(configPath));
@@ -372,9 +378,9 @@ public class ConfigurationOptions {
         @VlSettingImpl(VlSettingImplType.VLS_AMOUNT)
         public int vlsAmount = 1;
         @VlSettingImpl(VlSettingImplType.THRESHOLD)
-        public int threshold;
+        public double threshold;
         @VlSettingImpl(VlSettingImplType.UNTIL)
-        public int until;
+        public double until;
         @VlSettingImpl(VlSettingImplType.DECAY)
         public int decay;
         @VlSettingImpl(VlSettingImplType.DECAY_AMOUNT)

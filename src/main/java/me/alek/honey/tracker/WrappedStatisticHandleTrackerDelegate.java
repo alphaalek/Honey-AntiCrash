@@ -2,14 +2,14 @@ package me.alek.honey.tracker;
 
 import java.util.*;
 
-public class StatisticWrappedHandleTrackerDelegate<T> implements StatisticHandleTracker<Double, T> {
+public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandleTracker<Double, T> {
 
     private final int[] statisticInSecondsIndices;
     private final Map<T, StatisticProvider> statisticProviders = new HashMap<>();
 
     private final HandleTracker<Double, T> handleTracker;
 
-    public StatisticWrappedHandleTrackerDelegate(HandleTracker<Double, T> handleTracker, int... statisticInSecondsIndices) {
+    public WrappedStatisticHandleTrackerDelegate(HandleTracker<Double, T> handleTracker, int... statisticInSecondsIndices) {
         this.handleTracker = handleTracker;
         this.statisticInSecondsIndices = statisticInSecondsIndices;
     }
@@ -59,7 +59,7 @@ public class StatisticWrappedHandleTrackerDelegate<T> implements StatisticHandle
 
     @Override
     public void updateStatistic(T key, int index) {
-        getStatisticProvider(key).checkUpdateStatistic(index);
+        getStatisticProvider(key).forceUpdateStatistic(index);
     }
 
     private void forceUpdateStatistic(T key, int index) {
@@ -99,6 +99,11 @@ public class StatisticWrappedHandleTrackerDelegate<T> implements StatisticHandle
     @Override
     public int getTrackerSize() {
         return handleTracker.getTrackerSize();
+    }
+
+    @Override
+    public int getActiveTrackerSize() {
+        return handleTracker.getActiveTrackerSize();
     }
 
     @Override

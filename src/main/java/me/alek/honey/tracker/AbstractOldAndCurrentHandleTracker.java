@@ -21,7 +21,7 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
     public AbstractOldAndCurrentHandleTracker(long updateInterval, int... statisticInSecondsIndices) {
         super(updateInterval);
 
-        this.statisticHandleTracker = new StatisticWrappedHandleTrackerDelegate<>(this, statisticInSecondsIndices);
+        this.statisticHandleTracker = new WrappedStatisticHandleTrackerDelegate<>(this, statisticInSecondsIndices);
     }
 
     public AbstractOldAndCurrentHandleTracker(long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
@@ -123,6 +123,13 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
 
     public int getTrackerSize() {
         return currentTimeTrackerMap.size();
+    }
+
+    @Override
+    public int getActiveTrackerSize() {
+        // filter all statistic trackers where they haven't got more than 15 registered time spans
+        return (int) currentTimeTrackerMap.keySet().stream()
+                .filter((uuid) -> getStatisticProvider(Bukkit.getPlayer(uuid)).getTotalMeanSize(0) > 15).count();
     }
 
     public double getAverageWithout(Player player) {

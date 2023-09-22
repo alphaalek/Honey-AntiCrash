@@ -60,7 +60,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             final ResponseContainer responses = responseGeneratorFunction.apply(check);
             HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getCheckName());
 
-            final List<ResponseContainer> responsesList = responses.SUB_CONTAINERS;
+            final List<ResponseContainer> responsesList = new ArrayList<>(responses.SUB_CONTAINERS);
             responsesList.add(responses);
 
             boolean terminated = false;

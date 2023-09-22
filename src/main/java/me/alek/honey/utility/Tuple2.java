@@ -67,21 +67,7 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable, Cloneable
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Tuple2<?, ?> tuple2 = (Tuple2<?, ?>) o;
-        if (t1 == null) {
-            if (tuple2.t1 != null) {
-                return false;
-            }
-        }
-        if (t2 == null) {
-            if (tuple2.t2 != null) {
-                return false;
-            }
-        }
-        if (t1 != null && t2 != null) {
-            return t1.equals(tuple2.t1) && t2.equals(tuple2.t2);
-        }
-        return t1 == tuple2.t1 && t2 == tuple2.t2;
+        return hashCode() == o.hashCode();
     }
 
     @Override

@@ -250,14 +250,14 @@ netty:
 
   j:
     enabled: true
-    max-quotient: 7.5
-    vls-amount: 2
+    max-quotient: 15
+    vls-amount: 4
 
   k:
     enabled: true
-    interval: 600
-    threshold: 5.0
-    until: 12.0
+    interval: 800
+    threshold: 6.0
+    until: 25.0
     vls-amount: 4
 
 # |--- custom payload ---|
@@ -520,53 +520,6 @@ use-entity:
 
 ############################################################
 # +------------------------------------------------------+ #
-# |               Blocked Commands Settings              | #
-# +------------------------------------------------------+ #
-############################################################
-
-# commands
-commands:
-  vls-amount: 3
-
-  # Tab completion of commands which starts with the following strings will be blocked, but only if it is registered on the server.
-  prohibited-tab-complete-commands:
-    # fast async world edit
-    - "/targetoffset"
-    - "/to"
-
-  # Attempt to execute commands which starts with the following strings will be blocked, but only if it is registered on the server.
-  prohibited-commands:
-    # spigot
-    - "/skill"
-
-    # permissions ex
-    - "/pex promote"
-    - "/pex demote"
-    - "/promote"
-    - "/demote"
-
-    # world edit
-    - "//calc"
-    - "//calculate"
-    - "//solve"
-    - "//eval"
-    - "//evaluate"
-
-    # multiverse
-    - "/mv ^"
-    - "/mvhelp ^"
-    - "/mv help ^"
-
-  # Fallback prefixes which also will be checked for at the commands above.
-  # Could eg. be if someone types /multiverse-core:mv help ^
-  fallback-prefixes:
-    - "fastasyncworldedit"
-    - "worldedit"
-    - "multiverse-core"
-    - "permissionsex"
-
-############################################################
-# +------------------------------------------------------+ #
 # |                Packet Flood Settings                 | #
 # +------------------------------------------------------+ #
 ############################################################
@@ -721,6 +674,53 @@ packet-flood:
       max-per-interval: 95
       interval: 600
       vls-amount: 8
+
+############################################################
+# +------------------------------------------------------+ #
+# |               Blocked Commands Settings              | #
+# +------------------------------------------------------+ #
+############################################################
+
+# commands
+commands:
+  vls-amount: 3
+
+  # Tab completion of commands which starts with the following strings will be blocked, but only if it is registered on the server.
+  prohibited-tab-complete-commands:
+    # fast async world edit
+    - "/targetoffset"
+    - "/to"
+
+  # Attempt to execute commands which starts with the following strings will be blocked, but only if it is registered on the server.
+  prohibited-commands:
+    # spigot
+    - "/skill"
+
+    # permissions ex
+    - "/pex promote"
+    - "/pex demote"
+    - "/promote"
+    - "/demote"
+
+    # world edit
+    - "//calc"
+    - "//calculate"
+    - "//solve"
+    - "//eval"
+    - "//evaluate"
+
+    # multiverse
+    - "/mv ^"
+    - "/mvhelp ^"
+    - "/mv help ^"
+
+  # Fallback prefixes which also will be checked for at the commands above.
+  # Could eg. be if someone types '/multiverse-core:mv help ^'
+  fallback-prefixes:
+    - "fastasyncworldedit"
+    - "worldedit"
+    - "multiverse-core"
+    - "permissionsex"
 
 
 

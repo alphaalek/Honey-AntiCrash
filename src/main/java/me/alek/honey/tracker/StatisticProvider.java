@@ -36,7 +36,9 @@ public class StatisticProvider implements Statistic<Double> {
     }
 
     public Double getStatisticDirectly(int index) {
-        return getStatisticWindow(index).evaluateAverage();
+        final StatisticWindow window = getStatisticWindow(index);
+
+        return Math.max(window.average(), window.evaluateAverage());
     }
 
     @Override
@@ -44,6 +46,13 @@ public class StatisticProvider implements Statistic<Double> {
         getStatisticWindow(index).putMean(value);
     }
 
+    public int getTotalMeanSize(int index) {
+        return getStatisticWindow(index).currentMeanSize;
+    }
+
+    public double getTotalFlatMean(int index) {
+        return getStatisticWindow(index).currentTotalFlatMean;
+    }
 
     public void checkUpdateStatistics() {
         for (StatisticWindow statisticWindow : statisticWindows.values()) {
@@ -114,8 +123,14 @@ public class StatisticProvider implements Statistic<Double> {
             return getStatisticWindow(statisticWindowIndex - 1).average();
         }
 
+        private double getAverageInBelowStatisticDirectly() {
+            if (statisticWindowIndex == 0) return 0;
+
+            return getStatisticWindow(statisticWindowIndex - 1).evaluateAverage();
+        }
+
         private double evaluateAverage() {
-            if (currentMeanSize == 0) return getAverageInBelowStatistic();
+            if (currentMeanSize == 0) return getAverageInBelowStatisticDirectly();
 
             return currentTotalFlatMean / currentMeanSize;
         }
