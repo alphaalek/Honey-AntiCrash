@@ -2,9 +2,13 @@ package me.alek.honey.checks.response;
 
 import me.alek.honey.services.ViolationService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResponseContainer implements Cloneable {
+
+    public List<ResponseContainer> SUB_CONTAINERS = new ArrayList<>();
     public boolean CANCELLED;
     public boolean PUNISH;
     public boolean IGNORE_SPIKE;

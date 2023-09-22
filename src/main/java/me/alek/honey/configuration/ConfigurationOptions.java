@@ -316,6 +316,18 @@ public class ConfigurationOptions {
         }
     }
 
+    public interface VlIntervalThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    ConfigurationOptions.VlSettingImplType.INTERVAL,
+                    ConfigurationOptions.VlSettingImplType.THRESHOLD,
+                    ConfigurationOptions.VlSettingImplType.UNTIL,
+                    ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            );
+        }
+    }
+
     public interface VlBufferOverflowRequiredContentsSetting extends VlRequiredContentsSetting {
 
         default Set<VlSettingImplType> getRequiredTypes() {
@@ -388,9 +400,9 @@ public class ConfigurationOptions {
 
         public int getVlsAmount() { return vlsAmount; }
 
-        public int getThreshold() { return threshold; }
+        public double getThreshold() { return threshold; }
 
-        public int getUntil() { return until; }
+        public double getUntil() { return until; }
 
         public int getDecay() { return decay; }
 
@@ -1068,6 +1080,13 @@ public class ConfigurationOptions {
             public static void load() {
                 MAX_QUOTIENT = file.getDouble("netty.j.max-quotient", 10d);
             }
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.INTERVAL_THROTTLE)
+        @Keyed(keys = {"stq", "ntq"})
+        public static class NettyK extends VlSetting implements VlIntervalThrottleRequiredContentsSetting {
+
         }
     }
 

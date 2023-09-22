@@ -26,6 +26,11 @@ public class ResponseBuilder {
         this.responseContainer = container;
     }
 
+    public ResponseBuilder add(ResponseContainer container) {
+        responseContainer.SUB_CONTAINERS.add(container);
+        return this;
+    }
+
     public ResponseBuilder success() {
         responseContainer.SUCCESS = true;
         return this;

@@ -54,7 +54,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new NettyA<>());
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
-        visitor.visit(new NettyJ<>());
+        visitor.visit(new NettyTrackerChecks.NettyJ<>());
+        visitor.visit(new NettyTrackerChecks.NettyK<>());
         return visitor;
     }
 
@@ -260,72 +261,120 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
-    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    @SuppressWarnings("unchecked")
+    public static class NettyTrackerChecks {
 
-        private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
-            final StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
-
-            final double[] statistics = new double[statisticProvider.size() - 1];
-            for (int i = 1; i < statistics.length + 1; i++) {
-                statistics[i - 1] = statisticHandleTracker.getStatistic(player, i);
-
-                if (statisticProvider.getTimeSinceLastUpdate(i) > statisticProvider.getUpdateTime(i) * 1_000L) {
-                    statistics[i - 1] = Math.max(statistics[i - 1], statisticProvider.getStatisticDirectly(i));
-                }
-            }
-            return statistics;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-
-                final StatisticHandleTracker<Double, Player>[] trackers = (StatisticHandleTracker<Double, Player>[])
-                    new StatisticHandleTracker[]{
+        private static final StatisticHandleTracker<Double, Player>[] trackers = (StatisticHandleTracker<Double, Player>[])
+                new StatisticHandleTracker[]{
                         HoneyPlugin.get().getServerThreadHandleTracker(),
                         HoneyPlugin.get().getNettyPacketHandleTracker()
-                    };
-                final String[] keys = new String[]{"stq", "ntq"};
+                };
+        private static final String[] keys = new String[]{"stq", "ntq"};
 
-                // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
-                // sure it's a more correct average being evaluated and compared in this check
-                if (trackers[0].getTrackerSize() > 5) {
+        public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-                    for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
+            private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
+                final StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
 
-                        int index = 1;
-                        for (final double timeToAverageQuotient : getStatisticsAfterFirst(player, tracker)) {
+                final double[] statistics = new double[statisticProvider.size() - 1];
+                for (int i = 1; i < statistics.length + 1; i++) {
+                    statistics[i - 1] = statisticHandleTracker.getStatistic(player, i);
 
-                            if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
-                                Bukkit.getLogger().info("DEBUG: Server Thread Quotient Max exceeded: " + timeToAverageQuotient + " (" + player.getName() + ") (" + index + ")");
-
-                                /*
-                                return ResponseBuilder.inst().flag().withViolationKey(
-                                        new ViolationService.CheckKey(keys[index - 1])).build();
-                                */
-                            }
-                            index++;
-                        }
+                    if (statisticProvider.getTimeSinceLastUpdate(i) > statisticProvider.getUpdateTime(i) * 1_000L) {
+                        statistics[i - 1] = Math.max(statistics[i - 1], statisticProvider.getStatisticDirectly(i));
                     }
                 }
+                return statistics;
             }
-            return ResponseBuilder.SUCCESS;
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+                if (getSetting().isEnabled()) {
+
+                    // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
+                    // sure it's a more correct average being evaluated and compared in this check
+                    if (trackers[0].getTrackerSize() > 5) {
+
+                        final ResponseBuilder builder = ResponseBuilder.inst();
+                        for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
+
+                            int index = 0;
+                            for (final double timeToAverageQuotient : getStatisticsAfterFirst(player, tracker)) {
+
+                                if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
+                                    container.getDevelopmentData(this).addPoint("Quotient", timeToAverageQuotient);
+                                    container.getDevelopmentData(this).addPoint("Statistic Index", index + " (" + keys[index] + ")");
+
+                                    builder.add(ResponseBuilder.inst().flag().withViolationKey(
+                                            new ViolationService.CheckKey(keys[index])).build());
+                                    break;
+                                }
+                                index++;
+                            }
+                        }
+                        final ResponseContainer responseContainer = builder.build();
+                        if (!responseContainer.SUB_CONTAINERS.isEmpty())
+                            return responseContainer;
+                    }
+                }
+                return ResponseBuilder.SUCCESS;
+            }
+
+            @Override
+            public String getCheckName() {
+                return "Netty.J";
+            }
+
+            @Override
+            public String getDescription() {
+                return "Too high stq/ntq upper-end tracker stat";
+            }
+
+            @Override
+            public ConfigurationOptions.VlSetting getSetting() {
+                return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
+            }
         }
 
-        @Override
-        public String getCheckName() {
-            return "Netty.J";
-        }
+        public static class NettyK<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        @Override
-        public String getDescription() {
-            return "Too high server/netty thread quotient";
-        }
+            @Override
+            @SuppressWarnings("unchecked")
+            public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+                if (getSetting().isEnabled()) {
 
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
+                    // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
+                    // sure it's a more correct average being evaluated and compared in this check
+                    if (trackers[0].getTrackerSize() > 5) {
+
+                        final ResponseBuilder builder = ResponseBuilder.inst();
+                        int index = 0;
+                        for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
+                            builder.add(
+                                ResponseBuilder.inst().flag(tracker.getStatisticDirectly(player, 0)).withViolationKey(
+                                    new ViolationService.CheckKey(keys[index++])).build());
+                        }
+                        return builder.build();
+                    }
+                }
+                return ResponseBuilder.SUCCESS;
+            }
+
+            @Override
+            public String getCheckName() {
+                return "Netty.K";
+            }
+
+            @Override
+            public String getDescription() {
+                return "Interval throttle for ntq/stq tracker stat";
+            }
+
+            @Override
+            public ConfigurationOptions.VlSetting getSetting() {
+                return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
+            }
         }
     }
 }

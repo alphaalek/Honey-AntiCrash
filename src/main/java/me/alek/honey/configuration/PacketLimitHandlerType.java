@@ -13,6 +13,13 @@ public enum PacketLimitHandlerType {
             ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
     )),
 
+    INTERVAL_THROTTLE(Sets.newHashSet(
+            ConfigurationOptions.VlSettingImplType.INTERVAL,
+            ConfigurationOptions.VlSettingImplType.THRESHOLD,
+            ConfigurationOptions.VlSettingImplType.UNTIL,
+            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+    )),
+
     SINGLE_OVERFLOW(Sets.newHashSet(
             ConfigurationOptions.VlSettingImplType.THRESHOLD,
             ConfigurationOptions.VlSettingImplType.VLS_AMOUNT

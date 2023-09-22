@@ -253,6 +253,13 @@ netty:
     max-quotient: 7.5
     vls-amount: 2
 
+  k:
+    enabled: true
+    interval: 600
+    threshold: 5.0
+    until: 12.0
+    vls-amount: 4
+
 # |--- custom payload ---|
 custom-payload:
   a:

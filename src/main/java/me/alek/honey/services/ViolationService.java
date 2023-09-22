@@ -211,6 +211,8 @@ public class ViolationService {
                 return new PacketSimpleHandler(player, setting);
             case INTERVAL:
                 return new PacketIntervalHandler(player, setting);
+            case INTERVAL_THROTTLE:
+                return new PacketIntervalThrottleHandler(player, setting);
             case SINGLE_OVERFLOW:
                 return new PacketSingleOverflowHandler(player, setting);
             case BUFFER_OVERFLOW:
@@ -429,7 +431,8 @@ public class ViolationService {
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             if (onFlag != null) onFlag.run();
 
-            return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            return true;
         }
 
         @Override
@@ -440,7 +443,7 @@ public class ViolationService {
 
     public class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {
 
-        private int threshold;
+        private double threshold;
         private double amount;
 
         public PacketSingleOverflowHandler(Player player, ConfigurationOptions.VlSetting setting) {
@@ -460,7 +463,8 @@ public class ViolationService {
 
             if ((this.amount = amount) < threshold) return false;
 
-            return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            return true;
         }
 
         @Override
@@ -477,18 +481,16 @@ public class ViolationService {
 
         protected int decayInterval;
         protected int decayAmount;
-        protected int threshold;
+        protected double threshold;
         protected double bufferIndexCopy;
         protected boolean hasDecayed;
 
-        protected final AtomicLong lastDecay = new AtomicLong();
-        protected final AtomicDouble bufferIndex = new AtomicDouble();
+        protected long lastDecay = System.currentTimeMillis();
+        protected double bufferIndex;
 
 
         public PacketBufferHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-            lastDecay.set(System.currentTimeMillis());
-            reload();
         }
 
         @Override
@@ -502,29 +504,29 @@ public class ViolationService {
 
         // put into its own method, so it can be overwritten by the buffer throttle
         public void decay() {
-            bufferIndex.addAndGet(-decayAmount);
+            bufferIndex -= decayAmount;
         }
 
         @Override
         public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             hasDecayed = false;
-            if (System.currentTimeMillis() - lastDecay.get() > decayInterval) {
+            if (System.currentTimeMillis() - lastDecay > decayInterval) {
                 hasDecayed = true;
-                lastDecay.set(System.currentTimeMillis());
+                lastDecay = System.currentTimeMillis();
                 decay();
             }
-            if (bufferIndex.get() < 0) bufferIndex.set(0);
-            bufferIndex.addAndGet(amount);
+            if (bufferIndex < 0) bufferIndex = 0;
+            bufferIndex += amount;
 
             if (onFlag != null) onFlag.run();
 
             if (loggerService.isDebug())
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), violationName);
 
-            if (bufferIndex.get() < threshold) return false;
+            if (bufferIndex < threshold) return false;
 
-            bufferIndexCopy = bufferIndex.get();
-            if (getSetting().isClearBuffer()) this.bufferIndex.set(0);
+            bufferIndexCopy = bufferIndex;
+            if (getSetting().isClearBuffer()) this.bufferIndex = 0;
 
             return handle(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
         }
@@ -539,7 +541,7 @@ public class ViolationService {
 
     public class PacketBufferThrottleHandler extends PacketBufferHandler {
 
-        private int until;
+        private double until;
 
         public PacketBufferThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
@@ -559,22 +561,22 @@ public class ViolationService {
 
         @Override
         public void decay() {
-            if (bufferIndex.get() < threshold) {
+            if (bufferIndex < threshold) {
                 super.decay();
                 return;
             }
-            double ratio = (int) ((bufferIndex.get() - threshold) / (decayAmount * 1.8));
+            double ratio = (int) ((bufferIndex - threshold) / (decayAmount * 1.8));
             double amount = decayAmount * Math.pow(1.4, ratio);
 
-            bufferIndex.addAndGet(-amount);
+            bufferIndex -= amount;
         }
 
         @Override
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
-            if (onViolation != null) onViolation.run();
-
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
-            if (bufferIndex.get() > until && getSetting().isEnabled()) violate(handle, cancellablePacketObserver, violationName, null, developmentData);
+
+            if (bufferIndex > until && getSetting().isEnabled())
+                violate(handle, cancellablePacketObserver, violationName, null, developmentData);
             return true;
         }
     }
@@ -603,44 +605,43 @@ public class ViolationService {
         private int maxPerInterval;
         private int interval; // ms
 
-        private volatile boolean violatedForInterval;
-        private volatile boolean ignoringSpikeForInterval;
-        private volatile long intervalStart;
-        private final AtomicDouble flagged = new AtomicDouble();
-        private volatile double flaggedCopy;
+        private boolean violatedForInterval;
+        private boolean ignoringSpikeForInterval;
+        private long intervalStart = System.currentTimeMillis();
+        private double flagged;
+        private double flaggedCopy;
 
         public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-            maxPerInterval = setting.getMaxPerInterval();
-            interval = setting.getInterval();
-            intervalStart = System.currentTimeMillis();
         }
 
         public int getFlagged() {
             return (int) flaggedCopy;
         }
 
+        @Override
         public void reload() {
             this.maxPerInterval = getSetting().getMaxPerInterval();
             this.interval = getSetting().getInterval();
+
+            super.reload();
         }
 
         private synchronized void clearInterval() {
             violatedForInterval = false;
             ignoringSpikeForInterval = false;
-            flagged.set(0);
+            flagged = 0;
             intervalStart = System.currentTimeMillis();
         }
 
         public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
-            if (System.currentTimeMillis() - intervalStart >= interval) {
+            if (System.currentTimeMillis() - intervalStart >= interval)
                 clearInterval();
-            }
+
             if (ignoreSpike) {
                 clearInterval();
                 ignoringSpikeForInterval = true;
             }
-
             if (ignoringSpikeForInterval) {
                 if (violatedForInterval) cancellablePacketObserver.cancel();
 
@@ -649,23 +650,74 @@ public class ViolationService {
             }
             if (onFlag != null) onFlag.run();
 
-            flagged.addAndGet(amount);
-            if (flagged.get() < maxPerInterval) return false;
+            flagged += amount;
+            if (flagged < maxPerInterval) return false;
 
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
             if (violatedForInterval) return true;
 
             violatedForInterval = true;
-            flaggedCopy = flagged.get();
+            flaggedCopy = flagged;
             if (getSetting().isClearInterval()) clearInterval();
 
-            return violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+            return true;
         }
 
         @Override
         public PacketLimitHandlerType getType() {
             return PacketLimitHandlerType.INTERVAL;
+        }
+    }
+
+    public class PacketIntervalThrottleHandler extends AbstractPacketLimitHandler {
+
+        private int interval;
+        private double threshold;
+        private double until;
+
+        private boolean currentlyCancelling;
+        private long intervalStart = System.currentTimeMillis();
+
+        public PacketIntervalThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+        }
+
+        @Override
+        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+            if (currentlyCancelling) {
+
+                if (System.currentTimeMillis() - intervalStart > interval) {
+                    intervalStart = System.currentTimeMillis();
+                    currentlyCancelling = false;
+                }
+                else cancellablePacketObserver.cancel();
+            }
+            if (amount > threshold) {
+                intervalStart = System.currentTimeMillis();
+                currentlyCancelling = true;
+
+                if (amount > until) {
+                    violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.INTERVAL_THROTTLE;
+        }
+
+        @Override
+        public void reload() {
+            threshold = getSetting().getThreshold();
+            until = getSetting().getUntil();
+            interval = getSetting().getInterval();
+
+            super.reload();
         }
     }
 }
