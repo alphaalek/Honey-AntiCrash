@@ -338,7 +338,6 @@ public class ViolationService {
             for (final AbstractPacketLimitHandler packetLimitHandler : packetLimitHandlerDelegateLookup.values()) {
                 packetLimitHandler.reload();
             }
-            if (cachedDefaultPacketLimitHandler != null) cachedDefaultPacketLimitHandler.reload();
         }
     }
 

@@ -446,8 +446,8 @@ block-interact:
 
   f:
     enabled: true
-    max-per-interval: 20
-    interval: 1000
+    max-per-interval: 45
+    interval: 1450
     vls-amount: 3
 
 # |--- tab complete ---|

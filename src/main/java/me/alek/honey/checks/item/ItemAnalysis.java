@@ -40,7 +40,7 @@ public class ItemAnalysis {
 
         ignoredPlayers = ConfigurationOptions.ItemAnalysis.General.IGNORED_PLAYERS;
 
-        for (Field field : ConfigurationOptions.getItemAnalysisSettings()) {
+        for (Field field : ConfigurationOptions.getItemAnalysisFields()) {
 
             ConfigurationOptions.ItemAnalysisSetting setting = field.getAnnotation(ConfigurationOptions.ItemAnalysisSetting.class);
             if (setting == null) {

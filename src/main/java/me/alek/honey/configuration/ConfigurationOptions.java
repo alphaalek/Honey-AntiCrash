@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.services.ViolationService;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -38,7 +37,7 @@ public class ConfigurationOptions {
         ConfigurationOptions.file = file;
     }
 
-    public static List<Field> getItemAnalysisSettings() {
+    public static List<Field> getItemAnalysisFields() {
         List<Field> fields = new ArrayList<>();
         fields.addAll(Arrays.asList(ItemAnalysis.class.getDeclaredFields()));
         fields.addAll(Arrays.asList(ItemAnalysis.NBT.class.getDeclaredFields()));
@@ -59,7 +58,6 @@ public class ConfigurationOptions {
             loadingLatch = new CountDownLatch(1);
 
             floodSettings.clear();
-            vlSettingMap.clear();
             load(ConfigurationOptions.class);
 
         } catch (Exception ex) {
@@ -101,8 +99,17 @@ public class ConfigurationOptions {
         boolean misconfiguredConfiguration = false;
         try {
             // makes a new violation setting instance and register it
-            final Constructor<? extends VlSetting> constructor = clazz.getDeclaredConstructor();
-            final VlSetting setting = constructor.newInstance();
+            final Class<? extends VlSetting> clazzCopy = clazz;
+            final VlSetting setting = vlSettingMap.computeIfAbsent(clazz, (d) -> {
+                try {
+                    final Constructor<? extends VlSetting> constructor = clazzCopy.getDeclaredConstructor();
+                    return constructor.newInstance();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                return null;
+            });
+            if (setting == null) return;
             setting.packetLimitHandlerType = packetLimitHandlerType;
 
             vlSettingMap.put(clazz, setting);

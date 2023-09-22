@@ -260,42 +260,41 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
     public static class BlockInteractF<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static int cachedInvokerIndex = -1;
+        private static int modernCachedInvokerIndex = -1;
         private static ConstructorInvoker<Object> rayTraceInvoker;
 
         private static Object blockCollisionOption;
         private static Object fluidCollisionOption;
 
         private boolean isValidBlockType(Material type) {
-            return type.name().contains("CHEST")
-                    || type.name().contains("ANVIL")
-                    || type.name().contains("WORKBENCH") // because of legacy material
-                    || type.name().contains("ENCHANTMENT_TABLE") // because of legacy material
-                    || type == Material.NOTE_BLOCK
-                    || type == Material.JUKEBOX
-                    || type == Material.HOPPER
-                    || type == Material.DISPENSER
-                    || type == Material.DROPPER
-                    || type == Material.BEACON;
+            final String name = type.name();
+            return name.contains("CHEST") || name.contains("BARREL") || name.contains("SHULKER_BOX") || name.contains("ANVIL")
+                    || name.contains("WORKBENCH") || name.contains("ENCHANTMENT_TABLE") || name.contains("FURNACE") || name.contains("NOTE_BLOCK")
+                    || name.contains("JUKEBOX") || name.contains("HOPPER") || name.contains("DISPENSER") || name.contains("DROPPER")
+                    || name.contains("GRINDSTONE") || name.contains("CARTOGRAPHY_TABLE") || name.contains("SMITHING_TABLE") || name.contains("FLETCHING_TABLE")
+                    || name.contains("STONECUTTER") || name.contains("LECTERN") || name.contains("LOOM") || name.contains("BEACON")
+                    || name.contains("BREWING_STAND");
         }
 
         static {
-            final Class<?>[] declaredClasses = NMSUtils.getRayTraceClass().getDeclaredClasses();
-            final Optional<Class<?>> blockCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("BlockCollisionOption")).findFirst();
-            final Optional<Class<?>> fluidCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("FluidCollisionOption")).findFirst();
+            if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_14)) {
+                final Class<?>[] declaredClasses = NMSUtils.getRayTraceClass().getDeclaredClasses();
+                final Optional<Class<?>> blockCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("BlockCollisionOption")).findFirst();
+                final Optional<Class<?>> fluidCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("FluidCollisionOption")).findFirst();
 
-            if (blockCollisionOptionOptional.isPresent() && fluidCollisionOptionOptional.isPresent()) {
-                final Class<?> blockCollisionOptionClass = blockCollisionOptionOptional.get();
-                final Class<?> fluidCollisionOptionClass  = fluidCollisionOptionOptional.get();
+                if (blockCollisionOptionOptional.isPresent() && fluidCollisionOptionOptional.isPresent()) {
+                    final Class<?> blockCollisionOptionClass = blockCollisionOptionOptional.get();
+                    final Class<?> fluidCollisionOptionClass  = fluidCollisionOptionOptional.get();
 
-                try {
-                    blockCollisionOption = blockCollisionOptionClass.getDeclaredFields()[1].get(null);
-                    fluidCollisionOption = fluidCollisionOptionClass.getDeclaredFields()[0].get(null);
+                    try {
+                        blockCollisionOption = blockCollisionOptionClass.getDeclaredFields()[1].get(null);
+                        fluidCollisionOption = fluidCollisionOptionClass.getDeclaredFields()[0].get(null);
 
-                    rayTraceInvoker = Reflection.getConstructor(NMSUtils.getRayTraceClass(),
-                            NMSUtils.getVec3DClass(), NMSUtils.getVec3DClass(), blockCollisionOptionClass, fluidCollisionOptionClass, NMSUtils.getEntityClass());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                        rayTraceInvoker = Reflection.getConstructor(NMSUtils.getRayTraceClass(),
+                                NMSUtils.getVec3DClass(), NMSUtils.getVec3DClass(), blockCollisionOptionClass, fluidCollisionOptionClass, NMSUtils.getEntityClass());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
         }
@@ -326,14 +325,14 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                 final IStructureModifier<Object> movingObjectPositionModifier = ReflectStructureCache.acquireStructure(NMSUtils.getIBlockAccessClass())
                         .withType(NMSUtils.getMovingObjectPositionBlockClass()).withTarget(world);
 
-                if (cachedInvokerIndex == -1) {
+                if (modernCachedInvokerIndex == -1) {
                     synchronized (this) {
                         int index = 0;
                         for (final MethodInvoker<?> invoker : movingObjectPositionModifier.getInvokers()) {
                             final Class<?>[] parameters = invoker.getMethod().getParameterTypes();
 
                             if (parameters.length == 1 && parameters[0] == NMSUtils.getRayTraceClass()) {
-                                cachedInvokerIndex = index;
+                                modernCachedInvokerIndex = index;
                                 break;
                             }
                             index++;
@@ -344,7 +343,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                     final Object raytrace = rayTraceInvoker.invoke(
                             vec3D1converted, vec3D2converted, blockCollisionOption, fluidCollisionOption, null);
 
-                    movingObjectPosition = movingObjectPositionModifier.invokeMethod(cachedInvokerIndex, raytrace);
+                    movingObjectPosition = movingObjectPositionModifier.invokeMethod(modernCachedInvokerIndex, raytrace);
                     Bukkit.broadcastMessage(movingObjectPosition + "");
                 }
             }
@@ -365,10 +364,12 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
                 final WrappedBlockPosition position = packet.getBlockPosition();
                 if (position != null) {
-                    final Material type = position.toLocation(player.getWorld()).getBlock().getType();
-                    Bukkit.broadcastMessage("type: " + type);
+                    final Location location = position.toLocation(player.getWorld());
+                    if (!PositionListener.isChunkLoaded(location)) {
+                        return ResponseBuilder.SUCCESS;
+                    }
+                    final Material type = location.getBlock().getType();
                     if (isValidBlockType(type)) {
-                        Bukkit.broadcastMessage("valid " + getSetting().getMaxPerInterval());
                         return ResponseBuilder.inst().flag().build();
                     }
                 }
