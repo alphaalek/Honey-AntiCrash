@@ -785,7 +785,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     player.teleport(new Location(player.getWorld(), x, y_, z));
                     player.setHealth(20);
 
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

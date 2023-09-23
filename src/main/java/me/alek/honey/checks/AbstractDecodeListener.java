@@ -27,7 +27,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
 
         defaultDevelopmentData.addEmpty();
         defaultDevelopmentData.addValue(" ByteBuf", byteBuf.readableBytes() + " bytes");
-        defaultDevelopmentData.addInvisibleData(byteBuf.readableBytes() + " bytes");
+        defaultDevelopmentData.addInvinsibleData(byteBuf.readableBytes() + " bytes");
         AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
 
         getCachedVisitor().check(player, byteBuf, checkContextContainer);

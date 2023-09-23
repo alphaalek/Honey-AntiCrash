@@ -1,0 +1,31 @@
+package me.alek.honey.listeners;
+
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import org.bukkit.entity.Player;
+
+import java.util.List;
+
+public class TabCompleteListener extends SyncPacketAdapter<WrappedPlayOutTabComplete> {
+
+    private boolean shouldBlockTabCompletion(Player player) {
+        if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {
+            return !player.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION);
+        }
+        return false;
+    }
+
+    @Override
+    public void onPacketSend(Player player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
+        if (shouldBlockTabCompletion(player)) {
+            final List<String> suggestions = packetContainer.getPacket().getControllableSuggestions();
+
+            if (suggestions.contains("/honey")) {
+                suggestions.remove("/honey");
+                suggestions.remove("/honey:honey");
+            }
+        }
+    }
+}

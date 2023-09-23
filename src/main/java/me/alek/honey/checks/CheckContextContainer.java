@@ -42,7 +42,7 @@ public class CheckContextContainer {
 
         public int size() { return developmentDataSet.size(); }
 
-        public void addInvisibleData(String data) {
+        public void addInvinsibleData(String data) {
             invisibleData.add(data);
         }
 

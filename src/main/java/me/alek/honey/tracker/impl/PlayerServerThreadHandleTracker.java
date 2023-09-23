@@ -78,11 +78,16 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                     initiallyTickRound = true;
                     startup = true;
                 }
-                if (initiallyTickRound) packetSendQueue.clear();
                 workingProperly = true;
 
                 // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
                 if (!initiallyTickRound) {
+
+                    // fixing desync size
+                    while (packetSendQueue.size() > size()) {
+                        packetSendQueue.poll();
+                    }
+
                     // check if this packet is not the first one handled in this tick
                     if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
@@ -94,6 +99,8 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
                         if (player != null && player.isOnline()) {
                             registerTime(player, deltaTime);
+
+                            Bukkit.getLogger().info(player.getName() + " " + packetSendQueue.size() + " " + size() + " " + deltaTime);
                         }
                     }
                     recentPollStart = System.nanoTime();
@@ -108,7 +115,10 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                     recentPollStart = -1;
                     delegatedIgnoreList.remove(value);
 
-                    if (size() == 0 && initiallyTickRound) initiallyTickRound = false;
+                    if (size() == 0 && initiallyTickRound) {
+                        packetSendQueue.clear();
+                        initiallyTickRound = false;
+                    }
                 }
                 return value;
             }

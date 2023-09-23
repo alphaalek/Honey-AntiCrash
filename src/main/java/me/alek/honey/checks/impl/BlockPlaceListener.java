@@ -344,7 +344,6 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                             vec3D1converted, vec3D2converted, blockCollisionOption, fluidCollisionOption, null);
 
                     movingObjectPosition = movingObjectPositionModifier.invokeMethod(modernCachedInvokerIndex, raytrace);
-                    Bukkit.broadcastMessage(movingObjectPosition + "");
                 }
             }
             if (movingObjectPosition == null) return null;

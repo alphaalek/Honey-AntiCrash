@@ -11,11 +11,13 @@ import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinListener;
+import me.alek.honey.listeners.TabCompleteListener;
 import me.alek.honey.metrics.Metrics;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.services.ConfiscationService;
@@ -134,9 +136,10 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         this.updateChecker = new UpdateChecker();
         this.usingOldVersion = updateChecker.isOldVersion();
 
-        // setup bukkit listeners
+        // setup listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), this);
+        packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 
         // setup runnable getting the TPS and ping of the server and players
         setupRecentPingLookupRunnable();

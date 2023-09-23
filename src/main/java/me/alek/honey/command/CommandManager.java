@@ -50,18 +50,24 @@ public class CommandManager implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
+        if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {
+            if (!commandSender.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION)) {
+                commandSender.sendMessage("Unknown command. Type \"/help\" for help.");
+                return true;
+            }
+        }
         if (args.length == 0) {
             showInfo(commandSender);
             return true;
         }
         final String firstArgument = args[0];
-        Optional<Map.Entry<String, CommandImpl>> commandImplEntryOptional = this.commands
+        final Optional<Map.Entry<String, CommandImpl>> commandImplEntryOptional = this.commands
                 .entrySet()
                 .stream()
                 .filter(commandLabel -> commandLabel.getKey().equals(firstArgument))
                 .findFirst();
 
-        String[] implArgs = new String[args.length - 1];
+        final String[] implArgs = new String[args.length - 1];
         if (implArgs.length > 0) System.arraycopy(args, 1, implArgs, 0, implArgs.length);
 
         try {
@@ -72,14 +78,14 @@ public class CommandManager implements CommandExecutor {
                 commandSender.sendMessage(PREFIX + "This command can not be used by the console.");
                 return true;
             }
-            if (        commandImpl.getPermission() != null
+            if (commandImpl.getPermission() != null
                     && !commandImpl.getPermission().equals("")
                     && !commandSender.hasPermission(commandImpl.getPermission())) {
                 commandSender.sendMessage(PREFIX + "You do not have permission to use this command!");
                 return true;
             }
             if (commandSender instanceof Player) {
-                Player player = (Player) commandSender;
+                final Player player = (Player) commandSender;
                 if (this.cooldownManager.hasCooldown(player, commandImpl)) {
                     commandSender.sendMessage(PREFIX + "You have cooldown on this command. Wait "
                             + this.cooldownManager.getFormattedCooldown(player, commandImpl) + ".");

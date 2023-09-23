@@ -688,18 +688,15 @@ public class ViolationService {
         @Override
         public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             if (currentlyCancelling) {
-                Bukkit.getLogger().info(getPlayer().getName() + ": cancelled packet");
-
                 if (System.currentTimeMillis() - intervalStart > interval) {
-                    Bukkit.getLogger().info(getPlayer().getName() + ": resetting cancelling");
                     intervalStart = System.currentTimeMillis();
                     currentlyCancelling = false;
                 }
                 else cancellablePacketObserver.cancel();
             }
             if ((this.amount = amount) > threshold) {
-                if (!currentlyCancelling) Bukkit.getLogger().info(getPlayer().getName() + ": starting cancelling " + amount);
                 intervalStart = System.currentTimeMillis();
+
 
                 if (amount > until && !currentlyCancelling) {
                     violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);

@@ -8,8 +8,14 @@ import java.util.*;
 
 public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player> {
 
-    private final Map<UUID, Double> oldTimeTrackerMap = new HashMap<>();
-    private final Map<UUID, Double> currentTimeTrackerMap = new HashMap<>();
+    private static class TrackerContext {
+
+        private double meanSize;
+        private double totalFlatMean;
+    }
+
+    private final Map<UUID, TrackerContext> oldTimeTrackerMap = new HashMap<>();
+    private final Map<UUID, TrackerContext> currentTimeTrackerMap = new HashMap<>();
 
     private double lastEvaluatedAverage;
 
@@ -91,10 +97,12 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
 
     @Override
     public synchronized void registerTime(Player player, Double value) {
-        double priorTotalTime = currentTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d);
+        TrackerContext context = currentTimeTrackerMap.getOrDefault(player.getUniqueId(), new TrackerContext());
+        context.totalFlatMean += value;
+        context.meanSize++;
 
         currentFlatMean.addAndGet(value);
-        currentTimeTrackerMap.put(player.getUniqueId(), priorTotalTime + value);
+        currentTimeTrackerMap.put(player.getUniqueId(), context);
     }
 
     public synchronized double getTimeToAverageQuotient(Player player) {
@@ -110,11 +118,11 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
     }
 
     public synchronized double getTimeForOldTrack(Player player) {
-        return oldTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d);
+        return oldTimeTrackerMap.getOrDefault(player.getUniqueId(), new TrackerContext()).totalFlatMean;
     }
 
     public synchronized double getTimeForCurrentTrack(Player player) {
-        return currentTimeTrackerMap.getOrDefault(player.getUniqueId(), 0d);
+        return currentTimeTrackerMap.getOrDefault(player.getUniqueId(), new TrackerContext()).totalFlatMean;
     }
 
     public int getOldTrackerSize() {
@@ -127,9 +135,9 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
 
     @Override
     public int getActiveTrackerSize() {
-        // filter all statistic trackers where they haven't got more than 15 registered time spans
+        // filter all statistic trackers where they haven't got more than 5 registered time spans
         return (int) currentTimeTrackerMap.keySet().stream()
-                .filter((uuid) -> getStatisticProvider(Bukkit.getPlayer(uuid)).getTotalMeanSize(0) > 15).count();
+                .filter((uuid) -> getStatisticProvider(Bukkit.getPlayer(uuid)).getTotalMeanSize(0) > 5).count();
     }
 
     public double getAverageWithout(Player player) {
@@ -156,33 +164,37 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
         if (trackerSize == 0) return;
 
         double totalReferencedTime = 0;
+        trackerSize = 0;
 
         // update the average
-        Iterator<UUID> keySetIterator = currentTimeTrackerMap.keySet().iterator();
+        final Iterator<UUID> keySetIterator = currentTimeTrackerMap.keySet().iterator();
         while (keySetIterator.hasNext()) {
-            UUID uuid = keySetIterator.next();
+            final UUID uuid = keySetIterator.next();
+            final Player player = Bukkit.getPlayer(uuid);
 
-            double time = currentTimeTrackerMap.get(uuid);
-            oldTimeTrackerMap.put(uuid, time);
+            final TrackerContext context = currentTimeTrackerMap.get(uuid);
 
-            Player player = Bukkit.getPlayer(uuid);
+            if (context.meanSize < 5) continue;
+            oldTimeTrackerMap.put(uuid, context);
+
             if (player == null || !player.isOnline()) {
                 keySetIterator.remove();
                 remove(player);
                 continue;
             }
-            totalReferencedTime += time;
+            trackerSize++;
+            totalReferencedTime += context.totalFlatMean;
         }
         currentTimeTrackerMap.clear();
 
         if (totalReferencedTime != currentFlatMean.get()) currentFlatMean.set(totalReferencedTime);
-        lastEvaluatedAverage = currentFlatMean.get() / getOldTrackerSize();
+        lastEvaluatedAverage = currentFlatMean.get() / trackerSize;
 
         oldFlatMean.set(currentFlatMean.get());
         currentFlatMean.set(0);
 
         // update the statistics post change
-        for (Player player : Bukkit.getOnlinePlayers()) {
+        for (final Player player : Bukkit.getOnlinePlayers()) {
             registerToStatistics(player, getTimeToAverageQuotient(player));
             updateStatistics(player);
         }

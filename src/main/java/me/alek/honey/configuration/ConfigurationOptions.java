@@ -474,6 +474,8 @@ public class ConfigurationOptions {
         public static int CLEAR_OLD_VIOLATIONS_TIMESTAMP;
         public static String PREFIX;
         public static boolean BYPASS_PERMISSION_ENABLED;
+        public static boolean HIDE_COMMAND_ENABLED;
+        public static String HIDE_BYPASS_PERMISSION;
         public static String BYPASS_PERMISSION;
         public static String NOTIFY_PERMISSION;
         public static String PASTEBIN_DEVELOPER_KEY;
@@ -482,6 +484,8 @@ public class ConfigurationOptions {
             CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp", 120000);
             PREFIX = file.getString("prefix", "&6Honey &8»");
 
+            HIDE_COMMAND_ENABLED = file.getBoolean("hide-command", false);
+            HIDE_BYPASS_PERMISSION = file.getString("hide-bypass-permission", "honey.hide.bypass");
             BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled", false);
             BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");
             NOTIFY_PERMISSION = file.getString("notify-permission", "honey.notify");

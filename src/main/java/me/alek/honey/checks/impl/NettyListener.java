@@ -54,8 +54,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new NettyA<>());
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyI<>());
-        // visitor.visit(new NettyTrackerChecks.NettyJ<>());
-        // visitor.visit(new NettyTrackerChecks.NettyK<>());
+
+        visitor.visit(new NettyTrackerChecks.NettyJ<>());
+        visitor.visit(new NettyTrackerChecks.NettyK<>());
+
         return visitor;
     }
 
@@ -194,7 +196,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             double decodeTime = 0;
 
             if (player != null) {
-
                 InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(), (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(NMSUtils.getChannel(player)));
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
@@ -253,7 +254,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Buffer of decode time exceeded";
+            return "Buffer overflow of decode time";
         }
 
         @Override
@@ -297,7 +298,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
-                    if (trackers[0].getActiveTrackerSize() > 5) {
+                    //if (trackers[0].getActiveTrackerSize() > 5) {
 
                         final ResponseBuilder builder = ResponseBuilder.inst();
                         int index = 0;
@@ -311,8 +312,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                                     packet.getContainer().cancel();
                                 } else {
                                     builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                        new ViolationService.CheckKey(keys[index])
-                                    ).onViolation(() -> tracker.updateStatistic(player, 0)).build());
+                                            new ViolationService.CheckKey(keys[index])
+                                    ).build());
 
                                     lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
                                     break;
@@ -323,14 +324,14 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         final ResponseContainer responseContainer = builder.build();
                         if (!responseContainer.SUB_CONTAINERS.isEmpty())
                             return responseContainer;
-                    }
+                    //}
                 }
                 return ResponseBuilder.SUCCESS;
             }
 
             @Override
             public String getCheckName() {
-                return "Netty.J (experimental)";
+                return "Netty.J (exp.)";
             }
 
             @Override
@@ -353,7 +354,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
-                    if (trackers[0].getActiveTrackerSize() > 5) {
+                    //if (trackers[0].getActiveTrackerSize() > 5) {
 
                         final ResponseBuilder builder = ResponseBuilder.inst();
                         int index = 0;
@@ -366,14 +367,14 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                             }
                         }
                         return builder.build();
-                    }
+                    //}
                 }
                 return ResponseBuilder.SUCCESS;
             }
 
             @Override
             public String getCheckName() {
-                return "Netty.K (experimental)";
+                return "Netty.K (exp.)";
             }
 
             @Override

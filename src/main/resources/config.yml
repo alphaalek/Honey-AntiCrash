@@ -28,7 +28,13 @@
 prefix: "&6Honey &8\u00BB"
 
 # How long time between each clearing of old violations (in millis).
-clear-old-violations-timestamp: 60000 # 1 minute as default
+clear-old-violations-timestamp: 90000 # 1 minute and 30 seconds as default
+
+# Hide /honey command, so default players won't know what AntiCrash plugin is on.
+hide-command: false
+
+# Permission which players should have, for the command not to be hided.
+hide-bypass-permission: "honey.hide.bypass"
 
 # Permission which ignores packet checks. You have to enable it first.
 bypass-permission-enabled: false
@@ -250,8 +256,8 @@ netty:
 
   j:
     enabled: true
-    max-quotient: 15
-    vls-amount: 4
+    max-quotient: 20.0
+    vls-amount: 3
 
   k:
     enabled: true

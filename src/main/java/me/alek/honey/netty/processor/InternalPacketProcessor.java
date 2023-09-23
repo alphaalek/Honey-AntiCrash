@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.netty.utility.protocol.Protocol;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -170,7 +171,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         DECODE_LIST_MODIFIER.addListener(packetAdapter, priority);
     }
 
-    public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
+    public synchronized void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
                 if (!Protocol.protocolMatch((RangedPacketTypeEnum) packetType)) {
