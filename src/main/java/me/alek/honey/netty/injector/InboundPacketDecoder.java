@@ -48,7 +48,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     }
 
     public double getCurrentTime() {
-        return ((double)System.nanoTime()) / 1_000;
+        return ((double)System.nanoTime()) / 1_000_000;
     }
 
     public double getRecentDeltaReceived() {

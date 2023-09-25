@@ -966,14 +966,14 @@ public class ConfigurationOptions {
     public static class Rotation {
 
         @Setting
-        @Violation(prefixPaths = "rotation.a", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class RotationA extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
+        @Violation(prefixPaths = "rotation.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class RotationA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation(prefixPaths = "rotation.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class RotationB extends VlSetting implements VlSimpleRequiredContentsSetting {
+        @Violation(prefixPaths = "rotation.b", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class RotationB extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 

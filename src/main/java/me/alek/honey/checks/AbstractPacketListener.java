@@ -32,8 +32,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
         StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
-        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.tryUpdateAndGetStatistics(player));
-        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.tryUpdateAndGetStatistics(player));
+        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
+        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
 
         developmentData.setPoint(6, "STQ", serverThreadPoint);
         developmentData.setPoint(7, "NTQ", nettyThreadPoint);

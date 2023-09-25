@@ -1,11 +1,9 @@
 package me.alek.honey.listeners;
 
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
 
 public class DispenserListener implements Listener {
@@ -20,13 +18,12 @@ public class DispenserListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onBlockBreak(BlockBreakEvent event) {
-        Bukkit.broadcastMessage("block break");
+    /*@EventHandler
+    public void onBreak(BlockBreakEvent event) {
         try {
-            Thread.sleep(600);
+            Thread.sleep(300);
         } catch (Exception ex) {
-            ex.printStackTrace();
+
         }
-    }
+    }*/
 }

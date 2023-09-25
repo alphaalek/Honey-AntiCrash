@@ -10,6 +10,7 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -32,6 +33,7 @@ import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -275,7 +277,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-            private static final Map<UUID, Double> lastFlagMap = new HashMap<>();
+            private static final Map<UUID, Double> lastFlagMap = new ConcurrentHashMap<>();
 
             private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
                 final StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
@@ -294,7 +296,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             @Override
             @SuppressWarnings("unchecked")
             public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-                if (getSetting().isEnabled()) {
+                if (getSetting().isEnabled() && player != null) {
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
@@ -304,19 +306,25 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         int index = 0;
                         for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
 
+                            // ignore if the player has recently joined or the occupied space is lower than 5% of the total interval time
+                            if (tracker.getTotal() / (((float)tracker.getUpdateInterval()) / 20 * 1000) < 0.05
+                                || System.currentTimeMillis() - PlayerJoinListener.getInstantJoined(player) < 7500) {
+                                continue;
+                            }
                             final double timeToAverageQuotient = tracker.getStatistic(player, 0);
 
                             if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
-                                if (lastFlagMap.containsKey(player.getUniqueId())
-                                        && lastFlagMap.get(player.getUniqueId()) == timeToAverageQuotient) {
-                                    packet.getContainer().cancel();
-                                } else {
-                                    builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                            new ViolationService.CheckKey(keys[index])
-                                    ).build());
+                                synchronized (lastFlagMap) {
+                                    if (lastFlagMap.getOrDefault(player.getUniqueId(), -1d) == timeToAverageQuotient) {
+                                        packet.getContainer().cancel();
+                                    } else {
+                                        builder.add(ResponseBuilder.inst().flag().withViolationKey(
+                                                new ViolationService.CheckKey(keys[index])
+                                        ).build());
 
-                                    lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
-                                    break;
+                                        lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
+                                        break;
+                                    }
                                 }
                             }
                             index++;
@@ -360,6 +368,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         int index = 0;
                         for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
 
+                            // ignore if the occupied space is lower than 5% of the total interval time
+                            if (tracker.getTotal() / (((float)tracker.getUpdateInterval()) / 20 * 1000) < 0.05) {
+                                continue;
+                            }
                             if (tracker.getStatisticProvider(player).getTimeSinceLastUpdate(0) > 500) {
                                 builder.add(
                                         ResponseBuilder.inst().flag(tracker.getStatistic(player, 0)).withViolationKey(

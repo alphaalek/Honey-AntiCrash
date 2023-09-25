@@ -26,4 +26,6 @@ public interface HandleTracker<I extends Number, T> {
     Set<T> getTrackers();
 
     List<T> getTrackersOrdered();
+
+    long getUpdateInterval();
 }

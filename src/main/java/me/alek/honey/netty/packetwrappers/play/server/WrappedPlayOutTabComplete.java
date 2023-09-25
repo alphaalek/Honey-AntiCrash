@@ -69,8 +69,6 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
             public boolean remove(Object o) {
                 if (!(o instanceof String)) return false;
 
-                Bukkit.broadcastMessage("Removing " + o);
-
                 final List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
                 suggestions.remove(o);
 

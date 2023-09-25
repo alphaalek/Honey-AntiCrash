@@ -67,4 +67,8 @@ public class PlayerJoinListener implements Listener {
         return instantJoinedMap;
     }
 
+    public static long getInstantJoined(Player player) {
+        return instantJoinedMap.getOrDefault(player.getUniqueId(), System.currentTimeMillis());
+    }
+
 }

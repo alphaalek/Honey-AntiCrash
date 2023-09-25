@@ -23,6 +23,7 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -30,7 +31,9 @@ import org.bukkit.entity.Player;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -201,7 +204,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
         visitor.visit(new PositionA());
-        visitor.visit(new PositionB<>());
+        /*visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
         visitor.visit(new PositionD<>());
         visitor.visit(new PositionE<>());
@@ -209,7 +212,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         visitor.visit(new PositionG<>());
         visitor.visit(new PositionH<>());
         visitor.visit(new PositionI<>());
-        visitor.visit(new PositionJ<>());
+        visitor.visit(new PositionJ<>());*/
         return visitor;
     }
 
@@ -248,13 +251,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return null;
     }
 
-    public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, Location currentLocation, double diff) {
+    public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, Function<Location, Double> distanceFunction, double diff) {
         final UUID uuid = player.getUniqueId();
 
         synchronized (lastTeleportationLocationMap) {
             if (lastTeleportationLocationMap.containsKey(uuid)) {
 
-                final  SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+                final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
                 final List<Location> recentLocations = sampleDecayableList.getAll();
                 final List<Location> lockedLocations = sampleDecayableList.getLocked();
@@ -263,9 +266,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // check if any of those locations is within the distance specified
                 final Optional<Location> isCloseTo = allLocations
-                    .filter(
-                        (location) -> Locations.calculate3DDistance(location, currentLocation) < diff
-                    ).findFirst();
+                    .filter((location) -> distanceFunction.apply(location) < diff).findFirst();
 
                 return isCloseTo.isPresent();
             }
@@ -323,7 +324,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             final Location packetLoc = packet.getLocation();
             final Location lastKnownPacketLoc = container.getStorage().get(Location.class, 0);
 
-            if (isAnyLatelyTeleportationLocationsCloseTo(player, packet.getLocation(), 5)) {
+            if (isAnyLatelyTeleportationLocationsCloseTo(
+                    player,
+                    (location) -> Locations.calculate3DDistance(location, packetLoc),
+                    5)
+            ) {
                 return ResponseBuilder.SUCCESS.builder().skip(3).build();
             }
 
@@ -540,7 +545,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         static {
-
             for (Axis axis : Axis.values()) {
                 axisLookup.put(axis.opp1, axis);
                 axisLookup.put(axis.opp2, axis);
@@ -661,7 +665,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public synchronized ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-
             final ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
             if (getSetting().isEnabled()) {
 
@@ -683,7 +686,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }
                     guessedDelta2D.put(uuid, delta2D);
                 }
-
                 if (deltaY > 0.5) {
                     if (guessedDeltaY.get(uuid) == deltaY) {
 
@@ -691,7 +693,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (material.name().contains("WATER") || material.name().contains("LAVA")) {
                             return response;
                         }
-
                         if (deltaY % 0.375 < 0.000001) {
                             return response;
                         }
@@ -700,7 +701,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }
                     guessedDeltaY.put(uuid, deltaY);
                 }
-
                 if (hasPattern) return ResponseBuilder.SUCCESS;
             }
             return response;
@@ -770,13 +770,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     double y_ = y;
                     if (y < ConfigurationOptions.Position.PositionJ.MIN) {
                         while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
-
                             if (y_ > ConfigurationOptions.Position.PositionJ.MAX - 3) break;
                         }
                     }
                     if (y > ConfigurationOptions.Position.PositionJ.MAX) {
                         while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
-
                             if (y_ < 16) break;
                         }
                         y_ += 2;

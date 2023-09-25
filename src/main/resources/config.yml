@@ -263,7 +263,7 @@ netty:
     enabled: true
     interval: 800
     threshold: 6.0
-    until: 25.0
+    until: 35.0
     vls-amount: 4
 
 # |--- custom payload ---|
@@ -418,12 +418,12 @@ position:
 rotation:
   a:
     enabled: true
-    threshold: 500
-    vls-amount: 5
+    vls-amount: 3
 
   b:
     enabled: true
-    vls-amount: 3
+    threshold: 500
+    vls-amount: 5
 
   c:
     enabled: true

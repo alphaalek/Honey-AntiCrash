@@ -47,8 +47,8 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     public Double[] tryUpdateAndGetStatistics(T key) {
         Double[] statistics = new Double[statisticInSecondsIndices.length];
 
-        for (int i = 0; i < statisticInSecondsIndices.length; i++) {
-            statistics[i] = tryUpdateAndGetStatistic(key, i);
+        for (int i = statisticInSecondsIndices.length - 1; i >= 0; i--) {
+            statistics[statisticInSecondsIndices.length - i - 1] = tryUpdateAndGetStatistic(key, i);
         }
         return statistics;
     }
@@ -74,6 +74,11 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
         for (int i = 0; i < statisticInSecondsIndices.length; i++) {
             putStatistic(key, i, value);
         }
+    }
+
+    @Override
+    public long getUpdateInterval() {
+        return handleTracker.getUpdateInterval();
     }
 
     @Override
