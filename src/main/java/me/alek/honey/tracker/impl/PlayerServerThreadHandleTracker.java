@@ -83,7 +83,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                 // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
                 if (!initiallyTickRound) {
 
-                    // fixing desync size
+                    // fixing desync size when tick loop is overloaded
                     while (packetSendQueue.size() > size()) {
                         packetSendQueue.poll();
                     }
@@ -99,8 +99,6 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
                         if (player != null && player.isOnline()) {
                             registerTime(player, deltaTime);
-
-                            Bukkit.getLogger().info(player.getName() + " " + packetSendQueue.size() + " " + size() + " " + deltaTime);
                         }
                     }
                     recentPollStart = System.nanoTime();

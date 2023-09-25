@@ -204,7 +204,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
         visitor.visit(new PositionA());
-        /*visitor.visit(new PositionB<>());
+        visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
         visitor.visit(new PositionD<>());
         visitor.visit(new PositionE<>());
@@ -212,7 +212,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         visitor.visit(new PositionG<>());
         visitor.visit(new PositionH<>());
         visitor.visit(new PositionI<>());
-        visitor.visit(new PositionJ<>());*/
+        visitor.visit(new PositionJ<>());
         return visitor;
     }
 

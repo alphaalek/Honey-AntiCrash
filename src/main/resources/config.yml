@@ -255,12 +255,12 @@ netty:
     vls-amount: 1
 
   j:
-    enabled: true
+    enabled: false # BETA
     max-quotient: 20.0
     vls-amount: 3
 
   k:
-    enabled: true
+    enabled: false # BETA
     interval: 800
     threshold: 6.0
     until: 35.0

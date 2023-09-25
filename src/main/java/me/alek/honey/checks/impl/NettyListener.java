@@ -153,13 +153,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             if (getSetting().isEnabled()) {
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
-
                     if (NumberConversions.isInvalid(value)) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }
                 for (float value : packet.getContainer().getFloats().readFieldValues()) {
-
                     if (NumberConversions.isInvalid(value)) {
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
@@ -300,7 +298,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
-                    //if (trackers[0].getActiveTrackerSize() > 5) {
+                    if (trackers[0].getActiveTrackerSize() > 5) {
 
                         final ResponseBuilder builder = ResponseBuilder.inst();
                         int index = 0;
@@ -332,7 +330,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         final ResponseContainer responseContainer = builder.build();
                         if (!responseContainer.SUB_CONTAINERS.isEmpty())
                             return responseContainer;
-                    //}
+                    }
                 }
                 return ResponseBuilder.SUCCESS;
             }
@@ -362,7 +360,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
                     // sure it's a more correct average being evaluated and compared in this check
-                    //if (trackers[0].getActiveTrackerSize() > 5) {
+                    if (trackers[0].getActiveTrackerSize() > 5) {
 
                         final ResponseBuilder builder = ResponseBuilder.inst();
                         int index = 0;
@@ -379,7 +377,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                             }
                         }
                         return builder.build();
-                    //}
+                    }
                 }
                 return ResponseBuilder.SUCCESS;
             }
