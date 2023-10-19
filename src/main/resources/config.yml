@@ -164,13 +164,13 @@ item-analysis:
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 1000
+    max-nbt-string-length: 900
 
     # How many bytes may the NBT of a firework have. This is also covering firework charges.
     max-firework-nbt-length: 2500
 
     # How many bytes may the NBT of a book have.
-    max-book-nbt-length: 15000
+    max-book-nbt-length: 12500
 
     # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 50 pages.
     max-book-pages: 50
@@ -188,7 +188,7 @@ item-analysis:
     max-nbt-bases: 100
 
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
-    max-nbt-nesting: 4
+    max-nbt-nesting: 3
 
     # May skulls/heads not have invalid textures. Can be exploited to crash servers below Minecraft Version 1.10.2
     check-illegal-skull-textures: true
@@ -225,15 +225,15 @@ netty:
     until: 85000
     threshold: 32500
     decay: 650
-    decay-amount: 9500
+    decay-amount: 7500
     vls-amount: 3
 
   f:
     enabled: true
     until: 5500000
-    threshold: 1500000
+    threshold: 1200000
     decay: 650
-    decay-amount: 400000
+    decay-amount: 350000
     vls-amount: 1
 
   g:
@@ -243,15 +243,15 @@ netty:
 
   h:
     enabled: true
-    threshold: 100000
+    threshold: 100
     vls-amount: 1
 
   i:
     enabled: true
-    until: 350000
-    threshold: 125000
+    until: 350
+    threshold: 125
     decay: 750
-    decay-amount: 35000
+    decay-amount: 35
     vls-amount: 1
 
   j:
@@ -265,6 +265,35 @@ netty:
     threshold: 6.0
     until: 35.0
     vls-amount: 4
+
+  l:
+    enabled: true # categorized
+    interval: 3500
+    threshold: 3000
+    max-per-interval: 10
+    vls-amount: 3
+
+  m:
+    enabled: true # flood
+    interval: 3000
+    threshold: 5000
+    max-per-interval: 6
+    vls-amount: 3
+
+  n:
+    enabled: true # flood
+    interval: 3000
+    threshold: 1500
+    max-per-interval: 16
+    vls-amount: 3
+
+  o:
+    enabled: true # flood
+    clear-interval: true
+    interval: 8000
+    threshold: 1500
+    max-per-interval: 32
+    vls-amount: 3
 
 # |--- custom payload ---|
 custom-payload:
@@ -290,7 +319,7 @@ custom-payload:
   f:
     enabled: true
 
-    # fælles indstillinger
+    # common settings
     interval: 1000
     vls-amount: 3
 

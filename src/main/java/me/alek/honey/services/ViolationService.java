@@ -180,7 +180,7 @@ public class ViolationService {
                     throw new RuntimeException("No packet limit handler could be created.");
 
                 ViolationDistributor distributor;
-                if (setting.getKeyedAnnotation() != null)
+                if (setting.keyedAnnotation != null)
                     distributor = new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(packetLimitHandler, setting));
                 else
@@ -268,13 +268,13 @@ public class ViolationService {
         }
 
         public Map<CheckKey, AbstractPacketLimitHandler> generateMap(Player player) {
-            if (setting.getKeyedAnnotation() == null || setting.getKeyedAnnotation().keys().length == 0) {
+            if (setting.keyedAnnotation == null || setting.keyedAnnotation.keys().length == 0) {
                 return new HashMap<CheckKey, AbstractPacketLimitHandler>(){{
                     put(CheckKey.DEFAULT, handler);
                 }};
             }
             final Map<CheckKey, AbstractPacketLimitHandler> map = new HashMap<>();
-            for (final String key : setting.getKeyedAnnotation().keys()) {
+            for (final String key : setting.keyedAnnotation.keys()) {
                 map.put(new CheckKey(key), generatePacketLimitHandler(handler.getType(), player, setting));
             }
             return map;
@@ -388,7 +388,7 @@ public class ViolationService {
             if (onViolation != null) onViolation.run();
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
-            if (violations.get() < getSetting().getVlsAmount()) return false;
+            if (violations.get() < getSetting().vlsAmount) return false;
 
             punish(getPlayer(), violationName);
             return true;
@@ -452,7 +452,7 @@ public class ViolationService {
 
         @Override
         public void reload() {
-            threshold = getSetting().getThreshold();
+            threshold = getSetting().threshold;
 
             super.reload();
         }
@@ -495,9 +495,9 @@ public class ViolationService {
 
         @Override
         public void reload() {
-            decayInterval = getSetting().getDecay();
-            decayAmount = getSetting().getDecayAmount();
-            threshold = getSetting().getThreshold();
+            decayInterval = getSetting().decay;
+            decayAmount = getSetting().decayAmount;
+            threshold = getSetting().threshold;
 
             super.reload();
         }
@@ -526,7 +526,7 @@ public class ViolationService {
             if (bufferIndex < threshold) return false;
 
             bufferIndexCopy = bufferIndex;
-            if (getSetting().isClearBuffer()) this.bufferIndex = 0;
+            if (getSetting().clearBuffer) this.bufferIndex = 0;
 
             return handle(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
         }
@@ -549,7 +549,7 @@ public class ViolationService {
 
         @Override
         public void reload() {
-            until = getSetting().getUntil();
+            until = getSetting().until;
 
             super.reload();
         }
@@ -621,8 +621,8 @@ public class ViolationService {
 
         @Override
         public void reload() {
-            this.maxPerInterval = getSetting().getMaxPerInterval();
-            this.interval = getSetting().getInterval();
+            this.maxPerInterval = getSetting().maxPerInterval;
+            this.interval = getSetting().interval;
 
             super.reload();
         }
@@ -659,7 +659,7 @@ public class ViolationService {
 
             violatedForInterval = true;
             flaggedCopy = flagged;
-            if (getSetting().isClearInterval()) clearInterval();
+            if (getSetting().clearInterval) clearInterval();
 
             violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
             return true;
@@ -714,9 +714,9 @@ public class ViolationService {
 
         @Override
         public void reload() {
-            threshold = getSetting().getThreshold();
-            until = getSetting().getUntil();
-            interval = getSetting().getInterval();
+            threshold = getSetting().threshold;
+            until = getSetting().until;
+            interval = getSetting().interval;
 
             super.reload();
         }

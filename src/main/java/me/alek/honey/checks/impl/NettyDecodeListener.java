@@ -13,24 +13,91 @@ import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class NettyDecodeListener extends AbstractDecodeListener implements IListener {
 
     @Override
     public CheckVisitor<?> getVisitor() {
         CheckVisitor<?> visitor = new CheckVisitor<>();
+        // A, B, H, I, J, K are packet listeners
         visitor.visit(new NettyC());
         visitor.visit(new NettyD());
         visitor.visit(new NettyE());
         visitor.visit(new NettyF());
         visitor.visit(new NettyG());
+        visitor.visit(new NettyL());
         return visitor;
     }
 
     @Override
     public HoneyCheckType getCheckType() {
         return HoneyCheckType.DECODE;
+    }
+
+    @Override
+    public void cleanup(Player player) {
+        NettyL.byteBufSizeMap.remove(player.getUniqueId());
+    }
+
+    public static class DecayableListeningCounter {
+
+        private final long collectInterval;
+        private final Supplier<Long> max;
+        private final Runnable onFlag;
+
+        private final LinkedList<Long> data = new LinkedList<>();
+
+        public DecayableListeningCounter(long collectInterval, Runnable onFlag, Supplier<Long> max) {
+            this.collectInterval = collectInterval;
+            this.onFlag = onFlag;
+            this.max = max;
+        }
+
+        public DecayableListeningCounter(long collectInterval, Runnable onFlag) {
+            this(collectInterval, onFlag, null);
+        }
+
+        private void collect() {
+            synchronized (data) {
+                final Iterator<Long> sampleNodeIterator = data.iterator();
+                while (sampleNodeIterator.hasNext()) {
+
+                    final long diff = System.currentTimeMillis() - sampleNodeIterator.next();
+                    if (diff > collectInterval) {
+                        sampleNodeIterator.remove();
+                        continue;
+                    }
+                    break;
+                }
+            }
+        }
+
+        public void count() {
+            collect();
+
+            synchronized (data) {
+                data.addLast(System.currentTimeMillis());
+            }
+            if (max != null && data.size() > max.get()) {
+                onFlag.run();
+
+                synchronized (data) {
+                    data.clear();
+                }
+            }
+        }
+
+        public int size() {
+            collect();
+
+            return data.size();
+        }
     }
 
     public static class NettyC implements DecodeCheck, ViolationCheck {
@@ -182,6 +249,60 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class);
+        }
+    }
+
+    public static class NettyL implements DecodeCheck, ViolationCheck {
+
+        private static final Map<UUID, Map<Integer, DecayableListeningCounter>> byteBufSizeMap = new HashMap<>();
+        private static final Set<UUID> waitingFlagSet = new HashSet<>();
+
+        @Override
+        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                if (!byteBufSizeMap.containsKey(player.getUniqueId())) {
+                    byteBufSizeMap.put(player.getUniqueId(), new HashMap<>());
+                }
+                final Map<Integer, DecayableListeningCounter> byteBufSizeMap = NettyL.byteBufSizeMap.get(player.getUniqueId());
+
+                if (byteBuf.capacity() > getSetting().threshold) {
+                    boolean foundMatch = false;
+                    for (final int sizeKey : byteBufSizeMap.keySet()) {
+
+                        if (Math.abs(sizeKey - byteBuf.capacity()) < 200) {
+                            foundMatch = true;
+                            byteBufSizeMap.get(sizeKey).count();
+                        } else break;
+                    }
+                    if (!foundMatch) {
+                        final DecayableListeningCounter counter = new DecayableListeningCounter(
+                                getSetting().interval, () -> waitingFlagSet.add(player.getUniqueId()), () -> (long) getSetting().maxPerInterval);
+                        counter.count();
+                        byteBufSizeMap.put(byteBuf.capacity(), counter);
+                    }
+                }
+                if (waitingFlagSet.contains(player.getUniqueId())) {
+                    waitingFlagSet.remove(player.getUniqueId());
+                    return ResponseBuilder.inst().cancel().flag(getSetting().maxPerInterval + 1).build();
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getCheckName() {
+            return "Netty.L";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too many categorized big packets in interval";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyL.class);
         }
     }
 }

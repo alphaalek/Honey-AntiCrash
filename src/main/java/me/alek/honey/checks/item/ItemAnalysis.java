@@ -107,9 +107,7 @@ public class ItemAnalysis {
         Bukkit.getLogger().info("DEBUG: " + flaggedCheck.name());
 
         // HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
-        // return true;
-
-        return false;
+        return true;
     }
 
     private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {

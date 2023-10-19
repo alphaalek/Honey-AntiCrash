@@ -173,27 +173,27 @@ public class NotificationService {
             return "";
         }
         if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
-            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.getMaxPerInterval() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls, §e" + (setting.getInterval() < 1000 ? setting.getInterval() + "§7ms" : ((double)setting.getInterval())/1000 + "§7s");
+            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.maxPerInterval + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls, §e" + (setting.interval < 1000 ? setting.interval + "§7ms" : ((double)setting.interval)/1000 + "§7s");
         }
         else if (packetLimitHandler instanceof ViolationService.PacketIntervalThrottleHandler) {
             ViolationService.PacketIntervalThrottleHandler packetIntervalThrottleHandler = (ViolationService.PacketIntervalThrottleHandler) packetLimitHandler;
-            return "§7flags: §e" + ((int) packetIntervalThrottleHandler.getAmount()) + "§7/§e" + packetLimitHandler.getSetting().getThreshold() + "§7/§e"
-                    + packetLimitHandler.getSetting().getUntil() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls";
+            return "§7flags: §e" + ((int) packetIntervalThrottleHandler.getAmount()) + "§7/§e" + packetLimitHandler.getSetting().threshold + "§7/§e"
+                    + packetLimitHandler.getSetting().until + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketBufferThrottleHandler) {
             ViolationService.PacketBufferThrottleHandler packetBufferThrottleHandler = (ViolationService.PacketBufferThrottleHandler) packetLimitHandler;
-            return "§7buffer: §e" + ((int) packetBufferThrottleHandler.getBufferIndex()) + "§7/§e" + setting.getUntil() + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls";
+            return "§7buffer: §e" + ((int) packetBufferThrottleHandler.bufferIndex) + "§7/§e" + setting.until + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketBufferOverflowHandler) {
             ViolationService.PacketBufferOverflowHandler packetBufferOverflowHandler = (ViolationService.PacketBufferOverflowHandler) packetLimitHandler;
-            return "§7buffer: §e" + ((int) packetBufferOverflowHandler.getBufferIndex()) + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls";
+            return "§7buffer: §e" + ((int) packetBufferOverflowHandler.bufferIndex) + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketSingleOverflowHandler) {
             ViolationService.PacketSingleOverflowHandler packetSingleOverflowHandler = (ViolationService.PacketSingleOverflowHandler) packetLimitHandler;
-            return "§7flags: §e" + ((int) packetSingleOverflowHandler.getAmount()) + "§7/§e" + setting.getThreshold() + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls";
+            return "§7flags: §e" + ((int) packetSingleOverflowHandler.getAmount()) + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketSimpleHandler) {
-            return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.getVlsAmount() + "§7vls";
+            return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         return "";
     }

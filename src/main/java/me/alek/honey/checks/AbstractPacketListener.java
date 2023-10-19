@@ -46,6 +46,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         StringBuilder message = new StringBuilder();
 
         for (double percentage : percentages) {
+            if (percentage == 0) percentage = 1;
             message.append(", ").append(formatter.format(percentage * 100)).append("%");
         }
         return message.substring(2, message.length());

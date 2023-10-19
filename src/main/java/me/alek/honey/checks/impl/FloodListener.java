@@ -95,9 +95,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             for (Map.Entry<PacketTypeEnum, ConfigurationOptions.VlSetting> settingEntry : ConfigurationOptions.getFloodSettings().entrySet()) {
 
                 final ConfigurationOptions.VlSetting setting = settingEntry.getValue().clone();
-                setting.interval = commonSetting.getInterval();
-                setting.maxPerInterval = commonSetting.getMaxPerInterval();
-                setting.vlsAmount = commonSetting.getVlsAmount();
+                setting.interval = commonSetting.interval;
+                setting.maxPerInterval = commonSetting.maxPerInterval;
+                setting.vlsAmount = commonSetting.vlsAmount;
 
                 settingMap.put(settingEntry.getKey(), setting);
             }
@@ -210,14 +210,13 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
             synchronized (sharedIgnoringSetting) {
-                if (sharedIgnoringSetting.getInterval() == 0) sharedIgnoringSetting.interval = ConfigurationOptions.General.Exempt.SPIKE_INTERVAL;
+                if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.General.Exempt.SPIKE_INTERVAL;
             }
 
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getLimits(player, sharedIgnoringKey, sharedIgnoringSetting);
 
             if (getSetting(packet).isEnabled()) {
-
                 final UUID uuid = player.getUniqueId();
 
                 // add the inbound packet decoder of this player to the map, so we can get the delta time between the

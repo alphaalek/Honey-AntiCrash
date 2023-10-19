@@ -396,33 +396,21 @@ public class ConfigurationOptions {
 
         private PacketLimitHandlerType packetLimitHandlerType;
 
-        public VlSetting(PacketLimitHandlerType packetLimitHandlerType) { this.packetLimitHandlerType = packetLimitHandlerType; }
+        public VlSetting(PacketLimitHandlerType packetLimitHandlerType) {
+            this.packetLimitHandlerType = packetLimitHandlerType;
+        }
 
-        public VlSetting() { this(PacketLimitHandlerType.INTERVAL); }
+        public VlSetting() {
+            this(PacketLimitHandlerType.INTERVAL);
+        }
 
-        public int getMaxPerInterval() { return maxPerInterval; }
+        public boolean isEnabled() {
+            return enabled;
+        }
 
-        public int getInterval() { return interval; }
-
-        public int getVlsAmount() { return vlsAmount; }
-
-        public double getThreshold() { return threshold; }
-
-        public double getUntil() { return until; }
-
-        public int getDecay() { return decay; }
-
-        public int getDecayAmount() { return decayAmount; }
-
-        public boolean isEnabled() { return enabled; }
-
-        public Keyed getKeyedAnnotation() { return keyedAnnotation; }
-
-        public boolean isClearInterval() { return clearInterval; }
-
-        public boolean isClearBuffer() { return clearBuffer; }
-
-        public PacketLimitHandlerType getPacketLimitHandlerType() { return packetLimitHandlerType; }
+        public PacketLimitHandlerType getPacketLimitHandlerType() {
+            return packetLimitHandlerType;
+        }
 
         @Override
         public VlSetting clone() {
@@ -633,7 +621,7 @@ public class ConfigurationOptions {
             public static int MAX_BOOK_PAGE_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_TITLE_LENGTH)
             public static int MAX_BOOK_TITLE_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_AUHTOR_LENGTH)
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_AUTHOR_LENGTH)
             public static int MAX_BOOK_AUTHOR_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_BASES)
             public static int MAX_NBT_BASES;
@@ -1096,6 +1084,12 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.INTERVAL_THROTTLE)
         @Keyed(keys = {"stq", "ntq"})
         public static class NettyK extends VlSetting implements VlIntervalThrottleRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.l", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyL extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
     }

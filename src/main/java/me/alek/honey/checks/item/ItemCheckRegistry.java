@@ -29,7 +29,7 @@ public enum ItemCheckRegistry {
     MAX_BOOK_NBT_LENGTH(ItemChecks.MaxBookNBTLengthCheck::new, Material.WRITTEN_BOOK, Material.BOOK_AND_QUILL),
     MAX_BOOK_PAGES(ItemChecks.MaxBookPagesCheck::new, Material.WRITTEN_BOOK, Material.BOOK_AND_QUILL),
     MAX_BOOK_TITLE_LENGTH(ItemChecks.MaxBookTitleLengthCheck::new, Material.WRITTEN_BOOK),
-    MAX_BOOK_AUHTOR_LENGTH(ItemChecks.MaxBookAuthorLengthCheck::new, Material.WRITTEN_BOOK),
+    MAX_BOOK_AUTHOR_LENGTH(ItemChecks.MaxBookAuthorLengthCheck::new, Material.WRITTEN_BOOK),
     MAX_NBT_BASES(ItemChecks.MaxNBTBasesCheck::new),
     MAX_NBT_NESTING(ItemChecks.MaxNBTNestingCheck::new),
     ILLEGAL_SKULL_TEXTURES(ItemChecks.IllegalSkullTexturesCheck::new, Material.SKULL, Material.SKULL_ITEM),

@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class InboundPacketDecoder extends ByteToMessageDecoder implements AbstractPipelineProxy {
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
-    private static final LoggerService loggerService = HoneyPlugin.get().getLoggerService();
     private double recentDecodeStart = getCurrentTime();
     private double recentDeltaReceived = 0;
     private Player player;
@@ -41,16 +40,6 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         packetProcessor.callDecode(player, byteBuf);
-
-        if (byteBuf.capacity() > 10) {
-            ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(byteBuf);
-
-            StringBuilder builder = new StringBuilder();
-            while (wrappedBuffer.isReadable()) {
-                builder.append(wrappedBuffer.readByte()).append(" ");
-            }
-            Bukkit.getLogger().info("Decode: cap: " + wrappedBuffer.capacity() + ", ref: " + wrappedBuffer.refCnt() + ", data: " + builder);
-        }
 
         double currentTime = getCurrentTime();
         recentDeltaReceived = currentTime - recentDecodeStart;

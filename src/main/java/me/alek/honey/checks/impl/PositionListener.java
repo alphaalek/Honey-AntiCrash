@@ -81,7 +81,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             private final T value;
             private final long insertionInstant = System.currentTimeMillis();
-
         }
 
         public void put(T node) {
@@ -91,7 +90,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (sampleNodes.size() > sampleSize) sampleNodes.removeFirst();
 
                 if (lockAmount > 0) {
-
                     lockedNodes.addLast(node);
                     if (lockedNodes.size() > lockAmount) lockedNodes.removeFirst();
                 }
@@ -448,7 +446,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             // laver en kopi af settings for at lave en til når man flyver, da man kan besøge langt flere chunks så
             if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
-                final int maxPerInterval = getSetting().getMaxPerInterval();
+                final int maxPerInterval = getSetting().maxPerInterval;
                 final ConfigurationOptions.VlSetting setting = getSetting().clone();
                 setting.maxPerInterval = maxPerInterval * 3;
 
