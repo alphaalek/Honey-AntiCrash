@@ -76,8 +76,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         }
 
         if (inboundPacketDecoder == null && player != null) {
-
-            AbstractPipelineProxy proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player));
+            final AbstractPipelineProxy proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(channel);
             if (proxy instanceof InboundPacketDecoder) {
                 inboundPacketDecoder = (InboundPacketDecoder) proxy;
             }
@@ -86,8 +85,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         if (inboundPacketDecoder != null) {
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
         }
-
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
+        final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), null);
@@ -116,10 +114,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             super.write(ctx, packet, promise);
             return;
         }
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
+        final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
 
         if (packetContainer == null) {
-            packetProcessor.errorListeners(player, packet.getClass(), packetContainer);
+            packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
         if (packetContainer.isCancelled()) {
@@ -128,6 +126,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         if (packetContainer.getPost() != null) {
             promise.addListener((f) -> packetContainer.getPost().run());
         }
+
         super.write(ctx, packetContainer.getHandle(), promise);
         packetProcessor.postWrite();
     }

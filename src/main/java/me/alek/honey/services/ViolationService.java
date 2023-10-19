@@ -402,7 +402,7 @@ public class ViolationService {
 
             for (Map.Entry<String, Object> valueEntry : setting.getValues()) {
 
-                // add the line to the development data
+                 // add the line to the development data
                  developmentData.addLine(valueEntry.getKey() + ": " +valueEntry.getValue());
             }
         }

@@ -139,8 +139,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             if (PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
                     player,
                     (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()),
-                    5)
-            ) {
+                    15)) {
                 return ResponseBuilder.SUCCESS.builder().terminate().build();
             }
             if (getSetting().isEnabled()) {

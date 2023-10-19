@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -40,7 +39,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         public void callPacket(Player player, PacketContainer<?> packetContainer, boolean isRead) {
-            callPriority((packetAdapter) -> {
+            callPipeline((packetAdapter) -> {
                 try {
                     if (isRead) {
                         if (packetContainer.getPacket() instanceof WrappedPlayInFlying) {
@@ -60,7 +59,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         public void callDecode(Player player, ByteBuf byteBuf) {
-            callPriority((packetAdapter) -> {
+            callPipeline((packetAdapter) -> {
                 packetAdapter.onByteBufDecode(player, byteBuf);
             });
         }
@@ -69,7 +68,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             ((SyncPacketAdapter<R>)packetAdapter).onPacketReceive(player, (PacketContainer<R>) packetContainer);
         }
 
-        public void callPriority(Consumer<SyncPacketAdapter<WP>> consumer) {
+        public void callPipeline(Consumer<SyncPacketAdapter<WP>> consumer) {
             synchronized (priorityMap) {
                 synchronized (pipeline) {
                     for (ListenerPriority priority : pipeline) {
@@ -84,13 +83,13 @@ public class InternalPacketProcessor implements PacketProcessor {
         public void cancel(Player player, PacketContainer<?> packetContainer, boolean isRead) {
             final PacketBound bound = (isRead) ? PacketBound.CLIENT : PacketBound.SERVER;
 
-            callPriority((packetAdapter) -> {
+            callPipeline((packetAdapter) -> {
                 packetAdapter.onPacketCancel(player, (PacketContainer<WP>) packetContainer, bound);
             });
         }
 
         public void error(Player player, PacketTypeEnum packetType, PacketContainer<?> packetContainer) {
-            callPriority((packetAdapter) -> {
+            callPipeline((packetAdapter) -> {
                 packetAdapter.onPacketError(player, packetType, (PacketContainer<WP>) packetContainer);
             });
         }

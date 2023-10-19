@@ -203,7 +203,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     @Override
     public CheckVisitor<WP> getVisitor() {
         CheckVisitor<WP> visitor = new CheckVisitor<>();
-        visitor.visit(new PositionA());
+        visitor.visit(new PositionA<>());
         visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
         visitor.visit(new PositionD<>());
@@ -327,7 +327,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player,
                     (location) -> Locations.calculate3DDistance(location, packetLoc),
-                    5)
+                    15)
             ) {
                 return ResponseBuilder.SUCCESS.builder().skip(3).build();
             }

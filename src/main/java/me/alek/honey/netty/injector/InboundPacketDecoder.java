@@ -1,12 +1,14 @@
 package me.alek.honey.netty.injector;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.services.LoggerService;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.time.Instant;
@@ -39,6 +41,16 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         packetProcessor.callDecode(player, byteBuf);
+
+        if (byteBuf.capacity() > 10) {
+            ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(byteBuf);
+
+            StringBuilder builder = new StringBuilder();
+            while (wrappedBuffer.isReadable()) {
+                builder.append(wrappedBuffer.readByte()).append(" ");
+            }
+            Bukkit.getLogger().info("Decode: cap: " + wrappedBuffer.capacity() + ", ref: " + wrappedBuffer.refCnt() + ", data: " + builder);
+        }
 
         double currentTime = getCurrentTime();
         recentDeltaReceived = currentTime - recentDecodeStart;

@@ -360,7 +360,7 @@ position:
 
   b:
     enabled: true
-    max: 25
+    max: 30
     vls-amount: 5
 
   c:

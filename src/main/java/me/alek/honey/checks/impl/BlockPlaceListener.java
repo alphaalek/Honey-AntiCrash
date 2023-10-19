@@ -27,7 +27,6 @@ import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -81,14 +80,15 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
         final Location lastPlayerLocation = PositionListener.getLastLocationFor(player);
 
-        if (Locations.calculate3DDistance(blockPosition.toLocation(player.getWorld()), originLocation) < 10
-         && Locations.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
+        if (blockPosition.distance(originLocation) < 10
+                && Locations.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
             return ResponseBuilder.SUCCESS;
         }
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
         if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld())))
+            // dont flag because it might just be server lag, just cancel it
             return ResponseBuilder.inst().cancel().build();
 
         if (blockPosition.isInvalid())
@@ -104,14 +104,12 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         if (distance > maxDistance || distance == -1) {
 
             // let's now check the distance to the recent server locations, and see if that is also way off
-            if (!PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
-                    player,
-                    (location) -> Locations.calculate3DDistance(location, blockPosition.toLocation(player.getWorld())),
-                    maxDistance)
-            ) {
+            if (distance == -1
+                    || !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
+                            player, blockPosition::distance, maxDistance)) {
                 // add the distance to the development data
                 developmentData.addPoint("BlockPos", blockPosition);
-                developmentData.addPoint("Distance", (distance == -1 ? "-1 (Invalid BlockPos)" : distance));
+                developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));
                 return ResponseBuilder.inst().cancel().flag().build();
             }
         }

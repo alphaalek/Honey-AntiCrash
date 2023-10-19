@@ -50,7 +50,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_RESPONSE);
     }
 
-    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse>, ViolationCheck {
+    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse> {
 
         @Override
         public ResponseContainer check(Player player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
@@ -61,7 +61,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
                 InetSocketAddress address = NMSUtils.getSocketAddress(handler);
 
                 if (address == null || address.getAddress() == null) {
-                    return ResponseBuilder.inst().cancel().notify("").build();
+                    return ResponseBuilder.inst().cancel().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -77,9 +77,5 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
             return "Encryption response with invalid ping";
         }
 
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return null;
-        }
     }
 }
