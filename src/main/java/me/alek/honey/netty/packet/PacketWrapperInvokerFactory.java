@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class PacketWrapperFactory {
+public class PacketWrapperInvokerFactory {
 
     private static class BufferedMapCreator<K, V> {
 
@@ -60,7 +60,7 @@ public class PacketWrapperFactory {
         return (future) -> {
             final BufferedMapCreator<PacketTypeEnum, MethodInvoker<Object>> mapCreator = new BufferedMapCreator<>();
 
-            for (Method method : PacketWrapperFactory.class.getDeclaredMethods()) {
+            for (Method method : PacketWrapperInvokerFactory.class.getDeclaredMethods()) {
                 PacketFactory wrappedPacket = method.getAnnotation(PacketFactory.class);
                 if (wrappedPacket == null) {
                     continue;

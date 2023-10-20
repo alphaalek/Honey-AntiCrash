@@ -44,7 +44,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.handle = rawPacket;
         this.channel = channel;
         this.packetStructure = ReflectStructureCache.acquireStructure(type);
-        this.wrappedPacket = (WP) PacketWrapperInvokerCache.getWrapper(type, rawPacket, this);
+        this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
     }
 
     public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type, ReflectStructure<Object, Object> packetStructure, WP wrappedPacket) {

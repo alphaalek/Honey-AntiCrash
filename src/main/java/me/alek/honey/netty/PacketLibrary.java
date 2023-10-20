@@ -10,7 +10,7 @@ import me.alek.honey.netty.injector.EarlyChannelInjector;
 import me.alek.honey.netty.injector.LateChannelInjector;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
-import me.alek.honey.netty.packet.PacketWrapperFactory;
+import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -61,7 +61,7 @@ public class PacketLibrary {
         packetProcessor = new InternalPacketProcessor(eventManager);
 
         packetTypesLoadingFuture = PacketType.load();
-        packetTypesLoadingFuture.join(PacketWrapperFactory.load());
+        packetTypesLoadingFuture.join(PacketWrapperInvokerFactory.load());
     }
 
     public void callSyncEvent(Event event, boolean isPacket) {
