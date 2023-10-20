@@ -20,7 +20,6 @@ public class CancellableByteBufImpl implements CancellablePacketObserver {
     @Override
     public void cancel() {
         HoneyPlugin.get().getNotificationService().showCancellingPackets(player);
-        Bukkit.broadcastMessage("cancelling bytebuf");
         if (byteBuf.refCnt() > 0) byteBuf.clear();
     }
 }

@@ -38,7 +38,8 @@ public class FieldAccessor<T> implements IReflectResolver<T> {
         try {
             field.set(object, value);
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection fejl (field set): " + field.getName() + " " + ex.getMessage());
+            throw new RuntimeException("Reflection fejl (field set): " + field.getName() + " " + value.getClass().getSimpleName()
+                    + " " + object.getClass().getSimpleName() + " " + ex.getMessage());
         }
     }
 

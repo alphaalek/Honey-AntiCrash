@@ -5,6 +5,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
+import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -14,9 +15,13 @@ public class PacketFactory {
 
     public static Map<PacketTypeEnum, MethodInvoker<Object>> WRAPPER_CACHE = new ConcurrentHashMap<>();
 
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, Player player) {
+        return createNewPacket(type, player, NMSUtils.getChannel(player), null);
+    }
+
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, Player player, Channel channel, Runnable postAction) {
         try {
-            Object rawPacket = type.getNmsClass();
+            Object rawPacket = type.getNmsClass().newInstance();
 
             return createWrappedPacket(type, rawPacket, player, channel, postAction);
         } catch (Exception ex) {

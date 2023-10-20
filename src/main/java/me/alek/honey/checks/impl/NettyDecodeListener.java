@@ -13,6 +13,7 @@ import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.utility.DecayableListeningCounter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -63,61 +64,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         nettyO.lastFlagMap.remove(player.getUniqueId());
 
         ((NettyP)nettyP).categorizedHandlerMap.remove(player.getUniqueId());
-    }
-
-    public static class DecayableListeningCounter {
-
-        private final Supplier<Long> collectInterval;
-        private final Supplier<Long> max;
-        private final Runnable onFlag;
-
-        private final LinkedList<Long> data = new LinkedList<>();
-
-        public DecayableListeningCounter(Supplier<Long> collectInterval, Runnable onFlag, Supplier<Long> max) {
-            this.collectInterval = collectInterval;
-            this.onFlag = onFlag;
-            this.max = max;
-        }
-
-        public DecayableListeningCounter(Supplier<Long> collectInterval, Runnable onFlag) {
-            this(collectInterval, onFlag, null);
-        }
-
-        private void collect() {
-            synchronized (data) {
-                final Iterator<Long> sampleNodeIterator = data.iterator();
-                while (sampleNodeIterator.hasNext()) {
-
-                    final long diff = System.currentTimeMillis() - sampleNodeIterator.next();
-                    if (diff > collectInterval.get()) {
-                        sampleNodeIterator.remove();
-                        continue;
-                    }
-                    break;
-                }
-            }
-        }
-
-        public void count() {
-            collect();
-
-            synchronized (data) {
-                data.addLast(System.currentTimeMillis());
-            }
-            if (max != null && data.size() >= max.get()) {
-                onFlag.run();
-
-                synchronized (data) {
-                    data.clear();
-                }
-            }
-        }
-
-        public int size() {
-            collect();
-
-            return data.size();
-        }
     }
 
     public static class NettyC implements DecodeCheck, ViolationCheck {

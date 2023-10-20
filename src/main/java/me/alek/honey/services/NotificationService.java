@@ -10,7 +10,9 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.utility.DecayableListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -21,16 +23,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import javax.management.NotificationListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class NotificationService {
 
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
+    private final Map<UUID, DecayableListeningCounter> recentlyCancelledPacketsMap = new HashMap<>();
     public static String PREFIX;
 
     public NotificationService() {
@@ -123,6 +122,10 @@ public class NotificationService {
 
     public void unsubscribe(CommandSender observer) {
         observerMap.remove(observer);
+
+        if (observer instanceof Player) {
+            recentlyCancelledPacketsMap.remove(((Player)observer).getUniqueId());
+        }
     }
 
     public void untoggle(CommandSender observer) {
@@ -205,14 +208,27 @@ public class NotificationService {
     }
 
     public void showCancellingPackets(Player player) {
-        /*
-        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player, NMSUtils.getChannel(player), null);
+        DecayableListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.getUniqueId(),
+                (d) -> new DecayableListeningCounter(() -> (long) 3000));
+        counter.count();
+
+        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9)) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + counter.size() + "]"));
+            return;
+        }
+        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
-        [...]
+        packetContainer.getBytes().writeField(0, (byte) 2);
+
+        IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMSUtils.getChatSerializerClass())
+                .withType(NMSUtils.getIChatBaseComponentClass())
+                .withTarget(null);
+        Object chatComponent = chatSerializer.invokeMethod(0,
+                "{\"text\":\"§cCancelling inbound packets... [" + counter.size() + "]\"}");
+        packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         HoneyPlugin.get().getPacketLibrary().getInjector().writePacket(player, actionBarPacket);
-        */
     }
 
     public void notify(String notification) {

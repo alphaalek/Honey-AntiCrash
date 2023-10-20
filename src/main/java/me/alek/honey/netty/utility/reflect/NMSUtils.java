@@ -251,6 +251,14 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.world.level.RayTrace", "{nms}.RayTrace");
     }
 
+    public static Class<Object> getIChatBaseComponentClass() {
+        return getFuzzyClass("{nms}.IChatBaseComponent");
+    }
+
+    public static Class<Object> getChatSerializerClass() {
+        return getFuzzyClass("{nms}.IChatBaseComponent$ChatSerializer");
+    }
+
     public static Class<Object> getEntityClass() {
         return getFuzzyClass("{nms}.world.entity.Entity", "{nms}.Entity");
     }

@@ -17,7 +17,6 @@ public class CancellablePacketDelegateImpl implements CancellablePacketObserver 
     @Override
     public void cancel() {
         HoneyPlugin.get().getNotificationService().showCancellingPackets(packetContainer.getPlayer());
-        Bukkit.broadcastMessage("cancelling packet");
         packetContainer.cancel();
     }
 }
