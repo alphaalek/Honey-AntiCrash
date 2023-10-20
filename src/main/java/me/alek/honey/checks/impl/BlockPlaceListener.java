@@ -27,6 +27,7 @@ import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -125,13 +126,13 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
                 if (blockPosition == null) return ResponseBuilder.SUCCESS;
 
-                return checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractA.MAX, container.getDevelopmentData(this));
+                return checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
             }
             return ResponseBuilder.SUCCESS;
         }
 
         @Override
-        public String getCheckName() { return "BlockInteract.A"; }
+        public String getName() { return "BlockInteract.A"; }
 
         @Override
         public String getDescription() {
@@ -162,7 +163,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "BlockInteract.B";
         }
 
@@ -199,7 +200,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "BlockInteract.C";
         }
 
@@ -244,7 +245,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "BlockInteract.D";
         }
 
@@ -378,7 +379,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "BlockInteract.F";
         }
 

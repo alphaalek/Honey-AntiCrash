@@ -172,8 +172,8 @@ item-analysis:
     # How many bytes may the NBT of a book have.
     max-book-nbt-length: 12500
 
-    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 50 pages.
-    max-book-pages: 50
+    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages.
+    max-book-pages: 100
 
     # How long title may a book have. In Vanilla Minecraft it is not possible to get more than 32 characters.
     max-book-title-length: 32
@@ -238,7 +238,7 @@ netty:
 
   g:
     enabled: true
-    threshold: 525000
+    threshold: 650000
     vls-amount: 1
 
   h:
@@ -267,32 +267,47 @@ netty:
     vls-amount: 4
 
   l:
-    enabled: true # categorized
-    interval: 3500
+    enabled: true # size categorized
+    min: 50
+    max: 100
+    interval: 3000
     threshold: 3000
-    max-per-interval: 10
+    max-per-interval: 9
     vls-amount: 3
 
   m:
-    enabled: true # flood
-    interval: 3000
+    enabled: true # size flood
+    min: 50
+    interval: 3500
+    threshold: 3000
+    max-per-interval: 12
+    vls-amount: 3
+
+  n:
+    enabled: true # size flood
+    min: 50
+    interval: 3500
     threshold: 5000
     max-per-interval: 6
     vls-amount: 3
 
-  n:
-    enabled: true # flood
-    interval: 3000
-    threshold: 1500
-    max-per-interval: 16
-    vls-amount: 3
-
   o:
-    enabled: true # flood
+    enabled: true # size flood
+    min: 50
     clear-interval: true
     interval: 8000
-    threshold: 1500
-    max-per-interval: 32
+    threshold: 2500
+    max-per-interval: 20
+    vls-amount: 2
+
+  p:
+    enabled: true # timed categorized
+    min: 50 # difference in received packets, should be min. this to get into a category at all
+    max: 50 # difference in delta packet time spans, can be max. this to get into the compared category
+            # that means the min. and max. values are not checking for the same amount or things
+    interval: 4000
+    threshold: 2500
+    max-per-interval: 5
     vls-amount: 3
 
 # |--- custom payload ---|

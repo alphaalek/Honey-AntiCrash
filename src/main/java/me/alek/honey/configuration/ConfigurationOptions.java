@@ -291,7 +291,7 @@ public class ConfigurationOptions {
     }
 
    public enum VlSettingImplType {
-        MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, ENABLED;
+        MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED;
 
         public String getPathName() {
             return name().toLowerCase().replace("_", "-");
@@ -385,6 +385,10 @@ public class ConfigurationOptions {
         public int decay;
         @VlSettingImpl(VlSettingImplType.DECAY_AMOUNT)
         public int decayAmount;
+        @VlSettingImpl(VlSettingImplType.MIN)
+        public int min;
+        @VlSettingImpl(VlSettingImplType.MAX)
+        public int max;
 
         @VlSettingImpl(VlSettingImplType.CLEAR_BUFFER)
         public boolean clearBuffer;
@@ -669,11 +673,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "custom-payload.c", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadC extends VlSetting {
 
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("custom-payload.c.max", 6000);
-            }
         }
 
         @Setting
@@ -686,11 +685,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "custom-payload.e", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadE extends VlSetting {
 
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("custom-payload.e.max", 110);
-            }
         }
 
         @Setting
@@ -813,11 +807,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "block-interact.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class BlockInteractA extends VlSetting implements VlSimpleRequiredContentsSetting {
 
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("block-interact.a.max", 15);
-            }
         }
 
         @Setting
@@ -842,11 +831,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "block-interact.e", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class BlockInteractE extends VlSetting implements VlSimpleRequiredContentsSetting {
 
-            public static int MAX;
-
-            public static void load() {
-                MAX = file.getInt("block-interact.e.max", 15);
-            }
         }
 
         @Setting
@@ -885,11 +869,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PositionB extends VlSetting implements VlSimpleRequiredContentsSetting {
 
-            public static double MAX;
-
-            public static void load() {
-                MAX = file.getDouble("position.b.max", 15);
-            }
         }
 
         @Setting
@@ -940,13 +919,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "position.j", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PositionJ extends VlSetting {
 
-            public static int MAX;
-            public static int MIN;
-
-            public static void load() {
-                MAX = file.getInt("position.a.max", 2048);
-                MIN = file.getInt("position.a.min", -256);
-            }
         }
     }
 
@@ -1092,6 +1064,30 @@ public class ConfigurationOptions {
         public static class NettyL extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
+
+        @Setting
+        @Violation(prefixPaths = "netty.m", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyM extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.n", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyN extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.o", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyO extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.p", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyP extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
     }
 
     @Setting
@@ -1116,7 +1112,6 @@ public class ConfigurationOptions {
                 MAX_Y = file.getDouble("use-entity.b.max-y", 12.6);
                 MAX_Z = file.getDouble("use-entity.b.max-z", 16.0);
             }
-
         }
     }
 

@@ -67,7 +67,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Creative.A";
         }
 
@@ -99,7 +99,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Creative.B";
         }
 
@@ -128,7 +128,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Creative.C";
         }
 

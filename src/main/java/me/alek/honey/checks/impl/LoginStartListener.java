@@ -71,7 +71,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Login.A";
         }
 
@@ -99,7 +99,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Login.B";
         }
 

@@ -339,12 +339,15 @@ public class Reflection {
     }
 
     public static void setFinalField(Object instance, Field field, Object value) throws Exception {
-        if (!field.isAccessible()) field.setAccessible(true);
+        field.setAccessible(true);
+        try {
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        } catch (Exception ex) {
+            // ignore Java 12+ error
+        }
 
         field.set(instance, value);
     }

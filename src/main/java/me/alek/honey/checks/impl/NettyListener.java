@@ -114,7 +114,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Netty.A";
         }
 
@@ -188,7 +188,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Netty.B";
         }
 
@@ -210,7 +210,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
+        public static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
@@ -237,7 +237,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Netty.H";
         }
 
@@ -259,7 +259,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             if (getSetting().isEnabled()) {
 
                 double decodeTime = container.getStorage().getDouble(0);
-                Bukkit.broadcastMessage("Decode time: " + decodeTime);
                 if (decodeTime > 0) {
 
                     container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime / 1_000) + " ms");
@@ -270,7 +269,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Netty.I";
         }
 
@@ -334,7 +333,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Netty.J (exp.)";
         }
 
@@ -381,7 +380,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Netty.K (exp.)";
         }
 

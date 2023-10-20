@@ -59,13 +59,13 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
                 if (blockPosition == null || blockPosition.getY() == -1) return ResponseBuilder.SUCCESS;
 
-                return BlockPlaceListener.checkExceedingMaxDistance(player, blockPosition, ConfigurationOptions.BlockInteract.BlockInteractE.MAX, container.getDevelopmentData(this));
+                return BlockPlaceListener.checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
             }
             return ResponseBuilder.SUCCESS;
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "BlockInteract.E";
         }
 

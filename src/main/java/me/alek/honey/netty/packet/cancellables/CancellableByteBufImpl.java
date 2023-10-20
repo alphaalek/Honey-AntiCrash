@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet.cancellables;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import org.bukkit.Bukkit;
 

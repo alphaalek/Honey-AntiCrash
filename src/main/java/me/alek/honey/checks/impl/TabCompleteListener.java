@@ -82,7 +82,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Tab.A";
         }
 
@@ -141,7 +141,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         public void accept(int size) {
 
                             container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, getCheckName(), getSetting(), container.getDevelopmentData(TabB.this), false);
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, getName(), getSetting(), container.getDevelopmentData(TabB.this), false);
                         }
                     });
                 }
@@ -153,7 +153,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
-        public String getCheckName() { return "Tab.B"; }
+        public String getName() { return "Tab.B"; }
 
         @Override
         public String getDescription() {

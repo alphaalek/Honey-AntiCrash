@@ -23,7 +23,6 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,7 +32,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -300,7 +298,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.A";
         }
 
@@ -338,7 +336,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             if (getSetting().isEnabled()) {
 
-                final double maxDistance = ConfigurationOptions.Position.PositionB.MAX;
+                final double maxDistance = getSetting().max;
 
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
@@ -356,7 +354,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.B";
         }
 
@@ -416,7 +414,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.C";
         }
 
@@ -475,7 +473,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.D";
         }
 
@@ -501,7 +499,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.E";
         }
 
@@ -597,7 +595,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                             HoneyPlugin.get().getViolationService().flag(
                                     player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()),
                                     new ViolationService.CheckKey("Position.F", axis.ordinal()), new ViolationService.CheckKey(axis.name().toLowerCase()),
-                                    1, () -> packet.getContainer().cancel(), null, getCheckName(), getSetting(), container.getDevelopmentData(this), false);
+                                    1, () -> packet.getContainer().cancel(), null, getName(), getSetting(), container.getDevelopmentData(this), false);
                         }
                     }
                 }
@@ -606,7 +604,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.F";
         }
 
@@ -639,7 +637,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.G";
         }
 
@@ -705,7 +703,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.H";
         }
 
@@ -732,7 +730,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.I";
         }
 
@@ -763,15 +761,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (z > 3.0E7 || z < -3.0E7) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
-                if (y < ConfigurationOptions.Position.PositionJ.MIN || y > ConfigurationOptions.Position.PositionJ.MAX) {
+                if (y < getSetting().min || y > getSetting().max) {
 
                     double y_ = y;
-                    if (y < ConfigurationOptions.Position.PositionJ.MIN) {
+                    if (y < getSetting().min) {
                         while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
-                            if (y_ > ConfigurationOptions.Position.PositionJ.MAX - 3) break;
+                            if (y_ > getSetting().max - 3) break;
                         }
                     }
-                    if (y > ConfigurationOptions.Position.PositionJ.MAX) {
+                    if (y > getSetting().max) {
                         while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
                             if (y_ < 16) break;
                         }
@@ -788,7 +786,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Position.J";
         }
 

@@ -67,7 +67,7 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "UseEntity.A";
         }
 
@@ -119,7 +119,7 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "UseEntity.B";
         }
 

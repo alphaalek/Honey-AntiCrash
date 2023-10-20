@@ -68,7 +68,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Encryption.A";
         }
 

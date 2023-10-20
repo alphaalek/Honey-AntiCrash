@@ -117,7 +117,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Rotation.A";
         }
 
@@ -152,7 +152,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Rotation.B";
         }
 
@@ -183,7 +183,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Rotation.C";
         }
 

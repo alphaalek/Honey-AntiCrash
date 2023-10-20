@@ -48,7 +48,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         } catch (Exception ex) {
             return false;
         }
-        ByteBuf newSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.wrappedBuffer(priorSerializer));
+        ByteBuf newSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(priorSerializer));
 
         ItemStack bukkitItem = null;
         try {
@@ -108,7 +108,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.A";
         }
 
@@ -139,7 +139,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.B";
         }
 
@@ -170,7 +170,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 }
                 NBTCompound tag = NBTFactory.fromItem(item);
                 int byteSize;
-                if (tag == null || (byteSize = tag.toString().getBytes().length) <= ConfigurationOptions.CustomPayload.PayloadC.MAX) {
+                if (tag == null || (byteSize = tag.toString().getBytes().length) <= getSetting().max) {
                     return ResponseBuilder.SUCCESS;
                 }
 
@@ -185,7 +185,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.C";
         }
 
@@ -227,7 +227,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.D";
         }
 
@@ -255,7 +255,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (channel.equalsIgnoreCase("register")) {
 
-                    if (player.getListeningPluginChannels().size() > ConfigurationOptions.CustomPayload.PayloadE.MAX) {
+                    if (player.getListeningPluginChannels().size() > getSetting().max) {
                         serializer.release();
                         container.getDevelopmentData(this).addPoint("Channel Size", player.getListeningPluginChannels().size());
 
@@ -267,7 +267,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.E";
         }
 
@@ -296,7 +296,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.F";
         }
 
@@ -331,7 +331,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
-        public String getCheckName() {
+        public String getName() {
             return "Payload.G";
         }
 

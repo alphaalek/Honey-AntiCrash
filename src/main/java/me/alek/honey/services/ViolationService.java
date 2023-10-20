@@ -697,7 +697,6 @@ public class ViolationService {
             if ((this.amount = amount) > threshold) {
                 intervalStart = System.currentTimeMillis();
 
-
                 if (amount > until && !currentlyCancelling) {
                     violate(handle, cancellablePacketObserver, violationName, onViolation, developmentData);
                 }
