@@ -69,7 +69,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     public synchronized void onEnable() {
         // check compatability and conflicts of runtime load or minecraft version
         String conflict = null;
-        if (isLoaded)
+        if (isLoaded || isRunning)
             conflict = "Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.";
         else if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17))
             conflict = "Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for sure come in the future! :-)";
@@ -89,7 +89,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         configuration = new DedicatedConfiguration();
 
         if (configuration.isMisconfigured()) {
-
             if (getServer().getPluginManager().isPluginEnabled(this)) {
                 resetConfiguration();
                 getServer().getPluginManager().disablePlugin(this);

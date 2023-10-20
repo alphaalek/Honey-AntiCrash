@@ -1,23 +1,22 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
 import me.alek.honey.netty.api.event.Event;
 import me.alek.honey.netty.api.event.EventManager;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
+import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
 import me.alek.honey.netty.injector.EarlyChannelInjector;
 import me.alek.honey.netty.injector.LateChannelInjector;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
+import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.utility.AsyncFuture;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;

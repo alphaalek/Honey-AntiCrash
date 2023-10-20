@@ -98,8 +98,8 @@ public class PacketWrapperFactory {
         throw new RuntimeException("Ingen packet wrapper for " + name);
     }
 
-    public static MethodInvoker<Object> createWrapperInvoker(PacketState state, PacketTypeEnum packetType) {
-        return createWrapperInvoker(state, packetType.getNmsClass());
+    public static MethodInvoker<Object> createWrapperInvoker(PacketTypeEnum packetType) {
+        return createWrapperInvoker(packetType.getState(), packetType.getNmsClass());
     }
 
     public static MethodInvoker<Object> createWrapperInvoker(PacketState state, Class<?> nmsClass) {

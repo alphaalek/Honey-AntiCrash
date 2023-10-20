@@ -14,6 +14,7 @@ public class CancellablePacketDelegateImpl implements CancellablePacketObserver 
 
     @Override
     public void cancel() {
+        Bukkit.broadcastMessage("cancelling packet");
         packetContainer.cancel();
     }
 }

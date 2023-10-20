@@ -63,8 +63,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
 
-                    NMSUtils.getChannel(player).close();
-                    return ResponseBuilder.inst().cancel().build();
+                    return ResponseBuilder.inst().cancel().punish().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

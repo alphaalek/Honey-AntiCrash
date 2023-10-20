@@ -779,6 +779,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     player.teleport(new Location(player.getWorld(), x, y_, z));
                     player.setHealth(20);
 
+                    if (player.isDead()) { // don't flag if the player is dead, might be a false flag if a player is falling down in void being dead
+                        return ResponseBuilder.inst().cancel().build();
+                    }
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

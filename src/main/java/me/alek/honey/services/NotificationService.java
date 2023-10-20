@@ -6,6 +6,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -196,6 +197,10 @@ public class NotificationService {
             return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         return "";
+    }
+
+    public void showCancellingPackets(Player player) {
+        Object playerConnection = NMSUtils.getPlayerConnection(player);
     }
 
     public void notify(String notification) {

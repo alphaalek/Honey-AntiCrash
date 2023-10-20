@@ -455,7 +455,7 @@ position:
   j:
     enabled: true
     max: 2048
-    min: -256
+    min: -512
     vls-amount: 1
 
 # |--- rotation ---|
