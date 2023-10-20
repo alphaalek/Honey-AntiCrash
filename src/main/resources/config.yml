@@ -204,7 +204,6 @@ item-analysis:
 
 # |--- netty ---|
 netty:
-
   a:
     enabled: true
     vls-amount: 3
@@ -272,21 +271,21 @@ netty:
     max: 100
     interval: 3000
     threshold: 3000
-    max-per-interval: 9
+    max-per-interval: 10
     vls-amount: 3
 
   m:
     enabled: true # size flood
     min: 50
-    interval: 3500
-    threshold: 3000
+    interval: 3000
+    threshold: 2500
     max-per-interval: 12
     vls-amount: 3
 
   n:
     enabled: true # size flood
     min: 50
-    interval: 3500
+    interval: 3000
     threshold: 5000
     max-per-interval: 6
     vls-amount: 3
@@ -297,17 +296,17 @@ netty:
     clear-interval: true
     interval: 8000
     threshold: 2500
-    max-per-interval: 20
-    vls-amount: 2
+    max-per-interval: 22
+    vls-amount: 3
 
   p:
     enabled: true # timed categorized
-    min: 50 # difference in received packets, should be min. this to get into a category at all
-    max: 50 # difference in delta packet time spans, can be max. this to get into the compared category
+    min: 50 # difference in received packets. Should be min. this to get into a category at all
+    max: 50 # difference in delta packet time spans. Can be max. this to get into the compared category
             # that means the min. and max. values are not checking for the same amount or things
     interval: 4000
     threshold: 2500
-    max-per-interval: 5
+    max-per-interval: 6
     vls-amount: 3
 
 # |--- custom payload ---|
@@ -395,7 +394,6 @@ held-item:
 
 # |--- position ---|
 position:
-
   a:
     enabled: true
     max-per-interval: 18
@@ -575,7 +573,6 @@ use-entity:
 ############################################################
 
 packet-flood:
-
   # total
   a:
     max-per-interval: 500
@@ -585,12 +582,12 @@ packet-flood:
   # common
   common:
     b:
-      max-per-interval: 220
+      max-per-interval: 250
       interval: 900
       vls-amount: 4
     c:
-      max-per-interval: 360
-      interval: 1450
+      max-per-interval: 375
+      interval: 1350
       vls-amount: 3
 
   # specific
@@ -721,7 +718,7 @@ packet-flood:
 
     # window click
     window-click:
-      max-per-interval: 95
+      max-per-interval: 100
       interval: 600
       vls-amount: 8
 

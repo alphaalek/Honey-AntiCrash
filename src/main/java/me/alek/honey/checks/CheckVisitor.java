@@ -111,7 +111,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     public void check(Player player, ByteBuf byteBuf, CheckContextContainer checkContextContainer) {
-        final CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(byteBuf);
+        final CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(player, byteBuf);
         handleCommonCheck(player, null, (check) -> {
             try {
                 return ((DecodeCheck)check).check(player, byteBuf, checkContextContainer);

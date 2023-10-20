@@ -14,7 +14,7 @@ public class PacketFactory {
 
     public static Map<PacketTypeEnum, MethodInvoker<Object>> WRAPPER_CACHE = new ConcurrentHashMap<>();
 
-    public static synchronized WrappedPacket<?> createNewPacket(PacketTypeEnum type, Player player, Channel channel, Runnable postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, Player player, Channel channel, Runnable postAction) {
         try {
             Object rawPacket = type.getNmsClass();
 
@@ -25,12 +25,12 @@ public class PacketFactory {
         return null;
     }
 
-    public static synchronized WrappedPacket<?> createWrappedPacket(PacketTypeEnum type, Object rawPacket, Player player, Channel channel, Runnable postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, Player player, Channel channel, Runnable postAction) {
         return createWrappedPacket(type, rawPacket, new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
     }
 
-    public static synchronized WrappedPacket<?> createWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
-        return (WrappedPacket<?>) getWrapperInvoker(type).invoke(null, rawPacket, packetContainer);
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
+        return (WrappedPacket<WP>) getWrapperInvoker(type).invoke(null, rawPacket, packetContainer);
     }
 
     public static MethodInvoker<Object> getWrapperInvoker(PacketTypeEnum type) {

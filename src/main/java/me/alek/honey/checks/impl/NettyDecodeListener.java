@@ -61,6 +61,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         nettyM.lastFlagMap.remove(player.getUniqueId());
         nettyN.lastFlagMap.remove(player.getUniqueId());
         nettyO.lastFlagMap.remove(player.getUniqueId());
+
+        ((NettyP)nettyP).categorizedHandlerMap.remove(player.getUniqueId());
     }
 
     public static class DecayableListeningCounter {
@@ -102,7 +104,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             synchronized (data) {
                 data.addLast(System.currentTimeMillis());
             }
-            if (max != null && data.size() > max.get()) {
+            if (max != null && data.size() >= max.get()) {
                 onFlag.run();
 
                 synchronized (data) {
@@ -126,7 +128,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 // check if the player sends invalid bytes to be decoded to a packet
                 if (player.isOnline() && (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0)) {
 
-                    NMSUtils.getChannel(player).close();
                     return ResponseBuilder.inst().cancel().build();
                 }
             }
@@ -421,10 +422,42 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
     public static class NettyP extends AbstractCategorizedCheck {
 
-        private long lastReceived = 0;
-        private long recentKey;
-        private ByteBuf lastByteBuf;
-        private boolean begin = true;
+        public static class LocalCategorizedHandler {
+
+            private long lastReceived = 0;
+            private long recentKey;
+            private ByteBuf lastByteBuf;
+            private boolean begin = true;
+            private final Supplier<ConfigurationOptions.VlSetting> setting;
+
+            public LocalCategorizedHandler(Supplier<ConfigurationOptions.VlSetting> setting) {
+                this.setting = setting;
+            }
+
+            public boolean check(long sizeKey, ByteBuf byteBuf) {
+                if (lastByteBuf == null) lastByteBuf = byteBuf;
+
+                recentKey = getKey(byteBuf);
+
+                if (lastReceived == 0 || lastByteBuf != byteBuf) lastReceived = System.currentTimeMillis();
+                lastByteBuf = byteBuf;
+
+                return 0 < recentKey && Math.abs(recentKey - sizeKey) < setting.get().max;
+            }
+
+            public long getKey(ByteBuf byteBuf) {
+                if (begin) {
+                    lastReceived = System.currentTimeMillis();
+                    begin = false;
+                    return 0;
+                }
+
+                long key = System.currentTimeMillis() - lastReceived;
+                return key > 0 && lastByteBuf != byteBuf ? key : recentKey;
+            }
+        }
+
+        private final Map<UUID, LocalCategorizedHandler> categorizedHandlerMap = new HashMap<>();
 
         @Override
         public String getName() {
@@ -443,26 +476,14 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public boolean check(Player player, long sizeKey, ByteBuf byteBuf) {
-            if (lastByteBuf == null) lastByteBuf = byteBuf;
-
-            recentKey = getKey(player, byteBuf);
-
-            if (lastReceived == 0 || lastByteBuf != byteBuf) lastReceived = System.currentTimeMillis();
-            lastByteBuf = byteBuf;
-
-            return 0 < recentKey && Math.abs(recentKey - sizeKey) < getSetting().max;
+            return categorizedHandlerMap.computeIfAbsent(player.getUniqueId(), (d) -> new LocalCategorizedHandler(this::getSetting))
+                    .check(sizeKey, byteBuf);
         }
 
         @Override
         public long getKey(Player player, ByteBuf byteBuf) {
-            if (begin) {
-                lastReceived = System.currentTimeMillis();
-                begin = false;
-                return 0;
-            }
-
-            long key = System.currentTimeMillis() - lastReceived;
-            return key > 0 && lastByteBuf != byteBuf ? key : recentKey;
+            return categorizedHandlerMap.computeIfAbsent(player.getUniqueId(), (d) -> new LocalCategorizedHandler(this::getSetting))
+                    .getKey(byteBuf);
         }
     }
 }

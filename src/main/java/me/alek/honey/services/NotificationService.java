@@ -4,6 +4,11 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.PacketFactory;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import net.md_5.bungee.api.ChatMessageType;
@@ -200,7 +205,14 @@ public class NotificationService {
     }
 
     public void showCancellingPackets(Player player) {
-        Object playerConnection = NMSUtils.getPlayerConnection(player);
+        /*
+        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player, NMSUtils.getChannel(player), null);
+        PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
+
+        [...]
+
+        HoneyPlugin.get().getPacketLibrary().getInjector().writePacket(player, actionBarPacket);
+        */
     }
 
     public void notify(String notification) {
