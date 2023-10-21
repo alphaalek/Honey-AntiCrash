@@ -12,7 +12,7 @@ import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.Protocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.utility.DecayableListeningCounter;
+import me.alek.honey.utility.DecayingListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -29,7 +29,7 @@ public class NotificationService {
 
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
-    private final Map<UUID, DecayableListeningCounter> recentlyCancelledPacketsMap = new HashMap<>();
+    private final Map<UUID, DecayingListeningCounter> recentlyCancelledPacketsMap = new HashMap<>();
     public static String PREFIX;
 
     public NotificationService() {
@@ -208,12 +208,15 @@ public class NotificationService {
     }
 
     public void showCancellingPackets(Player player) {
-        DecayableListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.getUniqueId(),
-                (d) -> new DecayableListeningCounter(() -> (long) 3000));
+        DecayingListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.getUniqueId(),
+                (d) -> new DecayingListeningCounter(() -> (long) 3000));
         counter.count();
 
+        int size = counter.size();
+        if (size < 5) return;
+
         if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9)) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + counter.size() + "]"));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
             return;
         }
         WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
@@ -225,7 +228,7 @@ public class NotificationService {
                 .withType(NMSUtils.getIChatBaseComponentClass())
                 .withTarget(null);
         Object chatComponent = chatSerializer.invokeMethod(0,
-                "{\"text\":\"§cCancelling inbound packets... [" + counter.size() + "]\"}");
+                "{\"text\":\"§cCancelling inbound packets... [" + size + "]\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         HoneyPlugin.get().getPacketLibrary().getInjector().writePacket(player, actionBarPacket);

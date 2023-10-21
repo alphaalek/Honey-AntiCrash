@@ -25,7 +25,7 @@ public class PlayerJoinListener implements Listener {
         for (IListener check : ListenerRegistry.getChecks()) {
             check.setup(player);
         }
-        HoneyPlugin.get().getViolationService().addPlayer(player);
+        HoneyPlugin.get().getViolationService().add(player);
 
         if (player.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION))
             HoneyPlugin.get().getNotificationService().subscribe(player);
@@ -54,7 +54,7 @@ public class PlayerJoinListener implements Listener {
         }
         instantJoinedMap.remove(player.getUniqueId());
 
-        HoneyPlugin.get().getViolationService().removePlayer(player);
+        HoneyPlugin.get().getViolationService().remove(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
 
         HoneyPlugin.get().removeRecentPingLookup(player);

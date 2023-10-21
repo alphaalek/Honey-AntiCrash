@@ -13,8 +13,7 @@ import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
-import me.alek.honey.utility.DecayableListeningCounter;
-import org.bukkit.Bukkit;
+import me.alek.honey.utility.DecayingListeningCounter;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -25,8 +24,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     private AbstractCategorizedCheck nettyL;
     private AbstractFloodDecodeCheck nettyM;
     private AbstractFloodDecodeCheck nettyN;
-    private AbstractFloodDecodeCheck nettyO;
-    private AbstractCategorizedCheck nettyP;
+    private AbstractCategorizedCheck nettyO;
 
     @Override
     public CheckVisitor<?> getVisitor() {
@@ -41,7 +39,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         visitor.visit(nettyM = new NettyM());
         visitor.visit(nettyN = new NettyN());
         visitor.visit(nettyO = new NettyO());
-        visitor.visit(nettyP = new NettyP());
         return visitor;
     }
 
@@ -55,15 +52,15 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         nettyL.byteBufSizeMap.remove(player.getUniqueId());
         nettyL.waitingFlagSet.remove(player.getUniqueId());
         nettyL.lastFlagMap.remove(player.getUniqueId());
-        nettyP.byteBufSizeMap.remove(player.getUniqueId());
-        nettyP.waitingFlagSet.remove(player.getUniqueId());
-        nettyP.lastFlagMap.remove(player.getUniqueId());
+        nettyO.byteBufSizeMap.remove(player.getUniqueId());
+        nettyO.waitingFlagSet.remove(player.getUniqueId());
+        nettyO.lastFlagMap.remove(player.getUniqueId());
 
         nettyM.lastFlagMap.remove(player.getUniqueId());
         nettyN.lastFlagMap.remove(player.getUniqueId());
         nettyO.lastFlagMap.remove(player.getUniqueId());
 
-        ((NettyP)nettyP).categorizedHandlerMap.remove(player.getUniqueId());
+        ((NettyO)nettyO).categorizedHandlerMap.remove(player.getUniqueId());
     }
 
     public static class NettyC implements DecodeCheck, ViolationCheck {
@@ -220,7 +217,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
     public abstract static class AbstractCategorizedCheck implements DecodeCheck, ViolationCheck {
 
-        private final Map<UUID, Map<Long, DecayableListeningCounter>> byteBufSizeMap = new HashMap<>();
+        private final Map<UUID, Map<Long, DecayingListeningCounter>> byteBufSizeMap = new HashMap<>();
         private final Map<UUID, Long> lastFlagMap = new HashMap<>();
         private final Set<UUID> waitingFlagSet = new HashSet<>();
 
@@ -231,7 +228,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 if (!byteBufSizeMap.containsKey(player.getUniqueId())) {
                     byteBufSizeMap.put(player.getUniqueId(), new HashMap<>());
                 }
-                final Map<Long, DecayableListeningCounter> byteBufSizeMap = this.byteBufSizeMap.get(player.getUniqueId());
+                final Map<Long, DecayingListeningCounter> byteBufSizeMap = this.byteBufSizeMap.get(player.getUniqueId());
 
                 if (byteBuf.capacity() > getSetting().threshold) {
                     long diff = System.currentTimeMillis() -
@@ -249,7 +246,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                             if (byteBufSizeMap.get(sizeKey).size() == 0) byteBufSizeMap.remove(sizeKey);
                         }
                         if (!foundMatch) {
-                            final DecayableListeningCounter counter = new DecayableListeningCounter(
+                            final DecayingListeningCounter counter = new DecayingListeningCounter(
                                     () -> (long) getSetting().interval, () -> waitingFlagSet.add(player.getUniqueId()), () -> (long) getSetting().maxPerInterval);
                             counter.count();
 
@@ -327,7 +324,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
     }
 
-    public static class NettyM extends NettyDecodeListener.AbstractFloodDecodeCheck {
+    public static class NettyM extends AbstractFloodDecodeCheck {
 
         @Override
         public String getName() {
@@ -353,20 +350,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
     }
 
-    public static class NettyO extends AbstractFloodDecodeCheck {
-
-        @Override
-        public String getName() {
-            return "Netty.O";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyO.class);
-        }
-    }
-
-    public static class NettyP extends AbstractCategorizedCheck {
+    public static class NettyO extends AbstractCategorizedCheck {
 
         public static class LocalCategorizedHandler {
 
@@ -407,7 +391,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getName() {
-            return "Netty.P";
+            return "Netty.O";
         }
 
         @Override
@@ -417,7 +401,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyP.class);
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyO.class);
         }
 
         @Override

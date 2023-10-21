@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.function.Supplier;
 
-public class DecayableListeningCounter {
+public class DecayingListeningCounter {
 
     private final Supplier<Long> collectInterval;
     private final Supplier<Long> max;
@@ -12,17 +12,17 @@ public class DecayableListeningCounter {
 
     private final LinkedList<Long> data = new LinkedList<>();
 
-    public DecayableListeningCounter(Supplier<Long> collectInterval, Runnable onFlag, Supplier<Long> max) {
+    public DecayingListeningCounter(Supplier<Long> collectInterval, Runnable onFlag, Supplier<Long> max) {
         this.collectInterval = collectInterval;
         this.onFlag = onFlag;
         this.max = max;
     }
 
-    public DecayableListeningCounter(Supplier<Long> collectInterval, Runnable onFlag) {
+    public DecayingListeningCounter(Supplier<Long> collectInterval, Runnable onFlag) {
         this(collectInterval, onFlag, null);
     }
 
-    public DecayableListeningCounter(Supplier<Long> collectInterval) {
+    public DecayingListeningCounter(Supplier<Long> collectInterval) {
         this(collectInterval, null, null);
     }
 
@@ -36,7 +36,7 @@ public class DecayableListeningCounter {
                     sampleNodeIterator.remove();
                     continue;
                 }
-                break;
+                return;
             }
         }
     }

@@ -61,9 +61,7 @@ public class EventManager {
                             eventExecutors = injectEvents.get(clazz);
                         }
                     }
-                    else {
-                        continue;
-                    }
+                    else continue;
 
                     eventExecutors.add((event) -> {
                         try {

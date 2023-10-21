@@ -1,6 +1,5 @@
 package me.alek.honey.services;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
@@ -22,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class ViolationService {
 
@@ -48,7 +46,7 @@ public class ViolationService {
 
             // register a violation context instance to this player if he doesn't have any, although he should have
             if (violationContext == null) {
-                addPlayer(player);
+                add(player);
                 continue;
             }
 
@@ -77,7 +75,7 @@ public class ViolationService {
         return punishing.contains(player.getUniqueId());
     }
 
-    public synchronized void addPlayer(Player player) {
+    public synchronized void add(Player player) {
         if (violatedMap.containsKey(player.getUniqueId()))
             return;
 
@@ -85,13 +83,13 @@ public class ViolationService {
         punishing.remove(player.getUniqueId());
     }
 
-    public void removePlayer(Player player) {
+    public void remove(Player player) {
         violatedMap.remove(player.getUniqueId());
     }
 
     public synchronized ViolationContext getViolationContext(Player player) {
         if (!violatedMap.containsKey(player.getUniqueId()))
-            addPlayer(player);
+            add(player);
 
         return violatedMap.get(player.getUniqueId());
     }

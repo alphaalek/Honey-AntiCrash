@@ -10,7 +10,6 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -18,25 +17,15 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.utility.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -261,13 +250,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
     public static class BlockInteractF<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static int modernCachedInvokerIndex = -1;
-        private static ConstructorInvoker<Object> rayTraceInvoker;
-
-        private static Object blockCollisionOption;
-        private static Object fluidCollisionOption;
-
-        private boolean isValidBlockType(Material type) {
+        private boolean isValidTileEntity(Material type) {
             final String name = type.name();
             return name.contains("CHEST") || name.contains("BARREL") || name.contains("SHULKER_BOX") || name.contains("ANVIL")
                     || name.contains("WORKBENCH") || name.contains("ENCHANTMENT_TABLE") || name.contains("FURNACE") || name.contains("NOTE_BLOCK")
@@ -275,87 +258,6 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                     || name.contains("GRINDSTONE") || name.contains("CARTOGRAPHY_TABLE") || name.contains("SMITHING_TABLE") || name.contains("FLETCHING_TABLE")
                     || name.contains("STONECUTTER") || name.contains("LECTERN") || name.contains("LOOM") || name.contains("BEACON")
                     || name.contains("BREWING_STAND");
-        }
-
-        static {
-            if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_14)) {
-                final Class<?>[] declaredClasses = NMSUtils.getRayTraceClass().getDeclaredClasses();
-                final Optional<Class<?>> blockCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("BlockCollisionOption")).findFirst();
-                final Optional<Class<?>> fluidCollisionOptionOptional = Arrays.stream(declaredClasses).filter((clazz) -> clazz.getSimpleName().endsWith("FluidCollisionOption")).findFirst();
-
-                if (blockCollisionOptionOptional.isPresent() && fluidCollisionOptionOptional.isPresent()) {
-                    final Class<?> blockCollisionOptionClass = blockCollisionOptionOptional.get();
-                    final Class<?> fluidCollisionOptionClass  = fluidCollisionOptionOptional.get();
-
-                    try {
-                        blockCollisionOption = blockCollisionOptionClass.getDeclaredFields()[1].get(null);
-                        fluidCollisionOption = fluidCollisionOptionClass.getDeclaredFields()[0].get(null);
-
-                        rayTraceInvoker = Reflection.getConstructor(NMSUtils.getRayTraceClass(),
-                                NMSUtils.getVec3DClass(), NMSUtils.getVec3DClass(), blockCollisionOptionClass, fluidCollisionOptionClass, NMSUtils.getEntityClass());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        private Block getTargetBlock(Player player, int maxDistance) {
-            final Vector eyeUnitDirection = RotationListener.getLastDirectionVectorFor(player);
-            final Location eyeLocation = player.getEyeLocation();
-
-            final Vector dir = eyeUnitDirection.clone().normalize().multiply(maxDistance);
-
-            final Vector vec3D1 = new Vector(eyeLocation.getX(), eyeLocation.getY(), eyeLocation.getZ());
-            final Vector vec3D2 = new Vector(eyeLocation.getX() + dir.getX(), eyeLocation.getY() + dir.getY(), eyeLocation.getZ() + dir.getZ());
-
-            final JavaConverter<Object, Vector> vec3DConverter = Converters.getVec3DConverter();
-            final Object vec3D1converted = vec3DConverter.convertDeclaring(vec3D1);
-            final Object vec3D2converted = vec3DConverter.convertDeclaring(vec3D2);
-
-            final Object world = NMSUtils.getWorld(player);
-
-            Object movingObjectPosition = null;
-            if (Protocol.getProtocol().isOlderThan(Protocol.v1_14)) {
-                final IStructureModifier<Object> movingObjectPositionModifier = ReflectStructureCache.acquireStructure(NMSUtils.getWorldClass())
-                        .withType(NMSUtils.getMovingObjectPositionClass()).withTarget(world);
-
-                movingObjectPosition = movingObjectPositionModifier.invokeMethod(1, vec3D1converted, vec3D2converted);
-            }
-            else {
-                final IStructureModifier<Object> movingObjectPositionModifier = ReflectStructureCache.acquireStructure(NMSUtils.getIBlockAccessClass())
-                        .withType(NMSUtils.getMovingObjectPositionBlockClass()).withTarget(world);
-
-                if (modernCachedInvokerIndex == -1) {
-                    synchronized (this) {
-                        int index = 0;
-                        for (final MethodInvoker<?> invoker : movingObjectPositionModifier.getInvokers()) {
-                            final Class<?>[] parameters = invoker.getMethod().getParameterTypes();
-
-                            if (parameters.length == 1 && parameters[0] == NMSUtils.getRayTraceClass()) {
-                                modernCachedInvokerIndex = index;
-                                break;
-                            }
-                            index++;
-                        }
-                    }
-                }
-                if (blockCollisionOption != null && fluidCollisionOption != null) {
-                    final Object raytrace = rayTraceInvoker.invoke(
-                            vec3D1converted, vec3D2converted, blockCollisionOption, fluidCollisionOption, null);
-
-                    movingObjectPosition = movingObjectPositionModifier.invokeMethod(modernCachedInvokerIndex, raytrace);
-                }
-            }
-            if (movingObjectPosition == null) return null;
-
-            final IStructureModifier<Vector> vec3DModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMovingObjectPositionBlockClass())
-                    .withType(NMSUtils.getVec3DClass(), Converters.getVec3DConverter()).withTarget(movingObjectPosition);
-
-            final Vector vector = vec3DModifier.readField(0);
-            if (vector == null) return null;
-
-            return vector.toLocation(player.getWorld()).getBlock();
         }
 
         @Override
@@ -369,7 +271,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                         return ResponseBuilder.SUCCESS;
                     }
                     final Material type = location.getBlock().getType();
-                    if (isValidBlockType(type)) {
+                    if (isValidTileEntity(type)) {
                         return ResponseBuilder.inst().flag().build();
                     }
                 }
@@ -384,7 +286,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public String getDescription() {
-            return "Interacting too quickly with tile entities";
+            return "Interacting too quickly with certain tile entities";
         }
 
         @Override

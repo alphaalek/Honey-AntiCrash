@@ -1082,12 +1082,6 @@ public class ConfigurationOptions {
         public static class NettyO extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
-
-        @Setting
-        @Violation(prefixPaths = "netty.p", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyP extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-        }
     }
 
     @Setting

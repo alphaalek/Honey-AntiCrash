@@ -278,19 +278,11 @@ netty:
     enabled: true # size flood
     min: 50
     interval: 3000
-    threshold: 2500
-    max-per-interval: 12
-    vls-amount: 3
-
-  n:
-    enabled: true # size flood
-    min: 50
-    interval: 3000
     threshold: 5000
     max-per-interval: 6
     vls-amount: 3
 
-  o:
+  n:
     enabled: true # size flood
     min: 50
     clear-interval: true
@@ -299,7 +291,7 @@ netty:
     max-per-interval: 22
     vls-amount: 3
 
-  p:
+  o:
     enabled: true # timed categorized
     min: 50 # difference in received packets. Should be min. this to get into a category at all
     max: 50 # difference in delta packet time spans. Can be max. this to get into the compared category
@@ -501,7 +493,7 @@ block-interact:
 
   f:
     enabled: true
-    max-per-interval: 45
+    max-per-interval: 50
     interval: 1450
     vls-amount: 3
 
