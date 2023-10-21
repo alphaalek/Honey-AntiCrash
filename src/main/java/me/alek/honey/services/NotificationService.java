@@ -75,23 +75,28 @@ public class NotificationService {
         return observerMap.containsKey(observer);
     }
 
+    private String getAppropiateMessage(CommandSender observer, String message) {
+        if (observer instanceof Player) return message;
+
+        return ChatColor.stripColor(message);
+    }
+
     public void subscribe(final CommandSender observer) {
         observerMap.put(observer, new NotificationService.NotificationListener() {
             @Override
             public void notify(String notification) {
-                observer.sendMessage(notification);
+                observer.sendMessage(getAppropiateMessage(observer, notification));
             }
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type + "§7.");
+                observer.sendMessage(getAppropiateMessage(
+                        observer, PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type + "§7."));
             }
 
             @Override
             public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
-
-                if (developmentData != null) {
-
+                if (developmentData != null && observer instanceof Player) {
                     StringBuilder hoverableTextBuilder = new StringBuilder();
                     for (String dataSetEntry : developmentData.getDataSet()) {
                         hoverableTextBuilder.append(dataSetEntry).append("\n");
@@ -101,21 +106,18 @@ public class NotificationService {
                     TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
                     message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
 
-                    if (observer instanceof Player) {
-                        Player observerPlayer = (Player) observer;
+                    Player observerPlayer = (Player) observer;
 
-                        observerPlayer.spigot().sendMessage(message);
-                    } else {
-                        observer.sendMessage(message.getText());
-                    }
-                    return;
+                    observerPlayer.spigot().sendMessage(message);
                 }
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                else observer.sendMessage(getAppropiateMessage(
+                        observer, PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler)));
             }
 
             @Override
             public void warn(Player player, String type) {
-                observer.sendMessage(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 was kicked for §e" + type + "§7.");
+                observer.sendMessage(
+                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 was kicked for §e" + type + "§7."));
             }
         });
     }
