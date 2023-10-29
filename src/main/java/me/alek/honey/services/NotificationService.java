@@ -10,7 +10,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.DecayingListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
@@ -91,7 +91,7 @@ public class NotificationService {
             @Override
             public void notify(Player player, String type) {
                 observer.sendMessage(getAppropiateMessage(
-                        observer, PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type + "§7."));
+                        observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + "§7."));
             }
 
             @Override
@@ -103,21 +103,20 @@ public class NotificationService {
                     }
                     String hoverableText = hoverableTextBuilder.substring(0, hoverableTextBuilder.length() - 1);
 
-                    TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                    TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
                     message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
 
                     Player observerPlayer = (Player) observer;
-
                     observerPlayer.spigot().sendMessage(message);
                 }
                 else observer.sendMessage(getAppropiateMessage(
-                        observer, PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler)));
+                        observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler)));
             }
 
             @Override
             public void warn(Player player, String type) {
                 observer.sendMessage(
-                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetwork(player) + "§7 was kicked for §e" + type + "§7."));
+                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "§7."));
             }
         });
     }
@@ -150,13 +149,21 @@ public class NotificationService {
     }
 
     public int getPing(Player player) {
-        IStructureModifier<Object> craftPlayerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+            IStructureModifier<Integer> craftPlayerModifier =
+                    ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
+                    .asInt().withTarget(player);
+
+            return craftPlayerModifier.invokeMethod("getPing", 0);
+        }
+        IStructureModifier<Object> craftPlayerModifier =
+                ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
                 .withType(NMSUtils.getEntityPlayerClass()).withTarget(player);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle", 0);
 
-        IStructureModifier<Integer> entityPlayerModifier
-                = ReflectStructureCache.acquireStructure(entityPlayer.getClass())
+        IStructureModifier<Integer> entityPlayerModifier =
+                ReflectStructureCache.acquireStructure(entityPlayer.getClass())
                 .asInt().withTarget(entityPlayer);
 
         return entityPlayerModifier.readField("ping", 0);
@@ -172,7 +179,7 @@ public class NotificationService {
         return ((tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c") + tps;
     }
 
-    private String formatNetwork(Player player) {
+    private String formatNetworkStats(Player player) {
         String ping = formatPing(player, false);
         String tps = formatTPS(false);
 
@@ -184,7 +191,7 @@ public class NotificationService {
             return "";
         }
         if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
-            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).getFlagged() + "§7/§e" + setting.maxPerInterval + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls, §e" + (setting.interval < 1000 ? setting.interval + "§7ms" : ((double)setting.interval)/1000 + "§7s");
+            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).flaggedCopy + "§7/§e" + setting.maxPerInterval + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls, §e" + (setting.interval < 1000 ? setting.interval + "§7ms" : ((double)setting.interval)/1000 + "§7s");
         }
         else if (packetLimitHandler instanceof ViolationService.PacketIntervalThrottleHandler) {
             ViolationService.PacketIntervalThrottleHandler packetIntervalThrottleHandler = (ViolationService.PacketIntervalThrottleHandler) packetLimitHandler;
@@ -193,11 +200,12 @@ public class NotificationService {
         }
         else if (packetLimitHandler instanceof ViolationService.PacketBufferThrottleHandler) {
             ViolationService.PacketBufferThrottleHandler packetBufferThrottleHandler = (ViolationService.PacketBufferThrottleHandler) packetLimitHandler;
-            return "§7buffer: §e" + ((int) packetBufferThrottleHandler.bufferIndex) + "§7/§e" + setting.until + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
+            return "§7buffer: §e" + ((int) packetBufferThrottleHandler.bufferIndexCopy) + "§7/§e" + setting.until + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketBufferOverflowHandler) {
             ViolationService.PacketBufferOverflowHandler packetBufferOverflowHandler = (ViolationService.PacketBufferOverflowHandler) packetLimitHandler;
-            return "§7buffer: §e" + ((int) packetBufferOverflowHandler.bufferIndex) + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
+            return "§7buffer: §e" + ((int) packetBufferOverflowHandler.bufferIndexCopy) + "§7/§e" + setting.threshold +
+                    "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketSingleOverflowHandler) {
             ViolationService.PacketSingleOverflowHandler packetSingleOverflowHandler = (ViolationService.PacketSingleOverflowHandler) packetLimitHandler;
@@ -217,7 +225,7 @@ public class NotificationService {
         int size = counter.size();
         if (size < 5) return;
 
-        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9)) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
             return;
         }

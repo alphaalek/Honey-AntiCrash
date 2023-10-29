@@ -228,7 +228,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 if (!byteBufSizeMap.containsKey(player.getUniqueId())) {
                     byteBufSizeMap.put(player.getUniqueId(), new HashMap<>());
                 }
-                final Map<Long, DecayingListeningCounter> byteBufSizeMap = this.byteBufSizeMap.get(player.getUniqueId());
+                final Map<Long, DecayingListeningCounter> map = this.byteBufSizeMap.get(player.getUniqueId());
 
                 if (byteBuf.capacity() > getSetting().threshold) {
                     long diff = System.currentTimeMillis() -
@@ -236,14 +236,14 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
                     lastFlagMap.put(player.getUniqueId(), System.currentTimeMillis());
                     if (diff > getSetting().min) {
-                        boolean foundMatch = false;
-                        for (final long sizeKey : new ArrayList<>(byteBufSizeMap.keySet())) {
 
+                        boolean foundMatch = false;
+                        for (final long sizeKey : new ArrayList<>(map.keySet())) {
                             if (check(player, sizeKey, byteBuf)) {
                                 foundMatch = true;
-                                byteBufSizeMap.get(sizeKey).count();
+                                map.get(sizeKey).count();
                             }
-                            if (byteBufSizeMap.get(sizeKey).size() == 0) byteBufSizeMap.remove(sizeKey);
+                            if (map.get(sizeKey).size() == 0) map.remove(sizeKey);
                         }
                         if (!foundMatch) {
                             final DecayingListeningCounter counter = new DecayingListeningCounter(
@@ -251,7 +251,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                             counter.count();
 
                             long key = getKey(player, byteBuf);
-                            if (key > 0) byteBufSizeMap.put(key, counter);
+                            if (key > 0) map.put(key, counter);
                         }
                     }
                 }

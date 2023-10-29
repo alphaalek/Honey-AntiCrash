@@ -2,14 +2,13 @@ package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
 
 public class WrappedPlayInBlockPlace extends WrappedAbstractBlockInteraction<WrappedPlayInBlockPlace> {
 
-    private final boolean below_1_9 = Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8);
+    private final boolean below_1_9 = NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8);
 
     public WrappedPlayInBlockPlace(Object rawPacket, PacketContainer<WrappedPlayInBlockPlace> packetContainer) {
         super(rawPacket, packetContainer);

@@ -15,7 +15,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
@@ -46,7 +46,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         CheckVisitor<WrappedPlayInWindowClick> visitor = new CheckVisitor<>();
         visitor.visit(new WindowA());
         visitor.visit(new WindowB());
-        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_14)) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
             visitor.visit(new WindowC());
         }
         return visitor;

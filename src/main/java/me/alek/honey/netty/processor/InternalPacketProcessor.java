@@ -13,7 +13,7 @@ import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -173,7 +173,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     public synchronized void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
-                if (!Protocol.protocolMatch((RangedPacketTypeEnum) packetType)) {
+                if (!NetProtocol.protocolMatch((RangedPacketTypeEnum) packetType)) {
                     continue;
                 }
             }
@@ -292,6 +292,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(
                 packet, player, channel, POST_ACTION_MAP.get(packetType), packetType
         );
+        if (packetContainer.getPacket() == null) return packetContainer;
+
         if (hasAdapters) {
             callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
         }

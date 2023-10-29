@@ -9,16 +9,14 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.utility.protocol.Protocol;
-import me.alek.honey.netty.utility.reflect.FieldAccessor;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 
 public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabComplete> {
 
-    private static final boolean IS_MODERN = Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_13);
+    private static final boolean IS_MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13);
 
     public WrappedPlayOutTabComplete(Object rawPacket, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
         super(rawPacket, packetContainer);

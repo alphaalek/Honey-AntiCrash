@@ -16,7 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
@@ -95,7 +95,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
     public static class ChatB implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
 
-        private final boolean below_1_11 = Protocol.getProtocol().isOlderThan(Protocol.v1_11);
+        private final boolean below_1_11 = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11);
 
         @Override
         public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {

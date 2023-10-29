@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -15,7 +15,7 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
     private static MethodInvoker textComponentGetter;
 
     static {
-        if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             iChatBaseComponentClass = Reflection.getClass("{nms}.IChatBaseComponent");
             iChatBaseComponentArrayClass = Reflection.getArrayClass("{nms}.IChatBaseComponent");
 
@@ -31,7 +31,7 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
     }
 
     public String[] getLines() {
-        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9)) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             return getContainer().getStringArrays().readField(0);
         }
         Object[] chatBaseComponentArray = (Object[]) getContainer().getObjects(iChatBaseComponentArrayClass).readField(0);

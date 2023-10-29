@@ -18,7 +18,7 @@ import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInStart;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutPong;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutServerInfo;
 import me.alek.honey.netty.utility.AsyncFuture;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
@@ -84,7 +84,7 @@ public class PacketWrapperInvokerFactory {
         };
     }
 
-    private static final Protocol PROTOCOL_VERSION = Protocol.getProtocol();
+    private static final NetProtocol PROTOCOL_VERSION = NetProtocol.getProtocol();
     private static final Map<String, MethodInvoker<Object>> METHODS_CACHE = new HashMap<>();
     private static Map<PacketTypeEnum, MethodInvoker<Object>> PLAY_CACHE;
     private static Map<PacketTypeEnum, MethodInvoker<Object>> HANDSHAKE_CACHE;
@@ -139,20 +139,27 @@ public class PacketWrapperInvokerFactory {
         return packetContainer.getPacket();
     }
 
+    private static MethodInvoker<Object> createWrapperInvoker(Class<?> nmsClass, Map<PacketTypeEnum, MethodInvoker<Object>> map) {
+        final PacketTypeEnum packetType = PacketType.getPacketType(nmsClass);
+        if (packetType == PacketType.UNKNOWN) return null;
+
+        return map.get(packetType);
+    }
+
     public static MethodInvoker<Object> createPlayWrapperInvoker(Class<?> nmsClass) {
-        return PLAY_CACHE.get(PacketType.getPacketType(nmsClass));
+        return createWrapperInvoker(nmsClass, PLAY_CACHE);
     }
 
     public static MethodInvoker<Object> createHandshakeWrapper(Class<?> nmsClass) {
-        return HANDSHAKE_CACHE.get(PacketType.getPacketType(nmsClass));
+        return createWrapperInvoker(nmsClass, HANDSHAKE_CACHE);
     }
 
     public static MethodInvoker<Object> createLoginWrapper(Class<?> nmsClass) {
-        return LOGIN_CACHE.get(PacketType.getPacketType(nmsClass));
+        return createWrapperInvoker(nmsClass, LOGIN_CACHE);
     }
 
     public static MethodInvoker<Object> createStatusWrapper(Class<?> nmsClass) {
-        return STATUS_CACHE.get(PacketType.getPacketType(nmsClass));
+        return createWrapperInvoker(nmsClass, STATUS_CACHE);
     }
 
     @PacketFactory("PacketHandshakingInSetProtocol")
@@ -747,6 +754,11 @@ public class PacketWrapperInvokerFactory {
 
     @PacketFactory("PacketPlayOutPlayerInfo")
     public static WrappedPlayOutPlayerInfo playOutPlayerInfo(Object rawPacket, PacketContainer<WrappedPlayOutPlayerInfo> packetContainer) {
+        return new WrappedPlayOutPlayerInfo(rawPacket, packetContainer);
+    }
+
+    @PacketFactory("ClientboundPlayerInfoUpdatePacket")
+    public static WrappedPlayOutPlayerInfo playOutPlayerInfo2(Object rawPacket, PacketContainer<WrappedPlayOutPlayerInfo> packetContainer) {
         return new WrappedPlayOutPlayerInfo(rawPacket, packetContainer);
     }
 

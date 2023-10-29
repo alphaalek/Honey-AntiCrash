@@ -607,14 +607,10 @@ public class ViolationService {
         private boolean ignoringSpikeForInterval;
         private long intervalStart = System.currentTimeMillis();
         private double flagged;
-        private double flaggedCopy;
+        public double flaggedCopy;
 
         public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-        }
-
-        public int getFlagged() {
-            return (int) flaggedCopy;
         }
 
         @Override

@@ -16,7 +16,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.utility.AsyncFuture;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -90,7 +90,7 @@ public class PacketLibrary {
         return settings.useLateInjection();
     }
 
-    public Protocol getFallbackProtocol() {
+    public NetProtocol getFallbackProtocol() {
         return settings.getFallbackProtocol();
     }
 
@@ -144,7 +144,7 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void removeListener(SyncPacketAdapter<WP> adapter) {
-        removeListeners(adapter, PacketType.getTypesAvailableFor(Protocol.getProtocol()));
+        removeListeners(adapter, PacketType.getTypesAvailableFor(NetProtocol.getProtocol()));
     }
 
     public <WP extends WrappedPacket<WP>> void removeListeners(SyncPacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {

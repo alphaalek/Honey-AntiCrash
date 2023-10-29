@@ -2,6 +2,7 @@ package me.alek.honey.configuration;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -61,11 +62,9 @@ public class ConfigurationOptions {
             load(ConfigurationOptions.class);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             return true;
 
         } finally {
-
             loadingLatch.countDown();
         }
         return false;
@@ -96,124 +95,109 @@ public class ConfigurationOptions {
     }
 
     public static void setViolationSetting(Class<? extends VlSetting> clazz, PacketLimitHandlerType packetLimitHandlerType, String[] prefixPaths) {
-        boolean misconfiguredConfiguration = false;
-        try {
-            // makes a new violation setting instance and register it
-            final Class<? extends VlSetting> clazzCopy = clazz;
-            final VlSetting setting = vlSettingMap.computeIfAbsent(clazz, (d) -> {
-                try {
-                    final Constructor<? extends VlSetting> constructor = clazzCopy.getDeclaredConstructor();
-                    return constructor.newInstance();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                return null;
-            });
-            if (setting == null) return;
-            setting.packetLimitHandlerType = packetLimitHandlerType;
-
-            vlSettingMap.put(clazz, setting);
-
-            // checks if this violation setting is a flood setting, so we can register it to the map of flood settings
-            if (clazz.isAnnotationPresent(Flood.class)) {
-                Flood flood = clazz.getAnnotation(Flood.class);
-
-                for (PacketTypeEnum packetType : flood.value()) {
-                    floodSettings.put(packetType, setting);
-                }
+        // makes a new violation setting instance and register it
+        final Class<? extends VlSetting> classCopy = clazz;
+        final VlSetting setting = vlSettingMap.computeIfAbsent(clazz, (d) -> {
+            try {
+                final Constructor<? extends VlSetting> constructor = classCopy.getDeclaredConstructor();
+                return constructor.newInstance();
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-            // just like the condition above, checks if it is a custom payload channel flood setting instead
-            if (clazz.isAnnotationPresent(ChannelFlood.class)) {
-                ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
-                channelFloodSettings.put(flood.value(), setting);
+            return null;
+        });
+        if (setting == null) return;
+        setting.packetLimitHandlerType = packetLimitHandlerType;
+
+        vlSettingMap.put(clazz, setting);
+
+        // checks if this violation setting is a flood setting, so we can register it to the map of flood settings
+        if (clazz.isAnnotationPresent(Flood.class)) {
+            Flood flood = clazz.getAnnotation(Flood.class);
+
+            for (PacketTypeEnum packetType : flood.value()) {
+                floodSettings.put(packetType, setting);
             }
-            if (clazz.isAnnotationPresent(Keyed.class)) {
-                Keyed keyed = clazz.getAnnotation(Keyed.class);
-                setting.keyedAnnotation = keyed;
-            }
+        }
+        // just like the condition above, checks if it is a custom payload channel flood setting instead
+        if (clazz.isAnnotationPresent(ChannelFlood.class)) {
+            ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
+            channelFloodSettings.put(flood.value(), setting);
+        }
+        if (clazz.isAnnotationPresent(Keyed.class)) {
+            Keyed keyed = clazz.getAnnotation(Keyed.class);
+            setting.keyedAnnotation = keyed;
+        }
 
-            final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();
-            if (setting instanceof VlRequiredContentsSetting) {
-                VlRequiredContentsSetting vlRequiredContentsSetting = (VlRequiredContentsSetting) setting;
-                requiredVlSettingImplTypes.addAll(vlRequiredContentsSetting.getRequiredTypes());
-            }
+        final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();
+        if (setting instanceof VlRequiredContentsSetting) {
+            VlRequiredContentsSetting vlRequiredContentsSetting = (VlRequiredContentsSetting) setting;
+            requiredVlSettingImplTypes.addAll(vlRequiredContentsSetting.getRequiredTypes());
+        }
 
-            // check if the configuration is misconfigured or just from an old version
-            for (String prefixPath : prefixPaths) {
-
-                // check if this memory section exists, if it does not then disable the plugin
-                if (file.get(prefixPath) == null) {
-                    HoneyPlugin.get().resetConfiguration();
-                    Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
-                    misconfiguredConfiguration = true;
-
-                    throw new RuntimeException();
-                }
-                Iterator<VlSettingImplType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();
-
-                // loop through all the required paths for this violation setting, and check if they are present
-                while (requiredVlSettingImplTypesIterator.hasNext()) {
-                    VlSettingImplType vlSettingImplType = requiredVlSettingImplTypesIterator.next();
-
-                    String requiredPath = prefixPath + "." + vlSettingImplType.getPathName();
-                    // check if this required path is in the memory section
-                    if (file.get(requiredPath) != null) {
-                        // remove the required value if is present
-                        requiredVlSettingImplTypesIterator.remove();
-                    }
-                }
-            }
-            // check if there is anymore required values left which have not been removed (because they were present)
-            if (!requiredVlSettingImplTypes.isEmpty()) {
-                HoneyPlugin.get().resetConfiguration();
-                Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
-                misconfiguredConfiguration = true;
+        // check if the configuration is misconfigured or just from an old version
+        for (String prefixPath : prefixPaths) {
+            // check if this memory section exists, if it does not then disable the plugin
+            if (file.get(prefixPath) == null) {
+                Bukkit.getLogger().info(prefixPath);
 
                 throw new RuntimeException();
             }
+            Iterator<VlSettingImplType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();
 
-            // set the values of the violation setting
-            while (true) {
-                for (Field field : clazz.getDeclaredFields()) {
+            // loop through all the required paths for this violation setting, and check if they are present
+            while (requiredVlSettingImplTypesIterator.hasNext()) {
+                VlSettingImplType vlSettingImplType = requiredVlSettingImplTypesIterator.next();
 
-                    // check if this field is associated with a setting value
-                    VlSettingImpl vlSettingImpl = field.getAnnotation(VlSettingImpl.class);
-                    if (vlSettingImpl == null) continue;
-
-                    for (String prefixPath : prefixPaths) {
-
-                        final String configPath = prefixPath + "." + vlSettingImpl.value().getPathName();
-                        final Object value = file.get(configPath);
-
-                        // check if this value is not present or if this field is not an interval check setting
-                        if (value == null) continue;
-
-                        if (value.getClass() == Double.class) {
-                            field.setDouble(setting, file.getDouble(configPath));
-                        }
-                        else if (value.getClass() == Integer.class) {
-                            if (field.getType() == Double.class)
-                                field.setDouble(setting, file.getInt(configPath));
-                            else
-                                field.setInt(setting, file.getInt(configPath));
-                        }
-                        else if (value.getClass() == Boolean.class) {
-                            field.setBoolean(setting, file.getBoolean(configPath));
-                        }
-                    }
+                String requiredPath = prefixPath + "." + vlSettingImplType.getPathName();
+                // check if this required path is in the memory section
+                if (file.get(requiredPath) != null) {
+                    // remove the required value if is present
+                    requiredVlSettingImplTypesIterator.remove();
                 }
-                // check further for subclasses which are also violation settings
-                try {
-                    if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
-                        continue;
-                    }
-                } catch (Exception ex) {
-                }
-                return;
             }
-        } catch (Exception ex) {
-            Bukkit.getLogger().severe("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
-            if (misconfiguredConfiguration) throw new RuntimeException(ex.getCause());
+        }
+        // check if there is anymore required values left which have not been removed (because they were present)
+        if (!requiredVlSettingImplTypes.isEmpty()) {
+            throw new RuntimeException();
+        }
+
+        // set the values of the violation setting
+        while (true) {
+            for (Field field : clazz.getDeclaredFields()) {
+
+                // check if this field is associated with a setting value
+                VlSettingImpl vlSettingImpl = field.getAnnotation(VlSettingImpl.class);
+                if (vlSettingImpl == null) continue;
+
+                for (String prefixPath : prefixPaths) {
+                    final String configPath = prefixPath + "." + vlSettingImpl.value().getPathName();
+                    final Object value = file.get(configPath);
+
+                    // check if this value is not present or if this field is not an interval check setting
+                    if (value == null) continue;
+
+                    try {
+                        if (value.getClass() == Double.class)
+                            field.setDouble(setting, file.getDouble(configPath));
+
+                        else if (value.getClass() == Integer.class)
+                            field.setInt(setting, file.getInt(configPath));
+
+                        else if (value.getClass() == Boolean.class)
+                            field.setBoolean(setting, file.getBoolean(configPath));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            // check further for subclasses which are also violation settings
+            try {
+                if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
+                    continue;
+                }
+            } catch (Exception ex) {}
+            return;
         }
     }
 
@@ -302,6 +286,32 @@ public class ConfigurationOptions {
 
         Set<VlSettingImplType> getRequiredTypes();
 
+    }
+
+    public interface VlMaxRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.VLS_AMOUNT,
+                    VlSettingImplType.MAX
+            );
+        }
+    }
+
+    public interface VlSimpleMinMaxRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.MAX,
+                    VlSettingImplType.MIN);
+        }
+    }
+
+    public interface VlSimpleMaxRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Collections.singleton(VlSettingImplType.MAX);
+        }
     }
 
     public interface VlSimpleRequiredContentsSetting extends VlRequiredContentsSetting {
@@ -671,7 +681,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "custom-payload.c", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PayloadC extends VlSetting {
+        public static class PayloadC extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
 
         }
 
@@ -683,7 +693,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "custom-payload.e", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PayloadE extends VlSetting {
+        public static class PayloadE extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
 
         }
 
@@ -805,7 +815,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "block-interact.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class BlockInteractA extends VlSetting implements VlSimpleRequiredContentsSetting {
+        public static class BlockInteractA extends VlSetting implements VlMaxRequiredContentsSetting {
 
         }
 
@@ -829,7 +839,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "block-interact.e", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class BlockInteractE extends VlSetting implements VlSimpleRequiredContentsSetting {
+        public static class BlockInteractE extends VlSetting implements VlMaxRequiredContentsSetting {
 
         }
 
@@ -867,7 +877,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PositionB extends VlSetting implements VlSimpleRequiredContentsSetting {
+        public static class PositionB extends VlSetting implements VlMaxRequiredContentsSetting {
 
         }
 
@@ -917,7 +927,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.j", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PositionJ extends VlSetting {
+        public static class PositionJ extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
 
         }
     }
@@ -1043,13 +1053,8 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.SIMPLE)
         @Keyed(keys = {"stq", "ntq"})
-        public static class NettyJ extends VlSetting implements VlSimpleRequiredContentsSetting {
+        public static class NettyJ extends VlSetting implements VlMaxRequiredContentsSetting {
 
-            public static double MAX_QUOTIENT;
-
-            public static void load() {
-                MAX_QUOTIENT = file.getDouble("netty.j.max-quotient", 10d);
-            }
         }
 
         @Setting
@@ -1062,6 +1067,16 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "netty.l", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class NettyL extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.MAX_PER_INTERVAL,
+                        VlSettingImplType.INTERVAL,
+                        VlSettingImplType.VLS_AMOUNT,
+                        VlSettingImplType.MAX
+                );
+            }
 
         }
 
@@ -1081,6 +1096,15 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "netty.o", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class NettyO extends VlSetting implements VlIntervalRequiredContentsSetting {
 
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.MAX_PER_INTERVAL,
+                        VlSettingImplType.INTERVAL,
+                        VlSettingImplType.VLS_AMOUNT,
+                        VlSettingImplType.MAX
+                );
+            }
         }
     }
 

@@ -31,11 +31,22 @@ public class PacketFactory {
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, Player player, Channel channel, Runnable postAction) {
-        return createWrappedPacket(type, rawPacket, new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
+        return initWrappedPacket(type, rawPacket, new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
-        return (WrappedPacket<WP>) getWrapperInvoker(type).invoke(null, rawPacket, packetContainer);
+        return initWrappedPacket(type, rawPacket, packetContainer);
+    }
+
+    private static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
+        MethodInvoker<Object> wrapperInvoker = getWrapperInvoker(type);
+        if (wrapperInvoker == null) return null;
+
+        try {
+            return (WrappedPacket<WP>) wrapperInvoker.invokeWithException(null, rawPacket, packetContainer);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public static MethodInvoker<Object> getWrapperInvoker(PacketTypeEnum type) {

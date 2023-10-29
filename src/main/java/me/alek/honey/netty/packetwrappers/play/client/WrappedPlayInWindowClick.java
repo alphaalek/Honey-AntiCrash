@@ -1,20 +1,20 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 
 public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowClick> {
 
-    private final boolean modern = Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17);
+    private final boolean modern = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17);
     private Class<Enum<?>> enumConstClass;
 
     public WrappedPlayInWindowClick(Object rawPacket, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
         super(rawPacket, packetContainer);
 
-        if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_9)) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             enumConstClass = (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType");
         }
     }
@@ -60,7 +60,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
     }
 
     public int getMode() {
-        if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             return getContainer().getInts().readField(3);
         }
         Enum<?> enumConst = getContainer().getObjects(enumConstClass).readField(0);
@@ -68,7 +68,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
     }
 
     public void setMode(int mode) {
-        if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             getContainer().getInts().writeField(3, mode);
         }
         Enum<?> enumConst = Reflection.getEnumAtIndex(enumConstClass, mode);

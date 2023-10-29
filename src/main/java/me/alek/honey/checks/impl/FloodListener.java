@@ -20,7 +20,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.entity.Player;
@@ -77,7 +77,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             Set<PacketTypeEnum> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
             List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, Protocol.getProtocol())) {
+            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol())) {
                 if (floodSettings.contains(packetType)) {
                     packetTypes.add(packetType);
                 }

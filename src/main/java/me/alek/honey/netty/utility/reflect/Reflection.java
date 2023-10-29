@@ -1,6 +1,6 @@
 package me.alek.honey.netty.utility.reflect;
 
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;
@@ -16,7 +16,7 @@ public class Reflection {
         String OBC = Bukkit.getServer().getClass().getPackage().getName();
         String NMS;
 
-        boolean newProtocol = Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17);
+        boolean newProtocol = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17);
         if (newProtocol) {
             PROTOCOL_STATES = new HashMap<String, String>(){{
                 put("PacketHandshaking", "handshake");

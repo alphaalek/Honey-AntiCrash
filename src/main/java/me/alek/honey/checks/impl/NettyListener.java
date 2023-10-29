@@ -22,13 +22,12 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.StatisticProvider;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -63,7 +62,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, Protocol.getProtocol());
+        return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol());
     }
 
     @Override
@@ -154,7 +153,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             return () -> {
                 final List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
-                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(Protocol.getProtocol(), PacketBound.CLIENT)) {
+                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.CLIENT)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 
                     if (structure.withType(double.class).getAccessors().size() != 0) {
@@ -194,7 +193,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Structure with illegal attributes";
+            return "Packet structure with illegal attributes";
         }
 
         @Override
@@ -230,7 +229,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 container.getStorage().putDouble(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
-                container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime / 1_000) + " ms");
+                container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime) + " ms");
                 return ResponseBuilder.inst().flag(decodeTime).build();
             }
             return ResponseBuilder.SUCCESS;
@@ -261,7 +260,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 double decodeTime = container.getStorage().getDouble(0);
                 if (decodeTime > 0) {
 
-                    container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime / 1_000) + " ms");
+                    container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime) + " ms");
                     return ResponseBuilder.inst().flag(decodeTime).build();
                 }
             }
@@ -289,7 +288,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         private static final Map<UUID, Double> lastFlagMap = new ConcurrentHashMap<>();
 
         @Override
-        @SuppressWarnings("unchecked")
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled() && player != null) {
 
@@ -303,23 +301,20 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         // ignore if the player has recently joined or the occupied space is lower than 5% of the total interval time
                         if (tracker.getTotal() / (((float)tracker.getUpdateInterval()) / 20 * 1000) < 0.05
-                            || System.currentTimeMillis() - PlayerJoinListener.getInstantJoined(player) < 7500) {
+                            || System.currentTimeMillis() - PlayerJoinListener.getInstantJoined(player) < 5000) {
                             continue;
                         }
                         final double timeToAverageQuotient = tracker.getStatistic(player, 0);
 
-                        if (timeToAverageQuotient > ConfigurationOptions.Netty.NettyJ.MAX_QUOTIENT) {
-                            synchronized (lastFlagMap) {
-                                if (lastFlagMap.getOrDefault(player.getUniqueId(), -1d) == timeToAverageQuotient) {
-                                    packet.getContainer().cancel();
-                                } else {
-                                    builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                            new ViolationService.CheckKey(keys[index])
-                                    ).build());
-
-                                    lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
-                                    break;
-                                }
+                        if (timeToAverageQuotient > getSetting().max) {
+                            if (lastFlagMap.getOrDefault(player.getUniqueId(), -1d) == timeToAverageQuotient)
+                                packet.getContainer().cancel();
+                            else {
+                                builder.add(ResponseBuilder.inst().flag()
+                                        .withViolationKey(new ViolationService.CheckKey(keys[index]))
+                                        .build());
+                                lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
+                                break;
                             }
                         }
                         index++;
@@ -351,7 +346,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyK<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        @SuppressWarnings("unchecked")
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
@@ -369,8 +363,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         }
                         if (tracker.getStatisticProvider(player).getTimeSinceLastUpdate(0) > 500) {
                             builder.add(
-                                    ResponseBuilder.inst().flag(tracker.getStatistic(player, 0)).withViolationKey(
-                                            new ViolationService.CheckKey(keys[index++])).build());
+                                    ResponseBuilder.inst()
+                                            .flag(tracker.getStatistic(player, 0))
+                                            .withViolationKey(new ViolationService.CheckKey(keys[index++]))
+                                            .build());
                         }
                     }
                     return builder.build();

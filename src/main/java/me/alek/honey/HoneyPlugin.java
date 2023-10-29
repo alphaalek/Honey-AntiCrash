@@ -19,7 +19,7 @@ import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
@@ -71,9 +71,10 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         String conflict = null;
         if (isLoaded || isRunning)
             conflict = "Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.";
-        else if (Protocol.getProtocol().isNewerThanOrEqual(Protocol.v1_17))
-            conflict = "Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for sure come in the future! :-)";
-        else if (Protocol.getProtocol() == Protocol.UNKNOWN)
+        // else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17))
+        //     conflict = "Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for " +
+        //         "sure come in the future! :-)";
+        else if (NetProtocol.getProtocol() == NetProtocol.UNKNOWN)
             conflict = "Honey is currently not supported by the Minecraft Version your server is using.";
 
         if (conflict != null) {

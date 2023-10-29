@@ -17,7 +17,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
-import me.alek.honey.netty.utility.protocol.Protocol;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.utility.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -51,7 +51,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         visitor.visit(new BlockInteractA<>());
         visitor.visit(new BlockInteractB<>());
         visitor.visit(new BlockInteractC<>());
-        if (Protocol.getProtocol().isOlderThanOrEqual(Protocol.v1_8_8)) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             visitor.visit(new BlockInteractD<>());
         }
         visitor.visit(new BlockInteractF<>());

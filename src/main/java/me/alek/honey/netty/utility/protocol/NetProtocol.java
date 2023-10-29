@@ -6,7 +6,7 @@ import org.bukkit.Bukkit;
 
 import java.util.*;
 
-public enum Protocol {
+public enum NetProtocol {
     v1_8(47), v1_8_1(47), v1_8_2(47), v1_8_3(47), v1_8_4(47), v1_8_5(47), v1_8_6(47), v1_8_7(47), v1_8_8(47),
     v1_9(107), v1_9_2(109), v1_9_4(110),
     v1_10(210), v1_10_1(210), v1_10_2(210),
@@ -19,20 +19,21 @@ public enum Protocol {
     v1_17(755), v1_17_1(756),
     v1_18(757), v1_18_1(757), v1_18_2(758),
     v1_19(759), v1_19_1(760), v1_19_2(760), v1_19_3(761), v1_19_4(762),
+    v1_20(763), v1_20_1(763), v1_20_2(764),
     UNKNOWN(-1);
 
-    private static Protocol PROTOCOL_CACHE;
-    private static final HashMap<Integer, List<Protocol>> protocolVersionMap = new HashMap<>();
-    private static final List<Protocol> PROTOCOLS = new ArrayList<>();
-    private static final List<Protocol> REVERSED_PROTOCOLS = new ArrayList<>();
+    private static NetProtocol PROTOCOL_CACHE;
+    private static final HashMap<Integer, List<NetProtocol>> protocolVersionMap = new HashMap<>();
+    private static final List<NetProtocol> PROTOCOLS = new ArrayList<>();
+    private static final List<NetProtocol> REVERSED_PROTOCOLS = new ArrayList<>();
 
     static {
-        REVERSED_PROTOCOLS.addAll(Arrays.asList(Protocol.values()));
+        REVERSED_PROTOCOLS.addAll(Arrays.asList(NetProtocol.values()));
         PROTOCOLS.addAll(REVERSED_PROTOCOLS);
 
         Collections.reverse(REVERSED_PROTOCOLS);
 
-        for (Protocol version : PROTOCOLS) {
+        for (NetProtocol version : PROTOCOLS) {
 
             int protocol = version.getProtocolVersion();
             if (!protocolVersionMap.containsKey(protocol)) {
@@ -44,74 +45,74 @@ public enum Protocol {
 
     private final int protocolVersion;
 
-    Protocol(int protocol) {
+    NetProtocol(int protocol) {
         this.protocolVersion = protocol;
     }
 
-    private static Protocol acquireProtocol() {
-        for (Protocol version : REVERSED_PROTOCOLS) {
+    private static NetProtocol acquireProtocol() {
+        for (NetProtocol version : REVERSED_PROTOCOLS) {
             final String name = version.name().replace("v", "").substring(1).replace("_", ".");
             if (Bukkit.getVersion().contains(name)) {
                 return version;
             }
         }
-        Protocol fallbackVersion = PacketLibrary.get().getSettings().getFallbackProtocol();
+        NetProtocol fallbackVersion = PacketLibrary.get().getSettings().getFallbackProtocol();
         if (fallbackVersion != null) {
             return fallbackVersion;
         }
         return UNKNOWN;
     }
 
-    public static Protocol getProtocol() {
+    public static NetProtocol getProtocol() {
         if (PROTOCOL_CACHE == null) {
             PROTOCOL_CACHE = acquireProtocol();
         }
-        if (PROTOCOL_CACHE == Protocol.UNKNOWN) {
+        if (PROTOCOL_CACHE == NetProtocol.UNKNOWN) {
             throw new RuntimeException("Kunne ikke få server version");
         }
         return PROTOCOL_CACHE;
     }
 
-    public boolean isOlderThan(Protocol target) {
+    public boolean isOlderThan(NetProtocol target) {
         return ordinal() < target.ordinal();
     }
 
-    public boolean isOlderThanOrEqual(Protocol target) {
+    public boolean isOlderThanOrEqual(NetProtocol target) {
         return ordinal() <= target.ordinal();
     }
 
-    public boolean isNewerThan(Protocol target) {
+    public boolean isNewerThan(NetProtocol target) {
         return ordinal() > target.ordinal();
     }
 
-    public boolean isNewerThanOrEqual(Protocol target) {
+    public boolean isNewerThanOrEqual(NetProtocol target) {
         return ordinal() >= target.ordinal();
     }
 
-    public boolean isBetween(Protocol target1, Protocol target2) {
+    public boolean isBetween(NetProtocol target1, NetProtocol target2) {
         return (isOlderThanOrEqual(target1) && isNewerThanOrEqual(target2)) || (isOlderThanOrEqual(target2) && isNewerThanOrEqual(target1));
     }
 
-    public boolean isEqual(Protocol target) {
+    public boolean isEqual(NetProtocol target) {
         return this == target;
     }
 
-    public Protocol getBefore() {
+    public NetProtocol getBefore() {
         if (ordinal() == 0) {
             return this;
         }
-        return Protocol.values()[ordinal() - 1];
+        return NetProtocol.values()[ordinal() - 1];
     }
 
-    public Protocol getAfter() {
+    public NetProtocol getAfter() {
         if (ordinal() == REVERSED_PROTOCOLS.get(1).ordinal()) {
             return this;
         }
-        return Protocol.values()[ordinal() + 1];
+        return NetProtocol.values()[ordinal() + 1];
     }
 
-    public static boolean protocolMatch(RangedPacketTypeEnum rangedPacketType, Protocol protocol) {
-        ProtocolRange range = rangedPacketType.getRange();
+    public static boolean protocolMatch(RangedPacketTypeEnum rangedPacketType, NetProtocol protocol) {
+        NetProtocolRange range = rangedPacketType.getRange();
         return range.match(protocol);
     }
 
@@ -119,12 +120,12 @@ public enum Protocol {
          return protocolMatch(rangedPacketType, PROTOCOL_CACHE);
     }
 
-    public static Protocol getLatest() {
+    public static NetProtocol getLatest() {
         return REVERSED_PROTOCOLS.get(1);
     }
 
-    public static Protocol getOldest() {
-        return Protocol.values()[0];
+    public static NetProtocol getOldest() {
+        return NetProtocol.values()[0];
     }
 
     public int getProtocolVersion() {
