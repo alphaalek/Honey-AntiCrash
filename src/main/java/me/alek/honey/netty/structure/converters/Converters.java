@@ -18,6 +18,7 @@ import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.ItemReflection;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -201,6 +202,7 @@ public class Converters {
             @Override
             public WrappedPlayInUseEntity.EnumEntityUseAction convertDelegate(Object delegate, Object... params) {
                 if (delegate == null) return null;
+                Bukkit.broadcastMessage("String: " + delegate + " " + delegate.getClass());
                 return WrappedPlayInUseEntity.EnumEntityUseAction.valueOf(delegate.toString());
             }
 

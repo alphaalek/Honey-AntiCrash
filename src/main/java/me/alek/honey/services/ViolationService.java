@@ -40,20 +40,7 @@ public class ViolationService {
 
         // loop through all the players and update their packet limit handlers
         for (Player player : Bukkit.getOnlinePlayers()) {
-            UUID uuid = player.getUniqueId();
-            // get the violation context of this player
-            ViolationContext violationContext = violatedMap.get(uuid);
-
-            // register a violation context instance to this player if he doesn't have any, although he should have
-            if (violationContext == null) {
-                add(player);
-                continue;
-            }
-
-            // reload all the packet limit handlers for this player
-            for (ViolationDistributor violationDistributor : violationContext.getPacketlimitMap().values()) {
-                violationDistributor.reload();
-            }
+            violatedMap.remove(player.getUniqueId());
         }
     }
 
@@ -330,12 +317,6 @@ public class ViolationService {
 
             return delegate.flag(handle, cancellablePacketObserver, violationName, amount, onViolation, onFlag, developmentData, ignoreSpike);
         }
-
-        public void reload() {
-            for (final AbstractPacketLimitHandler packetLimitHandler : packetLimitHandlerDelegateLookup.values()) {
-                packetLimitHandler.reload();
-            }
-        }
     }
 
     public abstract class AbstractPacketLimitHandler {
@@ -349,7 +330,8 @@ public class ViolationService {
         public AbstractPacketLimitHandler(Player player, ConfigurationOptions.VlSetting setting) {
             this.player = player;
             this.setting = setting;
-            reload();
+
+            this.lastViolationClear.set(System.currentTimeMillis());
         }
 
         public Player getPlayer() {
@@ -406,10 +388,6 @@ public class ViolationService {
             return violations.get();
         }
 
-        public void reload() {
-            this.lastViolationClear.set(System.currentTimeMillis());
-        }
-
         public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike);
 
         public abstract PacketLimitHandlerType getType();
@@ -438,18 +416,12 @@ public class ViolationService {
 
     public class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {
 
-        private double threshold;
+        private final double threshold;
         private double amount;
 
         public PacketSingleOverflowHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-        }
-
-        @Override
-        public void reload() {
             threshold = getSetting().threshold;
-
-            super.reload();
         }
 
         @Override
@@ -474,9 +446,9 @@ public class ViolationService {
 
     public abstract class PacketBufferHandler extends AbstractPacketLimitHandler {
 
-        protected int decayInterval;
-        protected int decayAmount;
-        protected double threshold;
+        protected final int decayInterval;
+        protected final int decayAmount;
+        protected final double threshold;
         protected double bufferIndexCopy;
         protected boolean hasDecayed;
 
@@ -486,15 +458,10 @@ public class ViolationService {
 
         public PacketBufferHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-        }
 
-        @Override
-        public void reload() {
             decayInterval = getSetting().decay;
             decayAmount = getSetting().decayAmount;
             threshold = getSetting().threshold;
-
-            super.reload();
         }
 
         // put into its own method, so it can be overwritten by the buffer throttle
@@ -536,17 +503,11 @@ public class ViolationService {
 
     public class PacketBufferThrottleHandler extends PacketBufferHandler {
 
-        private double until;
+        private final double until;
 
         public PacketBufferThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-        }
-
-        @Override
-        public void reload() {
             until = getSetting().until;
-
-            super.reload();
         }
 
         @Override
@@ -597,8 +558,8 @@ public class ViolationService {
 
     public class PacketIntervalHandler extends AbstractPacketLimitHandler {
 
-        private double maxPerInterval;
-        private int interval; // ms
+        private final double maxPerInterval;
+        private final int interval;
 
         private boolean violatedForInterval;
         private boolean ignoringSpikeForInterval;
@@ -608,14 +569,9 @@ public class ViolationService {
 
         public PacketIntervalHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
-        }
 
-        @Override
-        public void reload() {
             this.maxPerInterval = getSetting().maxPerInterval;
             this.interval = getSetting().interval;
-
-            super.reload();
         }
 
         private synchronized void clearInterval() {
@@ -664,9 +620,9 @@ public class ViolationService {
 
     public class PacketIntervalThrottleHandler extends AbstractPacketLimitHandler {
 
-        private int interval;
-        private double threshold;
-        private double until;
+        private final int interval;
+        private final double threshold;
+        private final double until;
 
         private double amount;
         private boolean currentlyCancelling;
@@ -674,6 +630,10 @@ public class ViolationService {
 
         public PacketIntervalThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
+
+            threshold = getSetting().threshold;
+            until = getSetting().until;
+            interval = getSetting().interval;
         }
 
         @Override
@@ -700,15 +660,6 @@ public class ViolationService {
         @Override
         public PacketLimitHandlerType getType() {
             return PacketLimitHandlerType.INTERVAL_THROTTLE;
-        }
-
-        @Override
-        public void reload() {
-            threshold = getSetting().threshold;
-            until = getSetting().until;
-            interval = getSetting().interval;
-
-            super.reload();
         }
 
         public double getAmount() {

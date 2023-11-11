@@ -33,14 +33,14 @@ clear-old-violations-timestamp: 90000 # 1 minute and 30 seconds as default
 # Hide /honey command, so default players won't know what AntiCrash plugin is on.
 hide-command: false
 
-# Permission which players should have, for the command not to be hided.
+# Permission that players should have, for the command not to be hided.
 hide-bypass-permission: "honey.hide.bypass"
 
-# Permission which ignores packet checks. You have to enable it first.
+# Permission that ignores packet checks. You have to enable it first.
 bypass-permission-enabled: false
 bypass-permission: "honey.bypass"
 
-# Permission which gets notifications by violated players. Can be toggled on/of by /honey notifications.
+# Permission which gets notifications by violated players. Can be toggled on/off by /honey notifications.
 notify-permission: "honey.notify"
 
 # Pastebin developer key. This is used to paste data of violations of players.
@@ -48,38 +48,38 @@ notify-permission: "honey.notify"
 # OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
 pastebin-developer-key: ""
 
-# mysql settings for storage
+# MySQL settings for storage
 mysql:
-  # should storing of data in mysql database be enabled
+  # Should storing of data in mysql database be enabled
   enabled: false
 
-  # host of the database
+  # Host of the database
   host: "localhost"
 
-  # port of the database
+  # Port of the database
   port: 3306
 
-  # root username to the database
+  # Root username to the database
   username: "rootuser"
 
-  # root password to the database
+  # Root password to the database
   password: "rootpass"
 
-  # name of the database which data should be stored in
+  # Name of the database that data should be stored in
   name: "sample"
 
-# exempt flood and related checks
+# Exempt flood and related checks
 exempt:
   # Honey will stop doing flood checks (except for Flood A) at the following things
 
-  # if the TPS / ping of the server or player gets above or below these values
+  # If the TPS / ping of the server or player gets above or below these values
   min-tps: 17
   max-ping: 100
 
-  # if the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored
+  # If the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored
   max-time-between: 500
 
-  # the following interval will be blocked after the max-time-between value has been exceeded
+  # The following interval will be blocked after the max-time-between value has been exceeded
   spike-interval: 750
 
 # packet logger
@@ -95,7 +95,7 @@ packet-logger:
   ignored-players:
   # - Alek05
 
-  # packets which the packet logger should ignore.
+  # Packets which the packet logger should ignore.
   ignored-packets:
     - "PacketPlayInFlying"
     - "PacketPlayInKeepAlive"
@@ -116,11 +116,11 @@ packet-logger:
 item-analysis:
 
   general:
-    # What strategy should be used when a forbidden item is found. You can choose between the following:
+    # What strategy should be used when an illegal item is found. You can choose between the following:
 
     # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.
     # - average: The item will be confiscated. It will be removed from existence and can't be obtained again.
-    # - strict: The whole inventory will be removed. I do not recommend to use this, unless you also have strict settings below.
+    # - strict: The whole inventory will be removed. I do not recommend to use this.
     confiscation-strategy: "average"
 
     # Player's which the item-analysis should ignore.
@@ -172,7 +172,7 @@ item-analysis:
     # How many bytes may the NBT of a book have.
     max-book-nbt-length: 12500
 
-    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages.
+    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages. (in 1.8 only 50 pages)
     max-book-pages: 100
 
     # How long title may a book have. In Vanilla Minecraft it is not possible to get more than 32 characters.
@@ -198,9 +198,6 @@ item-analysis:
 # |                Packet Check Settings                 | #
 # +------------------------------------------------------+ #
 ############################################################
-
-# OBS: You SHOULDN'T touch any netty checks on a production server.
-# If you do, your server may be very vulnerable by crash exploits!
 
 # |--- netty ---|
 netty:
@@ -271,7 +268,7 @@ netty:
     max: 100
     interval: 3000
     threshold: 3000
-    max-per-interval: 16
+    max-per-interval: 20
     vls-amount: 3
 
   m:
@@ -279,7 +276,7 @@ netty:
     min: 50
     interval: 3000
     threshold: 5000
-    max-per-interval: 8
+    max-per-interval: 12
     vls-amount: 3
 
   n:
@@ -288,17 +285,18 @@ netty:
     clear-interval: true
     interval: 7500
     threshold: 3000
-    max-per-interval: 25
+    max-per-interval: 30
     vls-amount: 3
 
   o:
     enabled: true # timed categorized
+
     min: 50 # difference in received packets. Should be min. this to get into a category at all
-    max: 50 # difference in delta packet time spans. Can be max. this to get into the compared category
-            # that means the min. and max. values are not checking for the same amount or things
+    max: 50 # difference in delta packet time spans. Can be max. this to get into the compared entry
+            # that means the min. and max. values are not checking for the same thing
     interval: 4000
     threshold: 2500
-    max-per-interval: 8
+    max-per-interval: 12
     vls-amount: 3
 
 # |--- custom payload ---|
@@ -472,7 +470,7 @@ block-interact:
   a:
     enabled: true
     vls-amount: 5
-    max: 100
+    max: 150
 
   b:
     enabled: true
@@ -489,7 +487,7 @@ block-interact:
   e:
     enabled: true
     vls-amount: 5
-    max: 100
+    max: 150
 
   f:
     enabled: true

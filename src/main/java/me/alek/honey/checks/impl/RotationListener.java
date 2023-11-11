@@ -34,8 +34,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
         }
-        float lastYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player));
-        container.getStorage().putFloat(lastYaw);
+        float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player));
+        container.getStorage().putFloat(deltaYaw);
 
         lastYawMap.put(player.getUniqueId(), location.getYaw());
         lastPitchMap.put(player.getUniqueId(), location.getPitch());
@@ -155,7 +155,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return "Too high delta rotation";
+            return "Too high delta yaw";
         }
 
         @Override

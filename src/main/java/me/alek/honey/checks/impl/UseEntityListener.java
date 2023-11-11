@@ -14,6 +14,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInUseEntity;
+import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -28,8 +29,10 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
     @Override
     public CheckVisitor<WrappedPlayInUseEntity> getVisitor() {
         CheckVisitor<WrappedPlayInUseEntity> visitor = new CheckVisitor<>();
-        visitor.visit(new UseEntityA());
-        visitor.visit(new UseEntityB());
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+            visitor.visit(new UseEntityA());
+            visitor.visit(new UseEntityB());
+        }
         return visitor;
     }
 
@@ -40,7 +43,6 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
 
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInUseEntity> packetContainer) {
-
     }
 
     @Override
