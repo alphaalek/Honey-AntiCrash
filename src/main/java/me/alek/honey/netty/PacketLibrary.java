@@ -47,16 +47,15 @@ public class PacketLibrary {
     private PacketLibrary(PacketLibrarySettings settings) {
         INSTANCE = this;
         this.settings = settings;
-        this.plugin = settings.getPlugin();
+        plugin = settings.getPlugin();
         eventManager = new EventManager();
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
-        if (useLateInjection()) {
+        if (useLateInjection())
             proxy = new LateChannelInjector();
-        }
-        else {
+        else
             proxy = new EarlyChannelInjector();
-        }
+
         proxy.inject();
         packetProcessor = new InternalPacketProcessor(eventManager);
 
@@ -67,7 +66,6 @@ public class PacketLibrary {
     public void callSyncEvent(Event event, boolean isPacket) {
         eventManager.callListeners(event, isPacket);
     }
-
 
     public void setLateProxy() {
         if (proxy instanceof EarlyChannelInjector) {

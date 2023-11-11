@@ -377,22 +377,22 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                // tjekker om en spiller flyver, for så kan man sagtens fylde bufferen hurtigt op alligevel
+                // check if the player is flying, because then the buffer will be filled up nevertheless
                 if (player.isFlying())
                     return ResponseBuilder.SUCCESS;
 
-                // ignorerer når man falder ned. bemærk, at hvis den havde været på 0, vil den også ignorere
-                // når man går rundt på jorden, da tyngdekraft er en stor faktor ift. en spillers velocity
+                // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
+                // walk around on ground, because the gravity affect the player's velocity
                 if (player.getVelocity().getY() < -1.5)
                     return ResponseBuilder.SUCCESS;
 
                 final Location priorLocation = container.getStorage().get(Location.class, 0);
-                // returnerer hvis det er den første lokation packet der bliver sendt
+                // return if it's the first location being sent
                 if (priorLocation == null)
                     return ResponseBuilder.SUCCESS;
 
                 final UUID uuid = player.getUniqueId();
-                // ignorerer packets tæt på den seneste flag for at minimere false positives ved lagspikes
+                // ignores packets close to the recent flag to minimize false flags at lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
 
                     if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5)
@@ -442,33 +442,32 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             final ViolationService.CheckKey key = (player.isFlying()) ? flightKey : nonFlightKey;
 
-            // laver en kopi af settings for at lave en til når man flyver, da man kan besøge langt flere chunks så
+            // make a copy of settings to when you fly, because you can visit way more chunks then
             if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
-                final int maxPerInterval = getSetting().maxPerInterval;
+                final double maxPerInterval = getSetting().maxPerInterval;
                 final ConfigurationOptions.VlSetting setting = getSetting().clone();
                 setting.maxPerInterval = maxPerInterval * 3;
 
-                // tvinger en ny packet limit handler til at blive oprettet med den nye flight setting
+                // force a new packet limit handler to be created with the new flight setting
                 HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
 
                 manipulatedFlightSettingsMap.add(player.getUniqueId());
             }
-            // får chunk på spillerens lokation som skal sammenlignes ift. sidste chunk hos spilleren, og på den måde vurdere
-            // om spilleren bevæger sig for hurtigt rundt på mappet, og måske forsøger at crash serveren på den måde, ved at
-            // load alt for mange chunks
+            // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
+            // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
             final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
             if (chunk != null) {
-                // den chunk er loaded, og vi skal derfor sørge for, at alle responses skipper næste check i pipeline
+                // the chunk is loaded, and we have to make sure that all responses will skip the next check in the pipeline
 
                 if (!getSetting().isEnabled() || lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
-                    // spilleren er inde i den samme chunk som sidste position update, og derfor skal der ikke flagges
+                    // the player is in the same chunk as the last position update
                     return ResponseBuilder.SUCCESS.builder().skip(1).build();
                 }
-                // spilleren er bevæget sig ind i en ny chunk, og vi skal derfor registrere den chunk som den nuværende samt flag for dette check
+                // the player has moved into a new chunk, and we have to register this chunk as the current one
                 lastChunkMap.put(player.getUniqueId(), chunk);
                 return ResponseBuilder.inst().flag().skip(1).withLimitsKey(key).build();
             }
-            // den chunk er unloaded og derfor skal Position.E flagges
+            // the chunk is not loaded and therefore Position.E should be flagged by not returning a skip response
             return ResponseBuilder.SUCCESS;
         }
 
@@ -569,8 +568,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().get(Location.class, 0);
-                // når den allerførste lokation packet bliver sendt, er der ikke nogen prior location, og derfor skal den
-                // bare returnere indtil den næste position packet kommer
+                // when the first location has been sent, there is no prior location,
+                // and therefore it should just wait for the next position packet
                 if (priorLocation == null)
                     return ResponseBuilder.SUCCESS;
 
@@ -583,7 +582,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     int i = -1;
                     for (final Direction dir : velocity) {
 
-                        // sørger for der ikke sker uoverensstemmelse i længderne og indices af de forskellige velocities
+                        // makes sure that there aren't any discrepancy in the lengths and indices of the different velocities
                         if (++i == priorVelocity.length) break;
 
                         final Axis axis = axisLookup.get(dir);
@@ -625,9 +624,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                // tjekker om den packet er en vehicle move packet
                 if (packet.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
-
                     if (player.getVehicle() == null) {
                         return ResponseBuilder.inst().flag().onViolation(() -> packet.getContainer().cancel()).build();
                     }

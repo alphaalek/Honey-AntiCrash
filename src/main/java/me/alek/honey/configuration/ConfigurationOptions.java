@@ -94,9 +94,9 @@ public class ConfigurationOptions {
         }
     }
 
-    public static void setViolationSetting(Class<? extends VlSetting> clazz, PacketLimitHandlerType packetLimitHandlerType, String[] prefixPaths) {
+    public static void setViolationSetting(Class<? extends VlSetting> clazz, PacketLimitHandlerType type, String[] prefixPaths) {
         // makes a new violation setting instance and register it
-        final Class<? extends VlSetting> classCopy = clazz;
+        final Class<? extends VlSetting> classCopy = clazz; // has to make a final copy to use it inside the functional interface
         final VlSetting setting = vlSettingMap.computeIfAbsent(clazz, (d) -> {
             try {
                 final Constructor<? extends VlSetting> constructor = classCopy.getDeclaredConstructor();
@@ -107,7 +107,7 @@ public class ConfigurationOptions {
             return null;
         });
         if (setting == null) return;
-        setting.packetLimitHandlerType = packetLimitHandlerType;
+        setting.packetLimitHandlerType = type;
 
         vlSettingMap.put(clazz, setting);
 
@@ -382,7 +382,7 @@ public class ConfigurationOptions {
     public static class VlSetting implements Cloneable {
 
         @VlSettingImpl(VlSettingImplType.MAX_PER_INTERVAL)
-        public int maxPerInterval = 1;
+        public double maxPerInterval = 1;
         @VlSettingImpl(VlSettingImplType.INTERVAL)
         public int interval;
         @VlSettingImpl(VlSettingImplType.VLS_AMOUNT)
@@ -1143,13 +1143,13 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "packet-flood.common.b", packetHandler = PacketLimitHandlerType.INTERVAL)
+        @Violation(prefixPaths = "packet-flood.b", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class FloodB extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation(prefixPaths = "packet-flood.common.c", packetHandler = PacketLimitHandlerType.INTERVAL)
+        @Violation(prefixPaths = "packet-flood.c", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class FloodC extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }

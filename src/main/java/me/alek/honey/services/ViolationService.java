@@ -95,7 +95,7 @@ public class ViolationService {
     }
 
     public ViolationDistributor getLimits(Player player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
-        ViolationContext context = getViolationContext(player);
+        final ViolationContext context = getViolationContext(player);
         return context.getLimits(checkKey, setting);
     }
 
@@ -173,11 +173,11 @@ public class ViolationService {
         public synchronized ViolationDistributor getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
             if (!packetLimitMap.containsKey(key)) {
 
-                AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
+                final AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
                 if (packetLimitHandler == null)
                     throw new RuntimeException("No packet limit handler could be created.");
 
-                ViolationDistributor distributor;
+                final ViolationDistributor distributor;
                 if (setting.keyedAnnotation != null)
                     distributor = new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(packetLimitHandler, setting));
@@ -229,7 +229,7 @@ public class ViolationService {
         }
 
         public CheckKey(Object object1) {
-            super(object1, null);
+            super(object1, UUID.randomUUID());
         }
 
         public CheckKey() {
@@ -306,9 +306,6 @@ public class ViolationService {
         }
 
         public AbstractPacketLimitHandler getPacketLimitHandler(CheckKey key) {
-            if (key == null) {
-                return getAnyPacketLimitHandler();
-            }
             return packetLimitHandlerDelegateLookup.getOrDefault(key, getAnyPacketLimitHandler());
         }
 
@@ -600,7 +597,7 @@ public class ViolationService {
 
     public class PacketIntervalHandler extends AbstractPacketLimitHandler {
 
-        private int maxPerInterval;
+        private double maxPerInterval;
         private int interval; // ms
 
         private boolean violatedForInterval;

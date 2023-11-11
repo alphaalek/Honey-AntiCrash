@@ -23,12 +23,16 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+
+    private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
 
     private static final ViolationService.CheckKey sharedIgnoringKey = new ViolationService.CheckKey();
     private static final ConfigurationOptions.VlSetting sharedIgnoringSetting = new ConfigurationOptions.VlSetting();
@@ -52,8 +56,25 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
+    public void setup(Player player) {
+        final UUID uuid = player.getUniqueId();
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                AbstractPipelineProxy proxy;
+                while ((proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player))) == null) {
+                }
+                if (proxy instanceof InboundPacketDecoder) {
+                    packetDecoderMap.put(uuid, (InboundPacketDecoder) proxy);
+                }
+            }
+        }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
+    }
+
+    @Override
     public void cleanup(Player player) {
-        FloodD.packetDecoderMap.remove(player.getUniqueId());
+        packetDecoderMap.remove(player.getUniqueId());
     }
 
     @Override
@@ -203,42 +224,28 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
 
-        private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
-
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
 
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
-            synchronized (sharedIgnoringSetting) {
-                if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.General.Exempt.SPIKE_INTERVAL;
-            }
+            // it gets updated when the configuration is being reloaded, but not here
+            if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.General.Exempt.SPIKE_INTERVAL;
 
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getLimits(player, sharedIgnoringKey, sharedIgnoringSetting);
 
-            if (getSetting(packet).isEnabled()) {
-                final UUID uuid = player.getUniqueId();
+            if (getSetting(packet).isEnabled() && packetDecoderMap.containsKey(player.getUniqueId())) {
+                // check if the delta time is high enough to exempt the next packet spike for this player
+                if (packetDecoderMap.get(player.getUniqueId()).getRecentDeltaReceived() > (ConfigurationOptions.General.Exempt.MAX_TIME_BETWEEN * 1_000)) {
 
-                // add the inbound packet decoder of this player to the map, so we can get the delta time between the
-                // last packet received and this one, because the decoder tracks this
-                if (!packetDecoderMap.containsKey(uuid)) {
-
-                    AbstractPipelineProxy proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player));
-                    if (proxy instanceof InboundPacketDecoder) {
-                        packetDecoderMap.put(uuid, (InboundPacketDecoder) proxy);
-                    }
-                }
-                if (packetDecoderMap.containsKey(uuid)) {
-                    // check if the delta time is high enough to exempt the next packet spike for this player
-                    if (packetDecoderMap.get(uuid).getRecentDeltaReceived() > (ConfigurationOptions.General.Exempt.MAX_TIME_BETWEEN * 1_000)) {
-
-                        return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
-                    }
+                    return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
                 }
                 // flag the player for the shared ignoring key to check if it's currently ignoring a packet spike of the player,
                 // if it isn't, and it gets flagged, then the real flood setting and values will be flagged afterwards
+
+                // NOTE: it's not a shared packet limit handler, just a shared key and setting
                 return ResponseBuilder.inst().flag(0).withLimitsKey(sharedIgnoringKey).onFlag(() -> {
-                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(this, getKey(packet)), null, 1, getName(), getSetting(packet), container.getDevelopmentData(FloodD.this), false);
+                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(getName(), getKey(packet)), null, 1, getName(), getSetting(packet), container.getDevelopmentData(FloodD.this), false);
                 }).build();
             }
             return ResponseBuilder.SUCCESS;

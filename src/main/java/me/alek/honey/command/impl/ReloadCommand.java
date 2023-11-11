@@ -15,8 +15,9 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender, String[] args) {
-        sender.sendMessage(CommandManager.PREFIX + "§7 Reloading the configuration...");
+        sender.sendMessage(CommandManager.PREFIX + "§7 Reloading the plugin...");
         HoneyPlugin.get().reload();
+        sender.sendMessage(CommandManager.PREFIX + "§7 Reload done.");
     }
 
     @Override

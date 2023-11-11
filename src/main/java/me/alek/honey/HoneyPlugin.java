@@ -147,9 +147,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     private void setupRecentPingLookupRunnable() {
         new BukkitRunnable() {
-
             int index = 0;
-
             @Override
             public void run() {
                 recentTPS = HoneyPlugin.get().getNotificationService().getTPS();
@@ -174,16 +172,15 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
         for (IListener check : ListenerRegistry.getChecks()) {
-
             if (check instanceof SyncPacketAdapter) {
                 ListenerPriority priority = check.getPriority();
 
-                if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener) {
+                if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
                     PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
-                }
-                if (check.getCheckType() == HoneyCheckType.DECODE) {
+
+                if (check.getCheckType() == HoneyCheckType.DECODE)
                     PacketLibrary.get().addDecodeListener((SyncPacketAdapter<?>) check, priority);
-                }
+
                 check.load();
                 continue;
             }
@@ -205,13 +202,15 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     public void reload() {
         configuration.reload();
-        for (IListener check : ListenerRegistry.getChecks()) {
+        for (IListener check : ListenerRegistry.getChecks())
             check.load();
-        }
+
         violationService.reload();
         loggerService.reload();
         confiscationService.reload();
+
         sqlManager.reload();
+
         ItemAnalysis.reload();
     }
 

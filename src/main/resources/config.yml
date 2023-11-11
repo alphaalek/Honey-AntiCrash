@@ -567,25 +567,28 @@ use-entity:
 packet-flood:
   # total
   a:
+    enabled: true
     max-per-interval: 500
     interval: 2300
     vls-amount: 2
 
   # common
-  common:
-    b:
-      max-per-interval: 250
-      interval: 900
-      vls-amount: 4
-    c:
-      max-per-interval: 375
-      interval: 1350
-      vls-amount: 3
+  b:
+    enabled: true
+    max-per-interval: 250
+    interval: 900
+    vls-amount: 4
+  c:
+    enabled: true
+    max-per-interval: 375
+    interval: 1350
+    vls-amount: 3
 
   # specific
   d:
     # These are common settings, if you want anything other you have to change it in the different
     # sections below dedicated to that packet. they are higher priority than these common settings.
+    enabled: true
     vls-amount: 5
     interval: 1000
 
@@ -606,13 +609,13 @@ packet-flood:
 
     # block dig
     block-dig:
-      max-per-interval: 60
+      max-per-interval: 70
       interval: 650
       vls-amount: 7
 
     # block place
     block-place:
-      max-per-interval: 60
+      max-per-interval: 70
       interval: 650
       vls-amount: 7
 
@@ -624,7 +627,7 @@ packet-flood:
 
     # client command
     client-command:
-      max-per-interval: 12
+      max-per-interval: 15
       interval: 600
 
     # close window
@@ -644,17 +647,17 @@ packet-flood:
 
     # entity action
     entity-action:
-      max-per-interval: 50
+      max-per-interval: 60
       interval: 600
 
     # flying
     flying:
-      max-per-interval: 125
+      max-per-interval: 250
       vls-amount: 10
 
     # held item slot
     held-item-slot:
-      max-per-interval: 35
+      max-per-interval: 50
       interval: 700
       vls-amount: 6
 
@@ -665,20 +668,20 @@ packet-flood:
 
     # look
     look:
-      max-per-interval: 45
+      max-per-interval: 60
       interval: 700
       vls-amount: 10
 
     # position
     position:
-      max-per-interval: 85
+      max-per-interval: 100
       interval: 650
       vls-amount: 7
 
     # set creative slot
     set-creative-slot:
       interval: 700
-      max-per-interval: 110
+      max-per-interval: 120
 
     # spectate
     spectate:
@@ -686,7 +689,7 @@ packet-flood:
 
     # steer vehicle
     steer-vehicle:
-      max-per-interval: 90
+      max-per-interval: 100
 
     # tab complete
     tab-complete:
@@ -699,18 +702,18 @@ packet-flood:
 
     # use item
     use-item:
-      max-per-interval: 60
+      max-per-interval: 65
       interval: 650
       vls-amount: 7
 
     # use entity
     use-entity:
-      max-per-interval: 60
+      max-per-interval: 65
       interval: 650
 
     # window click
     window-click:
-      max-per-interval: 100
+      max-per-interval: 110
       interval: 600
       vls-amount: 8
 
