@@ -20,8 +20,7 @@ public class ResponseContainer implements Cloneable {
     public ViolationService.CheckKey VIOLATION_KEY;
     public Runnable ON_VIOLATION;
     public Runnable ON_FLAG;
-    public Runnable ON_BLOCK;
-    public String NOTIFICATION_MESSAGE;
+    public Runnable ON_PUNISH;
     public double FLAG = -1;
 
     public ResponseBuilder builder() {

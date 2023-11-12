@@ -454,7 +454,7 @@ rotation:
 
   b:
     enabled: true
-    threshold: 500
+    threshold: 2500
     vls-amount: 5
 
   c:
@@ -470,7 +470,9 @@ block-interact:
   a:
     enabled: true
     vls-amount: 5
-    max: 150
+    interval: 1000
+    max-per-interval: 3
+    max: 50
 
   b:
     enabled: true
@@ -487,6 +489,8 @@ block-interact:
   e:
     enabled: true
     vls-amount: 5
+    interval: 1000
+    max-per-interval: 3
     max: 150
 
   f:
@@ -731,7 +735,7 @@ commands:
     - "/targetoffset"
     - "/to"
 
-  # Attempt to execute commands which starts with the following strings will be blocked, but only if it is registered on the server.
+  # Attempt to execute commands that starts with the following strings will be blocked, but only if it is registered on the server.
   prohibited-commands:
     # spigot
     - "/skill"
@@ -754,8 +758,8 @@ commands:
     - "/mvhelp ^"
     - "/mv help ^"
 
-  # Fallback prefixes which also will be checked for at the commands above.
-  # Could eg. be if someone types '/multiverse-core:mv help ^'
+  # Fallback prefixes that also will be checked for at the commands above. (if they exist on the server)
+  # Could e.g. be if someone types '/multiverse-core:mv help ^'
   fallback-prefixes:
     - "fastasyncworldedit"
     - "worldedit"

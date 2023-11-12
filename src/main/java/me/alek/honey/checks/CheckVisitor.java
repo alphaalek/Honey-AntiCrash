@@ -80,7 +80,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 if (response.SKIP_INDICES != null) skipping = response.SKIP_INDICES;
 
                 if (response.SUCCESS) {
-
                     if (response.TERMINATE) terminated = true;
                     continue;
                 }
@@ -89,19 +88,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 if (response.FLAG != -1) {
                     if (setting == null) {
 
-                        if (response.ON_BLOCK != null) response.ON_BLOCK.run();
                         if (response.TERMINATE) terminated = true;
                         continue;
                     }
                     final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
 
-                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_VIOLATION, response.ON_FLAG, check.getName(), setting, developmentData, response.IGNORE_SPIKE);
+                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check.getName(), setting, developmentData, response.IGNORE_SPIKE);
                 }
-                if (response.NOTIFY && response.NOTIFICATION_MESSAGE != null)
-                    HoneyPlugin.get().getNotificationService().notify(response.NOTIFICATION_MESSAGE);
-
                 if (response.PUNISH && player != null)
-                    HoneyPlugin.get().getViolationService().punish(player, check.getName());
+                    HoneyPlugin.get().getViolationService().punish(null, player, check.getName());
 
                 if (response.TERMINATE) terminated = true;
             }

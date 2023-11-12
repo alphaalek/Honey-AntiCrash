@@ -80,6 +80,11 @@ public class ResponseBuilder {
         return this;
     }
 
+    public ResponseBuilder onPunish(Runnable runnable) {
+        responseContainer.ON_PUNISH = runnable;
+        return this;
+    }
+
     public ResponseBuilder onViolation(Runnable runnable) {
         responseContainer.ON_VIOLATION = runnable;
         return this;
@@ -87,17 +92,6 @@ public class ResponseBuilder {
 
     public ResponseBuilder onFlag(Runnable runnable) {
         responseContainer.ON_FLAG = runnable;
-        return this;
-    }
-
-    public ResponseBuilder onBlock(Runnable runnable) {
-        responseContainer.ON_BLOCK = runnable;
-        return this;
-    }
-
-    public ResponseBuilder notify(String notification) {
-        responseContainer.NOTIFY = true;
-        responseContainer.NOTIFICATION_MESSAGE = notification;
         return this;
     }
 

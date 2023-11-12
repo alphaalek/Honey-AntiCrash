@@ -568,9 +568,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().get(Location.class, 0);
-                // when the first location has been sent, there is no prior location,
-                // and therefore it should just wait for the next position packet
-                if (priorLocation == null)
+                if (priorLocation == null) // wait for next position
                     return ResponseBuilder.SUCCESS;
 
                 final Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
@@ -580,6 +578,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (priorVelocity != null && priorVelocity.length == velocity.length) {
 
                     int i = -1;
+                    final ResponseBuilder builder = ResponseBuilder.inst();
                     for (final Direction dir : velocity) {
 
                         // makes sure that there aren't any discrepancy in the lengths and indices of the different velocities
@@ -591,12 +590,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            HoneyPlugin.get().getViolationService().flag(
-                                    player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()),
-                                    new ViolationService.CheckKey("Position.F", axis.ordinal()), new ViolationService.CheckKey(axis.name().toLowerCase()),
-                                    1, () -> packet.getContainer().cancel(), null, getName(), getSetting(), container.getDevelopmentData(this), false);
+                            builder.add(ResponseBuilder.inst().flag().withViolationKey(
+                                    new ViolationService.CheckKey(axis.name().toLowerCase())).build());
                         }
                     }
+                    final ResponseContainer response;
+                    if (!(response = builder.build()).SUB_CONTAINERS.isEmpty())
+                        return response;
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -624,10 +624,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (packet.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
-                    if (player.getVehicle() == null) {
-                        return ResponseBuilder.inst().flag().onViolation(() -> packet.getContainer().cancel()).build();
-                    }
+                if (packet.getType() == PacketType.Play.Client.VEHICLE_MOVE
+                        && player.getVehicle() == null) {
+                    return ResponseBuilder.inst().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -760,26 +759,28 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 if (y < getSetting().min || y > getSetting().max) {
 
-                    double y_ = y;
-                    if (y < getSetting().min) {
-                        while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
-                            if (y_ > getSetting().max - 3) break;
-                        }
-                    }
-                    if (y > getSetting().max) {
-                        while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
-                            if (y_ < 16) break;
-                        }
-                        y_ += 2;
-                    }
-                    // teleport the player and set the health to max to ensure he is not stuck and will not die on this illegal spot
-                    player.teleport(new Location(player.getWorld(), x, y_, z));
-                    player.setHealth(20);
-
                     if (player.isDead()) { // don't flag if the player is dead, might be a false flag if a player is falling down in void being dead
                         return ResponseBuilder.inst().cancel().build();
                     }
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag().onPunish(() -> {
+
+                        double y_ = y;
+                        if (y < getSetting().min) {
+                            while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
+                                if (y_ > getSetting().max - 3) break;
+                            }
+                        }
+                        if (y > getSetting().max) {
+                            while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
+                                if (y_ < 16) break;
+                            }
+                            y_ += 2;
+                        }
+                        // teleport the player and set the health to max to ensure he is not stuck and will not die on this illegal spot
+                        player.teleport(new Location(player.getWorld(), x, y_, z));
+                        player.setHealth(20);
+
+                    }).build();
                 }
             }
             return ResponseBuilder.SUCCESS;
