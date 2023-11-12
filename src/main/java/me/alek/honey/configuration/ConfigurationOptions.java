@@ -298,15 +298,6 @@ public class ConfigurationOptions {
         }
     }
 
-    public interface VlSimpleMinMaxRequiredContentsSetting extends VlRequiredContentsSetting {
-
-        default Set<VlSettingImplType> getRequiredTypes() {
-            return Sets.newHashSet(
-                    VlSettingImplType.MAX,
-                    VlSettingImplType.MIN);
-        }
-    }
-
     public interface VlSimpleMaxRequiredContentsSetting extends VlRequiredContentsSetting {
 
         default Set<VlSettingImplType> getRequiredTypes() {
@@ -943,9 +934,19 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "position.j", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PositionJ extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
+        @Violation(prefixPaths = "position.j", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class PositionJ extends VlSetting implements VlRequiredContentsSetting {
 
+            @Override
+            public Set<VlSettingImplType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        VlSettingImplType.MAX,
+                        VlSettingImplType.MIN,
+                        VlSettingImplType.INTERVAL,
+                        VlSettingImplType.MAX_PER_INTERVAL,
+                        VlSettingImplType.VLS_AMOUNT
+                );
+            }
         }
     }
 

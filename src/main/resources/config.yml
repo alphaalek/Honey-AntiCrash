@@ -444,7 +444,9 @@ position:
     enabled: true
     max: 2048
     min: -512
-    vls-amount: 1
+    max-per-interval: 3
+    interval: 1000
+    vls-amount: 2
 
 # |--- rotation ---|
 rotation:

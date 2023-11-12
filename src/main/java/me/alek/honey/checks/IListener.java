@@ -16,5 +16,4 @@ public interface IListener {
     default ListenerPriority getPriority() {
         return ListenerPriority.NORMAL;
     }
-
 }

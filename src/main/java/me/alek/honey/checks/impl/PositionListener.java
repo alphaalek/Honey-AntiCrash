@@ -23,6 +23,7 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -581,7 +582,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     final ResponseBuilder builder = ResponseBuilder.inst();
                     for (final Direction dir : velocity) {
 
-                        // makes sure that there aren't any discrepancy in the lengths and indices of the different velocities
+                        // make sure that there aren't any discrepancy in the lengths and indices of the different velocities
                         if (++i == priorVelocity.length) break;
 
                         final Axis axis = axisLookup.get(dir);
@@ -653,8 +654,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Double> guessedDelta2D = new HashMap<>();
         private static final Map<UUID, Double> guessedDeltaY = new HashMap<>();
 
-        private static final ViolationService.CheckKey key = new ViolationService.CheckKey(PositionH.class, "PositionH");
-
         @Override
         public synchronized ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             final ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
@@ -670,30 +669,32 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (!guessedDeltaY.containsKey(uuid)) guessedDeltaY.put(uuid, 0d);
 
                 boolean hasPattern = false;
+                final ResponseBuilder builder = ResponseBuilder.inst();
+
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
-
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, new ViolationService.CheckKey("2d"), 1, "Position.H", getSetting(), container.getDevelopmentData(this), false);
+                        builder.add(ResponseBuilder.inst().flag()
+                                .withViolationKey(new ViolationService.CheckKey("2d")).build());
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
                 }
                 if (deltaY > 0.5) {
                     if (guessedDeltaY.get(uuid) == deltaY) {
-
                         final Material material = player.getEyeLocation().getBlock().getType();
                         if (material.name().contains("WATER") || material.name().contains("LAVA")) {
                             return response;
                         }
-                        if (deltaY % 0.375 < 0.000001) {
+                        if (deltaY % 0.375 < 0.01) {
                             return response;
                         }
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, new ViolationService.CheckKey("y"), 1, "Position.H", getSetting(), container.getDevelopmentData(this), false);
+                        builder.add(ResponseBuilder.inst().flag()
+                                .withViolationKey(new ViolationService.CheckKey("y")).build());
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);
                 }
-                if (hasPattern) return ResponseBuilder.SUCCESS;
+                if (hasPattern) return builder.build();
             }
             return response;
         }
@@ -746,7 +747,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 final double x = packet.getX();
                 final double y = packet.getY();
                 final double z = packet.getZ();
@@ -776,10 +776,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                             }
                             y_ += 2;
                         }
-                        // teleport the player and set the health to max to ensure he is not stuck and will not die on this illegal spot
                         player.teleport(new Location(player.getWorld(), x, y_, z));
-                        player.setHealth(20);
-
                     }).build();
                 }
             }

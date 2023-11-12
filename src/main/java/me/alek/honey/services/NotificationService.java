@@ -23,6 +23,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.management.NotificationListener;
 import java.util.*;
 
 public class NotificationService {
@@ -95,7 +96,7 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey) {
                 if (developmentData != null && observer instanceof Player) {
                     StringBuilder hoverableTextBuilder = new StringBuilder();
                     for (String dataSetEntry : developmentData.getDataSet()) {
@@ -103,20 +104,20 @@ public class NotificationService {
                     }
                     String hoverableText = hoverableTextBuilder.substring(0, hoverableTextBuilder.length() - 1);
 
-                    TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler));
+                    TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7. " + formatNotification(setting, packetLimitHandler));
                     message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
 
                     Player observerPlayer = (Player) observer;
                     observerPlayer.spigot().sendMessage(message);
                 }
                 else observer.sendMessage(getAppropiateMessage(
-                        observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type +  "§7. " + formatNotification(setting, packetLimitHandler)));
+                        observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7. " + formatNotification(setting, packetLimitHandler)));
             }
 
             @Override
-            public void warn(Player player, String type) {
+            public void warn(Player player, String type, ViolationService.CheckKey checkKey) {
                 observer.sendMessage(
-                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "§7."));
+                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "§7" + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "."));
             }
         });
     }
@@ -253,21 +254,21 @@ public class NotificationService {
         }
     }
 
-    public void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+    public void notify(Player player, String notification, ViolationService.CheckKey checkKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 continue;
             }
-            observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData);
+            observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, checkKey);
         }
     }
 
-    public void warn(Player player, String warning) {
+    public void warn(Player player, String warning, ViolationService.CheckKey checkKey) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
                 continue;
             }
-            observer.getValue().warn(player, warning);
+            observer.getValue().warn(player, warning, checkKey);
         }
     }
 
@@ -277,8 +278,8 @@ public class NotificationService {
 
         void notify(Player player, String notification);
 
-        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData);
+        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey);
 
-        void warn(Player player, String notification);
+        void warn(Player player, String notification, ViolationService.CheckKey checkKey);
     }
 }

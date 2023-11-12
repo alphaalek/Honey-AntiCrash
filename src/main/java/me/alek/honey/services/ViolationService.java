@@ -120,7 +120,7 @@ public class ViolationService {
         return flag(player, handle, cancellablePacketObserver, violationContextKey, checkKey, amount, null, null, null, violationName, setting, developmentData, ignoreSpike);
     }
 
-    public void punish(Runnable onPunish, Player player, String violationName) {
+    public void punish(Runnable onPunish, Player player, String violationName, CheckKey checkKey) {
         if (onPunish != null) onPunish.run();
         try {
             punishLock.lock();
@@ -129,7 +129,7 @@ public class ViolationService {
             }
             punishing.add(player.getUniqueId());
 
-            HoneyPlugin.get().getNotificationService().warn(player, violationName);
+            HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
             HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
 
             Channel channel = NMSUtils.getChannel(player);
@@ -319,7 +319,7 @@ public class ViolationService {
             if (delegate == null)
                 delegate = packetLimitHandlerDelegateLookup.get(checkKey);
 
-            return delegate.flag(handle, cancellablePacketObserver, violationName, amount, onPunish, onViolation, onFlag, developmentData, ignoreSpike);
+            return delegate.flag(handle, cancellablePacketObserver, violationName, amount, onPunish, onViolation, onFlag, developmentData, ignoreSpike, checkKey);
         }
     }
 
@@ -346,7 +346,7 @@ public class ViolationService {
             return setting;
         }
 
-        public synchronized boolean violate(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
+        public synchronized boolean violate(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());
@@ -359,7 +359,7 @@ public class ViolationService {
                 AbstractPacketListener.applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
-            HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, getSetting(), this, developmentData);
+            HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, checkKey, getSetting(), this, developmentData);
 
             try {
                 HoneyPlugin.get().getSQLManager().postViolation(player, violationName, ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
@@ -371,11 +371,13 @@ public class ViolationService {
 
             if (violations.get() < getSetting().vlsAmount) return false;
 
-            punish(onPunish, getPlayer(), violationName);
+            punish(onPunish, getPlayer(), violationName, checkKey);
             return true;
         }
 
         private void applySettingsToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
+            if (developmentData.size() >= 10) return;
+
             developmentData.addEmpty();
 
             PacketLimitHandlerType handlerType = setting.getPacketLimitHandlerType();
@@ -392,7 +394,7 @@ public class ViolationService {
             return violations.get();
         }
 
-        public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike);
+        public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey);
 
         public abstract PacketLimitHandlerType getType();
     }
@@ -405,10 +407,10 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
             if (onFlag != null) onFlag.run();
 
-            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData, checkKey);
             return true;
         }
 
@@ -429,12 +431,12 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
             if (onFlag != null) onFlag.run();
 
             if ((this.amount = amount) < threshold) return false;
 
-            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData, checkKey);
             return true;
         }
 
@@ -474,7 +476,7 @@ public class ViolationService {
         }
 
         @Override
-        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
             hasDecayed = false;
             if (System.currentTimeMillis() - lastDecay > decayInterval) {
                 hasDecayed = true;
@@ -494,14 +496,14 @@ public class ViolationService {
             bufferIndexCopy = bufferIndex;
             if (getSetting().clearBuffer) this.bufferIndex = 0;
 
-            return handle(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData);
+            return handle(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData, checkKey);
         }
 
         public double getBufferIndex() {
             return bufferIndexCopy;
         }
 
-        public abstract boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData);
+        public abstract boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey);
 
     }
 
@@ -532,11 +534,11 @@ public class ViolationService {
         }
 
         @Override
-        public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
+        public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
             if (bufferIndex > until && getSetting().isEnabled())
-                violate(handle, cancellablePacketObserver, violationName, null, null, developmentData);
+                violate(handle, cancellablePacketObserver, violationName, null, null, developmentData, checkKey);
             return true;
         }
     }
@@ -549,8 +551,8 @@ public class ViolationService {
         }
 
         @Override
-        public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData) {
-            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData);
+        public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
+            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData, checkKey);
             return true;
         }
 
@@ -585,7 +587,7 @@ public class ViolationService {
             intervalStart = System.currentTimeMillis();
         }
 
-        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
             if (System.currentTimeMillis() - intervalStart >= interval)
                 clearInterval();
 
@@ -612,7 +614,7 @@ public class ViolationService {
             flaggedCopy = flagged;
             if (getSetting().clearInterval) clearInterval();
 
-            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData);
+            violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData, checkKey);
             return true;
         }
 
@@ -641,7 +643,7 @@ public class ViolationService {
         }
 
         @Override
-        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+        public synchronized boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
             if (currentlyCancelling) {
                 if (System.currentTimeMillis() - intervalStart > interval) {
                     intervalStart = System.currentTimeMillis();
@@ -653,7 +655,7 @@ public class ViolationService {
                 intervalStart = System.currentTimeMillis();
 
                 if (amount > until && !currentlyCancelling) {
-                    violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData);
+                    violate(handle, cancellablePacketObserver, violationName, onPunish, onViolation, developmentData, checkKey);
                 }
                 currentlyCancelling = true;
                 return true;

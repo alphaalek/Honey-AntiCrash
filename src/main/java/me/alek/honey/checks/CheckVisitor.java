@@ -85,18 +85,17 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
                 if (response.CANCELLED) cancellablePacketObserver.cancel();
 
+                final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
                 if (response.FLAG != -1) {
                     if (setting == null) {
 
                         if (response.TERMINATE) terminated = true;
                         continue;
                     }
-                    final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
-
                     HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check.getName(), setting, developmentData, response.IGNORE_SPIKE);
                 }
                 if (response.PUNISH && player != null)
-                    HoneyPlugin.get().getViolationService().punish(null, player, check.getName());
+                    HoneyPlugin.get().getViolationService().punish(null, player, check.getName(), key);
 
                 if (response.TERMINATE) terminated = true;
             }

@@ -12,5 +12,4 @@ public interface IPacketListener extends IListener {
     default HoneyCheckType getCheckType() {
         return HoneyCheckType.PACKET;
     }
-
 }
