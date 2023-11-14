@@ -120,7 +120,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                if (ItemAnalysis.checkItem(player, packet.getItem())) {
+                if (ItemAnalysis.checkItem(player, packet.getItem(), container.getDevelopmentData(this))) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

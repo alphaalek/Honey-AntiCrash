@@ -139,8 +139,6 @@ public class ConfigurationOptions {
         for (String prefixPath : prefixPaths) {
             // check if this memory section exists, if it does not then disable the plugin
             if (file.get(prefixPath) == null) {
-                Bukkit.getLogger().info(prefixPath);
-
                 throw new RuntimeException();
             }
             Iterator<VlSettingImplType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();

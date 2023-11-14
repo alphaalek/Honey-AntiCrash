@@ -94,7 +94,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
                 resetConfiguration();
                 getServer().getPluginManager().disablePlugin(this);
 
-                throw new RuntimeException("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
+                throw new RuntimeException("You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.");
             }
             return;
         }
@@ -189,15 +189,20 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     }
 
     public void resetConfiguration() {
-        File file = new File(getDataFolder(), "config.yml");
-
-        if (file.exists()) {
+        File oldFile = new File(getDataFolder(), "old-config.yml");
+        if (oldFile.exists()) {
             try {
-                Files.delete(file.toPath());
+                Files.deleteIfExists(oldFile.toPath());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
+        File file = new File(getDataFolder(), "config.yml");
+
+        if (file.exists()) {
+            file.renameTo(new File(getDataFolder(), "old-config.yml"));
+        }
+        saveDefaultConfig();
     }
 
     public void reload() {

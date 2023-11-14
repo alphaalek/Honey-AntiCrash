@@ -33,7 +33,6 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
     @Override
     public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
-
     }
 
     @Override
@@ -100,7 +99,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
             if (getSetting().isEnabled()) {
 
                 ItemStack item = packet.getItem();
-                if (ItemAnalysis.checkItem(player, item)) {
+                if (ItemAnalysis.checkItem(player, item, container.getDevelopmentData(this))) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

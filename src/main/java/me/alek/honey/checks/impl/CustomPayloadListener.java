@@ -163,7 +163,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 ItemStack item = container.getStorage().poll(ItemStack.class);
                 ItemStack itemInHand = player.getItemInHand();
 
-                if (!(ItemAnalysis.checkItem(player, itemInHand) || ItemAnalysis.checkItem(player, item))) {
+                final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+                if (!(ItemAnalysis.checkItem(player, itemInHand, developmentData) || ItemAnalysis.checkItem(player, item, developmentData))) {
                     if (item == null) {
                         return ResponseBuilder.SUCCESS;
                     }

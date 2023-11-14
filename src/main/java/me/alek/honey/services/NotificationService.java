@@ -224,7 +224,7 @@ public class NotificationService {
         counter.count();
 
         int size = counter.size();
-        if (size < 5) return;
+        if (size < 10) return;
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));

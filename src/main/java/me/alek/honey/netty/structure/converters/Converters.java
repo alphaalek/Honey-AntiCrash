@@ -202,7 +202,6 @@ public class Converters {
             @Override
             public WrappedPlayInUseEntity.EnumEntityUseAction convertDelegate(Object delegate, Object... params) {
                 if (delegate == null) return null;
-                Bukkit.broadcastMessage("String: " + delegate + " " + delegate.getClass());
                 return WrappedPlayInUseEntity.EnumEntityUseAction.valueOf(delegate.toString());
             }
 

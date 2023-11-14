@@ -103,9 +103,6 @@ packet-logger:
   # Should the packet logger be detailed, which means it shows all the fields of each packet.
   detailed: false
 
-# BE AWARE, THAT YOU SHOULD ONLY EDIT VALUES BELOW IF YOU KNOW WHAT YOU ARE DOING!
-# IF YOU DISABLE SOMETHING OR CHANGE SOME VALUES, IT COULD POSSIBLY MAKE YOUR SERVER VULNERABLE!
-
 ############################################################
 # +------------------------------------------------------+ #
 # |                Item-Analysis Settings                | #
@@ -164,13 +161,13 @@ item-analysis:
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 900
+    max-nbt-string-length: 1035
 
     # How many bytes may the NBT of a firework have. This is also covering firework charges.
     max-firework-nbt-length: 2500
 
     # How many bytes may the NBT of a book have.
-    max-book-nbt-length: 12500
+    max-book-nbt-length: 1250
 
     # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages. (in 1.8 only 50 pages)
     max-book-pages: 100
@@ -276,12 +273,12 @@ netty:
     min: 50
     interval: 3000
     threshold: 5000
-    max-per-interval: 12
+    max-per-interval: 14
     vls-amount: 3
 
   n:
     enabled: true # size flood
-    min: 50
+    min: 40
     clear-interval: true
     interval: 7500
     threshold: 3000
@@ -296,7 +293,7 @@ netty:
             # that means the min. and max. values are not checking for the same thing
     interval: 4000
     threshold: 2500
-    max-per-interval: 12
+    max-per-interval: 14
     vls-amount: 3
 
 # |--- custom payload ---|
@@ -471,10 +468,10 @@ rotation:
 block-interact:
   a:
     enabled: true
-    vls-amount: 5
-    interval: 1000
+    max: 100
     max-per-interval: 3
-    max: 50
+    interval: 1000
+    vls-amount: 5
 
   b:
     enabled: true
@@ -490,10 +487,10 @@ block-interact:
 
   e:
     enabled: true
-    vls-amount: 5
-    interval: 1000
+    max: 100
     max-per-interval: 3
-    max: 150
+    interval: 1000
+    vls-amount: 5
 
   f:
     enabled: true
@@ -656,7 +653,7 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 250
+      max-per-interval: 220
       vls-amount: 10
 
     # held item slot

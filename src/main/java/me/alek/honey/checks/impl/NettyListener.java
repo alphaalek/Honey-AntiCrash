@@ -216,7 +216,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             double decodeTime = 0;
 
             if (player != null) {
-                InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(), (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(NMSUtils.getChannel(player)));
+                InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(),
+                        (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(NMSUtils.getChannel(player)));
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
                 // disable this check if the TPS is really low or ping of the player is too high

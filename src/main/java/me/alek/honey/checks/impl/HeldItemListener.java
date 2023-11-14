@@ -88,7 +88,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         public ResponseContainer check(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()))) {
+                if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this))) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

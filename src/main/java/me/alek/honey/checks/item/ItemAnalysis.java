@@ -1,5 +1,6 @@
 package me.alek.honey.checks.item;
 
+import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
@@ -90,7 +91,7 @@ public class ItemAnalysis {
         }
     }
 
-    public static boolean checkItem(Player player, ItemStack item) {
+    public static boolean checkItem(Player player, ItemStack item, CheckContextContainer.DevelopmentData context) {
         if (item == null || item.getType() == Material.AIR) {
             return false;
         }
@@ -104,6 +105,7 @@ public class ItemAnalysis {
         if (flaggedCheck == null) {
             return false;
         }
+        context.addPoint("Check", flaggedCheck.name().toLowerCase());
         Bukkit.getLogger().info("DEBUG: " + flaggedCheck.name());
 
         // HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);

@@ -143,7 +143,8 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                 final ItemStack item = blockPlacePacket.getItem();
                 final ItemStack itemInHand = player.getItemInHand();
 
-                if (ItemAnalysis.checkItem(player, item) || ItemAnalysis.checkItem(player, itemInHand)) {
+                final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+                if (ItemAnalysis.checkItem(player, item, developmentData) || ItemAnalysis.checkItem(player, itemInHand, developmentData)) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
