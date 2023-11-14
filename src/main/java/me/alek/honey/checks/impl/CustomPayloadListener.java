@@ -187,7 +187,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getName() {
-            return "Payload.C";
+            return "Payload.C (item analysis)";
         }
 
         @Override
