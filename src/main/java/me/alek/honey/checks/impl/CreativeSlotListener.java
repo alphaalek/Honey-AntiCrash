@@ -129,7 +129,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getName() {
-            return "Creative.C (item analysis)";
+            return "Creative.C (IA)";
         }
 
         @Override

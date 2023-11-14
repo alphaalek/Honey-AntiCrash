@@ -153,7 +153,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public String getName() {
-            return "BlockInteract.B (item analysis)";
+            return "BlockInteract.B (IA)";
         }
 
         @Override

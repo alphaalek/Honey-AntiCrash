@@ -108,7 +108,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getName() {
-            return "Window.B (item analysis)";
+            return "Window.B (IA)";
         }
 
         @Override

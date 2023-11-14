@@ -97,7 +97,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getName() {
-            return "HeldItem.B (item analysis)";
+            return "HeldItem.B (IA)";
         }
 
         @Override
