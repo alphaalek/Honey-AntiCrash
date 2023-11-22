@@ -139,12 +139,10 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
                 final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
-
                 final ItemStack item = blockPlacePacket.getItem();
-                final ItemStack itemInHand = player.getItemInHand();
 
                 final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
-                if (ItemAnalysis.checkItem(player, item, developmentData) || ItemAnalysis.checkItem(player, itemInHand, developmentData)) {
+                if (ItemAnalysis.checkItem(player, item, developmentData)) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

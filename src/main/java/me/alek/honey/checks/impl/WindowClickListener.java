@@ -16,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
@@ -48,6 +49,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
             visitor.visit(new WindowC());
         }
+        visitor.visit(new WindowD());
         return visitor;
     }
 
@@ -61,7 +63,6 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 int slot = packet.getWindowSlot();
 
                 int inventorySlots = player.getOpenInventory().countSlots();
@@ -150,6 +151,34 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowC.class);
+        }
+    }
+
+    public static class WindowD implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                Bukkit.broadcastMessage("Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
+
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getName() {
+            return "Window.D";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Negative window id";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowD.class);
         }
     }
 }

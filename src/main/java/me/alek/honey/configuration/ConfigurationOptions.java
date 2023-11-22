@@ -797,6 +797,12 @@ public class ConfigurationOptions {
         public static class WindowC extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         }
+
+        @Setting
+        @Violation(prefixPaths = "window-click.d", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class WindowD extends VlSetting implements VlSimpleRequiredContentsSetting {
+
+        }
     }
 
     @Setting

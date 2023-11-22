@@ -526,10 +526,10 @@ public class ItemChecks {
                 if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
                     return true;
                 }
-                NBTElement<String> value = texture.get("Value").asElement(String.class);
+                String value = texture.getString("Value");
                 String base64;
                 try {
-                    base64 = new String(Base64.getDecoder().decode(value.getValue()));
+                    base64 = new String(Base64.getDecoder().decode(value));
                 } catch (IllegalArgumentException ex) {
                     return true;
                 }

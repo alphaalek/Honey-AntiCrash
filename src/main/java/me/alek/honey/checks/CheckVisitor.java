@@ -31,13 +31,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return checks;
     }
 
-    private void handleCommonCheck(
-            Player player,
-            Object handle,
-            Function<HoneyCheck, ResponseContainer> responseGeneratorFunction,
-            WP packet,
-            CancellablePacketObserver cancellablePacketObserver,
-            CheckContextContainer checkContextContainer) {
+    private void handleCommonCheck(Player player, Object handle, Function<HoneyCheck, ResponseContainer> responseGeneratorFunction,
+            WP packet, CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer) {
         AtomicInteger skipping = null;
 
         for (HoneyCheck check : checks) {

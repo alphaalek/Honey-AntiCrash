@@ -29,22 +29,14 @@ public class NMSUtils {
 
     public static synchronized UUID getUUIDForChannel(Channel channel) {
         for (UUID uuid : lookupChannels.keySet()) {
-            if (lookupChannels.get(uuid) == channel) {
+            if (lookupChannels.get(uuid) == channel)
                 return uuid;
-            }
         }
         return null;
     }
 
     public static synchronized Channel getChannel(Player player) {
-        UUID uuid = player.getUniqueId();
-
-        if (!lookupChannels.containsKey(uuid)) {
-
-            Channel playerChannel = channel.get(getNetworkManager(player));
-            lookupChannels.put(uuid, playerChannel);
-        }
-        return lookupChannels.get(uuid);
+        return lookupChannels.computeIfAbsent(player.getUniqueId(), (d) -> channel.get(getNetworkManager(player)));
     }
 
     public static void removeChannelLookup(UUID uuid) {
