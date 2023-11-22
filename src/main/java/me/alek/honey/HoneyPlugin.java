@@ -217,6 +217,8 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         sqlManager.reload();
 
         ItemAnalysis.reload();
+
+        checkHandleTracker.clear();
     }
 
     public static HoneyAPI get() {

@@ -82,6 +82,11 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     }
 
     @Override
+    public void clear() {
+        statisticProviders.clear();
+    }
+
+    @Override
     public void remove(T key) {
         statisticProviders.remove(key);
     }

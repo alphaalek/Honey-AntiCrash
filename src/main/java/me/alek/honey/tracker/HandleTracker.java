@@ -28,4 +28,6 @@ public interface HandleTracker<I extends Number, T> {
     List<T> getTrackersOrdered();
 
     long getUpdateInterval();
+
+    void clear();
 }

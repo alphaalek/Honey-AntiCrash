@@ -101,6 +101,12 @@ public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingH
     }
 
     @Override
+    public void clear() {
+        checkHandleTimeMap.clear();
+        totalCheckHandleTime.set(0);
+    }
+
+    @Override
     public synchronized void update() {
         long totalReferencedTime = 0;
         for (long referencedTime : checkHandleTimeMap.values()) {

@@ -224,4 +224,10 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
         });
         return trackersList;
     }
+
+    @Override
+    public void clear() {
+        oldTimeTrackerMap.clear();
+        currentTimeTrackerMap.clear();
+    }
 }
