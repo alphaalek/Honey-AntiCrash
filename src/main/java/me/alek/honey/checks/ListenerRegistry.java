@@ -42,7 +42,6 @@ public enum ListenerRegistry {
         }
 
         Map<String, String> map = new HashMap<>();
-        //map.get()
         return checks;
     }
 

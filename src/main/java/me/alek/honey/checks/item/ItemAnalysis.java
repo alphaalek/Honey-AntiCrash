@@ -55,7 +55,7 @@ public class ItemAnalysis {
                 else if (field.getType() == boolean.class) {
 
                     if (!field.getBoolean(null)) {
-                        // lad være med at enable dem
+                        // dont enable them
                         disabledChecks.add(checkRegistryLookup.get(setting.value()));
                     }
                 }
@@ -66,7 +66,6 @@ public class ItemAnalysis {
         for (ItemCheckRegistry registry : ItemCheckRegistry.values()) {
 
             if (registry.getCheck() == null || disabledChecks.contains(registry.getCheck())) {
-                // den check er ikke slået til og skal derfor heller ikke tilføjes
                 continue;
             }
             Material[] availableMaterials = registry.getAvailableMaterials();

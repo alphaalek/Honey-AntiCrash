@@ -22,8 +22,8 @@ public class NBTRoot extends NBTCompound {
     }
 
     public void subscribe(NBTBase<?, ?> owner, NBTBase<?, ?> sub) {
-        // da subscribe bliver kaldt i NBTBase (super constructor), er ownerMap & distanceToRootMap
-        // ikke initialized endnu hvis de eks. havde været på class level (gælder kun for NBTRoot)
+        // because this method is being called in the NBTBase super constructor, the ownerMap and distanceToRootMap
+        // are not initialized yet if they have been on class level (only counts for same instance as NBTRoot)
         if (owner == null || sub == null) {
             return;
         }
@@ -32,17 +32,19 @@ public class NBTRoot extends NBTCompound {
             distanceToTailMap = new HashMap<>();
             nbtTypeLookup = new EnumMap<>(NBTType.class);
         }
+
+        // do the subscription
         if (!ownerMap.containsKey(owner)) {
             ownerMap.put(owner, new ArrayList<>());
         }
         if (!owner.isNull() && !sub.isNull()) {
             totalElements++;
 
-            // tilføj dem til nbt lookup
+            // add them to the lookup
             nbtTypeLookup.computeIfAbsent(sub.getType(), (base) -> new ArrayList<>());
             nbtTypeLookup.get(sub.getType()).add(sub);
 
-            // da nbt parsing kører inde fra og ud, bruger jeg distance to tail i stedet for distance to root
+            // because nbt parsing run starts from the outside, I use distance to tail instead of distance to root
             if (!distanceToTailMap.containsKey(sub)) {
                 distanceToTailMap.put(sub, 0);
                 distanceToTailMap.put(owner, 1);

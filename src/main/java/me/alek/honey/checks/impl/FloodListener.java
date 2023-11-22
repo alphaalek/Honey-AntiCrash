@@ -20,6 +20,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.services.ViolationService;
@@ -33,6 +34,7 @@ import java.util.function.Supplier;
 public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
+    private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     private static final ViolationService.CheckKey sharedIgnoringKey = new ViolationService.CheckKey();
     private static final ConfigurationOptions.VlSetting sharedIgnoringSetting = new ConfigurationOptions.VlSetting();
@@ -47,6 +49,16 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+
+        // return if the player is removing content from his inventory by using the clear all slots button in creative menu
+        if (packetContainer.getType() == PacketType.Play.Client.SET_CREATIVE_SLOT) {
+            int slot = ((WrappedPlayInSetCreativeSlot)packetContainer.getPacket()).getSlot();
+            int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.getUniqueId(), (d) -> slot);
+
+            lastSetCreativeSlot.put(player.getUniqueId(), slot);
+            if (prevSlot + 1 == slot) return false;
+        }
+
         return true;
     }
 
@@ -75,6 +87,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public void cleanup(Player player) {
         packetDecoderMap.remove(player.getUniqueId());
+        lastSetCreativeSlot.remove(player.getUniqueId());
     }
 
     @Override

@@ -136,7 +136,6 @@ public enum PacketType implements PacketTypeEnum {
     public static PacketTypeEnum getPacketType(Class<?> clazz) {
         if (!PACKET_DETAILS.containsKey(clazz)) {
             return UNKNOWN;
-            // throw new RuntimeException("Ingen packet details for " + clazz);
         }
         return PACKET_DETAILS.get(clazz).packetType;
     }

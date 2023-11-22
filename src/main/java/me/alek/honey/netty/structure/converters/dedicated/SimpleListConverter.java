@@ -44,41 +44,41 @@ public class SimpleListConverter<V, T> extends AbstractCollectionConverter<V, T>
     }
 
     public void clear() {
-        checkCollections();
+        if (checkCollections()) return;
 
         delegatedList.clear();
         declaringList.clear();
     }
 
     public boolean isEmpty() {
-        checkCollections();
+        if (checkCollections()) return true;
 
         return delegatedList.isEmpty();
     }
 
     public T removeConverted(int index) {
-        checkCollections();
+        if (checkCollections()) return null;
 
         delegatedList.remove(index);
         return converter.convertDelegate(declaringList.remove(index));
     }
 
     public boolean removeConverted(T converted) {
-        checkCollections();
+        if (checkCollections()) return false;
 
         delegatedList.remove(converted);
         return declaringList.remove(converter.convertDeclaring(converted));
     }
 
     public T setConverted(int index, T value) {
-        checkCollections();
+        if (checkCollections()) return null;
 
         delegatedList.set(index, value);
         return converter.convertDelegate(declaringList.set(index, converter.convertDeclaring(value)));
     }
 
     public T getConverted(int index) {
-        checkCollections();
+        if (checkCollections()) return null;
 
         return delegatedList.get(index);
     }
@@ -104,7 +104,7 @@ public class SimpleListConverter<V, T> extends AbstractCollectionConverter<V, T>
 
     @Override
     public List<V> convertDeclaring(ListConverter<V, T> object) {
-        checkCollections();
+        if (checkCollections()) return List.of();
 
         return declaringList;
     }

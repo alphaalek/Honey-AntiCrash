@@ -160,8 +160,10 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                Bukkit.broadcastMessage("Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
-
+                if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {
+                    Bukkit.getLogger().info("DEBUG: Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
+                    return ResponseBuilder.inst().flag().build();
+                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -173,7 +175,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return "Negative window id";
+            return "Negative window click values";
         }
 
         @Override

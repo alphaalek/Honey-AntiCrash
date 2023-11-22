@@ -141,7 +141,7 @@ public class PacketWrapperInvokerFactory {
 
     private static MethodInvoker<Object> createWrapperInvoker(Class<?> nmsClass, Map<PacketTypeEnum, MethodInvoker<Object>> map) {
         final PacketTypeEnum packetType = PacketType.getPacketType(nmsClass);
-        if (packetType == PacketType.UNKNOWN) return null;
+        if (packetType == PacketType.UNKNOWN || map == null) return null;
 
         return map.get(packetType);
     }

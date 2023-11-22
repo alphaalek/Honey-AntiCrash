@@ -101,7 +101,7 @@ packet-logger:
     - "PacketPlayInKeepAlive"
 
   # Should the packet logger be detailed, which means it shows all the fields of each packet.
-  detailed: false
+  detailed: true
 
 ############################################################
 # +------------------------------------------------------+ #
@@ -686,7 +686,7 @@ packet-flood:
     # set creative slot
     set-creative-slot:
       interval: 600
-      max-per-interval: 180
+      max-per-interval: 100
 
     # spectate
     spectate:

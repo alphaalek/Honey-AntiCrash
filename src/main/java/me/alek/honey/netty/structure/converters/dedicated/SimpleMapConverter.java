@@ -47,9 +47,9 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         return new SimpleMapConverter<K, V, T>(converter, false).apply(mapping);
     }
 
-    public void checkMap() {
+    public boolean checkMap() {
         if (declaringMap == null) {
-            throw new RuntimeException("Ingen delegated map for wrapper map");
+            return true;
         }
         int delegatedSize = delegatedMap.size();
         int declaringSize = declaringMap.size();
@@ -61,6 +61,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
                 delegatedMap.put(declaringKey, converter.convertDelegate(declaringMap.get(declaringKey)));
             }
         }
+        return false;
     }
 
     public Set<K> keySet() {
@@ -70,7 +71,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     }
 
     public void clear() {
-        checkMap();
+        if (checkMap()) return;
 
         declaringMap.clear();
         delegatedMap.clear();
@@ -83,14 +84,14 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     }
 
     public T removeConverted(K key) {
-        checkMap();
+        if (checkMap()) return null;
 
         delegatedMap.remove(key);
         return converter.convertDelegate(declaringMap.remove(key));
     }
 
     public T putConverted(K key, T value) {
-        checkMap();
+        if (checkMap()) return null;
 
         delegatedMap.put(key, value);
         declaringMap.put(key, converter.convertDeclaring(value));
@@ -98,7 +99,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     }
 
     public void putAllConverted(Map<? extends K, ? extends V> otherMap) {
-        checkMap();
+        if (checkMap()) return;
 
         for (Map.Entry<? extends K, ? extends V> entry : otherMap.entrySet()) {
             delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
@@ -107,7 +108,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     }
 
     public void putAllOther(Map<? extends K, ? extends T> otherMap) {
-        checkMap();
+        if (checkMap()) return;
 
         for (Map.Entry<? extends K, ? extends T> entry : otherMap.entrySet()) {
             declaringMap.put(entry.getKey(), converter.convertDeclaring(entry.getValue()));

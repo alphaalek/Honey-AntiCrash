@@ -1,5 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
+import com.google.common.collect.Iterators;
+
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -22,9 +24,9 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
         return declaringCollection == null || delegatedCollection == null;
     }
 
-    protected void checkCollections() {
+    protected boolean checkCollections() {
         if (declaringCollection == null) {
-            return;
+            return true;
         }
         int delegatedSize = delegatedCollection.size();
         int declaringSize = declaringCollection.size();
@@ -36,18 +38,19 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
                 delegatedCollection.add(converter.convertDelegate(declaring));
             }
         }
+        return false;
     }
 
     @Override
     public int size() {
-        checkCollections();
+        if (checkCollections()) return 0;
 
         return declaringCollection.size();
     }
 
     @Override
     public void clear() {
-        checkCollections();
+        if (checkCollections()) return;
 
         delegatedCollection.clear();
         declaringCollection.clear();
@@ -55,14 +58,14 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     @Override
     public boolean isEmpty() {
-        checkCollections();
+        if (checkCollections()) return true;
 
         return declaringCollection.isEmpty();
     }
 
     @Override
     public boolean remove(K o) {
-        checkCollections();
+        if (checkCollections()) return false;
 
         declaringCollection.remove(o);
         return delegatedCollection.remove(converter.convertDelegate(o));
@@ -75,7 +78,7 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     @Override
     public boolean contains(K o) {
-        checkCollections();
+        if (checkCollections()) return false;
 
         return declaringCollection.contains(o);
     }
@@ -87,7 +90,7 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     @Override
     public boolean add(K value) {
-        checkCollections();
+        if (checkCollections()) return false;
 
         declaringCollection.add(value);
         return delegatedCollection.add(converter.convertDelegate(value));
@@ -100,6 +103,8 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     @Override
     public Iterator<V> iterator() {
+        if (checkCollections()) return Iterators.emptyIterator();
+
         return delegatedCollection.iterator();
     }
 }
