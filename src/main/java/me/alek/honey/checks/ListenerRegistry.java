@@ -3,7 +3,9 @@ package me.alek.honey.checks;
 import me.alek.honey.checks.impl.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public enum ListenerRegistry {
@@ -38,6 +40,9 @@ public enum ListenerRegistry {
             }
             checks = checkList;
         }
+
+        Map<String, String> map = new HashMap<>();
+        //map.get()
         return checks;
     }
 

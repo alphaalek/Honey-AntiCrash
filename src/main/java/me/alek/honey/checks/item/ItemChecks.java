@@ -11,12 +11,13 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.utility.NumberConversions;
+import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
 
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -526,10 +527,10 @@ public class ItemChecks {
                 if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
                     return true;
                 }
-                String value = texture.getString("Value");
+                byte[] value = texture.getString("Value").getBytes(StandardCharsets.UTF_8);
                 String base64;
                 try {
-                    base64 = new String(Base64.getDecoder().decode(value));
+                    base64 = new String(Base64.decodeBase64(value));
                 } catch (IllegalArgumentException ex) {
                     return true;
                 }
