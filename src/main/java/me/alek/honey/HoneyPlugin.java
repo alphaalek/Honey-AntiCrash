@@ -26,10 +26,10 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.impl.CheckHandleTracker;
 import me.alek.honey.tracker.impl.PlayerNettyPacketHandleTracker;
-import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
@@ -64,6 +64,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private PacketLibrary packetLibrary;
     private int recentTPS = 20;
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
+    private Thread serverThread;
 
     @Override
     public synchronized void onEnable() {
@@ -85,6 +86,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         isRunning = true;
         isLoaded = true;
         INSTANCE = this;
+        serverThread = Thread.currentThread();
 
         // setup configuration and check if it is misconfigured
         configuration = new DedicatedConfiguration();
@@ -289,6 +291,10 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     @Override
     public boolean isLoaded() {
         return isLoaded;
+    }
+
+    public Thread getServerThread() {
+        return serverThread;
     }
 
     public int getRecentTPS() {

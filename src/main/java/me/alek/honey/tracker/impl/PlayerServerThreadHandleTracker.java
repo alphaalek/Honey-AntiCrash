@@ -5,6 +5,8 @@ import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.tracker.AbstractOldAndCurrentHandleTracker;
+import me.alek.honey.tracker.task.PacketTaskHandler;
+import me.alek.honey.utility.ThreadSeperatedQueue;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -17,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandleTracker {
 
-    private final ConcurrentLinkedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
+    private final ThreadSeperatedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
     private boolean workingProperly;
     private boolean initiallyInjected;
 
@@ -29,7 +31,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
             executorService.schedule(() -> {
-                if (!initiallyInjected || (!workingProperly && Bukkit.getOnlinePlayers().size() > 0)) tryInject();
+                if (!initiallyInjected || (!workingProperly && !Bukkit.getOnlinePlayers().isEmpty())) tryInject();
 
                 initiallyInjected = true;
                 workingProperly = false;
@@ -57,11 +59,13 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
-        private final List<Object> delegatedIgnoreList = new ArrayList<>();
         private final AtomicReference<UUID> recentPacketAuthor = new AtomicReference<>();
+        private final ThreadSeperatedQueue<Object> seperatedQueue = new ThreadSeperatedQueue<>();
         private long recentPollStart = -1;
         private boolean startup;
         private boolean initiallyTickRound;
+
+        private final Object EMPTY_VALUE = new Object();
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
 
@@ -73,6 +77,10 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
         @Override
         public Object poll() {
+            Object otherTask;
+            if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE)
+                return otherTask;
+
             synchronized (packetSendQueue) {
                 if (!startup) {
                     initiallyTickRound = true;
@@ -82,11 +90,6 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
                 // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
                 if (!initiallyTickRound) {
-
-                    // fixing desync size when tick loop is overloaded
-                    while (packetSendQueue.size() > size()) {
-                        packetSendQueue.poll();
-                    }
 
                     // check if this packet is not the first one handled in this tick
                     if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
@@ -98,35 +101,41 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                         recentPacketAuthor.set(null);
 
                         if (player != null && player.isOnline()) {
+                            Bukkit.getLogger().info(player.getName() + ": " + deltaTime);
                             registerTime(player, deltaTime);
                         }
                     }
                     recentPollStart = System.nanoTime();
                 }
-                // set the author of the current packet
-                recentPacketAuthor.set(packetSendQueue.poll());
+                Thread thread = seperatedQueue.getAnyQueuedThread();
 
-                Object value = super.poll();
-                // all packets in the queue has been handled, and no packets for this tick remains to be checked, or it's just
-                // an async to sync operation which isn't a netty packet handle task
-                if (size() == 0 || delegatedIgnoreList.contains(value)) {
+                recentPacketAuthor.set(packetSendQueue.poll(thread));
+                Object task = seperatedQueue.poll(thread);
+
+                if (task == null) {
+                    // all packets in the queue has been handled, and no packets for this tick remains to be checked
                     recentPollStart = -1;
-                    delegatedIgnoreList.remove(value);
 
-                    if (size() == 0 && initiallyTickRound) {
+                    if (initiallyTickRound) {
                         packetSendQueue.clear();
                         initiallyTickRound = false;
                     }
                 }
-                return value;
+                //Bukkit.broadcastMessage("Sum: " + seperatedQueue.getSize());
+                return task == null ? null : recentPacketAuthor.get() == null ? task : PacketTaskHandler.wrapTask(task, recentPacketAuthor.get());
             }
         }
 
         @Override
         public boolean add(Object value) {
-            if (!Thread.currentThread().getName().startsWith("Netty")) delegatedIgnoreList.add(value);
+            if (!Thread.currentThread().getName().startsWith("Netty"))
+                return super.add(value);
 
-            return super.add(value);
+            // add it two times if it's empty, so we always have one extra element
+            if (super.isEmpty()) super.add(EMPTY_VALUE);
+
+            super.add(EMPTY_VALUE);
+            return seperatedQueue.add(value);
         }
     }
 

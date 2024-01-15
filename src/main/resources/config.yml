@@ -241,10 +241,10 @@ netty:
 
   i:
     enabled: true
-    until: 350
+    until: 400
     threshold: 125
-    decay: 750
-    decay-amount: 35
+    decay: 700
+    decay-amount: 40
     vls-amount: 1
 
   j:

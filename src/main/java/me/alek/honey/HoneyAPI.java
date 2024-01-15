@@ -52,6 +52,8 @@ public interface HoneyAPI {
 
     boolean isLoaded();
 
+    Thread getServerThread();
+
     int getRecentTPS();
 
     int getRecentPing(Player player);

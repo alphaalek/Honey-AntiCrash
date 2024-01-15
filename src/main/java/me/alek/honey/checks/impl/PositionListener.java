@@ -15,7 +15,6 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
-import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
@@ -23,7 +22,6 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,7 +31,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
@@ -47,14 +44,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             @Override
             public void onPacketSend(Player player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
-                synchronized (lastTeleportationLocationMap) {
-                    final UUID uuid = player.getUniqueId();
+                final UUID uuid = player.getUniqueId();
 
-                    if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(15000, 3, 1));
-                    final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+                if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(15000, 3, 1));
+                final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
-                    sampleDecayableList.put(packetContainer.getPacket().getLocation());
-                }
+                sampleDecayableList.put(packetContainer.getPacket().getLocation());
             }
 
         }, ListenerPriority.HIGHEST, () -> PacketType.Play.Server.POSITION);
@@ -248,25 +243,22 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return null;
     }
 
+    private static boolean within(List<Location> list, Function<Location, Double> distanceFunction, double diff) {
+        return list.stream().anyMatch((location) -> distanceFunction.apply(location) < diff);
+    }
+
     public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, Function<Location, Double> distanceFunction, double diff) {
         final UUID uuid = player.getUniqueId();
 
-        synchronized (lastTeleportationLocationMap) {
-            if (lastTeleportationLocationMap.containsKey(uuid)) {
+        if (lastTeleportationLocationMap.containsKey(uuid)) {
+            final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
-                final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+            final List<Location> recentLocations = sampleDecayableList.getAll();
+            final List<Location> lockedLocations = sampleDecayableList.getLocked();
 
-                final List<Location> recentLocations = sampleDecayableList.getAll();
-                final List<Location> lockedLocations = sampleDecayableList.getLocked();
-
-                final Stream<Location> allLocations = Stream.concat(recentLocations.stream(), lockedLocations.stream());
-
-                // check if any of those locations is within the distance specified
-                final Optional<Location> isCloseTo = allLocations
-                    .filter((location) -> distanceFunction.apply(location) < diff).findFirst();
-
-                return isCloseTo.isPresent();
-            }
+            // check if any of those locations is within the distance specified
+            return within(recentLocations, distanceFunction, diff)
+                    || within(lockedLocations, distanceFunction, diff);
         }
         return false;
     }

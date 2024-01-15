@@ -4,16 +4,18 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.storage.SQLManagerWrapper;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayerJoinListener implements Listener {
 
@@ -44,6 +46,16 @@ public class PlayerJoinListener implements Listener {
                 ex.printStackTrace();
             }
         }
+    }
+
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        Bukkit.broadcastMessage("Starting");
+        long i = 0;
+        for (;;) {
+            if (i++ > 10000000000000L) break;
+        }
+        Bukkit.broadcastMessage("Done");
     }
 
     @EventHandler

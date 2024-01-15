@@ -3,14 +3,17 @@ package me.alek.honey.netty.injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.utility.ThreadSeperatedQueue;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,7 +24,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
     private InboundPacketDecoder inboundPacketDecoder;
 
-    private static final ConcurrentLinkedQueue<UUID> packetSendQueue = new ConcurrentLinkedQueue<>();
+    private static final ThreadSeperatedQueue<UUID> packetSendQueue = new ThreadSeperatedQueue<>();
+    private static final Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> lastPacketMap = new HashMap<>();
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
@@ -42,8 +46,12 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         return player;
     }
 
-    public static ConcurrentLinkedQueue<UUID> getPacketSendQueue() {
+    public static ThreadSeperatedQueue<UUID> getPacketSendQueue() {
         return packetSendQueue;
+    }
+
+    public static Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> getLastPacketMap() {
+        return lastPacketMap;
     }
 
     public void startDecodeInjectorTask(Channel channel) {
@@ -100,6 +108,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             synchronized (packetSendQueue) {
                 packetSendQueue.add(player.getUniqueId());
             }
+            lastPacketMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>()).add(packetContainer);
         }
 
         super.channelRead(ctx, packetContainer.getHandle());

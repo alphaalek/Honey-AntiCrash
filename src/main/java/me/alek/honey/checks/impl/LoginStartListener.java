@@ -60,6 +60,9 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         public ResponseContainer check(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
 
+            if (profile == null)
+                return ResponseBuilder.SUCCESS;
+
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
 
