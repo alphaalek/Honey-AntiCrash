@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -50,12 +51,24 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        Bukkit.broadcastMessage("Starting");
-        long i = 0;
-        for (;;) {
-            if (i++ > 10000000000000L) break;
-        }
-        Bukkit.broadcastMessage("Done");
+        BukkitRunnable runnable = new BukkitRunnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(35);
+                } catch (Exception ex) {
+
+                };
+            }
+        };
+        runnable.runTaskTimer(HoneyPlugin.get().getPlugin(), 0L, 2L);
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                runnable.cancel();
+            }
+        }.runTaskLater(HoneyPlugin.get().getPlugin(), 18L);
     }
 
     @EventHandler

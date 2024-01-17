@@ -37,54 +37,10 @@ public class PacketTaskHandler {
                     task.getT1().cancel(true);
 
                     if (System.currentTimeMillis() - task.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
-                        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be a lot of ticks behind after a packet being sent. Could it be a crash exploit? See the log for thread dump and more info."));
-                        Bukkit.getLogger().severe("*******************************************************************************************");
-                        Bukkit.getLogger().severe("Packet sent by " + Optional.ofNullable(Bukkit.getPlayer(task.getT1().getUUID())).map(Player::getName).orElse("Unknown") + " (" + task.getT1().getUUID() + ")");
 
-                        PacketContainer<? extends WrappedPacket<?>> packet = lastPacketMap.get(task.getT1().getUUID()).poll();
-                        if (packet != null) {
-                            Bukkit.getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
-                            Bukkit.getLogger().severe("  Fields: ");
-                            for (FieldAccessor<?> accessor : packet.getAll().getAccessors()) {
-                                Object value = accessor.get(packet.getHandle());
-                                if (value instanceof Object[]) {
-                                    value = Arrays.toString((Object[]) value);
-                                }
-                                Bukkit.getLogger().severe("   \"" + accessor.getName() + "\": " + accessor.getType().getName() + ": " + value);
-                            }
-                        } else Bukkit.getLogger().severe("  Packet data unknown.");
-
-                        Bukkit.getLogger().severe("");
-                        Bukkit.getLogger().severe("  Thread dump (Server Thread):");
-                        ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
-
-                        StackTraceElement[] elements = info.getStackTrace();
-                        String prevElement = null;
-                        int combinedTotal = 0;
-                        for (StackTraceElement element : elements) {
-                            boolean notMatch = false;
-                            if (element.toString().equals(prevElement)) combinedTotal++;
-                            else notMatch = true;
-
-                            prevElement = element.toString();
-                            if (!notMatch)
-                                Bukkit.getLogger().severe("\t" + prevElement);
-
-                            if (notMatch) {
-                                if (combinedTotal > 0) {
-                                    Bukkit.getLogger().severe("\t" + "[...] x" + combinedTotal);
-                                } else {
-                                    combinedTotal = 0;
-                                }
-                            }
-                        }
-                        if (prevElement != null)
-                            Bukkit.getLogger().severe("\t" + prevElement);
-                        Bukkit.getLogger().severe("End of thread dump");
-
-                        Bukkit.getLogger().severe("*******************************************************************************************");
-
-                        tasksInserted.poll();
+                        UUID uuid = Optional.ofNullable(task.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
+                        dumpThread(uuid);
+                        unregisterTask(uuid);
                     }
                 }
                 try {
@@ -96,13 +52,66 @@ public class PacketTaskHandler {
         }).start();
     }
 
+    public static void dumpThread(UUID uuid) {
+        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be a lot of ticks behind after a packet being sent. Could it be a crash exploit? See the log for thread dump and more info."));
+        Bukkit.getLogger().severe("*******************************************************************************************");
+        Bukkit.getLogger().severe("Packet sent by " + Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown") + " (" + uuid + ")");
+
+        PacketContainer<? extends WrappedPacket<?>> packet = lastPacketMap.get(uuid).poll();
+        if (packet != null) {
+            Bukkit.getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
+            Bukkit.getLogger().severe("  Fields: ");
+            for (FieldAccessor<?> accessor : packet.getAll().getAccessors()) {
+                Object value = accessor.get(packet.getHandle());
+                if (value instanceof Object[]) {
+                    value = Arrays.toString((Object[]) value);
+                }
+                Bukkit.getLogger().severe("   \"" + accessor.getName() + "\": " + accessor.getType().getName() + ": " + value);
+            }
+        } else Bukkit.getLogger().severe("  Packet data unknown.");
+
+        Bukkit.getLogger().severe("");
+        Bukkit.getLogger().severe("  Thread dump (Server Thread):");
+        ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
+
+        StackTraceElement[] elements = info.getStackTrace();
+        String prevElement = null;
+        int combinedTotal = 0;
+        for (StackTraceElement element : elements) {
+            boolean notMatch = false;
+            if (element.toString().equals(prevElement)) {
+                combinedTotal++;
+            }
+            else {
+                Bukkit.getLogger().severe("\t" + element);
+                notMatch = true;
+            }
+            prevElement = element.toString();
+
+            if (notMatch) {
+                if (combinedTotal > 0) {
+                    Bukkit.getLogger().severe("\t" + "[...] x" + combinedTotal);
+                }
+                combinedTotal = 0;
+            }
+        }
+        if (prevElement != null)
+            Bukkit.getLogger().severe("\t" + prevElement);
+        Bukkit.getLogger().severe("End of thread dump");
+
+        Bukkit.getLogger().severe("*******************************************************************************************");
+    }
+
     public static <V> void registerTask(PacketTaskFuture<V> task ){
         tasksInserted.add(new Tuple2<>(task, System.currentTimeMillis()));
     }
 
     public static void unregisterTask(UUID uuid) {
-        tasksInserted.poll();
-        lastPacketMap.get(uuid).poll();
+        Tuple2<PacketTaskFuture<?>, Long> task;
+        if ((task = tasksInserted.peek()) != null && task.getT1().getUUID() == uuid) {
+            tasksInserted.poll();
+            lastPacketMap.get(uuid).poll();
+        }
     }
 
     public static <V> PacketTaskFuture<V> wrapTask(Object task, UUID uuid) {
@@ -114,6 +123,4 @@ public class PacketTaskHandler {
         }
         return null;
     }
-
-
 }

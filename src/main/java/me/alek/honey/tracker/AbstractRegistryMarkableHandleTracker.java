@@ -28,7 +28,7 @@ public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingH
     public synchronized void registerTimeStop(T key) {
         Deque<Long> checkRegistryDeque = getCheckRegistryQueue(key);
 
-        if (checkRegistryDeque.size() == 0) return;
+        if (checkRegistryDeque.isEmpty()) return;
 
         long randomUnixTime = checkRegistryDeque.poll();
         long deltaHandleTime = System.nanoTime() - randomUnixTime;
@@ -50,7 +50,6 @@ public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingH
         return ((double)getCheckHandleTime(key)) / getAverage();
     }
 
-    @Override
     public double getTimeToTotalQuotient(T key) {
         return ((double)getCheckHandleTime(key)) / getTotal();
     }
@@ -63,22 +62,11 @@ public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingH
         return checkHandleTimeMap.size();
     }
 
-    @Override
-    public int getActiveTrackerSize() {
-        return getTrackerSize();
-    }
-
-    public int getOldTrackerSize() {
-        return getTrackerSize();
-    }
-
-    @Override
     public double getAverage() {
         return getTotal() / getTrackerSize();
     }
 
-    @Override
-    public Double getTotal() {
+    public double getTotal() {
         return (double) totalCheckHandleTime.get();
     }
 

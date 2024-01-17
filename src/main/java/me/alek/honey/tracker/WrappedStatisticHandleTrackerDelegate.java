@@ -7,9 +7,9 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     private final int[] statisticInSecondsIndices;
     private final Map<T, StatisticProvider> statisticProviders = new HashMap<>();
 
-    private final HandleTracker<Double, T> handleTracker;
+    private final StatedHandleTracker<Double, T> handleTracker;
 
-    public WrappedStatisticHandleTrackerDelegate(HandleTracker<Double, T> handleTracker, int... statisticInSecondsIndices) {
+    public WrappedStatisticHandleTrackerDelegate(StatedHandleTracker<Double, T> handleTracker, int... statisticInSecondsIndices) {
         this.handleTracker = handleTracker;
         this.statisticInSecondsIndices = statisticInSecondsIndices;
     }
@@ -77,11 +77,6 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     }
 
     @Override
-    public long getUpdateInterval() {
-        return handleTracker.getUpdateInterval();
-    }
-
-    @Override
     public void clear() {
         statisticProviders.clear();
     }
@@ -97,38 +92,8 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     }
 
     @Override
-    public double getTimeToAverageQuotient(T key) {
-        return handleTracker.getTimeToAverageQuotient(key);
-    }
-
-    @Override
-    public double getTimeToTotalQuotient(T key) {
-        return handleTracker.getTimeToTotalQuotient(key);
-    }
-
-    @Override
     public int getTrackerSize() {
         return handleTracker.getTrackerSize();
-    }
-
-    @Override
-    public int getActiveTrackerSize() {
-        return handleTracker.getActiveTrackerSize();
-    }
-
-    @Override
-    public int getOldTrackerSize() {
-        return handleTracker.getOldTrackerSize();
-    }
-
-    @Override
-    public double getAverage() {
-        return handleTracker.getAverage();
-    }
-
-    @Override
-    public Double getTotal() {
-        return handleTracker.getTotal();
     }
 
     @Override

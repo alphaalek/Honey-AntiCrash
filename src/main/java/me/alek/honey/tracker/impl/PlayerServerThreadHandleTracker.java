@@ -37,7 +37,6 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                 workingProperly = false;
             }, 5L, TimeUnit.SECONDS);
         } catch (Exception ex) {
-
             ex.printStackTrace();
         }
     }
@@ -68,7 +67,6 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
         private final Object EMPTY_VALUE = new Object();
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
-
             // convert all elements from the previous queue to the current one, if there are any
             while (!delegate.isEmpty()) {
                 add(delegate.poll());
@@ -101,7 +99,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                         recentPacketAuthor.set(null);
 
                         if (player != null && player.isOnline()) {
-                            Bukkit.getLogger().info(player.getName() + ": " + deltaTime);
+                            //Bukkit.getLogger().info(player.getName() + ": " + deltaTime);
                             registerTime(player, deltaTime);
                         }
                     }
@@ -121,7 +119,6 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
                         initiallyTickRound = false;
                     }
                 }
-                //Bukkit.broadcastMessage("Sum: " + seperatedQueue.getSize());
                 return task == null ? null : recentPacketAuthor.get() == null ? task : PacketTaskHandler.wrapTask(task, recentPacketAuthor.get());
             }
         }

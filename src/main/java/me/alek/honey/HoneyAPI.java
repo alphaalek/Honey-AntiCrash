@@ -8,8 +8,7 @@ import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.SQLManagerWrapper;
-import me.alek.honey.tracker.MarkableHandleTracker;
-import me.alek.honey.tracker.StatisticHandleTracker;
+import me.alek.honey.tracker.*;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,9 +35,11 @@ public interface HoneyAPI {
 
     StatisticHandleTracker<Double, Player> getNettyPacketHandleTracker();
 
-    StatisticHandleTracker<Double, Player> getServerThreadHandleTracker();
+    WideTempQueuedHandleTracker getServerThreadHandleTracker();
 
     MarkableHandleTracker<Double, String> getCheckHandleTracker();
+
+    Tickloop getTickloop();
 
     Configuration getConfiguration();
 

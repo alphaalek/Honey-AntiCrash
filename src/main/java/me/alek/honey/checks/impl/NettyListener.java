@@ -25,6 +25,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.HandleTracker;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.StatisticProvider;
 import me.alek.honey.utility.NumberConversions;
@@ -40,8 +41,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     private static final DecimalFormat formatter = new DecimalFormat("#.####");
 
-    private static final StatisticHandleTracker<Double, Player>[] trackers = (StatisticHandleTracker<Double, Player>[])
-            new StatisticHandleTracker[]{
+    private static final HandleTracker<Double, Player>[] trackers = (StatisticHandleTracker<Double, Player>[])
+            new HandleTracker[]{
                     HoneyPlugin.get().getServerThreadHandleTracker(),
                     HoneyPlugin.get().getNettyPacketHandleTracker()
             };
@@ -97,7 +98,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public void cleanup(Player player) {
         NettyH.packetDecoderMap.remove(player.getUniqueId());
-        NettyJ.lastFlagMap.remove(player.getUniqueId());
     }
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
@@ -231,7 +231,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 container.getStorage().putDouble(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
-                container.getDevelopmentData(this).addPoint("Decode Time", formatter.format(decodeTime) + " ms");
+                container.getDevelopmentData(this).addPoint("Decode Time", /* formatter.format(decodeTime) */ " ms");
                 return ResponseBuilder.inst().flag(decodeTime).build();
             }
             return ResponseBuilder.SUCCESS;
@@ -287,44 +287,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final Map<UUID, Double> lastFlagMap = new ConcurrentHashMap<>();
-
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && player != null) {
+            if (getSetting().isEnabled()) {
 
-                // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
-                // sure it's a more correct average being evaluated and compared in this check
-                if (trackers[0].getActiveTrackerSize() > 5) {
-
-                    final ResponseBuilder builder = ResponseBuilder.inst();
-                    int index = 0;
-                    for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
-
-                        // ignore if the player has recently joined or the occupied space is lower than 5% of the total interval time
-                        if (tracker.getTotal() / (((float)tracker.getUpdateInterval()) / 20 * 1000) < 0.05
-                            || System.currentTimeMillis() - PlayerJoinListener.getInstantJoined(player) < 5000) {
-                            continue;
-                        }
-                        final double timeToAverageQuotient = tracker.getStatistic(player, 0);
-
-                        if (timeToAverageQuotient > getSetting().max) {
-                            if (lastFlagMap.getOrDefault(player.getUniqueId(), -1d) == timeToAverageQuotient)
-                                packet.getContainer().cancel();
-                            else {
-                                builder.add(ResponseBuilder.inst().flag()
-                                        .withViolationKey(new ViolationService.CheckKey(keys[index]))
-                                        .build());
-                                lastFlagMap.put(player.getUniqueId(), timeToAverageQuotient);
-                                break;
-                            }
-                        }
-                        index++;
-                    }
-                    final ResponseContainer responseContainer = builder.build();
-                    if (!responseContainer.SUB_CONTAINERS.isEmpty())
-                        return responseContainer;
-                }
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -351,28 +317,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                // only use the quotient tracker check if there is more than 5 different records being tracked, just to make
-                // sure it's a more correct average being evaluated and compared in this check
-                if (trackers[0].getActiveTrackerSize() > 5) {
-
-                    final ResponseBuilder builder = ResponseBuilder.inst();
-                    int index = 0;
-                    for (final StatisticHandleTracker<Double, Player> tracker : trackers) {
-
-                        // ignore if the occupied space is lower than 5% of the total interval time
-                        if (tracker.getTotal() / (((float)tracker.getUpdateInterval()) / 20 * 1000) < 0.05) {
-                            continue;
-                        }
-                        if (tracker.getStatisticProvider(player).getTimeSinceLastUpdate(0) > 500) {
-                            builder.add(
-                                    ResponseBuilder.inst()
-                                            .flag(tracker.getStatistic(player, 0))
-                                            .withViolationKey(new ViolationService.CheckKey(keys[index++]))
-                                            .build());
-                        }
-                    }
-                    return builder.build();
-                }
             }
             return ResponseBuilder.SUCCESS;
         }

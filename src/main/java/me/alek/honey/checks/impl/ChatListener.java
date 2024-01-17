@@ -136,9 +136,9 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
     private static String getNameFormat(String command) {
         if (command.startsWith("/")) {
-            return command.substring(1);
+            return command.substring(1).toLowerCase();
         }
-        return command;
+        return command.toLowerCase();
     }
 
     public static String[] getStatisfiedList(List<String> commands) {
@@ -175,7 +175,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         if (args.length == 1) {
             return commandCheck.equalsIgnoreCase(getNameFormat(commandSent));
         }
-        return getNameFormat(commandSent).startsWith(commandCheck);
+        return getNameFormat(commandSent).startsWith(commandCheck.toLowerCase());
     }
 
     public static class CommandsA implements ViolationCheck, PacketCheck<WrappedPlayInChat> {

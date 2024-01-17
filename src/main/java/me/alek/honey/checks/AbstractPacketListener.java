@@ -7,10 +7,12 @@ import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.StatisticHandleTracker;
+import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
@@ -29,11 +31,17 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public static void applyQuotients(Player player, CheckContextContainer.DevelopmentData developmentData) {
-        StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
         StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
         String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
-        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
+        Double[] nettyThreadStatistics = nettyThreadHandleTracker.getStatistics(player);
+        double[] nettyThreadStatisticsData = new double[nettyThreadStatistics.length];
+        int i = 0;
+        for (double statistic : nettyThreadStatistics) {
+            nettyThreadStatisticsData[i++] = statistic;
+        }
+        String nettyThreadPoint = formatPercentages(nettyThreadStatisticsData);
 
         developmentData.setPoint(6, "STQ", serverThreadPoint);
         developmentData.setPoint(7, "NTQ", nettyThreadPoint);
@@ -42,7 +50,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         developmentData.addInvinsibleData("NTQ: " + nettyThreadPoint);
     }
 
-    private static String formatPercentages(Double[] percentages) {
+    private static String formatPercentages(double[] percentages) {
         StringBuilder message = new StringBuilder();
 
         for (double percentage : percentages) {

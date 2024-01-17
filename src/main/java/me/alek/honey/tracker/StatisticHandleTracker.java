@@ -22,5 +22,4 @@ public interface StatisticHandleTracker<I extends Number, T> extends HandleTrack
 
     void registerToStatistics(T key, I value);
 
-    long getUpdateInterval();
 }

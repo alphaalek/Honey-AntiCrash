@@ -56,16 +56,16 @@ public class StatisticProvider implements Statistic<Double> {
 
     public void checkUpdateStatistics() {
         for (StatisticWindow statisticWindow : statisticWindows.values()) {
-
-            if (statisticWindow.shouldUpdate()) {
-                statisticWindow.updateAverage();
-            }
+            checkUpdateStatistic(statisticWindow);
         }
     }
 
     public void checkUpdateStatistic(int index) {
         StatisticWindow statisticWindow = getStatisticWindow(index);
+        checkUpdateStatistic(statisticWindow);
+    }
 
+    public void checkUpdateStatistic(StatisticWindow statisticWindow) {
         if (statisticWindow.shouldUpdate()) {
             statisticWindow.updateAverage();
         }
@@ -73,7 +73,10 @@ public class StatisticProvider implements Statistic<Double> {
 
     public void forceUpdateStatistic(int index) {
         StatisticWindow statisticWindow = getStatisticWindow(index);
+        forceUpdateStatistic(statisticWindow);
+    }
 
+    public void forceUpdateStatistic(StatisticWindow statisticWindow) {
         statisticWindow.updateAverage();
     }
 

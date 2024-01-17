@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player> {
+public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player>, StatedHandleTracker<Double, Player> {
 
     private static class TrackerContext {
 
@@ -133,13 +133,6 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
         return currentTimeTrackerMap.size();
     }
 
-    @Override
-    public int getActiveTrackerSize() {
-        // filter all statistic trackers where they haven't got more than 5 registered time spans
-        return (int) currentTimeTrackerMap.keySet().stream()
-                .filter((uuid) -> getStatisticProvider(Bukkit.getPlayer(uuid)).getTotalMeanSize(0) > 5).count();
-    }
-
     public double getAverageWithout(Player player) {
         if (getTrackerSize() == 1 || getOldTrackerSize() == 1) return getAverage();
 
@@ -153,8 +146,7 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
         return Math.max(lastEvaluatedAverage, currentFlatMean.get() / getTrackerSize());
     }
 
-    @Override
-    public Double getTotal() {
+    public double getTotal() {
         return oldFlatMean.get();
     }
 

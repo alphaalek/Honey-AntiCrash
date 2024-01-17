@@ -26,8 +26,7 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
-import me.alek.honey.tracker.MarkableHandleTracker;
-import me.alek.honey.tracker.StatisticHandleTracker;
+import me.alek.honey.tracker.*;
 import me.alek.honey.tracker.impl.CheckHandleTracker;
 import me.alek.honey.tracker.impl.PlayerNettyPacketHandleTracker;
 import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
@@ -54,9 +53,10 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private CommandManager commandManager;
     private SQLManagerWrapper sqlManager;
     private Configuration configuration;
-    private StatisticHandleTracker<Double, Player> packetServerThreadHandleTimeTracker;
+    private WideTempQueuedHandleTracker packetServerThreadHandleTimeTracker;
     private StatisticHandleTracker<Double, Player> packetNettyHandleTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
+    private Tickloop tickloop;
     private boolean isLoaded;
     private boolean isRunning;
     private boolean usingOldVersion;
@@ -115,8 +115,10 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         // setup trackers
         packetNettyHandleTracker = new PlayerNettyPacketHandleTracker();
-        packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker();
+        packetServerThreadHandleTimeTracker = new WideTempQueuedHandleTracker();
         checkHandleTracker = new CheckHandleTracker();
+
+        tickloop = new Tickloop();
 
         // setup checks
         registerChecks();
@@ -260,12 +262,16 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         return packetNettyHandleTracker;
     }
 
-    public StatisticHandleTracker<Double, Player> getServerThreadHandleTracker() {
+    public WideTempQueuedHandleTracker getServerThreadHandleTracker() {
         return packetServerThreadHandleTimeTracker;
     }
 
     public MarkableHandleTracker<Double, String> getCheckHandleTracker() {
         return checkHandleTracker;
+    }
+
+    public Tickloop getTickloop() {
+        return tickloop;
     }
 
     public Configuration getConfiguration() {
@@ -288,7 +294,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         return isRunning;
     }
 
-    @Override
     public boolean isLoaded() {
         return isLoaded;
     }

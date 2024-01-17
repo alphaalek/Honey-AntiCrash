@@ -6,6 +6,8 @@ import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.StatisticHandleTracker;
+import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,9 +32,9 @@ public class TrackCommand implements CommandImpl {
 
         switch (args[0]) {
             case "players":
-                StatisticHandleTracker<Double, Player> serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+                WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
-                if (serverThreadHandleTracker.getOldTrackerSize() == 0) {
+                if (serverThreadHandleTracker.getTrackerSize() == 0) {
                     sender.sendMessage(CommandManager.PREFIX + " §cNo data to be shown yet!");
                     return;
                 }
@@ -40,10 +42,10 @@ public class TrackCommand implements CommandImpl {
 
                 for (Player player : serverThreadHandleTracker.getTrackersOrdered()) {
 
-                    double fiveSeconds = serverThreadHandleTracker.getStatistic(player, 0);
-                    double fifteenSeconds = serverThreadHandleTracker.getStatistic(player, 1);
-                    double thirtySeconds = serverThreadHandleTracker.getStatistic(player, 2);
-                    double sixtySeconds = serverThreadHandleTracker.getStatistic(player, 3);
+                    double fiveSeconds = serverThreadHandleTracker.getTimeToAverageQuotient(player, Timespan.FIVE_SECOND);
+                    double fifteenSeconds = serverThreadHandleTracker.getTimeToAverageQuotient(player, Timespan.TEN_SECOND);
+                    double thirtySeconds = serverThreadHandleTracker.getTimeToAverageQuotient(player, Timespan.FIFTEEN_SECOND);
+                    double sixtySeconds = serverThreadHandleTracker.getTimeToAverageQuotient(player, Timespan.HALF_MINUTE);
 
                     sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
                 }
