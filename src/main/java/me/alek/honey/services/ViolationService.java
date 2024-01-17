@@ -1,6 +1,7 @@
 package me.alek.honey.services;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -9,6 +10,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,6 +20,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
@@ -129,13 +132,20 @@ public class ViolationService {
             }
             punishing.add(player.getUniqueId());
 
+            Channel channel = NMSUtils.getChannel(player);
+            if (channel != null) {
+                channel.eventLoop().execute(() -> {
+                    BungeeMessenger.sendPluginMessage(player, "kickPlayer", player.getName(), "Disconnected");
+                    Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.kickPlayer("Disconnected"));
+
+                    if (channel.isActive()) {
+                        channel.close();
+                    }
+                });
+            }
             HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
             HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
 
-            Channel channel = NMSUtils.getChannel(player);
-            if (channel != null) {
-                channel.eventLoop().execute(channel::close);
-            }
         } finally {
             punishLock.unlock();
         }

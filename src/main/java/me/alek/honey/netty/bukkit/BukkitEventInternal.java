@@ -23,7 +23,7 @@ public class BukkitEventInternal implements Listener {
         PacketLibrary library = PacketLibrary.get();
         Channel channel = NMSUtils.getChannel(player);
 
-        if (channel == null || channel.pipeline().toMap().size() == 0) {
+        if (channel == null || channel.pipeline().toMap().isEmpty()) {
             player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
             return;
         }

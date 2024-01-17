@@ -22,6 +22,7 @@ import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.MethodInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.annotation.ElementType;
@@ -69,15 +70,19 @@ public class PacketWrapperInvokerFactory {
                 METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
             }
             PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
+                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
                 return getCachedInvoker(packetType.getNmsClass().getSimpleName());
             });
             HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.HANDSHAKE, PROTOCOL_VERSION), (packetType) -> {
+                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
                 return getCachedInvoker(packetType.getNmsClass().getSimpleName());
             });
             LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.LOGIN, PROTOCOL_VERSION), (packetType) -> {
+                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
                 return getCachedInvoker(packetType.getNmsClass().getSimpleName());
             });
             STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.STATUS, PROTOCOL_VERSION), (packetType) -> {
+                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
                 return getCachedInvoker(packetType.getNmsClass().getSimpleName());
             });
             future.done();

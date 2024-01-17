@@ -104,7 +104,7 @@ public class SimpleListConverter<V, T> extends AbstractCollectionConverter<V, T>
 
     @Override
     public List<V> convertDeclaring(ListConverter<V, T> object) {
-        if (checkCollections()) return List.of();
+        if (checkCollections()) return new ArrayList<>();
 
         return declaringList;
     }

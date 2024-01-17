@@ -110,7 +110,9 @@ public class PacketTaskHandler {
         Tuple2<PacketTaskFuture<?>, Long> task;
         if ((task = tasksInserted.peek()) != null && task.getT1().getUUID() == uuid) {
             tasksInserted.poll();
-            lastPacketMap.get(uuid).poll();
+
+            if (lastPacketMap.containsKey(uuid))
+                lastPacketMap.get(uuid).poll();
         }
     }
 

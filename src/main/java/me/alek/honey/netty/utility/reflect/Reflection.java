@@ -222,6 +222,9 @@ public class Reflection {
             }
             return new FieldAccessor<>(field);
         }
+        if (target.getSuperclass() != null) {
+            return getNullableField(target.getSuperclass(), name, type);
+        }
         return null;
     }
 
@@ -235,6 +238,9 @@ public class Reflection {
                 }
             }
         }
+        if (target.getSuperclass() != null) {
+            return getNullableField(target.getSuperclass(), index, type);
+        }
         return null;
     }
 
@@ -244,6 +250,9 @@ public class Reflection {
                 continue;
             }
             return new FieldAccessor<>(field);
+        }
+        if (target.getSuperclass() != null) {
+            return getNullableFieldAssignableFrom(target.getSuperclass(), name, type);
         }
         return null;
     }
@@ -258,6 +267,9 @@ public class Reflection {
                 }
             }
         }
+        if (target.getSuperclass() != null) {
+            return getNullableFieldAssignableFrom(target.getSuperclass(), index, type);
+        }
         return null;
     }
 
@@ -271,6 +283,9 @@ public class Reflection {
 
             if (accessor != null) return accessor;
         }
+        if (target.getSuperclass() != null) {
+            return getField(target.getSuperclass(), name, types);
+        }
         throw new RuntimeException("Reflection fejl (field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
     }
 
@@ -279,6 +294,9 @@ public class Reflection {
             FieldAccessor<T> accessor = getNullableField(target, index, type);
 
             if (accessor != null) return accessor;
+        }
+        if (target.getSuperclass() != null) {
+            return getField(target.getSuperclass(), index, types);
         }
         throw new RuntimeException("Reflection fejl (field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
     }
@@ -289,6 +307,9 @@ public class Reflection {
 
             if (accessor != null) return accessor;
         }
+        if (target.getSuperclass() != null) {
+            return getFieldAssignableFrom(target.getSuperclass(), name, types);
+        }
         throw new RuntimeException("Reflection fejl (assignable type field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
     }
 
@@ -297,6 +318,9 @@ public class Reflection {
             FieldAccessor<T> accessor = getNullableFieldAssignableFrom(target, index, type);
 
             if (accessor != null) return accessor;
+        }
+        if (target.getSuperclass() != null) {
+            return getFieldAssignableFrom(target.getSuperclass(), index, types);
         }
         throw new RuntimeException("Reflection fejl (assignable type field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
     }
@@ -312,6 +336,9 @@ public class Reflection {
                     return new FieldAccessor<>(field);
                 }
             }
+        }
+        if (target.getSuperclass() != null) {
+            return getParameterizedField(target.getSuperclass(), bound, generic);
         }
         throw new RuntimeException("Reflection fejl (parameterized field):" + target.getName() + ", " + bound + ", " + Arrays.toString(generic));
     }

@@ -47,7 +47,7 @@ public class TrackCommand implements CommandImpl {
                     double thirtySeconds = serverThreadHandleTracker.getTimeToAverageQuotient(player, Timespan.FIFTEEN_SECOND);
                     double sixtySeconds = serverThreadHandleTracker.getTimeToAverageQuotient(player, Timespan.HALF_MINUTE);
 
-                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
+                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(15s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(30s)");
                 }
                 sender.sendMessage("");
                 sender.sendMessage(" §8What is this showing?");

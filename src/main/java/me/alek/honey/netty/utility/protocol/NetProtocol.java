@@ -19,7 +19,7 @@ public enum NetProtocol {
     v1_17(755), v1_17_1(756),
     v1_18(757), v1_18_1(757), v1_18_2(758),
     v1_19(759), v1_19_1(760), v1_19_2(760), v1_19_3(761), v1_19_4(762),
-    v1_20(763), v1_20_1(763), v1_20_2(764),
+    v1_20(763), v1_20_1(763), v1_20_2(764), v_1_20_3(765), v1_20_4(765),
     UNKNOWN(-1);
 
     private static NetProtocol PROTOCOL_CACHE;
@@ -74,19 +74,19 @@ public enum NetProtocol {
     }
 
     public boolean isOlderThan(NetProtocol target) {
-        return ordinal() < target.ordinal();
+        return getProtocolVersion() < target.getProtocolVersion();
     }
 
     public boolean isOlderThanOrEqual(NetProtocol target) {
-        return ordinal() <= target.ordinal();
+        return getProtocolVersion() <= target.getProtocolVersion();
     }
 
     public boolean isNewerThan(NetProtocol target) {
-        return ordinal() > target.ordinal();
+        return getProtocolVersion() > target.getProtocolVersion();
     }
 
     public boolean isNewerThanOrEqual(NetProtocol target) {
-        return ordinal() >= target.ordinal();
+        return getProtocolVersion() >= target.getProtocolVersion();
     }
 
     public boolean isBetween(NetProtocol target1, NetProtocol target2) {
@@ -101,14 +101,22 @@ public enum NetProtocol {
         if (ordinal() == 0) {
             return this;
         }
-        return NetProtocol.values()[ordinal() - 1];
+        NetProtocol protocol = NetProtocol.values()[ordinal() - 1];
+        if (protocol.getProtocolVersion() == getProtocolVersion())
+            return protocol.getBefore();
+
+        return protocol;
     }
 
     public NetProtocol getAfter() {
         if (ordinal() == REVERSED_PROTOCOLS.get(1).ordinal()) {
             return this;
         }
-        return NetProtocol.values()[ordinal() + 1];
+        NetProtocol protocol = NetProtocol.values()[ordinal() + 1];
+        if (protocol.getProtocolVersion() == getProtocolVersion())
+            return protocol.getAfter();
+
+        return protocol;
     }
 
     public static boolean protocolMatch(RangedPacketTypeEnum rangedPacketType, NetProtocol protocol) {

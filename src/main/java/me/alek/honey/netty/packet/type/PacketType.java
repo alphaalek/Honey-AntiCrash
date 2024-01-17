@@ -96,10 +96,8 @@ public enum PacketType implements PacketTypeEnum {
         final ArrayList<PacketTypeEnum> packetTypes = new ArrayList<>();
         for (PacketTypeEnum packetType : PACKET_STATE_TYPE.get(state)) {
 
-            if (packetBound != null) {
-                if (packetType.getBound() != packetBound) {
-                    continue;
-                }
+            if (packetType.getBound() != packetBound) {
+                continue;
             }
             if (packetType instanceof RangedPacketTypeEnum) {
                 RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) packetType;
@@ -247,8 +245,9 @@ public enum PacketType implements PacketTypeEnum {
 
         static {
             if (PROTOCOL_VERSION.isNewerThanOrEqual(NetProtocol.v1_13)) {
-                CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketLoginInCustomPayload");
                 SERVERBOUND_CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketLoginOutCustomPayload");
+                if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_4))
+                    CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketLoginInCustomPayload");
             }
         }
 
@@ -256,7 +255,7 @@ public enum PacketType implements PacketTypeEnum {
             DISCONNECT(DISCONNECT_CLASS, Login.DISCONNECT),
             ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, Login.ENCRYPTION_REQUEST),
             LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, Login.LOGIN_SUCCESS),
-            CUSTOM_PAYLOAD(SERVERBOUND_CUSTOM_PAYLOAD_CLASS, Login.SERVERBOUND_CUSTOM_PAYLOAD, NetProtocolRange.since(NetProtocol.v1_13)),
+            CUSTOM_PAYLOAD(SERVERBOUND_CUSTOM_PAYLOAD_CLASS, Login.SERVERBOUND_CUSTOM_PAYLOAD, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_4)),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, Login.SET_COMPRESSION);
 
             private final Class<?> nmsPacket;
@@ -394,13 +393,9 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> CHAT_CLASS = Reflection.getClass("{nms}.PacketPlayInChat");
         private static final Class<?> CLIENT_COMMAND_CLASS = Reflection.getClass("{nms}.PacketPlayInClientCommand");
         private static final Class<?> CLOSE_WINDOW_CLASS = Reflection.getClass("{nms}.PacketPlayInCloseWindow");
-        private static final Class<?> CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketPlayInCustomPayload");
         private static final Class<?> ENCHANT_ITEM_CLASS = Reflection.getClass("{nms}.PacketPlayInEnchantItem");
         private static final Class<?> ENTITY_ACTION_CLASS = Reflection.getClass("{nms}.PacketPlayInEntityAction");
         private static final Class<?> HELD_ITEM_SLOT_CLASS = Reflection.getClass("{nms}.PacketPlayInHeldItemSlot");
-        private static final Class<?> KEEP_ALIVE_CLASS = Reflection.getClass("{nms}.PacketPlayInKeepAlive");
-        private static final Class<?> RESOURCE_PACK_STATUS_CLASS = Reflection.getClass("{nms}.PacketPlayInResourcePackStatus");
-        private static final Class<?> SETTINGS_CLASS = Reflection.getClass("{nms}.PacketPlayInSettings");
         private static final Class<?> SPECTATE_CLASS = Reflection.getClass("{nms}.PacketPlayInSpectate");
         private static final Class<?> STEER_VEHICLE_CLASS = Reflection.getClass("{nms}.PacketPlayInSteerVehicle");
         private static final Class<?> SET_CREATIVE_SLOT_CLASS = Reflection.getClass("{nms}.PacketPlayInSetCreativeSlot");
@@ -413,6 +408,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> B_EDIT_CLASS;
         private static Class<?> BEACON_CLASS;
         private static Class<?> BOAT_MOVE_CLASS;
+        private static Class<?> CUSTOM_PAYLOAD_CLASS;
         private static Class<?> DIFFICULTY_CHANGE_CLASS;
         private static Class<?> DIFFICULTY_LOCK_CLASS;
         private static Class<?> ENTITY_NBT_QUERY_CLASS;
@@ -420,15 +416,18 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> GROUND_CLASS;
         private static Class<?> ITEM_NAME_CLASS;
         private static Class<?> JIGSAW_GENERATE_CLASS;
+        private static Class<?> KEEP_ALIVE_CLASS;
         private static Class<?> LOOK_CLASS;
         private static Class<?> POSITION_CLASS;
         private static Class<?> POSITION_LOOK_CLASS;
         private static Class<?> PICK_ITEM_CLASS;
         private static Class<?> RECIPE_DISPLAYED_CLASS;
         private static Class<?> RECIPE_SETTINGS_CLASS;
+        private static Class<?> RESOURCE_PACK_STATUS_CLASS;
         private static Class<?> SET_COMMAND_BLOCK_CLASS;
         private static Class<?> SET_COMMAND_MINECART_CLASS;
         private static Class<?> SET_JIGSAW_CLASS;
+        private static Class<?> SETTINGS_CLASS;
         private static Class<?> STRUCT_CLASS;
         private static Class<?> TELEPORT_ACCEPT_CLASS;
         private static Class<?> TILE_NBT_QUERY_CLASAS;
@@ -486,6 +485,12 @@ public enum PacketType implements PacketTypeEnum {
                 LOOK_CLASS = Reflection.getClass("{nms}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{nms}.PacketPlayInFlying$d");
             }
+            if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_4)) {
+                CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketPlayInCustomPayload");
+                KEEP_ALIVE_CLASS = Reflection.getClass("{nms}.PacketPlayInKeepAlive");
+                RESOURCE_PACK_STATUS_CLASS = Reflection.getClass("{nms}.PacketPlayInResourcePackStatus");
+                SETTINGS_CLASS = Reflection.getClass("{nms}.PacketPlayInSettings");
+            }
         }
 
         private static final byte
@@ -517,7 +522,7 @@ public enum PacketType implements PacketTypeEnum {
             CHAT(CHAT_CLASS, Play.CHAT),
             CLIENT_COMMAND(CLIENT_COMMAND_CLASS, Play.CLIENT_COMMAND),
             CLOSE_WINDOW(CLOSE_WINDOW_CLASS, Play.CLOSE_WINDOW),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, Play.CUSTOM_PAYLOAD),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, Play.CUSTOM_PAYLOAD, NetProtocolRange.before(NetProtocol.v1_20_4)),
             DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, Play.DIFFICULTY_CHANGE, NetProtocolRange.since(NetProtocol.v1_14)),
             DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, Play.DIFFICULTY_LOCK, NetProtocolRange.since(NetProtocol.v1_14)),
             ENCHANT_ITEM(ENCHANT_ITEM_CLASS, Play.ENCHANT_ITEM),
@@ -528,19 +533,19 @@ public enum PacketType implements PacketTypeEnum {
             HELD_ITEM_SLOT(HELD_ITEM_SLOT_CLASS, Play.HELD_ITEM_SLOT),
             ITEM_NAME(ITEM_NAME_CLASS, Play.ITEM_NAME, NetProtocolRange.since(NetProtocol.v1_13)),
             JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, Play.JIGSAW_GENERATE, NetProtocolRange.since(NetProtocol.v1_16_1)),
-            KEEP_ALIVE(KEEP_ALIVE_CLASS, Play.KEEP_ALIVE),
+            KEEP_ALIVE(KEEP_ALIVE_CLASS, Play.KEEP_ALIVE, NetProtocolRange.before(NetProtocol.v1_20_4)),
             LOOK(LOOK_CLASS, Play.LOOK),
             PICK_ITEM(PICK_ITEM_CLASS, Play.PICK_ITEM, NetProtocolRange.since(NetProtocol.v1_13)),
             POSITION(POSITION_CLASS, Play.POSITION),
             POSITION_LOOK(POSITION_LOOK_CLASS, Play.POSITION_LOOK),
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, Play.RECIPE_DISPLAYED, NetProtocolRange.since(NetProtocol.v1_12)),
             RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, Play.RECIPE_SETTINGS, NetProtocolRange.since(NetProtocol.v1_16_2)),
-            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, Play.RESOURCE_PACK_STATUS),
+            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, Play.RESOURCE_PACK_STATUS, NetProtocolRange.before(NetProtocol.v1_20_4)),
             SET_COMMAND_BLOCK(SET_COMMAND_BLOCK_CLASS, Play.SET_COMMAND_BLOCK, NetProtocolRange.since(NetProtocol.v1_13)),
             SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, Play.SET_COMMAND_MINECART, NetProtocolRange.since(NetProtocol.v1_13)),
             SET_CREATIVE_SLOT(SET_CREATIVE_SLOT_CLASS, Play.SET_CREATIVE_SLOT),
             SET_JIGSAW(SET_JIGSAW_CLASS, Play.SET_JIGSAW, NetProtocolRange.since(NetProtocol.v1_14)),
-            SETTINGS(SETTINGS_CLASS, Play.SETTINGS),
+            SETTINGS(SETTINGS_CLASS, Play.SETTINGS, NetProtocolRange.before(NetProtocol.v1_20_4)),
             SPECTATE(SPECTATE_CLASS, Play.SPECTATE),
             STEER_VEHICLE(STEER_VEHICLE_CLASS, Play.STEER_VEHICLE),
             STRUCT(STRUCT_CLASS, Play.STRUCT, NetProtocolRange.since(NetProtocol.v1_13)),
@@ -607,7 +612,6 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> CAMERA_CLASS = Reflection.getClass("{nms}.PacketPlayOutCamera");
         private static final Class<?> CLOSE_WINDOW_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutCloseWindow");
         private static final Class<?> COLLECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutCollect");
-        private static final Class<?> CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutCustomPayload");
         private static final Class<?> ENTITY_CLASS = Reflection.getClass("{nms}.PacketPlayOutEntity");
         private static final Class<?> ENTITY_DESTROY_CLASS = Reflection.getClass("{nms}.PacketPlayOutEntityDestroy");
         private static final Class<?> ENTITY_EFFECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutEntityEffect");
@@ -621,12 +625,9 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> EXPLOSION_CLASS = Reflection.getClass("{nms}.PacketPlayOutExplosion");
         private static final Class<?> GAME_STATE_CHANGE_CLASS = Reflection.getClass("{nms}.PacketPlayOutGameStateChange");
         private static final Class<?> HELD_ITEM_SLOT_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutHeldItemSlot");
-        private static final Class<?> KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutKeepAlive");
-        private static final Class<?> KICK_DISCONNECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutKickDisconnect");
         private static final Class<?> LOGIN_CLASS = Reflection.getClass("{nms}.PacketPlayOutLogin");
         private static final Class<?> MAP_CLASS = Reflection.getClass("{nms}.PacketPlayOutMap");
         private static final Class<?> MULTI_BLOCK_CHANGE_CLASS = Reflection.getClass("{nms}.PacketPlayOutMultiBlockChange");
-        private static final Class<?> NAMED_ENTITY_SPAWN_CLASS = Reflection.getClass("{nms}.PacketPlayOutNamedEntitySpawn");
         private static final Class<?> NAMED_SOUND_EFFECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutNamedSoundEffect");
         private static final Class<?> OPEN_SIGN_EDITOR_CLASS = Reflection.getClass("{nms}.PacketPlayOutOpenSignEditor");
         private static final Class<?> OPEN_WINDOW_CLASS = Reflection.getClass("{nms}.PacketPlayOutOpenWindow");
@@ -635,7 +636,6 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> PLAYER_LIST_HEADER_FOOTER_CLASS = Reflection.getClass("{nms}.PacketPlayOutPlayerListHeaderFooter");
         private static final Class<?> POSITION_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutPosition");
         private static final Class<?> REMOVE_ENTITY_EFFECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutRemoveEntityEffect");
-        private static final Class<?> RESOURCE_PACK_SEND_CLASS = Reflection.getClass("{nms}.PacketPlayOutResourcePackSend");
         private static final Class<?> RESPAWN_CLASS = Reflection.getClass("{nms}.PacketPlayOutRespawn");
         private static final Class<?> SCOREBOARD_DISPLAY_OBJECTIVE_CLASS = Reflection.getClass("{nms}.PacketPlayOutScoreboardDisplayObjective");
         private static final Class<?> SCOREBOARD_OBJECTIVE_CLASS = Reflection.getClass("{nms}.PacketPlayOutScoreboardObjective");
@@ -664,13 +664,17 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> CHAT_SERVER_CLASS;
         private static Class<?> COMBAT_EVENT_CLASS;
         private static Class<?> COMMANDS_CLASS;
+        private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> ENTITY_LOOK_CLASS;
         private static Class<?> ENTITY_SOUND_CLASS;
+        private static Class<?> KEEP_ALIVE_SERVER_CLASS;
+        private static Class<?> KICK_DISCONNECT_CLASS;
         private static Class<?> LIGHT_UPDATE_CLASS;
         private static Class<?> LOOK_AT_CLASS;
         private static Class<?> MAP_CHUNK_CLASS;
         private static Class<?> MAP_CHUNK_BULK_CLASS;
         private static Class<?> MOUNT_CLASS;
+        private static Class<?> NAMED_ENTITY_SPAWN_CLASS;
         private static Class<?> NBT_QUERY_CLASS;
         private static Class<?> OPEN_BOOK_CLASS;
         private static Class<?> OPEN_WINDOW_HORSE_CLASS;
@@ -679,6 +683,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> RECIPES_CLASS;
         private static Class<?> REL_ENTITY_MOVE_LOOK_CLASS;
         private static Class<?> REL_ENTITY_MOVE_CLASS;
+        private static Class<?> RESOURCE_PACK_SEND_CLASS;
         private static Class<?> SELECT_ADVANCEMENT_TAB_CLASS;
         private static Class<?> SPAWN_ENTITY_LIVING_CLASS;
         private static Class<?> SPAWN_ENTITY_PAINTING_CLASS;
@@ -750,8 +755,9 @@ public enum PacketType implements PacketTypeEnum {
                 NBT_QUERY_CLASS = Reflection.getClass("{nms}.PacketPlayOutNBTQuery");
                 RECIPE_UPDATE_CLASS = Reflection.getClass("{nms}.PacketPlayOutRecipeUpdate");
                 STOP_SOUND_CLASS = Reflection.getClass("{nms}.PacketPlayOutStopSound");
-                TAGS_CLASS = Reflection.getClass("{nms}.PacketPlayOutTags");
                 LOOK_AT_CLASS = Reflection.getClass("{nms}.PacketPlayOutLookAt");
+                if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_4))
+                    TAGS_CLASS = Reflection.getClass("{nms}.PacketPlayOutTags");
             }
             if (PROTOCOL_VERSION.isNewerThanOrEqual(NetProtocol.v1_14)) {
                 ENTITY_SOUND_CLASS = Reflection.getClass("{nms}.PacketPlayOutEntitySound");
@@ -770,6 +776,13 @@ public enum PacketType implements PacketTypeEnum {
                 REL_ENTITY_MOVE_CLASS = Reflection.getClass( "{nms}.PacketPlayOutEntity$PacketPlayOutRelEntityMove");
                 REL_ENTITY_MOVE_LOOK_CLASS = Reflection.getClass("{nms}.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
                 WORLD_BORDER_CLASS = Reflection.getClass("{nms}.ClientboundInitializeBorderPacket");
+            }
+            if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_4)) {
+                CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutCustomPayload");
+                KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutKeepAlive");
+                RESOURCE_PACK_SEND_CLASS = Reflection.getClass("{nms}.PacketPlayOutResourcePackSend");
+                KICK_DISCONNECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutKickDisconnect");
+                NAMED_ENTITY_SPAWN_CLASS = Reflection.getClass("{nms}.PacketPlayOutNamedEntitySpawn");
             }
         }
 
@@ -828,7 +841,7 @@ public enum PacketType implements PacketTypeEnum {
             COLLECT(COLLECT_CLASS, Play.COLLECT),
             COMBAT_EVENT(COMBAT_EVENT_CLASS, Play.COMBAT_EVENT, NetProtocolRange.until(NetProtocol.v1_16_5)),
             COMMANDS(COMMANDS_CLASS, Play.COMMANDS, NetProtocolRange.since(NetProtocol.v1_13)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, Play.CUSTOM_PAYLOAD_SERVER),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, Play.CUSTOM_PAYLOAD_SERVER, NetProtocolRange.before(NetProtocol.v1_20_4)),
             ENTITY(ENTITY_CLASS, Play.ENTITY),
             ENTITY_DESTROY(ENTITY_DESTROY_CLASS, Play.ENTITY_DESTROY),
             ENTITY_EFFECT(ENTITY_EFFECT_CLASS, Play.ENTITY_EFFECT),
@@ -846,8 +859,8 @@ public enum PacketType implements PacketTypeEnum {
             EXPLOSION(EXPLOSION_CLASS, Play.EXPLOSION),
             GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, Play.GAME_STATE_CHANGE),
             HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, Play.HELD_ITEM_SLOT_SERVER),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, Play.KEEP_ALIVE_SERVER),
-            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, Play.KICK_DISCONNECT),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, Play.KEEP_ALIVE_SERVER, NetProtocolRange.before(NetProtocol.v1_20_4)),
+            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, Play.KICK_DISCONNECT, NetProtocolRange.before(NetProtocol.v1_20_4)),
             LIGHT_UPDATE(LIGHT_UPDATE_CLASS, Play.LIGHT_UPDATE, NetProtocolRange.since(NetProtocol.v1_14)),
             LOGIN(LOGIN_CLASS, Play.LOGIN),
             LOOK_AT(LOOK_AT_CLASS, Play.LOOK_AT, NetProtocolRange.since(NetProtocol.v1_13)),
@@ -857,7 +870,7 @@ public enum PacketType implements PacketTypeEnum {
             MOUNT(MOUNT_CLASS, Play.MOUNT, NetProtocolRange.since(NetProtocol.v1_9)),
             MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, Play.MULTI_BLOCK_CHANGE),
             NBT_QUERY(NBT_QUERY_CLASS, Play.NBT_QUERY, NetProtocolRange.since(NetProtocol.v1_13)),
-            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, Play.NAMED_ENTITY_SPAWN_SERVER),
+            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, Play.NAMED_ENTITY_SPAWN_SERVER, NetProtocolRange.before(NetProtocol.v1_20_4)),
             NAMED_SOUND_EFFECT(NAMED_SOUND_EFFECT_CLASS, Play.NAMED_SOUND_EFFECT),
             OPEN_BOOK(OPEN_BOOK_CLASS, Play.OPEN_BOOK, NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, Play.OPEN_SIGN_EDITOR),
@@ -870,7 +883,7 @@ public enum PacketType implements PacketTypeEnum {
             RECIPE_UPDATE(RECIPE_UPDATE_CLASS, Play.RECIPE_UPDATE, NetProtocolRange.since(NetProtocol.v1_13)),
             RECIPES(RECIPES_CLASS, Play.RECIPES, NetProtocolRange.since(NetProtocol.v1_12)),
             REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, Play.REMOVE_ENTITY_EFFECT),
-            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, Play.RESOURCE_PACK_SEND),
+            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, Play.RESOURCE_PACK_SEND, NetProtocolRange.before(NetProtocol.v1_20_4)),
             RESPAWN(RESPAWN_CLASS, Play.RESPAWN),
             SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, Play.SCOREBOARD_DISPLAY_OBJECTIVE),
             SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, Play.SCOREBOARD_OBJECTIVE),
@@ -890,7 +903,7 @@ public enum PacketType implements PacketTypeEnum {
             STATISTIC(STATISTIC_CLASS, Play.STATISTIC),
             STOP_SOUND(STOP_SOUND_CLASS, Play.STOP_SOUND, NetProtocolRange.since(NetProtocol.v1_13)),
             TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, Play.TAB_COMPLETE_SERVER),
-            TAGS(TAGS_CLASS, Play.TAGS, NetProtocolRange.since(NetProtocol.v1_13)),
+            TAGS(TAGS_CLASS, Play.TAGS, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_4)),
             TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, Play.TILE_ENTITY_DATA),
             TITLE(TITLE_CLASS, Play.TITLE, NetProtocolRange.until(NetProtocol.v1_16_5)),
             TRANSACTION(TRANSACTION_SERVER_CLASS, Play.TRANSACTION_SERVER, NetProtocolRange.until(NetProtocol.v1_16_5)),

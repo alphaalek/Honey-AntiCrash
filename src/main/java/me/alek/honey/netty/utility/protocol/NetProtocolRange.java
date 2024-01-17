@@ -16,6 +16,14 @@ public class NetProtocolRange {
         return new NetProtocolRange(protocol1, protocol2);
     }
 
+    public static NetProtocolRange betweenBefore(NetProtocol protocol1, NetProtocol protocol2) {
+        return new NetProtocolRange(protocol1, protocol2.getBefore());
+    }
+
+    public static NetProtocolRange betweenAfter(NetProtocol protocol1, NetProtocol protocol2) {
+        return new NetProtocolRange(protocol1.getAfter(), protocol2);
+    }
+
     public static NetProtocolRange betweenWithout(NetProtocol protocol1, NetProtocol protocol2) {
         return new NetProtocolRange(protocol1.getAfter(), protocol2.getBefore());
     }
