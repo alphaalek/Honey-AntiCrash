@@ -46,7 +46,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             public void onPacketSend(Player player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
                 final UUID uuid = player.getUniqueId();
 
-                if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(15000, 3, 1));
+                if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(15000, 2, 1));
                 final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
                 sampleDecayableList.put(packetContainer.getPacket().getLocation());

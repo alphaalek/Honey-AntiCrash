@@ -167,7 +167,6 @@ public class ViolationService {
                     throw new RuntimeException("No packet limit handler could be created.");
 
                 final ViolationDistributor distributor;
-                Bukkit.getLogger().info(key + " Keyed annotation: " + setting.keyedAnnotation);
                 if (setting.keyedAnnotation != null)
                     distributor = new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(packetLimitHandler, setting));

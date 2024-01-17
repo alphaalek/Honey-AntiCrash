@@ -121,7 +121,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         tickloop = new Tickloop();
 
         // setup checks
-        registerChecks();
+        getServer().getScheduler().runTaskLater(this, this::registerChecks, 20L);
         ItemAnalysis.reload();
 
         // setup commands
