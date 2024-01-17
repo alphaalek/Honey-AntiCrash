@@ -53,7 +53,7 @@ public class PacketTaskHandler {
     }
 
     public static void dumpThread(UUID uuid) {
-        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be a lot of ticks behind after a packet being sent. Could it be a crash exploit? See the log for thread dump and more info."));
+        HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be a lot of ticks behind after a packet being sent. Could it be a crash exploit? See the log for thread dump and more info."));
         Bukkit.getLogger().severe("*******************************************************************************************");
         Bukkit.getLogger().severe("Packet sent by " + Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown") + " (" + uuid + ")");
 

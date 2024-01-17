@@ -7,6 +7,7 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
@@ -50,10 +51,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (skipping != null && skipping.getAndDecrement() > 0) continue;
 
+            ConfigurationOptions.VlSetting setting = getSetting(check, packet);
+
             // do the check and get the response, and register the time taken to the check handle tracker
-            HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
+            if (setting != null && setting.isEnabled())
+                HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
             final ResponseContainer responses = responseGeneratorFunction.apply(check);
-            HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName());
+            if (setting != null && setting.isEnabled())
+                HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName());
 
             final List<ResponseContainer> responsesList = new ArrayList<>(responses.SUB_CONTAINERS);
             responsesList.add(responses);
@@ -61,13 +66,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             boolean terminated = false;
             for (ResponseContainer response : responsesList) {
                 // get the setting for this check
-                ConfigurationOptions.VlSetting setting = null;
-                if (check instanceof ViolationCheck) {
-                    setting = ((ViolationCheck)check).getSetting();
-                }
-                else if (check instanceof KeyedViolationCheck) {
+                if (check instanceof KeyedViolationCheck) {
                     KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
-                    setting = keyedViolationCheck.getSetting(packet);
                     if (response.LIMITS_KEY == null) response.LIMITS_KEY = new ViolationService.CheckKey(check.getClass(), keyedViolationCheck.getKey(packet));
                 }
 
@@ -96,6 +96,17 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             }
             if (terminated) return;
         }
+    }
+
+    private ConfigurationOptions.VlSetting getSetting(HoneyCheck check, WP packet) {
+        if (check instanceof ViolationCheck) {
+           return ((ViolationCheck)check).getSetting();
+        }
+        else if (check instanceof KeyedViolationCheck) {
+            KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
+            return keyedViolationCheck.getSetting(packet);
+        }
+        return null;
     }
 
     public void check(Player player, ByteBuf byteBuf, CheckContextContainer checkContextContainer) {

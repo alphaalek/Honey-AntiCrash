@@ -32,16 +32,10 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static void applyQuotients(Player player, CheckContextContainer.DevelopmentData developmentData) {
         WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
-        StatisticHandleTracker<Double, Player> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+        WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
         String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
-        Double[] nettyThreadStatistics = nettyThreadHandleTracker.getStatistics(player);
-        double[] nettyThreadStatisticsData = new double[nettyThreadStatistics.length];
-        int i = 0;
-        for (double statistic : nettyThreadStatistics) {
-            nettyThreadStatisticsData[i++] = statistic;
-        }
-        String nettyThreadPoint = formatPercentages(nettyThreadStatisticsData);
+        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
 
         developmentData.setPoint(6, "STQ", serverThreadPoint);
         developmentData.setPoint(7, "NTQ", nettyThreadPoint);

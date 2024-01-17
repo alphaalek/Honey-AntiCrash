@@ -167,6 +167,7 @@ public class ViolationService {
                     throw new RuntimeException("No packet limit handler could be created.");
 
                 final ViolationDistributor distributor;
+                Bukkit.getLogger().info(key + " Keyed annotation: " + setting.keyedAnnotation);
                 if (setting.keyedAnnotation != null)
                     distributor = new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(packetLimitHandler, setting));
@@ -306,8 +307,6 @@ public class ViolationService {
                                          String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
                                          CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             AbstractPacketLimitHandler delegate = null;
-            // if (violationName.equals("Netty.K"))
-                // Bukkit.getLogger().info(packetLimitHandlerDelegateLookup.get(checkKey) + "");
             if (checkKey == null || !packetLimitHandlerDelegateLookup.containsKey(checkKey)) {
                 if (packetLimitHandlerDelegateLookup.size() == 0) return false;
 
@@ -354,6 +353,9 @@ public class ViolationService {
             if (loggerService.isDebug() && handle != null)
                 HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), violationName);
 
+            if (onViolation != null) onViolation.run();
+            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+
             violations.incrementAndGet();
             if (developmentData != null) {
                 AbstractPacketListener.applyQuotients(player, developmentData);
@@ -366,8 +368,6 @@ public class ViolationService {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            if (onViolation != null) onViolation.run();
-            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
             if (violations.get() < getSetting().vlsAmount) return false;
 

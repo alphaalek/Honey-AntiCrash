@@ -1,9 +1,9 @@
 package me.alek.honey.tracker;
 
+import com.google.common.util.concurrent.AtomicDouble;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 public enum Timespan {
     FIVE_SECOND(5),
@@ -15,26 +15,32 @@ public enum Timespan {
 
         private final TempQueue fixed = new TempQueue(true);
         private final TempQueue timed = new TempQueue(false);
-        private final AtomicInteger total;
+        private final AtomicDouble fixedTotal = new AtomicDouble();
+        private final AtomicDouble timedTotal = new AtomicDouble();;
         private final int timespan;
 
-        TimespanContext(Timespan timespan, Supplier<AtomicInteger> total) {
+        TimespanContext(Timespan timespan) {
             this.timespan = timespan.timespan;
-            this.total = new AtomicInteger(1000 * timespan.timespan);
 
-            fixed.prepareFixed(timespan.timespan, 100);
-            timed.prepareTimed(timespan, total);
+            fixed.prepareFixed(timespan, 10 * this.timespan, this.fixedTotal, 100);
+            timed.prepareTimed(timespan, this.timedTotal);
         }
 
-        public TempQueue getQueue(HoneyTracker tracker) {
-            if (tracker instanceof TempFixedQueuedTracker) return fixed;
-            if (tracker instanceof TempTimedQueuedTracker) return timed;
+        public boolean isFixed(HoneyTracker tracker) {
+            if (tracker instanceof TempFixedQueuedTracker) return true;
+            if (tracker instanceof TempTimedQueuedTracker) return false;
 
             throw new UnsupportedOperationException();
         }
 
-        public AtomicInteger getTotal() {
-            return total;
+        public TempQueue getQueue(HoneyTracker tracker) {
+            if (isFixed(tracker)) return fixed;
+            else return timed;
+        }
+
+        public AtomicDouble getTotal(HoneyTracker tracker) {
+            if (isFixed(tracker)) return fixedTotal;
+            else return timedTotal;
         }
 
         public int getTimespan() {
@@ -51,15 +57,15 @@ public enum Timespan {
     }
 
     private TimespanContext getContext(HoneyTracker tracker) {
-        return contextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this, () -> getTotal(tracker)));
+        return contextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this));
     }
 
     public TempQueue getQueue(HoneyTracker tracker) {
         return getContext(tracker).getQueue(tracker);
     }
 
-    public AtomicInteger getTotal(HoneyTracker tracker) {
-        return getContext(tracker).getTotal();
+    public AtomicDouble getTotal(HoneyTracker tracker) {
+        return getContext(tracker).getTotal(tracker);
     }
 
     public int getTimespan() {

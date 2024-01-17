@@ -1,5 +1,8 @@
 package me.alek.honey.tracker;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import org.bukkit.Bukkit;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -8,30 +11,30 @@ import java.util.function.Supplier;
 
 public class TempQueue {
 
-    private final Queue<Integer> FIXED = new LinkedList<>();
+    private final Queue<Double> FIXED = new LinkedList<>();
     private final Queue<TimedNode> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
     private Timespan timespan;
-    private AtomicInteger total;
-    private Supplier<AtomicInteger> totalSupplier;
+    private AtomicDouble total;
 
     public TempQueue(boolean isFixed) {
         this.isFixed = isFixed;
     }
 
-    public void prepareFixed(int amount, int defaultValue) {
+    public void prepareFixed(Timespan timespan, int amount, AtomicDouble total, double defaultValue) {
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
         }
+        total.addAndGet(1000 * timespan.getTimespan());
     }
 
-    public void prepareTimed(Timespan timespan, Supplier<AtomicInteger> total) {
+    public void prepareTimed(Timespan timespan, AtomicDouble total) {
         this.timespan = timespan;
-        this.totalSupplier = total;
+        this.total = total;
     }
 
-    public Queue<Integer> asFixedQueue() {
+    public Queue<Double> asFixedQueue() {
         if (!isFixed) throw new UnsupportedOperationException();
 
         return FIXED;
@@ -43,9 +46,7 @@ public class TempQueue {
         return TIMED;
     }
 
-
-
-    public int add(int amount) {
+    public double add(double amount) {
         if (isFixed) {
             FIXED.add(amount);
             return FIXED.remove();
@@ -61,9 +62,7 @@ public class TempQueue {
                 if (diff > ((long)timespan.getTimespan()) * 1000) {
                     sampleNodeIterator.remove();
 
-                    if (total == null) total = totalSupplier.get();
                     total.addAndGet(-node.value);
-
                     continue;
                 }
                 break;
@@ -72,11 +71,11 @@ public class TempQueue {
         return 0;
     }
 
-    public class TimedNode {
+    public static class TimedNode {
 
-        public TimedNode(int value) { this.value = value; }
+        public TimedNode(double value) { this.value = value; }
 
-        private final int value;
+        private final double value;
         private final long insertionInstant = System.currentTimeMillis();
     }
 }

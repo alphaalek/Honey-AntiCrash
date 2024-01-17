@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class WideTempQueuedHandleTracker implements TimedHandleTracker<Integer, Player> {
+public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, Player> {
 
     private final Map<UUID, TempTimedQueuedTracker> trackerMap = new HashMap<>();
     private final TempTimedQueuedTracker commonTracker = new TempTimedQueuedTracker();
@@ -21,12 +21,12 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Integer, 
     }
 
     @Override
-    public void registerTime(Player key, Integer value) {
+    public void registerTime(Player key, Double value) {
         getTracker(key).add(value);
         commonTracker.add(value);
     }
 
-    public int getPlayerTotal(Player player, Timespan timespan) {
+    public double getPlayerTotal(Player player, Timespan timespan) {
         return getTracker(player).getTotal(timespan);
     }
 
@@ -41,7 +41,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Integer, 
 
     @Override
     public double getTimeToAverageQuotient(Player key, Timespan timespan) {
-        return getPlayerTotal(key, timespan) / getAverage(timespan);
+        return getPlayerTotal(key, timespan) / getAverageWithout(key, timespan);
     }
 
     @Override
@@ -52,6 +52,12 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Integer, 
     @Override
     public double getAverage(Timespan timespan) {
         return getTotal(timespan) / getTrackerSize();
+    }
+
+    public double getAverageWithout(Player player, Timespan timespan) {
+        if (getTrackerSize() == 1) return getAverage(timespan);
+
+        return (getTotal(timespan) - getPlayerTotal(player, timespan)) / (getTrackerSize() - 1);
     }
 
     public double getTotal(Timespan timespan) {

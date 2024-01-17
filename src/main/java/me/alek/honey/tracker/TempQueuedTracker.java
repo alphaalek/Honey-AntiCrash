@@ -1,5 +1,6 @@
 package me.alek.honey.tracker;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import me.alek.honey.utility.Tuple2;
 
 import java.util.ArrayList;
@@ -8,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TempQueuedTracker implements HoneyTracker {
 
-    protected final List<Tuple2<AtomicInteger, TempQueue>> tickDurationQueues = new ArrayList<>();
+    protected final List<Tuple2<AtomicDouble, TempQueue>> tickDurationQueues = new ArrayList<>();
 
     public TempQueuedTracker() {
         for (Timespan timespan : Timespan.values()) {
@@ -16,15 +17,15 @@ public class TempQueuedTracker implements HoneyTracker {
         }
     }
 
-    public int getTotal(Timespan timespan) {
-        Tuple2<AtomicInteger, TempQueue> queue = getTuple(timespan);
+    public double getTotal(Timespan timespan) {
+        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
         if (queue == null) return 0;
 
         return queue.getT1().get();
     }
 
-    public Tuple2<AtomicInteger, TempQueue> getTuple(Timespan timespan) {
-        for (Tuple2<AtomicInteger, TempQueue> queue : tickDurationQueues) {
+    public Tuple2<AtomicDouble, TempQueue> getTuple(Timespan timespan) {
+        for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
             if (timespan.getQueue(this).equals(queue.getT2())) {
                 return queue;
             }

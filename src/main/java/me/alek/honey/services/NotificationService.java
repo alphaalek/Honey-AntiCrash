@@ -117,7 +117,7 @@ public class NotificationService {
             @Override
             public void warn(Player player, String type, ViolationService.CheckKey checkKey) {
                 observer.sendMessage(
-                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "§7" + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "."));
+                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "" + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7."));
             }
         });
     }
@@ -219,6 +219,8 @@ public class NotificationService {
     }
 
     public void showCancellingPackets(Player player) {
+        if (player == null) return;
+
         DecayingListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.getUniqueId(),
                 (d) -> new DecayingListeningCounter(() -> (long) 3000));
         counter.count();

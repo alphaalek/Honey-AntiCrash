@@ -45,8 +45,6 @@ public class Tickloop extends TempFixedQueuedTracker {
                 else amount = 100;
 
                 add(amount);
-
-                Bukkit.getLogger().info("TPS: " + evaluateTPS(Timespan.FIVE_SECOND) + ", " + evaluateTPS(Timespan.FIFTEEN_SECOND) + ", " + evaluateTPS(Timespan.HALF_MINUTE));
             }
         }.runTaskTimer(HoneyPlugin.get().getPlugin(), 0L, 2L);
 

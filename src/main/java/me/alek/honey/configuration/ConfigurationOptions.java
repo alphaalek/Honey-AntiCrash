@@ -889,6 +889,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        @Keyed(keys = {"2d", "y"})
         public static class PositionB extends VlSetting implements VlMaxRequiredContentsSetting {
 
         }

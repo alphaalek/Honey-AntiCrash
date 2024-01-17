@@ -12,8 +12,9 @@ import java.util.List;
 public class InboundPacketDecoder extends ByteToMessageDecoder implements AbstractPipelineProxy {
 
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
-    private double recentDecodeStart = getCurrentTime();
+    private double recentDecodeStart = System.currentTimeMillis();
     private double recentDeltaReceived = 0;
+    private boolean hasRead;
     private Player player;
 
     public InboundPacketDecoder(Player player) {
@@ -32,23 +33,20 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         packetProcessor.callDecode(player, byteBuf);
 
-        double currentTime = getCurrentTime();
+        double currentTime = System.currentTimeMillis();;
         recentDeltaReceived = currentTime - recentDecodeStart;
         recentDecodeStart = currentTime;
 
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
     }
 
-    public double getCurrentTime() {
-        return ((double)System.nanoTime()) / 1_000_000;
-    }
 
     public double getRecentDeltaReceived() {
         return recentDeltaReceived;
     }
 
     public double getRecentDeltaDecode() {
-        return getCurrentTime() - recentDecodeStart;
+        return System.currentTimeMillis() - recentDecodeStart;
     }
 
     public double getRecentStartDecode() {

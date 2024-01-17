@@ -33,7 +33,7 @@ public interface HoneyAPI {
 
     LoggerService getLoggerService();
 
-    StatisticHandleTracker<Double, Player> getNettyPacketHandleTracker();
+    WideTempQueuedHandleTracker getNettyPacketHandleTracker();
 
     WideTempQueuedHandleTracker getServerThreadHandleTracker();
 

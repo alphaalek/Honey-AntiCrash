@@ -334,13 +334,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
                     container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("2d")).build();
                 }
 
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
                     container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("y")).build();
                 }
             }
             return ResponseBuilder.SUCCESS;

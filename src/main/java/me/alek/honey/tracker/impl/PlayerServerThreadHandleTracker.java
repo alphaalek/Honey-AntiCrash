@@ -5,6 +5,8 @@ import me.alek.honey.netty.utility.reflect.FieldAccessor;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
 import me.alek.honey.tracker.AbstractOldAndCurrentHandleTracker;
+import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.task.PacketTaskHandler;
 import me.alek.honey.utility.ThreadSeperatedQueue;
 import org.bukkit.Bukkit;
@@ -17,16 +19,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandleTracker {
+public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final ThreadSeperatedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
     private boolean workingProperly;
     private boolean initiallyInjected;
 
     public PlayerServerThreadHandleTracker() {
-        super(100, 5, 10, 30, 60);
-        update();
-
         try {
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
@@ -143,7 +142,7 @@ public class PlayerServerThreadHandleTracker extends AbstractOldAndCurrentHandle
 
             @Override
             public int compare(Player o1, Player o2) {
-                return Double.compare(getStatistic(o1, 0), getStatistic(o2, 0));
+                return Double.compare(getTimeToAverageQuotient(o1, Timespan.FIVE_SECOND), getTimeToAverageQuotient(o2, Timespan.FIVE_SECOND));
             }
         });
         return trackersList;

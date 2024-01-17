@@ -1,11 +1,8 @@
 package me.alek.honey.tracker.impl;
 
-import me.alek.honey.tracker.AbstractOldAndCurrentHandleTracker;
+import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 
-public class PlayerNettyPacketHandleTracker extends AbstractOldAndCurrentHandleTracker {
+public class PlayerNettyPacketHandleTracker extends WideTempQueuedHandleTracker {
 
-    public PlayerNettyPacketHandleTracker() {
-        super(100L, 5, 10, 30);
-        update();
-    }
+    // auto-generated logic from super class, just made this class for the purpose of naming
 }

@@ -54,7 +54,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private SQLManagerWrapper sqlManager;
     private Configuration configuration;
     private WideTempQueuedHandleTracker packetServerThreadHandleTimeTracker;
-    private StatisticHandleTracker<Double, Player> packetNettyHandleTracker;
+    private WideTempQueuedHandleTracker packetNettyHandleTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
     private Tickloop tickloop;
     private boolean isLoaded;
@@ -115,7 +115,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         // setup trackers
         packetNettyHandleTracker = new PlayerNettyPacketHandleTracker();
-        packetServerThreadHandleTimeTracker = new WideTempQueuedHandleTracker();
+        packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker();
         checkHandleTracker = new CheckHandleTracker();
 
         tickloop = new Tickloop();
@@ -258,7 +258,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         return loggerService;
     }
 
-    public StatisticHandleTracker<Double, Player> getNettyPacketHandleTracker() {
+    public WideTempQueuedHandleTracker getNettyPacketHandleTracker() {
         return packetNettyHandleTracker;
     }
 

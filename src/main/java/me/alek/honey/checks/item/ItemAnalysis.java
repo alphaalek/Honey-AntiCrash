@@ -104,7 +104,7 @@ public class ItemAnalysis {
         if (flaggedCheck == null) {
             return false;
         }
-        context.addPoint("Check", flaggedCheck.name().toLowerCase());
+        context.addPoint("Type", flaggedCheck.name().toLowerCase());
         Bukkit.getLogger().info("DEBUG: " + flaggedCheck.name());
 
         // HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
