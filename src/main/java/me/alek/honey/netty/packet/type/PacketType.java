@@ -96,7 +96,7 @@ public enum PacketType implements PacketTypeEnum {
         final ArrayList<PacketTypeEnum> packetTypes = new ArrayList<>();
         for (PacketTypeEnum packetType : PACKET_STATE_TYPE.get(state)) {
 
-            if (packetType.getBound() != packetBound) {
+            if (packetBound != null && packetType.getBound() != packetBound) {
                 continue;
             }
             if (packetType instanceof RangedPacketTypeEnum) {

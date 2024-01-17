@@ -53,9 +53,10 @@ public class PacketTaskHandler {
     }
 
     public static void dumpThread(UUID uuid) {
-        HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be a lot of ticks behind after a packet being sent. Could it be a crash exploit? See the log for thread dump and more info."));
+        String name = Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown");
+        HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be frozen after a packet was sent by " + name + ". See the log for thread dump and more info."));
         Bukkit.getLogger().severe("*******************************************************************************************");
-        Bukkit.getLogger().severe("Packet sent by " + Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown") + " (" + uuid + ")");
+        Bukkit.getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
 
         PacketContainer<? extends WrappedPacket<?>> packet = lastPacketMap.get(uuid).poll();
         if (packet != null) {

@@ -22,6 +22,7 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -156,6 +157,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         );
     }
 
+    public static String format(double value) {
+        return (Math.ceil(value * 100) / 100) + "";
+    }
+
     @Override
     public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         final Location currentLocation = packetContainer.getPacket().getLocation();
@@ -172,9 +177,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         // sharing this last location with the pipeline, so other checks can take use of it
         container.getStorage().put(Location.class, lastLocation);
 
-        final String x = decimalFormatter.format(currentLocation.getX());
-        final String y = decimalFormatter.format(currentLocation.getY());
-        final String z = decimalFormatter.format(currentLocation.getZ());
+        final String x = format(currentLocation.getX());
+        final String y = format(currentLocation.getY());
+        final String z = format(currentLocation.getZ());
 
         container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
         container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
@@ -387,7 +392,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 final UUID uuid = player.getUniqueId();
                 // ignores packets close to the recent flag to minimize false flags at lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
-
                     if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5)
                         return ResponseBuilder.SUCCESS;
                 }
@@ -397,7 +401,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
                     HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
                 }
-                // this might be a false positive, shouldn't be that high. but position B would flag for this otherwise
                 if (priorDistance > 20)
                     return ResponseBuilder.SUCCESS;
 

@@ -57,7 +57,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {
         if (packetContainer.getState() == PacketState.PLAY) {
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-                return;
+                //return;
             }
         }
         CheckContextContainer checkContextContainer = new CheckContextContainer();

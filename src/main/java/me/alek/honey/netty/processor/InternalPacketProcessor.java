@@ -2,6 +2,7 @@ package me.alek.honey.netty.processor;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.EventManager;
 import me.alek.honey.netty.api.event.impl.packet.*;
@@ -14,6 +15,7 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -140,7 +142,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
                 for (ListenerPriority listenerPriority : pipeline) {
                     if (priority == listenerPriority) {
-                        return; // eksisterer allerede i pipeline
+                        return; // already exist in pipeline
                     }
                     if (listenerPriority.ordinal() > priority.ordinal()) {
                         indexAtInsert = index;
@@ -281,14 +283,14 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (packetState == PacketState.UNKNOWN) {
             return InternalPacketContainer.SIMPLE_CONTAINER.apply(packet);
         }
-        final boolean hasAdapters = hasListener(PacketType.getPacketType(packet.getClass()));
+        final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
+        final boolean hasAdapters = hasListener(packetType);
         final boolean hasListeners = EVENT_MANAGER.hasHandlers(EVENT_MANAGER.getPacketEventFor(packetState, packetBound), true);
 
         if (!hasAdapters && !hasListeners) {
             return InternalPacketContainer.SIMPLE_CONTAINER.apply(packet);
         }
 
-        final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(
                 packet, player, channel, POST_ACTION_MAP.get(packetType), packetType
         );

@@ -395,9 +395,9 @@ position:
   c:
     enabled: true
     clear-buffer: true
-    threshold: 330
+    threshold: 300
     decay: 1250
-    decay-amount: 120
+    decay-amount: 100
     vls-amount: 3
 
   d:

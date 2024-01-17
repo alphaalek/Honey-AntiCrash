@@ -69,6 +69,7 @@ public class PacketWrapperInvokerFactory {
                 final MethodInvoker<Object> methodInvoker = (MethodInvoker<Object>) Reflection.getMethod(method);
                 METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
             }
+
             PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
                 if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
                 return getCachedInvoker(packetType.getNmsClass().getSimpleName());

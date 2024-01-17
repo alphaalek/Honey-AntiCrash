@@ -13,6 +13,7 @@ import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -99,12 +100,12 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     private ConfigurationOptions.VlSetting getSetting(HoneyCheck check, WP packet) {
-        if (check instanceof ViolationCheck) {
-           return ((ViolationCheck)check).getSetting();
-        }
-        else if (check instanceof KeyedViolationCheck) {
+        if (check instanceof KeyedViolationCheck) {
             KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
             return keyedViolationCheck.getSetting(packet);
+        }
+        else if (check instanceof ViolationCheck) {
+            return ((ViolationCheck)check).getSetting();
         }
         return null;
     }
