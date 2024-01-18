@@ -172,8 +172,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer getResponse(Player player) {
             ResponseContainer response = ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
 
-            if (HoneyPlugin.get().getRecentTPS() < ConfigurationOptions.General.Exempt.MIN_TPS || HoneyPlugin.get().getRecentPing(player) > ConfigurationOptions.General.Exempt.MAX_PING) {
-                Bukkit.broadcastMessage("Terminating");
+            if (HoneyPlugin.get().shouldExempt(player)) {
                 return response.builder().terminate().build();
             }
             return response;

@@ -21,6 +21,8 @@ public interface HoneyAPI {
 
     void reload();
 
+    boolean shouldExempt(Player player);
+
     PacketLibrary getPacketLibrary();
 
     ViolationService getViolationService();

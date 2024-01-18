@@ -119,6 +119,10 @@ public class NMSUtils {
         return getFuzzyClass("{obc}.CraftServer");
     }
 
+    public static Class<Object> getIAsyncTaskHandlerClass() {
+        return getFuzzyClass("{nms}.IAsyncTaskHandler", "{nms}.util.thread.IAsyncTaskHandler");
+    }
+
     public static Class<Object> getServerConnectionClass() {
         return getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection");
     }
@@ -184,6 +188,10 @@ public class NMSUtils {
 
     public static Class<Object> getVec3DClass() {
         return getFuzzyClass("{nms}.Vec3D", "{nms}.world.phys.Vec3D");
+    }
+
+    public static Class<Object> getTickTaskClass() {
+        return getFuzzyClass("{nms}.TickTask", "{nms}.server.TickTask");
     }
 
     public static Class<Object> getItemClass() {

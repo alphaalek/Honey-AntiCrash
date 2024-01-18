@@ -12,8 +12,8 @@ public class Tickloop extends TempFixedQueuedTracker {
     private final CyclicBarrier barrier = new CyclicBarrier(2);
     private final AtomicLong expectedTick = new AtomicLong();
 
-    private double evaluateTPS(Timespan timespan) {
-        return Math.min(20, 20 * 1005 * timespan.getTimespan() / ((double)timespan.getTotal(this).get()));
+    public double evaluateTPS(Timespan timespan) {
+        return Math.min(20, 20 * 1005 * timespan.getTimespan() / timespan.getTotal(this).get());
     }
 
     public Tickloop() {

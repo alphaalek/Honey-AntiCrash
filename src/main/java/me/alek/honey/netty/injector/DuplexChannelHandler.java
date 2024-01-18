@@ -3,19 +3,17 @@ package me.alek.honey.netty.injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.utility.ThreadSeperatedQueue;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
@@ -24,6 +22,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final Channel channel;
     private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
     private InboundPacketDecoder inboundPacketDecoder;
+    private boolean hasRead;
 
     private static final ThreadSeperatedQueue<UUID> packetSendQueue = new ThreadSeperatedQueue<>();
     private static final Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> lastPacketMap = new HashMap<>();
@@ -55,6 +54,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         return lastPacketMap;
     }
 
+    public boolean hasRead() {
+        return hasRead;
+    }
+
     public void startDecodeInjectorTask(Channel channel) {
         hasStartedInjectingTask.set(true);
         new Thread(() -> {
@@ -77,6 +80,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+        hasRead = true;
         // decoder inject for late injection
         if (player != null && !hasStartedInjectingTask.get()) {
             startDecodeInjectorTask(this.channel);
@@ -106,9 +110,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             return;
         }
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
-            synchronized (packetSendQueue) {
-                packetSendQueue.add(player.getUniqueId());
-            }
+            packetSendQueue.add(player.getUniqueId());
             lastPacketMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>()).add(packetContainer);
         }
 

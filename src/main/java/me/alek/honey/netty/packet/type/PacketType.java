@@ -190,7 +190,7 @@ public enum PacketType implements PacketTypeEnum {
 
 
         public enum Client implements RangedPacketTypeEnum {
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, Login.CUSTOM_PAYLOAD, NetProtocolRange.since(NetProtocol.v1_13)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, Login.CUSTOM_PAYLOAD, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_4)),
             ENCRYPTION_RESPONSE(ENCRYPTION_RESPONSE_CLASS, Login.ENCRYPTION_RESPONSE),
             LOGIN_START(LOGIN_START_CLASS, Login.LOGIN_START);
 

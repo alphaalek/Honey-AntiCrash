@@ -22,6 +22,8 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
 
     @Override
     public void registerTime(Player key, Double value) {
+        if (value <= 0) return;
+
         getTracker(key).add(value);
         commonTracker.add(value);
     }
@@ -41,12 +43,12 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
 
     @Override
     public double getTimeToAverageQuotient(Player key, Timespan timespan) {
-        return getPlayerTotal(key, timespan) / getAverageWithout(key, timespan);
+        return Math.max(0, getPlayerTotal(key, timespan) / getAverageWithout(key, timespan));
     }
 
     @Override
     public double getTimeToTotalQuotient(Player key, Timespan timespan) {
-        return getPlayerTotal(key, timespan) / getTotal(timespan);
+        return Math.max(0, getPlayerTotal(key, timespan) / getTotal(timespan));
     }
 
     @Override

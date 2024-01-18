@@ -236,15 +236,15 @@ netty:
 
   h:
     enabled: true
-    threshold: 1000
+    threshold: 2250
     vls-amount: 1
 
   i:
     enabled: true
-    until: 700
-    threshold: 300
+    until: 1750
+    threshold: 1250
     decay: 600
-    decay-amount: 50
+    decay-amount: 250
     vls-amount: 1
 
   j:

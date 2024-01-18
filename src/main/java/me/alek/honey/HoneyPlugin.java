@@ -8,6 +8,7 @@ import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.command.impl.*;
 import me.alek.honey.configuration.Configuration;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinListener;
@@ -162,7 +163,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
                     index = 0;
 
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
+                        synchronized (recentPingLookup) {
+                            recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
+                        }
                     }
                 }
             }
@@ -225,6 +228,11 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         ItemAnalysis.reload();
 
         checkHandleTracker.clear();
+    }
+
+    public boolean shouldExempt(Player player) {
+        return tickloop.evaluateTPS(Timespan.FIVE_SECOND) < ConfigurationOptions.General.Exempt.MIN_TPS ||
+                getRecentPing(player) > ConfigurationOptions.General.Exempt.MAX_PING;
     }
 
     public static HoneyAPI get() {
@@ -309,10 +317,14 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     }
 
     public int getRecentPing(Player player) {
-        return recentPingLookup.computeIfAbsent(player.getUniqueId(), (d) -> notificationService.getPing(player));
+        synchronized (recentPingLookup) {
+            return recentPingLookup.computeIfAbsent(player.getUniqueId(), (d) -> notificationService.getPing(player));
+        }
     }
 
     public void removeRecentPingLookup(Player player) {
-        recentPingLookup.remove(player.getUniqueId());
+        synchronized (recentPingLookup) {
+            recentPingLookup.remove(player.getUniqueId());
+        }
     }
 }
