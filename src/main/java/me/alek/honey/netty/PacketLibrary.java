@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 
 public class PacketLibrary {
@@ -31,6 +32,7 @@ public class PacketLibrary {
     private final EventManager eventManager;
     private final AsyncFuture packetTypesLoadingFuture;
     private final JavaPlugin plugin;
+    private CountDownLatch disablingLatch;
     private AbstractNettyChannelInjector proxy;
 
     private static PacketLibrary INSTANCE;
@@ -116,6 +118,15 @@ public class PacketLibrary {
         packetTypesLoadingFuture.addListener(runnable);
     }
 
+    public void waitUntilDoneIfDisabled() {
+        if (disablingLatch == null) return;
+
+        try {
+            disablingLatch.await();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public void sendPacket(Player player, WrappedPacket<?> packet) {
         proxy.writePacket(player, packet);
@@ -173,6 +184,9 @@ public class PacketLibrary {
     }
 
     public void disable() {
+        disablingLatch = new CountDownLatch(1);
         proxy.eject();
+        disablingLatch.countDown();
+        disablingLatch = null;
     }
 }

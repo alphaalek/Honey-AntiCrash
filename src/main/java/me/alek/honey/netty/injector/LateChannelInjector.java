@@ -15,9 +15,7 @@ public class LateChannelInjector implements AbstractNettyChannelInjector {
 
     @Override
     public void eject() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            ejectPlayer(player);
-        }
+        CommonChannelInjector.ejectPlayers(InjectEvent.InjectType.LATE);
     }
 
     @Override

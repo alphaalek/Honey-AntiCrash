@@ -207,15 +207,13 @@ public class ConfigurationOptions {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        try {
+            HoneyPlugin.get().getPacketLibrary().waitUntilDoneIfDisabled();
 
-        if (!Bukkit.getPluginManager().isPluginEnabled(HoneyPlugin.get().getPlugin())) {
-            throw new RuntimeException(
-                    "Honey is proceeding to run although it is turned off! What is happening!? " +
-                    "Some plugin (not Bukkit) may have disabled Honey without doing it properly. " +
-                    "Check your server plugins for malware and related things, or plugins" +
-                    " disabling/loading other plugins during runtime."
-            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+
         if (!vlSettingMap.containsKey(clazz)) {
             HoneyPlugin.get().resetConfiguration();
             Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());

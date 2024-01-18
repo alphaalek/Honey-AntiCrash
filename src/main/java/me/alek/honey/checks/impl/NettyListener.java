@@ -228,8 +228,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
                 // disable this check if the TPS is really low or ping of the player is too high
-                if (HoneyPlugin.get().getRecentTPS() < ConfigurationOptions.General.Exempt.MIN_TPS
-                        || HoneyPlugin.get().getRecentPing(player) > ConfigurationOptions.General.Exempt.MAX_PING)
+                if (HoneyPlugin.get().shouldExempt(player))
                     return ResponseBuilder.SUCCESS.builder().terminate().build();
 
                 // evaluate the duration of decoding this packet

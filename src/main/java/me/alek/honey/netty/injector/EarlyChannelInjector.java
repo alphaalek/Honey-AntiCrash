@@ -144,9 +144,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
                 });
             }
         }
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            ejectPlayer(player);
-        }
+        CommonChannelInjector.ejectPlayers(InjectEvent.InjectType.EARLY);
     }
 
     public boolean hasInjected(Player player) {

@@ -12,6 +12,7 @@ import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -170,19 +171,19 @@ public class NotificationService {
         return entityPlayerModifier.readField("ping", 0);
     }
 
-    public String formatPing(Player player, boolean cache) {
-        int ping = cache ? HoneyPlugin.get().getRecentPing(player) : getPing(player);
+    public String formatPing(Player player) {
+        int ping = getPing(player);
         return ((ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c") + ping;
     }
 
-    public String formatTPS(boolean cache) {
-        int tps = cache ? HoneyPlugin.get().getRecentTPS() : getTPS();
+    public String formatTPS() {
+        int tps = (int) HoneyPlugin.get().getTickloop().evaluateTPS(Timespan.FIVE_SECOND);
         return ((tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c") + tps;
     }
 
     private String formatNetworkStats(Player player) {
-        String ping = formatPing(player, false);
-        String tps = formatTPS(false);
+        String ping = formatPing(player);
+        String tps = formatTPS();
 
         return " §8(" + ping + "ms§7/" + tps + "tps§8)";
     }

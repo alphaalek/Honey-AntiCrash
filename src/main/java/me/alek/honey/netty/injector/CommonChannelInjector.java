@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommonChannelInjector {
 
@@ -125,23 +126,37 @@ public class CommonChannelInjector {
         return handler;
     }
 
-    public static void ejectPlayer(Player player, InjectEvent.InjectType injectType) {
-        if (!injectedPlayers.contains(player.getUniqueId())) {
-            return;
+    public static void ejectPlayers(InjectEvent.InjectType type) {
+        CountDownLatch ejectingAllPlayersLatch = new CountDownLatch(Bukkit.getOnlinePlayers().size());
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ejectPlayer(player, type, ejectingAllPlayersLatch);
         }
+        try {
+            ejectingAllPlayersLatch.await();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void ejectPlayer(Player player, InjectEvent.InjectType injectType, CountDownLatch ejectingLatch) {
         injectedPlayers.remove(player.getUniqueId());
 
         final Channel channel = NMSUtils.getChannel(player);
         final PlayerEjectEvent event;
         if (channel == null) {
             event = new PlayerEjectEvent(player, injectType, InjectEvent.InjectCallback.ERROR);
+            if (ejectingLatch != null) ejectingLatch.countDown();
         }
         else {
             event = new PlayerEjectEvent(player, injectType, InjectEvent.InjectCallback.SUCCESS);
 
             final ChannelPipeline pipeline = channel.pipeline();
+            AtomicBoolean hasCountdown = new AtomicBoolean();
             try {
                 channel.eventLoop().execute(() -> {
+                    if (ejectingLatch != null) ejectingLatch.countDown();
+                    hasCountdown.set(true);
+
                     if (pipeline.get(PacketLibrary.get().getHandlerName()) != null)  {
                         pipeline.remove(PacketLibrary.get().getHandlerName());
                     }
@@ -150,9 +165,15 @@ public class CommonChannelInjector {
                     }
                 });
             } catch (NoSuchElementException ex) {
+                if (!hasCountdown.get() && ejectingLatch != null)
+                    ejectingLatch.countDown();
             }
         }
         PacketLibrary.get().callSyncEvent(event, false);
+    }
+
+    public static void ejectPlayer(Player player, InjectEvent.InjectType injectType) {
+        ejectPlayer(player, injectType, null);
     }
 
     public static boolean hasInjected(Player player) {
