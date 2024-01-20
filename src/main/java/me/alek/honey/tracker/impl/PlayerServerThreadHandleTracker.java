@@ -16,9 +16,6 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
@@ -144,6 +141,8 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             recentPacketAuthor.set(packetSendQueue.poll(thread));
             Object task = seperatedQueue.poll(thread);
 
+            HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
+
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tickloop is being completed by polling one extra time
             if (!nullPoll && !havingOneMoreElement && super.peek() == null) {
@@ -155,6 +154,8 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;
                 nullPoll = false;
+
+                HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
                 if (initiallyTickRound) {
                     packetSendQueue.clear();
@@ -192,7 +193,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
 
             @Override
             public int compare(Player o1, Player o2) {
-                return Double.compare(getTimeToAverageQuotient(o1, Timespan.FIVE_SECOND), getTimeToAverageQuotient(o2, Timespan.FIVE_SECOND));
+                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND));
             }
         });
         return trackersList;

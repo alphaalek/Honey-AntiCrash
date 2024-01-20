@@ -26,12 +26,12 @@ public class DecayingListeningCounter {
         this(collectInterval, null, null);
     }
 
-    private void collect() {
+    private void collect(long time) {
         synchronized (data) {
             final Iterator<Long> sampleNodeIterator = data.iterator();
             while (sampleNodeIterator.hasNext()) {
 
-                final long diff = System.currentTimeMillis() - sampleNodeIterator.next();
+                final long diff = time - sampleNodeIterator.next();
                 if (diff > collectInterval.get()) {
                     sampleNodeIterator.remove();
                     continue;
@@ -42,10 +42,14 @@ public class DecayingListeningCounter {
     }
 
     public void count() {
-        collect();
+        count(System.currentTimeMillis());
+    }
+
+    public void count(long time) {
+        collect(time);
 
         synchronized (data) {
-            data.addLast(System.currentTimeMillis());
+            data.addLast(time);
         }
         if (max != null && data.size() >= max.get()) {
             if (onFlag != null) onFlag.run();
@@ -57,7 +61,7 @@ public class DecayingListeningCounter {
     }
 
     public int size() {
-        collect();
+        collect(System.currentTimeMillis());
 
         return data.size();
     }

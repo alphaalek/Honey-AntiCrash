@@ -66,4 +66,12 @@ public class NumberConversions {
         return false;
     }
 
+    public static double format(double value) {
+        return format(value, 2);
+    }
+
+    public static double format(double value, int decimals) {
+        return Math.ceil(value * 10 * decimals) / (10 * decimals);
+    }
+
 }

@@ -6,8 +6,9 @@ import me.alek.honey.utility.Tuple2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-public class TempQueuedTracker implements HoneyTracker {
+public abstract class TempQueuedTracker implements HoneyTracker {
 
     protected final List<Tuple2<AtomicDouble, TempQueue>> tickDurationQueues = new ArrayList<>();
 
@@ -31,5 +32,14 @@ public class TempQueuedTracker implements HoneyTracker {
             }
         }
         return null;
+    }
+
+    public int getLength(Timespan timespan) {
+        for (TempQueue queue : tickDurationQueues.stream().map(Tuple2::getT2).collect(Collectors.toSet())) {
+            if (queue.getTimespan() == timespan) {
+                return queue.getQueueSize(this);
+            }
+        }
+        return 0;
     }
 }

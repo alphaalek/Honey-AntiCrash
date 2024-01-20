@@ -2,6 +2,7 @@ package me.alek.honey;
 
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.Configuration;
+import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
@@ -42,6 +43,8 @@ public interface HoneyAPI {
     MarkableHandleTracker<Double, String> getCheckHandleTracker();
 
     Tickloop getTickloop();
+
+    MonitorManager getMonitorManager();
 
     Configuration getConfiguration();
 

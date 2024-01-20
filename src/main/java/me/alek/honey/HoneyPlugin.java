@@ -14,6 +14,7 @@ import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.listeners.TabCompleteListener;
 import me.alek.honey.metrics.Metrics;
+import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -58,6 +59,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private WideTempQueuedHandleTracker packetNettyHandleTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
     private Tickloop tickloop;
+    private MonitorManager monitorManager;
     private boolean isLoaded;
     private boolean isRunning;
     private boolean usingOldVersion;
@@ -107,10 +109,16 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         // setup packet library
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
 
+        // setup tickloop
+        tickloop = new Tickloop();
+
+        // setup monitoring
+        this.monitorManager = new MonitorManager();
+
         // setup services
+        notificationService = new NotificationService();
         loggerService = new LoggerService();
         violationService = new ViolationService();
-        notificationService = new NotificationService();
         confiscationService = new ConfiscationService();
 
         // setup sql handler
@@ -120,8 +128,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         packetNettyHandleTracker = new PlayerNettyPacketHandleTracker();
         packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker();
         checkHandleTracker = new CheckHandleTracker();
-
-        tickloop = new Tickloop();
 
         // setup checks
         getServer().getScheduler().runTaskLater(this, this::registerChecks, 20L);
@@ -135,6 +141,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         new PasteLogsCommand(commandManager);
         new TrackCommand(commandManager);
         new QuotientInfoCommand(commandManager);
+        new MonitorCommand(commandManager);
 
         // setup metrics
         new Metrics(this, 19028);
@@ -282,6 +289,11 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     public Tickloop getTickloop() {
         return tickloop;
+    }
+
+    @Override
+    public MonitorManager getMonitorManager() {
+        return monitorManager;
     }
 
     public Configuration getConfiguration() {

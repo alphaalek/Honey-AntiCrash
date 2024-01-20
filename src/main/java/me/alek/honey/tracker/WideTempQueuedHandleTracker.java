@@ -43,6 +43,11 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
 
     @Override
     public double getTimeToAverageQuotient(Player key, Timespan timespan) {
+        return Math.max(0, getPlayerTotal(key, timespan) / getAverage(timespan));
+    }
+
+    @Override
+    public double getTimeToAverageWithoutQuotient(Player key, Timespan timespan) {
         return Math.max(0, getPlayerTotal(key, timespan) / getAverageWithout(key, timespan));
     }
 
@@ -57,7 +62,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public double getAverageWithout(Player player, Timespan timespan) {
-        if (getTrackerSize() == 1) return getAverage(timespan);
+        if (getTrackerSize() == 1) return getPlayerTotal(player, timespan);
 
         return (getTotal(timespan) - getPlayerTotal(player, timespan)) / (getTrackerSize() - 1);
     }

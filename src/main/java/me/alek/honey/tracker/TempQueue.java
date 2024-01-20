@@ -22,6 +22,10 @@ public class TempQueue {
         this.isFixed = isFixed;
     }
 
+    public Timespan getTimespan() {
+        return timespan;
+    }
+
     public void prepareFixed(Timespan timespan, int amount, AtomicDouble total, double defaultValue) {
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
@@ -32,6 +36,10 @@ public class TempQueue {
     public void prepareTimed(Timespan timespan, AtomicDouble total) {
         this.timespan = timespan;
         this.total = total;
+    }
+
+    public int getQueueSize(TempQueuedTracker tracker) {
+        return isFixed ? FIXED.size() : TIMED.size();
     }
 
     public Queue<Double> asFixedQueue() {

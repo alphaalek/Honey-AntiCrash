@@ -7,15 +7,12 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.DecodeCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.injector.InboundPacketDecoder;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -26,22 +23,17 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.HandleTracker;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.StatisticProvider;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
-
-    private static final DecimalFormat formatter = new DecimalFormat("#.####");
 
     private static final HandleTracker<Double, Player>[] trackers = (HandleTracker<Double, Player>[])
             new HandleTracker[]{
@@ -62,10 +54,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             }
         }
         return statistics;
-    }
-
-    public static String format(double value) {
-        return (Math.ceil(value * 100) / 100) + "";
     }
 
     @Override
@@ -236,7 +224,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 container.getStorage().putDouble(decodeTime);
             }
             if (getSetting().isEnabled() && decodeTime > 0) {
-                container.getDevelopmentData(this).addPoint("Decode Time", format(decodeTime) + " ms");
+                container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
                 final double decodeTimeFinal = decodeTime;
                 return ResponseBuilder.inst().flag(decodeTime).onViolation(() -> HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, decodeTimeFinal)).build();
             }
@@ -268,7 +256,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 double decodeTime = container.getStorage().getDouble(0);
                 if (decodeTime > 0) {
 
-                    container.getDevelopmentData(this).addPoint("Decode Time", format(decodeTime) + " ms");
+                    container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
                     return ResponseBuilder.inst().flag(decodeTime).build();
                 }
             }

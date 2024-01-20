@@ -19,7 +19,7 @@ public class HelpCommand implements CommandImpl {
         sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
 
         for (CommandImpl command : HoneyPlugin.get().getCommandManager().getCommands()) {
-            sender.sendMessage(" §a" + command.getUsage() + " > §7" + command.getDescription());
+            sender.sendMessage(" §8" + command.getUsage() + "  §7" + command.getDescription());
         }
     }
 

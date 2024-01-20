@@ -4,17 +4,13 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.storage.SQLManagerWrapper;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -51,24 +47,7 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        BukkitRunnable runnable = new BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(35);
-                } catch (Exception ex) {
 
-                };
-            }
-        };
-        runnable.runTaskTimer(HoneyPlugin.get().getPlugin(), 0L, 2L);
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                runnable.cancel();
-            }
-        }.runTaskLater(HoneyPlugin.get().getPlugin(), 18L);
     }
 
     @EventHandler
@@ -79,6 +58,7 @@ public class PlayerJoinListener implements Listener {
         }
         instantJoinedMap.remove(player.getUniqueId());
 
+        HoneyPlugin.get().getLoggerService().removePacketData(player);
         HoneyPlugin.get().getViolationService().remove(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player);
 
@@ -86,6 +66,8 @@ public class PlayerJoinListener implements Listener {
 
         HoneyPlugin.get().getNettyPacketHandleTracker().remove(player);
         HoneyPlugin.get().getServerThreadHandleTracker().remove(player);
+
+        HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
     }
 
     public static Map<UUID, Long> getInstantJoinedMap() {

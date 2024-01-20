@@ -132,6 +132,8 @@ public class ViolationService {
             }
             punishing.add(player.getUniqueId());
 
+            loggerService.logToMonitors(player, null);
+
             Channel channel = NMSUtils.getChannel(player);
             if (channel != null) {
                 channel.eventLoop().execute(() -> {

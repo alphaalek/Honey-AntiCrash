@@ -4,6 +4,8 @@ public interface TimedHandleTracker<I extends Number, T> extends HandleTracker<I
 
     double getTimeToAverageQuotient(T key, Timespan timespan);
 
+    double getTimeToAverageWithoutQuotient(T key, Timespan timespan);
+
     double getTimeToTotalQuotient(T key, Timespan timespan);
 
     double getAverage(Timespan timespan);
