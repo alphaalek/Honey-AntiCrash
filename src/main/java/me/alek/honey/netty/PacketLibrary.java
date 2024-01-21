@@ -30,10 +30,10 @@ public class PacketLibrary {
     private final PacketLibrarySettings settings;
     private final PacketProcessor packetProcessor;
     private final EventManager eventManager;
-    private final AsyncFuture packetTypesLoadingFuture;
     private final JavaPlugin plugin;
     private CountDownLatch disablingLatch;
     private AbstractNettyChannelInjector proxy;
+    private boolean enabled = true;
 
     private static PacketLibrary INSTANCE;
 
@@ -61,8 +61,8 @@ public class PacketLibrary {
         proxy.inject();
         packetProcessor = new InternalPacketProcessor(eventManager);
 
-        packetTypesLoadingFuture = PacketType.load();
-        packetTypesLoadingFuture.join(PacketWrapperInvokerFactory.load());
+        PacketType.load();
+        PacketWrapperInvokerFactory.load();
     }
 
     public void callSyncEvent(Event event, boolean isPacket) {
@@ -110,15 +110,7 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    private void addListener(Runnable runnable) {
-        if (packetTypesLoadingFuture.isDone()) {
-            runnable.run();
-            return;
-        }
-        packetTypesLoadingFuture.addListener(runnable);
-    }
-
-    public void waitUntilDoneIfDisabled() {
+    public void waitUntilDisabledIfProcessing() {
         if (disablingLatch == null) return;
 
         try {
@@ -129,7 +121,7 @@ public class PacketLibrary {
     }
 
     public void sendPacket(Player player, WrappedPacket<?> packet) {
-        proxy.writePacket(player, packet);
+        proxy.writePacket(player, packet.getHandle());
     }
 
     public void flushPackets(Player player) {
@@ -137,15 +129,15 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
-        addListener(() -> packetProcessor.addListener(adapter, priority, packetTypes.get()));
+        packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
     public <WP extends WrappedPacket<WP>> void addListeners(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
-        addListener(() -> packetProcessor.addListener(adapter, priority, packetTypes.get()));
+        packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
     public void addFuzzyListeners(FuzzyPacketAdapter adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
-        addListener(() -> packetProcessor.addListener(adapter, priority, packetTypes.get()));
+        packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
     public void addDecodeListener(SyncPacketAdapter<?> adapter, ListenerPriority priority) {
@@ -183,7 +175,12 @@ public class PacketLibrary {
         packetProcessor.setPostAction(packetType, postAction);
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     public void disable() {
+        enabled = false;
         disablingLatch = new CountDownLatch(1);
         proxy.eject();
         disablingLatch.countDown();

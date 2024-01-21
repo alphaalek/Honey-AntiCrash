@@ -39,7 +39,7 @@ public enum PacketType implements PacketTypeEnum {
         PACKET_STATE_TYPE.get(type.getState()).add(type);
 
         if (type instanceof RangedPacketTypeEnum) {
-            if (!NetProtocol.protocolMatch((RangedPacketTypeEnum) type)) {
+            if (!NetProtocol.matchProtocol((RangedPacketTypeEnum) type)) {
                 return;
             }
         }
@@ -53,15 +53,7 @@ public enum PacketType implements PacketTypeEnum {
     private static final Map<Class<?>, PacketDetails> PACKET_DETAILS = new IdentityHashMap<>();
     private static final Map<PacketState, List<PacketTypeEnum>> PACKET_STATE_TYPE = new HashMap<>();
 
-    public static AsyncFuture load() {
-        AsyncFuture future = new AsyncFuture();
-        new Thread(() -> {
-            loadAsync(future);
-        }).start();
-        return future;
-    }
-
-    private static void loadAsync(AsyncFuture future) {
+    public static void load() {
         for (PacketState state : PacketState.values()) {
             PACKET_STATE_TYPE.put(state, new ArrayList<>());
         }
@@ -86,7 +78,6 @@ public enum PacketType implements PacketTypeEnum {
         for (Play.Server playServer : Play.Server.values()) {
             addPacket(playServer.getNmsClass(), playServer.getPacketId(), playServer);
         }
-        future.done();
     }
 
     public static List<PacketTypeEnum> getTypesAvailableFor(PacketState state, PacketBound packetBound, NetProtocol protocol) {
@@ -101,7 +92,7 @@ public enum PacketType implements PacketTypeEnum {
             }
             if (packetType instanceof RangedPacketTypeEnum) {
                 RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) packetType;
-                if (!NetProtocol.protocolMatch(rangedPacketType, protocol)) {
+                if (!NetProtocol.matchProtocol(rangedPacketType, protocol)) {
                     continue;
                 }
             }

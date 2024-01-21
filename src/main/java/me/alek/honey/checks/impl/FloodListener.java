@@ -76,9 +76,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             @Override
             public void run() {
                 AbstractPipelineProxy proxy;
-                while ((proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player))) == null) {
+                while ((proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player))) == null && player.isOnline()) {
                 }
-                if (proxy instanceof InboundPacketDecoder) {
+                if (proxy instanceof InboundPacketDecoder && player.isOnline()) {
                     packetDecoderMap.put(uuid, (InboundPacketDecoder) proxy);
                 }
             }

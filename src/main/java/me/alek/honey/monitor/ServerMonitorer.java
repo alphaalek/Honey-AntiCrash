@@ -22,11 +22,12 @@ public class ServerMonitorer implements Monitorer {
     }
 
     private String getPacketTaskPercentage(Timespan timespan) {
-        return NumberConversions.format((HoneyPlugin.get().getServerThreadHandleTracker().getTotal(timespan) / (timespan.getTimespan() * 1000)) * 100, 1) + "%";
+        return NumberConversions.format((Math.min(1, HoneyPlugin.get().getServerThreadHandleTracker().getTotal(timespan) / (timespan.getTimespan() * 1000)) * 100), 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {
-        return NumberConversions.format(HoneyPlugin.get().getLoggerService().getPacketRatePerQueueExecution(timespan),1);
+        double rate = NumberConversions.format(HoneyPlugin.get().getLoggerService().getPacketRatePerQueueExecution(timespan),1);
+        return Double.isNaN(rate) ? 0 : rate;
     }
 
     @Override

@@ -25,20 +25,25 @@ public abstract class TempQueuedTracker implements HoneyTracker {
         return queue.getT1().get();
     }
 
+    public TempQueue getQueue(Timespan timespan) {
+        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
+        if (queue == null) return null;
+
+        return queue.getT2();
+    }
+
     public Tuple2<AtomicDouble, TempQueue> getTuple(Timespan timespan) {
         for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
-            if (timespan.getQueue(this).equals(queue.getT2())) {
+            if (timespan.getQueue(this).equals(queue.getT2()))
                 return queue;
-            }
         }
         return null;
     }
 
     public int getLength(Timespan timespan) {
         for (TempQueue queue : tickDurationQueues.stream().map(Tuple2::getT2).collect(Collectors.toSet())) {
-            if (queue.getTimespan() == timespan) {
-                return queue.getQueueSize(this);
-            }
+            if (queue.getTimespan() == timespan)
+                return queue.getQueueSize();
         }
         return 0;
     }

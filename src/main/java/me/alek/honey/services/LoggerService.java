@@ -45,8 +45,7 @@ public class LoggerService {
         @SuppressWarnings("unchecked")
         public void onPacketReceive(Player player, PacketContainer packetContainer) {
             // notify monitor observers
-           logToMonitors(player, packetContainer);
-
+            logToMonitors(player, packetContainer);
 
             long time = System.currentTimeMillis();
             // register to packet rate

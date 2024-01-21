@@ -117,7 +117,8 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         int size = packetContainer.getPacket().getSuggestionsSize();
 
                         try {
-                            ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>()).poll();
+                            ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>())
+                                    .poll();
 
                             if (listener != null) listener.accept(size);
 

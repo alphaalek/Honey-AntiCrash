@@ -119,13 +119,13 @@ public enum NetProtocol {
         return protocol;
     }
 
-    public static boolean protocolMatch(RangedPacketTypeEnum rangedPacketType, NetProtocol protocol) {
+    public static boolean matchProtocol(RangedPacketTypeEnum rangedPacketType, NetProtocol protocol) {
         NetProtocolRange range = rangedPacketType.getRange();
         return range.match(protocol);
     }
 
-    public static boolean protocolMatch(RangedPacketTypeEnum rangedPacketType) {
-         return protocolMatch(rangedPacketType, PROTOCOL_CACHE);
+    public static boolean matchProtocol(RangedPacketTypeEnum rangedPacketType) {
+         return matchProtocol(rangedPacketType, PROTOCOL_CACHE);
     }
 
     public static NetProtocol getLatest() {

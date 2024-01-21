@@ -2,7 +2,6 @@ package me.alek.honey.netty.processor;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.EventManager;
 import me.alek.honey.netty.api.event.impl.packet.*;
@@ -108,16 +107,18 @@ public class InternalPacketProcessor implements PacketProcessor {
             synchronized (priorityMap) {
                 synchronized (pipeline) {
 
-                    for (ListenerPriority priority : pipeline) {
+                    for (ListenerPriority priority : new ArrayList<>(pipeline)) {
                         final List<SyncPacketAdapter<WP>> listeners = priorityMap.get(priority);
 
-                        for (SyncPacketAdapter<WP> listener : listeners) {
+                        Iterator<SyncPacketAdapter<WP>> listenerIterator = listeners.iterator();
+                        while (listenerIterator.hasNext()) {
+                            SyncPacketAdapter<WP> listener = listenerIterator.next();
                             if (listener != packetAdapter) {
                                 continue;
                             }
-                            listeners.remove(listener);
+                            listenerIterator.remove();
 
-                            if (listeners.size() == 0) {
+                            if (listeners.isEmpty()) {
                                 priorityMap.remove(priority);
                                 removeFromPipeline(priority);
                             }
@@ -175,7 +176,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     public synchronized void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
-                if (!NetProtocol.protocolMatch((RangedPacketTypeEnum) packetType)) {
+                if (!NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
                     continue;
                 }
             }
@@ -244,7 +245,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public void callListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
-        if (!hasListeners(clazz)) {
+         if (!hasListeners(clazz)) {
             return;
         }
         PACKET_ADAPTERS.get(clazz).callPacket(player, packetContainer, isRead);
@@ -359,18 +360,14 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
         final PacketEvent event = packetEvent.get();
         boolean calledCancelled = false;
-        if (hasAdapters) {
-            if (packetContainer.isCancelled()) {
-                cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
-                calledCancelled = true;
-            }
+        if (hasAdapters && packetContainer.isCancelled()) {
+            cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
+            calledCancelled = true;
         }
-        if (event != null) {
-            if (event.isCancelled()) {
-                packetContainer.cancel();
-                if (hasAdapters && !calledCancelled) {
-                    cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
-                }
+        if (event != null && event.isCancelled()) {
+            packetContainer.cancel();
+            if (hasAdapters && !calledCancelled) {
+                cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
             }
         }
         return packetContainer;

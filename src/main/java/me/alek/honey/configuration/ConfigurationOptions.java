@@ -2,7 +2,6 @@ package me.alek.honey.configuration;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -208,7 +207,7 @@ public class ConfigurationOptions {
             ex.printStackTrace();
         }
         try {
-            HoneyPlugin.get().getPacketLibrary().waitUntilDoneIfDisabled();
+            HoneyPlugin.get().getPacketLibrary().waitUntilDisabledIfProcessing();
 
         } catch (Exception ex) {
             ex.printStackTrace();

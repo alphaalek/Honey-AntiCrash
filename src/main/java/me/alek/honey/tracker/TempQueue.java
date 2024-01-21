@@ -3,6 +3,7 @@ package me.alek.honey.tracker;
 import com.google.common.util.concurrent.AtomicDouble;
 import org.bukkit.Bukkit;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -27,6 +28,8 @@ public class TempQueue {
     }
 
     public void prepareFixed(Timespan timespan, int amount, AtomicDouble total, double defaultValue) {
+        if (!isFixed) throw new UnsupportedOperationException();
+
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
         }
@@ -34,11 +37,13 @@ public class TempQueue {
     }
 
     public void prepareTimed(Timespan timespan, AtomicDouble total) {
+        if (isFixed) throw new UnsupportedOperationException();
+
         this.timespan = timespan;
         this.total = total;
     }
 
-    public int getQueueSize(TempQueuedTracker tracker) {
+    public int getQueueSize() {
         return isFixed ? FIXED.size() : TIMED.size();
     }
 
@@ -60,7 +65,7 @@ public class TempQueue {
             return FIXED.remove();
         } else {
             synchronized (this) {
-                TIMED.add(new TimedNode(amount));
+                if (amount > 0) TIMED.add(new TimedNode(amount));
 
                 final Iterator<TimedNode> sampleNodeIterator = TIMED.iterator();
                 while (sampleNodeIterator.hasNext()) {
@@ -87,5 +92,13 @@ public class TempQueue {
 
         private final double value;
         private final long insertionInstant = System.currentTimeMillis();
+
+        public double getValue() {
+            return value;
+        }
+
+        public long getInsertionInstant() {
+            return insertionInstant;
+        }
     }
 }

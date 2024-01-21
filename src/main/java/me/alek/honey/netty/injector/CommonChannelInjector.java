@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
@@ -13,17 +14,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommonChannelInjector {
 
     private static final List<UUID> injectedPlayers = new ArrayList<>();
-    private static final CountDownLatch injectedLatch = new CountDownLatch(1);
-
-    public static CountDownLatch getInjectedLatch() {
-        return injectedLatch;
-    }
 
     public static void inject(InjectEvent.InjectCallback callback, InjectEvent.InjectType type, InjectEvent.InjectBound bound) {
         final InjectEvent event = new InjectEvent(type, callback, bound);
@@ -38,26 +36,41 @@ public class CommonChannelInjector {
         BEFORE, AFTER
     }
 
+    private static boolean injectPipeline0(ChannelPipeline pipeline, ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative) {
+        if (nmsName.equals("decompress")) {
+            if (pipeline.get(nmsName) == null) {
+
+                // no decompress in pipeline, moving decoder further to real decoder
+                pipeline.addBefore("decoder", name, handler);
+            }
+        }
+        if (!pipeline.toMap().containsKey(name)) {
+            if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
+            if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);
+        }
+        return pipeline.get(name) != null;
+    }
+
     public static void injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel) {
         final ChannelPipeline pipeline = channel.pipeline();
 
         // ignored already injected pipelines
         if (pipeline.get(name) != null) return;
 
-        channel.eventLoop().execute(() -> {
-            if (nmsName.equals("decompress")) {
-                if (pipeline.get(nmsName) == null) {
-
-                    // no decompress in pipeline, moving decoder further to real decoder
-                    pipeline.addBefore("decoder", name, handler);
-                    return;
+        Callable<Boolean> injectedCallable = () -> injectPipeline0(pipeline, handler, nmsName, name, relative);
+        boolean notInjected = true;
+        while (notInjected) {
+            try {
+                if (channel.eventLoop().inEventLoop())
+                    notInjected = !injectedCallable.call();
+                else {
+                    Future<Boolean> injectedFuture = channel.eventLoop().submit(injectedCallable);
+                    notInjected = !injectedFuture.get();
                 }
-                pipeline.addAfter(nmsName, name, handler);
-            } else if (!pipeline.toMap().containsKey(nmsName)) {
-                if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
-                if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-        });
+        }
     }
 
     private static void saveInjection(Player player) {
@@ -72,12 +85,9 @@ public class CommonChannelInjector {
         final DuplexChannelHandler handler = new DuplexChannelHandler(channel, player);
         final String handlerName = PacketLibrary.get().getHandlerName();
 
-        saveInjection(player);
-
         injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel);
 
-        // done injecting, so notify every waiting thread
-        injectedLatch.countDown();
+        saveInjection(player);
 
         return handler;
     }
@@ -86,7 +96,7 @@ public class CommonChannelInjector {
         final InboundPacketDecoder handler = new InboundPacketDecoder(player);
         final String handlerName = PacketLibrary.get().getDecoderName();
 
-        injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.BEFORE, channel);
+        injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.AFTER, channel);
 
         return handler;
     }
@@ -97,10 +107,12 @@ public class CommonChannelInjector {
         if (uuid == null || Bukkit.getPlayer(uuid) == null) {
             return injectHandler(channel, null);
         }
-        else return injectPlayer(Objects.requireNonNull(Bukkit.getPlayer(uuid)), injectType, true);
+        else return injectPlayer(Bukkit.getPlayer(uuid), injectType, true);
     }
 
     public static ChannelHandler injectPlayer(Player player, InjectEvent.InjectType injectType, boolean reallyInject) {
+        if (player == null) return null;
+
         if (injectedPlayers.contains(player.getUniqueId())) {
             return getHandler(NMSUtils.getChannel(player));
         }
@@ -109,7 +121,6 @@ public class CommonChannelInjector {
         final Channel channel = NMSUtils.getChannel(player);
 
         final PlayerInjectEvent event;
-
         ChannelHandler handler = null;
         if (channel == null)
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.ERROR);

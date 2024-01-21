@@ -56,38 +56,34 @@ public class PacketWrapperInvokerFactory {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static Consumer<AsyncFuture> load() {
-        return (future) -> {
-            final BufferedMapCreator<PacketTypeEnum, MethodInvoker<Object>> mapCreator = new BufferedMapCreator<>();
+    public static void load() {
+        final BufferedMapCreator<PacketTypeEnum, MethodInvoker<Object>> mapCreator = new BufferedMapCreator<>();
 
-            for (Method method : PacketWrapperInvokerFactory.class.getDeclaredMethods()) {
-                PacketFactory wrappedPacket = method.getAnnotation(PacketFactory.class);
-                if (wrappedPacket == null) {
-                    continue;
-                }
-                final MethodInvoker<Object> methodInvoker = (MethodInvoker<Object>) Reflection.getMethod(method);
-                METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
+        for (Method method : PacketWrapperInvokerFactory.class.getDeclaredMethods()) {
+            PacketFactory wrappedPacket = method.getAnnotation(PacketFactory.class);
+            if (wrappedPacket == null) {
+                continue;
             }
+            final MethodInvoker<Object> methodInvoker = Reflection.getMethod(method);
+            METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
+        }
 
-            PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
-                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
-                return getCachedInvoker(packetType.getNmsClass().getSimpleName());
-            });
-            HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.HANDSHAKE, PROTOCOL_VERSION), (packetType) -> {
-                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
-                return getCachedInvoker(packetType.getNmsClass().getSimpleName());
-            });
-            LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.LOGIN, PROTOCOL_VERSION), (packetType) -> {
-                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
-                return getCachedInvoker(packetType.getNmsClass().getSimpleName());
-            });
-            STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.STATUS, PROTOCOL_VERSION), (packetType) -> {
-                if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
-                return getCachedInvoker(packetType.getNmsClass().getSimpleName());
-            });
-            future.done();
-        };
+        PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
+            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+        });
+        HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.HANDSHAKE, PROTOCOL_VERSION), (packetType) -> {
+            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+        });
+        LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.LOGIN, PROTOCOL_VERSION), (packetType) -> {
+            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+        });
+        STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.STATUS, PROTOCOL_VERSION), (packetType) -> {
+            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+        });
     }
 
     private static final NetProtocol PROTOCOL_VERSION = NetProtocol.getProtocol();
@@ -98,10 +94,10 @@ public class PacketWrapperInvokerFactory {
     private static Map<PacketTypeEnum, MethodInvoker<Object>> STATUS_CACHE;
 
     private static MethodInvoker<Object> getCachedInvoker(String name) {
-        if (METHODS_CACHE.get(name) != null) {
+        if (METHODS_CACHE.get(name) != null)
             return METHODS_CACHE.get(name);
-        }
-        throw new RuntimeException("Ingen packet wrapper for " + name);
+
+        throw new RuntimeException("No packet wrapper for " + name);
     }
 
     public static MethodInvoker<Object> createWrapperInvoker(PacketTypeEnum packetType) {

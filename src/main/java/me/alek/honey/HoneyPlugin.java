@@ -175,12 +175,15 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
                         }
                     }
                 }
+                if (!HoneyPlugin.get().isRunning())
+                    this.cancel();
             }
         }.runTaskTimerAsynchronously(this, 0L, 20L);
     }
 
     @Override
     public void onDisable() {
+        Bukkit.broadcastMessage("Disabling Honey");
         isRunning = false;
 
         if (PacketLibrary.get() != null) PacketLibrary.get().disable();
@@ -194,7 +197,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
                 if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
                     PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
 
-                if (check.getCheckType() == HoneyCheckType.DECODE)
+                if (check.getCheckType() == HoneyCheckType.DECODE && check instanceof IListener)
                     PacketLibrary.get().addDecodeListener((SyncPacketAdapter<?>) check, priority);
 
                 check.load();

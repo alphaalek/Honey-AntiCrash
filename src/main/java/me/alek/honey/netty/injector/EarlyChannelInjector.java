@@ -92,7 +92,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         } catch (Exception ex) {
             CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
 
-            HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel! Contact Alek for a fix!");
+            HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel!");
             Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
             return;
         }

@@ -8,6 +8,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.WideTempQueuedHandleTracker;
+import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -17,7 +18,6 @@ import java.util.Arrays;
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
     private CheckVisitor<WP> cachedVisitor;
-    private static final DecimalFormat formatter = new DecimalFormat("###.##");
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
@@ -49,7 +49,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
         for (double percentage : percentages) {
             if (percentage == 0) percentage = 1;
-            message.append(", ").append(formatter.format(percentage * 100)).append("%");
+            message.append(", ").append(NumberConversions.format(percentage * 100, 2)).append("%");
         }
         return message.substring(2, message.length());
     }
@@ -57,7 +57,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {
         if (packetContainer.getState() == PacketState.PLAY) {
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-                //return;
+                return;
             }
         }
         CheckContextContainer checkContextContainer = new CheckContextContainer();

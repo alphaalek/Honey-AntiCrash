@@ -18,10 +18,19 @@ public class BukkitEventInternal implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        onJoin(event, true);
+    }
+
+    public void onJoin(PlayerJoinEvent event, boolean firstCall) {
         Player player = event.getPlayer();
 
         PacketLibrary library = PacketLibrary.get();
         Channel channel = NMSUtils.getChannel(player);
+        if ((channel == null || channel.pipeline().toMap().isEmpty()) && !firstCall) {
+            NMSUtils.removeChannelLookup(player.getUniqueId());
+            onJoin(event, false);
+            return;
+        }
 
         if (channel == null || channel.pipeline().toMap().isEmpty()) {
             player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
@@ -29,15 +38,6 @@ public class BukkitEventInternal implements Listener {
         }
         AbstractNettyChannelInjector injector = library.getInjector();
 
-        if (!library.useLateInjection()) {
-            try {
-                CommonChannelInjector.getInjectedLatch().await();
-            } catch (Exception ex) {
-                // interrupted, so the pipeline was never done injecting
-                ex.printStackTrace();
-                channel.close();
-            }
-        }
         boolean injected = false;
         if (!library.useLateInjection()) {
 
@@ -50,6 +50,7 @@ public class BukkitEventInternal implements Listener {
                 injector.injectPlayer(player, false);
             }
         }
+        // late inject player's channel if it's not injected yet
         if (!injected) injector.injectPlayer(player, true);
     }
 

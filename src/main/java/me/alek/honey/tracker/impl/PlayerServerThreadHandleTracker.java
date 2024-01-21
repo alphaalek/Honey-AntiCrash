@@ -50,6 +50,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        DuplexChannelHandler.getLastPacketMap().clear();
     }
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
