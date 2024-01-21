@@ -53,7 +53,7 @@ public class CommonChannelInjector {
                     return;
                 }
                 pipeline.addAfter(nmsName, name, handler);
-            } else {
+            } else if (!pipeline.toMap().containsKey(nmsName)) {
                 if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
                 if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);
             }
