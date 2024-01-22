@@ -53,7 +53,7 @@ public class BukkitEventInternal implements Listener {
         // late inject player's channel if it's not injected yet
         if (!injected) injector.injectPlayer(player, true);
 
-        if (NMSUtils.getChannel(player).pipeline().get(PacketLibrary.get().getHandlerName()) == null) {
+        if (injector.getHandler(channel) == null) {
             player.kickPlayer("Broken pipe!");
         }
     }

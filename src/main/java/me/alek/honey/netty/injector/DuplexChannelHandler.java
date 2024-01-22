@@ -69,9 +69,11 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
                 // waiting for minecraft to add decompress or decode channel handler
                 if (pipeline.get("decompress") == null && pipeline.get("decoder") == null) break;
-                if (player == null) break;
 
-                CommonChannelInjector.injectDecoder(channel, player);
+                if (CommonChannelInjector.injectDecoder(channel, player) == null && player.isOnline()) {
+                    Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                            () -> player.kickPlayer("Error occurred when injecting decoder handler for pipeline."));
+                }
                 return;
             }
         }).start();

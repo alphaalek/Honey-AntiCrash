@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public class CommonChannelInjector {
 
@@ -41,7 +42,7 @@ public class CommonChannelInjector {
         if (nmsName.equals("decompress")) {
             if (pipeline.get(nmsName) == null) {
 
-                // no decompress in pipeline, moving decoder further to real decoder
+                // no decompress in pipeline, moving honey decoder further to nms decoder
                 pipeline.addBefore("decoder", name, handler);
             }
         }
@@ -52,15 +53,16 @@ public class CommonChannelInjector {
         return pipeline.get(name) != null;
     }
 
-    public static boolean injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel) {
+    public static boolean injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel, Supplier<Boolean> keepTrying) {
         final ChannelPipeline pipeline = channel.pipeline();
 
         // ignored already injected pipelines
         if (pipeline.get(name) != null) return true;
+        long started = System.currentTimeMillis();
 
         Callable<Boolean> injectedCallable = () -> injectPipeline0(pipeline, handler, nmsName, name, relative);
         boolean notInjected = true;
-        while (notInjected && channel.isActive() && channel.isOpen()) {
+        while (notInjected && channel.isActive() && channel.isOpen() && keepTrying.get() && System.currentTimeMillis() - started < 1000) {
             try {
                 if (channel.eventLoop().inEventLoop())
                     notInjected = !injectedCallable.call();
@@ -84,14 +86,18 @@ public class CommonChannelInjector {
     }
 
     private static ChannelHandler injectHandler(Channel channel, Player player, boolean firstCall) {
+        if (channel == null) return null;
+
         final DuplexChannelHandler handler = new DuplexChannelHandler(channel, player);
         final String handlerName = PacketLibrary.get().getHandlerName();
 
-        if (!injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel)) {
-            if (player != null && firstCall && (!channel.isOpen() || !channel.isActive() || channel.pipeline().toMap().isEmpty())) {
+        if (!injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel, () -> player == null || player.isOnline())) {
+            if (player != null && firstCall) {
                 NMSUtils.removeChannelLookup(player.getUniqueId());
                 return injectHandler(NMSUtils.getChannel(player), player, false);
             }
+            return null;
+
         } else saveInjection(player);
 
         return handler;
@@ -105,7 +111,8 @@ public class CommonChannelInjector {
         final InboundPacketDecoder handler = new InboundPacketDecoder(player);
         final String handlerName = PacketLibrary.get().getDecoderName();
 
-        injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.AFTER, channel);
+        if (!injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.AFTER, channel, player::isOnline))
+            return null;
 
         return handler;
     }
@@ -122,15 +129,15 @@ public class CommonChannelInjector {
     public static ChannelHandler injectPlayer(Player player, InjectEvent.InjectType injectType, boolean reallyInject) {
         if (player == null) return null;
 
-        if (injectedPlayers.contains(player.getUniqueId())) {
-            return getHandler(NMSUtils.getChannel(player));
+        ChannelHandler handler = null;
+        if (injectedPlayers.contains(player.getUniqueId()) && (handler = getHandler(NMSUtils.getChannel(player))) != null) {
+            return handler;
         }
         injectedPlayers.add(player.getUniqueId());
 
         final Channel channel = NMSUtils.getChannel(player);
 
         final PlayerInjectEvent event;
-        ChannelHandler handler = null;
         if (channel == null)
             event = new PlayerInjectEvent(player, injectType, InjectEvent.InjectCallback.ERROR);
         else {

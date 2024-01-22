@@ -62,7 +62,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         };
         beginInitProtocol = new ChannelInitializer<Channel>() {
             @Override
-            protected void initChannel(Channel channel) throws Exception {
+            protected void initChannel(Channel channel) {
                 channel.pipeline().addLast(endInitProtocol);
             }
         };

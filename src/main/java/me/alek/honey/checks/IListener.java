@@ -11,6 +11,8 @@ public interface IListener {
 
     default void cleanup(Player player) {}
 
+    boolean hasInitializedCheckInstances();
+
     HoneyCheckType getCheckType();
 
     default ListenerPriority getPriority() {

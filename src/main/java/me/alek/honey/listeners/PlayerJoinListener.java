@@ -54,7 +54,8 @@ public class PlayerJoinListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         final Player player = event.getPlayer();
         for (IListener check : ListenerRegistry.getChecks()) {
-            check.cleanup(player);
+            if (check.hasInitializedCheckInstances())
+                check.cleanup(player);
         }
         instantJoinedMap.remove(player.getUniqueId());
 

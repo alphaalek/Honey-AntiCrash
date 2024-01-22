@@ -18,6 +18,7 @@ import java.util.Arrays;
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
     private CheckVisitor<WP> cachedVisitor;
+    private boolean initializedCheckInstances;
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
@@ -82,8 +83,13 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public CheckVisitor<WP> getCachedVisitor() {
         if (cachedVisitor == null) cachedVisitor = getVisitor();
+        initializedCheckInstances = true;
 
         return cachedVisitor;
+    }
+
+    public boolean hasInitializedCheckInstances() {
+        return initializedCheckInstances;
     }
 
     public abstract CheckVisitor<WP> getVisitor();

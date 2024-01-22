@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
 
     private CheckVisitor<?> cachedVisitor;
+    private boolean initializedCheckInstances;
 
     @Override
     public void onByteBufDecode(Player player, ByteBuf byteBuf) {
@@ -33,8 +34,13 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
         getCachedVisitor().check(player, byteBuf, checkContextContainer);
     }
 
+    public boolean hasInitializedCheckInstances() {
+        return initializedCheckInstances;
+    }
+
     public CheckVisitor<?> getCachedVisitor() {
         if (cachedVisitor == null) cachedVisitor = getVisitor();
+        initializedCheckInstances = true;
 
         return cachedVisitor;
     }
