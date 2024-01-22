@@ -12,6 +12,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -44,22 +45,22 @@ public class CommonChannelInjector {
                 pipeline.addBefore("decoder", name, handler);
             }
         }
-        if (!pipeline.toMap().containsKey(name)) {
+        if (!pipeline.toMap().containsKey(name) && pipeline.toMap().containsKey(nmsName)) {
             if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
             if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);
         }
         return pipeline.get(name) != null;
     }
 
-    public static void injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel) {
+    public static boolean injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel) {
         final ChannelPipeline pipeline = channel.pipeline();
 
         // ignored already injected pipelines
-        if (pipeline.get(name) != null) return;
+        if (pipeline.get(name) != null) return true;
 
         Callable<Boolean> injectedCallable = () -> injectPipeline0(pipeline, handler, nmsName, name, relative);
         boolean notInjected = true;
-        while (notInjected) {
+        while (notInjected && channel.isActive() && channel.isOpen()) {
             try {
                 if (channel.eventLoop().inEventLoop())
                     notInjected = !injectedCallable.call();
@@ -71,6 +72,7 @@ public class CommonChannelInjector {
                 ex.printStackTrace();
             }
         }
+        return !notInjected;
     }
 
     private static void saveInjection(Player player) {
@@ -81,15 +83,22 @@ public class CommonChannelInjector {
         if (!injectedPlayers.contains(uuid)) injectedPlayers.add(uuid);
     }
 
-    public static ChannelHandler injectHandler(Channel channel, Player player) {
+    private static ChannelHandler injectHandler(Channel channel, Player player, boolean firstCall) {
         final DuplexChannelHandler handler = new DuplexChannelHandler(channel, player);
         final String handlerName = PacketLibrary.get().getHandlerName();
 
-        injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel);
-
-        saveInjection(player);
+        if (!injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel)) {
+            if (player != null && firstCall && (!channel.isOpen() || !channel.isActive() || channel.pipeline().toMap().isEmpty())) {
+                NMSUtils.removeChannelLookup(player.getUniqueId());
+                return injectHandler(NMSUtils.getChannel(player), player, false);
+            }
+        } else saveInjection(player);
 
         return handler;
+    }
+
+    public static ChannelHandler injectHandler(Channel channel, Player player) {
+        return injectHandler(channel, player, true);
     }
 
     public static ChannelHandler injectDecoder(Channel channel, Player player) {

@@ -32,6 +32,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
     private ChannelInitializer<Channel> beginInitProtocol;
     private ChannelInitializer<Channel> endInitProtocol;
     private List<Object> networkManagers;
+    private final Object lock = new Object();
 
 
     @Override
@@ -49,13 +50,13 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             @Override
             protected void initChannel(Channel channel) {
                 try {
-                    synchronized (networkManagers) {
+                    synchronized (lock) {
                         channel.eventLoop().submit(() -> {
                             CommonChannelInjector.injectChannel(channel, InjectEvent.InjectType.EARLY);
                         });
                     }
                 } catch (Exception ex) {
-                    throw new RuntimeException("Fejl ved inject channel " + channel);
+                    throw new RuntimeException("Error at injecting channel " + channel);
                 }
             }
         };

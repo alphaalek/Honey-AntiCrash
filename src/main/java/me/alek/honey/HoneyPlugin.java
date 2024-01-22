@@ -183,7 +183,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     @Override
     public void onDisable() {
-        Bukkit.broadcastMessage("Disabling Honey");
         isRunning = false;
 
         if (PacketLibrary.get() != null) PacketLibrary.get().disable();

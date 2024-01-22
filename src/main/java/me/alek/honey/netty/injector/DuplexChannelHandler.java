@@ -78,11 +78,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-    }
-
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
         hasRead = true;
         // decoder inject for late injection

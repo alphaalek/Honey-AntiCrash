@@ -1,6 +1,7 @@
 package me.alek.honey.netty.bukkit;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
 import me.alek.honey.netty.injector.AbstractPipelineProxy;
@@ -26,18 +27,17 @@ public class BukkitEventInternal implements Listener {
 
         PacketLibrary library = PacketLibrary.get();
         Channel channel = NMSUtils.getChannel(player);
-        if ((channel == null || channel.pipeline().toMap().isEmpty()) && !firstCall) {
+        if ((channel == null || channel.pipeline().toMap().isEmpty()) && firstCall) {
             NMSUtils.removeChannelLookup(player.getUniqueId());
             onJoin(event, false);
             return;
         }
-
         if (channel == null || channel.pipeline().toMap().isEmpty()) {
             player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
             return;
         }
-        AbstractNettyChannelInjector injector = library.getInjector();
 
+        AbstractNettyChannelInjector injector = library.getInjector();
         boolean injected = false;
         if (!library.useLateInjection()) {
 
@@ -52,6 +52,10 @@ public class BukkitEventInternal implements Listener {
         }
         // late inject player's channel if it's not injected yet
         if (!injected) injector.injectPlayer(player, true);
+
+        if (NMSUtils.getChannel(player).pipeline().get(PacketLibrary.get().getHandlerName()) == null) {
+            player.kickPlayer("Broken pipe!");
+        }
     }
 
     @EventHandler
