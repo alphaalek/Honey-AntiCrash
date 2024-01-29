@@ -6,14 +6,10 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.tracker.StatisticHandleTracker;
 import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-
-import java.text.DecimalFormat;
-import java.util.Arrays;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
@@ -41,8 +37,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         developmentData.setPoint(6, "STQ", serverThreadPoint);
         developmentData.setPoint(7, "NTQ", nettyThreadPoint);
 
-        developmentData.addInvinsibleData("STQ: " + serverThreadPoint);
-        developmentData.addInvinsibleData("NTQ: " + nettyThreadPoint);
+        developmentData.addInvisibleData("STQ: " + serverThreadPoint);
+        developmentData.addInvisibleData("NTQ: " + nettyThreadPoint);
     }
 
     private static String formatPercentages(double[] percentages) {
@@ -70,7 +66,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
             String packet = packetContainer.getHandle().getClass().getSimpleName();
             defaultDevelopmentData.addValue(" Packet", packet);
-            defaultDevelopmentData.addInvinsibleData("packet: " + packet);
+            defaultDevelopmentData.addInvisibleData("packet: " + packet);
             applyCommonDevelopmentData(defaultDevelopmentData);
         }
 

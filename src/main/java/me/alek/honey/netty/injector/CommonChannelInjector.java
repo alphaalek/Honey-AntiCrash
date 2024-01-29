@@ -70,6 +70,9 @@ public class CommonChannelInjector {
                     Future<Boolean> injectedFuture = channel.eventLoop().submit(injectedCallable);
                     notInjected = !injectedFuture.get();
                 }
+                if (notInjected)
+                    Thread.sleep(50);
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

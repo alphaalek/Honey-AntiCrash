@@ -6,7 +6,6 @@ import java.util.concurrent.FutureTask;
 
 public class PacketTaskFuture<V> extends FutureTask<V> {
 
-    boolean cancelled;
     private final UUID uuid;
 
     public PacketTaskFuture(Runnable runnable, UUID uuid) {
@@ -24,22 +23,17 @@ public class PacketTaskFuture<V> extends FutureTask<V> {
         try {
             super.run();
         } catch (Exception ex) {
-            // cancelled
-            cancelled = true;
-            return;
+            PacketTaskHandler.unregisterTask(uuid);
+            throw ex;
         }
         PacketTaskHandler.unregisterTask(uuid);
     }
 
     @Override
     public V get() throws ExecutionException, InterruptedException {
-        if (cancelled) return null;
-
         try {
              return super.get();
         } catch (Exception ex)  {
-            // cancelled
-            PacketTaskHandler.unregisterTask(uuid);
             return null;
         }
     }

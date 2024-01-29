@@ -16,7 +16,6 @@ import me.alek.honey.tracker.TempTimedQueuedTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingWindowCounter;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -35,7 +34,7 @@ public class LoggerService {
     private final Map<UUID, LinkedList<PacketTypeEnum>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
-    private final TempTimedQueuedTracker packetRatePerQueueExceution = new TempTimedQueuedTracker();
+    private final TempTimedQueuedTracker packetRatePerQueueExecution = new TempTimedQueuedTracker();
     private final AtomicInteger currentQueueExecutionPacket = new AtomicInteger(0);
 
 
@@ -113,7 +112,7 @@ public class LoggerService {
     }
 
     public double getPacketRatePerQueueExecution(Timespan timespan) {
-        return packetRatePerQueueExceution.getTotal(timespan) / packetRatePerQueueExceution.getLength(timespan);
+        return packetRatePerQueueExecution.getTotal(timespan) / packetRatePerQueueExecution.getLength(timespan);
     }
 
     public void registerQueueExecutionPacket() {
@@ -121,7 +120,7 @@ public class LoggerService {
     }
 
     public void registerQueueExecutionStop() {
-        packetRatePerQueueExceution.add(currentQueueExecutionPacket.get());
+        packetRatePerQueueExecution.add(currentQueueExecutionPacket.get());
         currentQueueExecutionPacket.set(0);
     }
 
@@ -143,17 +142,10 @@ public class LoggerService {
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
             HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.HIGHEST, () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol()));
-        } else {
-            HoneyPlugin.get().getPacketLibrary().removeFuzzyListeners(packetLoggerListener, PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol()));
         }
     }
 
-    public void logDebug(
-            LoggingStrategy strategy,
-            Object handle,
-            String playerName,
-            String violationName
-    ) {
+    public void logDebug(LoggingStrategy strategy, Object handle, String playerName, String violationName) {
         if (!debug) return;
         if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(handle.getClass().getSimpleName())) {
             return;
@@ -167,10 +159,7 @@ public class LoggerService {
         HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(
-            PacketContainer<WP> packetContainer,
-            String playerName
-    ) {
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
         if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getHandle().getClass().getSimpleName())) {
             return;
         }

@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player>, StatedHandleTracker<Double, Player> {
+public class OldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player>, StatedHandleTracker<Double, Player> {
 
     private static class TrackerContext {
 
@@ -24,13 +24,13 @@ public class AbstractOldAndCurrentHandleTracker extends UpdatingHandleTrackerTas
 
     private final StatisticHandleTracker<Double, Player> statisticHandleTracker;
 
-    public AbstractOldAndCurrentHandleTracker(long updateInterval, int... statisticInSecondsIndices) {
+    public OldAndCurrentHandleTracker(long updateInterval, int... statisticInSecondsIndices) {
         super(updateInterval);
 
         this.statisticHandleTracker = new WrappedStatisticHandleTrackerDelegate<>(this, statisticInSecondsIndices);
     }
 
-    public AbstractOldAndCurrentHandleTracker(long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
+    public OldAndCurrentHandleTracker(long updateInterval, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
         super(updateInterval);
 
         this.statisticHandleTracker = statisticHandleTracker;

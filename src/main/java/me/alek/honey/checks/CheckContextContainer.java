@@ -1,6 +1,7 @@
 package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyCheck;
+import me.alek.honey.utility.NumberConversions;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class CheckContextContainer {
 
         public int size() { return developmentDataSet.size(); }
 
-        public void addInvinsibleData(String data) {
+        public void addInvisibleData(String data) {
             invisibleData.add(data);
         }
 
@@ -79,12 +80,12 @@ public class CheckContextContainer {
         }
 
         public void addPoint(String key, Object value) {
-            if (value instanceof Number) value = decimalFormatter.format(value);
+            if (value instanceof Number) value = NumberConversions.format((Number) value);
             addText(" §8* " + key + ": " + value);
         }
 
         public void addValue(String key, Object value) {
-            if (value instanceof Number) value = decimalFormatter.format(value);
+            if (value instanceof Number) value = NumberConversions.format((Number) value);
             addText("§6" + key + ": §e" + value);
         }
 
@@ -101,12 +102,12 @@ public class CheckContextContainer {
         }
 
         public void setPoint(int index, String key, Object value) {
-            if (value instanceof Number) value = decimalFormatter.format(value);
+            if (value instanceof Number) value = NumberConversions.format((Number) value);
             setText(index, " §8* " + key + ": " + value);
         }
 
         public void setValue(int index, String key, Object value) {
-            if (value instanceof Number) value = decimalFormatter.format(value);
+            if (value instanceof Number) value = NumberConversions.format((Number) value);
             setText(index, "§6" + key + ": §e" + value);
         }
 

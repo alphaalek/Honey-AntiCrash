@@ -3,13 +3,13 @@ package me.alek.honey.tracker;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class AbstractRegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<Double, T> implements MarkableHandleTracker<Double, T> {
+public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<Double, T> implements MarkableHandleTracker<Double, T> {
 
     private final AtomicLong totalCheckHandleTime = new AtomicLong(0);
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
     private final Map<T, Deque<Long>> checkHandleRegistryDeque = new HashMap<>();
 
-    public AbstractRegistryMarkableHandleTracker(long updateInterval) {
+    public RegistryMarkableHandleTracker(long updateInterval) {
         super(updateInterval);
     }
 

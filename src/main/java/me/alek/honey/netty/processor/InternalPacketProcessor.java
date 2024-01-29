@@ -43,10 +43,6 @@ public class InternalPacketProcessor implements PacketProcessor {
             callPipeline((packetAdapter) -> {
                 try {
                     if (isRead) {
-                        if (packetContainer.getPacket() instanceof WrappedPlayInFlying) {
-                            callFlying(player, packetContainer, packetAdapter);
-                            return;
-                        }
                         packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     }
                     else {
@@ -63,10 +59,6 @@ public class InternalPacketProcessor implements PacketProcessor {
             callPipeline((packetAdapter) -> {
                 packetAdapter.onByteBufDecode(player, byteBuf);
             });
-        }
-
-        private <R extends WrappedPlayInFlying<R>> void callFlying(Player player, PacketContainer<?> packetContainer, SyncPacketAdapter<WP> packetAdapter) throws Exception {
-            ((SyncPacketAdapter<R>)packetAdapter).onPacketReceive(player, (PacketContainer<R>) packetContainer);
         }
 
         public void callPipeline(Consumer<SyncPacketAdapter<WP>> consumer) {

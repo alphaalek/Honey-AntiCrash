@@ -61,11 +61,9 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         hasStartedInjectingTask.set(true);
         new Thread(() -> {
 
+            ChannelPipeline pipeline = channel.pipeline();
             while (true) {
-                if (player != null && !player.isOnline()) {
-                    break;
-                }
-                ChannelPipeline pipeline = channel.pipeline();
+                if (!player.isOnline()) break;
 
                 // waiting for minecraft to add decompress or decode channel handler
                 if (pipeline.get("decompress") == null && pipeline.get("decoder") == null) break;
@@ -77,6 +75,12 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
                 return;
             }
         }).start();
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        // cause.printStackTrace();
+        super.exceptionCaught(ctx, cause);
     }
 
     @Override

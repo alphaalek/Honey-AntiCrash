@@ -19,7 +19,6 @@ import java.util.concurrent.FutureTask;
 
 public class PacketTaskHandler {
 
-    private static final int MAX_HANDLE_TIME_BEFORE_INTERRUPT = 1000;
     private static final int MAX_HANDLE_TIME_BEFORE_DUMP = 10000;
 
     private static final Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> lastPacketMap;
@@ -33,15 +32,9 @@ public class PacketTaskHandler {
         new Thread(() -> {
             while (true) {
                 Tuple2<PacketTaskFuture<?>, Long> task;
-                while ((task = tasksInserted.peek()) != null && System.currentTimeMillis() - task.getT2() > MAX_HANDLE_TIME_BEFORE_INTERRUPT) {
-                    task.getT1().cancel(true);
-
-                    if (System.currentTimeMillis() - task.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
-
-                        UUID uuid = Optional.ofNullable(task.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
-                        dumpThread(uuid);
-                        unregisterTask(uuid);
-                    }
+                while ((task = tasksInserted.peek()) != null && System.currentTimeMillis() - task.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
+                    UUID uuid = Optional.ofNullable(task.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
+                    dumpThread(uuid);
                 }
                 try {
                     Thread.sleep(10);
@@ -103,24 +96,22 @@ public class PacketTaskHandler {
         Bukkit.getLogger().severe("*******************************************************************************************");
     }
 
-    public static <V> void registerTask(PacketTaskFuture<V> task ){
+    public static <V> void registerTask(PacketTaskFuture<V> task){
         tasksInserted.add(new Tuple2<>(task, System.currentTimeMillis()));
     }
 
     public static void unregisterTask(UUID uuid) {
         Tuple2<PacketTaskFuture<?>, Long> task;
-        if ((task = tasksInserted.peek()) != null && task.getT1().getUUID() == uuid) {
-            tasksInserted.poll();
-
-            if (lastPacketMap.containsKey(uuid))
-                lastPacketMap.get(uuid).poll();
+        UUID taskUUID = null;
+        while (uuid != taskUUID) {
+            if ((task = tasksInserted.poll()) != null && (taskUUID = task.getT1().getUUID()) != null) {
+                if (lastPacketMap.containsKey(taskUUID)) lastPacketMap.get(taskUUID).poll();
+            }
+            if (task == null) break;
         }
     }
 
     public static <V> PacketTaskFuture<V> wrapTask(Object task, UUID uuid) {
-        if (task instanceof FutureTask) {
-            return new PacketTaskFuture<>((FutureTask<?>) task, uuid);
-        }
         if (task instanceof Runnable) {
             return new PacketTaskFuture<>((Runnable) task, uuid);
         }

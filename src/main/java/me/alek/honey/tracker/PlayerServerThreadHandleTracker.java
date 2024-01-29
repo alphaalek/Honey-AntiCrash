@@ -1,4 +1,4 @@
-package me.alek.honey.tracker.impl;
+package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
@@ -158,11 +158,15 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
 
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
+                // clear interrupted flag of thread to avoid tickloop waiting for next tick will throw exception, if it somehow has interrupted while running
+                Thread.interrupted();
+
                 if (initiallyTickRound) {
                     packetSendQueue.clear();
                     initiallyTickRound = false;
                 }
             }
+
             return task == null ? null : newTickTask(recentPacketAuthor.get() == null
                     ? (Runnable) task : PacketTaskHandler.wrapTask(task, recentPacketAuthor.get()));
         }

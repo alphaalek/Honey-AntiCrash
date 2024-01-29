@@ -22,7 +22,8 @@ public class PlayerJoinListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
         for (IListener check : ListenerRegistry.getChecks()) {
-            check.setup(player);
+            if (check.hasInitializedCheckInstances())
+                check.setup(player);
         }
         HoneyPlugin.get().getViolationService().add(player);
 

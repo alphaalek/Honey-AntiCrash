@@ -29,9 +29,7 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.*;
-import me.alek.honey.tracker.impl.CheckHandleTracker;
-import me.alek.honey.tracker.impl.PlayerNettyPacketHandleTracker;
-import me.alek.honey.tracker.impl.PlayerServerThreadHandleTracker;
+import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -125,9 +123,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
 
         // setup trackers
-        packetNettyHandleTracker = new PlayerNettyPacketHandleTracker();
+        packetNettyHandleTracker = new WideTempQueuedHandleTracker();
         packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker();
-        checkHandleTracker = new CheckHandleTracker();
+        checkHandleTracker = new RegistryMarkableHandleTracker<>(200L);
 
         // setup checks
         getServer().getScheduler().runTaskLater(this, this::registerChecks, 20L);

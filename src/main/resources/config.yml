@@ -1,15 +1,12 @@
-
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
 #   + You are currently using the version 1.6
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
-# Be aware, that you are currently using a BETA version. Bugs can occur, but I will constantly
-# patch those problems and provide with all the help I possibly can. Write to me, please.
 #
 # Also remember, that false flags can occur, so it is not recommended to ban a player just after
-# one single violation shown in chat. (it can emerge at serverside or clientside lagspikes sometimes)
+# some few violations shown in chat. (it can sometimes emerge at serverside or clientside lagspikes)
 # That is exactly what this file is for. You should change the values you can see below if that's
 # what your server need. Everything is configurable, and every server is different. That's why
 # you have to set it up to match your server! If you have trouble doing this, I will gladly help you. :-)
