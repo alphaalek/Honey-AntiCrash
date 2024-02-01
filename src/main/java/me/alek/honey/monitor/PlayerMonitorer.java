@@ -1,7 +1,6 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.tracker.TempQueue;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.NumberConversions;
@@ -39,17 +38,7 @@ public class PlayerMonitorer implements Monitorer {
     }
 
     private String getOfPacketTask(Timespan timespan) {
-        TempQueue.TimedNode node = serverThreadTracker.getTracker(player).getQueue(timespan).asTimedQueue().peek();
-        long diff;
-        double total = serverThreadTracker.getPlayerTotal(player, timespan);
-        if (node != null && node.getValue() > (
-                diff = Math.abs(
-                        (timespan.getTimespan() * 1000 - (System.currentTimeMillis() - node.getInsertionInstant()))
-                ))) {
-            total -= node.getValue() - diff;
-        }
-
-        double value = NumberConversions.format(total / (500 * timespan.getTimespan()) * 100, 1);
+        double value = NumberConversions.format(serverThreadTracker.getHalfServerThreadQuotient(player, timespan) * 100, 1);
         return value + "%" + (value < 100 ? "" : "§c⚠");
     }
 

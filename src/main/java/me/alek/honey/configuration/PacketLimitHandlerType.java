@@ -6,6 +6,11 @@ import java.util.Set;
 
 public enum PacketLimitHandlerType {
 
+    TRIGGER_THROTTLE(Sets.newHashSet(
+            ConfigurationOptions.VlSettingImplType.THROTTLE_AFTER,
+            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+    )),
+
     INTERVAL(Sets.newHashSet(
             ConfigurationOptions.VlSettingImplType.INTERVAL,
             ConfigurationOptions.VlSettingImplType.MAX_PER_INTERVAL,

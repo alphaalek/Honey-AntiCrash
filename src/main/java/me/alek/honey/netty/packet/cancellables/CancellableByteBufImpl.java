@@ -11,6 +11,7 @@ public class CancellableByteBufImpl implements CancellablePacketObserver {
 
     private final ByteBuf byteBuf;
     private final Player player;
+    private boolean cancelled;
 
     public CancellableByteBufImpl(Player player, ByteBuf byteBuf) {
         this.player = player;
@@ -19,6 +20,8 @@ public class CancellableByteBufImpl implements CancellablePacketObserver {
 
     @Override
     public void cancel() {
+        if (cancelled) return;
+        cancelled = true;
         HoneyPlugin.get().getNotificationService().showCancellingPackets(player);
         if (byteBuf.refCnt() > 0) byteBuf.clear();
     }

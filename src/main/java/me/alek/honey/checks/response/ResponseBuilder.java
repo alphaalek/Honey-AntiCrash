@@ -2,6 +2,7 @@ package me.alek.honey.checks.response;
 
 import me.alek.honey.services.ViolationService;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResponseBuilder {
@@ -26,8 +27,8 @@ public class ResponseBuilder {
         this.responseContainer = container;
     }
 
-    public ResponseBuilder add(ResponseContainer container) {
-        responseContainer.SUB_CONTAINERS.add(container);
+    public ResponseBuilder add(ResponseContainer... containers) {
+        responseContainer.SUB_CONTAINERS.addAll(Arrays.asList(containers));
         return this;
     }
 

@@ -40,8 +40,6 @@ public enum ListenerRegistry {
             }
             checks = checkList;
         }
-
-        Map<String, String> map = new HashMap<>();
         return checks;
     }
 

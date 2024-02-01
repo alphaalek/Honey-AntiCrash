@@ -5,7 +5,6 @@ import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -105,7 +104,6 @@ public class ItemAnalysis {
             return false;
         }
         context.addPoint("Type", flaggedCheck.name().toLowerCase());
-        Bukkit.getLogger().info("DEBUG: " + flaggedCheck.name());
 
         // HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
         return true;
@@ -117,7 +115,7 @@ public class ItemAnalysis {
         if (directAvailableMaterialChecks.containsKey(material)) {
             for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
 
-                if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
+                if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                     return getRegistryFrom(checker);
                 }
             }
@@ -128,7 +126,7 @@ public class ItemAnalysis {
                 if (directAvailableNBTChecks.containsKey(key)) {
                     for (final ItemChecker checker : directAvailableNBTChecks.get(key)) {
 
-                        if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
+                        if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                             return getRegistryFrom(checker);
                         }
                     }
@@ -137,7 +135,7 @@ public class ItemAnalysis {
         }
         for (final ItemChecker checker : globalAvailableChecks) {
 
-            if (checkAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
+            if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                 return getRegistryFrom(checker);
             }
         }
@@ -154,7 +152,7 @@ public class ItemAnalysis {
         return registry;
     }
 
-    private static boolean checkAcceptance(AcceptStrategy strategy, ItemStack item, NBTCompound nbt) {
+    private static boolean checkStrategyAcceptance(AcceptStrategy strategy, ItemStack item, NBTCompound nbt) {
         switch (strategy) {
 
             case ALL:

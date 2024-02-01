@@ -22,24 +22,17 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.tracker.HandleTracker;
-import me.alek.honey.tracker.StatisticHandleTracker;
-import me.alek.honey.tracker.StatisticProvider;
+import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.*;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private static final HandleTracker<Double, Player>[] trackers = (HandleTracker<Double, Player>[])
-            new HandleTracker[]{
-                    HoneyPlugin.get().getServerThreadHandleTracker(),
-                    HoneyPlugin.get().getNettyPacketHandleTracker()
-            };
     private static final String[] keys = new String[]{"stq", "ntq"};
 
     private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
@@ -74,7 +67,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new NettyH<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
-        visitor.visit(new NettyK<>());
 
         return visitor;
     }
@@ -151,11 +143,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.CLIENT)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 
-                    if (structure.withType(double.class).getAccessors().size() != 0) {
+                    if (!structure.withType(double.class).getAccessors().isEmpty()) {
                         packetTypes.add(packetType);
                         continue;
                     }
-                    if (structure.withType(float.class).getAccessors().size() != 0) {
+                    if (!structure.withType(float.class).getAccessors().isEmpty()) {
                         packetTypes.add(packetType);
                     }
                 }
@@ -216,8 +208,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
                 // disable this check if the TPS is really low or ping of the player is too high
-                if (HoneyPlugin.get().shouldExempt(player))
-                    return ResponseBuilder.SUCCESS.builder().terminate().build();
+                boolean exempt = HoneyPlugin.get().shouldExempt(player);
+                container.getStorage().putBoolean(exempt);
+                if (exempt)
+                    return ResponseBuilder.SUCCESS;
 
                 // evaluate the duration of decoding this packet
                 decodeTime = packetDecoder.getRecentDeltaDecode();
@@ -251,7 +245,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
+            Boolean exempt = false;
+            if (getSetting().isEnabled() && (exempt = container.getStorage().poll(boolean.class)) == null || !exempt) {
 
                 double decodeTime = container.getStorage().getDouble(0);
                 if (decodeTime > 0) {
@@ -281,53 +276,58 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
+        private final ResponseContainer success = ResponseBuilder.inst().add(
+                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("hsq")).build(),
+                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
+                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
+        ).build();
+
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
+                int size = tracker.getTrackerSize();
+
+                double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND);
+                if (hsq > 0.025) {
+                    container.getDefaultDevelopmentData().addPoint("Size", size);
+
+                    if ((size > 25 && hsq > 0.45) || (size > 10 && hsq > 0.55) || hsq > 0.65) {
+                        container.getDevelopmentData(this).addPoint("hsq", NumberConversions.format(hsq * 100) + "%");
+                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("h.s.q.")).flag(1).build();
+                    }
+
+                    double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND);
+                    if ((size > 15 && ta > 17.5) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
+                        container.getDevelopmentData(this).addPoint("ta", NumberConversions.format(ta * 100) + "%");
+                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.a.")).flag(1).build();
+                    }
+
+                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.FIVE_SECOND);
+                    if ((size > 15 && tt > 0.75) || (size > 25 && tt > 0.55)) {
+                        container.getDevelopmentData(this).addPoint("tt", NumberConversions.format(tt * 100) + "%");
+                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.t.")).flag(1).build();
+                    }
+                }
+                return success;
             }
             return ResponseBuilder.SUCCESS;
         }
 
         @Override
         public String getName() {
-            return "Netty.J (exp.)";
+            return "Netty.J";
         }
 
         @Override
         public String getDescription() {
-            return "Too high stq/ntq upper-end tracker stat";
+            return "Too high usage of server thread";
         }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
-        }
-    }
-
-    public static class NettyK<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
-
-        @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getName() {
-            return "Netty.K (exp.)";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Interval throttle for ntq/stq tracker stat";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
         }
     }
 }

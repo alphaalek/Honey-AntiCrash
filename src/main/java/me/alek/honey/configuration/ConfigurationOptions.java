@@ -270,7 +270,7 @@ public class ConfigurationOptions {
     }
 
    public enum VlSettingImplType {
-        MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED;
+        MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED, THROTTLE_AFTER;
 
         public String getPathName() {
             return name().toLowerCase().replace("_", "-");
@@ -304,6 +304,16 @@ public class ConfigurationOptions {
 
         default Set<VlSettingImplType> getRequiredTypes() {
             return Collections.singleton(VlSettingImplType.VLS_AMOUNT);
+        }
+    }
+
+    public interface VlTriggerThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
+
+        default Set<VlSettingImplType> getRequiredTypes() {
+            return Sets.newHashSet(
+                    VlSettingImplType.THROTTLE_AFTER,
+                    VlSettingImplType.VLS_AMOUNT
+            );
         }
     }
 
@@ -379,6 +389,8 @@ public class ConfigurationOptions {
         public double until;
         @VlSettingImpl(VlSettingImplType.DECAY)
         public int decay;
+        @VlSettingImpl(VlSettingImplType.THROTTLE_AFTER)
+        public int throttleAfter;
         @VlSettingImpl(VlSettingImplType.DECAY_AMOUNT)
         public int decayAmount;
         @VlSettingImpl(VlSettingImplType.MIN)
@@ -963,12 +975,14 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "rotation.b", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        @Keyed(keys = {"yaw", "pitch"})
         public static class RotationB extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation(prefixPaths = "rotation.c", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
+        @Keyed(keys = {"yaw", "pitch"})
         public static class RotationC extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
 
         }
@@ -1071,16 +1085,16 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.SIMPLE)
-        @Keyed(keys = {"stq", "ntq"})
-        public static class NettyJ extends VlSetting implements VlMaxRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
+        @Keyed(keys = {"hsq", "ta", "tt"})
+        public static class NettyJ extends VlSetting implements VlTriggerThrottleRequiredContentsSetting {
 
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.INTERVAL_THROTTLE)
-        @Keyed(keys = {"stq", "ntq"})
-        public static class NettyK extends VlSetting implements VlIntervalThrottleRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
+        @Keyed(keys = {"ta", "tt"})
+        public static class NettyK extends VlSetting implements VlTriggerThrottleRequiredContentsSetting {
 
         }
 

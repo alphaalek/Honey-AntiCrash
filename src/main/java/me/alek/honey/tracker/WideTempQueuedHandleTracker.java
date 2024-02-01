@@ -28,15 +28,32 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
         commonTracker.add(value);
     }
 
+    private double subtractExceedingTimedNode(Player player, Timespan timespan) {
+        TempQueue.TimedNode node = getTracker(player).getQueue(timespan).asTimedQueue().peek();
+        long diff;
+        if (node != null && node.getValue() > (
+                diff = Math.abs(
+                        (timespan.getTimespan() * 1000 - (System.currentTimeMillis() - node.getInsertionInstant()))
+                ))) {
+            return node.getValue() - diff;
+        }
+        return 0;
+    }
+
+    public double getHalfServerThreadQuotient(Player player, Timespan timespan) {
+        return getPlayerTotal(player, timespan) / (500 * timespan.getTimespan());
+    }
+
     public double getPlayerTotal(Player player, Timespan timespan) {
-        return getTracker(player).getTotal(timespan);
+        getTracker(player).add(0);
+        return getTracker(player).getTotal(timespan) - subtractExceedingTimedNode(player, timespan);
     }
 
     public double[] getStatistics(Player player) {
         double[] statistics = new double[Timespan.values().length];
         int i = 0;
         for (Timespan timespan : Timespan.values()) {
-            statistics[i++] = getTimeToAverageQuotient(player, timespan);
+            statistics[i++] = getTimeToAverageWithoutQuotient(player, timespan);
         }
         return statistics;
     }
@@ -62,7 +79,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public double getAverageWithout(Player player, Timespan timespan) {
-        if (getTrackerSize() == 1) return getPlayerTotal(player, timespan);
+        if (getTrackerSize() == 1) return Math.max(getTotal(timespan), getPlayerTotal(player, timespan));
 
         return (getTotal(timespan) - getPlayerTotal(player, timespan)) / (getTrackerSize() - 1);
     }

@@ -71,7 +71,7 @@ public class CommonChannelInjector {
                     notInjected = !injectedFuture.get();
                 }
                 if (notInjected)
-                    Thread.sleep(50);
+                    Thread.sleep(200);
 
             } catch (Exception ex) {
                 ex.printStackTrace();

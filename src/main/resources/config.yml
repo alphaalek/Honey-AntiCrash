@@ -246,14 +246,12 @@ netty:
 
   j:
     enabled: false # BETA
-    max: 20
+    throttle-after: 700
     vls-amount: 3
 
   k:
     enabled: false # BETA
-    interval: 800
-    threshold: 6.0
-    until: 35.0
+    throttle-after: 700
     vls-amount: 4
 
   l:

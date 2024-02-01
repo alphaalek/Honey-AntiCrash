@@ -14,7 +14,9 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
+import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -27,6 +29,9 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     private static final Map<UUID, Float> lastYawMap = new HashMap<>();
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
+    private static final ViolationService.CheckKey yawKey = new ViolationService.CheckKey("yaw");
+    private static final ViolationService.CheckKey pitchKey = new ViolationService.CheckKey("pitch");
+
     @Override
     public synchronized boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         Location location = packetContainer.getPacket().getLocation();
@@ -35,10 +40,19 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             return false;
         }
         float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player));
-        container.getStorage().putFloat(deltaYaw);
+        float deltaPitch = Locations.calculateYawDistance(location.getPitch(), getLastPitchFor(player));
+
+        ResponseContainer response = ResponseBuilder.inst().add(
+                ResponseBuilder.inst().flag(deltaYaw).withViolationKey(yawKey).build(),
+                ResponseBuilder.inst().flag(deltaPitch).withViolationKey(pitchKey).build()
+        ).build();
+        container.getStorage().put(ResponseContainer.class, response);
 
         lastYawMap.put(player.getUniqueId(), location.getYaw());
         lastPitchMap.put(player.getUniqueId(), location.getPitch());
+
+        container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
+        container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
         return true;
     }
 
@@ -75,21 +89,6 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         lastPitchMap.remove(player.getUniqueId());
     }
 
-    public static Vector getLastDirectionVectorFor(Player player) {
-        final Vector vector = new Vector();
-        final double rotY = getLastPitchFor(player);
-
-        vector.setY(-Math.sin(Math.toRadians(rotY)));
-
-        final double xz = Math.cos(Math.toRadians(rotY));
-        final double rotX = getLastYawFor(player);
-        vector.setX(-xz * Math.sin(Math.toRadians(rotX)));
-
-        vector.setZ(xz * Math.cos(Math.toRadians(rotX)));
-
-        return vector;
-    }
-
     public static float getLastYawFor(Player player) {
         return lastYawMap.getOrDefault(player.getUniqueId(), 0f);
     }
@@ -106,7 +105,6 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 final float pitch = packet.getPitch();
 
                 if (pitch < -90 || pitch > 90) {
-                    container.getDevelopmentData(this).addPoint("Pitch", pitch);
                     return ResponseBuilder.inst().flag().build();
                 }
             }
@@ -140,10 +138,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 return ResponseBuilder.SUCCESS.builder().terminate().build();
             }
             if (getSetting().isEnabled()) {
-                final double deltaYaw = container.getStorage().getFloat(0);
-
-                container.getDevelopmentData(this).addPoint("Delta Yaw", deltaYaw);
-                return ResponseBuilder.inst().flag(deltaYaw).build();
+                return container.getStorage().get(ResponseContainer.class, 0);
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -155,7 +150,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return "Too high delta yaw";
+            return "Too high delta rotation";
         }
 
         @Override
@@ -169,12 +164,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-                final float deltaYaw = container.getStorage().getFloat(0);
-
-                if (deltaYaw != 0) {
-                    container.getDevelopmentData(this).addPoint("Delta Yaw", deltaYaw);
-                    return ResponseBuilder.inst().flag(deltaYaw).build();
-                }
+                return container.getStorage().get(ResponseContainer.class, 0);
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -186,7 +176,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return "Buffer of yaw rotation exceeded";
+            return "Buffer of rotation exceeded";
         }
 
         @Override

@@ -1,7 +1,6 @@
 package me.alek.honey.services;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -20,7 +19,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
@@ -216,6 +214,8 @@ public class ViolationService {
                 return new PacketBufferOverflowHandler(player, setting);
             case BUFFER_THROTTLE:
                 return new PacketBufferThrottleHandler(player, setting);
+            case TRIGGER_THROTTLE:
+                return new PacketTriggerThrottleHandler(player, setting);
             default:
                 return null;
         }
@@ -297,7 +297,7 @@ public class ViolationService {
         }
 
         public AbstractPacketLimitHandler getAnyPacketLimitHandler() {
-            if (packetLimitHandlerDelegateLookup.size() == 0) return null;
+            if (packetLimitHandlerDelegateLookup.isEmpty()) return null;
 
             return packetLimitHandlerDelegateLookup.values().iterator().next();
         }
@@ -319,7 +319,7 @@ public class ViolationService {
                                          CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
             AbstractPacketLimitHandler delegate = null;
             if (checkKey == null || !packetLimitHandlerDelegateLookup.containsKey(checkKey)) {
-                if (packetLimitHandlerDelegateLookup.size() == 0) return false;
+                if (packetLimitHandlerDelegateLookup.isEmpty()) return false;
 
                 delegate =
                     cachedDefaultPacketLimitHandler == null
@@ -356,6 +356,20 @@ public class ViolationService {
             return setting;
         }
 
+        public synchronized void doFormatStuff(String violationName, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
+            if (developmentData != null) {
+                AbstractPacketListener.applyQuotients(player, developmentData);
+                applySettingsToDevelopmentData(developmentData);
+            }
+            HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, checkKey, getSetting(), this, developmentData);
+
+            try {
+                HoneyPlugin.get().getSQLManager().postViolation(player, violationName, ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         public synchronized boolean violate(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violations.set(0);
@@ -368,17 +382,7 @@ public class ViolationService {
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
             violations.incrementAndGet();
-            if (developmentData != null) {
-                AbstractPacketListener.applyQuotients(player, developmentData);
-                applySettingsToDevelopmentData(developmentData);
-            }
-            HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, checkKey, getSetting(), this, developmentData);
-
-            try {
-                HoneyPlugin.get().getSQLManager().postViolation(player, violationName, ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            doFormatStuff(violationName, developmentData, checkKey);
 
             if (violations.get() < getSetting().vlsAmount) return false;
 
@@ -387,7 +391,7 @@ public class ViolationService {
         }
 
         private void applySettingsToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
-            if (developmentData.size() >= 10) return;
+            if (developmentData.size() > 10) return;
 
             developmentData.addEmpty();
 
@@ -408,6 +412,38 @@ public class ViolationService {
         public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey);
 
         public abstract PacketLimitHandlerType getType();
+    }
+
+    public class PacketTriggerThrottleHandler extends AbstractPacketLimitHandler {
+
+        private double lastFlag;
+        private boolean hasShownFlag;
+
+        public PacketTriggerThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+        }
+
+        @Override
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, String violationName, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+            if (amount == 1 || System.currentTimeMillis() - lastFlag < getSetting().throttleAfter) {
+                if (onFlag != null) onFlag.run();
+
+                if (amount == 1) lastFlag = System.currentTimeMillis();
+                if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+
+                if (!hasShownFlag)
+                    doFormatStuff(violationName, developmentData, checkKey);
+                hasShownFlag = true;
+                return true;
+            }
+            hasShownFlag = false;
+            return false;
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.TRIGGER_THROTTLE;
+        }
     }
 
     public class PacketSimpleHandler extends AbstractPacketLimitHandler {

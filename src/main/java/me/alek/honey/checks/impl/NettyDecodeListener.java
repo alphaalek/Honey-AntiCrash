@@ -3,17 +3,24 @@ package me.alek.honey.checks.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.DecodeCheck;
+import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.reflect.ConstructorInvoker;
 import me.alek.honey.netty.utility.reflect.NMSUtils;
 import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.DecayingListeningCounter;
+import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -35,6 +42,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         visitor.visit(new NettyE());
         visitor.visit(new NettyF());
         visitor.visit(new NettyG());
+        visitor.visit(new NettyK());
         visitor.visit(nettyL = new NettyL());
         visitor.visit(nettyM = new NettyM());
         visitor.visit(nettyN = new NettyN());
@@ -69,7 +77,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 // check if the player sends invalid bytes to be decoded to a packet
-                if (player.isOnline() && (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0)) {
+                if (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0) {
 
                     return ResponseBuilder.inst().cancel().build();
                 }
@@ -215,6 +223,57 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
     }
 
+    public static class NettyK implements DecodeCheck, ViolationCheck {
+
+        private final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+        private final ResponseContainer success = ResponseBuilder.inst().add(
+                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
+                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
+        ).build();
+
+        @Override
+        public ResponseContainer check(Player player, ByteBuf packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+
+                int size = tracker.getTrackerSize();
+
+                double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND);
+                if (ta > 5) {
+                    container.getDefaultDevelopmentData().addPoint("Size", size);
+
+                    if ((size > 15 && ta > 12.5) || (size > 25 && ta > 10) || (size > 40 && ta > 8)) {
+                        container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
+                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
+                    }
+
+                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.FIVE_SECOND);
+                    if ((size > 15 && tt > 0.5) || (size > 25 && tt > 0.4)) {
+                        container.getDevelopmentData(this).addPoint("t.t.", NumberConversions.format(tt * 100) + "%");
+                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
+                    }
+
+                    return success;
+                }
+            }
+            return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public String getName() {
+            return "Netty.K";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too high usage of netty thread";
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
+        }
+    }
+
     public abstract static class AbstractCategorizedCheck implements DecodeCheck, ViolationCheck {
 
         private final Map<UUID, Map<Long, DecayingListeningCounter>> byteBufSizeMap = new HashMap<>();
@@ -229,8 +288,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                     byteBufSizeMap.put(player.getUniqueId(), new HashMap<>());
                 }
                 final Map<Long, DecayingListeningCounter> map = this.byteBufSizeMap.get(player.getUniqueId());
-
                 if (byteBuf.capacity() > getSetting().threshold) {
+
                     long diff = System.currentTimeMillis() -
                             lastFlagMap.computeIfAbsent(player.getUniqueId(), (d) -> System.currentTimeMillis() - getSetting().min + 1);
 
