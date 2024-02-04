@@ -7,7 +7,11 @@ public class MethodInvoker<T> implements IReflectResolver<T> {
     private final Method method;
 
     public MethodInvoker(Method method) {
-        method.setAccessible(true);
+        try {
+            method.setAccessible(true);
+        } catch (Exception ex) {
+
+        }
         this.method = method;
     }
 

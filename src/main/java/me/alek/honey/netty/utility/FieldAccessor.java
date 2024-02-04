@@ -7,8 +7,12 @@ public class FieldAccessor<T> implements IReflectResolver<T> {
     private final Field field;
 
     public FieldAccessor(Field field) {
+        try {
+            field.setAccessible(true);
+        } catch (Exception ex) {
+
+        }
         this.field = field;
-        field.setAccessible(true);
     }
 
     public Field getField() {

@@ -81,7 +81,7 @@ public class NBTFactory {
         final IStructureModifier<Byte> byteModifier = reflectStructure
                 .withType(byte.class)
                 .withTarget(handle);
-        final byte type = byteModifier.readField("type", 0);
+        final byte type = byteModifier.readField(0);
         if (type != 0) {
             return NBTType.getFromTypeId(type);
         }
@@ -109,7 +109,7 @@ public class NBTFactory {
                 .withTarget(handle);
         Validate.notNull(structureModifier);
 
-        final byte typeId = structureModifier.invokeMethod("getTypeId", 0);
+        final byte typeId = structureModifier.invokeMethod(0);
         final NBTType type = NBTType.getFromTypeId(typeId);
 
         if (type == NBTType.LIST && !ignoreNestedLists) {

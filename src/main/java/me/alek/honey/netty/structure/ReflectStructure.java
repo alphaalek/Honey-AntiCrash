@@ -382,11 +382,15 @@ public class ReflectStructure<T, C> {
                 return null;
             }
             final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
+            if (!Arrays.equals(params, invoker.getMethod().getParameterTypes())) {
+                return null;
+            }
+
             if (converter != null) {
                 return converter.convertDelegate(invoker.invokeWithException(handle, params));
             }
             else {
-                // T & C er den samme i generic context
+                // T & C is the same in generic context
                 return (C) invoker.invokeWithException(handle, params);
             }
         }
@@ -399,12 +403,13 @@ public class ReflectStructure<T, C> {
             int specificIndex = 0;
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
 
-                if (invoker.getName().equals(name) && index == specificIndex++) {
+                if (Arrays.equals(params, invoker.getMethod().getParameterTypes())
+                        && invoker.getName().equals(name) && index == specificIndex++) {
                     if (converter != null) {
                         return converter.convertDelegate(invoker.invokeWithException(handle, params));
                     }
                     else {
-                        // T & C er den samme i generic context
+                        // T & C is the same in generic context
                         return (C) invoker.invokeWithException(handle, params);
                     }
                 }
