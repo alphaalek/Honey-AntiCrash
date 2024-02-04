@@ -1,4 +1,4 @@
-package me.alek.honey.netty.utility.protocol;
+package me.alek.honey.netty.utility;
 
 public class NetProtocolRange {
 

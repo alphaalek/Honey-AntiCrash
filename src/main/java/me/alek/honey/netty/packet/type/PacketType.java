@@ -1,9 +1,8 @@
 package me.alek.honey.netty.packet.type;
 
-import me.alek.honey.netty.utility.AsyncFuture;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.protocol.NetProtocolRange;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.NetProtocolRange;
+import me.alek.honey.netty.utility.Reflection;
 
 import java.util.*;
 

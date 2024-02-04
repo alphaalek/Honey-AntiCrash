@@ -1,9 +1,9 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.MethodInvoker;
+import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSign> {

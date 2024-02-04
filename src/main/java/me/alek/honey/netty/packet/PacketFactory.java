@@ -4,9 +4,8 @@ import io.netty.channel.Channel;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.MethodInvoker;
+import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.entity.Player;
 
 import java.util.Map;

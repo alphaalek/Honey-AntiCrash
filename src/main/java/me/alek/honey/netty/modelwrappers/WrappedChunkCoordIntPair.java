@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 
 public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
 

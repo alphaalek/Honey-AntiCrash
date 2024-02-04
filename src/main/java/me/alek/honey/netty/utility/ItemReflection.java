@@ -1,4 +1,4 @@
-package me.alek.honey.netty.utility.reflect;
+package me.alek.honey.netty.utility;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

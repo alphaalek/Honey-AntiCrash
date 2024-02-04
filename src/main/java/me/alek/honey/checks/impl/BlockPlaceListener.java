@@ -17,7 +17,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
+import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.utility.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;

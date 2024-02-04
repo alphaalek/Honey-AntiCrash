@@ -17,11 +17,10 @@ import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInPing;
 import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInStart;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutPong;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutServerInfo;
-import me.alek.honey.netty.utility.AsyncFuture;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.MethodInvoker;
+import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -33,7 +32,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PacketWrapperInvokerFactory {

@@ -21,11 +21,10 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
+import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.*;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;

@@ -1,14 +1,11 @@
 package me.alek.honey.netty.bukkit;
 
 import io.netty.channel.Channel;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
 import me.alek.honey.netty.injector.AbstractPipelineProxy;
-import me.alek.honey.netty.injector.CommonChannelInjector;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

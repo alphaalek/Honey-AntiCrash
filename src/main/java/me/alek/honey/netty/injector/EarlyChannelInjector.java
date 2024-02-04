@@ -5,9 +5,9 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.reflect.FieldAccessor;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.FieldAccessor;
+import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

@@ -5,17 +5,15 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.reflect.FieldAccessor;
+import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.util.*;
-import java.util.concurrent.FutureTask;
 
 public class PacketTaskHandler {
 

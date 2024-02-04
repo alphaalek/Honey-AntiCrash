@@ -1,8 +1,8 @@
 package me.alek.honey.netty.api.packet;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.netty.utility.reflect.FieldAccessor;
-import me.alek.honey.netty.utility.reflect.MethodInvoker;
+import me.alek.honey.netty.utility.FieldAccessor;
+import me.alek.honey.netty.utility.MethodInvoker;
 
 import java.util.Collection;
 import java.util.List;

@@ -14,7 +14,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInUseEntity;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
+import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;

@@ -1,6 +1,6 @@
 package me.alek.honey.checks.item;
 
-import me.alek.honey.netty.utility.reflect.MaterialMappings;
+import me.alek.honey.netty.utility.MaterialMappings;
 import org.bukkit.Material;
 
 import java.util.Optional;

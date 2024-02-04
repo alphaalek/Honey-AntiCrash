@@ -13,8 +13,8 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

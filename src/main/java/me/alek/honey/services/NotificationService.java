@@ -10,8 +10,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
@@ -24,7 +24,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import javax.management.NotificationListener;
 import java.util.*;
 
 public class NotificationService {

@@ -12,9 +12,7 @@ import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.entity.Player;
 
 import java.util.*;

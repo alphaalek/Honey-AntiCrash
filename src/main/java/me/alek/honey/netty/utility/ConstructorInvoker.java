@@ -1,4 +1,4 @@
-package me.alek.honey.netty.utility.reflect;
+package me.alek.honey.netty.utility;
 
 import java.lang.reflect.Constructor;
 

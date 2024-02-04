@@ -2,8 +2,8 @@ package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.reflect.Reflection;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCustomPayload> {

@@ -1,4 +1,4 @@
-package me.alek.honey.netty.utility.protocol;
+package me.alek.honey.netty.utility;
 
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.packet.type.RangedPacketTypeEnum;

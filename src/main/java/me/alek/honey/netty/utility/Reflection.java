@@ -1,6 +1,5 @@
-package me.alek.honey.netty.utility.reflect;
+package me.alek.honey.netty.utility;
 
-import me.alek.honey.netty.utility.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;

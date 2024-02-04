@@ -4,7 +4,7 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.util.Vector;
 
 import java.util.Optional;

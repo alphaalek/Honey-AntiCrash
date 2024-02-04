@@ -8,7 +8,7 @@ import me.alek.honey.checks.impl.FloodListener;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;

@@ -11,7 +11,7 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.entity.Player;
 
 import java.net.InetSocketAddress;

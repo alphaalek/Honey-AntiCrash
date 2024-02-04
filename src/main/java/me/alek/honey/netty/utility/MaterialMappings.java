@@ -1,7 +1,5 @@
-package me.alek.honey.netty.utility.reflect;
+package me.alek.honey.netty.utility;
 
-import me.alek.honey.netty.utility.protocol.NetProtocol;
-import me.alek.honey.netty.utility.protocol.NetProtocolRange;
 import org.bukkit.Material;
 
 import java.util.ArrayList;

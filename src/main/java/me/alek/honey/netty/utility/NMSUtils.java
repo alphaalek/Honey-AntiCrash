@@ -1,4 +1,4 @@
-package me.alek.honey.netty.utility.reflect;
+package me.alek.honey.netty.utility;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.api.packet.IStructureModifier;

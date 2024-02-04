@@ -15,7 +15,7 @@ import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

@@ -2,17 +2,15 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import me.alek.honey.netty.api.event.impl.inject.PlayerEjectEvent;
 import me.alek.honey.netty.api.event.impl.inject.PlayerInjectEvent;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.Callable;

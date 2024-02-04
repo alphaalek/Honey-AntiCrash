@@ -21,7 +21,7 @@ import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.protocol.NetProtocol;
+import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;

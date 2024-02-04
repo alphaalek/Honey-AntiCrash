@@ -5,7 +5,7 @@ import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.reflect.NMSUtils;
+import me.alek.honey.netty.utility.NMSUtils;
 
 public class WrappedNetworkManager extends WrappedObject<WrappedNetworkManager> {
 
