@@ -15,7 +15,7 @@ public class ConstructorInvoker<T> {
             this.constructor = clazz.getDeclaredConstructor(params);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection fejl");
+            throw new RuntimeException("Reflection error");
         }
     }
 
@@ -24,7 +24,7 @@ public class ConstructorInvoker<T> {
             return constructor.newInstance(parameters);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection fejl");
+            throw new RuntimeException("Reflection error");
         }
     }
 

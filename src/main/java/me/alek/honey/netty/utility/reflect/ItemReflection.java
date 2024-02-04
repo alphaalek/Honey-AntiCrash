@@ -3,6 +3,8 @@ package me.alek.honey.netty.utility.reflect;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+
 public class ItemReflection {
 
     private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
@@ -24,7 +26,7 @@ public class ItemReflection {
         if (itemStack != null) {
             try {
                 if (itemStackClass.isInstance(itemStack)) {
-                    return (ItemStack) bukkitCopyInvoker.invoke(null, itemStack);
+                    return (ItemStack) bukkitCopyInvoker.invokeWithException(null, itemStack);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -34,14 +36,15 @@ public class ItemReflection {
     }
 
     public static Object asNMSItem(ItemStack item) {
-        if (item != null) {
+        if (item != null && Arrays.equals(nmsCopyInvoker.getMethod().getParameterTypes(), new Class[]{ItemStack.class})) {
 
             try {
-                Object nmsItem = nmsCopyInvoker.invoke(null, item);
+                Object nmsItem = nmsCopyInvoker.invokeWithException(null, item);
                 if (isNMSItem(nmsItem)) {
                     return nmsItem;
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
         return null;

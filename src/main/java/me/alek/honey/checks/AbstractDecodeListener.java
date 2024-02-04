@@ -34,11 +34,11 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
         getCachedVisitor().check(player, byteBuf, checkContextContainer);
     }
 
-    public boolean hasInitializedCheckInstances() {
+    public synchronized boolean hasInitializedCheckInstances() {
         return initializedCheckInstances;
     }
 
-    public CheckVisitor<?> getCachedVisitor() {
+    public synchronized CheckVisitor<?> getCachedVisitor() {
         if (cachedVisitor == null) cachedVisitor = getVisitor();
         initializedCheckInstances = true;
 

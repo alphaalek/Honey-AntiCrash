@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
-#   + You are currently using the version 1.6
+#   + You are currently using the version 1.6.1
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -245,12 +245,12 @@ netty:
     vls-amount: 1
 
   j:
-    enabled: false # BETA
+    enabled: true
     throttle-after: 700
     vls-amount: 3
 
   k:
-    enabled: false # BETA
+    enabled: true
     throttle-after: 700
     vls-amount: 4
 

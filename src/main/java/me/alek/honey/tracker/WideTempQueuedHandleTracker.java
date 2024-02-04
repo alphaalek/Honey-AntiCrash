@@ -1,5 +1,6 @@
 package me.alek.honey.tracker;
 
+import me.alek.honey.HoneyPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -31,17 +32,14 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     private double subtractExceedingTimedNode(Player player, Timespan timespan) {
         TempQueue.TimedNode node = getTracker(player).getQueue(timespan).asTimedQueue().peek();
         long diff;
-        if (node != null && node.getValue() > (
-                diff = Math.abs(
-                        (timespan.getTimespan() * 1000 - (System.currentTimeMillis() - node.getInsertionInstant()))
-                ))) {
+        if (node != null && node.getValue() > (diff = Math.abs((timespan.getTimespan() * 1000 - (System.currentTimeMillis() - node.getInsertionInstant()))))) {
             return node.getValue() - diff;
         }
         return 0;
     }
 
     public double getHalfServerThreadQuotient(Player player, Timespan timespan) {
-        return getPlayerTotal(player, timespan) / (500 * timespan.getTimespan());
+        return getPlayerTotal(player, timespan) / (1000 * timespan.getTimespan()) * 2;
     }
 
     public double getPlayerTotal(Player player, Timespan timespan) {

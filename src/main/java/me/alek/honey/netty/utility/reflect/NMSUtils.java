@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public class NMSUtils {
 
-    private static final MethodInvoker<Object> getHandle = Reflection.getMethod(
+    private static final MethodInvoker<Object> getHandle = Reflection.getMethodFromReturnType(
             getCraftPlayerClass(), "getHandle", getEntityPlayerClass());
     private static final FieldAccessor<Object> playerConnection = Reflection.getField(
             getEntityPlayerClass(), 0, getPlayerConnectionClass());

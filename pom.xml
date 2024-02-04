@@ -6,7 +6,7 @@
 
     <groupId>me.alek</groupId>
     <artifactId>Honey</artifactId>
-    <version>1.6</version>
+    <version>1.6.2</version>
     <packaging>jar</packaging>
 
     <name>Honey</name>

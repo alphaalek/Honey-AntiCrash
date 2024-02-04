@@ -5,6 +5,7 @@ import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,8 +20,8 @@ public class ItemAnalysis {
     private static final List<ItemChecker> disabledChecks = new ArrayList<>();
     private static List<String> ignoredPlayers;
 
-    private static final Map<Material, List<ItemChecker>> directAvailableMaterialChecks = new EnumMap<>(Material.class);
-    private static final Map<String, List<ItemChecker>> directAvailableNBTChecks = new HashMap<>();
+    private static final Map<Material, Set<ItemChecker>> directAvailableMaterialChecks = new EnumMap<>(Material.class);
+    private static final Map<String, Set<ItemChecker>> directAvailableNBTChecks = new HashMap<>();
     private static final List<ItemChecker> globalAvailableChecks = new ArrayList<>();
 
     static {
@@ -69,20 +70,23 @@ public class ItemAnalysis {
             }
             Material[] availableMaterials = registry.getAvailableMaterials();
             String nbtTag = registry.getTag();
-            if (availableMaterials.length == 0 && nbtTag.equals("")) {
+            if (availableMaterials.length == 0 && nbtTag.isEmpty()) {
                 globalAvailableChecks.add(registry.getCheck());
             }
             if (availableMaterials.length > 0) {
                 for (Material material : availableMaterials) {
+                    if (material == null) Bukkit.broadcastMessage(registry + "");
+                    if (material == null || material.equals(Material.AIR)) continue;
+
                     if (!directAvailableMaterialChecks.containsKey(material)) {
-                        directAvailableMaterialChecks.put(material, new ArrayList<>());
+                        directAvailableMaterialChecks.put(material, new HashSet<>());
                     }
                     directAvailableMaterialChecks.get(material).add(registry.getCheck());
                 }
             }
-            else if (!nbtTag.equals("")) {
+            else if (!nbtTag.isEmpty()) {
                 if (!directAvailableNBTChecks.containsKey(nbtTag)) {
-                    directAvailableNBTChecks.put(nbtTag, new ArrayList<>());
+                    directAvailableNBTChecks.put(nbtTag, new HashSet<>());
                 }
                 directAvailableNBTChecks.get(nbtTag).add(registry.getCheck());
             }
@@ -112,7 +116,7 @@ public class ItemAnalysis {
     private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {
         final Material material = item.getType();
 
-        if (directAvailableMaterialChecks.containsKey(material)) {
+        if (!material.equals(Material.AIR) && directAvailableMaterialChecks.containsKey(material)) {
             for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
 
                 if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {

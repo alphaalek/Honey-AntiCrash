@@ -77,14 +77,14 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         onPostPacketReceive(player, packetContainer);
     }
 
-    public CheckVisitor<WP> getCachedVisitor() {
+    public synchronized CheckVisitor<WP> getCachedVisitor() {
         if (cachedVisitor == null) cachedVisitor = getVisitor();
         initializedCheckInstances = true;
 
         return cachedVisitor;
     }
 
-    public boolean hasInitializedCheckInstances() {
+    public synchronized boolean hasInitializedCheckInstances() {
         return initializedCheckInstances;
     }
 

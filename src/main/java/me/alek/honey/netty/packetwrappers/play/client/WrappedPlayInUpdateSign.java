@@ -9,17 +9,15 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSign> {
 
     private static Class<?> iChatBaseComponentArrayClass;
-    private static Class<?> iChatBaseComponentClass;
-    private static Class<?> enumChatFormatClass;
-    private static MethodInvoker formatter;
-    private static MethodInvoker textComponentGetter;
+    private static MethodInvoker<?> formatter;
+    private static MethodInvoker<?> textComponentGetter;
 
     static {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            iChatBaseComponentClass = Reflection.getClass("{nms}.IChatBaseComponent");
+            Class<?> iChatBaseComponentClass = Reflection.getClass("{nms}.IChatBaseComponent");
             iChatBaseComponentArrayClass = Reflection.getArrayClass("{nms}.IChatBaseComponent");
 
-            enumChatFormatClass = Reflection.getClass("{nms}.EnumChatFormat");
+            Class<?> enumChatFormatClass = Reflection.getClass("{nms}.EnumChatFormat");
 
             formatter = Reflection.getMethod(enumChatFormatClass, "c", String.class);
             textComponentGetter = Reflection.getMethod(iChatBaseComponentClass, "c");

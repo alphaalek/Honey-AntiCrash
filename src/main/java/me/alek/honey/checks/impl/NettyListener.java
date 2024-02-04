@@ -33,22 +33,6 @@ import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private static final String[] keys = new String[]{"stq", "ntq"};
-
-    private static double[] getStatisticsAfterFirst(Player player, StatisticHandleTracker<Double, Player> statisticHandleTracker) {
-        final StatisticProvider statisticProvider = statisticHandleTracker.getStatisticProvider(player);
-
-        final double[] statistics = new double[statisticProvider.size() - 1];
-        for (int i = 1; i < statistics.length + 1; i++) {
-            statistics[i - 1] = statisticHandleTracker.getStatistic(player, i);
-
-            if (statisticProvider.getTimeSinceLastUpdate(i) > statisticProvider.getUpdateTime(i) * 1_000L) {
-                statistics[i - 1] = Math.max(statistics[i - 1], statisticProvider.getStatisticDirectly(i));
-            }
-        }
-        return statistics;
-    }
-
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol());
@@ -282,32 +266,42 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
+        private final float[] timespanMultipliers = new float[]{1, 0.8f, 0.75f, 0.65f};
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                int size = tracker.getTrackerSize();
-
                 double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND);
-                if (hsq > 0.025) {
-                    container.getDefaultDevelopmentData().addPoint("Size", size);
+                if (hsq > 0.1) {
+                    int developmentDataSize = container.getDevelopmentData(this).size();
+                    int trackerSize = tracker.getTrackerSize();
+                    container.getDevelopmentData(this).addPoint("Size", trackerSize);
 
-                    if ((size > 25 && hsq > 0.45) || (size > 10 && hsq > 0.55) || hsq > 0.65) {
-                        container.getDevelopmentData(this).addPoint("hsq", NumberConversions.format(hsq * 100) + "%");
-                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("h.s.q.")).flag(1).build();
-                    }
+                    int i = 0;
+                    for (Timespan timespan : Timespan.values()) {
+                        float multiplier = (i >= timespanMultipliers.length)
+                                        ? timespanMultipliers[timespanMultipliers.length - 1]
+                                        : timespanMultipliers[i++];
+                        container.getDevelopmentData(this).setPoint(developmentDataSize + i, "Multiplier", multiplier);
 
-                    double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND);
-                    if ((size > 15 && ta > 17.5) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
-                        container.getDevelopmentData(this).addPoint("ta", NumberConversions.format(ta * 100) + "%");
-                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.a.")).flag(1).build();
-                    }
+                        hsq = tracker.getHalfServerThreadQuotient(player, timespan);
+                        if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.65 * multiplier) {
+                            container.getDevelopmentData(this).addPoint("hsq", NumberConversions.format(hsq * 100) + "%");
+                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("h.s.q.")).flag(1).build();
+                        }
 
-                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.FIVE_SECOND);
-                    if ((size > 15 && tt > 0.75) || (size > 25 && tt > 0.55)) {
-                        container.getDevelopmentData(this).addPoint("tt", NumberConversions.format(tt * 100) + "%");
-                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.t.")).flag(1).build();
+                        double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan);
+                        if ((trackerSize > 15 && ta > 17.5 * multiplier) || (trackerSize > 25 && ta > 15 * multiplier) || (trackerSize > 40 && ta > 12.5 * multiplier)) {
+                            container.getDevelopmentData(this).addPoint("ta", NumberConversions.format(ta * 100) + "%");
+                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.a.")).flag(1).build();
+                        }
+
+                        double tt = tracker.getTimeToTotalQuotient(player, timespan);
+                        if ((trackerSize > 15 && tt > 0.75 * multiplier) || (trackerSize > 25 && tt > 0.55 * multiplier)) {
+                            container.getDevelopmentData(this).addPoint("tt", NumberConversions.format(tt * 100) + "%");
+                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.t.")).flag(1).build();
+                        }
                     }
                 }
                 return success;

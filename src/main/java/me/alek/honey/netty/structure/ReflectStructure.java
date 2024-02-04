@@ -364,7 +364,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(index, params);
             } catch (Exception ex) {
-                throw new RuntimeException("Reflection fejl (method invoke): " + ex.getMessage());
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
             }
         }
 
@@ -373,7 +373,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(name, index, params);
             } catch (Exception ex) {
-                throw new RuntimeException("Reflection fejl (method invoke): " + ex.getMessage());
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
             }
         }
 

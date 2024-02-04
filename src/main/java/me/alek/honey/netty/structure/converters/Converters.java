@@ -29,11 +29,11 @@ import java.util.function.Function;
 
 public class Converters {
 
-    private static Map<Class<?>, JavaConverter<?, ?>> CONVERTER_CACHE = new HashMap<>();
-    private static Map<Class<?>, ListConverter<?, ?>> LIST_CONVERTER_CACHE = new HashMap<>();
-    private static Map<Class<?>, SetConverter<?, ?>> SET_CONVERTER_CACHE = new HashMap<>();
-    private static Map<Class<?>, MapConverter<?, ?, ?>> MAP_CONVERTER_CACHE = new HashMap<>();
-    private static Map<NBTBase<?, ?>, NBTConverter> NBT_CONVERTER_CACHE = new HashMap<>();
+    private static final Map<Class<?>, JavaConverter<?, ?>> CONVERTER_CACHE = new HashMap<>();
+    private static final Map<Class<?>, ListConverter<?, ?>> LIST_CONVERTER_CACHE = new HashMap<>();
+    private static final Map<Class<?>, SetConverter<?, ?>> SET_CONVERTER_CACHE = new HashMap<>();
+    private static final Map<Class<?>, MapConverter<?, ?, ?>> MAP_CONVERTER_CACHE = new HashMap<>();
+    private static final Map<NBTBase<?, ?>, NBTConverter> NBT_CONVERTER_CACHE = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     private static <R, V> JavaConverter<R, V> getConverter(Class<?> clazz, Function<? super Class<?>, ? extends JavaConverter<?, ?>> orElse) {
@@ -74,7 +74,7 @@ public class Converters {
                 IStructureModifier<Integer> intStructure = blockPositionStructure.asInt().withTarget(delegate);
 
                 if (intStructure.fieldSize() < 3) {
-                    throw new RuntimeException("Reflection fejl");
+                    throw new RuntimeException("Reflection error");
                 }
 
                 return new WrappedBlockPosition(intStructure.readField(0), intStructure.readField(1), intStructure.readField(2));
@@ -91,7 +91,7 @@ public class Converters {
                     return blockPositionConstructor.invoke(
                             blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
                 } catch (Exception ex) {
-                    throw new RuntimeException("Reflection fejl");
+                    throw new RuntimeException("Reflection error");
                 }
             }
         });
@@ -109,7 +109,7 @@ public class Converters {
                 IStructureModifier<Double> doubleModifier = vec3DModifier.asDouble().withTarget(delegate);
 
                 if (doubleModifier.fieldSize() < 3) {
-                    throw new RuntimeException("Reflection fejl");
+                    throw new RuntimeException("Reflection error");
                 }
 
                 return new Vector(doubleModifier.readField(0), doubleModifier.readField(1), doubleModifier.readField(2));
@@ -126,7 +126,7 @@ public class Converters {
                     return blockPositionConstructor.invoke(
                             object.getX(), object.getY(), object.getZ());
                 } catch (Exception ex) {
-                    throw new RuntimeException("Reflection fejl");
+                    throw new RuntimeException("Reflection error");
                 }
             }
         });
@@ -232,7 +232,7 @@ public class Converters {
                 try {
                     chunkPair = constructorInvoker.invoke(object.getX(), object.getZ());
                 } catch (Exception ex) {
-                    throw new RuntimeException("Reflection fejl");
+                    throw new RuntimeException("Reflection error");
                 }
                 return chunkPair;
             }
