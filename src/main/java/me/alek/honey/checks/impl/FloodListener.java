@@ -14,6 +14,8 @@ import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.AbstractPipelineProxy;
 import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -55,9 +57,8 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.getUniqueId(), (d) -> slot);
 
             lastSetCreativeSlot.put(player.getUniqueId(), slot);
-            if (prevSlot + 1 == slot) return false;
+            return prevSlot + 1 != slot;
         }
-
         return true;
     }
 
@@ -154,6 +155,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.FLOOD_FILTER;
+        }
+
+        @Override
         public PacketTypeEnum getKey(WP packet) {
             return packet.getType();
         }
@@ -241,14 +247,14 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
             // it gets updated when the configuration is being reloaded, but not here
-            if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.General.Exempt.SPIKE_INTERVAL;
+            if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.Exempt.SPIKE_INTERVAL;
 
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getLimits(player, sharedIgnoringKey, sharedIgnoringSetting);
 
             if (getSetting(packet).isEnabled() && packetDecoderMap.containsKey(player.getUniqueId())) {
                 // check if the delta time is high enough to exempt the next packet spike for this player
-                if (packetDecoderMap.get(player.getUniqueId()).getRecentDeltaReceived() > (ConfigurationOptions.General.Exempt.MAX_TIME_BETWEEN * 1_000)) {
+                if (packetDecoderMap.get(player.getUniqueId()).getRecentDeltaReceived() > (ConfigurationOptions.Exempt.MAX_TIME_BETWEEN * 1_000)) {
 
                     return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
                 }
@@ -257,7 +263,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 // NOTE: it's not a shared packet limit handler, just a shared key and setting
                 return ResponseBuilder.inst().flag(0).withLimitsKey(sharedIgnoringKey).onFlag(() -> {
-                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(getName(), getKey(packet)), null, 1, getName(), getSetting(packet), container.getDevelopmentData(FloodD.this), false);
+                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(getName(), getKey(packet)), null, 1, FloodD.this, getSetting(packet), container.getDevelopmentData(FloodD.this), false);
                 }).build();
             }
             return ResponseBuilder.SUCCESS;
@@ -271,6 +277,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public String getDescription() {
             return "Packet flood for specific packet type";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.FLOOD_FILTER;
         }
 
         @Override

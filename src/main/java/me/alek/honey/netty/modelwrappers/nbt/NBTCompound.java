@@ -164,7 +164,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     public NBTCompound getCompound(String key) {
-        return getSpecific(key);
+        return (NBTCompound) get(key);
     }
 
     public byte getByte(String key) {

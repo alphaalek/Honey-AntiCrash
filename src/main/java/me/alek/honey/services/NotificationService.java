@@ -155,13 +155,13 @@ public class NotificationService {
                     ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
                     .asInt().withTarget(player);
 
-            return craftPlayerModifier.invokeMethod("getPing", 0);
+            return craftPlayerModifier.invokeMethod("getPing");
         }
         IStructureModifier<Object> craftPlayerModifier =
                 ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
                 .withType(NMSUtils.getEntityPlayerClass()).withTarget(player);
 
-        Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle", 0);
+        Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle");
 
         IStructureModifier<Integer> entityPlayerModifier =
                 ReflectStructureCache.acquireStructure(entityPlayer.getClass())

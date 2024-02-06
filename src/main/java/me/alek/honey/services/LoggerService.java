@@ -16,6 +16,7 @@ import me.alek.honey.tracker.TempTimedQueuedTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingWindowCounter;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -58,7 +59,8 @@ public class LoggerService {
     };
 
     public void logToMonitors(Player player, PacketContainer packetContainer) {
-        if (monitorManager.isMonitored(player)) {
+        if (monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
+                && !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packetContainer.getHandle().getClass().getSimpleName())) {
             synchronized (this) {
                 LinkedList<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>());
 

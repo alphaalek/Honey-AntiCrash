@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer {
 
+    long getTime();
+
     Channel getChannel();
 
     PacketTypeEnum getType();

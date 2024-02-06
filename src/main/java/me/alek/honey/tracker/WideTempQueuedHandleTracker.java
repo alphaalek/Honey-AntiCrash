@@ -1,6 +1,5 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.HoneyPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -21,21 +20,51 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
         return trackerMap.computeIfAbsent(player.getUniqueId(), (d) -> new TempTimedQueuedTracker());
     }
 
+    public void clearExceedingNodes(Player player) {
+        for (Timespan timespan : Timespan.values()) {
+            clearExceedingNodes(player, timespan);
+        }
+    }
+
+    public void clearExceedingNodes(Player player, Timespan timespan) {
+        getTracker(player).clearExceedingNodes(timespan);
+        commonTracker.clearExceedingNodes(timespan);
+    }
+
+    public void clearExceedingNodes(boolean alsoPlayers) {
+        for (Timespan timespan : Timespan.values()) {
+            clearExceedingNodes(timespan, alsoPlayers);
+        }
+    }
+
+    public void clearExceedingNodes(Timespan timespan, boolean alsoPlayers) {
+        commonTracker.clearExceedingNodes(timespan);
+        if (alsoPlayers) {
+            for (TempTimedQueuedTracker tracker : trackerMap.values()) {
+                tracker.clearExceedingNodes(timespan);
+            }
+        }
+    }
+
     @Override
-    public void registerTime(Player key, Double value) {
+    public synchronized void registerTime(Player key, Double value) {
         if (value <= 0) return;
 
         getTracker(key).add(value);
         commonTracker.add(value);
     }
 
-    private double subtractExceedingTimedNode(Player player, Timespan timespan) {
-        TempQueue.TimedNode node = getTracker(player).getQueue(timespan).asTimedQueue().peek();
+    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
+        TempQueue.TimedNode node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
         if (node != null && node.getValue() > (diff = Math.abs((timespan.getTimespan() * 1000 - (System.currentTimeMillis() - node.getInsertionInstant()))))) {
             return node.getValue() - diff;
         }
         return 0;
+    }
+
+    private double getExceedingTimedNode(Player player, Timespan timespan) {
+        return getExceedingTimedNode(getTracker(player), timespan);
     }
 
     public double getHalfServerThreadQuotient(Player player, Timespan timespan) {
@@ -44,7 +73,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
 
     public double getPlayerTotal(Player player, Timespan timespan) {
         getTracker(player).add(0);
-        return getTracker(player).getTotal(timespan) - subtractExceedingTimedNode(player, timespan);
+        return getTracker(player).getTotal(timespan) - getExceedingTimedNode(player, timespan);
     }
 
     public double[] getStatistics(Player player) {
@@ -83,7 +112,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public double getTotal(Timespan timespan) {
-        return commonTracker.getTotal(timespan);
+        return commonTracker.getTotal(timespan) - getExceedingTimedNode(commonTracker, timespan);
     }
 
     @Override

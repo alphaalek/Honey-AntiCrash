@@ -1,19 +1,19 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.utility.ItemReflection;
+import me.alek.honey.netty.utility.*;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.utility.ConstructorInvoker;
-import me.alek.honey.netty.utility.NMSUtils;
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Optional;
 
 public class NBTFactory {
 
@@ -99,6 +99,17 @@ public class NBTFactory {
         return value.getType();
     }
 
+    public static byte getTypeId(IStructureModifier<Byte> structureModifier) {
+        if (structureModifier == null) {
+            return (byte) -1;
+        }
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+            return structureModifier.invokeMethod("getTypeId");
+        }
+        return structureModifier.invokeMethod(
+                (invoker) -> invoker.getMethod().getDeclaringClass().getSuperclass() != NMSUtils.getNBTBaseClass());
+    }
+
     public static NBTType getType(Object handle, boolean ignoreNestedLists, NBTBase<?, ?> owner) {
         if (handle == null) {
             return NBTType.UNKNOWN;
@@ -109,7 +120,7 @@ public class NBTFactory {
                 .withTarget(handle);
         Validate.notNull(structureModifier);
 
-        final byte typeId = structureModifier.invokeMethod(0);
+        final byte typeId = getTypeId(structureModifier);
         final NBTType type = NBTType.getFromTypeId(typeId);
 
         if (type == NBTType.LIST && !ignoreNestedLists) {

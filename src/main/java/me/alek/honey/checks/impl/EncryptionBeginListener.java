@@ -8,6 +8,9 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilterFactory;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
@@ -73,6 +76,11 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         @Override
         public String getDescription() {
             return "Encryption response with invalid ping";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
     }

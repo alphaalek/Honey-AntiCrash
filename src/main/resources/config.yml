@@ -79,6 +79,19 @@ exempt:
   # The following interval will be blocked after the max-time-between value has been exceeded
   spike-interval: 750
 
+# monitor
+monitor:
+  # Packets which the player monitor should ignore.
+  ignored-packets:
+    - "PacketPlayInFlying"
+    - "PacketPlayInKeepAlive"
+
+  # Should player monitor also be a packet logger (not detailed data).
+  enable-packet-logger: true
+
+  # Interval for sending messages when having a monitor enabled.
+  message-interval: 500
+
 # packet logger
 packet-logger:
 
@@ -139,7 +152,7 @@ item-analysis:
   # How many explosions may a firework have. In Vanilla Minecraft it is not possible to get more than 17.
   max-firework-explosions: 17
 
-  # How many banner patterns may a banner have. In Vanilla Minecraft it is not possible to get more than 17.
+  # How many banner patterns may a banner have. In Vanilla Minecraft it is not possible to get more than 6.
   max-banner-patterns: 6
 
   # May potions not have custom potion effects. Can be bugged through creative mode. The wrong potions can lead to crash of the server.
@@ -158,13 +171,13 @@ item-analysis:
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 1035
+    max-nbt-string-length: 1250
 
-    # How many bytes may the NBT of a firework have. This is also covering firework charges.
+    # How many bytes may the NBT of a firework have. This is also for firework charges.
     max-firework-nbt-length: 2500
 
     # How many bytes may the NBT of a book have.
-    max-book-nbt-length: 1250
+    max-book-nbt-length: 7500
 
     # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages. (in 1.8 only 50 pages)
     max-book-pages: 100
@@ -178,7 +191,7 @@ item-analysis:
     # How long name may the author of a book be. In Vanilla Minecraft it is not possible to get more than 16 characters.
     max-book-author-length: 16
 
-    # How many NBT bases may an item have. (the generel representation of NBT data, covers lists, strings, doubles etc...)
+    # How many NBT bases may an item have. (the general representation of NBT data, covers lists, strings, doubles etc...)
     max-nbt-bases: 100
 
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)

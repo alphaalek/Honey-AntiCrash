@@ -71,6 +71,8 @@ public class NumberConversions {
     }
 
     public static Number format(Number value) {
+        if (value instanceof Integer) return value;
+
         return format(value.doubleValue(), 2);
     }
 

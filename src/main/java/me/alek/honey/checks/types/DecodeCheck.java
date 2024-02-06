@@ -8,4 +8,5 @@ import org.bukkit.entity.Player;
 public interface DecodeCheck extends HoneyCheck {
 
     ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception;
+
 }

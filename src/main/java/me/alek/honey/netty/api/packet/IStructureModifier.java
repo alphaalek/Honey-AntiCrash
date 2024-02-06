@@ -6,8 +6,11 @@ import me.alek.honey.netty.utility.MethodInvoker;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 public interface IStructureModifier<T> {
+
+    Object getHandle();
 
     JavaConverter<?, T> getConverter();
 
@@ -21,9 +24,17 @@ public interface IStructureModifier<T> {
 
     T readField(String name, int index);
 
+    T invokeMethod(Predicate<MethodInvoker<?>> filter, Object... params);
+
+    T invokeMethod(String name);
+
     T invokeMethod(int index, Object... params);
 
     T invokeMethod(String name, int index, Object... params);
+
+    T invokeMethodWithException(Predicate<MethodInvoker<?>> filter, Object... params) throws Exception;
+
+    T invokeMethodWithException(String name) throws Exception;
 
     T invokeMethodWithException(int index, Object... params) throws Exception;
 

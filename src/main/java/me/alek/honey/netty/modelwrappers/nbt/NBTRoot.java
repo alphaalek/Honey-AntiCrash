@@ -23,7 +23,7 @@ public class NBTRoot extends NBTCompound {
 
     public void subscribe(NBTBase<?, ?> owner, NBTBase<?, ?> sub) {
         // because this method is being called in the NBTBase super constructor, the ownerMap and distanceToRootMap
-        // are not initialized yet if they have been on class level (only counts for same instance as NBTRoot)
+        // are not initialized yet if they have been on class level (only counts for instances assigned from NBTRoot)
         if (owner == null || sub == null) {
             return;
         }
@@ -68,7 +68,6 @@ public class NBTRoot extends NBTCompound {
         final ArrayList<T> acquiredSub = new ArrayList<>();
         for (NBTBase<?, ?> sub : getElementsFor(owner)) {
             if (sub.getType() == type) {
-                // laver bound til den NBTBase
                 acquiredSub.add((T) sub);
             }
         }

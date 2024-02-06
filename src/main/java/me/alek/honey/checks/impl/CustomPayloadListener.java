@@ -18,6 +18,8 @@ import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
@@ -118,6 +120,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadA.class);
         }
@@ -130,7 +137,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class,0);
                 if (serializer == null) {
-                    return ResponseBuilder.SUCCESS; // burde aldrig ske, for så vil PayloadA være blevet flagged
+                    return ResponseBuilder.SUCCESS;
                 }
                 container.getDevelopmentData(this).addPoint("Serializer Capacity", serializer.capacity());
                 return ResponseBuilder.inst().flag(serializer.capacity()).onViolation(serializer::release).terminate().build();
@@ -146,6 +153,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public String getDescription() {
             return "Too big serializer for payload";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
         }
 
         @Override
@@ -196,6 +208,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadC.class);
         }
@@ -235,6 +252,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public String getDescription() {
             return "Illegal usage book channel";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
         }
 
         @Override
@@ -278,6 +300,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadE.class);
         }
@@ -307,6 +334,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting(WrappedPlayInCustomPayload packet) {
             return ConfigurationOptions.getChannelFloodSettings().get(packet.getChannel());
         }
@@ -333,12 +365,17 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getName() {
-            return "Payload.G";
+            return "Payload.G (World Downloader)";
         }
 
         @Override
         public String getDescription() {
             return "Using world download mod";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
         }
 
         @Override

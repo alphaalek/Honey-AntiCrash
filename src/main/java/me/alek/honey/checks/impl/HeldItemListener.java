@@ -12,6 +12,8 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInHeldItemSlot;
@@ -77,6 +79,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.HELD_ITEM_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemA.class);
         }
@@ -103,6 +110,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         @Override
         public String getDescription() {
             return "Switching to illegal item";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.HELD_ITEM_FILTER;
         }
 
         @Override

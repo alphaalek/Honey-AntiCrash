@@ -11,6 +11,9 @@ import me.alek.honey.checks.types.DecodeCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilterFactory;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.Reflection;
@@ -94,6 +97,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class);
         }
@@ -122,6 +130,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyD.class);
         }
@@ -147,6 +160,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public String getDescription() {
             return "Buffer of packet bytes exceeded";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
         @Override
@@ -188,6 +206,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class);
         }
@@ -213,6 +236,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public String getDescription() {
             return "Too high absolute sum of bytes";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
         @Override
@@ -267,6 +295,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
         }
@@ -318,6 +351,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         public abstract boolean check(Player player, long sizeKey, ByteBuf byteBuf);
@@ -375,6 +413,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public String getDescription() {
             return "Packet flood for big packets to be decoded";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         public abstract ConfigurationOptions.VlSetting getSetting();
@@ -453,7 +496,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too many categorized timed big packets";
+            return "Too many timed categorized big packets";
         }
 
         @Override

@@ -8,8 +8,11 @@ import me.alek.honey.netty.api.event.impl.packet.*;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
@@ -284,6 +287,11 @@ public class InternalPacketProcessor implements PacketProcessor {
         );
         if (packetContainer.getPacket() == null) return packetContainer;
 
+        PacketBundleSaver bundleSaver;
+        if (packetBound == PacketBound.CLIENT && packetType != PacketType.Play.Client.KEEP_ALIVE
+                && player != null && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())) != null) {
+            bundleSaver.add(packetContainer);
+        }
         if (hasAdapters) {
             callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
         }

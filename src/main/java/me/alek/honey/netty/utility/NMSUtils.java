@@ -8,8 +8,10 @@ import org.bukkit.entity.Player;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class NMSUtils {
 
@@ -99,10 +101,6 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
     }
 
-    public static Class<Object> getPacketListenerClass() {
-        return getFuzzyClass("{nms}.PacketListener");
-    }
-
     public static Class<Object> getPlayerConnectionClass() {
         return getFuzzyClass("{nms}.PlayerConnection", "{nms}.server.network.PlayerConnection");
     }
@@ -143,31 +141,12 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.Chunk");
     }
 
-    public static Class<Object> getIChunkLoaderClass() {
-        return getFuzzyClass("{nms}.IChunkLoader");
-    }
-
-    public static Class<Object> getChunkRegionLoaderClass() {
-        return getFuzzyClass("{nms}.ChunkRegionLoader");
-    }
-
     public static Class<Object> getChunkCoordIntPairClass() {
         return getFuzzyClass("{nms}.ChunkCoordIntPair");
     }
 
     public static Class<Object> getWorldServerClass() {
         return getFuzzyClass("{nms}.server.level.WorldServer", "{nms}.WorldServer");
-    }
-    public static Class<Object> getWorldClass() {
-        return getFuzzyClass("{nms}.world.level.World", "{nms}.World");
-    }
-
-    public static Class<Object> getChunkProviderServerClass() {
-        return getFuzzyClass("{nms}.ChunkProviderServer");
-    }
-
-    public static Class<Object> getLongObjectHashMapClass() {
-        return getFuzzyClass("{obc}.util.LongObjectHashMap");
     }
 
     public static Class<Object> getBaseBlockPositionClass() {
@@ -194,28 +173,16 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.TickTask", "{nms}.server.TickTask");
     }
 
-    public static Class<Object> getItemClass() {
-        return getFuzzyClass("{nms}.Item", "{nms}.world.item.Item");
-    }
-
-    public static Class<Object> getRegistryMaterialsClass() {
-        return getFuzzyClass("{nms}.RegistryMaterials");
-    }
-
     public static Class<Object> getNBTTagCompoundClass() {
         return getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
     }
 
-    public static Class<Object> getNBTCompressedToolsClass() {
-        return getFuzzyClass("{nms}.NBTCompressedTools", "{nms}.nbt.NBTCompressedTools");
+    public static Class<Object> getNBTBaseClass() {
+        return getFuzzyClass("{nms}.NBTBase", "{nms}.nbt.NBTBase");
     }
 
     public static Class<Object> getPacketDataSerializerClass() {
         return getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-    }
-
-    public static Class<Object> getEnumProtocolClass() {
-        return getFuzzyClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol");
     }
 
     @SuppressWarnings("unchecked")
@@ -231,24 +198,8 @@ public class NMSUtils {
         return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestions");
     }
 
-    public static Class<Object> getSuggestionClass() {
-        return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestion");
-    }
-
-    public static Class<Object> getMovingObjectPositionClass() {
-        return getFuzzyClass("{nms}.world.phys.MovingObjectPosition", "{nms}.MovingObjectPosition");
-    }
-
     public static Class<Object> getMovingObjectPositionBlockClass() {
         return getFuzzyClass("{nms}.world.phys.MovingObjectPositionBlock", "{nms}.MovingObjectPositionBlock");
-    }
-
-    public static Class<Object> getIBlockAccessClass() {
-        return getFuzzyClass("{nms}.world.level.IBlockAccess", "{nms}.IBlockAccess");
-    }
-
-    public static Class<Object> getRayTraceClass() {
-        return getFuzzyClass("{nms}.world.level.RayTrace", "{nms}.RayTrace");
     }
 
     public static Class<Object> getIChatBaseComponentClass() {
@@ -257,10 +208,6 @@ public class NMSUtils {
 
     public static Class<Object> getChatSerializerClass() {
         return getFuzzyClass("{nms}.IChatBaseComponent$ChatSerializer");
-    }
-
-    public static Class<Object> getEntityClass() {
-        return getFuzzyClass("{nms}.world.entity.Entity", "{nms}.Entity");
     }
 
     public static boolean isFakeChannel(Channel channel) {

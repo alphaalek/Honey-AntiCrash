@@ -15,6 +15,9 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilterFactory;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
@@ -37,7 +40,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     private static final Map<UUID, SampleDecayableList<Location>> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
-    private static final DecimalFormat decimalFormatter = new DecimalFormat("#.##");
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
     public PositionListener() {
@@ -306,6 +308,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LONG_POSITION_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionA.class);
         }
@@ -359,6 +366,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getDescription() {
             return "Too high delta movement";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.SINGLETON_POSITION_FILTER;
         }
 
         @Override
@@ -420,6 +432,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionC.class);
         }
@@ -478,6 +495,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionD.class);
         }
@@ -501,6 +523,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getDescription() {
             return "Too many unloaded chunks discovered";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
         @Override
@@ -609,6 +636,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LONG_POSITION_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionF.class);
         }
@@ -636,6 +668,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getDescription() {
             return "Moving vehicle without being in one";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.SINGLETON_POSITION_FILTER;
         }
 
         @Override
@@ -705,6 +742,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LONG_POSITION_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionH.class);
         }
@@ -732,6 +774,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LONG_POSITION_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionI.class);
         }
@@ -753,12 +800,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
                 if (y < getSetting().min || y > getSetting().max) {
-
-                    if (player.isDead()) { // don't flag if the player is dead, might be a false flag if a player is falling down in void being dead
+                    if (player.isDead())
                         return ResponseBuilder.inst().cancel().build();
-                    }
-                    return ResponseBuilder.inst().cancel().flag().onPunish(() -> {
 
+                    return ResponseBuilder.inst().cancel().flag().onPunish(() -> {
                         double y_ = y;
                         if (y < getSetting().min) {
                             while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
@@ -786,6 +831,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public String getDescription() {
             return "Too high up in air or below bedrock";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.SINGLETON_POSITION_FILTER;
         }
 
         @Override

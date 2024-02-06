@@ -8,11 +8,13 @@ import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.IReflectResolver;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 public class ReflectStructure<T, C> {
 
@@ -235,8 +237,23 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
+        public Object getHandle() {
+            return handle;
+        }
+
+        @Override
         public JavaConverter<T, C> getConverter() {
             return converter;
+        }
+
+        private void set(FieldAccessor<T> accessor, C value) {
+            if (converter != null) {
+                accessor.set(handle, converter.convertDeclaring(value));
+            }
+            else {
+                // T & C er den samme i generic context
+                accessor.set(handle, (T) value);
+            }
         }
 
         @Override
@@ -245,13 +262,7 @@ public class ReflectStructure<T, C> {
                 return this;
             }
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
-            if (converter != null) {
-                accessor.set(handle, converter.convertDeclaring(value));
-            }
-            else {
-                // T & C er den samme i generic context
-                accessor.set(handle, (T) value);
-            }
+            set(accessor, value);
             return this;
         }
 
@@ -264,17 +275,21 @@ public class ReflectStructure<T, C> {
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
 
                 if (accessor.getName().equals(name) && index == specificIndex++) {
-                    if (converter != null) {
-                        accessor.set(handle, converter.convertDeclaring(value));
-                    }
-                    else {
-                        // T & C er den samme i generic context
-                        accessor.set(handle, (T) value);
-                    }
+                    set(accessor, value);
                     break;
                 }
             }
             return this;
+        }
+
+        private C get(FieldAccessor<T> accessor) {
+            if (converter != null) {
+                return converter.convertDelegate(accessor.get(handle));
+            }
+            else {
+                // T & C is the same in generic context
+                return (C) accessor.get(handle);
+            }
         }
 
         @Override
@@ -284,13 +299,7 @@ public class ReflectStructure<T, C> {
             }
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (accessor != null) {
-                if (converter != null) {
-                    return converter.convertDelegate(accessor.get(handle));
-                }
-                else {
-                    // T & C er den samme i generic context
-                    return (C) accessor.get(handle);
-                }
+                return get(accessor);
             }
             return null;
         }
@@ -346,16 +355,28 @@ public class ReflectStructure<T, C> {
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
 
                 if (accessor.getName().equals(name) && index == specificIndex++) {
-                    if (converter != null) {
-                        return converter.convertDelegate(accessor.get(handle));
-                    }
-                    else {
-                        // T & C er den samme i generic context
-                        return (C) accessor.get(handle);
-                    }
+                    return get(accessor);
                 }
             }
             return null;
+        }
+
+        @Override
+        public C invokeMethod(Predicate<MethodInvoker<?>> filter, Object... params) {
+            try {
+                return invokeMethodWithException(filter, params);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+            }
+        }
+
+        @Override
+        public C invokeMethod(String name) {
+            try {
+                return invokeMethodWithException(name);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+            }
         }
 
         @Override
@@ -377,6 +398,25 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
+        public C invokeMethodWithException(Predicate<MethodInvoker<?>> filter, Object... params) throws Exception {
+            for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
+                if (Arrays.equals(invoker.getMethod().getParameterTypes(), params) && filter.test(invoker))
+                    return invoke(invoker, params);
+            }
+            return null;
+        }
+
+        private C invoke(MethodInvoker<T> invoker, Object... params) throws Exception {
+            if (converter != null) {
+                return converter.convertDelegate(invoker.invokeWithException(handle, params));
+            }
+            else {
+                // T & C is the same in generic context
+                return (C) invoker.invokeWithException(handle, params);
+            }
+        }
+
+        @Override
         public C invokeMethodWithException(int index, Object... params) throws Exception {
             if (!hasMethod(index)) {
                 return null;
@@ -385,14 +425,12 @@ public class ReflectStructure<T, C> {
             if (!Arrays.equals(params, invoker.getMethod().getParameterTypes())) {
                 return null;
             }
+            return invoke(invoker, params);
+        }
 
-            if (converter != null) {
-                return converter.convertDelegate(invoker.invokeWithException(handle, params));
-            }
-            else {
-                // T & C is the same in generic context
-                return (C) invoker.invokeWithException(handle, params);
-            }
+        @Override
+        public C invokeMethodWithException(String name) throws Exception {
+            return invokeMethodWithException(name, 0);
         }
 
         @Override
@@ -405,13 +443,7 @@ public class ReflectStructure<T, C> {
 
                 if (Arrays.equals(params, invoker.getMethod().getParameterTypes())
                         && invoker.getName().equals(name) && index == specificIndex++) {
-                    if (converter != null) {
-                        return converter.convertDelegate(invoker.invokeWithException(handle, params));
-                    }
-                    else {
-                        // T & C is the same in generic context
-                        return (C) invoker.invokeWithException(handle, params);
-                    }
+                    return invoke(invoker, params);
                 }
             }
             return null;

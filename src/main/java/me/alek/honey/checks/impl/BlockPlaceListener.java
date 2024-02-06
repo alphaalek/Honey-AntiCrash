@@ -13,6 +13,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
@@ -128,6 +130,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.BLOCK_PLACE_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractA.class);
         }
@@ -157,6 +164,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         @Override
         public String getDescription() {
             return "Right clicking with illegal item";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.BLOCK_PLACE_FILTER;
         }
 
         @Override
@@ -194,6 +206,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         @Override
         public String getDescription() {
             return "Placing illegal piston block";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.BLOCK_PLACE_FILTER;
         }
 
         @Override
@@ -242,6 +259,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.BLOCK_PLACE_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractD.class);
         }
@@ -286,6 +308,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         @Override
         public String getDescription() {
             return "Interacting too quickly with certain tile entities";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.BLOCK_PLACE_FILTER;
         }
 
         @Override

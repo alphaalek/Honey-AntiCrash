@@ -88,13 +88,13 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     public void reload(boolean initiallyReload) {
         this.componentBridge.reload();
 
-        this.isEnabled = ConfigurationOptions.General.SQL.ENABLED;
+        this.isEnabled = ConfigurationOptions.SQL.ENABLED;
 
-        this.port = ConfigurationOptions.General.SQL.PORT;
-        this.host = ConfigurationOptions.General.SQL.HOST;
-        this.username = ConfigurationOptions.General.SQL.USERNAME;
-        this.password = ConfigurationOptions.General.SQL.PASSWORD;
-        this.database = ConfigurationOptions.General.SQL.DATBASE;
+        this.port = ConfigurationOptions.SQL.PORT;
+        this.host = ConfigurationOptions.SQL.HOST;
+        this.username = ConfigurationOptions.SQL.USERNAME;
+        this.password = ConfigurationOptions.SQL.PASSWORD;
+        this.database = ConfigurationOptions.SQL.DATBASE;
 
         // try connecting again if there isn't any connection and mysql is enabled
         if (!initiallyReload && this.isEnabled && queryFactory.isConnectionClosed()) {

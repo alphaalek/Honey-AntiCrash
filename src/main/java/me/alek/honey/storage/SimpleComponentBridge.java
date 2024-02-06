@@ -23,7 +23,7 @@ public class SimpleComponentBridge implements ComponentBridge {
     }
 
     public void reload() {
-        this.enabled = ConfigurationOptions.General.SQL.ENABLED;
+        this.enabled = ConfigurationOptions.SQL.ENABLED;
     }
 
     public void preparePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {

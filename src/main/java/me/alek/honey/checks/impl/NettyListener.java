@@ -14,6 +14,9 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilterFactory;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -73,12 +76,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-
-                if (player == null || !player.isOnline()) {
-                    return ResponseBuilder.inst().cancel().flag().terminate().build();
-                }
-            }
             return ResponseBuilder.SUCCESS;
         }
 
@@ -89,7 +86,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Sending packet without being online";
+            return "";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
         @Override
@@ -167,6 +169,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createLenientFilter(1);
+        }
+
+        @Override
         public ListenerPriority getPriority() {
             return ListenerPriority.HIGHEST;
         }
@@ -219,6 +226,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_SINGLETON_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class);
         }
@@ -252,6 +264,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
         }
@@ -265,7 +282,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
-        private final float[] timespanMultipliers = new float[]{1, 0.8f, 0.75f, 0.65f};
+        private final double[] timespanMultipliers = new double[]{1, 0.8f, 0.75f, 0.65f};
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
@@ -279,10 +296,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     int i = 0;
                     for (Timespan timespan : Timespan.values()) {
-                        float multiplier = (i >= timespanMultipliers.length)
+                        tracker.clearExceedingNodes(player, timespan);
+
+                        // using double instead of float, because otherwise development data would show other values after being formatted
+                        double multiplier = (i >= timespanMultipliers.length)
                                         ? timespanMultipliers[timespanMultipliers.length - 1]
                                         : timespanMultipliers[i++];
-                        container.getDevelopmentData(this).setPoint(developmentDataSize + i, "Multiplier", multiplier);
+                        container.getDevelopmentData(this).setPoint(developmentDataSize - 1, "Multiplier", multiplier);
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan);
                         if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.65 * multiplier) {
@@ -316,6 +336,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public String getDescription() {
             return "Too high usage of server thread";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         @Override

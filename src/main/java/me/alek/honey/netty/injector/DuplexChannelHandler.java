@@ -6,8 +6,10 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.ThreadSeperatedQueue;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -22,23 +24,31 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
     private InboundPacketDecoder inboundPacketDecoder;
     private boolean hasRead;
+    private final PacketBundleSaver packetBundleSaver;
 
+    private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
     private static final ThreadSeperatedQueue<UUID> packetSendQueue = new ThreadSeperatedQueue<>();
-    private static final Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> lastPacketMap = new HashMap<>();
-
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
     public DuplexChannelHandler(Channel channel, Player player) {
-        this.channel = channel;
+        this(channel);
         this.player = player;
+        addPacketBundleSaver();
     }
 
     public DuplexChannelHandler(Channel channel) {
         this.channel = channel;
+        this.packetBundleSaver = new PacketBundleSaver();
+    }
+
+    private void addPacketBundleSaver() {
+        if (player != null)
+            packetBundleSavers.put(player.getUniqueId(), packetBundleSaver);
     }
 
     public void setPlayer(final Player player) {
         this.player = player;
+        addPacketBundleSaver();
     }
 
     public Player getPlayer() {
@@ -49,8 +59,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         return packetSendQueue;
     }
 
-    public static Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> getLastPacketMap() {
-        return lastPacketMap;
+    public static Map<UUID, PacketBundleSaver> getPacketBundleSavers() {
+        return packetBundleSavers;
     }
 
     public boolean hasRead() {
@@ -101,12 +111,14 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         if (inboundPacketDecoder != null) {
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
         }
+
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
+
         // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {
             if (HoneyPlugin.get().getLoggerService().isDebug()) {
@@ -115,8 +127,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             return;
         }
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
+            ((PlayerServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker())
+                    .waitUntilInitiallyTickRoundCompletes();
+
             packetSendQueue.add(player.getUniqueId());
-            lastPacketMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>()).add(packetContainer);
         }
 
         super.channelRead(ctx, packetContainer.getHandle());

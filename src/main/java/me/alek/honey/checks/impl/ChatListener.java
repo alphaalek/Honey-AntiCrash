@@ -12,6 +12,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
@@ -54,6 +56,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
     }
 
     @Override
+    public void load() {
+       CommandsA.prohibitedCommands = getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
+    }
+
+    @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Play.Client.CHAT);
     }
@@ -85,6 +92,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         @Override
         public String getDescription() {
             return "Bad character in chat message";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CHAT_FILTER;
         }
 
         @Override
@@ -120,6 +132,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         @Override
         public String getDescription() {
             return "Too long chat message";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CHAT_FILTER;
         }
 
         @Override
@@ -180,7 +197,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
     public static class CommandsA implements ViolationCheck, PacketCheck<WrappedPlayInChat> {
 
-        private final String[] prohibitedCommands = getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
+        private static String[] prohibitedCommands;
 
         @Override
         public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
@@ -189,7 +206,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             if (!message.startsWith("/")) {
                 return ResponseBuilder.SUCCESS;
             }
-            for (String prohibitedCommand : this.prohibitedCommands) {
+            for (String prohibitedCommand : prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
                     String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
@@ -208,6 +225,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         @Override
         public String getDescription() {
             return "Executing prohibited command";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CHAT_FILTER;
         }
 
         @Override

@@ -55,8 +55,8 @@ public enum MaterialMappings {
     YELLOW_BANNER("yellow_banner", MajorProtocolUpdate.AFTER, "yellow-banner"),
     LIGHT_BLUE_BANNER("light_blue_banner", MajorProtocolUpdate.AFTER, "light-blue-banner"),
     MAGENTA_BANNER("magenta_banner", MajorProtocolUpdate.AFTER, "magenta-banner"),
-    ORANGE_BANNER("orange-banner", MajorProtocolUpdate.AFTER, "orange-banner"),
-    WHITE_BANNER("white-banner", MajorProtocolUpdate.AFTER, "white-banner"),
+    ORANGE_BANNER("orange_banner", MajorProtocolUpdate.AFTER, "orange-banner"),
+    WHITE_BANNER("white_banner", MajorProtocolUpdate.AFTER, "white-banner"),
     RED_WALL_BANNER("red_wall_banner", MajorProtocolUpdate.AFTER, "red-wall-banner"),
     GREEN_WALL_BANNER("green_wall_banner", MajorProtocolUpdate.AFTER, "green-wall-banner"),
     BROWN_WALL_BANNER("brown_wall_banner", MajorProtocolUpdate.AFTER, "brown-wall-banner"),
@@ -102,7 +102,7 @@ public enum MaterialMappings {
         if (!mappingsOfKey.containsKey(key)) return org.bukkit.Material.AIR;
 
         for (MaterialMappings mapping : mappingsOfKey.get(key)) {
-            if (mapping.getRange().match(NetProtocol.getProtocol())) {
+            if (mapping.getItem() != null && mapping.getRange().match(NetProtocol.getProtocol())) {
                 return mapping.getItem();
             }
         }

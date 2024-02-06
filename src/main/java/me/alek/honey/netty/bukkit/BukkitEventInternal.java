@@ -61,6 +61,6 @@ public class BukkitEventInternal implements Listener {
 
         PacketLibrary.get().getInjector().ejectPlayer(player);
         NMSUtils.removeChannelLookup(player.getUniqueId());
-        DuplexChannelHandler.getLastPacketMap().remove(player.getUniqueId());
+        DuplexChannelHandler.getPacketBundleSavers().remove(player.getUniqueId());
     }
 }

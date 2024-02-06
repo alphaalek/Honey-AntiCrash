@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.utility.Tuple2;
@@ -19,20 +20,19 @@ public class PacketTaskHandler {
 
     private static final int MAX_HANDLE_TIME_BEFORE_DUMP = 10000;
 
-    private static final Map<UUID, Queue<PacketContainer<? extends WrappedPacket<?>>>> lastPacketMap;
-
-    private static final Queue<Tuple2<PacketTaskFuture<?>, Long>> tasksInserted;
+    private static final Object lock = new Object();
+    private static final Map<UUID, PacketBundleSaver> packetBundleSavers = DuplexChannelHandler.getPacketBundleSavers();
+    private static Tuple2<PacketTaskFuture<?>, Long> handledTask;
 
     static {
-        tasksInserted = new LinkedList<>();
-        lastPacketMap = DuplexChannelHandler.getLastPacketMap();
-
         new Thread(() -> {
             while (true) {
-                Tuple2<PacketTaskFuture<?>, Long> task;
-                while ((task = tasksInserted.peek()) != null && System.currentTimeMillis() - task.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
-                    UUID uuid = Optional.ofNullable(task.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
-                    dumpThread(uuid);
+                while (handledTask != null && System.currentTimeMillis() - handledTask.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
+                    UUID uuid = Optional.ofNullable(handledTask.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
+                    synchronized (lock) {
+                        dumpThread(uuid);
+                        unregisterTask();
+                    }
                 }
                 try {
                     Thread.sleep(10);
@@ -49,7 +49,7 @@ public class PacketTaskHandler {
         Bukkit.getLogger().severe("*******************************************************************************************");
         Bukkit.getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
 
-        PacketContainer<? extends WrappedPacket<?>> packet = lastPacketMap.get(uuid).poll();
+        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getAny();
         if (packet != null) {
             Bukkit.getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
             Bukkit.getLogger().severe("  Fields: ");
@@ -95,17 +95,17 @@ public class PacketTaskHandler {
     }
 
     public static <V> void registerTask(PacketTaskFuture<V> task){
-        tasksInserted.add(new Tuple2<>(task, System.currentTimeMillis()));
+        handledTask = new Tuple2<>(task, System.currentTimeMillis());
     }
 
-    public static void unregisterTask(UUID uuid) {
-        Tuple2<PacketTaskFuture<?>, Long> task;
-        UUID taskUUID = null;
-        while (uuid != taskUUID) {
-            if ((task = tasksInserted.poll()) != null && (taskUUID = task.getT1().getUUID()) != null) {
-                if (lastPacketMap.containsKey(taskUUID)) lastPacketMap.get(taskUUID).poll();
+    public static void unregisterTask() {
+        synchronized (lock) {
+            if (handledTask != null) {
+                PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
+                if (saver != null)
+                    saver.getAny();
+                handledTask = null;
             }
-            if (task == null) break;
         }
     }
 

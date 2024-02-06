@@ -160,7 +160,7 @@ public class Converters {
                 IStructureModifier<Object> craftChunkModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftChunkClass())
                         .withType(NMSUtils.getChunkClass())
                         .withTarget(object);
-                return craftChunkModifier.invokeMethod("getHandle", 0);
+                return craftChunkModifier.invokeMethod("getHandle");
             }
         });
     }

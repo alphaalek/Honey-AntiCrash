@@ -18,6 +18,13 @@ public abstract class TempQueuedTracker implements HoneyTracker {
         }
     }
 
+    public void clearExceedingNodes(Timespan timespan) {
+        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
+        if (queue == null) return;
+
+        queue.getT2().clearExceedingNodes();
+    }
+
     public double getTotal(Timespan timespan) {
         Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
         if (queue == null) return 0;

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -21,9 +22,14 @@ public class MonitorManager {
 
     private final Map<Monitorer, List<MonitorObserver>> playerMonitorObservers = new HashMap<>();
     private final Map<UUID, Monitorer> playerMonitorerMap = new HashMap<>();
+    private ScheduledExecutorService executorService;
 
     public MonitorManager() {
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        schedule();
+    }
+
+    public void schedule() {
+        executorService = Executors.newSingleThreadScheduledExecutor();
 
         executorService.scheduleAtFixedRate(() -> {
             try {
@@ -36,7 +42,19 @@ public class MonitorManager {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-        }, 0L, 500L, TimeUnit.MILLISECONDS);
+        }, 0L, ConfigurationOptions.Monitor.MESSAGE_INTERVAL, TimeUnit.MILLISECONDS);
+    }
+
+    public void reload() {
+        try {
+            executorService.shutdown();
+            if (!executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS)) {
+                Bukkit.getLogger().severe("Monitor executor service did not terminate successfully!");
+            }
+        } catch (Exception ex) {
+            Bukkit.getLogger().severe("Exception occurred when shutting down monitor executor service!");
+        }
+        schedule();
     }
 
     public Monitorer getMonitorer(Player player) {

@@ -235,11 +235,13 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         ItemAnalysis.reload();
 
         checkHandleTracker.clear();
+
+        monitorManager.reload();
     }
 
     public boolean shouldExempt(Player player) {
-        return tickloop.evaluateTPS(Timespan.FIVE_SECOND) < ConfigurationOptions.General.Exempt.MIN_TPS ||
-                getRecentPing(player) > ConfigurationOptions.General.Exempt.MAX_PING;
+        return tickloop.evaluateTPS(Timespan.FIVE_SECOND) < ConfigurationOptions.Exempt.MIN_TPS ||
+                getRecentPing(player) > ConfigurationOptions.Exempt.MAX_PING;
     }
 
     public static HoneyAPI get() {

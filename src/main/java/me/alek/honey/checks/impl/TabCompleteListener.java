@@ -13,6 +13,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -52,6 +54,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     }
 
     @Override
+    public void load() {
+        TabA.prohibitedCommands = ChatListener.getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);;
+    }
+
+    @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
         return () -> Collections.singletonList(PacketType.Play.Client.TAB_COMPLETE);
     }
@@ -63,7 +70,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
     public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
-        private final String[] prohibitedCommands = ChatListener.getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+        private static String[] prohibitedCommands;
 
         @Override
         public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
@@ -89,6 +96,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         @Override
         public String getDescription() {
             return "Tab completing prohibited command";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.SINGLETON_TAB_COMPLETE_FILTER;
         }
 
         @Override
@@ -142,7 +154,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         public void accept(int size) {
 
                             container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, getName(), getSetting(), container.getDevelopmentData(TabB.this), false);
+                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this), false);
                         }
                     });
                 }
@@ -159,6 +171,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         @Override
         public String getDescription() {
             return "Buffer of tab complete suggestions exceeded";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LONG_TAB_COMPLETE_FILTER;
         }
 
         @Override

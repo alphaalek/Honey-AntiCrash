@@ -12,6 +12,8 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
@@ -77,6 +79,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CREATIVE_SLOT_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeA.class);
         }
@@ -109,6 +116,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CREATIVE_SLOT_FILTER;
+        }
+
+        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeB.class);
         }
@@ -135,6 +147,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         @Override
         public String getDescription() {
             return "Clicking on illegal item";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.CREATIVE_SLOT_FILTER;
         }
 
         @Override

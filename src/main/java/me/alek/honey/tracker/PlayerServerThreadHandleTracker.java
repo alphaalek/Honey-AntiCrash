@@ -21,6 +21,8 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
     private final ThreadSeperatedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
     private boolean workingProperly;
     private boolean initiallyInjected;
+    private boolean initiallyTickRound = true;
+    private boolean started;
 
     public PlayerServerThreadHandleTracker() {
         try {
@@ -48,7 +50,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        DuplexChannelHandler.getLastPacketMap().clear();
+        DuplexChannelHandler.getPacketBundleSavers().clear();
     }
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
@@ -59,7 +61,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         private ConstructorInvoker<?> tickTaskConstructor;
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
-        private boolean initiallyTickRound = true;
         private boolean nullPoll;
 
         private final Object EMPTY_VALUE = new Object();
@@ -105,7 +106,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         }
 
         @Override
-        public Object poll() {
+        public synchronized Object poll() {
             Object otherTask;
             if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE) {
                 if (recentPollStart != -1)
@@ -113,8 +114,10 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 recentPollStart = -1;
                 return otherTask;
             }
+            started = true;
             workingProperly = true;
 
+            Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
             if (!initiallyTickRound) {
 
@@ -122,11 +125,10 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
                     // evaluate the difference in time
-                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime
-                            : getDeltaTime();
+                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTime();
                     recentDeltaTime = -1;
 
-                    Player player = Bukkit.getPlayer(recentPacketAuthor.get());
+                    player = Bukkit.getPlayer(recentPacketAuthor.get());
                     recentPacketAuthor.set(null);
 
                     if (player != null && player.isOnline()) {
@@ -156,8 +158,10 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
 
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
-                // clear interrupted flag of thread to avoid tickloop waiting for next tick will throw exception, if it somehow has interrupted while running
-                Thread.interrupted();
+                if (Thread.interrupted()) {
+                    Bukkit.getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag. "
+                            + (player == null ? "" : " Maybe sent from " + player.getName() + "."));
+                }
 
                 if (initiallyTickRound) {
                     packetSendQueue.clear();
@@ -176,9 +180,9 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         }
 
         @Override
-        public boolean add(Object value) {
+        public synchronized boolean add(Object value) {
             // add it two times if it's empty, so we always have one extra element
-            // this is because in versions below 1.14, it polls until it reaches null, which means one extras time
+            // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
             if (super.isEmpty() && havingOneMoreElement) super.add(EMPTY_VALUE);
 
             if (!Thread.currentThread().getName().startsWith("Netty"))
@@ -187,6 +191,10 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             super.add(EMPTY_VALUE);
             return seperatedQueue.add(value);
         }
+    }
+
+    public synchronized void waitUntilInitiallyTickRoundCompletes() {
+        while (initiallyTickRound && started && workingProperly) {}
     }
 
     @Override

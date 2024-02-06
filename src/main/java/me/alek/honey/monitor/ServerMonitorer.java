@@ -32,6 +32,8 @@ public class ServerMonitorer implements Monitorer {
 
     @Override
     public String getMessage() {
+        HoneyPlugin.get().getServerThreadHandleTracker().clearExceedingNodes(false);
+
         int packetRate;
         return "§6*§8TPS: §7" + getTPS(Timespan.FIVE_SECOND) + ", " + getTPS(Timespan.TEN_SECOND) + "§8, "
                 + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLoggerService().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLoggerService().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.FIVE_SECOND) + " ppqe§8, "

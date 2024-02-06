@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> implements Cloneable, Serializable {
 
-    private Object handle;
+    private final Object handle;
     protected IStructureModifier<V> valueStructureModifier;
 
     private NBTRoot root;
@@ -22,14 +22,13 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     private NBTType type;
     private V value;
 
-
     public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner) {
         super(base);
         this.handle = base;
         this.root = root;
         this.owner = owner;
 
-        if (getRoot().getTotalElements() <= getRoot().getMaximumElementsWithin()) { // sætter limit på elementer i nbt structure
+        if (getRoot().getTotalElements() <= getRoot().getMaximumElementsWithin()) { // set limit on elements in nbt structure
             if (base != null) {
                 valueStructureModifier = applyStructure(getConverter())
                         .apply(getReflectStructure())

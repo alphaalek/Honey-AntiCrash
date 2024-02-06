@@ -60,30 +60,37 @@ public class TempQueue {
     }
 
     public double add(double amount) {
-        if (isFixed) {
+        if (isFixed && amount > 0) {
             FIXED.add(amount);
             return FIXED.remove();
-        } else {
+
+        } else if (!isFixed) {
             synchronized (this) {
                 if (amount > 0) TIMED.add(new TimedNode(amount));
 
-                final Iterator<TimedNode> sampleNodeIterator = TIMED.iterator();
-                while (sampleNodeIterator.hasNext()) {
-
-                    final TimedNode node = sampleNodeIterator.next();
-                    final long diff = System.currentTimeMillis() - node.insertionInstant;
-
-                    if (diff > ((long)timespan.getTimespan()) * 1000) {
-                        sampleNodeIterator.remove();
-
-                        total.addAndGet(-node.value);
-                        continue;
-                    }
-                    break;
-                }
+                clearExceedingNodes();
             }
         }
         return 0;
+    }
+
+    public void clearExceedingNodes() {
+        if (isFixed) return;
+
+        final Iterator<TimedNode> sampleNodeIterator = TIMED.iterator();
+        while (sampleNodeIterator.hasNext()) {
+
+            final TimedNode node = sampleNodeIterator.next();
+            final long diff = System.currentTimeMillis() - node.insertionInstant;
+
+            if (diff > ((long)timespan.getTimespan()) * 1000) {
+                sampleNodeIterator.remove();
+
+                total.addAndGet(-node.value);
+                continue;
+            }
+            break;
+        }
     }
 
     public static class TimedNode {

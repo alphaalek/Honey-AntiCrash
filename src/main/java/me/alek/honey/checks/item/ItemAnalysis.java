@@ -53,9 +53,7 @@ public class ItemAnalysis {
                     checkRegistryLookup.get(registry).setValue(field.getInt(null));
                 }
                 else if (field.getType() == boolean.class) {
-
                     if (!field.getBoolean(null)) {
-                        // dont enable them
                         disabledChecks.add(checkRegistryLookup.get(setting.value()));
                     }
                 }
@@ -75,8 +73,7 @@ public class ItemAnalysis {
             }
             if (availableMaterials.length > 0) {
                 for (Material material : availableMaterials) {
-                    if (material == null) Bukkit.broadcastMessage(registry + "");
-                    if (material == null || material.equals(Material.AIR)) continue;
+                    if (material.equals(Material.AIR)) continue;
 
                     if (!directAvailableMaterialChecks.containsKey(material)) {
                         directAvailableMaterialChecks.put(material, new HashSet<>());

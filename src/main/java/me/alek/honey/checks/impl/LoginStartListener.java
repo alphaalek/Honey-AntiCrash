@@ -12,6 +12,8 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
@@ -81,6 +83,11 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         public String getDescription() {
             return "Player name already online";
         }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
     }
 
     public static class LoginB implements PacketCheck<WrappedLoginInLoginStart> {
@@ -109,6 +116,10 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         public String getDescription() {
             return "Login start with invalid ping";
         }
-    }
 
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilterFactory.createEmptyFilter();
+        }
+    }
 }

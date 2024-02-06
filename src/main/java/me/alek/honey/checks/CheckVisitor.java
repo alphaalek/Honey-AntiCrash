@@ -88,7 +88,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         if (response.TERMINATE) terminated = true;
                         continue;
                     }
-                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check.getName(), setting, developmentData, response.IGNORE_SPIKE);
+                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check, setting, developmentData, response.IGNORE_SPIKE);
                 }
                 if (response.PUNISH && player != null)
                     HoneyPlugin.get().getViolationService().punish(null, player, check.getName(), key);

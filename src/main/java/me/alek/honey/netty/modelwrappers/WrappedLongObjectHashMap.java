@@ -20,11 +20,11 @@ public class WrappedLongObjectHashMap<V> extends WrappedObject<WrappedLongObject
     }
 
     public int size() {
-        return getModifier(int.class).invokeMethod("size", 0);
+        return getModifier(int.class).invokeMethod("size");
     }
 
     public boolean isEmpty() {
-        return getModifier(boolean.class).invokeMethod("isEmpty", 0);
+        return getModifier(boolean.class).invokeMethod("isEmpty");
     }
 
     public boolean containsKey(long key) {
@@ -52,18 +52,18 @@ public class WrappedLongObjectHashMap<V> extends WrappedObject<WrappedLongObject
     }
 
     public void clear() {
-        getModifier(void.class).invokeMethod("clear", 0);
+        getModifier(void.class).invokeMethod("clear");
     }
 
     public Set<Long> keySet() {
-        return getModifier(Set.class).invokeMethod("keySet", 0);
+        return getModifier(Set.class).invokeMethod("keySet");
     }
 
     public Collection<V> values() {
-        return getModifier(Collection.class).invokeMethod("values", 0);
+        return getModifier(Collection.class).invokeMethod("values");
     }
 
     public Set<Map.Entry<Long, V>> entrySet() {
-        return getModifier(Set.class).invokeMethod("entrySet", 0);
+        return getModifier(Set.class).invokeMethod("entrySet");
     }
 }

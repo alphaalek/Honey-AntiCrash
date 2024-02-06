@@ -36,6 +36,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final Channel channel;
     private final ReflectStructure<Object, ?> packetStructure;
     private boolean cancelled = false;
+    private final long time = System.currentTimeMillis();
 
     public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type) {
         this.player = player;
@@ -55,6 +56,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.type = type;
         this.handle = rawPacket;
         this.channel = channel;
+    }
+
+    @Override
+    public String toString() {
+        return "Packet:{Type:" + getType() + ",Player:{ " + player.getName() + "}}";
+    }
+
+    @Override
+    public long getTime() {
+        return this.time;
     }
 
     @Override

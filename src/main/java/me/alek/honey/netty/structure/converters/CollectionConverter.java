@@ -19,6 +19,4 @@ public interface CollectionConverter<K, V> extends Iterable<V> {
     boolean add(K value);
 
     boolean addConverted(V value);
-
-    boolean isInvalid();
 }

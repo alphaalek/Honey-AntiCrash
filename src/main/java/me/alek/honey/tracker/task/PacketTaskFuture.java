@@ -1,5 +1,7 @@
 package me.alek.honey.tracker.task;
 
+import org.bukkit.Bukkit;
+
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -23,18 +25,9 @@ public class PacketTaskFuture<V> extends FutureTask<V> {
         try {
             super.run();
         } catch (Exception ex) {
-            PacketTaskHandler.unregisterTask(uuid);
-            throw ex;
+            Bukkit.getLogger().severe("Error occurred when running packet task.");
+            ex.printStackTrace();
         }
-        PacketTaskHandler.unregisterTask(uuid);
-    }
-
-    @Override
-    public V get() throws ExecutionException, InterruptedException {
-        try {
-             return super.get();
-        } catch (Exception ex)  {
-            return null;
-        }
+        PacketTaskHandler.unregisterTask();
     }
 }

@@ -492,41 +492,55 @@ public class ConfigurationOptions {
 
             PASTEBIN_DEVELOPER_KEY = file.getString("pastebin-developer-key");
         }
+    }
 
-        @Setting
-        public static class Exempt {
+    @Setting
+    public static class Exempt {
 
-            public static int MIN_TPS;
-            public static int MAX_PING;
-            public static int MAX_TIME_BETWEEN;
-            public static int SPIKE_INTERVAL;
+        public static int MIN_TPS;
+        public static int MAX_PING;
+        public static int MAX_TIME_BETWEEN;
+        public static int SPIKE_INTERVAL;
 
-            public static void load() {
-                MIN_TPS = file.getInt("exempt.min-tps", 18);
-                MAX_PING = file.getInt("exempt.max-ping", 70);
-                MAX_TIME_BETWEEN = file.getInt("exempt.max-time-between", 550);
-                SPIKE_INTERVAL = file.getInt("exempt.spike-interval", 700);
-            }
+        public static void load() {
+            MIN_TPS = file.getInt("exempt.min-tps", 18);
+            MAX_PING = file.getInt("exempt.max-ping", 70);
+            MAX_TIME_BETWEEN = file.getInt("exempt.max-time-between", 550);
+            SPIKE_INTERVAL = file.getInt("exempt.spike-interval", 700);
         }
+    }
 
-        @Setting
-        public static class SQL {
+    @Setting
+    public static class SQL {
 
-            public static boolean ENABLED;
-            public static String HOST;
-            public static int PORT;
-            public static String USERNAME;
-            public static String PASSWORD;
-            public static String DATBASE;
+        public static boolean ENABLED;
+        public static String HOST;
+        public static int PORT;
+        public static String USERNAME;
+        public static String PASSWORD;
+        public static String DATBASE;
 
-            public static void load() {
-                ENABLED = file.getBoolean("mysql.enabled");
-                HOST = file.getString("mysql.host");
-                PORT = file.getInt("mysql.port");
-                USERNAME = file.getString("mysql.username");
-                PASSWORD = file.getString("mysql.password");
-                DATBASE = file.getString("mysql.name");
-            }
+        public static void load() {
+            ENABLED = file.getBoolean("mysql.enabled");
+            HOST = file.getString("mysql.host");
+            PORT = file.getInt("mysql.port");
+            USERNAME = file.getString("mysql.username");
+            PASSWORD = file.getString("mysql.password");
+            DATBASE = file.getString("mysql.name");
+        }
+    }
+
+    @Setting
+    public static class Monitor {
+
+        public static boolean ENABLE_PACKET_LOGGER;
+        public static long MESSAGE_INTERVAL;
+        public static List<String> IGNORED_PACKETS;
+
+        public static void load() {
+            ENABLE_PACKET_LOGGER = file.getBoolean("monitor.enable-packet-logger", true);
+            MESSAGE_INTERVAL = file.getLong("monitor.message-interval", 500L);
+            IGNORED_PACKETS = file.getStringList("monitor.ignored-packets");
         }
     }
 

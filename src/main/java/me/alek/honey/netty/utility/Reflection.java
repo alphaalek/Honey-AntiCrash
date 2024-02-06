@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 
 public class Reflection {
 
+    private static final Map<String, Class<?>> CLASS_CACHE = new HashMap<>();
+
     static {
         String OBC = Bukkit.getServer().getClass().getPackage().getName();
         String NMS;
@@ -69,7 +71,7 @@ public class Reflection {
     }
 
     public static Class<?> getClass(String name) {
-        return getCanonicalClass(setPlaceholders(name));
+        return CLASS_CACHE.computeIfAbsent(name, (d) -> getCanonicalClass(setPlaceholders(name)));
     }
 
     public static Class<Object> getObjectClass(String name) {
