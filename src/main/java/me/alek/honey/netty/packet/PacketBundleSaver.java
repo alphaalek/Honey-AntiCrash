@@ -3,18 +3,27 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class PacketBundleSaver {
+    private static final Map<Set<PacketTypeEnum>, Integer> PACKET_SAVES_SIZES = new HashMap<>();
+    private static byte MAX_PACKET_ID;
 
-    private static final Map<Set<PacketTypeEnum>, Integer> PACKET_SAVES_SIZES = PacketBundleFilters.getPacketSaves();
-    private static final Map<Set<PacketTypeEnum>, Deque<PacketContainer<?>>> PACKET_SAVES = new HashMap<>();
-    private static final byte MAX_PACKET_ID;
+    private final Map<Set<PacketTypeEnum>, Deque<PacketContainer<?>>> PACKET_SAVES = new HashMap<>();
+    public final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     static {
+        reloadFilters();
+    }
+
+    public static void reloadFilters() {
+        PACKET_SAVES_SIZES.clear();
+        PACKET_SAVES_SIZES.putAll(PacketBundleFilters.getPacketSaves());
+
         byte max = 0;
         for (PacketTypeEnum packetType : PACKET_SAVES_SIZES.keySet().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
             if (packetType.getPacketId() > max)
@@ -52,7 +61,19 @@ public class PacketBundleSaver {
         }
     }
 
-    private static class PacketSaverQueue {
+    public void transferFrom(PacketBundleSaver bundleSaver) {
+        lock.writeLock().lock();
+        try {
+            PacketContainer<?> packet;
+            while ((packet = bundleSaver.getAny()) != null) {
+                add(packet);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private class PacketSaverQueue {
 
         private final Set<PacketTypeEnum> packetTypes;
         private final int size;
@@ -72,7 +93,7 @@ public class PacketBundleSaver {
         }
     }
 
-    private List<PacketSaverQueue> getQueue(PacketTypeEnum packetType) {
+    private synchronized List<PacketSaverQueue> getQueue(PacketTypeEnum packetType) {
         if (packetType.getPacketId() > MAX_PACKET_ID) return null;
 
         return packets[packetType.getPacketId() - 1];
@@ -120,40 +141,59 @@ public class PacketBundleSaver {
                 mostRecent.addAll(packets);
             }
         }
-        return null;
+        return mostRecent;
     }
 
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(Set<PacketTypeEnum> packetTypeSet) {
-        PacketTypeEnum first = packetTypeSet.iterator().next();
+        lock.readLock().lock();
+        try {
+            filterPacketTypes(packetTypeSet);
 
-        List<PacketSaverQueue> queues = getQueue(first);
-        if (queues == null) return null;
+            PacketTypeEnum first = packetTypeSet.iterator().next();
 
-        for (PacketSaverQueue queue : queues) {
-            if (queue.packetTypes.equals(packetTypeSet))
-                return poll(queue);
+            List<PacketSaverQueue> queues = getQueue(first);
+            if (queues == null) return null;
+
+            for (PacketSaverQueue queue : queues) {
+                if (queue.packetTypes.equals(packetTypeSet))
+                    return poll(queue);
+            }
+        } finally {
+            lock.readLock().unlock();
         }
         return null;
     }
 
     public List<PacketContainer<?>> get(Set<PacketTypeEnum> packetTypeSet, int amount) {
-        PacketTypeEnum first = packetTypeSet.iterator().next();
+        lock.readLock().lock();
+        try {
+            filterPacketTypes(packetTypeSet);
 
-        List<PacketSaverQueue> queues = getQueue(first);
-        if (queues == null || amount == 0) return null;
+            PacketTypeEnum first = packetTypeSet.iterator().next();
 
-        List<PacketContainer<?>> packets = new ArrayList<>();
-        for (PacketSaverQueue queue : queues) {
-            if (queue.packetTypes.equals(packetTypeSet)) {
-                PacketContainer<?> packet;
-                while ((packet = poll(queue)) != null) {
-                    packets.add(packet);
+            List<PacketSaverQueue> queues = getQueue(first);
+            if (queues == null || amount == 0) return null;
 
-                    if (packets.size() == amount) return packets;
+            List<PacketContainer<?>> packets = new ArrayList<>();
+            for (PacketSaverQueue queue : queues) {
+                if (queue.packetTypes.equals(packetTypeSet)) {
+                    PacketContainer<?> packet;
+                    while ((packet = poll(queue)) != null) {
+                        packets.add(packet);
+
+                        if (packets.size() == amount) return packets;
+                    }
                 }
             }
+            return packets;
+        } finally {
+            lock.readLock().unlock();
         }
-        return packets;
+    }
+
+    private void filterPacketTypes(Set<PacketTypeEnum> packetTypes) {
+        Set<PacketTypeEnum> filteredPacketTypes = PacketBundleFilters.getFilterAllPackets();
+        packetTypes.removeIf(filteredPacketTypes::contains);
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue) {
@@ -175,6 +215,23 @@ public class PacketBundleSaver {
     }
 
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> getAny() {
-        return (PacketContainer<WP>) commonPackets.poll();
+        lock.readLock().lock();
+        try {
+            return (PacketContainer<WP>) commonPackets.poll();
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public void clear() {
+        lock.readLock().lock();
+        try {
+            for (Deque<PacketContainer<?>> packetList : PACKET_SAVES.values()) {
+                packetList.clear();
+            }
+            commonPackets.clear();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 }

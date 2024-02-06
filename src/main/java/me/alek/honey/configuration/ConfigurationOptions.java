@@ -545,6 +545,18 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class PacketDump {
+
+        public static boolean ENABLED;
+        public static List<String> FILTER_ALL;
+
+        public static void load() {
+            ENABLED = file.getBoolean("packet-dump.enabled", true);
+            FILTER_ALL = file.getStringList("packet-dump.filter-all");
+        }
+    }
+
+    @Setting
     public static class PacketLogger {
 
         public static boolean ENABLED;

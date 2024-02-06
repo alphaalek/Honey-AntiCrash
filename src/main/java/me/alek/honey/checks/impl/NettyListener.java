@@ -290,9 +290,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND);
                 if (hsq > 0.1) {
-                    int developmentDataSize = container.getDevelopmentData(this).size();
                     int trackerSize = tracker.getTrackerSize();
-                    container.getDevelopmentData(this).addPoint("Size", trackerSize);
+                    container.getDevelopmentData(this).addPoint("Tracker Size", trackerSize);
+                    container.getDevelopmentData(this).addEmpty();
+                    int developmentDataSize = container.getDevelopmentData(this).size();
 
                     int i = 0;
                     for (Timespan timespan : Timespan.values()) {
@@ -306,20 +307,20 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan);
                         if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.65 * multiplier) {
-                            container.getDevelopmentData(this).addPoint("hsq", NumberConversions.format(hsq * 100) + "%");
-                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("h.s.q.")).flag(1).build();
+                            container.getDevelopmentData(this).addPoint("h.s.q.", NumberConversions.format(hsq * 100) + "%");
+                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("hsq")).flag(1).build();
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan);
                         if ((trackerSize > 15 && ta > 17.5 * multiplier) || (trackerSize > 25 && ta > 15 * multiplier) || (trackerSize > 40 && ta > 12.5 * multiplier)) {
-                            container.getDevelopmentData(this).addPoint("ta", NumberConversions.format(ta * 100) + "%");
-                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.a.")).flag(1).build();
+                            container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
+                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                         }
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan);
                         if ((trackerSize > 15 && tt > 0.75 * multiplier) || (trackerSize > 25 && tt > 0.55 * multiplier)) {
-                            container.getDevelopmentData(this).addPoint("tt", NumberConversions.format(tt * 100) + "%");
-                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("t.t.")).flag(1).build();
+                            container.getDevelopmentData(this).addPoint("t.t.", NumberConversions.format(tt * 100) + "%");
+                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
                         }
                     }
                 }

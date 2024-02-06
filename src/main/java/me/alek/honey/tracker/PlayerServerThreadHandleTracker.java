@@ -2,6 +2,7 @@ package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.FieldAccessor;
@@ -51,7 +52,9 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        DuplexChannelHandler.getPacketBundleSavers().clear();
+        for (PacketBundleSaver bundleSaver : DuplexChannelHandler.getPacketBundleSavers().values()) {
+            bundleSaver.clear();
+        }
     }
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {

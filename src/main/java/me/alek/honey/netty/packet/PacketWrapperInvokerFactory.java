@@ -69,30 +69,34 @@ public class PacketWrapperInvokerFactory {
 
         PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
-            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+            return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.HANDSHAKE, PROTOCOL_VERSION), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
-            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+            return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.LOGIN, PROTOCOL_VERSION), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
-            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+            return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.STATUS, PROTOCOL_VERSION), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
-            return getCachedInvoker(packetType.getNmsClass().getSimpleName());
+            return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
     }
 
     private static final NetProtocol PROTOCOL_VERSION = NetProtocol.getProtocol();
+    private static final Map<PacketTypeEnum, String> NAME_CACHE = new HashMap<>();
+    private static final Map<String, PacketTypeEnum> NAME_CACHE_REVERSED = new HashMap<>();
     private static final Map<String, MethodInvoker<Object>> METHODS_CACHE = new HashMap<>();
     private static Map<PacketTypeEnum, MethodInvoker<Object>> PLAY_CACHE;
     private static Map<PacketTypeEnum, MethodInvoker<Object>> HANDSHAKE_CACHE;
     private static Map<PacketTypeEnum, MethodInvoker<Object>> LOGIN_CACHE;
     private static Map<PacketTypeEnum, MethodInvoker<Object>> STATUS_CACHE;
 
-    private static MethodInvoker<Object> getCachedInvoker(String name) {
+    private static MethodInvoker<Object> getCachedInvoker(PacketTypeEnum packetType, String name) {
+        NAME_CACHE.put(packetType, name);
+        NAME_CACHE_REVERSED.put(name, packetType);
         if (METHODS_CACHE.get(name) != null)
             return METHODS_CACHE.get(name);
 
@@ -138,6 +142,14 @@ public class PacketWrapperInvokerFactory {
         PacketContainer<WP> packetContainer = new InternalPacketContainer<>(rawPacket, player, channel, null, packetTypeEnum);
 
         return packetContainer.getPacket();
+    }
+
+    public static String getNameFor(PacketTypeEnum packetType) {
+        return NAME_CACHE.get(packetType);
+    }
+
+    public static PacketTypeEnum getPacketTypeForName(String name) {
+        return NAME_CACHE_REVERSED.get(name);
     }
 
     private static MethodInvoker<Object> createWrapperInvoker(Class<?> nmsClass, Map<PacketTypeEnum, MethodInvoker<Object>> map) {

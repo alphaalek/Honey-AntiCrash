@@ -96,7 +96,7 @@ public class LoggerService {
 
         long time = System.currentTimeMillis();
         for (PacketContainer<?> packet : packets) {
-            logPacket(packet, playerName, true, time);
+            logPacket(packet, playerName, true, time, false);
         }
     }
 
@@ -181,11 +181,11 @@ public class LoggerService {
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
-        logPacket(packetContainer, playerName, this.detailed, 0);
+        logPacket(packetContainer, playerName, this.detailed, 0, true);
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime) {
-        if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getHandle().getClass().getSimpleName())) {
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime, boolean ignore) {
+        if (ignore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getHandle().getClass().getSimpleName()))) {
             return;
         }
         StringBuilder message = new StringBuilder();

@@ -343,7 +343,6 @@ public class ViolationService {
 
         private final Player player;
         private final ConfigurationOptions.VlSetting setting;
-        private final PacketBundleSaver packetBundleSaver;
 
         private final AtomicLong lastViolationClear = new AtomicLong();
         private final AtomicInteger violations = new AtomicInteger();
@@ -353,7 +352,6 @@ public class ViolationService {
             this.setting = setting;
 
             this.lastViolationClear.set(System.currentTimeMillis());
-            this.packetBundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId());
         }
 
         public Player getPlayer() {
@@ -365,12 +363,15 @@ public class ViolationService {
         }
 
         public synchronized void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
-            PacketBundleFilter filter = check.getDumpFilter();
-            List<PacketContainer<?>> dumpedPackets = packetBundleSaver.get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size());
-            if (dumpedPackets != null) {
-                HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
-            }
+            if (ConfigurationOptions.PacketDump.ENABLED) {
+                PacketBundleFilter filter = check.getDumpFilter();
+                List<PacketContainer<?>> dumpedPackets = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())
+                        .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size());
 
+                if (dumpedPackets != null) {
+                    HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
+                }
+            }
             if (developmentData != null) {
                 AbstractPacketListener.applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
@@ -408,8 +409,6 @@ public class ViolationService {
         }
 
         private void applySettingsToDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
-            if (developmentData.size() > 10) return;
-
             developmentData.addEmpty();
 
             PacketLimitHandlerType handlerType = setting.getPacketLimitHandlerType();

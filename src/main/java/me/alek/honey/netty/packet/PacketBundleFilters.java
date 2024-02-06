@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.Bukkit;
@@ -30,13 +31,30 @@ public class PacketBundleFilters {
     public static PacketBundleFilter USE_ENTITY_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.USE_ENTITY);
     public static PacketBundleFilter WINDOW_CLICK_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.WINDOW_CLICK);
 
+    public static Set<PacketTypeEnum> getFilterAllPackets() {
+        Set<PacketTypeEnum> packets = new HashSet<>();
+        for (String ignoredPacket : ConfigurationOptions.PacketDump.FILTER_ALL) {
+            packets.add(PacketWrapperInvokerFactory.getPacketTypeForName(ignoredPacket));
+        }
+        return packets;
+    }
+
     public static Map<Set<PacketTypeEnum>, Integer> getPacketSaves() {
         Map<Set<PacketTypeEnum>, Integer> saves = new HashMap<>();
         for (PacketBundleFilter filter : getAllFilters()) {
             int size = filter.size();
             Set<PacketTypeEnum> packetTypes = Sets.newHashSet(filter.getAcceptedPacketTypes());
 
-            if (!saves.containsKey(packetTypes) || saves.containsKey(packetTypes) && saves.get(packetTypes) < size)
+            if (packetTypes.size() == PacketBundleFilterFactory.getLenientFilterSize()) {
+                for (PacketTypeEnum packetType : getFilterAllPackets()) {
+                    packetTypes.remove(packetType);
+                }
+            }
+            if (!packetTypes.isEmpty() &&
+                    (!saves.containsKey(packetTypes) ||
+                            (saves.containsKey(packetTypes) && saves.get(packetTypes) < size)
+                    )
+            )
                 saves.put(packetTypes, size);
         }
         return saves;

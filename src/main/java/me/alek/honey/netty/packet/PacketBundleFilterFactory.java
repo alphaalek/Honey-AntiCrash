@@ -9,6 +9,11 @@ import me.alek.honey.netty.utility.NetProtocol;
 public class PacketBundleFilterFactory {
 
     private static final PacketBundleFilter EMPTY_FILTER = createLenientFilter(0);
+    private static final int LENIENT_FILTER_SIZE = EMPTY_FILTER.getAcceptedPacketTypes().length;
+
+    public static int getLenientFilterSize() {
+        return LENIENT_FILTER_SIZE;
+    }
 
     public static PacketBundleFilter createSingletonFilter(PacketTypeEnum packetType) {
         return createSingletonFilter(new PacketTypeEnum[]{packetType});

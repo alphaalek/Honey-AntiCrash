@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -25,6 +26,7 @@ public class PacketFactory {
 
             return createWrappedPacket(type, rawPacket, player, channel, postAction);
         } catch (Exception ex) {
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating packet for type " + type);
             ex.printStackTrace();
         }
         return null;
@@ -45,6 +47,8 @@ public class PacketFactory {
         try {
             return (WrappedPacket<WP>) wrapperInvoker.invokeWithException(null, rawPacket, packetContainer);
         } catch (Exception ex) {
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating wrapped packet for type " + type);
+            ex.printStackTrace();
             return null;
         }
     }

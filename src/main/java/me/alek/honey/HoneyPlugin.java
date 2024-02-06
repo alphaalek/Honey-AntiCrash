@@ -18,7 +18,9 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
+import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
@@ -38,6 +40,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -237,6 +240,14 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         checkHandleTracker.clear();
 
         monitorManager.reload();
+
+        PacketBundleSaver.reloadFilters();
+        for (Map.Entry<UUID, PacketBundleSaver> bundleSaver : new ArrayList<>(DuplexChannelHandler.getPacketBundleSavers().entrySet())) {
+            PacketBundleSaver newBundleSaver = new PacketBundleSaver();
+            newBundleSaver.transferFrom(bundleSaver.getValue());
+
+            DuplexChannelHandler.getPacketBundleSavers().put(bundleSaver.getKey(), newBundleSaver);
+        }
     }
 
     public boolean shouldExempt(Player player) {

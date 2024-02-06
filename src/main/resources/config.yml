@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
-#   + You are currently using the version 1.6.1
+#   + You are currently using the version 1.6.2
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -12,7 +12,6 @@
 # you have to set it up to match your server! If you have trouble doing this, I will gladly help you. :-)
 #
 # Discord: https://discord.gg/FJuKAUDX4C
-# YouTube: https://www.youtube.com/@alek05557
 # Sourcecode: https://github.com/alphaalek/Honey-AntiCrash
 #
 
@@ -112,6 +111,22 @@ packet-logger:
 
   # Should the packet logger be detailed, which means it shows all the fields of each packet.
   detailed: true
+
+# packet dump
+packet-dump:
+  # Packet dump is the packets shown in the logs, when a player gets violated.
+
+  # Should packet dump be enabled or not.
+  enabled: true
+
+  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type.
+  # E.g. violations of position checks will still dump position packets even though you have added it below.
+  filter-all:
+    # PacketPlayInKeepAlive is ignored as default
+    - "PacketPlayInFlying"
+  # - "PacketPlayInLook"
+  # - "PacketPlayInPosition"
+  # - "PacketPlayInPositionLook"
 
 ############################################################
 # +------------------------------------------------------+ #
