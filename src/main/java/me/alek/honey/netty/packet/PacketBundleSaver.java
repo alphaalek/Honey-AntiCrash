@@ -36,13 +36,13 @@ public class PacketBundleSaver {
     private final LinkedList<PacketContainer<?>> commonPackets = new LinkedList<>();
 
     public PacketBundleSaver() {
-        packets = new List[MAX_PACKET_ID];
+        packets = new List[MAX_PACKET_ID + 1];
 
         for (Set<PacketTypeEnum> packetTypeSet : PACKET_SAVES_SIZES.keySet()) {
             for (PacketTypeEnum packetType : packetTypeSet) {
-                List<PacketSaverQueue> packets = this.packets[packetType.getPacketId() - 1];
+                List<PacketSaverQueue> packets = this.packets[packetType.getPacketId()];
                 if (packets == null) {
-                    this.packets[packetType.getPacketId() - 1] = (packets = new ArrayList<>());
+                    this.packets[packetType.getPacketId()] = (packets = new ArrayList<>());
                 }
                 boolean hasForPacketTypes = false;
                 for (PacketSaverQueue queue : packets) {
@@ -96,7 +96,7 @@ public class PacketBundleSaver {
     private synchronized List<PacketSaverQueue> getQueue(PacketTypeEnum packetType) {
         if (packetType.getPacketId() > MAX_PACKET_ID) return null;
 
-        return packets[packetType.getPacketId() - 1];
+        return packets[packetType.getPacketId()];
     }
 
     public <WP extends WrappedPacket<WP>> void add(PacketContainer<WP> packet) {
