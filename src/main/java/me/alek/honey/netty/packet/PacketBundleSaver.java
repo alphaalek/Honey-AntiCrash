@@ -14,7 +14,7 @@ public class PacketBundleSaver {
     private static byte MAX_PACKET_ID;
 
     private final Map<Set<PacketTypeEnum>, Deque<PacketContainer<?>>> PACKET_SAVES = new HashMap<>();
-    public final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     static {
         reloadFilters();
