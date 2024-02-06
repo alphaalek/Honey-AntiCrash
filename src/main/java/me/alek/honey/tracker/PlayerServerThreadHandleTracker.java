@@ -14,23 +14,24 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final ThreadSeperatedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
-    private boolean workingProperly;
     private boolean initiallyInjected;
-    private boolean initiallyTickRound = true;
-    private boolean started;
+    private final AtomicBoolean workingProperly = new AtomicBoolean();
+    private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
+    private final AtomicBoolean started = new AtomicBoolean();
 
     public PlayerServerThreadHandleTracker() {
         try {
             Bukkit.getServer().getScheduler().runTaskTimer(HoneyPlugin.get().getPlugin(), () -> {
-                if (!initiallyInjected || (!workingProperly && !Bukkit.getOnlinePlayers().isEmpty())) tryInject();
+                if (!initiallyInjected || (!workingProperly.get() && !Bukkit.getOnlinePlayers().isEmpty())) tryInject();
 
                 initiallyInjected = true;
-                workingProperly = false;
+                workingProperly.set(false);
             }, 0L, 100L);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -114,12 +115,12 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 recentPollStart = -1;
                 return otherTask;
             }
-            started = true;
-            workingProperly = true;
+            started.set(true);
+            workingProperly.set(true);
 
             Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
-            if (!initiallyTickRound) {
+            if (!initiallyTickRound.get()) {
 
                 // check if this packet is not the first one handled in this tick
                 if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
@@ -159,13 +160,13 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
                 if (Thread.interrupted()) {
-                    Bukkit.getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag. "
+                    HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag. "
                             + (player == null ? "" : " Maybe sent from " + player.getName() + "."));
                 }
 
-                if (initiallyTickRound) {
+                if (initiallyTickRound.get()) {
                     packetSendQueue.clear();
-                    initiallyTickRound = false;
+                    initiallyTickRound.set(false);
                 }
             }
 
@@ -194,7 +195,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
     }
 
     public synchronized void waitUntilInitiallyTickRoundCompletes() {
-        while (initiallyTickRound && started && workingProperly) {}
+        while (initiallyTickRound.get() && started.get() && workingProperly.get()) {}
     }
 
     @Override

@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -67,19 +68,19 @@ public class PacketWrapperInvokerFactory {
         }
 
         PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
-            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType.getNmsClass().getSimpleName());
         });
         HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.HANDSHAKE, PROTOCOL_VERSION), (packetType) -> {
-            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType.getNmsClass().getSimpleName());
         });
         LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.LOGIN, PROTOCOL_VERSION), (packetType) -> {
-            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType.getNmsClass().getSimpleName());
         });
         STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.STATUS, PROTOCOL_VERSION), (packetType) -> {
-            if (packetType.getNmsClass() == null) Bukkit.getLogger().info("NULL: " + packetType.getClass().getName());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType.getNmsClass().getSimpleName());
         });
     }

@@ -9,8 +9,10 @@ import me.alek.honey.checks.impl.FloodListener;
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
+import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
+import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.utility.BungeeMessenger;
@@ -362,15 +364,22 @@ public class ViolationService {
             return setting;
         }
 
-        public synchronized void doFormatStuff(String violationName, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
+        public synchronized void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
+            PacketBundleFilter filter = check.getDumpFilter();
+            List<PacketContainer<?>> dumpedPackets = packetBundleSaver.get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size());
+            if (dumpedPackets != null) {
+                HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
+            }
+
             if (developmentData != null) {
                 AbstractPacketListener.applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
-            HoneyPlugin.get().getNotificationService().notify(getPlayer(), violationName, checkKey, getSetting(), this, developmentData);
+
+            HoneyPlugin.get().getNotificationService().notify(getPlayer(), check.getName(), checkKey, getSetting(), this, developmentData);
 
             try {
-                HoneyPlugin.get().getSQLManager().postViolation(player, violationName, ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
+                HoneyPlugin.get().getSQLManager().postViolation(player, check.getName(), ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -388,9 +397,9 @@ public class ViolationService {
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
             violations.incrementAndGet();
-            doFormatStuff(check.getName(), developmentData, checkKey);
 
-            Bukkit.broadcastMessage("" + packetBundleSaver.get(Sets.newHashSet(check.getDumpFilter().getAcceptedPacketTypes()), check.getDumpFilter().size()));
+            PacketBundleFilter filter = check.getDumpFilter();
+            doFormatStuff(check, developmentData, checkKey);
 
             if (violations.get() < getSetting().vlsAmount) return false;
 
@@ -440,7 +449,7 @@ public class ViolationService {
                 if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
                 if (!hasShownFlag)
-                    doFormatStuff(check.getName(), developmentData, checkKey);
+                    doFormatStuff(check, developmentData, checkKey);
                 hasShownFlag = true;
                 return true;
             }
@@ -653,7 +662,8 @@ public class ViolationService {
             if (ignoringSpikeForInterval) {
                 if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
-                if (HoneyPlugin.get().getLoggerService().isDebug()) Bukkit.getLogger().info("DEBUG: ignoring packet spike for interval check " + check);
+                if (HoneyPlugin.get().getLoggerService().isDebug())
+                    HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: ignoring packet spike for interval check " + check);
                 return false;
             }
             if (onFlag != null) onFlag.run();

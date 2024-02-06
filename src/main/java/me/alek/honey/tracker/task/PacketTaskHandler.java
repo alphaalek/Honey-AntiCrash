@@ -46,24 +46,24 @@ public class PacketTaskHandler {
     public static void dumpThread(UUID uuid) {
         String name = Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown");
         HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be frozen after a packet was sent by " + name + ". See the log for thread dump and more info."));
-        Bukkit.getLogger().severe("*******************************************************************************************");
-        Bukkit.getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
 
         PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getAny();
         if (packet != null) {
-            Bukkit.getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
-            Bukkit.getLogger().severe("  Fields: ");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
+            HoneyPlugin.get().getLoggerService().getLogger().severe("  Fields: ");
             for (FieldAccessor<?> accessor : packet.getAll().getAccessors()) {
                 Object value = accessor.get(packet.getHandle());
                 if (value instanceof Object[]) {
                     value = Arrays.toString((Object[]) value);
                 }
-                Bukkit.getLogger().severe("   \"" + accessor.getName() + "\": " + accessor.getType().getName() + ": " + value);
+                HoneyPlugin.get().getLoggerService().getLogger().severe("   \"" + accessor.getName() + "\": " + accessor.getType().getName() + ": " + value);
             }
-        } else Bukkit.getLogger().severe("  Packet data unknown.");
+        } else HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet data unknown.");
 
-        Bukkit.getLogger().severe("");
-        Bukkit.getLogger().severe("  Thread dump (Server Thread):");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("  Thread dump (Server Thread):");
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
 
         StackTraceElement[] elements = info.getStackTrace();
@@ -75,23 +75,23 @@ public class PacketTaskHandler {
                 combinedTotal++;
             }
             else {
-                Bukkit.getLogger().severe("\t" + element);
+                HoneyPlugin.get().getLoggerService().getLogger().severe("\t" + element);
                 notMatch = true;
             }
             prevElement = element.toString();
 
             if (notMatch) {
                 if (combinedTotal > 0) {
-                    Bukkit.getLogger().severe("\t" + "[...] x" + combinedTotal);
+                    HoneyPlugin.get().getLoggerService().getLogger().severe("\t" + "[...] x" + combinedTotal);
                 }
                 combinedTotal = 0;
             }
         }
         if (prevElement != null)
-            Bukkit.getLogger().severe("\t" + prevElement);
-        Bukkit.getLogger().severe("End of thread dump");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("\t" + prevElement);
+        HoneyPlugin.get().getLoggerService().getLogger().severe("End of thread dump");
 
-        Bukkit.getLogger().severe("*******************************************************************************************");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
     }
 
     public static <V> void registerTask(PacketTaskFuture<V> task){

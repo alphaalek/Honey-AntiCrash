@@ -10,12 +10,13 @@ import java.util.stream.Collectors;
 
 public class PacketBundleSaver {
 
-    private static final Map<Set<PacketTypeEnum>, Integer> PACKET_SAVES = PacketBundleFilters.getPacketSaves();
+    private static final Map<Set<PacketTypeEnum>, Integer> PACKET_SAVES_SIZES = PacketBundleFilters.getPacketSaves();
+    private static final Map<Set<PacketTypeEnum>, Deque<PacketContainer<?>>> PACKET_SAVES = new HashMap<>();
     private static final byte MAX_PACKET_ID;
 
     static {
         byte max = 0;
-        for (PacketTypeEnum packetType : PACKET_SAVES.keySet().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+        for (PacketTypeEnum packetType : PACKET_SAVES_SIZES.keySet().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
             if (packetType.getPacketId() > max)
                 max = packetType.getPacketId();
         }
@@ -28,7 +29,7 @@ public class PacketBundleSaver {
     public PacketBundleSaver() {
         packets = new List[MAX_PACKET_ID];
 
-        for (Set<PacketTypeEnum> packetTypeSet : PACKET_SAVES.keySet()) {
+        for (Set<PacketTypeEnum> packetTypeSet : PACKET_SAVES_SIZES.keySet()) {
             for (PacketTypeEnum packetType : packetTypeSet) {
                 List<PacketSaverQueue> packets = this.packets[packetType.getPacketId() - 1];
                 if (packets == null) {
@@ -42,7 +43,7 @@ public class PacketBundleSaver {
                     }
                 }
                 if (!hasForPacketTypes) {
-                    int size = PACKET_SAVES.get(packetTypeSet);
+                    int size = PACKET_SAVES_SIZES.get(packetTypeSet);
                     if (size == 0) continue;
 
                     packets.add(new PacketSaverQueue(packetTypeSet, size));
@@ -55,12 +56,12 @@ public class PacketBundleSaver {
 
         private final Set<PacketTypeEnum> packetTypes;
         private final int size;
-
-        private final Deque<PacketContainer<?>> packets = new LinkedList<>();
+        private final Deque<PacketContainer<?>> packets;
 
         public PacketSaverQueue(Set<PacketTypeEnum> packetTypes, int size) {
             this.packetTypes = packetTypes;
             this.size = size;
+            packets = PACKET_SAVES.computeIfAbsent(packetTypes, (d) -> new LinkedList<>());
         }
 
         public void add(PacketContainer<?> packet) {
@@ -93,7 +94,7 @@ public class PacketBundleSaver {
         if (queues == null) return null;
 
         for (PacketSaverQueue queue : queues) {
-            PacketContainer<?> packet = getAndRemoveFromOther(queue);
+            PacketContainer<?> packet = poll(queue);
             if (packet != null && packet.getType() == packetType)
                 return (PacketContainer<WP>) packet;
         }
@@ -108,7 +109,7 @@ public class PacketBundleSaver {
         for (PacketSaverQueue queue : queues) {
             List<PacketContainer<?>> packets = new ArrayList<>();
             PacketContainer<?> packet;
-            while ((packet = getAndRemoveFromOther(queue)) != null) {
+            while ((packet = poll(queue)) != null) {
                 if (packet.getType() == packetType) {
                     packets.add(packet);
                 }
@@ -130,7 +131,7 @@ public class PacketBundleSaver {
 
         for (PacketSaverQueue queue : queues) {
             if (queue.packetTypes.equals(packetTypeSet))
-                return getAndRemoveFromOther(queue);
+                return poll(queue);
         }
         return null;
     }
@@ -145,7 +146,7 @@ public class PacketBundleSaver {
         for (PacketSaverQueue queue : queues) {
             if (queue.packetTypes.equals(packetTypeSet)) {
                 PacketContainer<?> packet;
-                while ((packet = getAndRemoveFromOther(queue)) != null) {
+                while ((packet = poll(queue)) != null) {
                     packets.add(packet);
 
                     if (packets.size() == amount) return packets;
@@ -155,7 +156,7 @@ public class PacketBundleSaver {
         return packets;
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> getAndRemoveFromOther(PacketSaverQueue queue) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue) {
         PacketContainer<WP> packet = (PacketContainer<WP>) queue.packets.poll();
         removeFromSavers(packet);
 

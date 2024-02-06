@@ -49,10 +49,10 @@ public class MonitorManager {
         try {
             executorService.shutdown();
             if (!executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS)) {
-                Bukkit.getLogger().severe("Monitor executor service did not terminate successfully!");
+                HoneyPlugin.get().getLoggerService().getLogger().severe("Monitor executor service did not terminate successfully!");
             }
         } catch (Exception ex) {
-            Bukkit.getLogger().severe("Exception occurred when shutting down monitor executor service!");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Exception occurred when shutting down monitor executor service!");
         }
         schedule();
     }

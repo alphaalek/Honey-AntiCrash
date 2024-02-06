@@ -1,5 +1,6 @@
 package me.alek.honey.tracker.task;
 
+import me.alek.honey.HoneyPlugin;
 import org.bukkit.Bukkit;
 
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class PacketTaskFuture<V> extends FutureTask<V> {
         try {
             super.run();
         } catch (Exception ex) {
-            Bukkit.getLogger().severe("Error occurred when running packet task.");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when running packet task.");
             ex.printStackTrace();
         }
         PacketTaskHandler.unregisterTask();

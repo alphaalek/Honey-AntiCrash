@@ -31,7 +31,7 @@ public class PacketBundleFilterFactory {
     }
 
     public static PacketBundleFilter createFilter(int size, PacketTypeEnum... packetTypes) {
-        if (size == 0) return EMPTY_FILTER;
+        if (size == 0 && EMPTY_FILTER != null) return EMPTY_FILTER;
         return new PacketBundleFilter() {
             @Override
             public int size() {

@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import com.google.common.collect.Sets;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.Bukkit;
@@ -48,7 +49,7 @@ public class PacketBundleFilters {
                 filters.add((PacketBundleFilter) field.get(null));
             } catch (Exception ex) {
                 String name = field.getName();
-                Bukkit.getLogger().severe("Failed to get packet bundle filter: " + name.substring(0, name.length() - "_FILTER".length()));
+                HoneyPlugin.get().getLoggerService().getLogger().severe("Failed to get packet bundle filter: " + name.substring(0, name.length() - "_FILTER".length()));
             }
         }
         return filters;

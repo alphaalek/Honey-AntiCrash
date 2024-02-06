@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 public class LoggerService {
 
@@ -58,15 +59,19 @@ public class LoggerService {
         }
     };
 
-    public void logToMonitors(Player player, PacketContainer packetContainer) {
+    public Logger getLogger() {
+        return HoneyPlugin.get().getPlugin().getLogger();
+    }
+
+    public void logToMonitors(Player player, PacketContainer<?> packet) {
         if (monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
-                && !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packetContainer.getHandle().getClass().getSimpleName())) {
+                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
                 LinkedList<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>());
 
-                PacketTypeEnum packetType;
-                PacketTypeEnum sentPacketType = Optional.ofNullable(packetContainer).map(PacketContainer::getType).orElse(null);
-                if ((packetType = recentPackets.peek()) != sentPacketType) {
+                PacketTypeEnum packetType = recentPackets.peek();
+                PacketTypeEnum sentPacketType = Optional.ofNullable(packet).map(PacketContainer::getType).orElse(null);
+                if (packetType != sentPacketType) {
                     if (packetType == null) packetType = sentPacketType;
 
                     int packetRate = getPacketRate(player);
@@ -76,8 +81,22 @@ public class LoggerService {
                             + " §7Packet: " + packetType + (recentPackets.size() <= 1 ? "" : " §f(x" + recentPackets.size() + ")"));
                     recentPackets.clear();
                 }
-                if (packetContainer != null) recentPackets.add(sentPacketType);
+                if (packet != null) recentPackets.add(sentPacketType);
             }
+        }
+    }
+
+    public void dumpPackets(List<PacketContainer<?>> packets) {
+        if (packets == null
+                || packets.isEmpty()
+                || packets.get(0).getPlayer() == null) return;
+
+        String playerName = packets.get(0).getPlayer().getName();
+        getLogger().info("Packet dump of " + packets.size() + " packets from " + playerName);
+
+        long time = System.currentTimeMillis();
+        for (PacketContainer<?> packet : packets) {
+            logPacket(packet, playerName, true, time);
         }
     }
 
@@ -158,28 +177,34 @@ public class LoggerService {
             if (violationName.equals("Netty.G") || violationName.equals("Netty.F") || violationName.equals("Rotation.C") || violationName.contains("Flood")) return;
         }
 
-        HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
+        getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
+        logPacket(packetContainer, playerName, this.detailed, 0);
+    }
+
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime) {
         if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getHandle().getClass().getSimpleName())) {
             return;
         }
-        StringBuilder message = new StringBuilder()
-                .append(playerName)
-                .append(" sent ")
-                .append(packetContainer.getHandle().getClass().getSimpleName());
-        if (detailed) {
-            message
-                .append(": ")
-                .append(packetContainer.getAll().readFieldValues());
+        StringBuilder message = new StringBuilder();
+        message.append(packetContainer.getTime());
+
+        if (comparingTime > packetContainer.getTime()) {
+            message.append(" (").append(comparingTime - packetContainer.getTime()).append("ms ago)");
         }
-        HoneyPlugin.get().getPlugin().getLogger().info(message.toString());
+
+        message.append(": ").append(playerName).append(" sent ").append(packetContainer.getHandle().getClass().getSimpleName());
+        if (detailed)
+            message.append(": ").append(packetContainer.getAll().readFieldValues());
+
+        getLogger().info(message.toString());
     }
 
     public void logPunish(String playerName, String violationName) {
         if (!debug) return;
-        HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: Kicking " + playerName + " for " + violationName);
+        getLogger().info("DEBUG: Kicking " + playerName + " for " + violationName);
     }
 
     public boolean isEnabled() {
