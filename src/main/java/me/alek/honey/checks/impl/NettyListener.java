@@ -17,6 +17,7 @@ import me.alek.honey.netty.injector.InboundPacketDecoder;
 import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.PacketBundleFilters;
+import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -27,7 +28,11 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.*;
+import me.alek.honey.tracker.task.PacketTaskFuture;
+import me.alek.honey.tracker.task.PacketTaskHandler;
 import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.utility.Tuple2;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -74,8 +79,17 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final PlayerServerThreadHandleTracker tracker = (PlayerServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
+
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 5)
+                return ResponseBuilder.inst().flag(1).build();
+
+            Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();
+            if (task != null && task.getT1().getUUID().equals(player.getUniqueId()) && System.currentTimeMillis() - task.getT2() > 50)
+                return ResponseBuilder.inst().flag(1).build();
+
             return ResponseBuilder.SUCCESS;
         }
 
@@ -86,7 +100,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "";
+            return "Exceeds limit of packets in queue execution";
         }
 
         @Override
@@ -282,6 +296,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
+        // using double instead of float, because otherwise development data would show other values after being formatted
         private final double[] timespanMultipliers = new double[]{1, 0.8f, 0.75f, 0.65f};
 
         @Override
@@ -299,7 +314,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     for (Timespan timespan : Timespan.values()) {
                         tracker.clearExceedingNodes(player, timespan);
 
-                        // using double instead of float, because otherwise development data would show other values after being formatted
                         double multiplier = (i >= timespanMultipliers.length)
                                         ? timespanMultipliers[timespanMultipliers.length - 1]
                                         : timespanMultipliers[i++];

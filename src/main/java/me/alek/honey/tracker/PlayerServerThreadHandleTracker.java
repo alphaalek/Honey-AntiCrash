@@ -1,15 +1,19 @@
 package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packet.PacketBundleSaver;
+import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.tracker.task.PacketTaskHandler;
-import me.alek.honey.utility.ThreadSeperatedQueue;
+import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -20,11 +24,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadSeperatedQueue<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
+    private final ThreadLocalAccessor<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
+    private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
+    private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private boolean initiallyInjected;
     private final AtomicBoolean workingProperly = new AtomicBoolean();
     private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
     private final AtomicBoolean started = new AtomicBoolean();
+    private Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public PlayerServerThreadHandleTracker() {
         try {
@@ -37,6 +44,15 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        reload();
+    }
+
+    public void reload() {
+        Set<PacketTypeEnum> packets = new HashSet<>();
+        for (String ignoredPacket : ConfigurationOptions.Netty.NettyA.IGNORED_PACKETS) {
+            packets.add(PacketWrapperInvokerFactory.getPacketTypeForName(ignoredPacket));
+        }
+        ignoredPacketsInQueueExecutionSaver = packets;
     }
 
     private void tryInject() {
@@ -60,7 +76,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
         private final AtomicReference<UUID> recentPacketAuthor = new AtomicReference<>();
-        private final ThreadSeperatedQueue<Object> seperatedQueue = new ThreadSeperatedQueue<>();
+        private final ThreadLocalAccessor<ConcurrentLinkedQueue<Object>> seperatedQueue = new ThreadLocalAccessor<>(ConcurrentLinkedQueue::new);
         private final boolean havingOneMoreElement;
         private ConstructorInvoker<?> tickTaskConstructor;
         private long recentPollStart = -1;
@@ -141,12 +157,13 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 }
                 recentPollStart = System.nanoTime();
             }
-            Thread thread = seperatedQueue.getAnyQueuedThread();
+            Thread thread = seperatedQueue.getAnyQueuedThread((queue) -> !queue.isEmpty());
 
-            recentPacketAuthor.set(packetSendQueue.poll(thread));
-            Object task = seperatedQueue.poll(thread);
+            recentPacketAuthor.set(packetSendQueue.get(thread));
+            Object task = Optional.ofNullable(seperatedQueue.get(thread)).map(ConcurrentLinkedQueue::poll).orElse(null);
 
-            HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
+            if (task != null)
+                HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
 
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tickloop is being completed by polling one extra time
@@ -192,13 +209,35 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             if (!Thread.currentThread().getName().startsWith("Netty"))
                 return super.add(value);
 
+            UUID uuid = packetSendQueue.get();
+            PacketContainer<?> packet = DuplexChannelHandler.getPacketBundleSavers().get(uuid).getRecent(false);
+            synchronized (PacketTaskHandler.lock) {
+                if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
+                    packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
+                } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+            }
+
             super.add(EMPTY_VALUE);
-            return seperatedQueue.add(value);
+            return seperatedQueue.get().add(value);
         }
     }
 
     public synchronized void waitUntilInitiallyTickRoundCompletes() {
         while (initiallyTickRound.get() && started.get() && workingProperly.get()) {}
+    }
+
+    public void decrementPacketsInQueueExecution(UUID uuid) {
+        synchronized (PacketTaskHandler.lock) {
+            int ignoredDecrement = ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0);
+            if (ignoredDecrement > 0)
+                ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredDecrement - 1);
+
+            packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) - (ignoredDecrement == 0 ? 1 : 0));
+        }
+    }
+
+    public int getPacketsInQueueExecution(UUID uuid) {
+        return packetsInQueueExecution.getOrDefault(uuid, 0);
     }
 
     @Override

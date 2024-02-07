@@ -2,9 +2,12 @@ package me.alek.honey.configuration;
 
 import com.google.common.collect.Sets;
 
+import java.util.Collections;
 import java.util.Set;
 
 public enum PacketLimitHandlerType {
+
+    CHIPSTATE_THROTTLE(Collections.emptySet()),
 
     TRIGGER_THROTTLE(Sets.newHashSet(
             ConfigurationOptions.VlSettingImplType.THROTTLE_AFTER,

@@ -241,6 +241,8 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         monitorManager.reload();
 
+        ((PlayerServerThreadHandleTracker)packetServerThreadHandleTimeTracker).reload();
+
         PacketBundleSaver.reloadFilters();
         for (Map.Entry<UUID, PacketBundleSaver> bundleSaver : new ArrayList<>(DuplexChannelHandler.getPacketBundleSavers().entrySet())) {
             PacketBundleSaver newBundleSaver = new PacketBundleSaver();

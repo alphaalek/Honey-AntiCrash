@@ -1057,9 +1057,14 @@ public class ConfigurationOptions {
     public static class Netty {
 
         @Setting
-        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class NettyA extends VlSetting implements VlSimpleRequiredContentsSetting {
+        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.CHIPSTATE_THROTTLE)
+        public static class NettyA extends VlSetting {
 
+            public static List<String> IGNORED_PACKETS;
+
+            public static void load() {
+                IGNORED_PACKETS = file.getStringList("netty.a.ignored-packets");
+            }
         }
 
         @Setting

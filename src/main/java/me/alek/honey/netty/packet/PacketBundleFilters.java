@@ -31,12 +31,18 @@ public class PacketBundleFilters {
     public static PacketBundleFilter USE_ENTITY_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.USE_ENTITY);
     public static PacketBundleFilter WINDOW_CLICK_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.WINDOW_CLICK);
 
-    public static Set<PacketTypeEnum> getFilterAllPackets() {
+    public static Set<PacketTypeEnum> FILTER_ALL_PACKETS;
+
+    static {
+        updateFilterAllPackets();
+    }
+
+    public static void updateFilterAllPackets() {
         Set<PacketTypeEnum> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.PacketDump.FILTER_ALL) {
             packets.add(PacketWrapperInvokerFactory.getPacketTypeForName(ignoredPacket));
         }
-        return packets;
+        FILTER_ALL_PACKETS = packets;
     }
 
     public static Map<Set<PacketTypeEnum>, Integer> getPacketSaves() {
@@ -46,7 +52,7 @@ public class PacketBundleFilters {
             Set<PacketTypeEnum> packetTypes = Sets.newHashSet(filter.getAcceptedPacketTypes());
 
             if (packetTypes.size() == PacketBundleFilterFactory.getLenientFilterSize()) {
-                for (PacketTypeEnum packetType : getFilterAllPackets()) {
+                for (PacketTypeEnum packetType : FILTER_ALL_PACKETS) {
                     packetTypes.remove(packetType);
                 }
             }
@@ -67,7 +73,8 @@ public class PacketBundleFilters {
                 filters.add((PacketBundleFilter) field.get(null));
             } catch (Exception ex) {
                 String name = field.getName();
-                HoneyPlugin.get().getLoggerService().getLogger().severe("Failed to get packet bundle filter: " + name.substring(0, name.length() - "_FILTER".length()));
+                if (name.endsWith("_FILTER"))
+                    HoneyPlugin.get().getLoggerService().getLogger().severe("Failed to get packet bundle filter: " + name.substring(0, name.length() - "_FILTER".length()));
             }
         }
         return filters;

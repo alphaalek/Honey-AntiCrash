@@ -7,6 +7,8 @@ import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.FieldAccessor;
+import me.alek.honey.tracker.HoneyTracker;
+import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,16 +22,17 @@ public class PacketTaskHandler {
 
     private static final int MAX_HANDLE_TIME_BEFORE_DUMP = 10000;
 
-    private static final Object lock = new Object();
+    public static final Object lock = new Object();
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = DuplexChannelHandler.getPacketBundleSavers();
     private static Tuple2<PacketTaskFuture<?>, Long> handledTask;
+    private static final PlayerServerThreadHandleTracker tracker = (PlayerServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
 
     static {
         new Thread(() -> {
             while (true) {
-                while (handledTask != null && System.currentTimeMillis() - handledTask.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
-                    UUID uuid = Optional.ofNullable(handledTask.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
-                    synchronized (lock) {
+                synchronized (lock) {
+                    while (handledTask != null && System.currentTimeMillis() - handledTask.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
+                        UUID uuid = Optional.ofNullable(handledTask.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
                         dumpThread(uuid);
                         unregisterTask();
                     }
@@ -43,13 +46,17 @@ public class PacketTaskHandler {
         }).start();
     }
 
+    public static Tuple2<PacketTaskFuture<?>, Long> getHandledTask() {
+        return handledTask;
+    }
+
     public static void dumpThread(UUID uuid) {
         String name = Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown");
         HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be frozen after a packet was sent by " + name + ". See the log for thread dump and more info."));
         HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
         HoneyPlugin.get().getLoggerService().getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
 
-        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getAny();
+        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getAny(true);
         if (packet != null) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
             HoneyPlugin.get().getLoggerService().getLogger().severe("  Fields: ");
@@ -103,7 +110,8 @@ public class PacketTaskHandler {
             if (handledTask != null) {
                 PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
                 if (saver != null)
-                    saver.getAny();
+                    saver.getAny(true);
+                tracker.decrementPacketsInQueueExecution(handledTask.getT1().getUUID());
                 handledTask = null;
             }
         }

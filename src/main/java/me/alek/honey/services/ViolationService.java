@@ -222,6 +222,8 @@ public class ViolationService {
                 return new PacketBufferThrottleHandler(player, setting);
             case TRIGGER_THROTTLE:
                 return new PacketTriggerThrottleHandler(player, setting);
+            case CHIPSTATE_THROTTLE:
+                return new PacketChipstateThrottleHandler(player, setting);
             default:
                 return null;
         }
@@ -366,7 +368,7 @@ public class ViolationService {
             if (ConfigurationOptions.PacketDump.ENABLED) {
                 PacketBundleFilter filter = check.getDumpFilter();
                 List<PacketContainer<?>> dumpedPackets = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())
-                        .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size());
+                        .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
 
                 if (dumpedPackets != null) {
                     HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
@@ -430,6 +432,29 @@ public class ViolationService {
         public abstract PacketLimitHandlerType getType();
     }
 
+    public class PacketChipstateThrottleHandler extends AbstractPacketLimitHandler {
+
+        public PacketChipstateThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
+            super(player, setting);
+        }
+
+        @Override
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+            if (amount == 1) {
+                if (onFlag != null) onFlag.run();
+                if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public PacketLimitHandlerType getType() {
+            return PacketLimitHandlerType.CHIPSTATE_THROTTLE;
+        }
+    }
+
     public class PacketTriggerThrottleHandler extends AbstractPacketLimitHandler {
 
         private double lastFlag;
@@ -441,10 +466,10 @@ public class ViolationService {
 
         @Override
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
-            if (amount == 1 || System.currentTimeMillis() - lastFlag < getSetting().throttleAfter) {
+            if (amount >= 1 || System.currentTimeMillis() - lastFlag < getSetting().throttleAfter) {
                 if (onFlag != null) onFlag.run();
 
-                if (amount == 1) lastFlag = System.currentTimeMillis();
+                if (amount >= 1) lastFlag = System.currentTimeMillis();
                 if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
                 if (!hasShownFlag)

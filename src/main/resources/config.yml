@@ -225,7 +225,10 @@ item-analysis:
 netty:
   a:
     enabled: true
-    vls-amount: 3
+    ignored-packets:
+      - "PacketPlayInFlying"
+      - "PacketPlayInSetCreativeSlot"
+      - "PacketPlayInWindowClick"
 
   b:
     enabled: true

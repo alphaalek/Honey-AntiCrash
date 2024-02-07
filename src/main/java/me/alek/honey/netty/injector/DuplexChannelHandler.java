@@ -10,7 +10,7 @@ import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
-import me.alek.honey.utility.ThreadSeperatedQueue;
+import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -27,7 +27,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final PacketBundleSaver packetBundleSaver;
 
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
-    private static final ThreadSeperatedQueue<UUID> packetSendQueue = new ThreadSeperatedQueue<>();
+    private static final ThreadLocalAccessor<UUID> packetSendQueue = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
     public DuplexChannelHandler(Channel channel, Player player) {
@@ -55,7 +55,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         return player;
     }
 
-    public static ThreadSeperatedQueue<UUID> getPacketSendQueue() {
+    public static ThreadLocalAccessor<UUID> getPacketSendQueue() {
         return packetSendQueue;
     }
 
@@ -130,7 +130,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             ((PlayerServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker())
                     .waitUntilInitiallyTickRoundCompletes();
 
-            packetSendQueue.add(player.getUniqueId());
+            packetSendQueue.set(player.getUniqueId());
         }
 
         super.channelRead(ctx, packetContainer.getHandle());

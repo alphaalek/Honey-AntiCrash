@@ -65,7 +65,7 @@ public class PacketBundleSaver {
         lock.writeLock().lock();
         try {
             PacketContainer<?> packet;
-            while ((packet = bundleSaver.getAny()) != null) {
+            while ((packet = bundleSaver.getAny(true)) != null) {
                 add(packet);
             }
         } finally {
@@ -110,19 +110,19 @@ public class PacketBundleSaver {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketTypeEnum packetType) {
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketTypeEnum packetType, boolean remove) {
         List<PacketSaverQueue> queues = getQueue(packetType);
         if (queues == null) return null;
 
         for (PacketSaverQueue queue : queues) {
-            PacketContainer<?> packet = poll(queue);
+            PacketContainer<?> packet = poll(queue, remove);
             if (packet != null && packet.getType() == packetType)
                 return (PacketContainer<WP>) packet;
         }
         return null;
     }
 
-    public List<PacketContainer<?>> get(PacketTypeEnum packetType, int amount) {
+    public List<PacketContainer<?>> get(PacketTypeEnum packetType, int amount, boolean remove) {
         List<PacketSaverQueue> queues = getQueue(packetType);
         if (queues == null || amount == 0) return null;
 
@@ -130,7 +130,7 @@ public class PacketBundleSaver {
         for (PacketSaverQueue queue : queues) {
             List<PacketContainer<?>> packets = new ArrayList<>();
             PacketContainer<?> packet;
-            while ((packet = poll(queue)) != null) {
+            while ((packet = poll(queue, remove)) != null) {
                 if (packet.getType() == packetType) {
                     packets.add(packet);
                 }
@@ -144,7 +144,7 @@ public class PacketBundleSaver {
         return mostRecent;
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(Set<PacketTypeEnum> packetTypeSet) {
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(Set<PacketTypeEnum> packetTypeSet, boolean remove) {
         lock.readLock().lock();
         try {
             filterPacketTypes(packetTypeSet);
@@ -156,7 +156,7 @@ public class PacketBundleSaver {
 
             for (PacketSaverQueue queue : queues) {
                 if (queue.packetTypes.equals(packetTypeSet))
-                    return poll(queue);
+                    return poll(queue, remove);
             }
         } finally {
             lock.readLock().unlock();
@@ -164,7 +164,9 @@ public class PacketBundleSaver {
         return null;
     }
 
-    public List<PacketContainer<?>> get(Set<PacketTypeEnum> packetTypeSet, int amount) {
+    public List<PacketContainer<?>> get(Set<PacketTypeEnum> packetTypeSet, int amount, boolean remove) {
+        if (amount == 0) return null;
+
         lock.readLock().lock();
         try {
             filterPacketTypes(packetTypeSet);
@@ -172,13 +174,13 @@ public class PacketBundleSaver {
             PacketTypeEnum first = packetTypeSet.iterator().next();
 
             List<PacketSaverQueue> queues = getQueue(first);
-            if (queues == null || amount == 0) return null;
+            if (queues == null) return null;
 
             List<PacketContainer<?>> packets = new ArrayList<>();
             for (PacketSaverQueue queue : queues) {
                 if (queue.packetTypes.equals(packetTypeSet)) {
                     PacketContainer<?> packet;
-                    while ((packet = poll(queue)) != null) {
+                    while ((packet = poll(queue, remove)) != null) {
                         packets.add(packet);
 
                         if (packets.size() == amount) return packets;
@@ -192,11 +194,13 @@ public class PacketBundleSaver {
     }
 
     private void filterPacketTypes(Set<PacketTypeEnum> packetTypes) {
-        Set<PacketTypeEnum> filteredPacketTypes = PacketBundleFilters.getFilterAllPackets();
+        Set<PacketTypeEnum> filteredPacketTypes = PacketBundleFilters.FILTER_ALL_PACKETS;
         packetTypes.removeIf(filteredPacketTypes::contains);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue, boolean remove) {
+        if (!remove) return (PacketContainer<WP>) queue.packets.peek();
+
         PacketContainer<WP> packet = (PacketContainer<WP>) queue.packets.poll();
         removeFromSavers(packet);
 
@@ -214,10 +218,19 @@ public class PacketBundleSaver {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getAny() {
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getAny(boolean remove) {
         lock.readLock().lock();
         try {
-            return (PacketContainer<WP>) commonPackets.poll();
+            return (PacketContainer<WP>) (remove ? commonPackets.poll() : commonPackets.peek());
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getRecent(boolean remove) {
+        lock.readLock().lock();
+        try {
+            return (PacketContainer<WP>) (remove ? commonPackets.pollLast() : commonPackets.peekLast());
         } finally {
             lock.readLock().unlock();
         }
