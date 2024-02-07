@@ -109,7 +109,7 @@ packet-logger:
     - "PacketPlayInFlying"
     - "PacketPlayInKeepAlive"
 
-  # Should the packet logger be detailed, which means it shows all the fields of each packet.
+  # Should the packet logger be detailed, which means it shows all the properties of each packet.
   detailed: true
 
 # packet dump

@@ -83,11 +83,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 5)
+            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 10)
                 return ResponseBuilder.inst().flag(1).build();
 
             Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();
-            if (task != null && task.getT1().getUUID().equals(player.getUniqueId()) && System.currentTimeMillis() - task.getT2() > 50)
+            if (task != null && task.getT1().getUUID().equals(player.getUniqueId()) && System.currentTimeMillis() - task.getT2() > 25)
                 return ResponseBuilder.inst().flag(1).build();
 
             return ResponseBuilder.SUCCESS;
@@ -105,7 +105,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         @Override
