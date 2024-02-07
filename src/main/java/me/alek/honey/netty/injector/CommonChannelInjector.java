@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -60,16 +61,17 @@ public class CommonChannelInjector {
 
         Callable<Boolean> injectedCallable = () -> injectPipeline0(pipeline, handler, nmsName, name, relative);
         boolean notInjected = true;
+        // can max. try to inject twice, and will stop the loop if still not injected
         while (notInjected && channel.isActive() && channel.isOpen() && keepTrying.get() && System.currentTimeMillis() - started < 1000) {
             try {
                 if (channel.eventLoop().inEventLoop())
                     notInjected = !injectedCallable.call();
                 else {
                     Future<Boolean> injectedFuture = channel.eventLoop().submit(injectedCallable);
-                    notInjected = !injectedFuture.get();
+                    notInjected = !injectedFuture.get(500, TimeUnit.MILLISECONDS);
                 }
                 if (notInjected)
-                    Thread.sleep(200);
+                    Thread.sleep(50);
 
             } catch (Exception ex) {
                 ex.printStackTrace();
