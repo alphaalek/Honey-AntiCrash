@@ -9,6 +9,7 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.command.impl.MonitorCommand;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -83,7 +84,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 10)
+            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 12 && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
                 return ResponseBuilder.inst().flag(1).build();
 
             Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();

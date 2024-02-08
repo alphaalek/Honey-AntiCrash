@@ -15,7 +15,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
 
@@ -27,7 +34,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final PacketBundleSaver packetBundleSaver;
 
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
-    private static final ThreadLocalAccessor<UUID> packetSendQueue = new ThreadLocalAccessor<>();
+    private static final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = new ThreadLocalAccessor<>(ConcurrentLinkedDeque::new);
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
     public DuplexChannelHandler(Channel channel, Player player) {
@@ -55,7 +62,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         return player;
     }
 
-    public static ThreadLocalAccessor<UUID> getPacketSendQueue() {
+    public static ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> getPacketSendQueue() {
         return packetSendQueue;
     }
 
@@ -89,7 +96,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        // cause.printStackTrace();
+        if (cause != null) cause.printStackTrace();
+        else Bukkit.getLogger().info("NULL CAUSE");
         super.exceptionCaught(ctx, cause);
     }
 
@@ -120,7 +128,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         }
 
         // check if the packet should be cancelled
-        if (packetContainer.isCancelled()) {
+        if (packetContainer.isCancelled() && player != null) {
             if (HoneyPlugin.get().getLoggerService().isDebug()) {
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
             }
@@ -130,7 +138,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             ((PlayerServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker())
                     .waitUntilInitiallyTickRoundCompletes();
 
-            packetSendQueue.set(player.getUniqueId());
+            packetSendQueue.get().add(player.getUniqueId());
         }
 
         super.channelRead(ctx, packetContainer.getHandle());

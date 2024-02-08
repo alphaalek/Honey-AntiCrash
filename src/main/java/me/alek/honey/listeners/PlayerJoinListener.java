@@ -6,6 +6,7 @@ import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

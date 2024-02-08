@@ -37,6 +37,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final ReflectStructure<Object, ?> packetStructure;
     private boolean cancelled = false;
     private final long time = System.currentTimeMillis();
+    private boolean handledByServer;
 
     public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type) {
         this.player = player;
@@ -95,6 +96,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void cancel() {
         this.cancelled = true;
+    }
+
+    @Override
+    public boolean isHandledByServer() {
+        return handledByServer;
+    }
+
+    @Override
+    public void setHandledByServer() {
+        this.handledByServer = true;
     }
 
     @Override

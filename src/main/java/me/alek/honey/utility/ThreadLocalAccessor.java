@@ -2,13 +2,14 @@ package me.alek.honey.utility;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class ThreadLocalAccessor<T> {
 
-    private final Map<Thread, T> seperatedQueues = new HashMap<>();
+    private final Map<Thread, T> seperatedQueues = new ConcurrentHashMap<>();
     private final Supplier<T> defaultValue;
 
     public ThreadLocalAccessor(Supplier<T> defaultValue) {
@@ -29,11 +30,11 @@ public class ThreadLocalAccessor<T> {
         return get(Thread.currentThread());
     }
 
-    public void clear() {
+    public synchronized void clear() {
         seperatedQueues.clear();
     }
 
-    public void set(Thread thread, T value) {
+    public synchronized void set(Thread thread, T value) {
         seperatedQueues.put(thread, value);
     }
 
@@ -41,7 +42,7 @@ public class ThreadLocalAccessor<T> {
         set(Thread.currentThread(), value);
     }
 
-    public void remove(Thread thread) {
+    public synchronized void remove(Thread thread) {
         seperatedQueues.remove(thread);
     }
 

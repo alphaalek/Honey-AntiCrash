@@ -63,9 +63,13 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         public void callPipeline(Consumer<SyncPacketAdapter<WP>> consumer) {
-            for (ListenerPriority priority : pipeline) {
-                for (SyncPacketAdapter<WP> listener : priorityMap.get(priority)) {
-                    consumer.accept(listener);
+            synchronized (pipeline) {
+                synchronized (priorityMap) {
+                    for (ListenerPriority priority : pipeline) {
+                        for (SyncPacketAdapter<WP> listener : priorityMap.get(priority)) {
+                            consumer.accept(listener);
+                        }
+                    }
                 }
             }
         }

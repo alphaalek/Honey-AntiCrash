@@ -7,6 +7,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+import java.util.UUID;
+
 public class MonitorCommand implements CommandImpl {
 
     public MonitorCommand(CommandManager manager) {
@@ -19,6 +22,7 @@ public class MonitorCommand implements CommandImpl {
             sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey monitor <server/player name>");
             return;
         }
+
         if (args[0].equalsIgnoreCase("server")) {
             HoneyPlugin.get().getMonitorManager().setupServerMonitor(sender);
             return;

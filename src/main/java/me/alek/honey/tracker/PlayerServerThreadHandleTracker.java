@@ -1,6 +1,7 @@
 package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.command.impl.MonitorCommand;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
@@ -18,20 +19,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadLocalAccessor<UUID> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
+    private final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private boolean initiallyInjected;
     private final AtomicBoolean workingProperly = new AtomicBoolean();
     private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
     private final AtomicBoolean started = new AtomicBoolean();
-    private Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
+    public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public PlayerServerThreadHandleTracker() {
         try {
@@ -126,7 +129,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         }
 
         @Override
-        public synchronized Object poll() {
+        public Object poll() {
             Object otherTask;
             if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE) {
                 if (recentPollStart != -1)
@@ -159,8 +162,11 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             }
             Thread thread = seperatedQueue.getAnyQueuedThread((queue) -> !queue.isEmpty());
 
-            recentPacketAuthor.set(packetSendQueue.get(thread));
-            Object task = Optional.ofNullable(seperatedQueue.get(thread)).map(ConcurrentLinkedQueue::poll).orElse(null);
+            Object task = null;
+            if (thread != null) {
+                recentPacketAuthor.set(packetSendQueue.get(thread).poll());
+                task = seperatedQueue.get(thread).poll();
+            }
 
             if (task != null)
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
@@ -183,6 +189,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                     HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag. "
                             + (player == null ? "" : " Maybe sent from " + player.getName() + "."));
                 }
+                packetsInQueueExecution.clear();
 
                 if (initiallyTickRound.get()) {
                     packetSendQueue.clear();
@@ -201,7 +208,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         }
 
         @Override
-        public synchronized boolean add(Object value) {
+        public boolean add(Object value) {
             // add it two times if it's empty, so we always have one extra element
             // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
             if (super.isEmpty() && havingOneMoreElement) super.add(EMPTY_VALUE);
@@ -209,12 +216,20 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             if (!Thread.currentThread().getName().startsWith("Netty"))
                 return super.add(value);
 
-            UUID uuid = packetSendQueue.get();
-            PacketContainer<?> packet = DuplexChannelHandler.getPacketBundleSavers().get(uuid).getRecent(false);
-            synchronized (PacketTaskHandler.lock) {
-                if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
-                    packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
-                } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+            UUID uuid = packetSendQueue.get().peekLast();
+
+            PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
+            if (bundleSaver != null) {
+                PacketContainer<?> packet = bundleSaver.getRecent(false);
+                // if it somehow tries to add multiple times, we will cancel it
+                if (packet.isHandledByServer()) return true;
+
+                packet.setHandledByServer();
+                synchronized (PacketTaskHandler.lock) {
+                    if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
+                        packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
+                    } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+                }
             }
 
             super.add(EMPTY_VALUE);
@@ -234,6 +249,14 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
 
             packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) - (ignoredDecrement == 0 ? 1 : 0));
         }
+    }
+
+    @Override
+    public void remove(Player player) {
+        UUID uuid = player.getUniqueId();
+        packetsInQueueExecution.remove(uuid);
+        ignoredPacketsDecrementInQueueExecution.remove(uuid);
+        super.remove(player);
     }
 
     public int getPacketsInQueueExecution(UUID uuid) {

@@ -28,4 +28,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     void cancel();
 
+    boolean isHandledByServer();
+
+    void setHandledByServer();
 }

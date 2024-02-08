@@ -20,6 +20,7 @@ import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -243,7 +244,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         ((PlayerServerThreadHandleTracker)packetServerThreadHandleTimeTracker).reload();
 
+        PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();
+
         for (Map.Entry<UUID, PacketBundleSaver> bundleSaver : new ArrayList<>(DuplexChannelHandler.getPacketBundleSavers().entrySet())) {
             PacketBundleSaver newBundleSaver = new PacketBundleSaver();
             newBundleSaver.transferFrom(bundleSaver.getValue());
