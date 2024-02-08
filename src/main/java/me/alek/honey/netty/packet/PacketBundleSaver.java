@@ -115,7 +115,7 @@ public class PacketBundleSaver {
         if (queues == null) return null;
 
         for (PacketSaverQueue queue : queues) {
-            PacketContainer<?> packet = poll(queue, remove);
+            PacketContainer<?> packet = get(queue, remove);
             if (packet != null && packet.getType() == packetType)
                 return (PacketContainer<WP>) packet;
         }
@@ -128,14 +128,8 @@ public class PacketBundleSaver {
 
         List<PacketContainer<?>> mostRecent = new ArrayList<>();
         for (PacketSaverQueue queue : queues) {
-            List<PacketContainer<?>> packets = new ArrayList<>();
-            PacketContainer<?> packet;
-            while ((packet = poll(queue, remove)) != null) {
-                if (packet.getType() == packetType) {
-                    packets.add(packet);
-                }
-                if (packets.size() == amount) break;
-            }
+            List<PacketContainer<?>> packets = getPackets(queue, amount, remove);
+
             if (mostRecent.size() < packets.size() || packets.get(packets.size() - 1).getTime() < mostRecent.get(mostRecent.size() - 1).getTime()) {
                 mostRecent.clear();
                 mostRecent.addAll(packets);
@@ -156,7 +150,7 @@ public class PacketBundleSaver {
 
             for (PacketSaverQueue queue : queues) {
                 if (queue.packetTypes.equals(packetTypeSet))
-                    return poll(queue, remove);
+                    return get(queue, remove);
             }
         } finally {
             lock.readLock().unlock();
@@ -176,21 +170,40 @@ public class PacketBundleSaver {
             List<PacketSaverQueue> queues = getQueue(first);
             if (queues == null) return null;
 
-            List<PacketContainer<?>> packets = new ArrayList<>();
             for (PacketSaverQueue queue : queues) {
                 if (queue.packetTypes.equals(packetTypeSet)) {
-                    PacketContainer<?> packet;
-                    while ((packet = poll(queue, remove)) != null) {
-                        packets.add(packet);
-
-                        if (packets.size() == amount) return packets;
-                    }
+                    return getPackets(queue, amount, remove);
                 }
             }
-            return packets;
+            return new ArrayList<>();
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    private List<PacketContainer<?>> getPackets(PacketSaverQueue queue, int amount, boolean remove) {
+        return remove ? pollPackets(queue, amount) : peekPackets(queue, amount);
+    }
+
+    private List<PacketContainer<?>> pollPackets(PacketSaverQueue queue, int amount) {
+        List<PacketContainer<?>> packets = new ArrayList<>();
+        PacketContainer<?> packet;
+        while ((packet = poll(queue)) != null) {
+            packets.add(packet);
+
+            if (packets.size() == amount) return packets;
+        }
+        return packets;
+    }
+
+    private List<PacketContainer<?>> peekPackets(PacketSaverQueue queue, int amount) {
+        List<PacketContainer<?>> packets = new ArrayList<>();
+        for (PacketContainer<?> packet : queue.packets) {
+            packets.add(packet);
+
+            if (packets.size() == amount) return packets;
+        }
+        return packets;
     }
 
     private void filterPacketTypes(Set<PacketTypeEnum> packetTypes) {
@@ -198,9 +211,13 @@ public class PacketBundleSaver {
         packetTypes.removeIf(filteredPacketTypes::contains);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue, boolean remove) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketSaverQueue queue, boolean remove) {
         if (!remove) return (PacketContainer<WP>) queue.packets.peek();
 
+        return poll(queue);
+    }
+
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue) {
         PacketContainer<WP> packet = (PacketContainer<WP>) queue.packets.poll();
         removeFromSavers(packet);
 
