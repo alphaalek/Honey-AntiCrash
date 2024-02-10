@@ -410,9 +410,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 lastFlaggedLocationMap.put(player.getUniqueId(), packet.getLocation());
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
-                if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: position distance buffer inc: " + priorDistance);
-                }
                 if (priorDistance > 20)
                     return ResponseBuilder.SUCCESS;
 
@@ -433,7 +430,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
+            return PacketBundleFilters.LONG_POSITION_FILTER;
         }
 
         @Override
@@ -496,7 +493,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
+            return PacketBundleFilters.LONG_POSITION_FILTER;
         }
 
         @Override
@@ -527,7 +524,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
+            return PacketBundleFilters.LONG_POSITION_FILTER;
         }
 
         @Override

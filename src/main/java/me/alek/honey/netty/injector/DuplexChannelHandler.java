@@ -15,22 +15,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
 
     private volatile Player player;
     private final Channel channel;
-    private final AtomicBoolean hasStartedInjectingTask = new AtomicBoolean(false);
+    private final AtomicBoolean startedInjecting = new AtomicBoolean(false);
+    private volatile boolean startedInjectingRound;
+    private volatile boolean checkedDecoder;
     private InboundPacketDecoder inboundPacketDecoder;
     private boolean hasRead;
+    private boolean hasDecoder;
     private final PacketBundleSaver packetBundleSaver;
 
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
@@ -74,40 +71,49 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         return hasRead;
     }
 
-    public void startDecodeInjectorTask(Channel channel) {
-        hasStartedInjectingTask.set(true);
-        new Thread(() -> {
+    public void startDecodeInjection() {
+        if (!player.isOnline()) return;
 
-            ChannelPipeline pipeline = channel.pipeline();
-            while (true) {
-                if (!player.isOnline()) break;
+        ChannelPipeline pipeline = channel.pipeline();
+        // waiting for minecraft to add decompress or decode channel handler
+        if (pipeline.get("decompress") == null && pipeline.get("decoder") == null) return;
 
-                // waiting for minecraft to add decompress or decode channel handler
-                if (pipeline.get("decompress") == null && pipeline.get("decoder") == null) break;
+        startedInjectingRound = true;
+        startedInjecting.set(true);
 
-                if (CommonChannelInjector.injectDecoder(channel, player) == null && player.isOnline()) {
-                    Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                            () -> player.kickPlayer("Error occurred when injecting decoder handler for pipeline."));
-                }
-                return;
-            }
-        }).start();
+        if (CommonChannelInjector.injectDecoder(channel, player) == null && player.isOnline()) {
+            Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                    () -> player.kickPlayer("Error occurred when injecting decoder handler for pipeline."));
+        }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (cause != null) cause.printStackTrace();
-        else Bukkit.getLogger().info("NULL CAUSE");
         super.exceptionCaught(ctx, cause);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+    public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
         hasRead = true;
         // decoder inject for late injection
-        if (player != null && !hasStartedInjectingTask.get()) {
-            startDecodeInjectorTask(this.channel);
+        if (player != null && !startedInjecting.get()) {
+            startDecodeInjection();
+            // the injection never started, so we will just return
+            if (!startedInjectingRound) return;
         }
+        if (startedInjecting.get() && !hasDecoder) {
+            if (!(hasDecoder = InboundPacketDecoder.isDecoderRegistered(player)) && !checkedDecoder && !startedInjectingRound) {
+                checkedDecoder = true;
+
+                Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
+                    if (!InboundPacketDecoder.isDecoderRegistered(player)) {
+                        player.kickPlayer("Packet decoder was never injected in pipeline.");
+                    }
+                });
+            }
+            if (!hasDecoder) return;
+        }
+        startedInjectingRound = false;
 
         if (inboundPacketDecoder == null && player != null) {
             final AbstractPipelineProxy proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(channel);

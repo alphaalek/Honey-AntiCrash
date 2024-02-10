@@ -65,7 +65,7 @@ public class PacketBundleSaver {
         lock.writeLock().lock();
         try {
             PacketContainer<?> packet;
-            while ((packet = bundleSaver.getAny(true)) != null) {
+            while ((packet = bundleSaver.getOldest(true)) != null) {
                 add(packet);
             }
         } finally {
@@ -235,7 +235,7 @@ public class PacketBundleSaver {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getAny(boolean remove) {
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getOldest(boolean remove) {
         lock.readLock().lock();
         try {
             return (PacketContainer<WP>) (remove ? commonPackets.poll() : commonPackets.peek());

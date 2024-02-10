@@ -18,16 +18,6 @@ import java.util.function.Predicate;
 
 public class ReflectStructure<T, C> {
 
-    private final static Map<Class<?>, Class<?>> WRAPPER_CLASS_CACHE = new HashMap<Class<?>, Class<?>>(){{
-        put(double.class, Double.class);
-        put(long.class, Long.class);
-        put(int.class, Integer.class);
-        put(short.class, Short.class);
-        put(float.class, Float.class);
-        put(byte.class, Byte.class);
-        put(boolean.class, Boolean.class);
-    }};
-
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final Class<?> handle;
     private JavaConverter<T, C> converter;

@@ -7,7 +7,6 @@ import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.FieldAccessor;
-import me.alek.honey.tracker.HoneyTracker;
 import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
@@ -56,7 +55,7 @@ public class PacketTaskHandler {
         HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
         HoneyPlugin.get().getLoggerService().getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
 
-        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getAny(true);
+        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getOldest(true);
         if (packet != null) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
             HoneyPlugin.get().getLoggerService().getLogger().severe("  Fields: ");
@@ -110,7 +109,7 @@ public class PacketTaskHandler {
             if (handledTask != null) {
                 PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
                 if (saver != null)
-                    saver.getAny(true);
+                    saver.getOldest(true);
                 tracker.decrementPacketsInQueueExecution(handledTask.getT1().getUUID());
                 handledTask = null;
             }

@@ -8,11 +8,26 @@ import me.alek.honey.netty.api.packet.PacketProcessor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class InboundPacketDecoder extends ByteToMessageDecoder implements AbstractPipelineProxy {
 
+    private static final Set<UUID> registeredPacketDecoders = new HashSet<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+
+    public static void unregisterPlayer(Player player) {
+        synchronized (registeredPacketDecoders) {
+            registeredPacketDecoders.remove(player.getUniqueId());
+        }
+    }
+
+    public static boolean isDecoderRegistered(Player player) {
+        return registeredPacketDecoders.contains(player.getUniqueId());
+    }
+
     private double recentDecodeStart = System.currentTimeMillis();
     private double recentDeltaReceived = 0;
     private boolean hasRead;
@@ -38,9 +53,15 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
         recentDeltaReceived = currentTime - recentDecodeStart;
         recentDecodeStart = currentTime;
 
+        if (!hasRead && player != null) {
+            hasRead = true;
+            synchronized (registeredPacketDecoders) {
+                registeredPacketDecoders.add(player.getUniqueId());
+            }
+        }
+
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
     }
-
 
     public double getRecentDeltaReceived() {
         return recentDeltaReceived;

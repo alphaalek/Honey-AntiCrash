@@ -5,6 +5,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
 import me.alek.honey.netty.injector.AbstractPipelineProxy;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.injector.InboundPacketDecoder;
 import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -61,6 +62,8 @@ public class BukkitEventInternal implements Listener {
 
         PacketLibrary.get().getInjector().ejectPlayer(player);
         NMSUtils.removeChannelLookup(player.getUniqueId());
+
         DuplexChannelHandler.getPacketBundleSavers().remove(player.getUniqueId());
+        InboundPacketDecoder.unregisterPlayer(player);
     }
 }

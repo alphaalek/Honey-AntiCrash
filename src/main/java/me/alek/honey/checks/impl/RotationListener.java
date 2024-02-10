@@ -41,8 +41,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
         }
-        float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player));
-        float deltaPitch = Locations.calculateYawDistance(location.getPitch(), getLastPitchFor(player));
+        float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player, location.getYaw()));
+        float deltaPitch = Locations.calculateYawDistance(location.getPitch(), getLastPitchFor(player, location.getPitch()));
 
         ResponseContainer response = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(deltaYaw).withViolationKey(yawKey).build(),
@@ -91,12 +91,12 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         lastPitchMap.remove(player.getUniqueId());
     }
 
-    public static float getLastYawFor(Player player) {
-        return lastYawMap.getOrDefault(player.getUniqueId(), 0f);
+    public static float getLastYawFor(Player player, float yaw) {
+        return lastYawMap.getOrDefault(player.getUniqueId(), yaw);
     }
 
-    public static float getLastPitchFor(Player player) {
-        return lastPitchMap.getOrDefault(player.getUniqueId(), 0f);
+    public static float getLastPitchFor(Player player, float pitch) {
+        return lastPitchMap.getOrDefault(player.getUniqueId(), pitch);
     }
 
     public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {

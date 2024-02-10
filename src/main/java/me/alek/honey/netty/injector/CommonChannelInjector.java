@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.event.impl.inject.InjectEvent;
 import me.alek.honey.netty.api.event.impl.inject.PlayerEjectEvent;
@@ -38,54 +39,38 @@ public class CommonChannelInjector {
     }
 
     private static boolean injectPipeline0(ChannelPipeline pipeline, ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative) {
-        if (nmsName.equals("decompress")) {
-            if (pipeline.get(nmsName) == null) {
-
-                // no decompress in pipeline, moving honey decoder further to nms decoder
-                pipeline.addBefore("decoder", name, handler);
-            }
-        }
         if (!pipeline.toMap().containsKey(name) && pipeline.toMap().containsKey(nmsName)) {
             if (relative == PipelineInjectionRelative.BEFORE) pipeline.addBefore(nmsName, name, handler);
             if (relative == PipelineInjectionRelative.AFTER) pipeline.addAfter(nmsName, name, handler);
         }
-        return pipeline.get(name) != null;
+        return pipeline.get(name) != null || pipeline.toMap().containsKey(name);
     }
 
-    public static boolean injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel, Supplier<Boolean> keepTrying) {
+    public static boolean injectPipeline(ChannelHandler handler, String nmsName, String name, PipelineInjectionRelative relative, Channel channel) {
         final ChannelPipeline pipeline = channel.pipeline();
 
         // ignored already injected pipelines
         if (pipeline.get(name) != null) return true;
-        long started = System.currentTimeMillis();
 
         Callable<Boolean> injectedCallable = () -> injectPipeline0(pipeline, handler, nmsName, name, relative);
-        boolean notInjected = true;
-        // can max. try to inject twice, and will stop the loop if still not injected
-        while (notInjected && channel.isActive() && channel.isOpen() && keepTrying.get() && System.currentTimeMillis() - started < 1000) {
-            try {
-                if (channel.eventLoop().inEventLoop())
-                    notInjected = !injectedCallable.call();
-                else {
-                    Future<Boolean> injectedFuture = channel.eventLoop().submit(injectedCallable);
-                    notInjected = !injectedFuture.get(500, TimeUnit.MILLISECONDS);
-                }
-                if (notInjected)
-                    Thread.sleep(50);
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        boolean injected = false;
+        try {
+            if (channel.eventLoop().inEventLoop())
+                injected = injectedCallable.call();
+            else {
+                Future<Boolean> injectedFuture = channel.eventLoop().submit(injectedCallable);
+                injected = injectedFuture.get(5000, TimeUnit.MILLISECONDS);
             }
+        } catch (Exception ex) {
+            HoneyPlugin.get().getLoggerService().getLogger().info("Eventloop could not submit task in time. Failed to inject pipeline for handler " + name);
         }
-        return !notInjected;
+        return injected;
     }
 
     private static void saveInjection(Player player) {
-        if (player == null)
-            return;
+        if (player == null) return;
 
-        UUID uuid = player.getUniqueId();
-        if (!injectedPlayers.contains(uuid)) injectedPlayers.add(uuid);
+        injectedPlayers.add(player.getUniqueId());
     }
 
     private static ChannelHandler injectHandler(Channel channel, Player player, boolean firstCall) {
@@ -94,7 +79,7 @@ public class CommonChannelInjector {
         final DuplexChannelHandler handler = new DuplexChannelHandler(channel, player);
         final String handlerName = PacketLibrary.get().getHandlerName();
 
-        if (!injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel, () -> player == null || player.isOnline())) {
+        if (!injectPipeline(handler, "packet_handler", handlerName, PipelineInjectionRelative.BEFORE, channel)) {
             if (player != null && firstCall) {
                 NMSUtils.removeChannelLookup(player.getUniqueId());
                 return injectHandler(NMSUtils.getChannel(player), player, false);
@@ -114,10 +99,13 @@ public class CommonChannelInjector {
         final InboundPacketDecoder handler = new InboundPacketDecoder(player);
         final String handlerName = PacketLibrary.get().getDecoderName();
 
-        if (!injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.AFTER, channel, player::isOnline))
-            return null;
+        if (injectPipeline(handler, "decompress", handlerName, PipelineInjectionRelative.AFTER, channel))
+            return handler;
 
-        return handler;
+        if (injectPipeline(handler, "decoder", handlerName, PipelineInjectionRelative.BEFORE, channel))
+            return handler;
+
+        return null;
     }
 
     public static ChannelHandler injectChannel(Channel channel, InjectEvent.InjectType injectType) {

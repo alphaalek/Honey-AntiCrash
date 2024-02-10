@@ -56,7 +56,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
                         });
                     }
                 } catch (Exception ex) {
-                    throw new RuntimeException("Error at injecting channel " + channel);
+                    throw new RuntimeException("Error occurred when injecting channel " + channel);
                 }
             }
         };

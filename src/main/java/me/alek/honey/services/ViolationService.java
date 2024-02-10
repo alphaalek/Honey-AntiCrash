@@ -367,11 +367,14 @@ public class ViolationService {
         public synchronized void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (ConfigurationOptions.PacketDump.ENABLED) {
                 PacketBundleFilter filter = check.getDumpFilter();
-                List<PacketContainer<?>> dumpedPackets = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())
-                        .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
+                if (filter != null && filter.getAcceptedPacketTypes() != null
+                        && DuplexChannelHandler.getPacketBundleSavers().containsKey(player.getUniqueId())) {
+                    List<PacketContainer<?>> dumpedPackets = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())
+                            .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
 
-                if (dumpedPackets != null) {
-                    HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
+                    if (dumpedPackets != null) {
+                        HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
+                    }
                 }
             }
             if (developmentData != null) {
@@ -684,8 +687,6 @@ public class ViolationService {
                 ignoringSpikeForInterval = true;
             }
             if (ignoringSpikeForInterval) {
-                if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
-
                 if (HoneyPlugin.get().getLoggerService().isDebug())
                     HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: ignoring packet spike for interval check " + check);
                 return false;
