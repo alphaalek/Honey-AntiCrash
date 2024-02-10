@@ -11,7 +11,6 @@ import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -202,14 +201,14 @@ public class InternalPacketProcessor implements PacketProcessor {
     @Override
     public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> check) {
         for (ListModifier<?> listModifier : PACKET_ADAPTERS.values()) {
-            if (checkListModifier(listModifier, check)) {
+            if (compareListModifier(listModifier, check)) {
                 return true;
             }
         }
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean checkListModifier(ListModifier<WP2> listModifier, SyncPacketAdapter<WP> check) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean compareListModifier(ListModifier<WP2> listModifier, SyncPacketAdapter<WP> check) {
         for (List<SyncPacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
             for (SyncPacketAdapter<WP2> packetAdapter : packetAdapters) {
 

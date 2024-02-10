@@ -206,7 +206,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             double decodeTime = 0;
-
             if (player != null) {
                 InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(),
                         (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(packet.getContainer().getChannel()));
@@ -215,13 +214,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 // disable this check if the TPS is really low or ping of the player is too high
                 boolean exempt = HoneyPlugin.get().shouldExempt(player);
                 container.getStorage().putBoolean(exempt);
-                if (exempt)
-                    return ResponseBuilder.SUCCESS;
+                if (exempt) return ResponseBuilder.SUCCESS;
 
                 // evaluate the duration of decoding this packet
                 decodeTime = packetDecoder.getRecentDeltaDecode();
                 container.getStorage().putDouble(decodeTime);
-            }
+            } else container.getStorage().putBoolean(false);
+
             if (getSetting().isEnabled() && decodeTime > 0) {
                 container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
                 final double decodeTimeFinal = decodeTime;
@@ -255,8 +254,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            Boolean exempt = false;
-            if (getSetting().isEnabled() && (exempt = container.getStorage().poll(boolean.class)) == null || !exempt) {
+            if (getSetting().isEnabled() && !container.getStorage().getBoolean(0)) {
 
                 double decodeTime = container.getStorage().getDouble(0);
                 if (decodeTime > 0) {

@@ -396,8 +396,6 @@ public class ViolationService {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());
             }
-            if (loggerService.isDebug() && handle != null)
-                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.VIOLATE, handle, getPlayer().getName(), check.getName());
 
             if (onViolation != null) onViolation.run();
             if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
@@ -578,9 +576,6 @@ public class ViolationService {
             bufferIndex += amount;
 
             if (onFlag != null) onFlag.run();
-
-            if (loggerService.isDebug())
-                HoneyPlugin.get().getLoggerService().logDebug(LoggerService.LoggingStrategy.FLAG, handle, getPlayer().getName(), check.getName());
 
             if (bufferIndex < threshold) return false;
 

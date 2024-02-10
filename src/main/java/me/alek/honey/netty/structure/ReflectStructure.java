@@ -442,8 +442,8 @@ public class ReflectStructure<T, C> {
         @Override
         public List<C> readFieldValues() {
             final List<C> list = new ArrayList<>();
-            for (int i = 0; i < ACQUIRED_ACCESSORS.size(); i++) {
-               list.add(readField(i));
+            for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
+               list.add(get(accessor));
             }
             return list;
         }

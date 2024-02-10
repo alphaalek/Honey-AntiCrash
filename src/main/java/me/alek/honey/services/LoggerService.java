@@ -173,10 +173,6 @@ public class LoggerService {
         }
         String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
 
-        if (logType.equals("flagged")) {
-            if (violationName.equals("Netty.G") || violationName.equals("Netty.F") || violationName.equals("Rotation.C") || violationName.contains("Flood")) return;
-        }
-
         getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
     }
 
