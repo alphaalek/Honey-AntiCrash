@@ -143,7 +143,7 @@ public class Reflection {
                 throw new IllegalArgumentException("Ugyldig placeholder: "
                         + variable);
             }
-            if (replacement.length() > 0 && matcher.end() < name.length()
+            if (!replacement.isEmpty() && matcher.end() < name.length()
                     && name.charAt(matcher.end()) != '.')
                 replacement += ".";
             matcher.appendReplacement(output,

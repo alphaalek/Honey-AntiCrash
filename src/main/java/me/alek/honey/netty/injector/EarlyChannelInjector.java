@@ -83,6 +83,13 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         };
     }
 
+    private void errorInjecting() {
+        HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel! I'm switching over to late injection instead.");
+
+        CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
+        PacketLibrary.get().setLateProxy();
+    }
+
     @Override
     public void inject() {
         Object minecraftServer = getMinecraftServer.get(Bukkit.getServer());
@@ -91,10 +98,8 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             FieldAccessor<Object> field = Reflection.getParameterizedField(serverConnectionClass, List.class, networkManagerClass);
             networkManagers = (List<Object>) field.get(serverConnection);
         } catch (Exception ex) {
-            CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
-
-            HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel!");
-            Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
+            ex.printStackTrace();
+            errorInjecting();
             return;
         }
         createServerChannelHandler();
@@ -103,10 +108,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         List<Object> list = accessor.get(serverConnection);
 
         if (list.isEmpty()) {
-            HoneyPlugin.get().getPlugin().getLogger().info("No valid server channel was found to inject! I'm switching over to late injection instead.");
-
-            CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
-            PacketLibrary.get().setLateProxy();
+            errorInjecting();
             return;
         }
         boolean injectedServerChannel = false;
@@ -119,10 +121,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             injectedServerChannel = true;
         }
         if (!injectedServerChannel) {
-            HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel! I'm switching over to late injection instead.");
-
-            CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
-            PacketLibrary.get().setLateProxy();
+            errorInjecting();
             return;
         }
         CommonChannelInjector.inject(InjectEvent.InjectCallback.SUCCESS, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);

@@ -89,6 +89,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (HoneyPlugin.get().getLoggerService().isDebug()) {
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
+            cause.printStackTrace();
+        }
         super.exceptionCaught(ctx, cause);
     }
 

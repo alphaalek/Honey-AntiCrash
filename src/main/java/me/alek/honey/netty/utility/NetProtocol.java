@@ -36,9 +36,8 @@ public enum NetProtocol {
         for (NetProtocol version : PROTOCOLS) {
 
             int protocol = version.getProtocolVersion();
-            if (!protocolVersionMap.containsKey(protocol)) {
+            if (!protocolVersionMap.containsKey(protocol))
                 protocolVersionMap.put(protocol, new ArrayList<>());
-            }
             protocolVersionMap.get(protocol).add(version);
         }
     }
@@ -52,24 +51,22 @@ public enum NetProtocol {
     private static NetProtocol acquireProtocol() {
         for (NetProtocol version : REVERSED_PROTOCOLS) {
             final String name = version.name().replace("v", "").substring(1).replace("_", ".");
-            if (Bukkit.getVersion().contains(name)) {
+            if (Bukkit.getVersion().contains(name))
                 return version;
-            }
         }
         NetProtocol fallbackVersion = PacketLibrary.get().getSettings().getFallbackProtocol();
-        if (fallbackVersion != null) {
+        if (fallbackVersion != null)
             return fallbackVersion;
-        }
+
         return UNKNOWN;
     }
 
     public static NetProtocol getProtocol() {
-        if (PROTOCOL_CACHE == null) {
-            PROTOCOL_CACHE = acquireProtocol();
-        }
-        if (PROTOCOL_CACHE == NetProtocol.UNKNOWN) {
-            throw new RuntimeException("Kunne ikke få server version");
-        }
+        if (PROTOCOL_CACHE == null) PROTOCOL_CACHE = acquireProtocol();
+
+        if (PROTOCOL_CACHE == NetProtocol.UNKNOWN)
+            throw new RuntimeException("Could not get server version!");
+
         return PROTOCOL_CACHE;
     }
 

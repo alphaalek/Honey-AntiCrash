@@ -111,6 +111,11 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         // setup packet library
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
 
+        if (!Bukkit.getServer().getPluginManager().isPluginEnabled(this)) {
+            getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
+            return;
+        }
+
         // setup tickloop
         tickloop = new Tickloop();
 

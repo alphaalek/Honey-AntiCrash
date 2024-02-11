@@ -476,7 +476,9 @@ public enum PacketType implements PacketTypeEnum {
                 GROUND_CLASS = Reflection.getClass("{nms}.PacketPlayInFlying$d");
             }
             if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_4)) {
-                CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketPlayInCustomPayload");
+                if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_2)) {
+                    CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{nms}.PacketPlayInCustomPayload");
+                }
                 KEEP_ALIVE_CLASS = Reflection.getClass("{nms}.PacketPlayInKeepAlive");
                 RESOURCE_PACK_STATUS_CLASS = Reflection.getClass("{nms}.PacketPlayInResourcePackStatus");
                 SETTINGS_CLASS = Reflection.getClass("{nms}.PacketPlayInSettings");
@@ -768,7 +770,9 @@ public enum PacketType implements PacketTypeEnum {
                 WORLD_BORDER_CLASS = Reflection.getClass("{nms}.ClientboundInitializeBorderPacket");
             }
             if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_4)) {
-                CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutCustomPayload");
+                if (PROTOCOL_VERSION.isOlderThan(NetProtocol.v1_20_2)) {
+                    CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutCustomPayload");
+                }
                 KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{nms}.PacketPlayOutKeepAlive");
                 RESOURCE_PACK_SEND_CLASS = Reflection.getClass("{nms}.PacketPlayOutResourcePackSend");
                 KICK_DISCONNECT_CLASS = Reflection.getClass("{nms}.PacketPlayOutKickDisconnect");
