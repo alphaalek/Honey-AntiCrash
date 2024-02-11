@@ -84,7 +84,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 12 && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
+            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 10 && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
                 return ResponseBuilder.inst().flag(1).build();
 
             Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();

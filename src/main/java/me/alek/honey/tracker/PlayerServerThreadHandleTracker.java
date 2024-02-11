@@ -202,6 +202,9 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             if (!Thread.currentThread().getName().startsWith("Netty"))
                 return super.add(value);
 
+            // we will make sure that this thread is currently trying to add a packet to the server sent by a player.
+            // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
+            // elements to the execution queue from netty threads which are not packets
             UUID uuid = packetSendMarker.get();
             if (uuid != null) {
                 packetSendMarker.remove();
@@ -209,7 +212,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
                 // if the uuid from the packet send marker does not have a bundle saver, we will not continue doing anything.
                 // we do this because this scenario is only possible if the player has leaved the server in the gap between
-                // send marker register and register to server
+                // send marker register and add to queue execution
                 if (bundleSaver == null) return false;
 
                 PacketContainer<?> packet = bundleSaver.getRecent(false);
