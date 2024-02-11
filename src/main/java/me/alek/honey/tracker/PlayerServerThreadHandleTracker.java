@@ -28,26 +28,16 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
+    private final ThreadLocalAccessor<UUID> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
-    private boolean initiallyInjected;
-    private final AtomicBoolean workingProperly = new AtomicBoolean();
     private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
     private final AtomicBoolean started = new AtomicBoolean();
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public PlayerServerThreadHandleTracker() {
-        try {
-            Bukkit.getServer().getScheduler().runTaskTimer(HoneyPlugin.get().getPlugin(), () -> {
-                if (!initiallyInjected || (!workingProperly.get() && !Bukkit.getOnlinePlayers().isEmpty())) tryInject();
-
-                initiallyInjected = true;
-                workingProperly.set(false);
-            }, 0L, 100L);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
         reload();
+        tryInject();
     }
 
     public void reload() {
@@ -70,9 +60,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             Reflection.setFinalField(minecraftServer, queueAccessor, queueWrapper);
         } catch (Exception ex) {
             ex.printStackTrace();
-        }
-        for (PacketBundleSaver bundleSaver : DuplexChannelHandler.getPacketBundleSavers().values()) {
-            bundleSaver.clear();
         }
     }
 
@@ -138,7 +125,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 return otherTask;
             }
             started.set(true);
-            workingProperly.set(true);
 
             Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
@@ -216,10 +202,16 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             if (!Thread.currentThread().getName().startsWith("Netty"))
                 return super.add(value);
 
-            UUID uuid = packetSendQueue.get().peekLast();
+            UUID uuid = packetSendMarker.get();
+            if (uuid != null) {
+                packetSendMarker.remove();
 
-            PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
-            if (bundleSaver != null) {
+                PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
+                // if the uuid from the packet send marker does not have a bundle saver, we will not continue doing anything.
+                // we do this because this scenario is only possible if the player has leaved the server in the gap between
+                // send marker register and register to server
+                if (bundleSaver == null) return false;
+
                 PacketContainer<?> packet = bundleSaver.getRecent(false);
                 // if it somehow tries to add multiple times, we will cancel it
                 if (packet.isHandledByServer()) return true;
@@ -230,15 +222,14 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                         packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
                     } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
                 }
+                super.add(EMPTY_VALUE);
             }
-
-            super.add(EMPTY_VALUE);
             return seperatedQueue.get().add(value);
         }
     }
 
     public synchronized void waitUntilInitiallyTickRoundCompletes() {
-        while (initiallyTickRound.get() && started.get() && workingProperly.get()) {}
+        while (initiallyTickRound.get() && started.get()) {}
     }
 
     public void decrementPacketsInQueueExecution(UUID uuid) {

@@ -291,7 +291,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (packetContainer.getPacket() == null) return packetContainer;
 
         PacketBundleSaver bundleSaver;
-        if (packetBound == PacketBound.CLIENT && packetType != PacketType.Play.Client.KEEP_ALIVE
+        if (packetBound == PacketBound.CLIENT /* && packetState == PacketState.PLAY */ && packetType != PacketType.Play.Client.KEEP_ALIVE
                 && player != null && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())) != null) {
             bundleSaver.add(packetContainer);
         }

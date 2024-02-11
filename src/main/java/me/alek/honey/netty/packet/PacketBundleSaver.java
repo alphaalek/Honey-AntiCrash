@@ -61,12 +61,12 @@ public class PacketBundleSaver {
         }
     }
 
-    public void transferFrom(PacketBundleSaver bundleSaver) {
+    public void transferTo(PacketBundleSaver bundleSaver) {
         lock.writeLock().lock();
         try {
             PacketContainer<?> packet;
-            while ((packet = bundleSaver.getOldest(true)) != null) {
-                add(packet);
+            while ((packet = getOldest(true)) != null) {
+                bundleSaver.add(packet);
             }
         } finally {
             lock.writeLock().unlock();

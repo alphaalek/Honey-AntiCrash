@@ -254,7 +254,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         for (Map.Entry<UUID, PacketBundleSaver> bundleSaver : new ArrayList<>(DuplexChannelHandler.getPacketBundleSavers().entrySet())) {
             PacketBundleSaver newBundleSaver = new PacketBundleSaver();
-            newBundleSaver.transferFrom(bundleSaver.getValue());
+            bundleSaver.getValue().transferTo(newBundleSaver);
 
             DuplexChannelHandler.getPacketBundleSavers().put(bundleSaver.getKey(), newBundleSaver);
         }

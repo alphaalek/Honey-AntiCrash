@@ -28,10 +28,11 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private InboundPacketDecoder inboundPacketDecoder;
     private boolean hasRead;
     private boolean hasDecoder;
-    private final PacketBundleSaver packetBundleSaver;
+    private final PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
 
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
     private static final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = new ThreadLocalAccessor<>(ConcurrentLinkedDeque::new);
+    private static final ThreadLocalAccessor<UUID> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
     public DuplexChannelHandler(Channel channel, Player player) {
@@ -42,7 +43,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     public DuplexChannelHandler(Channel channel) {
         this.channel = channel;
-        this.packetBundleSaver = new PacketBundleSaver();
     }
 
     private void addPacketBundleSaver() {
@@ -61,6 +61,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     public static ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> getPacketSendQueue() {
         return packetSendQueue;
+    }
+
+    public static ThreadLocalAccessor<UUID> getPacketSendMarker() {
+        return packetSendMarker;
     }
 
     public static Map<UUID, PacketBundleSaver> getPacketBundleSavers() {
@@ -110,9 +114,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
                 checkedDecoder = true;
 
                 Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
-                    if (!InboundPacketDecoder.isDecoderRegistered(player)) {
+                    if (!InboundPacketDecoder.isDecoderRegistered(player))
                         player.kickPlayer("Packet decoder was never injected in pipeline.");
-                    }
                 });
             }
             if (!hasDecoder) return;
@@ -121,14 +124,12 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
         if (inboundPacketDecoder == null && player != null) {
             final AbstractPipelineProxy proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(channel);
-            if (proxy instanceof InboundPacketDecoder) {
+            if (proxy instanceof InboundPacketDecoder)
                 inboundPacketDecoder = (InboundPacketDecoder) proxy;
-            }
         }
         // register the handle time between the last handled packet and this one
-        if (inboundPacketDecoder != null) {
+        if (inboundPacketDecoder != null)
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
-        }
 
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
@@ -139,15 +140,16 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
         // check if the packet should be cancelled
         if (packetContainer.isCancelled() && player != null) {
-            if (HoneyPlugin.get().getLoggerService().isDebug()) {
+            if (HoneyPlugin.get().getLoggerService().isDebug())
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
-            }
+
             return;
         }
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
             ((PlayerServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker())
                     .waitUntilInitiallyTickRoundCompletes();
 
+            packetSendMarker.set(player.getUniqueId());
             packetSendQueue.get().add(player.getUniqueId());
         }
 
