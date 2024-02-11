@@ -1,5 +1,6 @@
 package me.alek.honey.checks.item;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -115,30 +116,35 @@ public class ItemAnalysis {
 
         if (!material.equals(Material.AIR) && directAvailableMaterialChecks.containsKey(material)) {
             for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
-
-                if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
-                    return getRegistryFrom(checker);
-                }
+                ItemCheckRegistry registry = check(checker, item, nbt);
+                if (registry != null) return registry;
             }
         }
         if (nbt != null) {
             for (final String key : nbt.getKeys()) {
-
                 if (directAvailableNBTChecks.containsKey(key)) {
                     for (final ItemChecker checker : directAvailableNBTChecks.get(key)) {
-
-                        if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
-                            return getRegistryFrom(checker);
-                        }
+                        ItemCheckRegistry registry = check(checker, item, nbt);
+                        if (registry != null) return registry;
                     }
                 }
             }
         }
         for (final ItemChecker checker : globalAvailableChecks) {
+            ItemCheckRegistry registry = check(checker, item, nbt);
+            if (registry != null) return registry;
+        }
+        return null;
+    }
 
+    private static ItemCheckRegistry check(ItemChecker checker, ItemStack item, NBTCompound nbt) {
+        try {
             if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
                 return getRegistryFrom(checker);
             }
+        } catch (Exception ex) {
+            HoneyPlugin.get().getLoggerService().getLogger().info("Error occurred at item analysis check");
+            ex.printStackTrace();
         }
         return null;
     }

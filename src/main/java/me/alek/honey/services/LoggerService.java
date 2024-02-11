@@ -141,7 +141,7 @@ public class LoggerService {
     }
 
     public void registerQueueExecutionStop() {
-        packetRatePerQueueExecution.add(currentQueueExecutionPacket.get());
+        packetRatePerQueueExecution.add(currentQueueExecutionPacket.get(), System.currentTimeMillis());
         currentQueueExecutionPacket.set(0);
     }
 

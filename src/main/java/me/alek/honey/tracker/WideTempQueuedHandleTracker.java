@@ -21,27 +21,28 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public void clearExceedingNodes(Player player) {
+        long time = System.currentTimeMillis();
         for (Timespan timespan : Timespan.values()) {
-            clearExceedingNodes(player, timespan);
+            clearExceedingNodes(player, timespan, time);
         }
     }
 
-    public void clearExceedingNodes(Player player, Timespan timespan) {
-        getTracker(player).clearExceedingNodes(timespan);
-        commonTracker.clearExceedingNodes(timespan);
+    public void clearExceedingNodes(Player player, Timespan timespan, long time) {
+        getTracker(player).clearExceedingNodes(timespan, time);
+        commonTracker.clearExceedingNodes(timespan, time);
     }
 
-    public void clearExceedingNodes(boolean alsoPlayers) {
+    public void clearExceedingNodes(boolean alsoPlayers, long time) {
         for (Timespan timespan : Timespan.values()) {
-            clearExceedingNodes(timespan, alsoPlayers);
+            clearExceedingNodes(timespan, alsoPlayers, time);
         }
     }
 
-    public void clearExceedingNodes(Timespan timespan, boolean alsoPlayers) {
-        commonTracker.clearExceedingNodes(timespan);
+    public void clearExceedingNodes(Timespan timespan, boolean alsoPlayers, long time) {
+        commonTracker.clearExceedingNodes(timespan, time);
         if (alsoPlayers) {
             for (TempTimedQueuedTracker tracker : trackerMap.values()) {
-                tracker.clearExceedingNodes(timespan);
+                tracker.clearExceedingNodes(timespan, time);
             }
         }
     }
@@ -50,14 +51,15 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     public synchronized void registerTime(Player key, Double value) {
         if (value <= 0) return;
 
-        getTracker(key).add(value);
-        commonTracker.add(value);
+        long time = System.currentTimeMillis();
+        getTracker(key).add(value, time);
+        commonTracker.add(value, time);
     }
 
     private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
         TempQueue.TimedNode node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
-        if (node != null && node.getValue() > (diff = Math.abs((timespan.getTimespan() * 1000 - (System.currentTimeMillis() - node.getInsertionInstant()))))) {
+        if (node != null && node.getValue() > (diff = Math.abs((timespan.getTimespan() * 1000L - (System.currentTimeMillis() - node.getInsertionInstant()))))) {
             return node.getValue() - diff;
         }
         return 0;
@@ -72,7 +74,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public double getPlayerTotal(Player player, Timespan timespan) {
-        getTracker(player).add(0);
+        getTracker(player).add(0, System.currentTimeMillis());
         return getTracker(player).getTotal(timespan) - getExceedingTimedNode(player, timespan);
     }
 

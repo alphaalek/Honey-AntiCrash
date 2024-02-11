@@ -216,7 +216,7 @@ public class NotificationService {
             return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         else if (packetLimitHandler instanceof ViolationService.PacketTriggerThrottleHandler) {
-            return "§7throttle §7time: §e" + setting.throttleAfter + "§7ms";
+            return "§7throttle §7time: §e" + setting.throttleAfter + "§7ms, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
         return "";
     }

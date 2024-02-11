@@ -32,7 +32,7 @@ public class ServerMonitorer implements Monitorer {
 
     @Override
     public String getMessage() {
-        HoneyPlugin.get().getServerThreadHandleTracker().clearExceedingNodes(false);
+        HoneyPlugin.get().getServerThreadHandleTracker().clearExceedingNodes(false, System.currentTimeMillis());
 
         int packetRate;
         return "§6*§8TPS: §7" + getTPS(Timespan.FIVE_SECOND) + ", " + getTPS(Timespan.TEN_SECOND) + "§8, "

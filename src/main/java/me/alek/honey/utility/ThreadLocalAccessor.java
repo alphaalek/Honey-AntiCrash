@@ -1,9 +1,7 @@
 package me.alek.honey.utility;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -42,15 +40,15 @@ public class ThreadLocalAccessor<T> {
         set(Thread.currentThread(), value);
     }
 
-    public synchronized void remove(Thread thread) {
-        seperatedQueues.remove(thread);
+    public synchronized T remove(Thread thread) {
+        return seperatedQueues.remove(thread);
     }
 
-    public void remove() {
-        remove(Thread.currentThread());
+    public T remove() {
+        return remove(Thread.currentThread());
     }
 
-    public Thread getAnyQueuedThread(Predicate<T> filter) {
+    public Thread getAnyThread(Predicate<T> filter) {
         for (Thread thread : seperatedQueues.keySet()) {
             T value = get(thread);
             if (filter.test(value))

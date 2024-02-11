@@ -1,7 +1,6 @@
 package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.command.impl.MonitorCommand;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
@@ -19,7 +18,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,12 +25,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = DuplexChannelHandler.getPacketSendQueue();
+    private final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = new ThreadLocalAccessor<>(ConcurrentLinkedDeque::new);
     private final ThreadLocalAccessor<UUID> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
-    private final AtomicBoolean started = new AtomicBoolean();
+    private final Map<Thread, Queue<String>> rightExecutedOrder = new HashMap<>();
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public PlayerServerThreadHandleTracker() {
@@ -72,6 +70,8 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
+
+        private final Map<Thread, Queue<String>> executedOrder = new HashMap<>();
 
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
@@ -116,7 +116,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         }
 
         @Override
-        public Object poll() {
+        public synchronized Object poll() {
             Object otherTask;
             if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE) {
                 if (recentPollStart != -1)
@@ -124,8 +124,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 recentPollStart = -1;
                 return otherTask;
             }
-            started.set(true);
-
             Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
             if (!initiallyTickRound.get()) {
@@ -146,12 +144,17 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 }
                 recentPollStart = System.nanoTime();
             }
-            Thread thread = seperatedQueue.getAnyQueuedThread((queue) -> !queue.isEmpty());
-
             Object task = null;
+            Thread thread = seperatedQueue.getAnyThread((queue) -> !queue.isEmpty());
+
             if (thread != null) {
                 recentPacketAuthor.set(packetSendQueue.get(thread).poll());
                 task = seperatedQueue.get(thread).poll();
+
+                // temporary
+                if (Bukkit.getOfflinePlayer(recentPacketAuthor.get()) != null)
+                    executedOrder.computeIfAbsent(thread, (d) -> new LinkedList<>()).add(Bukkit.getOfflinePlayer(recentPacketAuthor.get()).getName());
+                // temporary
             }
 
             if (task != null)
@@ -165,6 +168,20 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             }
 
             if (task == null) {
+                // temporary
+                for (Map.Entry<Thread, Queue<String>> queueEntry : executedOrder.entrySet()) {
+                    if (!queueEntry.getValue().equals(rightExecutedOrder.get(queueEntry.getKey()))) {
+                        Bukkit.getLogger().info("Mismatch queue execution order: " + executedOrder + ", " + rightExecutedOrder);
+                        break;
+                    }
+                }
+
+                executedOrder.clear();
+                synchronized (rightExecutedOrder) {
+                    rightExecutedOrder.clear();
+                }
+                // temporary
+
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;
                 nullPoll = false;
@@ -177,10 +194,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 }
                 packetsInQueueExecution.clear();
 
-                if (initiallyTickRound.get()) {
-                    packetSendQueue.clear();
-                    initiallyTickRound.set(false);
-                }
+                if (initiallyTickRound.get()) initiallyTickRound.set(false);
             }
 
             return task == null ? null : newTickTask(recentPacketAuthor.get() == null
@@ -194,45 +208,41 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         }
 
         @Override
-        public boolean add(Object value) {
+        public synchronized boolean add(Object value) {
             // add it two times if it's empty, so we always have one extra element
             // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
             if (super.isEmpty() && havingOneMoreElement) super.add(EMPTY_VALUE);
 
-            if (!Thread.currentThread().getName().startsWith("Netty"))
-                return super.add(value);
+            // only register tracking for tasks added by netty threads (packet handling)
+            if (!Thread.currentThread().getName().startsWith("Netty")) return super.add(value);
 
             // we will make sure that this thread is currently trying to add a packet to the server sent by a player.
             // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
             // elements to the execution queue from netty threads which are not packets
             UUID uuid = packetSendMarker.get();
-            if (uuid != null) {
-                packetSendMarker.remove();
+            if (uuid == null) return super.add(value);
 
-                PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
-                // if the uuid from the packet send marker does not have a bundle saver, we will not continue doing anything.
-                // we do this because this scenario is only possible if the player has leaved the server in the gap between
-                // send marker register and add to queue execution
-                if (bundleSaver == null) return false;
+            PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
+            // if the uuid from the packet send marker does not have a bundle saver, we will not continue doing anything.
+            // we do this because this scenario is only possible if the player has leaved the server in the gap between
+            // send marker register and add to queue execution
+            if (bundleSaver == null) return false;
 
-                PacketContainer<?> packet = bundleSaver.getRecent(false);
-                // if it somehow tries to add multiple times, we will cancel it
-                if (packet.isHandledByServer()) return true;
+            PacketContainer<?> packet = bundleSaver.getRecent(false);
+            // if it somehow tries to add multiple times, we will cancel it
+            if (packet.isHandledByServer()) return true;
 
-                packet.setHandledByServer();
-                synchronized (PacketTaskHandler.lock) {
-                    if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
-                        packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
-                    } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
-                }
-                super.add(EMPTY_VALUE);
+            packet.setHandledByServer();
+            synchronized (PacketTaskHandler.lock) {
+                if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
+                    packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
+                } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
             }
+            packetSendQueue.get().add(packetSendMarker.remove());
+
+            super.add(EMPTY_VALUE);
             return seperatedQueue.get().add(value);
         }
-    }
-
-    public synchronized void waitUntilInitiallyTickRoundCompletes() {
-        while (initiallyTickRound.get() && started.get()) {}
     }
 
     public void decrementPacketsInQueueExecution(UUID uuid) {

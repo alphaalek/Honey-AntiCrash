@@ -295,8 +295,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
-        // using double instead of float, because otherwise development data would show other values after being formatted
-        private final double[] timespanMultipliers = new double[]{1, 0.8f, 0.75f, 0.65f};
+        private final double[] timespanMultipliers = new double[]{1, 0.8, 0.75, 0.65};
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
@@ -310,8 +309,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     int developmentDataSize = container.getDevelopmentData(this).size();
 
                     int i = 0;
+                    long time = System.currentTimeMillis();
                     for (Timespan timespan : Timespan.values()) {
-                        tracker.clearExceedingNodes(player, timespan);
+                        tracker.clearExceedingNodes(player, timespan, time);
 
                         double multiplier = (i >= timespanMultipliers.length)
                                         ? timespanMultipliers[timespanMultipliers.length - 1]
@@ -319,7 +319,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         container.getDevelopmentData(this).setPoint(developmentDataSize - 1, "Multiplier", multiplier);
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan);
-                        if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.65 * multiplier) {
+                        if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.7 * multiplier) {
                             container.getDevelopmentData(this).addPoint("h.s.q.", NumberConversions.format(hsq * 100) + "%");
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("hsq")).flag(1).build();
                         }

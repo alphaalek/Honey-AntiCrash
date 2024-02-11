@@ -514,19 +514,18 @@ public class ItemChecks {
                     break;
                 }
             }
-            if (skullOwnerCompound == null || !skullOwnerCompound.hasKey("Properties")) {
+            if (skullOwnerCompound == null || !skullOwnerCompound.hasKey("Properties"))
                 return false;
-            }
+
             NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKeyOfType("textures", NBTType.LISTOFCOMOUND)) {
+            if (!propertiesCompound.hasKeyOfType("textures", NBTType.LISTOFCOMOUND))
                 return true;
-            }
+
             NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
             for (NBTCompound texture : textures.getValues()) {
-
-                if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
+                if (!texture.hasKeyOfType("Value", NBTType.STRING))
                     return true;
-                }
+
                 byte[] value = texture.getString("Value").getBytes(StandardCharsets.UTF_8);
                 String base64;
                 try {
@@ -536,13 +535,12 @@ public class ItemChecks {
                 }
                 final String formatted = base64.trim().replace(" ", "").replace("\"", "").toLowerCase();
                 final Matcher matcher = URL_PATTERN.matcher(formatted);
-                if (!matcher.find()) {
+                if (!matcher.find())
                     return true;
-                }
+
                 final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
-                if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
+                if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net"))
                     return true;
-                }
             }
             return false;
         }

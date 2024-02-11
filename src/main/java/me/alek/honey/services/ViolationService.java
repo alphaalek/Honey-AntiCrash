@@ -471,10 +471,9 @@ public class ViolationService {
                 if (onFlag != null) onFlag.run();
 
                 if (amount >= 1) lastFlag = System.currentTimeMillis();
-                if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
 
                 if (!hasShownFlag)
-                    doFormatStuff(check, developmentData, checkKey);
+                    violate(handle, cancellablePacketObserver, check, onPunish, onViolation, developmentData, checkKey);
                 hasShownFlag = true;
                 return true;
             }

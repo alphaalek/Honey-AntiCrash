@@ -31,7 +31,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private final PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
 
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
-    private static final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = new ThreadLocalAccessor<>(ConcurrentLinkedDeque::new);
     private static final ThreadLocalAccessor<UUID> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
 
@@ -57,10 +56,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     public Player getPlayer() {
         return player;
-    }
-
-    public static ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> getPacketSendQueue() {
-        return packetSendQueue;
     }
 
     public static ThreadLocalAccessor<UUID> getPacketSendMarker() {
@@ -146,11 +141,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             return;
         }
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
-            ((PlayerServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker())
-                    .waitUntilInitiallyTickRoundCompletes();
-
             packetSendMarker.set(player.getUniqueId());
-            packetSendQueue.get().add(player.getUniqueId());
         }
 
         super.channelRead(ctx, packetContainer.getHandle());
