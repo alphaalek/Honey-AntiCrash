@@ -30,7 +30,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
-    private final Map<Thread, Queue<String>> rightExecutedOrder = new HashMap<>();
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public PlayerServerThreadHandleTracker() {
@@ -70,8 +69,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
-
-        private final Map<Thread, Queue<String>> executedOrder = new HashMap<>();
 
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
@@ -150,11 +147,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             if (thread != null) {
                 recentPacketAuthor.set(packetSendQueue.get(thread).poll());
                 task = seperatedQueue.get(thread).poll();
-
-                // temporary
-                if (Bukkit.getOfflinePlayer(recentPacketAuthor.get()) != null)
-                    executedOrder.computeIfAbsent(thread, (d) -> new LinkedList<>()).add(Bukkit.getOfflinePlayer(recentPacketAuthor.get()).getName());
-                // temporary
             }
 
             if (task != null)
@@ -168,19 +160,6 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             }
 
             if (task == null) {
-                // temporary
-                for (Map.Entry<Thread, Queue<String>> queueEntry : executedOrder.entrySet()) {
-                    if (!queueEntry.getValue().equals(rightExecutedOrder.get(queueEntry.getKey()))) {
-                        Bukkit.getLogger().info("Mismatch queue execution order: " + executedOrder + ", " + rightExecutedOrder);
-                        break;
-                    }
-                }
-
-                executedOrder.clear();
-                synchronized (rightExecutedOrder) {
-                    rightExecutedOrder.clear();
-                }
-                // temporary
 
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;
