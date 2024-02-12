@@ -51,13 +51,20 @@ public class PasteLogsCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
         if (!handlePreconditions(sender, args)) return;
 
-        final String playerName = args[0];
         try {
+            final String playerName = sqlHandler.getPlayerData(args[0]).getPlayerName();
+
             final StringBuilder rawMessageBuilder = new StringBuilder();
             rawMessageBuilder.append("Violation log for player " + playerName + " pasted with Honey " + HoneyPlugin.get().getPlugin().getDescription().getVersion() + "\n");
 
+            int size = 0;
             for (ViolationEntry violationEntry : sqlHandler.getViolations(playerName)) {
                 rawMessageBuilder.append("[" + new Date(violationEntry.getUnixTime()) + "] violated for " + violationEntry.getViolationName() + " " + violationEntry.getContext() + " [*] " + violationEntry.getDevData() + "\n");
+                size++;
+            }
+            if (size == 0) {
+                sender.sendMessage(CommandManager.PREFIX + " §acThe player " + playerName + " doesn't have any violations.");
+                return;
             }
 
             final PasteRequest request = PasteRequest
@@ -67,7 +74,6 @@ public class PasteLogsCommand implements CommandImpl {
                     .name("Violation log for player " + playerName)
                     .expiration(Expiration.ONE_DAY)
                     .build();
-
             final PastebinClient pastebinClient = PastebinClient.builder()
                     .developerKey(ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY)
                     .build();
