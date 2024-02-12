@@ -6,8 +6,8 @@ import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.model.PlayerEntry;
 import me.alek.honey.storage.model.ViolationEntry;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.Connection;
@@ -15,7 +15,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
@@ -125,6 +124,11 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     }
 
     @Override
+    public void removePlayerName(String playerName) throws SQLFactoryException {
+        componentBridge.removePlayerName(playerName);
+    }
+
+    @Override
     public boolean existsPlayer(String playerName) {
         return componentBridge.existsPlayer(playerName);
     }
@@ -162,8 +166,8 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     }
 
     @Override
-    public UUID getPlayerUUID(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return componentBridge.getPlayerUUID(playerName);
+    public PlayerEntry getPlayerData(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return componentBridge.getPlayerData(playerName);
     }
 
     public Connection getConnection() {

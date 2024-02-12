@@ -57,7 +57,7 @@ public class PasteLogsCommand implements CommandImpl {
             rawMessageBuilder.append("Violation log for player " + playerName + " pasted with Honey " + HoneyPlugin.get().getPlugin().getDescription().getVersion() + "\n");
 
             for (ViolationEntry violationEntry : sqlHandler.getViolations(playerName)) {
-                rawMessageBuilder.append("[" + new Date(violationEntry.getUnixTime()) + "] violated for " + violationEntry.getViolationName() + " " + violationEntry.getContext() + " [**] " + violationEntry.getDevData() + "\n");
+                rawMessageBuilder.append("[" + new Date(violationEntry.getUnixTime()) + "] violated for " + violationEntry.getViolationName() + " " + violationEntry.getContext() + " [*] " + violationEntry.getDevData() + "\n");
             }
 
             final PasteRequest request = PasteRequest

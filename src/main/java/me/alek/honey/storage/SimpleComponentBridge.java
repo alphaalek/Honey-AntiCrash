@@ -4,11 +4,11 @@ import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.model.PlayerEntry;
 import me.alek.honey.storage.model.ViolationEntry;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.UUID;
 
 public class SimpleComponentBridge implements ComponentBridge {
 
@@ -40,6 +40,11 @@ public class SimpleComponentBridge implements ComponentBridge {
     @Override
     public void setupPlayer(Player player) throws SQLFactoryException {
         repositoryCollection.playerRepository.setupPlayer(queryFactory, player);
+    }
+
+    @Override
+    public void removePlayerName(String playerName) throws SQLFactoryException {
+        repositoryCollection.playerRepository.removePlayerName(queryFactory, playerName);
     }
 
     @Override
@@ -88,9 +93,9 @@ public class SimpleComponentBridge implements ComponentBridge {
     }
 
     @Override
-    public UUID getPlayerUUID(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public PlayerEntry getPlayerData(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) throw new UnsupportedOperationException();
 
-        return repositoryCollection.playerRepository.getPlayerUUID(queryFactory, playerName);
+        return repositoryCollection.playerRepository.getPlayerData(queryFactory, playerName);
     }
 }

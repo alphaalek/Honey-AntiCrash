@@ -4,11 +4,11 @@ import me.alek.honey.storage.QueryFactory;
 import me.alek.honey.storage.RepositoryComponent;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
+import me.alek.honey.storage.model.PlayerEntry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class PlayerRepository implements RepositoryComponent {
@@ -73,11 +73,11 @@ public class PlayerRepository implements RepositoryComponent {
         throw new SQLPlayerNotFoundException();
     }
 
-    public UUID getPlayerUUID(QueryFactory queryFactory, String playerName) throws SQLFactoryException, SQLPlayerNotFoundException {
+    public PlayerEntry getPlayerData(QueryFactory queryFactory, String playerName) throws SQLFactoryException, SQLPlayerNotFoundException {
         if (!existsPlayer(queryFactory, playerName)) throw new SQLPlayerNotFoundException();
 
         CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "SELECT p.playerUUID FROM honey_players AS p " +
+                "SELECT p.playerName, p.playerUUID FROM honey_players AS p " +
                 "WHERE p.playerName = ?",
                 playerName
         );
@@ -85,7 +85,7 @@ public class PlayerRepository implements RepositoryComponent {
             ResultSet resultSet = resultSetFuture.get();
 
             if (resultSet != null && resultSet.next()) {
-                return UUID.fromString(resultSet.getString(1));
+                return new PlayerEntry(resultSet.getString(1), resultSet.getString(2));
             }
 
         } catch (Exception ex) {
@@ -114,7 +114,7 @@ public class PlayerRepository implements RepositoryComponent {
     public void updatePlayer(QueryFactory queryFactory, Player player) throws SQLFactoryException, SQLPlayerNotFoundException {
         final int id = getPlayerId(queryFactory, player.getName());
 
-        CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
+        CompletableFuture<Boolean> resultSetFuture = queryFactory.runInsert(
                 "UPDATE honey_players AS p " +
                 "SET p.playerName = ?, p.playerUUID = ? " +
                 "WHERE p.playerId = ?",
@@ -129,23 +129,59 @@ public class PlayerRepository implements RepositoryComponent {
         }
     }
 
+    public void updatePlayerName(QueryFactory queryFactory, Player player) throws SQLFactoryException {
+        CompletableFuture<Boolean> resultSetFuture = queryFactory.runInsert(
+                "UPDATE honey_players AS p " +
+                "SET p.playerName = ? " +
+                "WHERE p.playerUUID = ?",
+                player.getName(), player.getUniqueId().toString()
+        );
+        try {
+            resultSetFuture.get();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+        }
+    }
+
+    public void removePlayerName(QueryFactory queryFactory, String playerName) {
+        CompletableFuture<Boolean> resultSetFuture = queryFactory.runInsert(
+                "UPDATE honey_players AS p " +
+                "SET p.playerName = ?" +
+                "WHERE p.playerName = ?",
+                "", playerName
+        );
+        try {
+            resultSetFuture.get();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+        }
+    }
+
     public void preparePlayer(QueryFactory queryFactory, Player player) throws SQLFactoryException, SQLPlayerNotFoundException {
-        Bukkit.broadcastMessage("Preparing player " + player);
         final String uuid = player.getUniqueId().toString();
         boolean existsPlayer = existsPlayer(queryFactory, player.getName());
 
-        if (existsPlayer && getPlayerUUID(queryFactory, player.getName()).toString().equals(uuid)) {
-            // the player name exists in the database and the uuid registered to this player name is also the same as the player
-            // everything is matching, so just return
+        // if the uuid is matching the player name, everything is correct and we can just return
+        if (existsPlayer && getPlayerData(queryFactory, player.getName()).getPlayerUUID().equals(uuid)) {
             return;
         }
-        if (!existsPlayer) {
-            // the player name does not exist in the database and the uuid is not registered as well, so lets setup this player
+
+        // if the uuid is registered in the database but the player name is wrong, we will update the player name
+        if (!existsPlayer && containsUUID(queryFactory, uuid)) {
+            updatePlayerName(queryFactory, player);
+            return;
+        }
+        if (!containsUUID(queryFactory, uuid)) {
+            // if this player name is registered but the uuid is not, we will remove this player name
+            if (existsPlayer) {
+                removePlayerName(queryFactory, player.getName());
+            }
+            // finally we will setup this player, because at this point the uuid and name will not be present anywhere
             setupPlayer(queryFactory, player);
-            return;
         }
-        // the player name does not exist although the uuid is registered in the database (or the other way around),
-        // so lets update the player record to have this player name and uuid instead of the old ones
-        updatePlayer(queryFactory, player);
     }
 }
