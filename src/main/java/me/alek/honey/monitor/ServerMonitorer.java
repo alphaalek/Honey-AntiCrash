@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.NumberConversions;
 
-public class ServerMonitorer implements Monitorer {
+public class ServerMonitorer implements ScheduledMonitorer {
 
     @Override
     public MonitorType getType() {
@@ -13,7 +13,7 @@ public class ServerMonitorer implements Monitorer {
 
     @Override
     public String getName() {
-        return "Server";
+        return "server monitor";
     }
 
     private String getTPS(Timespan timespan) {

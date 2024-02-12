@@ -43,7 +43,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol());
+        return () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT);
     }
 
     @Override

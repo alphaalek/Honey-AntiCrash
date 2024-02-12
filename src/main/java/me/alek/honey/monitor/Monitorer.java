@@ -5,6 +5,4 @@ public interface Monitorer {
     MonitorType getType();
 
     String getName();
-
-    String getMessage();
 }

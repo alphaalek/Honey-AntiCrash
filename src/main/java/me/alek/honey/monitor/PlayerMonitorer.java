@@ -6,7 +6,7 @@ import me.alek.honey.tracker.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 
-public class PlayerMonitorer implements Monitorer {
+public class PlayerMonitorer implements ScheduledMonitorer {
 
     private final WideTempQueuedHandleTracker serverThreadTracker = HoneyPlugin.get().getServerThreadHandleTracker();
     private final Player player;
@@ -22,7 +22,7 @@ public class PlayerMonitorer implements Monitorer {
 
     @Override
     public String getName() {
-        return player.getName();
+        return "player monitor of " + player.getName();
     }
 
     private double getOfAverage(Timespan timespan) {

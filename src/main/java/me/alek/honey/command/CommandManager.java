@@ -1,6 +1,7 @@
 package me.alek.honey.command;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.command.impl.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -26,6 +27,19 @@ public class CommandManager implements CommandExecutor {
         plugin.getCommand("honey").setExecutor(this);
         this.plugin = plugin;
         cooldownManager = new CooldownManager();
+
+        registerCommands();
+    }
+
+    public void registerCommands() {
+        registerCommand(new HelpCommand());
+        registerCommand(new NotificationToggleCommand());
+        registerCommand(new ReloadCommand());
+        registerCommand(new PasteLogsCommand());
+        registerCommand(new TrackCommand());
+        registerCommand(new QuotientInfoCommand());
+        registerCommand(new MonitorCommand());
+        registerCommand(new PacketMonitorCommand());
     }
 
     public void registerCommand(CommandImpl command) {

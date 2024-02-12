@@ -5,13 +5,12 @@ import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +19,8 @@ public class MonitorManager {
 
     public static final Monitorer SERVER_MONITOR = new ServerMonitorer();
 
-    private final Map<Monitorer, List<MonitorObserver>> playerMonitorObservers = new HashMap<>();
+    private final Set<Monitorer> packetMonitorers = new HashSet<>();
+    private final Map<Monitorer, List<MonitorObserver>> monitorObservers = new HashMap<>();
     private final Map<UUID, Monitorer> playerMonitorerMap = new HashMap<>();
     private ScheduledExecutorService executorService;
 
@@ -33,10 +33,14 @@ public class MonitorManager {
 
         executorService.scheduleAtFixedRate(() -> {
             try {
-                for (Monitorer monitorer : playerMonitorObservers.keySet()) {
-                    String message = monitorer.getMessage();
-                    for (MonitorObserver observer : playerMonitorObservers.get(monitorer)) {
-                        observer.sendInfo(message);
+                for (Monitorer monitorer : monitorObservers.keySet()) {
+                    if (monitorer instanceof ScheduledMonitorer) {
+                        ScheduledMonitorer scheduledMonitorer = (ScheduledMonitorer) monitorer;
+
+                        String message = scheduledMonitorer.getMessage();
+                        for (MonitorObserver observer : monitorObservers.get(monitorer)) {
+                            observer.sendInfo(message);
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -62,34 +66,45 @@ public class MonitorManager {
     }
 
     public boolean isMonitored(Player player) {
-        return playerMonitorObservers.containsKey(getMonitorer(player));
+        return monitorObservers.containsKey(getMonitorer(player));
     }
 
     public boolean isServerMonitored() {
-        return playerMonitorObservers.containsKey(SERVER_MONITOR) && !playerMonitorObservers.get(SERVER_MONITOR).isEmpty();
+        return monitorObservers.containsKey(SERVER_MONITOR) && !monitorObservers.get(SERVER_MONITOR).isEmpty();
     }
 
     public void removeFromMonitors(Player player) {
-        playerMonitorObservers.remove(getMonitorer(player));
+        monitorObservers.remove(getMonitorer(player));
         playerMonitorerMap.remove(player.getUniqueId());
         removeMonitor(player);
     }
 
-    public void removeIfHasMonitor(CommandSender sender, boolean onlyStop) {
+    public Monitorer removeIfHasMonitor(CommandSender sender, boolean onlyStop) {
         Monitorer monitorer = removeMonitor(sender);
         if (monitorer != null)
-            sender.sendMessage(CommandManager.PREFIX + "§7Stopping monitor of " + monitorer.getName() + ".");
+            sender.sendMessage(CommandManager.PREFIX + "§7Stopping " + monitorer.getName() + ".");
         else if (onlyStop)
             sender.sendMessage(CommandManager.PREFIX + "§7You do not currently monitor anything.");
+        return monitorer;
+    }
+
+    public void setupPacketMonitor(CommandSender sender, List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags) {
+        removeIfHasMonitor(sender, false);
+
+        Monitorer monitorer = new PacketMonitorer<>(flags);
+        setupMonitor(sender, monitorer);
+        packetMonitorers.add(monitorer);
     }
 
     public void setupPlayerMonitor(CommandSender sender, Player player) {
-        removeIfHasMonitor(sender, false);
+        if (removeIfHasMonitor(sender, false) == getMonitorer(player)) return;
+
         setupMonitor(sender, getMonitorer(player));
     }
 
     public void setupServerMonitor(CommandSender sender) {
-        removeIfHasMonitor(sender, false);
+        if (removeIfHasMonitor(sender, false) == SERVER_MONITOR) return;
+
         setupMonitor(sender, SERVER_MONITOR);
     }
 
@@ -102,15 +117,31 @@ public class MonitorManager {
     }
 
     public void sendInfo(Monitorer monitorer, String message) {
-        if (!playerMonitorObservers.containsKey(monitorer)) return;
+        if (!monitorObservers.containsKey(monitorer)) return;
 
-        for (MonitorObserver observer : playerMonitorObservers.get(monitorer)) {
+        for (MonitorObserver observer : monitorObservers.get(monitorer)) {
             observer.sendInfo(message);
         }
     }
 
+    public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+        for (Monitorer packetMonitorer : packetMonitorers) {
+            if (!(packetMonitorer instanceof IndependentMonitorer)) return;
+
+            @SuppressWarnings("unchecked")
+            IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>> independentMonitorer =
+                    (IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>>) packetMonitorer;
+            String message = independentMonitorer.getMessage(packetContainer);
+            if (message == null) continue;
+
+            for (MonitorObserver observer : monitorObservers.get(independentMonitorer)) {
+                observer.sendInfo(message);
+            }
+        }
+    }
+
     public void setupMonitor(CommandSender sender, Monitorer monitorer) {
-        List<MonitorObserver> observers = playerMonitorObservers.computeIfAbsent(monitorer, (d) -> new ArrayList<>());
+        List<MonitorObserver> observers = monitorObservers.computeIfAbsent(monitorer, (d) -> new ArrayList<>());
         observers.add(new MonitorObserver() {
             @Override
             public CommandSender getSender() {
@@ -122,20 +153,22 @@ public class MonitorManager {
                 sender.sendMessage(message);
             }
         });
-        sender.sendMessage(CommandManager.PREFIX + "§7Started monitoring of " + monitorer.getName() +
+        sender.sendMessage(CommandManager.PREFIX + "§7Started " + monitorer.getName() +
                 ". Use /honey monitor stop if you want to stop the monitoring.");
     }
 
     public Monitorer removeMonitor(CommandSender sender) {
-        for (Monitorer monitorer : Sets.newHashSet(playerMonitorObservers.keySet())) {
-            List<MonitorObserver> observers = playerMonitorObservers.get(monitorer);
+        for (Monitorer monitorer : Sets.newHashSet(monitorObservers.keySet())) {
+            List<MonitorObserver> observers = monitorObservers.get(monitorer);
 
             for (MonitorObserver observer : Lists.newArrayList(observers)) {
 
                 if (observer.getSender().equals(sender)) {
                     observers.remove(observer);
                     if (observers.isEmpty())
-                        playerMonitorObservers.remove(monitorer);
+                        monitorObservers.remove(monitorer);
+                    if (monitorer.getType() == MonitorType.PACKETS)
+                        packetMonitorers.remove(monitorer);
 
                     return monitorer;
                 }

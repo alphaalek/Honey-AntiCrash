@@ -4,5 +4,7 @@ public enum MonitorType {
 
     PLAYER,
 
-    SERVER;
+    SERVER,
+
+    PACKETS
 }

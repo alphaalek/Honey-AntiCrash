@@ -79,7 +79,7 @@ public enum PacketType implements PacketTypeEnum {
         }
     }
 
-    public static List<PacketTypeEnum> getTypesAvailableFor(PacketState state, PacketBound packetBound, NetProtocol protocol) {
+    public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketState state, PacketBound packetBound) {
         if (state == PacketState.UNKNOWN) {
             return new ArrayList<>();
         }
@@ -101,20 +101,24 @@ public enum PacketType implements PacketTypeEnum {
     }
 
 
-    public static List<PacketTypeEnum> getTypesAvailableFor(PacketState state, NetProtocol protocol) {
-        return getTypesAvailableFor(state, null, protocol);
+    public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketState state) {
+        return getTypesAvailableFor(protocol, state, null);
     }
 
     public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketBound packetBound) {
         final List<PacketTypeEnum> totalList = new ArrayList<>();
         for (PacketState state : PacketState.values()) {
-            totalList.addAll(getTypesAvailableFor(state, packetBound, protocol));
+            totalList.addAll(getTypesAvailableFor(protocol, state, packetBound));
         }
         return totalList;
     }
 
     public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol) {
-        return getTypesAvailableFor(protocol, null);
+        return getTypesAvailableFor(protocol, (PacketBound) null);
+    }
+
+    public static List<PacketTypeEnum> getTypesAvailable() {
+        return getTypesAvailableFor(NetProtocol.getProtocol());
     }
 
     public static Map<Class<?>, PacketDetails> getPacketDetails() {

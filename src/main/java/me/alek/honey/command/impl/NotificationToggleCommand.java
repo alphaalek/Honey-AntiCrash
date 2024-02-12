@@ -10,10 +10,6 @@ import org.bukkit.command.CommandSender;
 
 public class NotificationToggleCommand implements CommandImpl {
 
-    public NotificationToggleCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this);
-    }
-
     @Override
     public void perform(CommandSender sender, String[] args) {
         NotificationService notificationService = HoneyPlugin.get().getNotificationService();

@@ -18,10 +18,6 @@ public class PasteLogsCommand implements CommandImpl {
 
     private final SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
 
-    public PasteLogsCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this);
-    }
-
     public boolean handlePreconditions(CommandSender sender, String[] args) {
         if (!sqlHandler.isEnabled()) {
             sender.sendMessage(CommandManager.PREFIX + " §cYou don't have MySQL enabled in the configuration.");

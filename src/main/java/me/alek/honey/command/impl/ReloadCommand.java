@@ -8,11 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand implements CommandImpl {
-
-    public ReloadCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this);
-    }
-
     @Override
     public void perform(CommandSender sender, String[] args) {
         sender.sendMessage(CommandManager.PREFIX + "§7 Reloading the plugin...");

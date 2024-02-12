@@ -6,7 +6,6 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
-import me.alek.honey.command.impl.*;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
@@ -141,13 +140,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         // setup commands
         commandManager = new CommandManager(this);
-        new HelpCommand(commandManager);
-        new NotificationToggleCommand(commandManager);
-        new ReloadCommand(commandManager);
-        new PasteLogsCommand(commandManager);
-        new TrackCommand(commandManager);
-        new QuotientInfoCommand(commandManager);
-        new MonitorCommand(commandManager);
 
         // setup metrics
         new Metrics(this, 19028);

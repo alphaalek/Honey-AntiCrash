@@ -84,6 +84,7 @@ public class LoggerService {
                 if (packet != null) recentPackets.add(sentPacketType);
             }
         }
+        monitorManager.sendPacketInfo(packet);
     }
 
     public void dumpPackets(List<PacketContainer<?>> packets) {
@@ -162,7 +163,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.HIGHEST, () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.CLIENT, NetProtocol.getProtocol()));
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.HIGHEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT));
         }
     }
 

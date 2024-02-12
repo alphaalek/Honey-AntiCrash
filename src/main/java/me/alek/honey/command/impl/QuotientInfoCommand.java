@@ -6,10 +6,6 @@ import org.bukkit.command.CommandSender;
 
 public class QuotientInfoCommand implements CommandImpl {
 
-    public QuotientInfoCommand(CommandManager manager) {
-        manager.registerCommand(this);
-    }
-
     @Override
     public void perform(CommandSender sender, String[] args) {
         sender.sendMessage(" §7The Server Thread Quotient is based on the amount of work the server thread has to do " +

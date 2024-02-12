@@ -67,19 +67,19 @@ public class PacketWrapperInvokerFactory {
             METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
         }
 
-        PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.PLAY, PROTOCOL_VERSION), (packetType) -> {
+        PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.PLAY), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
-        HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.HANDSHAKE, PROTOCOL_VERSION), (packetType) -> {
+        HANDSHAKE_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.HANDSHAKE), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
-        LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.LOGIN, PROTOCOL_VERSION), (packetType) -> {
+        LOGIN_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.LOGIN), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
-        STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PacketState.STATUS, PROTOCOL_VERSION), (packetType) -> {
+        STATUS_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.STATUS), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getLoggerService().getLogger().info("NULL: " + packetType.getClass().getName());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
@@ -150,6 +150,14 @@ public class PacketWrapperInvokerFactory {
 
     public static PacketTypeEnum getPacketTypeForName(String name) {
         return NAME_CACHE_REVERSED.get(name);
+    }
+
+    public static PacketTypeEnum getPacketTypeForNameIgnoreCase(String name) {
+        for (Map.Entry<String, PacketTypeEnum> packetTypeEntry : NAME_CACHE_REVERSED.entrySet()) {
+            if (packetTypeEntry.getKey().equalsIgnoreCase(name))
+                return packetTypeEntry.getValue();
+        }
+        return null;
     }
 
     private static MethodInvoker<Object> createWrapperInvoker(Class<?> nmsClass, Map<PacketTypeEnum, MethodInvoker<Object>> map) {

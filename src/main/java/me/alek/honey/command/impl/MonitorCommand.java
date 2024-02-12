@@ -12,10 +12,6 @@ import java.util.UUID;
 
 public class MonitorCommand implements CommandImpl {
 
-    public MonitorCommand(CommandManager manager) {
-        manager.registerCommand(this);
-    }
-
     @Override
     public void perform(CommandSender sender, String[] args) {
         if (args.length == 0) {

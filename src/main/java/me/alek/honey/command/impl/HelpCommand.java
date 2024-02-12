@@ -10,10 +10,6 @@ import org.bukkit.command.CommandSender;
 
 public class HelpCommand implements CommandImpl {
 
-    public HelpCommand(CommandManager commandManager) {
-        commandManager.registerCommand(this);
-    }
-
     @Override
     public void perform(CommandSender sender, String[] args) {
         String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
