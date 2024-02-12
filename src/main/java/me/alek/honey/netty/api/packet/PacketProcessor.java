@@ -12,6 +12,8 @@ import java.util.List;
 
 public interface PacketProcessor {
 
+    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet, long readStart);
+
     PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet);
 
     PacketContainer<? extends WrappedPacket<?>> write(Channel channel, Player player, Object packet);

@@ -9,7 +9,9 @@ import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.injector.InboundPacketDecoder;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.*;
@@ -284,12 +286,20 @@ public class InternalPacketProcessor implements PacketProcessor {
         return packetContainer;
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> handleCommon(
-            Player player,
-            Channel channel,
-            Object packet,
-            PacketBound packetBound
-    ) {
+    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(Object packet, Player player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
+        if (type.getBound() == PacketBound.SERVER) {
+            return new InternalPacketContainer<>(packet, player, channel, postAction, type);
+        }
+        PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket = InboundPacketDecoder.getEarlyPacketInitializer().get();
+        if (earlyInitializedPacket != null && earlyInitializedPacket.getPlayer().equals(player)) {
+            earlyInitializedPacket.getEventloopStateTimings().stopTimings(readStart);
+            earlyInitializedPacket.set(packet, postAction, type);
+            return earlyInitializedPacket;
+        }
+        return new InternalPacketContainer<>(packet, player, channel, postAction, type);
+    }
+
+    private PacketContainer<? extends WrappedPacket<?>> handleCommon(Player player, Channel channel, Object packet, PacketBound packetBound, long readStart) {
         final PacketState packetState = getPacketState(player, packet);
         if (packetState == PacketState.UNKNOWN) {
             return registerSimpleContainerToBundle(packet, player, packetBound);
@@ -307,9 +317,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         // initialize the packet container
-        final PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(
-                packet, player, channel, POST_ACTION_MAP.get(packetType), packetType
-        );
+        final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
+                packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
         if (packetContainer.getPacket() == null) {
             registerToBundle(player, packetBound, packetContainer);
             return packetContainer;
@@ -319,6 +328,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             registerToBundle(player, packetBound, packetContainer);
         }
 
+        packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
         // handle the packet listeners
         if (hasAdapters) {
             callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
@@ -393,17 +403,24 @@ public class InternalPacketProcessor implements PacketProcessor {
                 cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
             }
         }
+        packetContainer.getEventloopStateTimings().stopTimings();
+
         return packetContainer;
     }
 
     @Override
+    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet, long readStart) {
+        return handleCommon(player, channel, packet, PacketBound.CLIENT, readStart);
+    }
+
+    @Override
     public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet) {
-        return handleCommon(player, channel, packet, PacketBound.CLIENT);
+        return read(channel, player, packet, 0L);
     }
 
     @Override
     public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, Player player, Object packet) {
-        return handleCommon(player, channel, packet, PacketBound.SERVER);
+        return handleCommon(player, channel, packet, PacketBound.SERVER, 0L);
     }
 
     public PacketState getPacketState(Player player, Object packet) {

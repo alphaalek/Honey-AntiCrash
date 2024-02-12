@@ -266,13 +266,13 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 if (ta > 5) {
                     container.getDevelopmentData(this).addPoint("Size", size);
 
-                    if ((size > 15 && ta > 20) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
+                    if ((size > 15 && ta > 22.5) || (size > 25 && ta > 17.5) || (size > 40 && ta > 15)) {
                         container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                     }
 
                     double tt = tracker.getTimeToTotalQuotient(player, Timespan.TEN_SECOND);
-                    if ((size > 15 && tt > 0.6) || (size > 25 && tt > 0.5)) {
+                    if ((size > 15 && tt > 0.65) || (size > 25 && tt > 0.55)) {
                         container.getDevelopmentData(this).addPoint("t.t.", NumberConversions.format(tt * 100) + "%");
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
                     }

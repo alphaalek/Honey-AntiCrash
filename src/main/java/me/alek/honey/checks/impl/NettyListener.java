@@ -9,7 +9,6 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
-import me.alek.honey.command.impl.MonitorCommand;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
@@ -18,7 +17,6 @@ import me.alek.honey.netty.injector.InboundPacketDecoder;
 import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.PacketBundleFilters;
-import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -33,7 +31,6 @@ import me.alek.honey.tracker.task.PacketTaskFuture;
 import me.alek.honey.tracker.task.PacketTaskHandler;
 import me.alek.honey.utility.NumberConversions;
 import me.alek.honey.utility.Tuple2;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -80,7 +77,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final PlayerServerThreadHandleTracker tracker = (PlayerServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
+        private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
@@ -325,7 +322,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan);
-                        if ((trackerSize > 15 && ta > 20 * multiplier) || (trackerSize > 25 && ta > 15 * multiplier) || (trackerSize > 40 && ta > 12.5 * multiplier)) {
+                        if ((trackerSize > 15 && ta > 22.5 * multiplier) || (trackerSize > 25 && ta > 17.5 * multiplier) || (trackerSize > 40 && ta > 15 * multiplier)) {
                             container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                         }

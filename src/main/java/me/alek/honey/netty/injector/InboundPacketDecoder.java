@@ -5,7 +5,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
@@ -17,6 +21,7 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     private static final Set<UUID> registeredPacketDecoders = new HashSet<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+    private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocalAccessor<>();
 
     public static void unregisterPlayer(Player player) {
         synchronized (registeredPacketDecoders) {
@@ -26,6 +31,10 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     public static boolean isDecoderRegistered(Player player) {
         return registeredPacketDecoders.contains(player.getUniqueId());
+    }
+
+    public static ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> getEarlyPacketInitializer() {
+        return earlyPacketInitializer;
     }
 
     private double recentDecodeStart = System.currentTimeMillis();
@@ -47,19 +56,25 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
+        if (player != null) {
+            if (!hasRead) {
+                hasRead = true;
+                synchronized (registeredPacketDecoders) {
+                    registeredPacketDecoders.add(player.getUniqueId());
+                }
+            }
+            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
+            packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
+        } else earlyPacketInitializer.remove();
+
         packetProcessor.callDecode(player, byteBuf);
 
         double currentTime = System.currentTimeMillis();;
         recentDeltaReceived = currentTime - recentDecodeStart;
         recentDecodeStart = currentTime;
 
-        if (!hasRead && player != null) {
-            hasRead = true;
-            synchronized (registeredPacketDecoders) {
-                registeredPacketDecoders.add(player.getUniqueId());
-            }
-        }
-
+        if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
     }
 

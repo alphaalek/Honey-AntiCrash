@@ -124,7 +124,7 @@ public class MonitorManager {
         }
     }
 
-    public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+    public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer, PacketMonitorSendAt sendAt) {
         for (Monitorer packetMonitorer : packetMonitorers) {
             if (!(packetMonitorer instanceof IndependentMonitorer)) return;
 

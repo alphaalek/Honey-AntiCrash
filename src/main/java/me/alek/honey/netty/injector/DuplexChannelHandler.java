@@ -6,16 +6,15 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
 import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements AbstractPipelineProxy {
@@ -96,6 +95,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     @Override
     public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+        long readStart = System.currentTimeMillis();
         hasRead = true;
         // decoder inject for late injection
         if (player != null && !startedInjecting.get()) {
@@ -130,7 +130,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             packetBundleSaver.getRecent(true);
         }
 
-        final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
+        final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet, readStart);
 
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), null);
@@ -149,8 +149,11 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
             packetSendMarker.set(player.getUniqueId());
         }
+        packetContainer.getEventloopStateTimings().startTimings(EventloopState.QUEUE_TRACKING);
 
         super.channelRead(ctx, packetContainer.getHandle());
+
+        packetContainer.getEventloopStateTimings().stopTimings();
         packetProcessor.postRead();
     }
 

@@ -31,7 +31,7 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.*;
-import me.alek.honey.tracker.PlayerServerThreadHandleTracker;
+import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -131,7 +131,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         // setup trackers
         packetNettyHandleTracker = new WideTempQueuedHandleTracker();
-        packetServerThreadHandleTimeTracker = new PlayerServerThreadHandleTracker();
+        packetServerThreadHandleTimeTracker = new ServerThreadHandleTracker();
         checkHandleTracker = new RegistryMarkableHandleTracker<>(200L);
 
         // setup checks
@@ -240,7 +240,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
         monitorManager.reload();
 
-        ((PlayerServerThreadHandleTracker)packetServerThreadHandleTimeTracker).reload();
+        ((ServerThreadHandleTracker)packetServerThreadHandleTimeTracker).reload();
 
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();

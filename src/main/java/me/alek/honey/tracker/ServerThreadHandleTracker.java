@@ -4,9 +4,11 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.FieldAccessor;
@@ -23,7 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker {
+public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = new ThreadLocalAccessor<>(ConcurrentLinkedDeque::new);
     private final ThreadLocalAccessor<UUID> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
@@ -32,7 +34,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
     private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
-    public PlayerServerThreadHandleTracker() {
+    public ServerThreadHandleTracker() {
         reload();
         tryInject();
     }
@@ -121,6 +123,8 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
                 recentPollStart = -1;
                 return otherTask;
             }
+            long queueTrackingStart = System.currentTimeMillis();
+
             Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
             if (!initiallyTickRound.get()) {
@@ -147,6 +151,14 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
             if (thread != null) {
                 recentPacketAuthor.set(packetSendQueue.get(thread).poll());
                 task = seperatedQueue.get(thread).poll();
+
+                if (recentPacketAuthor.get() != null) {
+                    PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(recentPacketAuthor.get());
+                    if (bundleSaver != null) {
+                        PacketContainer<? extends WrappedPacket<?>> packet = bundleSaver.getOldest(false);
+                        packet.getEventloopStateTimings().startTimings(EventloopState.QUEUE_TRACKING, queueTrackingStart);
+                    }
+                }
             }
 
             if (task != null)

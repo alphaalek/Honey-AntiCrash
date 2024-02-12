@@ -10,7 +10,6 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PacketMonitorCommand implements CommandImpl {
@@ -19,7 +18,7 @@ public class PacketMonitorCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
 
         try {
-            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = getMonitorFlags(args);
+            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = MonitorFlag.Flag.getMonitorFlags(args);
             Bukkit.broadcastMessage("Flags: " + flags);
 
             if (flags.isEmpty()) {
@@ -37,29 +36,6 @@ public class PacketMonitorCommand implements CommandImpl {
         } catch (WrongMonitorFlagSyntaxException ex) {
             sender.sendMessage(CommandManager.PREFIX + " §cWrong syntax of monitor \"flag\" " + ex.getFlag() + ": " + ex.getMessage());
         }
-    }
-
-    public List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
-        if (args.length == 0) return new ArrayList<>();
-
-        List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = new ArrayList<>();
-        int readIndex = 0;
-
-        while (readIndex < args.length) {
-            String argument = args[readIndex++];
-            if (argument.startsWith("--")) {
-
-                MonitorFlag.Flag flagType = MonitorFlag.Flag.getFlagByName(argument.toLowerCase().substring(2));
-                if (flagType == null) continue;
-
-                @SuppressWarnings("unchecked")
-                MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag =
-                        (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) flagType.createNew();
-                readIndex += flag.check(args, readIndex);
-                flags.add(flag);
-            }
-        }
-        return flags;
     }
 
     @Override

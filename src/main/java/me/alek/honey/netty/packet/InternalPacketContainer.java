@@ -24,45 +24,54 @@ import java.util.function.Function;
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-    public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
-        return new InternalPacketContainer<>(packet, null, null, null, null, null, null);
-    };
+    public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER =
+            (packet) -> new InternalPacketContainer<>(packet, null, null);
 
-    private final PacketTypeEnum type;
-    private final Object handle;
-    private final WP wrappedPacket;
-    private final Runnable postAction;
+    private PacketTypeEnum type;
+    private Object handle;
+    private WP wrappedPacket;
+    private Runnable postAction;
     private final Player player;
     private final Channel channel;
-    private final ReflectStructure<Object, ?> packetStructure;
+    private ReflectStructure<Object, ?> packetStructure;
     private boolean cancelled = false;
-    private final long time = System.currentTimeMillis();
     private boolean handledByServer;
+    private final long time = System.currentTimeMillis();
+    private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
 
     public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type) {
-        this.player = player;
-        this.type = type;
-        this.postAction = postAction;
-        this.handle = rawPacket;
-        this.channel = channel;
-        this.packetStructure = ReflectStructureCache.acquireStructure(type);
-        this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
+        this(player, channel);
+        set(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type, ReflectStructure<Object, Object> packetStructure, WP wrappedPacket) {
-        this.wrappedPacket = wrappedPacket;
+    public InternalPacketContainer(Object rawPacket, Player player, Channel channel) {
+        this(player, channel);
+        this.handle = rawPacket;
+    }
+
+    public InternalPacketContainer(Player player, Channel channel) {
         this.player = player;
-        this.packetStructure = packetStructure;
+        this.channel = channel;
+    }
+
+    public void set(Object rawPacket, Runnable postAction, PacketTypeEnum type) {
+        this.handle = rawPacket;
         this.postAction = postAction;
         this.type = type;
-        this.handle = rawPacket;
-        this.channel = channel;
+        this.packetStructure = ReflectStructureCache.acquireStructure(type);
+        this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
     }
 
     @Override
     public String toString() {
         if (type == null) return "Unmodifiable Packet";
+
         return "Packet:{Type:" + type + ",Player:{ " + player.getName() + "}}";
+    }
+
+    @Override
+    public PacketEventloopStateTimings getEventloopStateTimings() {
+        return eventloopStateTracker;
     }
 
     @Override

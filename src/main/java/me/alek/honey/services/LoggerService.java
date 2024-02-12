@@ -3,6 +3,7 @@ package me.alek.honey.services;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
+import me.alek.honey.monitor.PacketMonitorSendAt;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
@@ -84,7 +85,7 @@ public class LoggerService {
                 if (packet != null) recentPackets.add(sentPacketType);
             }
         }
-        monitorManager.sendPacketInfo(packet);
+        monitorManager.sendPacketInfo(packet, PacketMonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
     public void dumpPackets(List<PacketContainer<?>> packets) {
@@ -163,7 +164,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.HIGHEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT));
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT));
         }
     }
 

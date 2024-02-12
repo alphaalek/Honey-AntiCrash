@@ -22,7 +22,7 @@ public class ViolationRepository implements RepositoryComponent {
                 "CREATE TABLE IF NOT EXISTS honey_violations (" +
                 "playerId INT, " +
                 "unixTime LONG, " +
-                "violationName VARCHAR(16), " +
+                "violationName VARCHAR(32), " +
                 "context VARCHAR(255), " +
                 "devData VARCHAR(255)" +
                 ");"
