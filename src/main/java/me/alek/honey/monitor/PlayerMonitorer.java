@@ -46,8 +46,8 @@ public class PlayerMonitorer implements Monitorer {
     public String getMessage() {
         HoneyPlugin.get().getServerThreadHandleTracker().clearExceedingNodes(player);
 
-        return "§6*§8STQ: §8o.a.w.o.: §7" + getOfAverageWithout(Timespan.FIVE_SECOND) + "%§8, §7" + getOfAverageWithout(Timespan.TEN_SECOND) + "%§8, "
-                + "o.h.s.t.: §7" + getOfPacketTask(Timespan.FIVE_SECOND) + "§8, §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, "
-                + "o.t.: §7" + getOfTotal(Timespan.FIVE_SECOND) + "%§8, §7" + getOfTotal(Timespan.TEN_SECOND) + "%";
+        return "§6*§8STQ: §8o.a.w.o.: §7" + getOfAverageWithout(Timespan.TEN_SECOND) + "%§8, §7" + getOfAverageWithout(Timespan.FIFTEEN_SECOND) + "%§8, "
+                + "o.h.s.t.: §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, §7" + getOfPacketTask(Timespan.FIFTEEN_SECOND) + "§8, "
+                + "o.t.: §7" + getOfTotal(Timespan.TEN_SECOND) + "%§8, §7" + getOfTotal(Timespan.FIFTEEN_SECOND) + "%";
     }
 }

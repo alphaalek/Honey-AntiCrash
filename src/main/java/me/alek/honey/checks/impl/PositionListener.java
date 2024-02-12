@@ -16,7 +16,6 @@ import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.PacketBundleFilter;
-import me.alek.honey.netty.packet.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -25,12 +24,10 @@ import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPosi
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -38,7 +35,7 @@ import java.util.function.Supplier;
 
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private static final Map<UUID, SampleDecayableList<Location>> lastTeleportationLocationMap = new HashMap<>();
+    private static final Map<UUID, SampleDecayingList<Location>> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
@@ -49,8 +46,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             public void onPacketSend(Player player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
                 final UUID uuid = player.getUniqueId();
 
-                if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayableList<>(15000, 2, 1));
-                final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+                if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayingList<>(15000, 2, 1));
+                final SampleDecayingList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
                 sampleDecayableList.put(packetContainer.getPacket().getLocation());
             }
@@ -58,7 +55,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }, ListenerPriority.HIGHEST, () -> PacketType.Play.Server.POSITION);
     }
 
-    public static class SampleDecayableList<T> {
+    public static class SampleDecayingList<T> {
 
         private final long collectInterval;
         private final int sampleSize;
@@ -66,7 +63,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private final LinkedList<SampleNode> sampleNodes = new LinkedList<>();
         private final LinkedList<T> lockedNodes = new LinkedList<>();
 
-        public SampleDecayableList(long collectInterval, int sampleSize, int lockAmount) {
+        public SampleDecayingList(long collectInterval, int sampleSize, int lockAmount) {
             this.collectInterval = collectInterval;
             this.sampleSize = sampleSize;
             this.lockAmount = lockAmount;
@@ -258,7 +255,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         final UUID uuid = player.getUniqueId();
 
         if (lastTeleportationLocationMap.containsKey(uuid)) {
-            final SampleDecayableList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+            final SampleDecayingList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
 
             final List<Location> recentLocations = sampleDecayableList.getAll();
             final List<Location> lockedLocations = sampleDecayableList.getLocked();
@@ -370,7 +367,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SINGLETON_POSITION_FILTER;
+            return PacketBundleFilters.SHORT_POSITION_FILTER;
         }
 
         @Override
@@ -669,7 +666,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SINGLETON_POSITION_FILTER;
+            return PacketBundleFilters.SHORT_POSITION_FILTER;
         }
 
         @Override
@@ -832,7 +829,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SINGLETON_POSITION_FILTER;
+            return PacketBundleFilters.SHORT_POSITION_FILTER;
         }
 
         @Override

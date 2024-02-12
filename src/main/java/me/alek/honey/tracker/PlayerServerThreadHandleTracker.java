@@ -253,7 +253,7 @@ public class PlayerServerThreadHandleTracker extends WideTempQueuedHandleTracker
 
             @Override
             public int compare(Player o1, Player o2) {
-                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND));
+                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.TEN_SECOND), getTimeToAverageWithoutQuotient(o2, Timespan.TEN_SECOND));
             }
         });
         return trackersList;

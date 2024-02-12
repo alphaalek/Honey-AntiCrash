@@ -15,7 +15,7 @@ public class PlayerRepository implements RepositoryComponent {
     @Override
     public void prepare(QueryFactory queryFactory) {
         queryFactory.runInsert(
-                "CREATE TABLE IF NOT EXISTS players (" +
+                "CREATE TABLE IF NOT EXISTS honey_players (" +
                 "playerId INT AUTO_INCREMENT PRIMARY KEY, " +
                 "playerUUID VARCHAR(36), " +
                 "playerName VARCHAR(16)" +
@@ -35,7 +35,7 @@ public class PlayerRepository implements RepositoryComponent {
 
     public boolean containsUUID(QueryFactory queryFactory, String UUID) throws SQLFactoryException {
         CompletableFuture<ResultSet> resulSetFuture = queryFactory.runQuery(
-                "SELECT COUNT(*) FROM players AS p " +
+                "SELECT COUNT(*) FROM honey_players AS p " +
                 "WHERE p.playerUUID = ? " +
                 "LIMIT 1",
                 UUID
@@ -55,7 +55,7 @@ public class PlayerRepository implements RepositoryComponent {
 
     public int getPlayerId(QueryFactory queryFactory, String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
         CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "SELECT p.playerId FROM players AS p " +
+                "SELECT p.playerId FROM honey_players AS p " +
                 "WHERE p.playerName = ?",
                 playerName
         );
@@ -76,7 +76,7 @@ public class PlayerRepository implements RepositoryComponent {
         if (!existsPlayer(queryFactory, playerName)) throw new SQLPlayerNotFoundException();
 
         CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "SELECT p.playerUUID FROM players AS p " +
+                "SELECT p.playerUUID FROM honey_players AS p " +
                 "WHERE p.playerName = ?",
                 playerName
         );
@@ -96,7 +96,7 @@ public class PlayerRepository implements RepositoryComponent {
 
     public void setupPlayer(QueryFactory queryFactory, Player player) throws SQLFactoryException {
         CompletableFuture<Boolean> resultSetFuture = queryFactory.runInsert(
-                "INSERT INTO players (playerUUID, playerName) " +
+                "INSERT INTO honey_players (playerUUID, playerName) " +
                 "VALUES (?, ?)",
                 player.getUniqueId().toString(), player.getName()
         );
@@ -114,7 +114,7 @@ public class PlayerRepository implements RepositoryComponent {
         final int id = getPlayerId(queryFactory, player.getName());
 
         CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "UPDATE players AS p " +
+                "UPDATE honey_players AS p " +
                 "SET p.playerName = ?, p.playerUUID = ? " +
                 "WHERE p.playerId = ?",
                 player.getName(), player.getUniqueId().toString(), id
@@ -137,7 +137,7 @@ public class PlayerRepository implements RepositoryComponent {
             // everything is matching, so just return
             return;
         }
-        if (!existsPlayer && !containsUUID(queryFactory, uuid)) {
+        if (!existsPlayer) {
             // the player name does not exist in the database and the uuid is not registered as well, so lets setup this player
             setupPlayer(queryFactory, player);
             return;

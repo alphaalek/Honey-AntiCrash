@@ -262,24 +262,22 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             if (getSetting().isEnabled()) {
 
                 int size = tracker.getTrackerSize();
-
-                double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND);
+                double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
                 if (ta > 5) {
-                    container.getDefaultDevelopmentData().addPoint("Size", size);
+                    container.getDevelopmentData(this).addPoint("Size", size);
 
-                    if ((size > 15 && ta > 12.5) || (size > 25 && ta > 10) || (size > 40 && ta > 8)) {
+                    if ((size > 15 && ta > 20) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
                         container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                     }
 
-                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.FIVE_SECOND);
-                    if ((size > 15 && tt > 0.5) || (size > 25 && tt > 0.4)) {
+                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.TEN_SECOND);
+                    if ((size > 15 && tt > 0.6) || (size > 25 && tt > 0.5)) {
                         container.getDevelopmentData(this).addPoint("t.t.", NumberConversions.format(tt * 100) + "%");
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
                     }
-
-                    return success;
                 }
+                return success;
             }
             return ResponseBuilder.SUCCESS;
         }

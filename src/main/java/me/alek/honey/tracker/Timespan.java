@@ -6,10 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum Timespan {
-    FIVE_SECOND(5),
     TEN_SECOND(10),
     FIFTEEN_SECOND(15),
-    HALF_MINUTE(30);
+    HALF_MINUTE(30),
+    MINUTE(60),
+    ;
 
     public static class TimespanContext {
 

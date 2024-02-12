@@ -19,7 +19,7 @@ public class ViolationRepository implements RepositoryComponent {
     @Override
     public void prepare(QueryFactory queryFactory) {
         queryFactory.runInsert(
-                "CREATE TABLE IF NOT EXISTS violations (" +
+                "CREATE TABLE IF NOT EXISTS honey_violations (" +
                 "playerId INT, " +
                 "unixTime LONG, " +
                 "violationName VARCHAR(16), " +
@@ -33,7 +33,7 @@ public class ViolationRepository implements RepositoryComponent {
         int playerId = componentBridge.getPlayerId(player.getName());
 
         CompletableFuture<Boolean> insertFuture = queryFactory.runInsert(
-                "INSERT INTO violations (playerId, unixTime, violationName, context, devData) " +
+                "INSERT INTO honey_violations (playerId, unixTime, violationName, context, devData) " +
                 "VALUES (?, ?, ?, ?, ?)",
                 playerId, System.currentTimeMillis(), violationName, context, developmentData.toString()
         );
@@ -53,7 +53,7 @@ public class ViolationRepository implements RepositoryComponent {
         int playerId = componentBridge.getPlayerId(playerName);
 
         CompletableFuture<ResultSet> resultSetFuture = queryFactory.runQuery(
-                "SELECT v.unixTime, v.violationName, v.context, v.devData FROM violations AS v " +
+                "SELECT v.unixTime, v.violationName, v.context, v.devData FROM honey_violations AS v " +
                 "WHERE v.playerId = ?",
                 playerId
         );

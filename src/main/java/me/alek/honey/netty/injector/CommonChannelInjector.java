@@ -86,7 +86,8 @@ public class CommonChannelInjector {
             }
             return null;
 
-        } else saveInjection(player);
+        }
+        saveInjection(player);
 
         return handler;
     }

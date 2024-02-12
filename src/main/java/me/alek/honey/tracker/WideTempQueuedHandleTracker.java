@@ -74,7 +74,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public double getPlayerTotal(Player player, Timespan timespan) {
-        getTracker(player).add(0, System.currentTimeMillis());
+        getTracker(player).clearExceedingNodes(timespan, System.currentTimeMillis());
         return getTracker(player).getTotal(timespan) - getExceedingTimedNode(player, timespan);
     }
 
@@ -114,6 +114,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     public double getTotal(Timespan timespan) {
+        commonTracker.clearExceedingNodes(timespan, System.currentTimeMillis());
         return commonTracker.getTotal(timespan) - getExceedingTimedNode(commonTracker, timespan);
     }
 
@@ -134,10 +135,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     public List<Player> getTrackersOrdered() {
         List<Player> trackersList = new ArrayList<>(getTrackers());
         trackersList.sort(new Comparator<Player>() {
-
             @Override
             public int compare(Player o1, Player o2) {
-                return Double.compare(getPlayerTotal(o1, Timespan.FIVE_SECOND), getPlayerTotal(o2, Timespan.FIVE_SECOND));
+                return Double.compare(getPlayerTotal(o1, Timespan.TEN_SECOND), getPlayerTotal(o2, Timespan.TEN_SECOND));
             }
         });
         return trackersList;

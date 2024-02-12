@@ -267,6 +267,23 @@ public class InternalPacketProcessor implements PacketProcessor {
         POST_ACTION_MAP.put(packetType, postAction);
     }
 
+    private void registerToBundle(Player player, PacketBound packetBound, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+        PacketBundleSaver bundleSaver;
+        if (packetBound == PacketBound.CLIENT && player != null
+                && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())) != null) {
+            if (packetContainer.getType() == null)
+                bundleSaver.addToCommon(packetContainer);
+            else
+                bundleSaver.add(packetContainer);
+        }
+    }
+
+    private PacketContainer<? extends WrappedPacket<?>> registerSimpleContainerToBundle(Object handle, Player player, PacketBound packetBound) {
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = InternalPacketContainer.SIMPLE_CONTAINER.apply(handle);
+        registerToBundle(player, packetBound, packetContainer);
+        return packetContainer;
+    }
+
     private PacketContainer<? extends WrappedPacket<?>> handleCommon(
             Player player,
             Channel channel,
@@ -275,26 +292,34 @@ public class InternalPacketProcessor implements PacketProcessor {
     ) {
         final PacketState packetState = getPacketState(player, packet);
         if (packetState == PacketState.UNKNOWN) {
-            return InternalPacketContainer.SIMPLE_CONTAINER.apply(packet);
+            return registerSimpleContainerToBundle(packet, player, packetBound);
         }
+
+        // get information about this packet
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
         final boolean hasAdapters = hasListener(packetType);
         final boolean hasListeners = EVENT_MANAGER.hasHandlers(EVENT_MANAGER.getPacketEventFor(packetState, packetBound), true);
 
+        // check if this packet type has any listeners which can handle this packet.
+        // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
         if (!hasAdapters && !hasListeners) {
-            return InternalPacketContainer.SIMPLE_CONTAINER.apply(packet);
+            return registerSimpleContainerToBundle(packet, player, packetBound);
         }
 
+        // initialize the packet container
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(
                 packet, player, channel, POST_ACTION_MAP.get(packetType), packetType
         );
-        if (packetContainer.getPacket() == null) return packetContainer;
-
-        PacketBundleSaver bundleSaver;
-        if (packetBound == PacketBound.CLIENT /* && packetState == PacketState.PLAY */ && packetType != PacketType.Play.Client.KEEP_ALIVE
-                && player != null && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())) != null) {
-            bundleSaver.add(packetContainer);
+        if (packetContainer.getPacket() == null) {
+            registerToBundle(player, packetBound, packetContainer);
+            return packetContainer;
         }
+
+        if (packetType != PacketType.Play.Client.KEEP_ALIVE) {
+            registerToBundle(player, packetBound, packetContainer);
+        }
+
+        // handle the packet listeners
         if (hasAdapters) {
             callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
         }

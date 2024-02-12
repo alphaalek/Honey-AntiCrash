@@ -39,12 +39,12 @@ public class TrackCommand implements CommandImpl {
 
                 for (Player player : serverThreadHandleTracker.getTrackersOrdered()) {
 
-                    double fiveSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND);
-                    double fifteenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
-                    double thirtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND);
-                    double sixtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE);
+                    double tenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
+                    double fifteenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND);
+                    double thirtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE);
+                    double sixtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.MINUTE);
 
-                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(15s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(30s)");
+                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(tenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
                 }
                 sender.sendMessage("§f");
                 sender.sendMessage(" §8What is this showing?");

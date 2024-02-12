@@ -18,10 +18,8 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -125,7 +123,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SINGLETON_ROTATION_FILTER;
+            return PacketBundleFilters.SHORT_ROTATION_FILTER;
         }
 
         @Override
@@ -162,7 +160,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SINGLETON_ROTATION_FILTER;
+            return PacketBundleFilters.SHORT_ROTATION_FILTER;
         }
 
         @Override

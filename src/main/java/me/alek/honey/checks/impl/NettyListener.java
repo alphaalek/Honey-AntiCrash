@@ -295,14 +295,14 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
-        private final double[] timespanMultipliers = new double[]{1, 0.8, 0.75, 0.65};
+        private final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND);
-                if (hsq > 0.1) {
+                double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.TEN_SECOND);
+                if (hsq > 0.25) {
                     int trackerSize = tracker.getTrackerSize();
                     container.getDevelopmentData(this).addPoint("Tracker Size", trackerSize);
                     container.getDevelopmentData(this).addEmpty();
@@ -319,13 +319,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         container.getDevelopmentData(this).setPoint(developmentDataSize - 1, "Multiplier", multiplier);
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan);
-                        if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.7 * multiplier) {
+                        if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.6 * multiplier) {
                             container.getDevelopmentData(this).addPoint("h.s.q.", NumberConversions.format(hsq * 100) + "%");
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("hsq")).flag(1).build();
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan);
-                        if ((trackerSize > 15 && ta > 17.5 * multiplier) || (trackerSize > 25 && ta > 15 * multiplier) || (trackerSize > 40 && ta > 12.5 * multiplier)) {
+                        if ((trackerSize > 15 && ta > 20 * multiplier) || (trackerSize > 25 && ta > 15 * multiplier) || (trackerSize > 40 && ta > 12.5 * multiplier)) {
                             container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                         }

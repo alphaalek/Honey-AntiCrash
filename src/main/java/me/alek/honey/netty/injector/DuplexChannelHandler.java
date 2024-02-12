@@ -36,8 +36,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     public DuplexChannelHandler(Channel channel, Player player) {
         this(channel);
-        this.player = player;
-        addPacketBundleSaver();
+        setPlayer(player);
     }
 
     public DuplexChannelHandler(Channel channel) {
@@ -126,10 +125,16 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         if (inboundPacketDecoder != null)
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
 
+        PacketContainer<?> recent;
+        if (player != null && (recent = packetBundleSaver.getRecent(false)) != null && !recent.isHandledByServer()) {
+            packetBundleSaver.getRecent(true);
+        }
+
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet);
 
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), null);
+            packetBundleSaver.getRecent(true);
             return;
         }
 
@@ -138,6 +143,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             if (HoneyPlugin.get().getLoggerService().isDebug())
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
 
+            packetBundleSaver.getRecent(true);
             return;
         }
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {

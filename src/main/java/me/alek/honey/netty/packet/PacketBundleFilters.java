@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -22,9 +21,9 @@ public class PacketBundleFilters {
     public static PacketBundleFilter LENIENT_LONG_FILTER = PacketBundleFilterFactory.createLenientFilter(10);
     public static PacketBundleFilter LENIENT_SINGLETON_FILTER = PacketBundleFilterFactory.createLenientSingletonFilter();
     public static PacketBundleFilter LONG_POSITION_FILTER = PacketBundleFilterFactory.createFilter(10, PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK);
-    public static PacketBundleFilter SINGLETON_POSITION_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK);
+    public static PacketBundleFilter SHORT_POSITION_FILTER = PacketBundleFilterFactory.createFilter(2, PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK);
     public static PacketBundleFilter LONG_ROTATION_FILTER = PacketBundleFilterFactory.createFilter(10, PacketType.Play.Client.LOOK, PacketType.Play.Client.POSITION_LOOK);
-    public static PacketBundleFilter SINGLETON_ROTATION_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.LOOK, PacketType.Play.Client.POSITION_LOOK);
+    public static PacketBundleFilter SHORT_ROTATION_FILTER = PacketBundleFilterFactory.createFilter(2, PacketType.Play.Client.LOOK, PacketType.Play.Client.POSITION_LOOK);
     public static PacketBundleFilter LONG_TAB_COMPLETE_FILTER = PacketBundleFilterFactory.createFilter(10, PacketType.Play.Client.TAB_COMPLETE);
     public static PacketBundleFilter SINGLETON_TAB_COMPLETE_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.TAB_COMPLETE);
     public static PacketBundleFilter UPDATE_SIGN_FILTER = PacketBundleFilterFactory.createSingletonFilter(PacketType.Play.Client.UPDATE_SIGN);

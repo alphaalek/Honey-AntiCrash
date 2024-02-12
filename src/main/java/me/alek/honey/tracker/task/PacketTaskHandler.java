@@ -55,7 +55,7 @@ public class PacketTaskHandler {
         HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
         HoneyPlugin.get().getLoggerService().getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
 
-        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getOldest(true);
+        PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getOldest(false);
         if (packet != null) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
             HoneyPlugin.get().getLoggerService().getLogger().severe("  Fields: ");

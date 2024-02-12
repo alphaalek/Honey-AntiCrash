@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -100,7 +101,7 @@ public class PacketBundleSaver {
     }
 
     public <WP extends WrappedPacket<WP>> void add(PacketContainer<WP> packet) {
-        commonPackets.add(packet);
+        addToCommon(packet);
 
         List<PacketSaverQueue> queues = getQueue(packet.getType());
         if (queues == null) return;
@@ -108,6 +109,10 @@ public class PacketBundleSaver {
         for (PacketSaverQueue queue : queues) {
             queue.add(packet);
         }
+    }
+
+    public <WP extends WrappedPacket<WP>> void addToCommon(PacketContainer<WP> packet) {
+        commonPackets.add(packet);
     }
 
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketTypeEnum packetType, boolean remove) {

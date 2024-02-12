@@ -35,8 +35,8 @@ public class ServerMonitorer implements Monitorer {
         HoneyPlugin.get().getServerThreadHandleTracker().clearExceedingNodes(false, System.currentTimeMillis());
 
         int packetRate;
-        return "§6*§8TPS: §7" + getTPS(Timespan.FIVE_SECOND) + ", " + getTPS(Timespan.TEN_SECOND) + "§8, "
-                + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLoggerService().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLoggerService().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.FIVE_SECOND) + " ppqe§8, "
-                + "§8o.s.t.: §7" + getPacketTaskPercentage(Timespan.FIVE_SECOND) + ", " + getPacketTaskPercentage(Timespan.TEN_SECOND);
+        return "§6*§8TPS: §7" + getTPS(Timespan.TEN_SECOND) + ", " + getTPS(Timespan.FIFTEEN_SECOND) + "§8, "
+                + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLoggerService().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLoggerService().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.TEN_SECOND) + " ppqe§8, "
+                + "§8o.s.t.: §7" + getPacketTaskPercentage(Timespan.TEN_SECOND) + ", " + getPacketTaskPercentage(Timespan.FIFTEEN_SECOND);
     }
 }

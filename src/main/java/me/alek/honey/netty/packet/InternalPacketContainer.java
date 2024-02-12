@@ -24,10 +24,10 @@ import java.util.function.Function;
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-
     public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER = (packet) -> {
         return new InternalPacketContainer<>(packet, null, null, null, null, null, null);
     };
+
     private final PacketTypeEnum type;
     private final Object handle;
     private final WP wrappedPacket;
@@ -61,7 +61,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String toString() {
-        return "Packet:{Type:" + getType() + ",Player:{ " + player.getName() + "}}";
+        if (type == null) return "Unmodifiable Packet";
+        return "Packet:{Type:" + type + ",Player:{ " + player.getName() + "}}";
     }
 
     @Override

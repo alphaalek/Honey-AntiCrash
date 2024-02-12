@@ -267,7 +267,7 @@ netty:
 
   h:
     enabled: true
-    threshold: 2250
+    threshold: 2000
     vls-amount: 1
 
   i:

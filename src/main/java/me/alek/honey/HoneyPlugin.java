@@ -261,7 +261,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     }
 
     public boolean shouldExempt(Player player) {
-        return tickloop.evaluateTPS(Timespan.FIVE_SECOND) < ConfigurationOptions.Exempt.MIN_TPS ||
+        return tickloop.evaluateTPS(Timespan.TEN_SECOND) < ConfigurationOptions.Exempt.MIN_TPS ||
                 getRecentPing(player) > ConfigurationOptions.Exempt.MAX_PING;
     }
 
@@ -289,7 +289,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         return confiscationService;
     }
 
-    @Override
     public SQLManagerWrapper getSQLManager() {
         return sqlManager;
     }
@@ -314,7 +313,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         return tickloop;
     }
 
-    @Override
     public MonitorManager getMonitorManager() {
         return monitorManager;
     }
