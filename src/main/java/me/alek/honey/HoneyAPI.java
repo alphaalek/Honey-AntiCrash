@@ -60,8 +60,6 @@ public interface HoneyAPI {
 
     Thread getServerThread();
 
-    int getRecentTPS();
-
     int getRecentPing(Player player);
 
     void removeRecentPingLookup(Player player);

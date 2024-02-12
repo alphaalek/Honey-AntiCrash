@@ -67,7 +67,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private boolean usingOldVersion;
     private UpdateChecker updateChecker;
     private PacketLibrary packetLibrary;
-    private int recentTPS = 20;
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
     private Thread serverThread;
 
@@ -162,30 +161,23 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), this);
         packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 
-        // setup runnable getting the TPS and ping of the server and players
+        // setup runnable getting the ping of players
         setupRecentPingLookupRunnable();
     }
 
     private void setupRecentPingLookupRunnable() {
         new BukkitRunnable() {
-            int index = 0;
             @Override
             public void run() {
-                recentTPS = HoneyPlugin.get().getNotificationService().getTPS();
-
-                if (index++ > 2) {
-                    index = 0;
-
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        synchronized (recentPingLookup) {
-                            recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
-                        }
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    synchronized (recentPingLookup) {
+                        recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
                     }
                 }
                 if (!HoneyPlugin.get().isRunning())
                     this.cancel();
             }
-        }.runTaskTimerAsynchronously(this, 0L, 20L);
+        }.runTaskTimerAsynchronously(this, 0L, 60L);
     }
 
     @Override
@@ -352,10 +344,6 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
 
     public Thread getServerThread() {
         return serverThread;
-    }
-
-    public int getRecentTPS() {
-        return recentTPS;
     }
 
     public int getRecentPing(Player player) {
