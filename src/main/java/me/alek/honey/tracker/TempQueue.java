@@ -80,7 +80,7 @@ public class TempQueue {
         return 0;
     }
 
-    public void clearExceedingNodes(long time) {
+    public synchronized void clearExceedingNodes(long time) {
         if (isFixed) return;
 
         final Iterator<TimedNode> sampleNodeIterator = TIMED.iterator();
