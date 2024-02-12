@@ -240,6 +240,15 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         confiscationService.reload();
 
         sqlManager.reload();
+        if (sqlManager.isEnabled()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                try {
+                    sqlManager.preparePlayer(player);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
 
         ItemAnalysis.reload();
 

@@ -61,9 +61,9 @@ public class ViolationRepository implements RepositoryComponent {
             ResultSet resultSet = resultSetFuture.get();
 
             if (resultSet != null && resultSet.next()) {
-                while (resultSet.next()) {
+                do {
                     violations.add(new ViolationEntry(resultSet.getLong(1), playerName, resultSet.getString(2), resultSet.getString(3), resultSet.getString(4)));
-                }
+                } while (resultSet.next());
             }
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -4,6 +4,7 @@ import me.alek.honey.storage.QueryFactory;
 import me.alek.honey.storage.RepositoryComponent;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
@@ -129,6 +130,7 @@ public class PlayerRepository implements RepositoryComponent {
     }
 
     public void preparePlayer(QueryFactory queryFactory, Player player) throws SQLFactoryException, SQLPlayerNotFoundException {
+        Bukkit.broadcastMessage("Preparing player " + player);
         final String uuid = player.getUniqueId().toString();
         boolean existsPlayer = existsPlayer(queryFactory, player.getName());
 

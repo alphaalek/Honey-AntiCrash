@@ -69,13 +69,12 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
             this.connection = DriverManager.getConnection(url, username, password);
 
             HoneyPlugin.get().getLoggerService().getLogger().info("[Honey] Successfully connected to database");
-            HoneyPlugin.get().getLoggerService().getLogger().info("[Honey] " + url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
         } catch (Exception ex) {
             ex.printStackTrace();
 
             HoneyPlugin.get().getLoggerService().getLogger().severe("[Honey] Error occurred when making connection to database!");
-            HoneyPlugin.get().getLoggerService().getLogger().severe("[Honey] " + url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
         }
+        HoneyPlugin.get().getLoggerService().getLogger().info("[Honey] " + url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
     }
 
     public BeanRepositoryCollection getRepositoryCollection() {
