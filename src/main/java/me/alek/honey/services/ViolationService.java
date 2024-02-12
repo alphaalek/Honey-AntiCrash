@@ -386,7 +386,7 @@ public class ViolationService {
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), check.getName(), checkKey, getSetting(), this, developmentData);
 
             try {
-                HoneyPlugin.get().getSQLManager().postViolation(player, check.getName(), ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
+                HoneyPlugin.get().getSQLManager().postViolation(player, check.getName() + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"), ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
