@@ -31,11 +31,10 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.*;
-import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -45,7 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
+public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
 
     private static HoneyPlugin INSTANCE;
 
@@ -69,6 +68,13 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
     private Thread serverThread;
 
+    private final Plugin plugin;
+
+    public HoneyPlugin(Plugin plugin) {
+        super(plugin);
+        this.plugin = plugin;
+    }
+
     @Override
     public synchronized void onEnable() {
         // check compatability and conflicts of runtime load or minecraft version
@@ -84,7 +90,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
             conflict = "Honey is currently not supported by the Minecraft Version your server is using.";
 
         if (conflict != null) {
-            Bukkit.getPluginManager().disablePlugin(this);
+            Bukkit.getPluginManager().disablePlugin(plugin);
             throw new RuntimeException(conflict);
         }
 
@@ -97,9 +103,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         configuration = new DedicatedConfiguration();
 
         if (configuration.isMisconfigured()) {
-            if (getServer().getPluginManager().isPluginEnabled(this)) {
+            if (getServer().getPluginManager().isPluginEnabled(plugin)) {
                 resetConfiguration();
-                getServer().getPluginManager().disablePlugin(this);
+                getServer().getPluginManager().disablePlugin(plugin);
 
                 throw new RuntimeException("You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.");
             }
@@ -107,9 +113,9 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         }
 
         // setup packet library
-        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(this, false, "honey_packet_handler", "honey_packet_decoder"));
+        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, false, "honey_packet_handler", "honey_packet_decoder"));
 
-        if (!Bukkit.getServer().getPluginManager().isPluginEnabled(this)) {
+        if (!Bukkit.getServer().getPluginManager().isPluginEnabled(plugin)) {
             getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
             return;
         }
@@ -135,22 +141,22 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         checkHandleTracker = new RegistryMarkableHandleTracker<>(200L);
 
         // setup checks
-        getServer().getScheduler().runTaskLater(this, this::registerChecks, 20L);
+        getServer().getScheduler().runTaskLater(plugin, this::registerChecks, 20L);
         ItemAnalysis.reload();
 
         // setup commands
-        commandManager = new CommandManager(this);
+        commandManager = new CommandManager(plugin);
 
         // setup metrics
-        new Metrics(this, 19028);
+        new Metrics(plugin, 19028);
 
         // update checker
         this.updateChecker = new UpdateChecker();
         this.usingOldVersion = updateChecker.isOldVersion();
 
         // setup listeners
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), this);
-        Bukkit.getPluginManager().registerEvents(new DispenserListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
         packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 
         // setup runnable getting the ping of players
@@ -169,7 +175,7 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
                 if (!HoneyPlugin.get().isRunning())
                     this.cancel();
             }
-        }.runTaskTimerAsynchronously(this, 0L, 60L);
+        }.runTaskTimerAsynchronously(plugin, 0L, 60L);
     }
 
     @Override
@@ -262,8 +268,8 @@ public class HoneyPlugin extends JavaPlugin implements HoneyAPI {
         return INSTANCE;
     }
 
-    public JavaPlugin getPlugin() {
-        return this;
+    public Plugin getPlugin() {
+        return plugin;
     }
 
     public PacketLibrary getPacketLibrary() {

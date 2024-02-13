@@ -1,18 +1,19 @@
 package me.alek.honey.netty;
 
 import me.alek.honey.netty.utility.NetProtocol;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PacketLibrarySettings {
 
     private boolean useLateInjection;
     private NetProtocol fallbackProtocol;
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
     private final String handlerName;
     private final String decoderName;
 
     public PacketLibrarySettings(
-            JavaPlugin plugin,
+            Plugin plugin,
             boolean useLateInjection,
             String handlerName,
             String decoderName
@@ -35,7 +36,7 @@ public class PacketLibrarySettings {
         this.useLateInjection = value;
     }
 
-    public JavaPlugin getPlugin() {
+    public Plugin getPlugin() {
         return plugin;
     }
 

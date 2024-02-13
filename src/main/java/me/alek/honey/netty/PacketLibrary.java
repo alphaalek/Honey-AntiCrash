@@ -18,6 +18,7 @@ import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class PacketLibrary {
     private final PacketLibrarySettings settings;
     private final PacketProcessor packetProcessor;
     private final EventManager eventManager;
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
     private CountDownLatch disablingLatch;
     private AbstractNettyChannelInjector proxy;
     private boolean enabled = true;

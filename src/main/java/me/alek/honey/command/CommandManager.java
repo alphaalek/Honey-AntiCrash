@@ -9,6 +9,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collection;
@@ -19,12 +20,16 @@ import java.util.Optional;
 public class CommandManager implements CommandExecutor {
 
     public static final String PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7";
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
     private final Map<String, CommandImpl> commands = new HashMap<>();
     private final CooldownManager cooldownManager;
 
-    public CommandManager(JavaPlugin plugin) {
-        plugin.getCommand("honey").setExecutor(this);
+    public CommandManager(Plugin plugin) {
+        if (!(plugin instanceof JavaPlugin)) {
+            throw new UnsupportedOperationException("Command manager registered with plugin not instanceof JavaPlugin!");
+        }
+
+        ((JavaPlugin)plugin).getCommand("honey").setExecutor(this);
         this.plugin = plugin;
         cooldownManager = new CooldownManager();
 

@@ -1,0 +1,24 @@
+package me.alek.honey;
+
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class HoneyPluginInitializer extends JavaPlugin {
+
+    private final Plugin plugin = new HoneyPlugin(this);
+
+    @Override
+    public void onEnable() {
+        plugin.onEnable();
+    }
+
+    @Override
+    public void onDisable() {
+        plugin.onDisable();
+    }
+
+    @Override
+    public void onLoad() {
+        plugin.onLoad();
+    }
+}

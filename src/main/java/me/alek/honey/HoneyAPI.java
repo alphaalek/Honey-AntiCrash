@@ -12,11 +12,12 @@ import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.*;
 import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public interface HoneyAPI {
 
-    JavaPlugin getPlugin();
+    Plugin getPlugin();
 
     void resetConfiguration();
 

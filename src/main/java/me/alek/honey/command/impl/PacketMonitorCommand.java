@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PacketMonitorCommand implements CommandImpl {
 
@@ -21,7 +22,7 @@ public class PacketMonitorCommand implements CommandImpl {
             List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = MonitorFlag.Flag.getMonitorFlags(args);
 
             if (flags.isEmpty()) {
-                sender.sendMessage(CommandManager.PREFIX + " §7You have to choose at least one flag for the packet monitor.");
+                sender.sendMessage(CommandManager.PREFIX + " §7You have to choose at least one flag for the packet monitor. Remember you can use the same flag multiple times.");
 
                 sender.sendMessage(CommandManager.PREFIX + " §7You can use the following flags:");
                 for (MonitorFlag.Flag flag : MonitorFlag.Flag.values()) {
@@ -31,6 +32,10 @@ public class PacketMonitorCommand implements CommandImpl {
                 return;
             }
             HoneyPlugin.get().getMonitorManager().setupPacketMonitor(sender, flags);
+            sender.sendMessage(CommandManager.PREFIX + " §7Using the following flags: ");
+            for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
+                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlag.Flag.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown"));
+            }
 
         } catch (WrongMonitorFlagSyntaxException ex) {
             sender.sendMessage(CommandManager.PREFIX + " §cWrong syntax of monitor flag \"" + ex.getFlag() + "\": " + ex.getMessage());

@@ -29,7 +29,7 @@ public class Metrics {
 
     private final MetricsBase metricsBase;
 
-    public Metrics(JavaPlugin plugin, int serviceId) {
+    public Metrics(Plugin plugin, int serviceId) {
         this.plugin = plugin;
         File bStatsFolder = new File(plugin.getDataFolder().getParentFile(), "bStats");
         File configFile = new File(bStatsFolder, "config.yml");
