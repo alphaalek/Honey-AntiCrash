@@ -3,7 +3,7 @@ package me.alek.honey.tracker.task;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
-import me.alek.honey.monitor.PacketMonitorSendAt;
+import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.DuplexChannelHandler;
 import me.alek.honey.netty.packet.EventloopState;
@@ -30,6 +30,7 @@ public class PacketTaskHandler {
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = DuplexChannelHandler.getPacketBundleSavers();
 
     private static Tuple2<PacketTaskFuture<?>, Long> handledTask;
+    private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
         new Thread(() -> {
@@ -52,6 +53,10 @@ public class PacketTaskHandler {
 
     public static Tuple2<PacketTaskFuture<?>, Long> getHandledTask() {
         return handledTask;
+    }
+
+    public static PacketContainer<? extends WrappedPacket<?>> getLastHandledPacket() {
+        return lastHandledPacket;
     }
 
     public static void dumpThread(UUID uuid) {
@@ -106,6 +111,8 @@ public class PacketTaskHandler {
     }
 
     public static <V> void registerTask(PacketTaskFuture<V> task){
+        lastHandledPacket = null;
+
         PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(task.getUUID());
         if (bundleSaver != null) {
             PacketContainer<? extends WrappedPacket<?>> packet = bundleSaver.getOldest(false);
@@ -117,13 +124,16 @@ public class PacketTaskHandler {
     public static void unregisterTask() {
         synchronized (lock) {
             if (handledTask != null) {
+                tracker.decrementPacketsInQueueExecution(handledTask.getT1().getUUID());
+
                 PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
                 if (saver != null) {
                     PacketContainer<? extends WrappedPacket<?>> packet = saver.getOldest(true);
                     packet.getEventloopStateTimings().stopTimings();
-                    monitorManager.sendPacketInfo(packet, PacketMonitorSendAt.AFTER_SERVER_HANDLE);
+                    lastHandledPacket = packet;
+
+                    monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
                 }
-                tracker.decrementPacketsInQueueExecution(handledTask.getT1().getUUID());
                 handledTask = null;
             }
         }

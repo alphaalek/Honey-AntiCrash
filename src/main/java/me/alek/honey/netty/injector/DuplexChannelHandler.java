@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -32,6 +33,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
     private static final ThreadLocalAccessor<UUID> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+    private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     public DuplexChannelHandler(Channel channel, Player player) {
         this(channel);
@@ -95,7 +97,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
     @Override
     public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
-        long readStart = System.currentTimeMillis();
+        long readStart = monitorManager.isPacketsMonitored() ? System.nanoTime() : 0;
         hasRead = true;
         // decoder inject for late injection
         if (player != null && !startedInjecting.get()) {
@@ -134,26 +136,21 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
 
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), null);
-            packetBundleSaver.getRecent(true);
             return;
         }
 
         // check if the packet should be cancelled
-        if (packetContainer.isCancelled() && player != null) {
-            if (HoneyPlugin.get().getLoggerService().isDebug())
+        if (packetContainer.isCancelled()) {
+            if (player != null && HoneyPlugin.get().getLoggerService().isDebug())
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().getName());
-
-            packetBundleSaver.getRecent(true);
             return;
         }
         if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
             packetSendMarker.set(player.getUniqueId());
         }
-        packetContainer.getEventloopStateTimings().startTimings(EventloopState.QUEUE_TRACKING);
 
         super.channelRead(ctx, packetContainer.getHandle());
-
-        packetContainer.getEventloopStateTimings().stopTimings();
+        packetSendMarker.remove();
         packetProcessor.postRead();
     }
 

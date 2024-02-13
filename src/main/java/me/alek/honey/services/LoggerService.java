@@ -3,7 +3,7 @@ package me.alek.honey.services;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
-import me.alek.honey.monitor.PacketMonitorSendAt;
+import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
@@ -17,7 +17,6 @@ import me.alek.honey.tracker.TempTimedQueuedTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingWindowCounter;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -85,7 +84,7 @@ public class LoggerService {
                 if (packet != null) recentPackets.add(sentPacketType);
             }
         }
-        monitorManager.sendPacketInfo(packet, PacketMonitorSendAt.AFTER_HONEY_HANDLE);
+        monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
     public void dumpPackets(List<PacketContainer<?>> packets) {

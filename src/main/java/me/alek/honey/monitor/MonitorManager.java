@@ -19,6 +19,7 @@ public class MonitorManager {
 
     public static final Monitorer SERVER_MONITOR = new ServerMonitorer();
 
+    boolean packetsMonitored; // cache the value for better performance
     private final Set<Monitorer> packetMonitorers = new HashSet<>();
     private final Map<Monitorer, List<MonitorObserver>> monitorObservers = new HashMap<>();
     private final Map<UUID, Monitorer> playerMonitorerMap = new HashMap<>();
@@ -32,19 +33,15 @@ public class MonitorManager {
         executorService = Executors.newSingleThreadScheduledExecutor();
 
         executorService.scheduleAtFixedRate(() -> {
-            try {
-                for (Monitorer monitorer : monitorObservers.keySet()) {
-                    if (monitorer instanceof ScheduledMonitorer) {
-                        ScheduledMonitorer scheduledMonitorer = (ScheduledMonitorer) monitorer;
+            for (Monitorer monitorer : monitorObservers.keySet()) {
+                if (monitorer instanceof ScheduledMonitorer) {
+                    ScheduledMonitorer scheduledMonitorer = (ScheduledMonitorer) monitorer;
 
-                        String message = scheduledMonitorer.getMessage();
-                        for (MonitorObserver observer : monitorObservers.get(monitorer)) {
-                            observer.sendInfo(message);
-                        }
+                    String message = scheduledMonitorer.getMessage();
+                    for (MonitorObserver observer : monitorObservers.get(monitorer)) {
+                        observer.sendInfo(message);
                     }
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
         }, 0L, ConfigurationOptions.Monitor.MESSAGE_INTERVAL, TimeUnit.MILLISECONDS);
     }
@@ -67,6 +64,10 @@ public class MonitorManager {
 
     public boolean isMonitored(Player player) {
         return monitorObservers.containsKey(getMonitorer(player));
+    }
+
+    public boolean isPacketsMonitored() {
+        return packetsMonitored;
     }
 
     public boolean isServerMonitored() {
@@ -94,6 +95,7 @@ public class MonitorManager {
         Monitorer monitorer = new PacketMonitorer<>(flags);
         setupMonitor(sender, monitorer);
         packetMonitorers.add(monitorer);
+        packetsMonitored = true;
     }
 
     public void setupPlayerMonitor(CommandSender sender, Player player) {
@@ -124,13 +126,15 @@ public class MonitorManager {
         }
     }
 
-    public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer, PacketMonitorSendAt sendAt) {
+    public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer, MonitorSendAt sendAt) {
         for (Monitorer packetMonitorer : packetMonitorers) {
             if (!(packetMonitorer instanceof IndependentMonitorer)) return;
 
             @SuppressWarnings("unchecked")
             IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>> independentMonitorer =
                     (IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>>) packetMonitorer;
+            if (!independentMonitorer.getSendAt().equals(sendAt)) continue;
+
             String message = independentMonitorer.getMessage(packetContainer);
             if (message == null) continue;
 
@@ -169,6 +173,7 @@ public class MonitorManager {
                         monitorObservers.remove(monitorer);
                     if (monitorer.getType() == MonitorType.PACKETS)
                         packetMonitorers.remove(monitorer);
+                    packetsMonitored = !packetMonitorers.isEmpty();
 
                     return monitorer;
                 }

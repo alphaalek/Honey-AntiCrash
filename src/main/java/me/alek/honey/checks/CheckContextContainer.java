@@ -32,15 +32,25 @@ public class CheckContextContainer {
     public class DevelopmentData {
 
         private final List<String> developmentDataSet = new ArrayList<>();
+        private final List<String> invisibleData = new ArrayList<>();
 
         public DevelopmentData() {
             if (defaultDevelopmentData != null && defaultDevelopmentData != this) {
                 developmentDataSet.addAll(defaultDevelopmentData.developmentDataSet);
+                invisibleData.addAll(defaultDevelopmentData.invisibleData);
             }
         }
 
         public int size() {
             return developmentDataSet.size();
+        }
+
+        public void addInvisibleData(String data) {
+            invisibleData.add(data);
+        }
+
+        public void removeLastInvisibleData() {
+            invisibleData.remove(invisibleData.size() - 1);
         }
 
         public void addText(String line) {
@@ -78,11 +88,13 @@ public class CheckContextContainer {
         public void addPoint(String key, Object value) {
             if (value instanceof Number) value = NumberConversions.format((Number) value);
             addText(" §8* " + key + ": " + value);
+            addInvisibleData(key + ": " + value);
         }
 
         public void addValue(String key, Object value) {
             if (value instanceof Number) value = NumberConversions.format((Number) value);
             addText("§6" + key + ": §e" + value);
+            addInvisibleData(key + ": " + value);
         }
 
         public void setEmpty(int index) {
@@ -93,18 +105,16 @@ public class CheckContextContainer {
             setText(index, " §7" + line);
         }
 
-        public void setHeader(int index, String line, String specification) {
-            setText(index, "§6* §e" + line + ":" + (specification == null ? "" : " (" + specification + ")"));
-        }
-
         public void setPoint(int index, String key, Object value) {
             if (value instanceof Number) value = NumberConversions.format((Number) value);
             setText(index, " §8* " + key + ": " + value);
+            addInvisibleData(key + ": " + value);
         }
 
         public void setValue(int index, String key, Object value) {
             if (value instanceof Number) value = NumberConversions.format((Number) value);
             setText(index, "§6" + key + ": §e" + value);
+            addInvisibleData(key + ": " + value);
         }
 
         public List<String> getDataSet() {
@@ -115,7 +125,7 @@ public class CheckContextContainer {
         public String toString() {
             StringBuilder builder = new StringBuilder();
 
-            for (String data : developmentDataSet) {
+            for (String data : invisibleData) {
                 builder.append(data.trim()).append(" ");
             }
             return builder.substring(0, builder.length() - 1);

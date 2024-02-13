@@ -31,6 +31,7 @@ import me.alek.honey.tracker.task.PacketTaskFuture;
 import me.alek.honey.tracker.task.PacketTaskHandler;
 import me.alek.honey.utility.NumberConversions;
 import me.alek.honey.utility.Tuple2;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -301,9 +302,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.TEN_SECOND);
                 if (hsq > 0.25) {
                     int trackerSize = tracker.getTrackerSize();
-                    container.getDevelopmentData(this).addPoint("Tracker Size", trackerSize);
-                    container.getDevelopmentData(this).addEmpty();
-                    int developmentDataSize = container.getDevelopmentData(this).size();
 
                     int i = 0;
                     long time = System.currentTimeMillis();
@@ -313,23 +311,19 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         double multiplier = (i >= timespanMultipliers.length)
                                         ? timespanMultipliers[timespanMultipliers.length - 1]
                                         : timespanMultipliers[i++];
-                        container.getDevelopmentData(this).setPoint(developmentDataSize - 1, "Multiplier", multiplier);
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan);
                         if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.6 * multiplier) {
-                            container.getDevelopmentData(this).addPoint("h.s.q.", NumberConversions.format(hsq * 100) + "%");
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("hsq")).flag(1).build();
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan);
-                        if ((trackerSize > 15 && ta > 22.5 * multiplier) || (trackerSize > 25 && ta > 17.5 * multiplier) || (trackerSize > 40 && ta > 15 * multiplier)) {
-                            container.getDevelopmentData(this).addPoint("t.a.", NumberConversions.format(ta * 100) + "%");
+                        if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                         }
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan);
-                        if ((trackerSize > 15 && tt > 0.75 * multiplier) || (trackerSize > 25 && tt > 0.55 * multiplier)) {
-                            container.getDevelopmentData(this).addPoint("t.t.", NumberConversions.format(tt * 100) + "%");
+                        if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
                         }
                     }

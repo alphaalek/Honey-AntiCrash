@@ -1,16 +1,30 @@
 package me.alek.honey.netty.packet;
 
+import java.util.Arrays;
+
 public enum EventloopState {
 
-    NO_STATE,
 
-    HONEY_DECODE,
+    NO_STATE(null),
 
-    SERVER_DECODE,
+    HONEY_DECODE("hd"),
 
-    HONEY_HANDLE,
+    SERVER_DECODE("sd"),
 
-    QUEUE_TRACKING,
+    HONEY_HANDLE("hh"),
 
-    SERVER_HANDLE
+    SERVER_HANDLE("sh");
+
+    private final String format;
+
+    EventloopState(String format) {
+        this.format = format;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public static EventloopState[] VALID_STATES = Arrays.asList(HONEY_DECODE, SERVER_DECODE, HONEY_HANDLE, SERVER_HANDLE)
+            .toArray(new EventloopState[0]);
 }

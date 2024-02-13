@@ -399,7 +399,7 @@ public class ViolationService {
             }
 
             if (onViolation != null) onViolation.run();
-            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+            cancellablePacketObserver.cancel();
 
             violations.incrementAndGet();
 
@@ -443,7 +443,7 @@ public class ViolationService {
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
             if (amount == 1) {
                 if (onFlag != null) onFlag.run();
-                if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+                cancellablePacketObserver.cancel();
 
                 return true;
             }
@@ -459,7 +459,6 @@ public class ViolationService {
     public class PacketTriggerThrottleHandler extends AbstractPacketLimitHandler {
 
         private double lastFlag;
-        private boolean hasShownFlag;
 
         public PacketTriggerThrottleHandler(Player player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
@@ -471,13 +470,10 @@ public class ViolationService {
                 if (onFlag != null) onFlag.run();
 
                 if (amount >= 1) lastFlag = System.currentTimeMillis();
+                cancellablePacketObserver.cancel();
 
-                if (!hasShownFlag)
-                    violate(cancellablePacketObserver, check, onPunish, onViolation, developmentData, checkKey);
-                hasShownFlag = true;
                 return true;
             }
-            hasShownFlag = false;
             return false;
         }
 
@@ -620,7 +616,7 @@ public class ViolationService {
 
         @Override
         public boolean handle(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
-            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+            cancellablePacketObserver.cancel();
 
             if (bufferIndex > until && getSetting().isEnabled())
                 violate(cancellablePacketObserver, check, null, null, developmentData, checkKey);
@@ -690,7 +686,7 @@ public class ViolationService {
             flagged += amount;
             if (flagged < maxPerInterval) return false;
 
-            if (cancellablePacketObserver != null) cancellablePacketObserver.cancel();
+            cancellablePacketObserver.cancel();
 
             if (violatedForInterval) return true;
 

@@ -110,8 +110,21 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             return EMPTY_TICK_TASK;
         }
 
+        private double getEventloopTimingsIfAny(Player player) {
+            PacketContainer<? extends WrappedPacket<?>> packet = PacketTaskHandler.getLastHandledPacket();
+            if (packet == null || !player.equals(packet.getPlayer())) return 0;
+
+            return packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
+        }
+
         private double getDeltaTime() {
             return ((double) (System.nanoTime() - recentPollStart)) / 1_000_000;
+        }
+
+        private double getDeltaTimeExact(Player player) {
+            double eventloopTimings = getEventloopTimingsIfAny(player);
+
+            return eventloopTimings != 0 ? eventloopTimings : getDeltaTime();
         }
 
         @Override
@@ -123,8 +136,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 recentPollStart = -1;
                 return otherTask;
             }
-            long queueTrackingStart = System.currentTimeMillis();
-
             Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
             if (!initiallyTickRound.get()) {
@@ -132,16 +143,17 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 // check if this packet is not the first one handled in this tick
                 if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
-                    // evaluate the difference in time
-                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTime();
-                    recentDeltaTime = -1;
-
+                    // get the player who sent the previously polled packet from the queue
                     player = Bukkit.getPlayer(recentPacketAuthor.get());
                     recentPacketAuthor.set(null);
 
                     if (player != null && player.isOnline()) {
+                        // evaluate the difference in time
+                        double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
+
                         registerTime(player, Math.max(0, deltaTime - 0.0025));
                     }
+                    recentDeltaTime = -1;
                 }
                 recentPollStart = System.nanoTime();
             }
@@ -151,14 +163,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (thread != null) {
                 recentPacketAuthor.set(packetSendQueue.get(thread).poll());
                 task = seperatedQueue.get(thread).poll();
-
-                if (recentPacketAuthor.get() != null) {
-                    PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(recentPacketAuthor.get());
-                    if (bundleSaver != null) {
-                        PacketContainer<? extends WrappedPacket<?>> packet = bundleSaver.getOldest(false);
-                        packet.getEventloopStateTimings().startTimings(EventloopState.QUEUE_TRACKING, queueTrackingStart);
-                    }
-                }
             }
 
             if (task != null)

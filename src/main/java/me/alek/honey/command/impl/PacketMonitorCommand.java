@@ -19,22 +19,21 @@ public class PacketMonitorCommand implements CommandImpl {
 
         try {
             List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = MonitorFlag.Flag.getMonitorFlags(args);
-            Bukkit.broadcastMessage("Flags: " + flags);
 
             if (flags.isEmpty()) {
                 sender.sendMessage(CommandManager.PREFIX + " §7You have to choose at least one flag for the packet monitor.");
 
                 sender.sendMessage(CommandManager.PREFIX + " §7You can use the following flags:");
                 for (MonitorFlag.Flag flag : MonitorFlag.Flag.values()) {
-                    sender.sendMessage("§e" + flag.getUsage());
+                    sender.sendMessage("  §8" + flag.getUsage());
                 }
+                HoneyPlugin.get().getMonitorManager().removeIfHasMonitor(sender, false);
                 return;
             }
-
             HoneyPlugin.get().getMonitorManager().setupPacketMonitor(sender, flags);
 
         } catch (WrongMonitorFlagSyntaxException ex) {
-            sender.sendMessage(CommandManager.PREFIX + " §cWrong syntax of monitor \"flag\" " + ex.getFlag() + ": " + ex.getMessage());
+            sender.sendMessage(CommandManager.PREFIX + " §cWrong syntax of monitor flag \"" + ex.getFlag() + "\": " + ex.getMessage());
         }
     }
 

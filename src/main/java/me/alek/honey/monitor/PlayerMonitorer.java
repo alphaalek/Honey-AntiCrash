@@ -1,14 +1,10 @@
 package me.alek.honey.monitor;
 
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.WideTempQueuedHandleTracker;
-import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
 
 public class PlayerMonitorer implements ScheduledMonitorer {
 
-    private final WideTempQueuedHandleTracker serverThreadTracker = HoneyPlugin.get().getServerThreadHandleTracker();
     private final Player player;
 
     public PlayerMonitorer(Player player) {
@@ -25,26 +21,21 @@ public class PlayerMonitorer implements ScheduledMonitorer {
         return "player monitor of " + player.getName();
     }
 
-    private double getOfAverage(Timespan timespan) {
-        return NumberConversions.format(serverThreadTracker.getTimeToAverageQuotient(player, timespan) * 100, 1);
-    }
-
     private double getOfAverageWithout(Timespan timespan) {
-        return NumberConversions.format(serverThreadTracker.getTimeToAverageWithoutQuotient(player, timespan) * 100, 1);
+        return TrackerUtils.getServer().getOfAverageWithout(player, timespan);
     }
 
     private double getOfTotal(Timespan timespan) {
-        return NumberConversions.format(serverThreadTracker.getTimeToTotalQuotient(player, timespan) * 100, 1);
+        return TrackerUtils.getServer().getOfTotal(player, timespan);
     }
 
     private String getOfPacketTask(Timespan timespan) {
-        double value = NumberConversions.format(serverThreadTracker.getHalfServerThreadQuotient(player, timespan) * 100, 1);
-        return value + "%" + (value < 100 ? "" : "§c⚠");
+        return TrackerUtils.getServer().getOfPacketTaskFormatted(player, timespan);
     }
 
     @Override
     public String getMessage() {
-        HoneyPlugin.get().getServerThreadHandleTracker().clearExceedingNodes(player);
+        TrackerUtils.getServer().clearExceedingNodes(player);
 
         return "§6*§8STQ: §8o.a.w.o.: §7" + getOfAverageWithout(Timespan.TEN_SECOND) + "%§8, §7" + getOfAverageWithout(Timespan.FIFTEEN_SECOND) + "%§8, "
                 + "o.h.s.t.: §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, §7" + getOfPacketTask(Timespan.FIFTEEN_SECOND) + "§8, "

@@ -1,6 +1,6 @@
 package me.alek.honey.monitor;
 
-public enum PacketMonitorSendAt {
+public enum MonitorSendAt {
 
     AFTER_HONEY_HANDLE,
 

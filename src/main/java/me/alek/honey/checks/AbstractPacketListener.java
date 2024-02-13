@@ -18,13 +18,14 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
+        developmentData.removeLastInvisibleData();
         developmentData.addEmpty();
         developmentData.addHeader("Description", null);
 
         // temporary placeholders
-        developmentData.addEmpty();
-        developmentData.addEmpty();
-        developmentData.addEmpty();
+        developmentData.addEmpty(); // description
+        developmentData.addEmpty(); // STQ
+        developmentData.addEmpty(); // NTQ
     }
 
     public static void applyQuotients(Player player, CheckContextContainer.DevelopmentData developmentData) {

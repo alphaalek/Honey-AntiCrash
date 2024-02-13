@@ -77,7 +77,8 @@ public class NumberConversions {
     }
 
     public static double format(double value, int decimals) {
-        return Math.ceil(value * 10 * decimals) / (10 * decimals);
+        double m = Math.pow(10, decimals);
+        return Math.ceil(value * m) / m;
     }
 
 }
