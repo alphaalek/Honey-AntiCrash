@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class HoneyPluginInitializer extends JavaPlugin {
 
-    private final Plugin plugin = new HoneyPlugin(this);
+    private final HoneyAPI plugin = new HoneyPlugin(this);
 
     @Override
     public void onEnable() {
@@ -15,10 +15,5 @@ public class HoneyPluginInitializer extends JavaPlugin {
     @Override
     public void onDisable() {
         plugin.onDisable();
-    }
-
-    @Override
-    public void onLoad() {
-        plugin.onLoad();
     }
 }

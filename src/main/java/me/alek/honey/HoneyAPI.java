@@ -64,4 +64,8 @@ public interface HoneyAPI {
     int getRecentPing(Player player);
 
     void removeRecentPingLookup(Player player);
+
+    void onEnable();
+
+    void onDisable();
 }

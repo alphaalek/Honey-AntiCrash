@@ -26,9 +26,7 @@ public class PlayerJoinListener implements Listener {
                 check.setup(player);
         }
         HoneyPlugin.get().getViolationService().add(player);
-
-        if (player.hasPermission(ConfigurationOptions.General.NOTIFY_PERMISSION))
-            HoneyPlugin.get().getNotificationService().subscribe(player);
+        HoneyPlugin.get().getNotificationService().setup(player);
 
         instantJoinedMap.put(player.getUniqueId(), System.currentTimeMillis());
 

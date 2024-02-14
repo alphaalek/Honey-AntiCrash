@@ -60,6 +60,12 @@ public class NotificationService {
         reload();
     }
 
+    public void setup(Player player) {
+        if (hasNotifyPermission(player) && !isSubscribed(player) && !isUntoggled(player)) {
+            subscribe(player);
+        }
+    }
+
     public void reload() {
         PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX);
     }
@@ -76,7 +82,7 @@ public class NotificationService {
         return observerMap.containsKey(observer);
     }
 
-    private String getAppropiateMessage(CommandSender observer, String message) {
+    private String getAppropriateMessage(CommandSender observer, String message) {
         if (observer instanceof Player) return message;
 
         return ChatColor.stripColor(message);
@@ -86,12 +92,12 @@ public class NotificationService {
         observerMap.put(observer, new NotificationService.NotificationListener() {
             @Override
             public void notify(String notification) {
-                observer.sendMessage(getAppropiateMessage(observer, notification));
+                observer.sendMessage(getAppropriateMessage(observer, notification));
             }
 
             @Override
             public void notify(Player player, String type) {
-                observer.sendMessage(getAppropiateMessage(
+                observer.sendMessage(getAppropriateMessage(
                         observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + "§7."));
             }
 
@@ -110,14 +116,14 @@ public class NotificationService {
                     Player observerPlayer = (Player) observer;
                     observerPlayer.spigot().sendMessage(message);
                 }
-                else observer.sendMessage(getAppropiateMessage(
+                else observer.sendMessage(getAppropriateMessage(
                         observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7. " + formatNotification(setting, packetLimitHandler)));
             }
 
             @Override
             public void warn(Player player, String type, ViolationService.CheckKey checkKey) {
                 observer.sendMessage(
-                        getAppropiateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "" + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7."));
+                        getAppropriateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "" + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7."));
             }
         });
     }

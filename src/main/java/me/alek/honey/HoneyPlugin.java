@@ -44,7 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
+public class HoneyPlugin implements HoneyAPI {
 
     private static HoneyPlugin INSTANCE;
 
@@ -71,11 +71,9 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
     private final Plugin plugin;
 
     public HoneyPlugin(Plugin plugin) {
-        super(plugin);
         this.plugin = plugin;
     }
 
-    @Override
     public synchronized void onEnable() {
         // check compatability and conflicts of runtime load or minecraft version
         String conflict = null;
@@ -103,9 +101,9 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
         configuration = new DedicatedConfiguration();
 
         if (configuration.isMisconfigured()) {
-            if (getServer().getPluginManager().isPluginEnabled(plugin)) {
+            if (plugin.getServer().getPluginManager().isPluginEnabled(plugin)) {
                 resetConfiguration();
-                getServer().getPluginManager().disablePlugin(plugin);
+                plugin.getServer().getPluginManager().disablePlugin(plugin);
 
                 throw new RuntimeException("You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.");
             }
@@ -116,7 +114,7 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
         packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, false, "honey_packet_handler", "honey_packet_decoder"));
 
         if (!Bukkit.getServer().getPluginManager().isPluginEnabled(plugin)) {
-            getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
+            plugin.getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
             return;
         }
 
@@ -141,7 +139,7 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
         checkHandleTracker = new RegistryMarkableHandleTracker<>(200L);
 
         // setup checks
-        getServer().getScheduler().runTaskLater(plugin, this::registerChecks, 20L);
+        plugin.getServer().getScheduler().runTaskLater(plugin, this::registerChecks, 20L);
         ItemAnalysis.reload();
 
         // setup commands
@@ -178,7 +176,6 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
         }.runTaskTimerAsynchronously(plugin, 0L, 60L);
     }
 
-    @Override
     public void onDisable() {
         isRunning = false;
 
@@ -193,7 +190,7 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
                 if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
                     PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
 
-                if (check.getCheckType() == HoneyCheckType.DECODE && check instanceof IListener)
+                if (check.getCheckType() == HoneyCheckType.DECODE)
                     PacketLibrary.get().addDecodeListener((SyncPacketAdapter<?>) check, priority);
 
                 check.load();
@@ -204,7 +201,7 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
     }
 
     public void resetConfiguration() {
-        File oldFile = new File(getDataFolder(), "old-config.yml");
+        File oldFile = new File(plugin.getDataFolder(), "old-config.yml");
         if (oldFile.exists()) {
             try {
                 Files.deleteIfExists(oldFile.toPath());
@@ -212,12 +209,12 @@ public class HoneyPlugin extends WrappedHoneyPlugin implements HoneyAPI {
                 ex.printStackTrace();
             }
         }
-        File file = new File(getDataFolder(), "config.yml");
+        File file = new File(plugin.getDataFolder(), "config.yml");
 
         if (file.exists()) {
-            file.renameTo(new File(getDataFolder(), "old-config.yml"));
+            file.renameTo(new File(plugin.getDataFolder(), "old-config.yml"));
         }
-        saveDefaultConfig();
+        plugin.saveDefaultConfig();
     }
 
     public void reload() {
