@@ -72,7 +72,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             if (getSetting().isEnabled()) {
 
                 String message = packet.getMessage();
-                if (message == null || message.isEmpty()) {
+                if (message.isEmpty()) {
                     return ResponseBuilder.inst().cancel().flag().terminate().build();
                 }
                 for (char character : message.toCharArray()) {

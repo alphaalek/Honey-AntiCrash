@@ -3,12 +3,13 @@ package me.alek.honey.netty.injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.tracker.QueueExecutionWatchdogThread;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketBundleSaver;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
@@ -100,11 +101,13 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
         long readStart = monitorManager.isPacketsMonitored() ? System.nanoTime() : 0;
         hasRead = true;
         // decoder inject for late injection
+
         if (player != null && !startedInjecting.get()) {
             startDecodeInjection();
             // the injection never started, so we will just return
             if (!startedInjectingRound) return;
         }
+
         if (startedInjecting.get() && !hasDecoder) {
             if (!(hasDecoder = InboundPacketDecoder.isDecoderRegistered(player)) && !checkedDecoder && !startedInjectingRound) {
                 checkedDecoder = true;
@@ -123,6 +126,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             if (proxy instanceof InboundPacketDecoder)
                 inboundPacketDecoder = (InboundPacketDecoder) proxy;
         }
+
         // register the handle time between the last handled packet and this one
         if (inboundPacketDecoder != null)
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, inboundPacketDecoder.getRecentDeltaDecode());
@@ -138,6 +142,9 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Abstra
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
+
+        if (packetContainer.getState() == PacketState.PLAY)
+            QueueExecutionWatchdogThread.clearVerification();
 
         // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {

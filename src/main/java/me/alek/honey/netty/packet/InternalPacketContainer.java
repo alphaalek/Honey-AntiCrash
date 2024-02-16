@@ -90,6 +90,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public PacketState getState() {
+        if (type == null) return PacketState.UNKNOWN;
+
         return type.getState();
     }
 

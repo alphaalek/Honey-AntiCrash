@@ -1,7 +1,11 @@
 package me.alek.honey.utility;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -24,8 +28,20 @@ public class ThreadLocalAccessor<T> {
         return seperatedQueues.computeIfAbsent(thread, (d) -> defaultValue == null ? null : defaultValue.get());
     }
 
+    public void forEach(BiConsumer<? super Thread, ? super T> callback) {
+        seperatedQueues.forEach(callback);
+    }
+
+    public void forEach(Consumer<T> callback) {
+        seperatedQueues.forEach((k, v) -> callback.accept(v));
+    }
+
     public T get() {
         return get(Thread.currentThread());
+    }
+
+    public Collection<T> getAll() {
+        return seperatedQueues.values();
     }
 
     public synchronized void clear() {

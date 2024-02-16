@@ -83,7 +83,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         };
     }
 
-    private void errorInjecting() {
+    private void setLateProxy() {
         HoneyPlugin.get().getPlugin().getLogger().info("Failed to inject the server channel! I'm switching over to late injection instead.");
 
         CommonChannelInjector.inject(InjectEvent.InjectCallback.ERROR, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
@@ -99,7 +99,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             networkManagers = (List<Object>) field.get(serverConnection);
         } catch (Exception ex) {
             ex.printStackTrace();
-            errorInjecting();
+            setLateProxy();
             return;
         }
         createServerChannelHandler();
@@ -108,7 +108,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
         List<Object> list = accessor.get(serverConnection);
 
         if (list.isEmpty()) {
-            errorInjecting();
+            setLateProxy();
             return;
         }
         boolean injectedServerChannel = false;
@@ -121,7 +121,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             injectedServerChannel = true;
         }
         if (!injectedServerChannel) {
-            errorInjecting();
+            setLateProxy();
             return;
         }
         CommonChannelInjector.inject(InjectEvent.InjectCallback.SUCCESS, InjectEvent.InjectType.EARLY, InjectEvent.InjectBound.SERVER);
@@ -139,9 +139,7 @@ public class EarlyChannelInjector implements AbstractNettyChannelInjector {
             for (Channel serverChannel : serverChannels) {
                 final ChannelPipeline pipeline = serverChannel.pipeline();
 
-                serverChannel.eventLoop().execute(() -> {
-                    pipeline.remove(serverChannelHandler);
-                });
+                serverChannel.eventLoop().execute(() -> pipeline.remove(serverChannelHandler));
             }
         }
         CommonChannelInjector.ejectPlayers(InjectEvent.InjectType.EARLY);

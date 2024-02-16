@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
@@ -71,6 +72,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
+        private int calls;
 
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
@@ -174,6 +176,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 nullPoll = true;
                 poll();
             }
+            calls++;
 
             if (task == null) {
 
@@ -188,6 +191,13 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                             + (player == null ? "" : " Maybe sent from " + player.getName() + "."));
                 }
                 packetsInQueueExecution.clear();
+                packetSendQueue.forEach(ConcurrentLinkedDeque::clear);
+                seperatedQueue.forEach(ConcurrentLinkedQueue::clear);
+
+                // we can confidently call after all packets is being handled without fearing locked server thread,
+                // because then spigot watchdog would handle it
+                if (calls > 1) QueueExecutionWatchdogThread.call(System.currentTimeMillis());
+                calls = 0;
 
                 if (initiallyTickRound.get()) initiallyTickRound.set(false);
             }
@@ -214,7 +224,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // we will make sure that this thread is currently trying to add a packet to the server sent by a player.
             // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
             // elements to the execution queue from netty threads which are not packets
-            UUID uuid = packetSendMarker.get();
+            UUID uuid = packetSendMarker.remove();
             if (uuid == null) return super.add(value);
 
             PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
@@ -233,7 +243,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
                 } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
             }
-            packetSendQueue.get().add(packetSendMarker.remove());
+            packetSendQueue.get().add(uuid);
 
             super.add(EMPTY_VALUE);
             return seperatedQueue.get().add(value);

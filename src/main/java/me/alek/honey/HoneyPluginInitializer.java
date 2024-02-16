@@ -1,6 +1,5 @@
 package me.alek.honey;
 
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class HoneyPluginInitializer extends JavaPlugin {

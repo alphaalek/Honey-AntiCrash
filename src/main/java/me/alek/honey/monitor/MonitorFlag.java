@@ -240,6 +240,7 @@ public interface MonitorFlag<T> {
             return typeFlagComparator.test(type, input.toString());
         }
 
+        @Override
         public String getWrongSyntaxMessage() {
             return "Couldn't find any packet type matching \"" + Optional.ofNullable(type).orElse("") + "\"";
         }
@@ -259,6 +260,11 @@ public interface MonitorFlag<T> {
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
             return typeFlag.test(input.getType());
         }
+
+        @Override
+        public String getWrongSyntaxMessage() {
+            return typeFlag.getWrongSyntaxMessage();
+        }
     }
 
     @FlagAnnotation(Flag.IGNORE)
@@ -274,6 +280,11 @@ public interface MonitorFlag<T> {
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
             return typeFlag.test(input.getType());
+        }
+
+        @Override
+        public String getWrongSyntaxMessage() {
+            return typeFlag.getWrongSyntaxMessage();
         }
     }
 

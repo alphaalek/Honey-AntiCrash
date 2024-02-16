@@ -1,11 +1,9 @@
 package me.alek.honey.tracker.task;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.command.impl.MonitorCommand;
-import org.bukkit.Bukkit;
+import me.alek.honey.tracker.task.PacketTaskHandler;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 public class PacketTaskFuture<V> extends FutureTask<V> {

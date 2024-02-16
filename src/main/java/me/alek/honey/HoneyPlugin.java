@@ -37,12 +37,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -66,6 +74,7 @@ public class HoneyPlugin implements HoneyAPI {
     private UpdateChecker updateChecker;
     private PacketLibrary packetLibrary;
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
+    private QueueExecutionWatchdogThread watchdogThread;
     private Thread serverThread;
 
     private final Plugin plugin;
@@ -96,6 +105,7 @@ public class HoneyPlugin implements HoneyAPI {
         isLoaded = true;
         INSTANCE = this;
         serverThread = Thread.currentThread();
+        watchdogThread = new QueueExecutionWatchdogThread();
 
         // setup configuration and check if it is misconfigured
         configuration = new DedicatedConfiguration();
@@ -111,7 +121,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         // setup packet library
-        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, false, "honey_packet_handler", "honey_packet_decoder"));
+        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, true, "honey_packet_handler", "honey_packet_decoder"));
 
         if (!Bukkit.getServer().getPluginManager().isPluginEnabled(plugin)) {
             plugin.getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
@@ -159,6 +169,11 @@ public class HoneyPlugin implements HoneyAPI {
 
         // setup runnable getting the ping of players
         setupRecentPingLookupRunnable();
+
+        // startup watchdog thread
+        QueueExecutionWatchdogThread.startWatchdog();
+
+        getLoggerService().getLogger().info("Honey is now fully loaded in!");
     }
 
     private void setupRecentPingLookupRunnable() {
@@ -180,6 +195,8 @@ public class HoneyPlugin implements HoneyAPI {
         isRunning = false;
 
         if (PacketLibrary.get() != null) PacketLibrary.get().disable();
+
+        QueueExecutionWatchdogThread.stopWatchdog();
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
@@ -339,6 +356,10 @@ public class HoneyPlugin implements HoneyAPI {
 
     public Thread getServerThread() {
         return serverThread;
+    }
+
+    public QueueExecutionWatchdogThread getWatchdog() {
+        return watchdogThread;
     }
 
     public int getRecentPing(Player player) {

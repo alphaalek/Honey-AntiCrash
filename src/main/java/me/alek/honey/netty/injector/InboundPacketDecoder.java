@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import me.alek.honey.tracker.QueueExecutionWatchdogThread;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -10,6 +11,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
@@ -70,9 +72,11 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
 
         packetProcessor.callDecode(player, byteBuf);
 
-        double currentTime = System.currentTimeMillis();;
+        long currentTime = System.currentTimeMillis();
         recentDeltaReceived = currentTime - recentDecodeStart;
         recentDecodeStart = currentTime;
+
+        QueueExecutionWatchdogThread.verify(currentTime);
 
         if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));

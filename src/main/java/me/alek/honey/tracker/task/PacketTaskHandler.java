@@ -116,7 +116,8 @@ public class PacketTaskHandler {
         PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(task.getUUID());
         if (bundleSaver != null) {
             PacketContainer<? extends WrappedPacket<?>> packet = bundleSaver.getOldest(false);
-            packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
+            if (packet != null)
+                packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
         }
         handledTask = new Tuple2<>(task, System.currentTimeMillis());
     }
@@ -129,10 +130,12 @@ public class PacketTaskHandler {
                 PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
                 if (saver != null) {
                     PacketContainer<? extends WrappedPacket<?>> packet = saver.getOldest(true);
-                    packet.getEventloopStateTimings().stopTimings();
-                    lastHandledPacket = packet;
+                    if (packet != null) {
+                        packet.getEventloopStateTimings().stopTimings();
 
-                    monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+                        monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+                    }
+                    lastHandledPacket = packet;
                 }
                 handledTask = null;
             }
