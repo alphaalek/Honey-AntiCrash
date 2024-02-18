@@ -7,6 +7,7 @@ import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.utility.NMSUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,20 +18,10 @@ public class BukkitEventInternal implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        onJoin(event, true);
-    }
-
-    public void onJoin(PlayerJoinEvent event, boolean firstCall) {
         Player player = event.getPlayer();
 
         PacketLibrary library = PacketLibrary.get();
         Channel channel = NMSUtils.getChannel(player);
-
-        if ((channel == null || channel.pipeline().toMap().isEmpty()) && firstCall) {
-            NMSUtils.removeChannelLookup(player.getUniqueId());
-            onJoin(event, false);
-            return;
-        }
 
         if (channel == null || channel.pipeline().toMap().isEmpty()) {
             player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));

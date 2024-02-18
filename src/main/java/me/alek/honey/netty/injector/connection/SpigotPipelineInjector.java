@@ -7,6 +7,7 @@ import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.utility.NMSUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class SpigotPipelineInjector {
@@ -24,14 +25,27 @@ public class SpigotPipelineInjector {
             }
 
             channel.pipeline().addBefore("packet_handler", PacketLibrary.get().getHandlerName(), new DuplexChannelHandler(channel));
-            channel.pipeline().addBefore("decoder", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder());
+            channel.pipeline().addAfter("splitter", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(channel));
+        }
+    }
+
+    public void relocateHandlers(Channel channel) {
+        InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
+        if (decoder != null) {
+            channel.pipeline().remove(PacketLibrary.get().getDecoderName());
+
+            channel.pipeline().addAfter("decompress", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(decoder));
         }
     }
 
     public void ejectChannel(Channel channel) {
         synchronized (channel) {
-            channel.pipeline().remove(PacketLibrary.get().getHandlerName());
-            channel.pipeline().remove(PacketLibrary.get().getDecoderName());
+            if (channel.pipeline().get(PacketLibrary.get().getHandlerName()) != null) {
+                channel.pipeline().remove(PacketLibrary.get().getHandlerName());
+            }
+            if (channel.pipeline().get(PacketLibrary.get().getDecoderName()) != null) {
+                channel.pipeline().remove(PacketLibrary.get().getDecoderName());
+            }
         }
     }
 

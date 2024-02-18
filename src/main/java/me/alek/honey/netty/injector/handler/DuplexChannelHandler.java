@@ -13,6 +13,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -31,7 +32,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
     public DuplexChannelHandler(Channel channel) {
         this.channel = channel;
-        decoder = (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
+        decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
     }
 
     public void setPlayer(final Player player) {

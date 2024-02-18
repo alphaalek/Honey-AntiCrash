@@ -71,11 +71,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     }
 
-    @Override
-    public void cleanup(Player player) {
-        NettyH.packetDecoderMap.remove(player.getUniqueId());
-    }
-
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
@@ -199,24 +194,20 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        public static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
-
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            double decodeTime = 0;
-            if (player != null) {
-                InboundPacketDecoder packetDecoder = FloodListener.packetDecoderMap.get(player.getUniqueId());
-                if (packetDecoder == null) return ResponseBuilder.SUCCESS;
+            InboundPacketDecoder packetDecoder =
+                    (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(packet.getContainer().getChannel());
+            if (packetDecoder == null || !packetDecoder.hasReadYet()) return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
-                // disable this check if the TPS is really low or ping of the player is too high
-                boolean exempt = HoneyPlugin.get().shouldExempt(player);
-                container.getStorage().putBoolean(exempt);
-                if (exempt) return ResponseBuilder.SUCCESS;
+            // disable this check if the TPS is really low or ping of the player is too high
+            boolean exempt = HoneyPlugin.get().shouldExempt(player);
+            container.getStorage().putBoolean(exempt);
+            if (exempt) return ResponseBuilder.SUCCESS;
 
-                // evaluate the duration of decoding this packet
-                decodeTime = packetDecoder.getRecentDeltaDecode();
-                container.getStorage().putDouble(decodeTime);
-            } else container.getStorage().putBoolean(false);
+            // evaluate the duration of decoding this packet
+            double decodeTime = packetDecoder.getRecentDeltaDecode();
+            container.getStorage().putDouble(decodeTime);
 
             if (getSetting().isEnabled() && decodeTime > 0) {
                 container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
@@ -251,7 +242,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && !container.getStorage().getBoolean(0)) {
+            if (getSetting().isEnabled()) {
 
                 double decodeTime = container.getStorage().getDouble(0);
                 if (decodeTime > 0) {

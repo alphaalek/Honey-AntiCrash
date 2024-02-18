@@ -17,14 +17,14 @@ public class SpigotServerInjector {
     private int channelFuturesFieldIndex = -1;
     private IStructureModifier<List<?>> serverConnectionListAccessor;
     private List<ChannelFuture> channelFutures;
-    private List<Object> networkManagers;
+    public static List<Object> networkManagers;
 
     public boolean isServerBound() {
         getChannelFutures();
         
         return channelFutures != null;
     }
-    
+
     private <T> List<T> getNonEmptyServerConnectionList(Class<T> clazz) {
         if (serverConnectionListAccessor == null) {
             Object serverConnection = NMSUtils.getServerConnection();

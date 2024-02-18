@@ -3,7 +3,7 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.QueueExecutionWatchdogThread;
 import me.alek.honey.utility.ThreadLocalAccessor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class InboundPacketDecoder extends ByteToMessageDecoder implements UpdatableChannel {
+public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 
     private static final Set<UUID> registeredPacketDecoders = new HashSet<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
@@ -39,21 +40,48 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Updata
         return earlyPacketInitializer;
     }
 
-    private double recentDecodeStart = System.currentTimeMillis();
+    private double recentDecodeStart;
     private double recentDeltaReceived = 0;
+    private boolean isFirstRead = true;
     private boolean hasRead;
+    private boolean hasBeenRelocated;
     private Player player;
+    private final Channel channel;
+
+    public InboundPacketDecoder(InboundPacketDecoder decoder) {
+        this.channel = decoder.channel;
+        this.player = decoder.player;
+        hasBeenRelocated = true;
+        recentDeltaReceived = decoder.recentDeltaReceived;
+        recentDecodeStart = decoder.recentDecodeStart;
+        hasRead = decoder.hasRead;
+        isFirstRead = false;
+    }
+
+    public InboundPacketDecoder(Channel channel) {
+        this.channel = channel;
+    }
 
     public void setPlayer(Player player) {
         this.player = player;
+
+        PacketLibrary.get().getPipelineInjector().relocateHandlers(channel);
     }
 
     public Player getPlayer() {
         return player;
     }
 
+    public boolean hasReadYet() {
+        return !isFirstRead;
+    }
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
+        if (isFirstRead) {
+            recentDecodeStart = System.currentTimeMillis();
+            isFirstRead = false;
+        }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
             if (!hasRead) {
@@ -76,6 +104,20 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Updata
 
         if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
+        checkRelocation(ctx.channel());
+        super.userEventTriggered(ctx, event);
+    }
+
+    public void checkRelocation(Channel channel) {
+        if (!hasBeenRelocated) {
+
+            PacketLibrary.get().getPipelineInjector().relocateHandlers(channel);
+            hasBeenRelocated = true;
+        }
     }
 
     public double getRecentDeltaReceived() {

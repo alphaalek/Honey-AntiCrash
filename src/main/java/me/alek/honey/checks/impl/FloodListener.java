@@ -10,6 +10,7 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
@@ -34,7 +35,6 @@ import java.util.function.Supplier;
 
 public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    public static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     private static final ViolationService.CheckKey sharedIgnoringKey = new ViolationService.CheckKey();
@@ -70,14 +70,10 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public void setup(Player player) {
         final UUID uuid = player.getUniqueId();
-
-        packetDecoderMap.put(uuid,
-                (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(NMSUtils.getChannel(player)));
     }
 
     @Override
     public void cleanup(Player player) {
-        packetDecoderMap.remove(player.getUniqueId());
         lastSetCreativeSlot.remove(player.getUniqueId());
     }
 
@@ -243,9 +239,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getLimits(player, sharedIgnoringKey, sharedIgnoringSetting);
 
-            if (getSetting(packet).isEnabled() && packetDecoderMap.containsKey(player.getUniqueId())) {
+            InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(packet.getContainer().getChannel());
+
+            if (getSetting(packet).isEnabled() && decoder != null) {
                 // check if the delta time is high enough to exempt the next packet spike for this player
-                if (packetDecoderMap.get(player.getUniqueId()).getRecentDeltaReceived() > (ConfigurationOptions.Exempt.MAX_TIME_BETWEEN * 1_000)) {
+                if (decoder.getRecentDeltaReceived() > (ConfigurationOptions.Exempt.MAX_TIME_BETWEEN * 1_000)) {
 
                     return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
                 }

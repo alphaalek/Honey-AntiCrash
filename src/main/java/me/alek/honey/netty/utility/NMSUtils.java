@@ -40,6 +40,13 @@ public class NMSUtils {
     }
 
     public static synchronized Channel getChannel(Player player) {
+        Channel channel = getChannel0(player);
+        if (!channel.isOpen()) removeChannelLookup(player.getUniqueId());
+
+        return getChannel0(player);
+    }
+
+    public static synchronized Channel getChannel0(Player player) {
         return lookupChannels.computeIfAbsent(player.getUniqueId(), (d) -> channel.get(getNetworkManager(player)));
     }
 

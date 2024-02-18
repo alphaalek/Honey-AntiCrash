@@ -175,7 +175,7 @@ public class HoneyPlugin implements HoneyAPI {
         setupRecentPingLookupRunnable();
 
         // startup watchdog thread
-        QueueExecutionWatchdogThread.startWatchdog();
+        // QueueExecutionWatchdogThread.startWatchdog();
 
         getLoggerService().getLogger().info("Honey is now fully loaded in! Version: " + plugin.getDescription().getVersion());
     }
