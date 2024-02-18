@@ -2,12 +2,11 @@ package me.alek.honey.netty.bukkit;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.injector.MissingHoneyHandlerException;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.utility.NMSUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,7 +30,7 @@ public class BukkitEventInternal implements Listener {
         SpigotPipelineInjector injector = library.getPipelineInjector();
         try {
             injector.updatePlayer(player);
-        } catch (MissingHoneyHandlerException exception) {
+        } catch (MissingHandlerException exception) {
             player.kickPlayer("Broken pipe!");
         }
     }

@@ -2,12 +2,11 @@ package me.alek.honey.netty.injector.connection;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.injector.MissingHoneyHandlerException;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.utility.NMSUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class SpigotPipelineInjector {
@@ -49,17 +48,17 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public void updatePlayer(Player player) throws MissingHoneyHandlerException {
+    public void updatePlayer(Player player) throws MissingHandlerException {
         Channel channel = NMSUtils.getChannel(player);
         if (channel == null) {
-            throw new MissingHoneyHandlerException();
+            throw new MissingHandlerException();
         }
 
         synchronized (channel) {
             UpdatableChannel handler = PacketLibrary.get().getPacketManager().getHandler(channel);
             UpdatableChannel decoder = PacketLibrary.get().getPacketManager().getDecoder(channel);
             if (handler == null || decoder == null) {
-                throw new MissingHoneyHandlerException();
+                throw new MissingHandlerException();
             }
 
             handler.setPlayer(player);

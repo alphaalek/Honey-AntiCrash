@@ -3,7 +3,6 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -138,7 +137,9 @@ public class PacketBundleSaver {
         for (PacketSaverQueue queue : queues) {
             List<PacketContainer<?>> packets = getPackets(queue, amount, remove);
 
-            if (mostRecent.size() < packets.size() || packets.get(packets.size() - 1).getTime() < mostRecent.get(mostRecent.size() - 1).getTime()) {
+            if (mostRecent.size() < packets.size() ||
+                    !packets.isEmpty() && packets.get(packets.size() - 1).getTime() <
+                            (mostRecent.isEmpty() ? Integer.MAX_VALUE : mostRecent.get(mostRecent.size() - 1).getTime())) {
                 mostRecent.clear();
                 mostRecent.addAll(packets);
             }
@@ -199,13 +200,15 @@ public class PacketBundleSaver {
     }
 
     private List<PacketContainer<?>> getPackets(PacketSaverQueue queue, int amount, boolean remove) {
-        return remove ? pollPackets(queue, amount) : peekPackets(queue, amount);
+        List<PacketContainer<?>> packets = remove ? pollPackets(queue, amount, false) : peekPackets(queue, amount, false);
+        Collections.reverse(packets);
+        return packets;
     }
 
-    private List<PacketContainer<?>> pollPackets(PacketSaverQueue queue, int amount) {
-        List<PacketContainer<?>> packets = new ArrayList<>();
+    private List<PacketContainer<?>> pollPackets(PacketSaverQueue queue, int amount, boolean fromHead) {
+        List<PacketContainer<?>> packets = new LinkedList<>();
         PacketContainer<?> packet;
-        while ((packet = poll(queue)) != null) {
+        while ((packet = poll(queue, fromHead)) != null) {
             packets.add(packet);
 
             if (packets.size() == amount) return packets;
@@ -213,9 +216,13 @@ public class PacketBundleSaver {
         return packets;
     }
 
-    private List<PacketContainer<?>> peekPackets(PacketSaverQueue queue, int amount) {
-        List<PacketContainer<?>> packets = new ArrayList<>();
-        for (PacketContainer<?> packet : queue.packets) {
+    private List<PacketContainer<?>> peekPackets(PacketSaverQueue queue, int amount, boolean fromHead) {
+        List<PacketContainer<?>> packets = new LinkedList<>();
+
+        List<PacketContainer<?>> queuePackets = new ArrayList<>(queue.packets);
+        if (!fromHead) Collections.reverse(queuePackets);
+
+        for (PacketContainer<?> packet : queuePackets) {
             packets.add(packet);
 
             if (packets.size() == amount) return packets;
@@ -231,11 +238,11 @@ public class PacketBundleSaver {
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketSaverQueue queue, boolean remove) {
         if (!remove) return (PacketContainer<WP>) queue.packets.peek();
 
-        return poll(queue);
+        return poll(queue, true);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue) {
-        PacketContainer<WP> packet = (PacketContainer<WP>) queue.packets.poll();
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue, boolean fromHead) {
+        PacketContainer<WP> packet = (PacketContainer<WP>) (fromHead ? queue.packets.poll() : queue.packets.pollLast());
         removeFromSavers(packet);
 
         return packet;
