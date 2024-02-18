@@ -5,7 +5,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;

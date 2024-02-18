@@ -3,7 +3,7 @@ package me.alek.honey.tracker;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 

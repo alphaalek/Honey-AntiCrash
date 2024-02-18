@@ -17,7 +17,7 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.packet.ListenerPriority;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.PacketBundleSaver;
@@ -129,7 +129,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         // setup packet library
-        packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, true, "honey_packet_handler", "honey_packet_decoder"));
+        setupPacketLibrary();
 
         if (!Bukkit.getServer().getPluginManager().isPluginEnabled(plugin)) {
             plugin.getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
@@ -180,6 +180,12 @@ public class HoneyPlugin implements HoneyAPI {
         getLoggerService().getLogger().info("Honey is now fully loaded in! Version: " + plugin.getDescription().getVersion());
     }
 
+    private void setupPacketLibrary() {
+        if (packetLibrary == null) {
+            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey_packet_handler", "honey_packet_decoder", " honey_connection_handler"));
+        }
+    }
+
     private void setupRecentPingLookupRunnable() {
         new BukkitRunnable() {
             @Override
@@ -219,9 +225,7 @@ public class HoneyPlugin implements HoneyAPI {
                     PacketLibrary.get().addDecodeListener((SyncPacketAdapter<?>) check, priority);
 
                 check.load();
-                continue;
             }
-            PacketLibrary.get().getEventManager().addListener(check);
         }
     }
 

@@ -2,14 +2,11 @@ package me.alek.honey.netty.processor;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.event.EventManager;
-import me.alek.honey.netty.api.event.impl.packet.*;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
-import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -21,7 +18,6 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class InternalPacketProcessor implements PacketProcessor {
@@ -30,11 +26,6 @@ public class InternalPacketProcessor implements PacketProcessor {
     private final Map<Class<?>, ListModifier<?>> PACKET_ADAPTERS = new HashMap<>();
     private final ListModifier<?> DECODE_LIST_MODIFIER = new ListModifier<>();
     private final Map<PacketTypeEnum, Runnable> POST_ACTION_MAP = new HashMap<>();
-    private final EventManager EVENT_MANAGER;
-
-    public InternalPacketProcessor(EventManager eventManager) {
-        this.EVENT_MANAGER = eventManager;
-    }
 
     private static class ListModifier<WP extends WrappedPacket<WP>> {
 
@@ -308,11 +299,10 @@ public class InternalPacketProcessor implements PacketProcessor {
         // get information about this packet
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
         final boolean hasAdapters = hasListener(packetType);
-        final boolean hasListeners = EVENT_MANAGER.hasHandlers(EVENT_MANAGER.getPacketEventFor(packetState, packetBound), true);
 
         // check if this packet type has any listeners which can handle this packet.
         // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
-        if (!hasAdapters && !hasListeners) {
+        if (!hasAdapters) {
             return registerSimpleContainerToBundle(packet, player, packetBound);
         }
 
@@ -330,79 +320,8 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
         // handle the packet listeners
-        if (hasAdapters) {
-            callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
-        }
-        AtomicReference<PacketEvent> packetEvent = new AtomicReference<>();
-        if (hasListeners) {
-            switch (packetBound) {
+        callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
 
-                case CLIENT: {
-                    switch (packetState) {
-                        case HANDSHAKE: {
-                            processHandshakeReceiveInternal(packetContainer);
-                            packetEvent.set(new PacketHandshakeReceiveEvent(player, packetContainer));
-                            break;
-                        }
-                        case LOGIN: {
-                            processLoginReceiveInternal(packetContainer);
-                            packetEvent.set(new PacketLoginReceiveEvent(player, packetContainer));
-                            break;
-                        }
-                        case STATUS: {
-                            processStatusReceiveInternal(packetContainer);
-                            packetEvent.set(new PacketStatusReceiveEvent(player, packetContainer));
-                            break;
-                        }
-                        case PLAY: {
-                            processPlayReceiveInternal(packetContainer);
-                            packetEvent.set(new PacketPlayReceiveEvent(player, packetContainer));
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case SERVER: {
-                    switch (getPacketState(player, packet)) {
-                        case LOGIN: {
-                            processLoginSendInternal(packetContainer);
-                            packetEvent.set(new PacketLoginSendEvent(player, packetContainer));
-                            break;
-                        }
-                        case STATUS: {
-                            processStatusSendInternal(packetContainer);
-                            packetEvent.set(new PacketStatusSendEvent(player, packetContainer));
-                            break;
-                        }
-                        case PLAY: {
-                            processPlaySendInternal(packetContainer);
-                            packetEvent.set(new PacketPlaySendEvent(player, packetContainer));
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-            final PacketEvent event = packetEvent.get();
-            if (event != null) {
-                PacketLibrary.get().callSyncEvent(event, true);
-                if (packetContainer.isCancelled()) {
-                    event.setCancelled(true);
-                }
-            }
-        }
-        final PacketEvent event = packetEvent.get();
-        boolean calledCancelled = false;
-        if (hasAdapters && packetContainer.isCancelled()) {
-            cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
-            calledCancelled = true;
-        }
-        if (event != null && event.isCancelled()) {
-            packetContainer.cancel();
-            if (hasAdapters && !calledCancelled) {
-                cancelListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
-            }
-        }
         packetContainer.getEventloopStateTimings().stopTimings();
 
         return packetContainer;

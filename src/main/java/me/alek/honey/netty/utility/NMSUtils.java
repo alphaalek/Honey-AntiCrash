@@ -41,6 +41,10 @@ public class NMSUtils {
         return lookupChannels.computeIfAbsent(player.getUniqueId(), (d) -> channel.get(getNetworkManager(player)));
     }
 
+    public static Channel getChannelFromNetworkManager(Object networkManager) {
+        return channel.get(networkManager);
+    }
+
     public static void removeChannelLookup(UUID uuid) {
         lookupChannels.remove(uuid);
     }

@@ -1,8 +1,8 @@
-package me.alek.honey.netty.injector;
+package me.alek.honey.netty.injector.handler;
 
 import org.bukkit.entity.Player;
 
-public interface AbstractPipelineProxy {
+public interface UpdatableChannel {
 
     void setPlayer(Player player);
 

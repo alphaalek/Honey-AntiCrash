@@ -2,10 +2,10 @@ package me.alek.honey.netty.bukkit;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
-import me.alek.honey.netty.injector.AbstractPipelineProxy;
-import me.alek.honey.netty.injector.DuplexChannelHandler;
-import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.injector.MissingHoneyHandlerException;
+import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
+import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.utility.NMSUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,33 +25,22 @@ public class BukkitEventInternal implements Listener {
 
         PacketLibrary library = PacketLibrary.get();
         Channel channel = NMSUtils.getChannel(player);
+
         if ((channel == null || channel.pipeline().toMap().isEmpty()) && firstCall) {
             NMSUtils.removeChannelLookup(player.getUniqueId());
             onJoin(event, false);
             return;
         }
+
         if (channel == null || channel.pipeline().toMap().isEmpty()) {
             player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
             return;
         }
 
-        AbstractNettyChannelInjector injector = library.getInjector();
-        boolean injected = false;
-        if (!library.useLateInjection()) {
-
-            AbstractPipelineProxy packetHandler = injector.getHandler(channel);
-            if (packetHandler != null) {
-                injected = true;
-                packetHandler.setPlayer(player);
-
-                // trigger events
-                injector.injectPlayer(player, false);
-            }
-        }
-        // late inject player's channel if it's not injected yet
-        if (!injected) injector.injectPlayer(player, true);
-
-        if (injector.getHandler(channel) == null) {
+        SpigotPipelineInjector injector = library.getPipelineInjector();
+        try {
+            injector.updatePlayer(player);
+        } catch (MissingHoneyHandlerException exception) {
             player.kickPlayer("Broken pipe!");
         }
     }
@@ -60,7 +49,7 @@ public class BukkitEventInternal implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        PacketLibrary.get().getInjector().ejectPlayer(player);
+        PacketLibrary.get().getPipelineInjector().ejectChannel(NMSUtils.getChannel(player));
         NMSUtils.removeChannelLookup(player.getUniqueId());
 
         DuplexChannelHandler.getPacketBundleSavers().remove(player.getUniqueId());

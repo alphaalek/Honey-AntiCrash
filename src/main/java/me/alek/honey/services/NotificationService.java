@@ -250,7 +250,7 @@ public class NotificationService {
                 "{\"text\":\"§cCancelling inbound packets... [" + size + "]\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
-        HoneyPlugin.get().getPacketLibrary().getInjector().writePacket(player, actionBarPacket);
+        HoneyPlugin.get().getPacketLibrary().getPacketManager().writePacket(player, actionBarPacket);
     }
 
     public void notify(String notification) {

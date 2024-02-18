@@ -1,17 +1,17 @@
-package me.alek.honey.netty.injector;
+package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import me.alek.honey.tracker.QueueExecutionWatchdogThread;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.tracker.QueueExecutionWatchdogThread;
 import me.alek.honey.utility.ThreadLocalAccessor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class InboundPacketDecoder extends ByteToMessageDecoder implements AbstractPipelineProxy {
+public class InboundPacketDecoder extends ByteToMessageDecoder implements UpdatableChannel {
 
     private static final Set<UUID> registeredPacketDecoders = new HashSet<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
@@ -43,10 +43,6 @@ public class InboundPacketDecoder extends ByteToMessageDecoder implements Abstra
     private double recentDeltaReceived = 0;
     private boolean hasRead;
     private Player player;
-
-    public InboundPacketDecoder(Player player) {
-        this.player = player;
-    }
 
     public void setPlayer(Player player) {
         this.player = player;

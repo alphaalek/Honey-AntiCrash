@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import com.sun.scenario.effect.Flood;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -13,7 +14,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.PacketBundleFilters;
@@ -204,8 +205,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
             double decodeTime = 0;
             if (player != null) {
-                InboundPacketDecoder packetDecoder = packetDecoderMap.computeIfAbsent(player.getUniqueId(),
-                        (d) -> (InboundPacketDecoder) PacketLibrary.get().getInjector().getDecoder(packet.getContainer().getChannel()));
+                InboundPacketDecoder packetDecoder = FloodListener.packetDecoderMap.get(player.getUniqueId());
                 if (packetDecoder == null) return ResponseBuilder.SUCCESS;
 
                 // disable this check if the TPS is really low or ping of the player is too high

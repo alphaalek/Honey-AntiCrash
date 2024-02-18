@@ -6,22 +6,22 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class PacketLibrarySettings {
 
-    private boolean useLateInjection;
     private NetProtocol fallbackProtocol;
     private final Plugin plugin;
     private final String handlerName;
     private final String decoderName;
+    private final String connectionName;
 
     public PacketLibrarySettings(
             Plugin plugin,
-            boolean useLateInjection,
             String handlerName,
-            String decoderName
+            String decoderName,
+            String connectionName
     ) {
-        this.useLateInjection = useLateInjection;
         this.plugin = plugin;
         this.handlerName = handlerName;
         this.decoderName = decoderName;
+        this.connectionName = connectionName;
     }
 
     public String getHandlerName() {
@@ -32,16 +32,12 @@ public class PacketLibrarySettings {
         return decoderName;
     }
 
-    public void setUseLateInjection(boolean value) {
-        this.useLateInjection = value;
+    public String getConnectionName() {
+        return connectionName;
     }
 
     public Plugin getPlugin() {
         return plugin;
-    }
-
-    public boolean useLateInjection() {
-        return useLateInjection;
     }
 
     public void setFallbackProtocol(NetProtocol value) {

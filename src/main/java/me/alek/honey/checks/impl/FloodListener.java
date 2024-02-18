@@ -12,8 +12,8 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.AbstractPipelineProxy;
-import me.alek.honey.netty.injector.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.UpdatableChannel;
+import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 
 public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
+    public static final Map<UUID, InboundPacketDecoder> packetDecoderMap = new HashMap<>();
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     private static final ViolationService.CheckKey sharedIgnoringKey = new ViolationService.CheckKey();
@@ -71,17 +71,8 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public void setup(Player player) {
         final UUID uuid = player.getUniqueId();
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                AbstractPipelineProxy proxy;
-                while ((proxy = HoneyPlugin.get().getPacketLibrary().getInjector().getDecoder(NMSUtils.getChannel(player))) == null && player.isOnline()) {
-                }
-                if (proxy instanceof InboundPacketDecoder && player.isOnline()) {
-                    packetDecoderMap.put(uuid, (InboundPacketDecoder) proxy);
-                }
-            }
-        }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
+        packetDecoderMap.put(uuid,
+                (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(NMSUtils.getChannel(player)));
     }
 
     @Override

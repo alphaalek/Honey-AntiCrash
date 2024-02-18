@@ -1,13 +1,11 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.netty.api.event.Event;
-import me.alek.honey.netty.api.event.EventManager;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
-import me.alek.honey.netty.injector.AbstractNettyChannelInjector;
-import me.alek.honey.netty.injector.EarlyChannelInjector;
-import me.alek.honey.netty.injector.LateChannelInjector;
+import me.alek.honey.netty.injector.ServerPacketManager;
+import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
+import me.alek.honey.netty.injector.connection.SpigotServerInjector;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
@@ -19,7 +17,6 @@ import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -29,10 +26,11 @@ public class PacketLibrary {
 
     private final PacketLibrarySettings settings;
     private final PacketProcessor packetProcessor;
-    private final EventManager eventManager;
     private final Plugin plugin;
     private CountDownLatch disablingLatch;
-    private AbstractNettyChannelInjector proxy;
+    private final SpigotPipelineInjector pipelineInjector;
+    private final SpigotServerInjector serverInjector;
+    private final ServerPacketManager packetManager;
     private boolean enabled = true;
 
     private static PacketLibrary INSTANCE;
@@ -50,44 +48,32 @@ public class PacketLibrary {
         INSTANCE = this;
         this.settings = settings;
         plugin = settings.getPlugin();
-        eventManager = new EventManager();
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
-        if (useLateInjection())
-            proxy = new LateChannelInjector();
-        else
-            proxy = new EarlyChannelInjector();
+        serverInjector = new SpigotServerInjector();
+        if (serverInjector.isServerBound()) {
+            serverInjector.inject();
+        }
 
-        proxy.inject();
-        packetProcessor = new InternalPacketProcessor(eventManager);
+        pipelineInjector = new SpigotPipelineInjector();
+
+        packetProcessor = new InternalPacketProcessor();
+        packetManager = new ServerPacketManager();
 
         PacketType.load();
         PacketWrapperInvokerFactory.load();
     }
 
-    public void callSyncEvent(Event event, boolean isPacket) {
-        eventManager.callListeners(event, isPacket);
+    public SpigotServerInjector getServerInjector() {
+        return serverInjector;
     }
 
-    public void setLateProxy() {
-        if (proxy instanceof EarlyChannelInjector) {
-            proxy.eject();
-            proxy = new LateChannelInjector();
-            proxy.inject();
-        }
-        settings.setUseLateInjection(true);
+    public SpigotPipelineInjector getPipelineInjector() {
+        return pipelineInjector;
     }
 
-    public EventManager getEventManager() {
-        return eventManager;
-    }
-
-    public AbstractNettyChannelInjector getInjector() {
-        return proxy;
-    }
-
-    public boolean useLateInjection() {
-        return settings.useLateInjection();
+    public ServerPacketManager getPacketManager() {
+        return packetManager;
     }
 
     public NetProtocol getFallbackProtocol() {
@@ -100,6 +86,10 @@ public class PacketLibrary {
 
     public String getDecoderName() {
         return settings.getDecoderName();
+    }
+
+    public String getConnectionName() {
+        return settings.getConnectionName();
     }
 
     public PacketLibrarySettings getSettings() {
@@ -120,12 +110,12 @@ public class PacketLibrary {
         }
     }
 
-    public void sendPacket(Player player, WrappedPacket<?> packet) {
-        proxy.writePacket(player, packet.getHandle());
+    public void writePacket(Player player, WrappedPacket<?> packet) {
+        packetManager.writePacket(player, packet.getHandle());
     }
 
     public void flushPackets(Player player) {
-        proxy.flushPackets(player);
+        packetManager.flushPackets(player);
     }
 
     public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
@@ -182,7 +172,7 @@ public class PacketLibrary {
     public void disable() {
         enabled = false;
         disablingLatch = new CountDownLatch(1);
-        proxy.eject();
+        serverInjector.eject();
         disablingLatch.countDown();
         disablingLatch = null;
     }
