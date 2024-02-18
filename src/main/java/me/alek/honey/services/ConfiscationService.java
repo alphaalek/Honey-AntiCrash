@@ -29,49 +29,10 @@ public class ConfiscationService {
     }
 
     public void confiscate(Player player, ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
-        player.sendMessage(check.name());
-
         switch (confiscationStrategy) {
 
             case LENIENT:
-                switch (check) {
-                    case MAX_AMOUNT_CHECK:
-                        item.setAmount(ConfigurationOptions.ItemAnalysis.MAX_AMOUNT);
-                        break;
-                    case MAX_DISPLAYNAME_LENGTH_CHECK:
-                        item.getItemMeta().setDisplayName(item.getItemMeta().getDisplayName().substring(0, ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH));
-                        break;
-                    case MAX_ENCHANTMENT_LEVEL_CHECK:
-                        item.getItemMeta().getEnchants().entrySet()
-                                .stream()
-                                .filter((entry) -> entry.getValue() > ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL)
-                                .forEach((entry) -> entry.setValue(ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL));
-                        break;
-                    case MAX_TOTAL_LORE_LENGTH_CHECK:
-                        int counter = 0;
-                        int loreIndex = 0;
-                        for (String lore : item.getItemMeta().getLore()) {
-                            counter += lore.length();
-
-                            if (counter > ConfigurationOptions.ItemAnalysis.MAX_TOTAL_LORE_LENGTH) {
-                                break;
-                            }
-                            loreIndex++;
-                        }
-                        item.getItemMeta().getLore().subList(0, loreIndex);
-                        break;
-                    case UNBREAKABLE_ITEM_CHECK:
-                        nbt.remove("Unbreakable");
-                        break;
-                    case ATTRIBUTE_MODIFIERS_CHECK:
-                        nbt.remove("AttributeModifiers");
-                        break;
-                    case CUSTOM_POTION_EFFECTS_CHECK:
-                        nbt.remove("CustomPotionEffects");
-                        break;
-                    default:
-                        nbt.clear();
-                }
+                confiscateLenient(item, nbt, check);
                 break;
             case STRICT:
                 player.getInventory().setContents(new ItemStack[0]);
@@ -81,6 +42,47 @@ public class ConfiscationService {
                 player.getInventory().remove(item);
                 item.setType(Material.AIR);
                 break;
+        }
+    }
+
+    private void confiscateLenient(ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
+        switch (check) {
+            case MAX_AMOUNT_CHECK:
+                item.setAmount(ConfigurationOptions.ItemAnalysis.MAX_AMOUNT);
+                break;
+            case MAX_DISPLAYNAME_LENGTH_CHECK:
+                item.getItemMeta().setDisplayName(item.getItemMeta().getDisplayName().substring(0, ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH));
+                break;
+            case MAX_ENCHANTMENT_LEVEL_CHECK:
+                item.getItemMeta().getEnchants().entrySet()
+                        .stream()
+                        .filter((entry) -> entry.getValue() > ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL)
+                        .forEach((entry) -> entry.setValue(ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL));
+                break;
+            case MAX_TOTAL_LORE_LENGTH_CHECK:
+                int counter = 0;
+                int loreIndex = 0;
+                for (String lore : item.getItemMeta().getLore()) {
+                    counter += lore.length();
+
+                    if (counter > ConfigurationOptions.ItemAnalysis.MAX_TOTAL_LORE_LENGTH) {
+                        break;
+                    }
+                    loreIndex++;
+                }
+                item.getItemMeta().getLore().subList(0, loreIndex);
+                break;
+            case UNBREAKABLE_ITEM_CHECK:
+                nbt.remove("Unbreakable");
+                break;
+            case ATTRIBUTE_MODIFIERS_CHECK:
+                nbt.remove("AttributeModifiers");
+                break;
+            case CUSTOM_POTION_EFFECTS_CHECK:
+                nbt.remove("CustomPotionEffects");
+                break;
+            default:
+                nbt.clear();
         }
     }
 }
