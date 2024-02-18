@@ -251,7 +251,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return list.stream().anyMatch((location) -> distanceFunction.apply(location) < diff);
     }
 
-    public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, Function<Location, Double> distanceFunction, double diff) {
+    public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, double diff, Function<Location, Double> distanceFunction) {
         final UUID uuid = player.getUniqueId();
 
         if (lastTeleportationLocationMap.containsKey(uuid)) {
@@ -323,10 +323,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             final Location lastKnownPacketLoc = container.getStorage().get(Location.class, 0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(
-                    player,
-                    (location) -> Locations.calculate3DDistance(location, packetLoc),
-                    15)
-            ) {
+                    player, 15,
+                    (location) -> Locations.calculate3DDistance(location, packetLoc))) {
                 return ResponseBuilder.SUCCESS.builder().skip(3).build();
             }
 

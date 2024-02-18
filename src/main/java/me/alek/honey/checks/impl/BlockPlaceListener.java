@@ -97,7 +97,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
             // let's now check the distance to the recent server locations, and see if that is also way off
             if (distance == -1
                     || !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
-                            player, blockPosition::distance, maxDistance)) {
+                            player, maxDistance, blockPosition::distance)) {
                 // add the distance to the development data
                 developmentData.addPoint("BlockPos", blockPosition);
                 developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));

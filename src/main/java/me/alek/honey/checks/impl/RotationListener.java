@@ -37,6 +37,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         Location location = packetContainer.getPacket().getLocation();
 
         if (location.getPitch() == 0 && location.getYaw() == 0) {
+            lastYawMap.put(player.getUniqueId(), 0f);
+            lastPitchMap.put(player.getUniqueId(), 0f);
             return false;
         }
         float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player, location.getYaw()));
@@ -136,10 +138,9 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
-                    player,
-                    (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()),
-                    100)) {
+            if (packet.getYaw() == 0 || PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
+                    player, 100,
+                    (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
                 return ResponseBuilder.SUCCESS.builder().terminate().build();
             }
             if (getSetting().isEnabled()) {
@@ -174,7 +175,10 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         @Override
         public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-                return container.getStorage().get(ResponseContainer.class, 0);
+
+                if (packet.getYaw() != 0) {
+                    return container.getStorage().get(ResponseContainer.class, 0);
+                }
             }
             return ResponseBuilder.SUCCESS;
         }

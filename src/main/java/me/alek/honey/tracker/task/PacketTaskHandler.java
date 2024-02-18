@@ -133,7 +133,8 @@ public class PacketTaskHandler {
                     if (packet != null) {
                         packet.getEventloopStateTimings().stopTimings();
 
-                        monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+                        if (packet.getPlayer() != null) // we have to make sure it's not an unmodifiable packet
+                            monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
                     }
                     lastHandledPacket = packet;
                 }

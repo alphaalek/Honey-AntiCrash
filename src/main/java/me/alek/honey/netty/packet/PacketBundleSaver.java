@@ -36,6 +36,8 @@ public class PacketBundleSaver {
     private final List<PacketSaverQueue>[] packets;
     private final LinkedList<PacketContainer<?>> commonPackets = new LinkedList<>();
 
+    private PacketBundleSaver transferedTo;
+
     public PacketBundleSaver() {
         packets = new List[MAX_PACKET_ID + 1];
 
@@ -69,6 +71,7 @@ public class PacketBundleSaver {
             while ((packet = getOldest(true)) != null) {
                 bundleSaver.add(packet);
             }
+            transferedTo = bundleSaver;
         } finally {
             lock.writeLock().unlock();
         }
@@ -145,7 +148,12 @@ public class PacketBundleSaver {
 
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(Set<PacketTypeEnum> packetTypeSet, boolean remove) {
         lock.readLock().lock();
+
         try {
+            if (transferedTo != null) {
+                return transferedTo.get(packetTypeSet, remove);
+            }
+
             filterPacketTypes(packetTypeSet);
 
             PacketTypeEnum first = packetTypeSet.iterator().next();
@@ -168,6 +176,10 @@ public class PacketBundleSaver {
 
         lock.readLock().lock();
         try {
+            if (transferedTo != null) {
+                return transferedTo.get(packetTypeSet, amount, remove);
+            }
+
             filterPacketTypes(packetTypeSet);
 
             PacketTypeEnum first = packetTypeSet.iterator().next();
@@ -243,6 +255,10 @@ public class PacketBundleSaver {
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> getOldest(boolean remove) {
         lock.readLock().lock();
         try {
+            if (transferedTo != null) {
+                return transferedTo.getOldest(remove);
+            }
+
             return (PacketContainer<WP>) (remove ? commonPackets.poll() : commonPackets.peek());
         } finally {
             lock.readLock().unlock();
@@ -252,6 +268,10 @@ public class PacketBundleSaver {
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> getRecent(boolean remove) {
         lock.readLock().lock();
         try {
+            if (transferedTo != null) {
+                return transferedTo.getRecent(remove);
+            }
+
             return (PacketContainer<WP>) (remove ? commonPackets.pollLast() : commonPackets.peekLast());
         } finally {
             lock.readLock().unlock();
@@ -261,6 +281,11 @@ public class PacketBundleSaver {
     public void clear() {
         lock.readLock().lock();
         try {
+            if (transferedTo != null) {
+                transferedTo.clear();
+                return;
+            }
+
             for (Deque<PacketContainer<?>> packetList : PACKET_SAVES.values()) {
                 packetList.clear();
             }

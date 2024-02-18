@@ -23,7 +23,9 @@ import me.alek.honey.netty.packet.PacketBundleFilters;
 import me.alek.honey.netty.packet.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
@@ -31,26 +33,18 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.*;
-import me.alek.honey.utility.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -70,17 +64,31 @@ public class HoneyPlugin implements HoneyAPI {
     private MonitorManager monitorManager;
     private boolean isLoaded;
     private boolean isRunning;
-    private boolean usingOldVersion;
-    private UpdateChecker updateChecker;
     private PacketLibrary packetLibrary;
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
     private QueueExecutionWatchdogThread watchdogThread;
     private Thread serverThread;
 
     private final Plugin plugin;
+    private final String latestVersion;
+    private final boolean isUsingOldVersion;
 
-    public HoneyPlugin(Plugin plugin) {
+    public HoneyPlugin(Plugin plugin, String version, String latestVersion) {
         this.plugin = plugin;
+        this.latestVersion = latestVersion;
+        isUsingOldVersion = !version.equals(latestVersion);
+
+        if (!plugin.getDescription().getVersion().equals(version)) {
+            try {
+                PluginDescriptionFile descriptionFile = plugin.getDescription();
+                FieldAccessor<String> versionField = Reflection.getField(descriptionFile.getClass(), "version", String.class);
+
+                versionField.set(descriptionFile, version);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     public synchronized void onEnable() {
@@ -158,22 +166,18 @@ public class HoneyPlugin implements HoneyAPI {
         // setup metrics
         new Metrics(plugin, 19028);
 
-        // update checker
-        this.updateChecker = new UpdateChecker();
-        this.usingOldVersion = updateChecker.isOldVersion();
-
         // setup listeners
         Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
         packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 
-        // setup runnable getting the ping of players
+        // setup runnables
         setupRecentPingLookupRunnable();
 
         // startup watchdog thread
         QueueExecutionWatchdogThread.startWatchdog();
 
-        getLoggerService().getLogger().info("Honey is now fully loaded in!");
+        getLoggerService().getLogger().info("Honey is now fully loaded in! Version: " + plugin.getDescription().getVersion());
     }
 
     private void setupRecentPingLookupRunnable() {
@@ -189,6 +193,10 @@ public class HoneyPlugin implements HoneyAPI {
                     this.cancel();
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 60L);
+    }
+
+    private void setupSaltVerification() {
+
     }
 
     public void onDisable() {
@@ -338,12 +346,12 @@ public class HoneyPlugin implements HoneyAPI {
         return commandManager;
     }
 
-    public boolean isUsingOldVersion() {
-        return usingOldVersion;
+    public String getLatestVersion() {
+        return latestVersion;
     }
 
-    public UpdateChecker getUpdateChecker() {
-        return updateChecker;
+    public boolean isUsingOldVersion(){
+        return isUsingOldVersion;
     }
 
     public boolean isRunning() {

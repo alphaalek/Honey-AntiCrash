@@ -57,7 +57,7 @@ public enum Timespan {
         this.timespan = timespan;
     }
 
-    private TimespanContext getContext(HoneyTracker tracker) {
+    private synchronized TimespanContext getContext(HoneyTracker tracker) {
         return contextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this));
     }
 
@@ -73,7 +73,7 @@ public enum Timespan {
         return timespan;
     }
 
-    public void clearContext(HoneyTracker tracker) {
+    public synchronized void clearContext(HoneyTracker tracker) {
         contextMap.remove(tracker);
     }
 }

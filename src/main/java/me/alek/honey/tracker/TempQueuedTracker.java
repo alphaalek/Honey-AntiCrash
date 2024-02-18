@@ -13,7 +13,12 @@ public abstract class TempQueuedTracker implements HoneyTracker {
     protected final List<Tuple2<AtomicDouble, TempQueue>> tickDurationQueues = new ArrayList<>();
 
     public TempQueuedTracker() {
+        setup();
+    }
+
+    private synchronized void setup() {
         for (Timespan timespan : Timespan.values()) {
+            timespan.clearContext(this);
             tickDurationQueues.add(new Tuple2<>(timespan.getTotal(this), timespan.getQueue(this)));
         }
     }
@@ -39,19 +44,23 @@ public abstract class TempQueuedTracker implements HoneyTracker {
         return queue.getT2();
     }
 
-    public Tuple2<AtomicDouble, TempQueue> getTuple(Timespan timespan) {
+    public synchronized Tuple2<AtomicDouble, TempQueue> getTuple(Timespan timespan) {
         for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
             if (timespan.getQueue(this).equals(queue.getT2()))
                 return queue;
         }
-        return null;
+        setup();
+
+        return getTuple(timespan);
     }
 
-    public int getLength(Timespan timespan) {
+    public synchronized int getLength(Timespan timespan) {
         for (TempQueue queue : tickDurationQueues.stream().map(Tuple2::getT2).collect(Collectors.toSet())) {
             if (queue.getTimespan() == timespan)
                 return queue.getQueueSize();
         }
-        return 0;
+        setup();
+
+        return getLength(timespan);
     }
 }

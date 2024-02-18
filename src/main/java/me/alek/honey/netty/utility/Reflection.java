@@ -232,7 +232,8 @@ public class Reflection {
 
     public static <T> FieldAccessor<T> getNullableField(Class<?> target, String name, Class<?> type) {
         for (Field field : target.getDeclaredFields()) {
-            if (!(field.getName().equals(name) && field.getType().equals(type))) {
+            if (!((name == null || field.getName().equals(name))
+                    && (type == null || field.getType().equals(type)))) {
                 continue;
             }
             return new FieldAccessor<>(field);

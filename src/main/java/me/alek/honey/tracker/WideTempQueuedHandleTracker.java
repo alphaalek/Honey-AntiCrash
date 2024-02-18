@@ -2,6 +2,7 @@ package me.alek.honey.tracker;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.omg.CORBA.UNKNOWN;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,11 +13,16 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     private final TempTimedQueuedTracker commonTracker = new TempTimedQueuedTracker();
 
     @Override
-    public void remove(Player key) {
-        trackerMap.remove(key.getUniqueId());
+    public synchronized void remove(Player key) {
+        if (trackerMap.containsKey(key.getUniqueId())) {
+            for (Timespan timespan : Timespan.values()) {
+                timespan.clearContext(getTracker(key));
+            }
+            trackerMap.remove(key.getUniqueId());
+        }
     }
 
-    public TempTimedQueuedTracker getTracker(Player player) {
+    public synchronized TempTimedQueuedTracker getTracker(Player player) {
         return trackerMap.computeIfAbsent(player.getUniqueId(), (d) -> new TempTimedQueuedTracker());
     }
 

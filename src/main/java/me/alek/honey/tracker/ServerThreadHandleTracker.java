@@ -138,6 +138,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 recentPollStart = -1;
                 return otherTask;
             }
+            calls++;
             Player player = null;
             // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
             if (!initiallyTickRound.get()) {
@@ -170,13 +171,15 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (task != null)
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
 
+            Object tickTask = task == null ? null : newTickTask(recentPacketAuthor.get() == null
+                    ? (Runnable) task : PacketTaskHandler.wrapTask(task, recentPacketAuthor.get()));
+
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tickloop is being completed by polling one extra time
             if (!nullPoll && !havingOneMoreElement && super.peek() == null) {
                 nullPoll = true;
                 poll();
             }
-            calls++;
 
             if (task == null) {
 
@@ -201,9 +204,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
                 if (initiallyTickRound.get()) initiallyTickRound.set(false);
             }
-
-            return task == null ? null : newTickTask(recentPacketAuthor.get() == null
-                    ? (Runnable) task : PacketTaskHandler.wrapTask(task, recentPacketAuthor.get()));
+            return tickTask;
         }
 
         private Object newTickTask(Runnable runnable) {

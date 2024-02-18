@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.services.NotificationService;
 import me.alek.honey.storage.SQLManagerWrapper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -30,8 +32,14 @@ public class PlayerJoinListener implements Listener {
 
         instantJoinedMap.put(player.getUniqueId(), System.currentTimeMillis());
 
-        if (player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
-            HoneyPlugin.get().getUpdateChecker().sendWarning(player);
+        if (player.isOp() && !HoneyPlugin.get().isUsingOldVersion()) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.sendMessage(NotificationService.PREFIX + " §7Found an update: v" + HoneyPlugin.get().getLatestVersion() + ". Download:");
+                    player.sendMessage("§ahttps://github.com/alphaalek/Honey-AntiCrash/releases/");
+                }
+            }.runTaskLater(HoneyPlugin.get().getPlugin(), 40L);
         }
 
         SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
