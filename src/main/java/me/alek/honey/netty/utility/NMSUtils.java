@@ -61,28 +61,14 @@ public class NMSUtils {
         return networkManager.get(getPlayerConnection(player));
     }
 
-    public static Object getWorld(Player player) {
-        IStructureModifier<Object> craftWorldModifier = ReflectStructureCache.acquireStructure(getCraftWorldClass())
-                .withType(NMSUtils.getWorldServerClass()).withTarget(player.getWorld());
-
-        return craftWorldModifier.invokeMethod(0);
-    }
-
     public static Object getMinecraftServer() {
-        IStructureModifier<Object> craftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftServerClass())
-                .withType(NMSUtils.getMinecraftServerClass()).withTarget(Bukkit.getServer());
-
-        return craftServerModifier.invokeMethod("getServer", 0);
+        return Reflection.getFieldAssignableFrom(NMSUtils.getCraftServerClass(), 0, NMSUtils.getMinecraftServerClass())
+                .get(Bukkit.getServer());
     }
 
     public static Object getServerConnection() {
-        Object minecraftServer = getMinecraftServer();
-
-        IStructureModifier<Object> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMinecraftServerClass())
-                .withType(NMSUtils.getServerConnectionClass())
-                .withTarget(minecraftServer);
-
-        return minecraftServerModifier.invokeMethod("getServerConnection", 0);
+        return Reflection.getMethodFromReturnType(NMSUtils.getMinecraftServerClass(), 0, NMSUtils.getServerConnectionClass())
+                .invoke(getMinecraftServer());
     }
 
     public static InetSocketAddress getSocketAddress(Player player) {

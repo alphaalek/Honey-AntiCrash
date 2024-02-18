@@ -11,7 +11,7 @@ public class EndInitProtocolInjector {
     public static class Initializer_v1_8 extends ChannelInitializer<Channel> {
 
         @Override
-        protected void initChannel(Channel channel) throws Exception {
+        protected void initChannel(Channel channel) {
             channel.pipeline().addLast(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(Channel channel) {
@@ -36,7 +36,7 @@ public class EndInitProtocolInjector {
                     ctx.pipeline().remove(this);
                 }
             }
-            ctx.pipeline().fireChannelRegistered();
+            super.channelRegistered(ctx);
         }
     }
 }

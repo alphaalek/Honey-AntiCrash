@@ -213,7 +213,7 @@ public class Reflection {
         if (target.getSuperclass() != null) {
             return getMethodFromReturnType(target.getSuperclass(), index, returnType);
         }
-        throw new RuntimeException("Reflection error (method):" + index + " " + target.getName() + ", " + returnType + ", " + returnType);
+        throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
     public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, String name, Class<?> returnType) {
