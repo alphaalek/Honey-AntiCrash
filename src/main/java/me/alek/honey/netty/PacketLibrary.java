@@ -1,5 +1,6 @@
 package me.alek.honey.netty;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
@@ -53,6 +54,9 @@ public class PacketLibrary {
         serverInjector = new SpigotServerInjector();
         if (serverInjector.isServerBound()) {
             serverInjector.inject();
+        } else {
+            // late bind, so we inject a bit later
+            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, serverInjector::inject);
         }
 
         pipelineInjector = new SpigotPipelineInjector();

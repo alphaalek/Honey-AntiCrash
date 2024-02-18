@@ -8,7 +8,6 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.NMSUtils;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -29,8 +28,7 @@ public class SpigotServerInjector {
     private <T> List<T> getNonEmptyServerConnectionList(Class<T> clazz) {
         if (serverConnectionListAccessor == null) {
             Object serverConnection = NMSUtils.getServerConnection();
-            Bukkit.getLogger().info(serverConnection + "");
-            
+
             serverConnectionListAccessor = ReflectStructureCache.acquireStructure(NMSUtils.getServerConnectionClass())
                     .<List<?>>withWeakType(List.class).withTarget(serverConnection);
         }
@@ -46,7 +44,6 @@ public class SpigotServerInjector {
     
     private void getChannelFutures() {
         List<ChannelFuture> channelFutures = getNonEmptyServerConnectionList(ChannelFuture.class);
-        Bukkit.getLogger().info(channelFutures + "");
 
         if (channelFutures == null) return;
 
@@ -103,7 +100,6 @@ public class SpigotServerInjector {
         if (channelFutures == null) {
             getChannelFutures();
             if (channelFutures == null) {
-                // If the server is using late bind, we will try to inject again a bit later
                 return;
             }
         }

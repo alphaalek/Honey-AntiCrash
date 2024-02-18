@@ -28,6 +28,8 @@ public class NMSUtils {
     );
 
     private static final HashMap<UUID, Channel> lookupChannels = new HashMap<>();
+    private static Object minecraftServer;
+    private static Object serverConnection;
 
     public static synchronized UUID getUUIDForChannel(Channel channel) {
         for (UUID uuid : lookupChannels.keySet()) {
@@ -62,12 +64,24 @@ public class NMSUtils {
     }
 
     public static Object getMinecraftServer() {
-        return Reflection.getFieldAssignableFrom(NMSUtils.getCraftServerClass(), 0, NMSUtils.getMinecraftServerClass())
-                .get(Bukkit.getServer());
+        return minecraftServer != null
+                ? minecraftServer
+                : Reflection.getFieldAssignableFrom(NMSUtils.getCraftServerClass(), 0, NMSUtils.getMinecraftServerClass())
+                        .get(Bukkit.getServer());
     }
 
     public static Object getServerConnection() {
-        return Reflection.getMethodFromReturnType(NMSUtils.getMinecraftServerClass(), 0, NMSUtils.getServerConnectionClass())
+        Object firstTry;
+
+        return serverConnection != null ?
+                serverConnection
+                : ( (firstTry = getOrCreateServerConnection(0)) != null
+                        ? firstTry
+                        : getOrCreateServerConnection(1) );
+    }
+
+    private static Object getOrCreateServerConnection(int fieldIndex) {
+        return Reflection.getMethodFromReturnType(NMSUtils.getMinecraftServerClass(), fieldIndex, NMSUtils.getServerConnectionClass())
                 .invoke(getMinecraftServer());
     }
 
