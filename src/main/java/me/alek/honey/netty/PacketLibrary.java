@@ -28,7 +28,6 @@ public class PacketLibrary {
     private final PacketLibrarySettings settings;
     private final PacketProcessor packetProcessor;
     private final Plugin plugin;
-    private CountDownLatch disablingLatch;
     private final SpigotPipelineInjector pipelineInjector;
     private final SpigotServerInjector serverInjector;
     private final ServerPacketManager packetManager;
@@ -49,7 +48,13 @@ public class PacketLibrary {
         INSTANCE = this;
         this.settings = settings;
         plugin = settings.getPlugin();
-        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
+        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), plugin);
+
+        PacketType.load();
+        PacketWrapperInvokerFactory.load();
+
+        packetProcessor = new InternalPacketProcessor();
+        packetManager = new ServerPacketManager();
 
         pipelineInjector = new SpigotPipelineInjector();
 
@@ -60,12 +65,6 @@ public class PacketLibrary {
             // late bind, so we inject a bit later
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, serverInjector::inject);
         }
-
-        packetProcessor = new InternalPacketProcessor();
-        packetManager = new ServerPacketManager();
-
-        PacketType.load();
-        PacketWrapperInvokerFactory.load();
     }
 
     public SpigotServerInjector getServerInjector() {
@@ -102,16 +101,6 @@ public class PacketLibrary {
 
     public PacketProcessor getPacketProcessor() {
         return packetProcessor;
-    }
-
-    public void waitUntilDisabledIfProcessing() {
-        if (disablingLatch == null) return;
-
-        try {
-            disablingLatch.await();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
     }
 
     public void writePacket(Player player, WrappedPacket<?> packet) {
@@ -175,9 +164,6 @@ public class PacketLibrary {
 
     public void disable() {
         enabled = false;
-        disablingLatch = new CountDownLatch(1);
         serverInjector.eject();
-        disablingLatch.countDown();
-        disablingLatch = null;
     }
 }

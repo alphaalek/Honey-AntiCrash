@@ -23,16 +23,15 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
     private static final ThreadLocalAccessor<UUID> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
-    private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     private final InboundPacketDecoder decoder;
     private final Channel channel;
     private final PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     private volatile Player player;
 
-    public DuplexChannelHandler(Channel channel) {
+    public DuplexChannelHandler(Channel channel, InboundPacketDecoder decoder) {
         this.channel = channel;
-        decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
+        this.decoder = decoder;
     }
 
     public void setPlayer(final Player player) {
@@ -63,10 +62,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
     @Override
     public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
-        long readStart = monitorManager.isPacketsMonitored() ? System.nanoTime() : 0;
+        long readStart = HoneyPlugin.get().getMonitorManager().isPacketsMonitored() ? System.nanoTime() : 0;
 
         // register the handle time between the last handled packet and this one
-        if (decoder != null)
+        if (player != null)
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, decoder.getRecentDeltaDecode());
 
         PacketContainer<?> recent;

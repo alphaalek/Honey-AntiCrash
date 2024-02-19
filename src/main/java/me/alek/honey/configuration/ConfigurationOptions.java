@@ -206,12 +206,6 @@ public class ConfigurationOptions {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        try {
-            HoneyPlugin.get().getPacketLibrary().waitUntilDisabledIfProcessing();
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
 
         if (!vlSettingMap.containsKey(clazz)) {
             HoneyPlugin.get().resetConfiguration();

@@ -23,8 +23,9 @@ public class SpigotPipelineInjector {
                 ejectChannel(channel);
             }
 
-            channel.pipeline().addBefore("packet_handler", PacketLibrary.get().getHandlerName(), new DuplexChannelHandler(channel));
-            channel.pipeline().addAfter("splitter", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(channel));
+            InboundPacketDecoder decoder = new InboundPacketDecoder(channel);
+            channel.pipeline().addAfter("splitter", PacketLibrary.get().getDecoderName(), decoder);
+            channel.pipeline().addBefore("packet_handler", PacketLibrary.get().getHandlerName(), new DuplexChannelHandler(channel, decoder));
         }
     }
 
