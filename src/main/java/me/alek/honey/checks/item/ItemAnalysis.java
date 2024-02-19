@@ -92,7 +92,8 @@ public class ItemAnalysis {
     }
 
     public static boolean checkItem(Player player, ItemStack item, CheckContextContainer.DevelopmentData context) {
-        if (item == null || item.getType() == Material.AIR) {
+        if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
+                || item == null || item.getType() == Material.AIR) {
             return false;
         }
         for (final String ignoredPlayer : ignoredPlayers) {

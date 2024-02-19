@@ -635,10 +635,12 @@ public class ConfigurationOptions {
 
             public static String CONFISCATION_STRATEGY;
             public static List<String> IGNORED_PLAYERS;
+            public static boolean ENABLED;
 
             public static void load() {
                 CONFISCATION_STRATEGY = file.getString("item-analysis.general.confiscation-strategy");
                 IGNORED_PLAYERS = file.getStringList("item-analysis.general.ignored-players");
+                ENABLED = file.getBoolean("item-analysis.general.enabled");
             }
         }
 

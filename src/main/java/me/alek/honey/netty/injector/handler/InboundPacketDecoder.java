@@ -64,7 +64,6 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
 
     public void setPlayer(Player player) {
         this.player = player;
-        checkRelocation(channel);
     }
 
     public Player getPlayer() {

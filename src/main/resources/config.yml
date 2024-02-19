@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek05.
-#   + You are currently using the version 1.7.2
+#   + You are currently using the version 1.7.3
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -138,6 +138,9 @@ packet-dump:
 item-analysis:
 
   general:
+    # Should item analysis be enabled
+    enabled: true
+
     # What strategy should be used when an illegal item is found. You can choose between the following:
 
     # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.

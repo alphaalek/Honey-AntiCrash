@@ -29,13 +29,15 @@ public class SpigotPipelineInjector {
     }
 
     public boolean relocateHandlers(Channel channel) {
-        InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
-        if (decoder != null) {
-            channel.pipeline().remove(PacketLibrary.get().getDecoderName());
+        synchronized (channel) {
+            InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
+            if (decoder != null) {
+                channel.pipeline().remove(PacketLibrary.get().getDecoderName());
 
-            if (channel.pipeline().get("decompress") != null) {
-                channel.pipeline().addAfter("decompress", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(decoder));
-                return true;
+                if (channel.pipeline().get("decompress") != null) {
+                    channel.pipeline().addAfter("decompress", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(decoder));
+                    return true;
+                }
             }
         }
         return false;
@@ -58,15 +60,13 @@ public class SpigotPipelineInjector {
             throw new MissingHandlerException();
         }
 
-        synchronized (channel) {
-            UpdatableChannel handler = PacketLibrary.get().getPacketManager().getHandler(channel);
-            UpdatableChannel decoder = PacketLibrary.get().getPacketManager().getDecoder(channel);
-            if (handler == null || decoder == null) {
-                throw new MissingHandlerException();
-            }
-
-            handler.setPlayer(player);
-            decoder.setPlayer(player);
+        UpdatableChannel handler = PacketLibrary.get().getPacketManager().getHandler(channel);
+        UpdatableChannel decoder = PacketLibrary.get().getPacketManager().getDecoder(channel);
+        if (handler == null || decoder == null) {
+            throw new MissingHandlerException();
         }
+
+        handler.setPlayer(player);
+        decoder.setPlayer(player);
     }
 }

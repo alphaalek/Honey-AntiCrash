@@ -121,13 +121,10 @@ public class SpigotServerInjector {
             serverConnectionListAccessor.writeField(channelFuturesFieldIndex, Collections.synchronizedList(new ArrayList<>(channelFutures)));
 
             for (ChannelFuture channelFuture : channelFutures) {
-                Iterator<Map.Entry<String, ChannelHandler>> handlerIterator = channelFuture.channel().pipeline().iterator();
 
-                while (handlerIterator.hasNext()) {
-                    Map.Entry<String, ChannelHandler> handler = handlerIterator.next();
-
+                for (Map.Entry<String, ChannelHandler> handler : channelFuture.channel().pipeline()) {
                     if (handler.getValue() instanceof BeginInitProtocolInjector) {
-                        handlerIterator.remove();
+                        channelFuture.channel().pipeline().remove(handler.getValue());
                     }
                 }
             }
