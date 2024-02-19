@@ -51,6 +51,8 @@ public class PacketLibrary {
         plugin = settings.getPlugin();
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
+        pipelineInjector = new SpigotPipelineInjector();
+
         serverInjector = new SpigotServerInjector();
         if (serverInjector.isServerBound()) {
             serverInjector.inject();
@@ -58,8 +60,6 @@ public class PacketLibrary {
             // late bind, so we inject a bit later
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, serverInjector::inject);
         }
-
-        pipelineInjector = new SpigotPipelineInjector();
 
         packetProcessor = new InternalPacketProcessor();
         packetManager = new ServerPacketManager();

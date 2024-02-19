@@ -107,7 +107,7 @@ public class ItemAnalysis {
         }
         context.addPoint("Type", flaggedCheck.name().toLowerCase());
 
-        // HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
+        HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
         return true;
     }
 

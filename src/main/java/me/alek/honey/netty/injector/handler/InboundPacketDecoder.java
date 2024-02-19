@@ -64,8 +64,7 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
 
     public void setPlayer(Player player) {
         this.player = player;
-
-        PacketLibrary.get().getPipelineInjector().relocateHandlers(channel);
+        checkRelocation(channel);
     }
 
     public Player getPlayer() {
@@ -90,6 +89,8 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
                     registeredPacketDecoders.add(player.getUniqueId());
                 }
             }
+            checkRelocation(channel);
+
             earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
         } else earlyPacketInitializer.remove();
@@ -115,8 +116,7 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
     public void checkRelocation(Channel channel) {
         if (!hasBeenRelocated) {
 
-            PacketLibrary.get().getPipelineInjector().relocateHandlers(channel);
-            hasBeenRelocated = true;
+            hasBeenRelocated = PacketLibrary.get().getPipelineInjector().relocateHandlers(channel);
         }
     }
 

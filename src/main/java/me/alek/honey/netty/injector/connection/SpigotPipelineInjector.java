@@ -28,13 +28,17 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public void relocateHandlers(Channel channel) {
+    public boolean relocateHandlers(Channel channel) {
         InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
         if (decoder != null) {
             channel.pipeline().remove(PacketLibrary.get().getDecoderName());
 
-            channel.pipeline().addAfter("decompress", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(decoder));
+            if (channel.pipeline().get("decompress") != null) {
+                channel.pipeline().addAfter("decompress", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(decoder));
+                return true;
+            }
         }
+        return false;
     }
 
     public void ejectChannel(Channel channel) {
