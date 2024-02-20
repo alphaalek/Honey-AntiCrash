@@ -1,16 +1,17 @@
 package me.alek.honey.command.impl;
 
-import com.pastebin.api.*;
-import com.pastebin.api.request.PasteRequest;
+import me.alek.honey.utility.pastebin.Expiration;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.storage.model.ViolationEntry;
-import org.bukkit.Bukkit;
+import me.alek.honey.utility.pastebin.Format;
+import me.alek.honey.utility.pastebin.PasteRequest;
+import me.alek.honey.utility.pastebin.PastebinClient;
+import me.alek.honey.utility.pastebin.Visibility;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.Date;
 
@@ -59,29 +60,21 @@ public class PasteLogsCommand implements CommandImpl {
                 size++;
             }
             if (size == 0) {
-                sender.sendMessage(CommandManager.PREFIX + " §acThe player " + playerName + " doesn't have any violations.");
+                sender.sendMessage(CommandManager.PREFIX + " §cThe player " + playerName + " doesn't have any violations.");
                 return;
             }
 
             final PasteRequest request = PasteRequest
                     .content(rawMessageBuilder.toString())
-                    .visibility(Visibility.PUBLIC)
-                    .format(Format.PYTHON)
+                    .visibility(Visibility.PUBLIC).format(Format.PYTHON).expiration(Expiration.ONE_DAY)
                     .name("Violation log for player " + playerName)
-                    .expiration(Expiration.ONE_DAY)
                     .build();
-            final PastebinClient pastebinClient = PastebinClient.builder()
-                    .developerKey(ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY)
-                    .build();
-
-            String URL;
-            try {
-                URL = pastebinClient.paste(request);
-            } catch (PastebinException ex) {
-                ex.printStackTrace();
-                sender.sendMessage(CommandManager.PREFIX + " §cA pastebin error occurred :( " + (ex.getMessage() != null ? ex.getMessage() : ""));
+            String URL = PastebinClient.post(ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY, request);
+            if (URL == null) {
+                sender.sendMessage(CommandManager.PREFIX + " §cAn error occurred! :( Try again later.");
                 return;
             }
+
             String[] splittedURL = URL.split("/");
             URL = "https://" + splittedURL[splittedURL.length - 2] + "/raw/" + splittedURL[splittedURL.length - 1];
 
