@@ -56,7 +56,7 @@ mysql:
   password: "rootpass"
 
   # Name of the database that data should be stored in
-  name: "sample "
+  name: "sample"
 
 # Exempt flood and related checks
 exempt:
