@@ -3,7 +3,6 @@ package me.alek.honey.netty.modelwrappers.network;
 import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.ByteBufProcessor;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 
@@ -530,22 +529,6 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
 
     public int bytesBefore(int i, int j, byte b0) {
         return this.handle.bytesBefore(i, j, b0);
-    }
-
-    public int forEachByte(ByteBufProcessor bytebufprocessor) {
-        return this.handle.forEachByte(bytebufprocessor);
-    }
-
-    public int forEachByte(int i, int j, ByteBufProcessor bytebufprocessor) {
-        return this.handle.forEachByte(i, j, bytebufprocessor);
-    }
-
-    public int forEachByteDesc(ByteBufProcessor bytebufprocessor) {
-        return this.handle.forEachByteDesc(bytebufprocessor);
-    }
-
-    public int forEachByteDesc(int i, int j, ByteBufProcessor bytebufprocessor) {
-        return this.handle.forEachByteDesc(i, j, bytebufprocessor);
     }
 
     public ByteBuf copy() {

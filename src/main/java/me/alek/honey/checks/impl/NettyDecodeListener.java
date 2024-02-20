@@ -176,18 +176,16 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
     public static class NettyF implements DecodeCheck, ViolationCheck {
 
-        private static final ConstructorInvoker<Object> packetDataSerializerInvoker = Reflection.getConstructor(NMSUtils.getPacketDataSerializerClass(), ByteBuf.class);
-
         @Override
         public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            ByteBuf wrappedByteBuf = Unpooled.copiedBuffer(byteBuf);
-            WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(packetDataSerializerInvoker.invoke(wrappedByteBuf), wrappedByteBuf);
+            int prevReaderIndex = byteBuf.readerIndex();
 
             int byteSize = 0;
-            while (dataSerializer.isReadable()) {
-                byteSize += Math.abs(dataSerializer.readByte());
+            while (byteBuf.isReadable()) {
+                byteSize += Math.abs(byteBuf.readByte());
             }
-            dataSerializer.release();
+            byteBuf.readerIndex(prevReaderIndex);
+
             container.getStorage().putInt(byteSize);
 
             if (getSetting().isEnabled()) {
