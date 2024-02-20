@@ -489,6 +489,18 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class Messages {
+
+        public static String VIOLATION_MESSAGE;
+        public static String PUNISH_MESSAGE;
+
+        public static void load() {
+            VIOLATION_MESSAGE = file.getString("messages.violation");
+            PUNISH_MESSAGE = file.getString("messages.punish");
+        }
+    }
+
+    @Setting
     public static class Exempt {
 
         public static int MIN_TPS;

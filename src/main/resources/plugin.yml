@@ -4,6 +4,6 @@ author: Alek05
 website: https://github.com/alphaalek/Honey-AntiCrash
 version: -Dev
 api-version: 1.13
-main: me.alek.honey.HoneyPluginInitializer
+main: me.alek.honey.DevHoneyPluginInitializer
 commands:
   honey:

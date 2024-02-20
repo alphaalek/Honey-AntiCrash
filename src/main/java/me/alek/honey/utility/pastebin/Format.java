@@ -272,7 +272,7 @@ public enum Format {
     final String code;
     final String name;
 
-    private Format(String code, String name) {
+    Format(String code, String name) {
         this.code = code;
         this.name = name;
     }

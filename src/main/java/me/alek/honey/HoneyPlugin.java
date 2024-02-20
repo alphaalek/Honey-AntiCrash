@@ -253,6 +253,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         violationService.reload();
         loggerService.reload();
+        notificationService.reload();
         confiscationService.reload();
 
         sqlManager.reload();

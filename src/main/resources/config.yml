@@ -6,8 +6,6 @@
 # +------------------------------------------------------+ #
 ############################################################
 
-prefix: "&6Honey &8\u00BB"
-
 # How long time between each clearing of old violations (in millis).
 clear-old-violations-timestamp: 90000 # 1 minute and 30 seconds as default
 
@@ -28,6 +26,17 @@ notify-permission: "honey.notify"
 # You can see here how you get this key: https://pastebin.com/doc_api
 # OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
 pastebin-developer-key: ""
+
+# Formatting for messages sent by Honey
+messages:
+  # Prefix for command usage
+  prefix: "&6Honey &8\u00BB"
+
+  # Violations
+  violation: "%prefix% &7%player% %network%&7 failed &e%check%&7. %context%"
+
+  # Punish
+  punish: "%prefix% &7%player% %network%&7 was kicked for &e%check%&7."
 
 # MySQL settings for storage
 mysql:
@@ -71,6 +80,7 @@ monitor:
     - "PacketPlayInKeepAlive"
 
   # Should player monitor also be a packet logger (not detailed data).
+  # OBS: remember you also can use /honey packetmonitor, if you want to use an advanced packet monitor for players.
   enable-packet-logger: true
 
   # Interval for sending messages when having a monitor enabled.
@@ -104,7 +114,7 @@ packet-dump:
   # Should packet dump be enabled or not.
   enabled: true
 
-  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type.
+  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
   # E.g. violations of position checks will still dump position packets even though you have added it below.
   # (PacketPlayInKeepAlive is ignored as default, and you can't change that)
   filter-all:
@@ -202,6 +212,53 @@ item-analysis:
 
     # May skulls/heads not have invalid textures. Can be exploited to crash servers below Minecraft Version 1.10.2
     check-illegal-skull-textures: true
+
+############################################################
+# +------------------------------------------------------+ #
+# |               Blocked Commands Settings              | #
+# +------------------------------------------------------+ #
+############################################################
+
+# commands
+commands:
+  vls-amount: 3
+
+  # Tab completion of commands which starts with the following strings will be blocked, but only if it is registered on the server.
+  prohibited-tab-complete-commands:
+    # fast async world edit
+    - "/targetoffset"
+    - "/to"
+
+  # Attempt to execute commands that starts with the following strings will be blocked, but only if it is registered on the server.
+  prohibited-commands:
+    # spigot
+    - "/skill"
+
+    # permissions ex
+    - "/pex promote"
+    - "/pex demote"
+    - "/promote"
+    - "/demote"
+
+    # world edit
+    - "//calc"
+    - "//calculate"
+    - "//solve"
+    - "//eval"
+    - "//evaluate"
+
+    # multiverse
+    - "/mv ^"
+    - "/mvhelp ^"
+    - "/mv help ^"
+
+  # Fallback prefixes that also will be checked for at the commands above. (if they exist on the server)
+  # Could e.g. be if someone types '/multiverse-core:mv help ^'
+  fallback-prefixes:
+    - "fastasyncworldedit"
+    - "worldedit"
+    - "multiverse-core"
+    - "permissionsex"
 
 ############################################################
 # +------------------------------------------------------+ #
@@ -738,53 +795,6 @@ packet-flood:
       max-per-interval: 110
       interval: 600
       vls-amount: 8
-
-############################################################
-# +------------------------------------------------------+ #
-# |               Blocked Commands Settings              | #
-# +------------------------------------------------------+ #
-############################################################
-
-# commands
-commands:
-  vls-amount: 3
-
-  # Tab completion of commands which starts with the following strings will be blocked, but only if it is registered on the server.
-  prohibited-tab-complete-commands:
-    # fast async world edit
-    - "/targetoffset"
-    - "/to"
-
-  # Attempt to execute commands that starts with the following strings will be blocked, but only if it is registered on the server.
-  prohibited-commands:
-    # spigot
-    - "/skill"
-
-    # permissions ex
-    - "/pex promote"
-    - "/pex demote"
-    - "/promote"
-    - "/demote"
-
-    # world edit
-    - "//calc"
-    - "//calculate"
-    - "//solve"
-    - "//eval"
-    - "//evaluate"
-
-    # multiverse
-    - "/mv ^"
-    - "/mvhelp ^"
-    - "/mv help ^"
-
-  # Fallback prefixes that also will be checked for at the commands above. (if they exist on the server)
-  # Could e.g. be if someone types '/multiverse-core:mv help ^'
-  fallback-prefixes:
-    - "fastasyncworldedit"
-    - "worldedit"
-    - "multiverse-core"
-    - "permissionsex"
 
 
 

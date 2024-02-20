@@ -13,15 +13,13 @@ import java.util.Map;
 
 public class PastebinClient {
 
+    private static final String URL_STRING = "https://pastebin.com/api/api_post.php";
+
     public static String post(String developerKey, PasteRequest request) {
         StringBuilder postBody = new StringBuilder();
-        boolean first = true;
 
-        for(Iterator<Map.Entry<String, String>> var5 = request.getParameters().entrySet().iterator(); var5.hasNext(); first = false) {
-            Map.Entry<String, String> entry = var5.next();
-            if (!first) {
-                postBody.append("&");
-            }
+        for (Map.Entry<String, String> entry : request.getParameters().entrySet()) {
+            postBody.append("&");
 
             try {
                 postBody.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
@@ -32,8 +30,7 @@ public class PastebinClient {
         postBody.append("&api_dev_key=").append(developerKey);
 
         try {
-            String urlString = "https://pastebin.com/api/api_post.php";
-            URL url = new URL(urlString);
+            URL url = new URL(URL_STRING);
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -50,7 +47,6 @@ public class PastebinClient {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-
         }
         return null;
     }

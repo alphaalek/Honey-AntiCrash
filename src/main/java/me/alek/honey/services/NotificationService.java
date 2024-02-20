@@ -31,7 +31,10 @@ public class NotificationService {
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
     private final Map<UUID, DecayingListeningCounter> recentlyCancelledPacketsMap = new HashMap<>();
+
     public static String PREFIX;
+    private MessageFormat violationFormat;
+    private MessageFormat punishFormat;
 
     public NotificationService() {
         subscribe(Bukkit.getConsoleSender());
@@ -68,6 +71,12 @@ public class NotificationService {
 
     public void reload() {
         PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX);
+        violationFormat = MessageFormat.load(ConfigurationOptions.Messages.VIOLATION_MESSAGE);
+        punishFormat = MessageFormat.load(ConfigurationOptions.Messages.PUNISH_MESSAGE);
+    }
+
+    public String getPrefix() {
+        return PREFIX + "§r";
     }
 
     public boolean hasNotifyPermission(CommandSender observer) {
@@ -96,13 +105,13 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(Player player, String type) {
-                observer.sendMessage(getAppropriateMessage(
-                        observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + "§7."));
-            }
-
-            @Override
             public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey) {
+                MessageOffer offer = getOffer(player, type, checkKey);
+                offer = offer.builder()
+                        .offer(MessageFormat.Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
+                        .build();
+                String message = getMessage(violationFormat, offer);
+
                 if (developmentData != null && observer instanceof Player) {
                     StringBuilder hoverableTextBuilder = new StringBuilder();
                     for (String dataSetEntry : developmentData.getDataSet()) {
@@ -110,22 +119,32 @@ public class NotificationService {
                     }
                     String hoverableText = hoverableTextBuilder.substring(0, hoverableTextBuilder.length() - 1);
 
-                    TextComponent message = new TextComponent(PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7. " + formatNotification(setting, packetLimitHandler));
-                    message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
+                    TextComponent textComponentMessage = new TextComponent(message);
+                    textComponentMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
 
                     Player observerPlayer = (Player) observer;
-                    observerPlayer.spigot().sendMessage(message);
+                    observerPlayer.spigot().sendMessage(textComponentMessage);
                 }
-                else observer.sendMessage(getAppropriateMessage(
-                        observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 failed §e" + type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7. " + formatNotification(setting, packetLimitHandler)));
+                else observer.sendMessage(message);
             }
 
             @Override
             public void warn(Player player, String type, ViolationService.CheckKey checkKey) {
-                observer.sendMessage(
-                        getAppropriateMessage(observer, PREFIX + "§7 " + player.getName() + formatNetworkStats(player) + "§7 was kicked for §e" + type + "" + (checkKey == null ? "" : " (" + checkKey.getT1() + ")") + "§7."));
+                observer.sendMessage(getMessage(punishFormat, getOffer(player, type, checkKey)));
             }
         });
+    }
+
+    public MessageOffer getOffer(Player player, String type, ViolationService.CheckKey checkKey) {
+        return new MessageOffer.Builder()
+                .offer(MessageFormat.Placeholders.PLAYER, player::getName)
+                .offer(MessageFormat.Placeholders.NETWORK, () -> formatNetworkStats(player))
+                .offer(MessageFormat.Placeholders.CHECK, () -> type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"))
+                .build();
+    }
+
+    public String getMessage(MessageFormat format, MessageOffer offer) {
+        return format.getMessage(offer);
     }
 
     public void unsubscribe(CommandSender observer) {
@@ -190,7 +209,7 @@ public class NotificationService {
         String ping = formatPing(player);
         String tps = formatTPS();
 
-        return " §8(" + ping + "ms§7/" + tps + "tps§8)";
+        return "§8(" + ping + "ms§7/" + tps + "tps§8)§7";
     }
 
     public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
@@ -283,8 +302,6 @@ public class NotificationService {
     private interface NotificationListener {
 
         void notify(String notification);
-
-        void notify(Player player, String notification);
 
         void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey);
 
