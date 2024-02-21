@@ -48,9 +48,9 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
         //Depends on netty version, if we cannot resolve that we just check server version.
         if ((NETTY_VERSION != null && NETTY_VERSION.isNewerThan(MODERN_NETTY_VERSION))
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
-            channel.pipeline().addLast(PacketLibrary.get().getConnectionName(), new EndInitProtocolInjector.Initializer_v1_12());
+            channel.pipeline().addLast(PacketLibrary.get().getConnectorName(), new EndInitProtocolInjector.Initializer_v1_12());
         } else {
-            channel.pipeline().addFirst(PacketLibrary.get().getConnectionName(), new EndInitProtocolInjector.Initializer_v1_8());
+            channel.pipeline().addFirst(PacketLibrary.get().getConnectorName(), new EndInitProtocolInjector.Initializer_v1_8());
         }
         super.channelRead(ctx, msg);
     }

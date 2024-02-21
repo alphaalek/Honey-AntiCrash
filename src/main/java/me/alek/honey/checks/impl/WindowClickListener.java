@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -30,12 +31,12 @@ import java.util.function.Supplier;
 public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWindowClick> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInWindowClick> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
     }
 
     @Override
@@ -63,15 +64,15 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowA implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getWindowSlot();
 
-                int inventorySlots = player.getOpenInventory().countSlots();
-                if (player.getOpenInventory() != null && (player.getOpenInventory().getType() == InventoryType.CRAFTING && player.getInventory().getType() == InventoryType.PLAYER)) {
+                int inventorySlots = player.player.getOpenInventory().countSlots();
+                if (player.player.getOpenInventory() != null && (player.player.getOpenInventory().getType() == InventoryType.CRAFTING && player.player.getInventory().getType() == InventoryType.PLAYER)) {
                     inventorySlots += 4; // armor slots
                 }
-                if (player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
+                if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
                     container.getDevelopmentData(this).addPoint("Slot", slot);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
@@ -103,7 +104,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowB implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = packet.getItem();
@@ -138,9 +139,9 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowC implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                if (player.getOpenInventory().getType().name().equals("LECTERN")) {
+                if (player.player.getOpenInventory().getType().name().equals("LECTERN")) {
 
                     if (packet.getMode() == 1) {
                         return ResponseBuilder.inst().cancel().flag().build();
@@ -174,7 +175,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     public static class WindowD implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {

@@ -1,5 +1,6 @@
 package me.alek.honey.command.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
@@ -32,7 +33,7 @@ public class MonitorCommand implements CommandImpl {
             sender.sendMessage(CommandManager.PREFIX + "§cYou have to choose a valid player name.");
             return;
         }
-        HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, target);
+        HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, HoneyPlayer.getPlayer(target.getUniqueId()));
     }
 
     @Override

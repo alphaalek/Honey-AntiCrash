@@ -1,5 +1,6 @@
 package me.alek.honey.command.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
@@ -33,14 +34,14 @@ public class TrackCommand implements CommandImpl {
                 }
                 sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the space occupation of server thread by players...");
 
-                for (Player player : serverThreadHandleTracker.getTrackersOrdered()) {
+                for (HoneyPlayer player : serverThreadHandleTracker.getTrackersOrdered()) {
 
                     double tenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
                     double fifteenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND);
                     double thirtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE);
                     double sixtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.MINUTE);
 
-                    sender.sendMessage("§e" + player.getName() + ": §7" + FORMATTER.format(tenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
+                    sender.sendMessage("§e" + player.name + ": §7" + FORMATTER.format(tenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
                 }
                 sender.sendMessage("§f");
                 sender.sendMessage(" §8What is this showing?");

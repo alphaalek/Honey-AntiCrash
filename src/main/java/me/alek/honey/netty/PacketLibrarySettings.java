@@ -2,7 +2,6 @@ package me.alek.honey.netty;
 
 import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class PacketLibrarySettings {
 
@@ -16,12 +15,12 @@ public class PacketLibrarySettings {
             Plugin plugin,
             String handlerName,
             String decoderName,
-            String connectionName
+            String connectorName
     ) {
         this.plugin = plugin;
         this.handlerName = handlerName;
         this.decoderName = decoderName;
-        this.connectionName = connectionName;
+        this.connectionName = connectorName;
     }
 
     public String getHandlerName() {
@@ -32,7 +31,7 @@ public class PacketLibrarySettings {
         return decoderName;
     }
 
-    public String getConnectionName() {
+    public String getConnectorName() {
         return connectionName;
     }
 

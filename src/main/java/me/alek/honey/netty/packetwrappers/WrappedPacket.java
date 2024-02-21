@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -16,7 +17,7 @@ public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends Wrappe
         this.packetContainer = packetContainer;
     }
 
-    public Player getPlayer() {
+    public HoneyPlayer getPlayer() {
         return packetContainer.getPlayer();
     }
 

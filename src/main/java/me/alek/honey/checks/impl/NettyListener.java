@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -63,12 +64,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
 
     }
 
@@ -77,12 +78,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
-            if (tracker.getPacketsInQueueExecution(player.getUniqueId()) > 10 && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+            if (tracker.getPacketsInQueueExecution(player.uuid) > 10 && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
                 return ResponseBuilder.inst().flag(1).build();
 
             Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();
-            if (task != null && task.getT1().getUUID().equals(player.getUniqueId()) && System.currentTimeMillis() - task.getT2() > 25)
+            if (task != null && task.getT1().getPlayer().equals(player.uuid) && System.currentTimeMillis() - task.getT2() > 25)
                 return ResponseBuilder.inst().flag(1).build();
 
             return ResponseBuilder.SUCCESS;
@@ -120,12 +121,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+        public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
             return true;
         }
 
         @Override
-        public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+        public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
 
         }
 
@@ -150,7 +151,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
@@ -196,7 +197,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             InboundPacketDecoder packetDecoder =
                     (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(packet.getContainer().getChannel());
             if (packetDecoder == null || !packetDecoder.hasReadYet()) return ResponseBuilder.SUCCESS.builder().skip(1).build();
@@ -242,7 +243,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 double decodeTime = container.getStorage().getDouble(0);
@@ -287,7 +288,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         private final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.TEN_SECOND);

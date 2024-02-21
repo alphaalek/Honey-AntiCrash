@@ -1,5 +1,6 @@
 package me.alek.honey.checks;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import org.bukkit.entity.Player;
 
@@ -7,9 +8,9 @@ public interface IListener {
 
     default void load() {}
 
-    default void setup(Player player) {}
+    default void setup(HoneyPlayer player) {}
 
-    default void cleanup(Player player) {}
+    default void cleanup(HoneyPlayer player) {}
 
     boolean hasInitializedCheckInstances();
 

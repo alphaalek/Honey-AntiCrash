@@ -2,6 +2,7 @@ package me.alek.honey.monitor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -58,11 +59,11 @@ public class MonitorManager {
         schedule();
     }
 
-    public Monitorer getMonitorer(Player player) {
-        return playerMonitorerMap.computeIfAbsent(player.getUniqueId(), (d) -> new PlayerMonitorer(player));
+    public Monitorer getMonitorer(HoneyPlayer player) {
+        return playerMonitorerMap.computeIfAbsent(player.uuid, (d) -> new PlayerMonitorer(player));
     }
 
-    public boolean isMonitored(Player player) {
+    public boolean isMonitored(HoneyPlayer player) {
         return monitorObservers.containsKey(getMonitorer(player));
     }
 
@@ -74,10 +75,10 @@ public class MonitorManager {
         return monitorObservers.containsKey(SERVER_MONITOR) && !monitorObservers.get(SERVER_MONITOR).isEmpty();
     }
 
-    public void removeFromMonitors(Player player) {
+    public void removeFromMonitors(HoneyPlayer player) {
         monitorObservers.remove(getMonitorer(player));
-        playerMonitorerMap.remove(player.getUniqueId());
-        removeMonitor(player);
+        playerMonitorerMap.remove(player.uuid);
+        removeMonitor(player.player);
     }
 
     public Monitorer removeIfHasMonitor(CommandSender sender, boolean onlyStop) {
@@ -98,7 +99,7 @@ public class MonitorManager {
         packetsMonitored = true;
     }
 
-    public void setupPlayerMonitor(CommandSender sender, Player player) {
+    public void setupPlayerMonitor(CommandSender sender, HoneyPlayer player) {
         if (removeIfHasMonitor(sender, false) == getMonitorer(player)) return;
 
         setupMonitor(sender, getMonitorer(player));
@@ -114,7 +115,7 @@ public class MonitorManager {
         sendInfo(SERVER_MONITOR, message);
     }
 
-    public void sendPlayerInfo(Player player, String message) {
+    public void sendPlayerInfo(HoneyPlayer player, String message) {
         sendInfo(getMonitorer(player), message);
     }
 

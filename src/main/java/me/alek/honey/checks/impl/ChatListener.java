@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -32,12 +33,12 @@ import java.util.function.Supplier;
 public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInChat> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer) {
 
     }
 
@@ -68,7 +69,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
     public static class ChatA implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String message = packet.getMessage();
@@ -110,7 +111,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         private final boolean below_1_11 = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11);
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int maxLength = below_1_11 ? 100 : 256;
@@ -200,7 +201,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         private static String[] prohibitedCommands;
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
 
             String message = packet.getMessage();
             if (!message.startsWith("/")) {

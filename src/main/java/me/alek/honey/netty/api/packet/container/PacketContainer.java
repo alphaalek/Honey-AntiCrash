@@ -1,6 +1,7 @@
 package me.alek.honey.netty.api.packet.container;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -25,7 +26,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     Runnable getPost();
 
-    Player getPlayer();
+    HoneyPlayer getPlayer();
 
     Object getHandle();
 

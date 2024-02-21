@@ -1,5 +1,6 @@
 package me.alek.honey.checks.item;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
@@ -91,13 +92,13 @@ public class ItemAnalysis {
         }
     }
 
-    public static boolean checkItem(Player player, ItemStack item, CheckContextContainer.DevelopmentData context) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, CheckContextContainer.DevelopmentData context) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
                 || item == null || item.getType() == Material.AIR) {
             return false;
         }
         for (final String ignoredPlayer : ignoredPlayers) {
-            if (player.getName().equalsIgnoreCase(ignoredPlayer) || player.getUniqueId().toString().equalsIgnoreCase(ignoredPlayer)) {
+            if (player.name.equalsIgnoreCase(ignoredPlayer) || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
                 return false;
             }
         }

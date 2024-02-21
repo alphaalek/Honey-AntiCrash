@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -33,12 +34,12 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
     }
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInBlockDig> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInBlockDig> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInBlockDig> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInBlockDig> packetContainer) {
 
     }
 
@@ -55,7 +56,7 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
     public static class BlockInteractE implements PacketCheck<WrappedPlayInBlockDig>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInBlockDig packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockDig packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();

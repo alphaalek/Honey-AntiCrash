@@ -2,6 +2,7 @@ package me.alek.honey.checks.impl;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -24,12 +25,12 @@ import java.util.function.Supplier;
 public class EncryptionBeginListener extends AbstractPacketListener<WrappedLoginInEncryptionResponse> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer) {
 
     }
 
@@ -53,7 +54,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
     public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse> {
 
         @Override
-        public ResponseContainer check(Player player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

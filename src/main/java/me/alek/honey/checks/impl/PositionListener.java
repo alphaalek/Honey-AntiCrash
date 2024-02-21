@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -43,8 +44,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutPosition>() {
 
             @Override
-            public void onPacketSend(Player player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
-                final UUID uuid = player.getUniqueId();
+            public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
+                final UUID uuid = player.uuid;
 
                 if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayingList<>(15000, 2, 1));
                 final SampleDecayingList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
@@ -161,14 +162,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         final Location currentLocation = packetContainer.getPacket().getLocation();
-        final Location lastLocation = lastPacketLocation.getOrDefault(player.getUniqueId(), currentLocation);
+        final Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
         // check if the packet has any valid location to be checked, or just origin location
         // if it does, ignore this packet and avoid adding this location to the last packet location lookup
         if (Locations.calculate3DDistance(currentLocation, originLocation) < 10) return false;
-        lastPacketLocation.put(player.getUniqueId(), currentLocation);
+        lastPacketLocation.put(player.uuid, currentLocation);
 
         // check if the player has moved by checking if the last location is equal to the current location
         if (Locations.compare3DLocation(currentLocation, lastLocation)) return false;
@@ -187,7 +188,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
 
     }
 
@@ -213,8 +214,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     @Override
-    public void cleanup(Player player) {
-        final UUID uuid = player.getUniqueId();
+    public void cleanup(HoneyPlayer player) {
+        final UUID uuid = player.uuid;
 
         lastPacketLocation.remove(uuid);
         PositionD.manipulatedFlightSettingsMap.remove(uuid);
@@ -226,8 +227,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         lastTeleportationLocationMap.remove(uuid);
     }
 
-    public static Location getLastLocationFor(Player player) {
-        return lastPacketLocation.getOrDefault(player.getUniqueId(), player.getLocation());
+    public static Location getLastLocationFor(HoneyPlayer player) {
+        return lastPacketLocation.getOrDefault(player.uuid, player.getLocation());
     }
 
     public static boolean isChunkLoaded(Location location) {
@@ -251,8 +252,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return list.stream().anyMatch((location) -> distanceFunction.apply(location) < diff);
     }
 
-    public static boolean isAnyLatelyTeleportationLocationsCloseTo(Player player, double diff, Function<Location, Double> distanceFunction) {
-        final UUID uuid = player.getUniqueId();
+    public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
+        final UUID uuid = player.uuid;
 
         if (lastTeleportationLocationMap.containsKey(uuid)) {
             final SampleDecayingList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
@@ -272,11 +273,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Boolean> lastOnGroundMap = new HashMap<>();
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND))
                 return ResponseBuilder.SUCCESS;
 
-            final UUID uuid = player.getUniqueId();
+            final UUID uuid = player.uuid;
             if (!lastOnGroundMap.containsKey(uuid)) lastOnGroundMap.put(uuid, packet.onGround());
 
             final boolean onGround = packet.onGround();
@@ -318,7 +319,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionB<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             final Location packetLoc = packet.getLocation();
             final Location lastKnownPacketLoc = container.getStorage().get(Location.class, 0);
 
@@ -379,16 +380,16 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private final Map<UUID, Location> lastFlaggedLocationMap = new HashMap<>();
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 // check if the player is flying, because then the buffer will be filled up nevertheless
-                if (player.isFlying())
+                if (player.player.isFlying())
                     return ResponseBuilder.SUCCESS;
 
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
-                if (player.getVelocity().getY() < -1.5)
+                if (player.player.getVelocity().getY() < -1.5)
                     return ResponseBuilder.SUCCESS;
 
                 final Location priorLocation = container.getStorage().get(Location.class, 0);
@@ -396,13 +397,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (priorLocation == null)
                     return ResponseBuilder.SUCCESS;
 
-                final UUID uuid = player.getUniqueId();
+                final UUID uuid = player.uuid;
                 // ignores packets close to the recent flag to minimize false flags at lagspikes
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
                     if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5)
                         return ResponseBuilder.SUCCESS;
                 }
-                lastFlaggedLocationMap.put(player.getUniqueId(), packet.getLocation());
+                lastFlaggedLocationMap.put(player.uuid, packet.getLocation());
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
                 if (priorDistance > 20)
@@ -443,12 +444,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey("Position.B", false);
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
 
-            final ViolationService.CheckKey key = (player.isFlying()) ? flightKey : nonFlightKey;
+            final ViolationService.CheckKey key = (player.player.isFlying()) ? flightKey : nonFlightKey;
 
             // make a copy of settings to when you fly, because you can visit way more chunks then
-            if (!manipulatedFlightSettingsMap.contains(player.getUniqueId())) {
+            if (!manipulatedFlightSettingsMap.contains(player.uuid)) {
                 final double maxPerInterval = getSetting().maxPerInterval;
                 final ConfigurationOptions.VlSetting setting = getSetting().clone();
                 setting.maxPerInterval = maxPerInterval * 3;
@@ -456,7 +457,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // force a new packet limit handler to be created with the new flight setting
                 HoneyPlugin.get().getViolationService().getDistributor(player, flightKey, setting);
 
-                manipulatedFlightSettingsMap.add(player.getUniqueId());
+                manipulatedFlightSettingsMap.add(player.uuid);
             }
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
@@ -464,12 +465,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (chunk != null) {
                 // the chunk is loaded, and we have to make sure that all responses will skip the next check in the pipeline
 
-                if (!getSetting().isEnabled() || lastChunkMap.containsKey(player.getUniqueId()) && lastChunkMap.get(player.getUniqueId()).equals(chunk)) {
+                if (!getSetting().isEnabled() || lastChunkMap.containsKey(player.uuid) && lastChunkMap.get(player.uuid).equals(chunk)) {
                     // the player is in the same chunk as the last position update
                     return ResponseBuilder.SUCCESS.builder().skip(1).build();
                 }
                 // the player has moved into a new chunk, and we have to register this chunk as the current one
-                lastChunkMap.put(player.getUniqueId(), chunk);
+                lastChunkMap.put(player.uuid, chunk);
                 return ResponseBuilder.inst().flag().skip(1).withLimitsKey(key).build();
             }
             // the chunk is not loaded and therefore Position.E should be flagged by not returning a skip response
@@ -500,7 +501,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionE<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().cancel().flag().build();
             }
@@ -579,7 +580,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Direction[]> lastDirectionFlowMap = new ConcurrentHashMap<>();
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().get(Location.class, 0);
@@ -587,9 +588,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.SUCCESS;
 
                 final Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
-                final Direction[] priorVelocity = lastDirectionFlowMap.get(player.getUniqueId());
+                final Direction[] priorVelocity = lastDirectionFlowMap.get(player.uuid);
 
-                lastDirectionFlowMap.put(player.getUniqueId(), velocity);
+                lastDirectionFlowMap.put(player.uuid, velocity);
                 if (priorVelocity != null && priorVelocity.length == velocity.length) {
 
                     int i = -1;
@@ -641,11 +642,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionG<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 if (packet.getType() == PacketType.Play.Client.VEHICLE_MOVE
-                        && player.getVehicle() == null) {
+                        && player.player.getVehicle() == null) {
                     return ResponseBuilder.inst().flag().build();
                 }
             }
@@ -679,7 +680,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private static final Map<UUID, Double> guessedDeltaY = new HashMap<>();
 
         @Override
-        public synchronized ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             final ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
             if (getSetting().isEnabled()) {
 
@@ -688,7 +689,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 if (delta2D == 0 && deltaY == 0) return response;
 
-                final UUID uuid = player.getUniqueId();
+                final UUID uuid = player.uuid;
                 if (!guessedDelta2D.containsKey(uuid)) guessedDelta2D.put(uuid, 0d);
                 if (!guessedDeltaY.containsKey(uuid)) guessedDeltaY.put(uuid, 0d);
 
@@ -705,7 +706,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 if (deltaY > 0.5) {
                     if (guessedDeltaY.get(uuid) == deltaY) {
-                        final Material material = player.getEyeLocation().getBlock().getType();
+                        final Material material = player.player.getEyeLocation().getBlock().getType();
                         if (material.name().contains("WATER") || material.name().contains("LAVA")) {
                             return response;
                         }
@@ -747,7 +748,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionI<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 return ResponseBuilder.inst().flag().build();
@@ -779,7 +780,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionJ<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 final double x = packet.getX();
                 final double y = packet.getY();
@@ -792,7 +793,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
                 if (y < getSetting().min || y > getSetting().max) {
-                    if (player.isDead())
+                    if (player.player.isDead())
                         return ResponseBuilder.inst().cancel().build();
 
                     return ResponseBuilder.inst().cancel().flag().onPunish(() -> {
@@ -808,7 +809,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                             }
                             y_ += 2;
                         }
-                        player.teleport(new Location(player.getWorld(), x, y_, z));
+                        player.player.teleport(new Location(player.getWorld(), x, y_, z));
                     }).build();
                 }
             }

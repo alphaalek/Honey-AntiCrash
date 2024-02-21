@@ -1,6 +1,7 @@
 package me.alek.honey.checks;
 
 import io.netty.buffer.ByteBuf;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import org.bukkit.entity.Player;
@@ -11,10 +12,10 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
     private boolean initializedCheckInstances;
 
     @Override
-    public void onByteBufDecode(Player player, ByteBuf byteBuf) {
+    public void onByteBufDecode(HoneyPlayer player, ByteBuf byteBuf) {
         if (player == null) return;
 
-        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
             return;
         }
         CheckContextContainer checkContextContainer = new CheckContextContainer();

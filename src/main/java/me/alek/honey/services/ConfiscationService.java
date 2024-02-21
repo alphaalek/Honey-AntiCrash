@@ -1,5 +1,6 @@
 package me.alek.honey.services;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.checks.item.enums.ConfiscationStrategy;
@@ -28,18 +29,18 @@ public class ConfiscationService {
         }
     }
 
-    public void confiscate(Player player, ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
+    public void confiscate(HoneyPlayer player, ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
         switch (confiscationStrategy) {
 
             case LENIENT:
                 confiscateLenient(item, nbt, check);
                 break;
             case STRICT:
-                player.getInventory().setContents(new ItemStack[0]);
-                player.getInventory().setArmorContents(new ItemStack[0]);
+                player.player.getInventory().setContents(new ItemStack[0]);
+                player.player.getInventory().setArmorContents(new ItemStack[0]);
                 break;
             case AVERAGE:
-                player.getInventory().remove(item);
+                player.player.getInventory().remove(item);
                 item.setType(Material.AIR);
                 break;
         }

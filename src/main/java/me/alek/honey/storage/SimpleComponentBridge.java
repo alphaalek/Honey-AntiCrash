@@ -1,5 +1,6 @@
 package me.alek.honey.storage;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
@@ -26,19 +27,19 @@ public class SimpleComponentBridge implements ComponentBridge {
         this.enabled = ConfigurationOptions.SQL.ENABLED;
     }
 
-    public void preparePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void preparePlayer(HoneyPlayer player) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) return;
 
         repositoryCollection.playerRepository.preparePlayer(queryFactory, player);
     }
 
     @Override
-    public void updatePlayer(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void updatePlayer(HoneyPlayer player) throws SQLPlayerNotFoundException, SQLFactoryException {
         repositoryCollection.playerRepository.updatePlayer(queryFactory, player);
     }
 
     @Override
-    public void setupPlayer(Player player) throws SQLFactoryException {
+    public void setupPlayer(HoneyPlayer player) throws SQLFactoryException {
         repositoryCollection.playerRepository.setupPlayer(queryFactory, player);
     }
 
@@ -76,7 +77,7 @@ public class SimpleComponentBridge implements ComponentBridge {
         return !enabled || queryFactory.isConnectionClosed();
     }
 
-    public void postViolation(Player player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void postViolation(HoneyPlayer player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) return;
 
         repositoryCollection.violationRepository.postViolation(this, queryFactory, player, violationName, context, developmentData);
@@ -88,8 +89,8 @@ public class SimpleComponentBridge implements ComponentBridge {
         return repositoryCollection.playerRepository.getPlayerId(queryFactory, playerName);
     }
 
-    public int getPlayerId(Player player) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return getPlayerId(player.getName());
+    public int getPlayerId(HoneyPlayer player) throws SQLPlayerNotFoundException, SQLFactoryException {
+        return getPlayerId(player.name);
     }
 
     @Override

@@ -2,6 +2,7 @@ package me.alek.honey.netty.processor;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -32,7 +33,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final EnumMap<ListenerPriority, List<SyncPacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
-        public void callPacket(Player player, PacketContainer<?> packetContainer, boolean isRead) {
+        public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer, boolean isRead) {
             callPipeline((packetAdapter) -> {
                 try {
                     if (isRead) {
@@ -48,7 +49,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void callDecode(Player player, ByteBuf byteBuf) {
+        public void callDecode(HoneyPlayer player, ByteBuf byteBuf) {
             callPipeline((packetAdapter) -> {
                 packetAdapter.onByteBufDecode(player, byteBuf);
             });
@@ -66,7 +67,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
 
-        public void cancel(Player player, PacketContainer<?> packetContainer, boolean isRead) {
+        public void cancel(HoneyPlayer player, PacketContainer<?> packetContainer, boolean isRead) {
             final PacketBound bound = (isRead) ? PacketBound.CLIENT : PacketBound.SERVER;
 
             callPipeline((packetAdapter) -> {
@@ -74,7 +75,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void error(Player player, PacketTypeEnum packetType, PacketContainer<?> packetContainer) {
+        public void error(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<?> packetContainer) {
             callPipeline((packetAdapter) -> {
                 packetAdapter.onPacketError(player, packetType, (PacketContainer<WP>) packetContainer);
             });
@@ -230,25 +231,25 @@ public class InternalPacketProcessor implements PacketProcessor {
         return !PACKET_ADAPTERS.get(clazz).isEmpty();
     }
 
-    public void callListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
+    public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
          if (!hasListeners(clazz)) {
             return;
         }
         PACKET_ADAPTERS.get(clazz).callPacket(player, packetContainer, isRead);
     }
 
-    public void callDecode(Player player, ByteBuf byteBuf) {
+    public void callDecode(HoneyPlayer player, ByteBuf byteBuf) {
         DECODE_LIST_MODIFIER.callDecode(player, byteBuf);
     }
 
-    public void errorListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer) {
+    public void errorListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         if (!hasListeners(clazz)) {
             return;
         }
         PACKET_ADAPTERS.get(clazz).error(player, PacketType.getPacketType(clazz), packetContainer);
     }
 
-    public void cancelListeners(Player player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
+    public void cancelListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
         if (!hasListeners(clazz)) {
             return;
         }
@@ -260,10 +261,10 @@ public class InternalPacketProcessor implements PacketProcessor {
         POST_ACTION_MAP.put(packetType, postAction);
     }
 
-    private void registerToBundle(Player player, PacketBound packetBound, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+    private void registerToBundle(HoneyPlayer player, PacketBound packetBound, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         PacketBundleSaver bundleSaver;
         if (packetBound == PacketBound.CLIENT && player != null
-                && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())) != null) {
+                && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.uuid)) != null) {
             if (packetContainer.getType() == null)
                 bundleSaver.addToCommon(packetContainer);
             else
@@ -271,13 +272,13 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> registerSimpleContainerToBundle(Object handle, Player player, PacketBound packetBound) {
+    private PacketContainer<? extends WrappedPacket<?>> registerSimpleContainerToBundle(Object handle, HoneyPlayer player, PacketBound packetBound) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InternalPacketContainer.SIMPLE_CONTAINER.apply(handle);
         registerToBundle(player, packetBound, packetContainer);
         return packetContainer;
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(Object packet, Player player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
+    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(Object packet, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
         if (type.getBound() == PacketBound.SERVER) {
             return new InternalPacketContainer<>(packet, player, channel, postAction, type);
         }
@@ -290,7 +291,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> handleCommon(Player player, Channel channel, Object packet, PacketBound packetBound, long readStart) {
+    private PacketContainer<? extends WrappedPacket<?>> handleCommon(HoneyPlayer player, Channel channel, Object packet, PacketBound packetBound, long readStart) {
         final PacketState packetState = getPacketState(player, packet);
         if (packetState == PacketState.UNKNOWN) {
             return registerSimpleContainerToBundle(packet, player, packetBound);
@@ -328,21 +329,21 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet, long readStart) {
+    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart) {
         return handleCommon(player, channel, packet, PacketBound.CLIENT, readStart);
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, Player player, Object packet) {
+    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet) {
         return read(channel, player, packet, 0L);
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, Player player, Object packet) {
+    public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet) {
         return handleCommon(player, channel, packet, PacketBound.SERVER, 0L);
     }
 
-    public PacketState getPacketState(Player player, Object packet) {
+    public PacketState getPacketState(HoneyPlayer player, Object packet) {
         if (packet == null) {
             return null;
         }

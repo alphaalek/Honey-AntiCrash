@@ -1,6 +1,7 @@
 package me.alek.honey.checks;
 
 import io.netty.buffer.ByteBuf;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -31,7 +32,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return checks;
     }
 
-    private void handleCommonCheck(Player player, Object handle, Function<HoneyCheck, ResponseContainer> responseGenerator,
+    private void handleCommonCheck(HoneyPlayer player, Object handle, Function<HoneyCheck, ResponseContainer> responseGenerator,
             WP packet, CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer) {
         AtomicInteger skipping = null;
 
@@ -40,7 +41,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
             // add information to the development data
             if (player != null) {
-                developmentData.setText(0, "§8* §7Player " + player.getName() + " flagged " + check.getName() + " §8*");
+                developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
                 developmentData.setLine(5, check.getDescription());
 
                 if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
@@ -107,7 +108,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return null;
     }
 
-    public void check(Player player, ByteBuf byteBuf, CheckContextContainer checkContextContainer) {
+    public void check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer checkContextContainer) {
         final CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(player, byteBuf);
         handleCommonCheck(player, null, (check) -> {
             try {
@@ -120,7 +121,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     @SuppressWarnings("unchecked")
-    public void check(Player player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer) throws Exception {
+    public void check(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer) throws Exception {
         final CancellablePacketObserver cancellablePacketObserver = new CancellablePacketDelegateImpl(packetContainer);
         handleCommonCheck(player, packetContainer.getHandle(), (check) -> {
             try {

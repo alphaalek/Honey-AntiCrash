@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -46,32 +47,27 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
         // return if the player is removing content from his inventory by using the clear all slots button in creative menu
         if (packetContainer.getType() == PacketType.Play.Client.SET_CREATIVE_SLOT) {
             int slot = ((WrappedPlayInSetCreativeSlot)packetContainer.getPacket()).getSlot();
-            int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.getUniqueId(), (d) -> slot);
+            int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
 
-            lastSetCreativeSlot.put(player.getUniqueId(), slot);
+            lastSetCreativeSlot.put(player.uuid, slot);
             return prevSlot + 1 != slot;
         }
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
 
     }
 
     @Override
-    public void setup(Player player) {
-        final UUID uuid = player.getUniqueId();
-    }
-
-    @Override
-    public void cleanup(Player player) {
-        lastSetCreativeSlot.remove(player.getUniqueId());
+    public void cleanup(HoneyPlayer player) {
+        lastSetCreativeSlot.remove(player.uuid);
     }
 
     @Override
@@ -123,10 +119,10 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         public abstract ConfigurationOptions.VlSetting getSetting();
 
-        public abstract ResponseContainer getResponse(Player player);
+        public abstract ResponseContainer getResponse(HoneyPlayer player);
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 return getResponse(player);
             }
@@ -157,7 +153,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer getResponse(Player player) {
+        public ResponseContainer getResponse(HoneyPlayer player) {
             ResponseContainer response = ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
 
             if (HoneyPlugin.get().shouldExempt(player)) {
@@ -185,7 +181,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer getResponse(Player player) {
+        public ResponseContainer getResponse(HoneyPlayer player) {
             return ResponseBuilder.inst().flag().build();
         }
 
@@ -208,7 +204,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer getResponse(Player player) {
+        public ResponseContainer getResponse(HoneyPlayer player) {
             return ResponseBuilder.inst().flag().build();
         }
 
@@ -227,7 +223,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
 
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
             // it gets updated when the configuration is being reloaded, but not here

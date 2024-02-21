@@ -1,5 +1,6 @@
 package me.alek.honey.checks;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -28,7 +29,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         developmentData.addEmpty(); // NTQ
     }
 
-    public static void applyQuotients(Player player, CheckContextContainer.DevelopmentData developmentData) {
+    public static void applyQuotients(HoneyPlayer player, CheckContextContainer.DevelopmentData developmentData) {
         WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
         WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
@@ -49,9 +50,9 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         return message.substring(2, message.length());
     }
 
-    public void onPacketReceive(Player player, PacketContainer<WP> packetContainer) throws Exception {
+    public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
         if (packetContainer.getState() == PacketState.PLAY) {
-            if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+            if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return;
             }
         }
@@ -87,8 +88,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public abstract CheckVisitor<WP> getVisitor();
 
-    public abstract boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container);
+    public abstract boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container);
 
-    public abstract void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer);
+    public abstract void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer);
 
 }

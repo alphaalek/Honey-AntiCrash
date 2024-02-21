@@ -1,21 +1,21 @@
 package me.alek.honey.tracker.packet;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 
-import java.util.UUID;
 import java.util.concurrent.FutureTask;
 
 public class PacketTaskFuture<V> extends FutureTask<V> {
 
-    private final UUID uuid;
+    private final HoneyPlayer player;
 
-    public PacketTaskFuture(Runnable runnable, UUID uuid) {
+    public PacketTaskFuture(Runnable runnable, HoneyPlayer player) {
         super(runnable, null);
-        this.uuid = uuid;
+        this.player = player;
     }
 
-    public UUID getUUID() {
-        return uuid;
+    public HoneyPlayer getPlayer() {
+        return player;
     }
 
     @Override

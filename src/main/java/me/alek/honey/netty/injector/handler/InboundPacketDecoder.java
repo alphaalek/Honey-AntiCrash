@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
@@ -45,7 +46,7 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
     private boolean isFirstRead = true;
     private boolean hasRead;
     private boolean hasBeenRelocated;
-    private Player player;
+    private HoneyPlayer player;
     private final Channel channel;
 
     public InboundPacketDecoder(InboundPacketDecoder decoder) {
@@ -62,11 +63,11 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
         this.channel = channel;
     }
 
-    public void setPlayer(Player player) {
+    public void setPlayer(HoneyPlayer player) {
         this.player = player;
     }
 
-    public Player getPlayer() {
+    public HoneyPlayer getPlayer() {
         return player;
     }
 
@@ -85,7 +86,7 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
             if (!hasRead) {
                 hasRead = true;
                 synchronized (registeredPacketDecoders) {
-                    registeredPacketDecoders.add(player.getUniqueId());
+                    registeredPacketDecoders.add(player.uuid);
                 }
             }
             checkRelocation(channel);

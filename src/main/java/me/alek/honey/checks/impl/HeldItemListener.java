@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -25,12 +26,12 @@ import java.util.function.Supplier;
 public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer) {
 
     }
 
@@ -55,7 +56,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int slot = packet.getSlot();
@@ -92,10 +93,10 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (ItemAnalysis.checkItem(player, player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this))) {
+                if (ItemAnalysis.checkItem(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this))) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }

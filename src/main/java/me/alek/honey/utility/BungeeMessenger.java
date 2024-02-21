@@ -2,6 +2,7 @@ package me.alek.honey.utility;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;

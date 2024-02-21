@@ -1,5 +1,6 @@
 package me.alek.honey.services;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -66,9 +67,9 @@ public class NotificationService {
         reload();
     }
 
-    public void setup(Player player) {
-        if (hasNotifyPermission(player) && !isSubscribed(player) && !isUntoggled(player)) {
-            subscribe(player);
+    public void setup(HoneyPlayer player) {
+        if (hasNotifyPermission(player.player) && !isSubscribed(player.player) && !isUntoggled(player.player)) {
+            subscribe(player.player);
         }
     }
 
@@ -108,7 +109,7 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey) {
+            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey) {
                 MessageOffer offer = getOffer(player, type, checkKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
@@ -132,15 +133,15 @@ public class NotificationService {
             }
 
             @Override
-            public void warn(Player player, String type, ViolationService.CheckKey checkKey) {
+            public void warn(HoneyPlayer player, String type, ViolationService.CheckKey checkKey) {
                 observer.sendMessage(getMessage(punishFormat, getOffer(player, type, checkKey)));
             }
         });
     }
 
-    public MessageOffer getOffer(Player player, String type, ViolationService.CheckKey checkKey) {
+    public MessageOffer getOffer(HoneyPlayer player, String type, ViolationService.CheckKey checkKey) {
         return new MessageOffer.Builder()
-                .offer(Placeholders.PLAYER, player::getName)
+                .offer(Placeholders.PLAYER, () -> player.name)
                 .offer(Placeholders.NETWORK, () -> formatNetworkStats(player))
                 .offer(Placeholders.CHECK, () -> type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"))
                 .build();
@@ -177,17 +178,17 @@ public class NotificationService {
         return (int) minecraftServerModifier.readField(0)[0];
     }
 
-    public int getPing(Player player) {
+    public int getPing(HoneyPlayer player) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
                     ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
-                    .asInt().withTarget(player);
+                    .asInt().withTarget(player.player);
 
             return craftPlayerModifier.invokeMethod("getPing");
         }
         IStructureModifier<Object> craftPlayerModifier =
                 ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
-                .withType(NMSUtils.getEntityPlayerClass()).withTarget(player);
+                .withType(NMSUtils.getEntityPlayerClass()).withTarget(player.player);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle");
 
@@ -198,7 +199,7 @@ public class NotificationService {
         return entityPlayerModifier.readField("ping", 0);
     }
 
-    public String formatPing(Player player) {
+    public String formatPing(HoneyPlayer player) {
         int ping = getPing(player);
         return ((ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c") + ping;
     }
@@ -208,7 +209,7 @@ public class NotificationService {
         return ((tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c") + tps;
     }
 
-    private String formatNetworkStats(Player player) {
+    private String formatNetworkStats(HoneyPlayer player) {
         String ping = formatPing(player);
         String tps = formatTPS();
 
@@ -246,10 +247,10 @@ public class NotificationService {
         return "";
     }
 
-    public void showCancellingPackets(Player player) {
+    public void showCancellingPackets(HoneyPlayer player) {
         if (player == null) return;
 
-        DecayingListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.getUniqueId(),
+        DecayingListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.uuid,
                 (d) -> new DecayingListeningCounter(() -> (long) 3000));
         counter.count();
 
@@ -257,7 +258,7 @@ public class NotificationService {
         if (size < 10) return;
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
+            player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
             return;
         }
         WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
@@ -284,7 +285,7 @@ public class NotificationService {
         }
     }
 
-    public void notify(Player player, String notification, ViolationService.CheckKey checkKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, ViolationService.CheckKey checkKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
                 continue;
@@ -293,7 +294,7 @@ public class NotificationService {
         }
     }
 
-    public void warn(Player player, String warning, ViolationService.CheckKey checkKey) {
+    public void warn(HoneyPlayer player, String warning, ViolationService.CheckKey checkKey) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
                 continue;
@@ -306,8 +307,8 @@ public class NotificationService {
 
         void notify(String notification);
 
-        void notify(Player player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey);
 
-        void warn(Player player, String notification, ViolationService.CheckKey checkKey);
+        void warn(HoneyPlayer player, String notification, ViolationService.CheckKey checkKey);
     }
 }

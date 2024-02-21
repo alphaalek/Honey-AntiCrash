@@ -47,7 +47,7 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
         for (String d : data) {
             dataMessage.append("§8, §7").append(d);
         }
-        return "§8[§6§l!§8] §e" + input.getPlayer().getName() + " §7" + input.getType() + dataMessage;
+        return "§8[§6§l!§8] §e" + input.getPlayer().name + " §7" + input.getType() + dataMessage;
     }
 
     @Override

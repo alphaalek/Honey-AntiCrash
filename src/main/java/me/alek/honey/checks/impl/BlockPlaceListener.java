@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -33,12 +34,12 @@ import java.util.function.Supplier;
 public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
 
     }
 
@@ -65,7 +66,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         return () -> Arrays.asList(PacketType.Play.Client.BLOCK_PLACE, PacketType.Play.Client.USE_ITEM);
     }
 
-    public static ResponseContainer checkExceedingMaxDistance(Player player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
+    public static ResponseContainer checkExceedingMaxDistance(HoneyPlayer player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
 
         // check if the block position is close to the origin block position, just ignore this packet if it is
         final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
@@ -110,7 +111,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
     public static class BlockInteractA<WP extends WrappedAbstractBlockInteraction<WP>> implements ViolationCheck, PacketCheck<WP> {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
@@ -143,7 +144,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
     public static class BlockInteractB<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
                 final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
                 final ItemStack item = blockPlacePacket.getItem();
@@ -180,7 +181,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
     public static class BlockInteractC<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
                 final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
 
@@ -222,7 +223,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
     public static class BlockInteractD<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
                 final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
 
@@ -282,7 +283,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 final WrappedBlockPosition position = packet.getBlockPosition();

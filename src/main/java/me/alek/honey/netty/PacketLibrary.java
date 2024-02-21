@@ -1,6 +1,6 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.HoneyPlugin;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
@@ -20,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 
 public class PacketLibrary {
@@ -91,8 +90,8 @@ public class PacketLibrary {
         return settings.getDecoderName();
     }
 
-    public String getConnectionName() {
-        return settings.getConnectionName();
+    public String getConnectorName() {
+        return settings.getConnectorName();
     }
 
     public PacketLibrarySettings getSettings() {
@@ -103,11 +102,11 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public void writePacket(Player player, WrappedPacket<?> packet) {
+    public void writePacket(HoneyPlayer player, WrappedPacket<?> packet) {
         packetManager.writePacket(player, packet.getHandle());
     }
 
-    public void flushPackets(Player player) {
+    public void flushPackets(HoneyPlayer player) {
         packetManager.flushPackets(player);
     }
 

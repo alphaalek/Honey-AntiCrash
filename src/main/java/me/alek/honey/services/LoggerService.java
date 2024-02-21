@@ -1,5 +1,6 @@
 package me.alek.honey.services;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
@@ -45,18 +46,18 @@ public class LoggerService {
 
         @Override
         @SuppressWarnings("unchecked")
-        public void onPacketReceive(Player player, PacketContainer packetContainer) {
+        public void onPacketReceive(HoneyPlayer player, PacketContainer packetContainer) {
             // notify monitor observers
             logToMonitors(player, packetContainer);
 
             long time = System.currentTimeMillis();
             // register to packet rate
-            packetRate.computeIfAbsent(player.getUniqueId(), (d) -> new DecayingWindowCounter(1000, 2000, 10000))
+            packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
                     .count(time);
             totalPacketRate.count(time);
 
             // log the packet
-            if (enabled) logPacket(packetContainer, player.getName());
+            if (enabled) logPacket(packetContainer, player.name);
         }
     };
 
@@ -81,8 +82,8 @@ public class LoggerService {
         return HoneyPlugin.get().getPlugin().getLogger();
     }
 
-    public int getPacketRate(Player player) {
-        return packetRate.get(player.getUniqueId()).size(0);
+    public int getPacketRate(HoneyPlayer player) {
+        return packetRate.get(player.uuid).size(0);
     }
 
     public int getTotalPacketRate() {
@@ -94,8 +95,8 @@ public class LoggerService {
         return getPacketRateGrade(packetRate, prevRate);
     }
 
-    public String getPacketRateGrade(Player player, int packetRate) {
-        int prevRate = (int) (this.packetRate.get(player.getUniqueId()).size(1, 2) * 0.965);
+    public String getPacketRateGrade(HoneyPlayer player, int packetRate) {
+        int prevRate = (int) (this.packetRate.get(player.uuid).size(1, 2) * 0.965);
         return getPacketRateGrade(packetRate, prevRate);
     }
 
@@ -108,9 +109,9 @@ public class LoggerService {
         else return "§c-" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
     }
 
-    public void removePacketData(Player player) {
-        recentPackets.remove(player.getUniqueId());
-        packetRate.remove(player.getUniqueId());
+    public void removePacketData(HoneyPlayer player) {
+        recentPackets.remove(player.uuid);
+        packetRate.remove(player.uuid);
     }
 
     public double getPacketRatePerQueueExecution(Timespan timespan) {
@@ -126,11 +127,11 @@ public class LoggerService {
         currentQueueExecutionPacket.set(0);
     }
 
-    public void logToMonitors(Player player, PacketContainer<?> packet) {
+    public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
         if (monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
-                LinkedList<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>());
+                LinkedList<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
                 PacketTypeEnum packetType = recentPackets.peek();
                 PacketTypeEnum sentPacketType = Optional.ofNullable(packet).map(PacketContainer::getType).orElse(null);
@@ -138,7 +139,7 @@ public class LoggerService {
                     if (packetType == null) packetType = sentPacketType;
 
                     int packetRate = getPacketRate(player);
-                    monitorManager.sendPlayerInfo(player, "§8[§6§l!§8] §e" + player.getName()
+                    monitorManager.sendPlayerInfo(player, "§8[§6§l!§8] §e" + player.name
                             + " §8(" + notificationService.formatPing(player) + "ms§8) §7"
                             + packetRate + " pps §8(" + getPacketRateGrade(player, packetRate) + "§8)"
                             + " §7Packet: " + packetType + (recentPackets.size() <= 1 ? "" : " §f(x" + recentPackets.size() + ")"));
@@ -150,17 +151,17 @@ public class LoggerService {
         monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
-    public void dumpPackets(Player player, List<PacketContainer<?>> packets) {
-        getLogger().info("Packet dump of " + packets.size() + " packets from " + player.getName());
+    public void dumpPackets(HoneyPlayer player, List<PacketContainer<?>> packets) {
+        getLogger().info("Packet dump of " + packets.size() + " packets from " + player.name);
 
         long time = System.currentTimeMillis();
         for (PacketContainer<?> packet : packets) {
-            logPacket(packet, player.getName(), true, time, false);
+            logPacket(packet, player.name, true, time, false);
         }
     }
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
-        getLogger().info("Auto dump for heavy packet sent by " + packet.getPlayer().getName() + ": " + packet.getName()
+        getLogger().info("Auto dump for heavy packet sent by " + packet.getPlayer().name + ": " + packet.getName()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
 

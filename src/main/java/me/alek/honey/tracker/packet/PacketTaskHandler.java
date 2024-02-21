@@ -1,6 +1,7 @@
 package me.alek.honey.tracker.packet;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
@@ -40,7 +41,7 @@ public class PacketTaskHandler {
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) continue;
 
-                        dumpThread(packet.getPlayer().getUniqueId());
+                        dumpThread(packet.getPlayer().uuid);
                         packet.dump();
                     }
                 }
@@ -110,7 +111,7 @@ public class PacketTaskHandler {
     public static <V> void registerTask(PacketTaskFuture<V> task){
         lastHandledPacket = null;
 
-        PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(task.getUUID());
+        PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(task.getPlayer());
         if (bundleSaver != null) {
             PacketContainer<? extends WrappedPacket<?>> packet = bundleSaver.getOldest(false);
             if (packet != null)
@@ -120,7 +121,7 @@ public class PacketTaskHandler {
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
+        PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getPlayer());
         if (saver != null)
             return saver.getOldest(true);
         else
@@ -130,7 +131,7 @@ public class PacketTaskHandler {
     public static void unregisterTask() {
         synchronized (lock) {
             if (handledTask != null) {
-                tracker.decrementPacketsInQueueExecution(handledTask.getT1().getUUID());
+                tracker.decrementPacketsInQueueExecution(handledTask.getT1().getPlayer().uuid);
 
                 PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                 if (packet != null) {
@@ -150,9 +151,9 @@ public class PacketTaskHandler {
         }
     }
 
-    public static <V> PacketTaskFuture<V> wrapTask(Object task, UUID uuid) {
+    public static <V> PacketTaskFuture<V> wrapTask(Object task, HoneyPlayer player) {
         if (task instanceof Runnable) {
-            return new PacketTaskFuture<>((Runnable) task, uuid);
+            return new PacketTaskFuture<>((Runnable) task, player);
         }
         return null;
     }

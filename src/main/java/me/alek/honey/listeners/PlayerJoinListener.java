@@ -1,5 +1,6 @@
 package me.alek.honey.listeners;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
@@ -23,7 +24,8 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        final Player player = event.getPlayer();
+        final HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
+
         for (IListener check : ListenerRegistry.getChecks()) {
             if (check.hasInitializedCheckInstances())
                 check.setup(player);
@@ -31,9 +33,9 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getViolationService().add(player);
         HoneyPlugin.get().getNotificationService().setup(player);
 
-        instantJoinedMap.put(player.getUniqueId(), System.currentTimeMillis());
+        instantJoinedMap.put(player.uuid, System.currentTimeMillis());
 
-        if (player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
+        if (player.player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -60,16 +62,16 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        final Player player = event.getPlayer();
+        final HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
         for (IListener check : ListenerRegistry.getChecks()) {
             if (check.hasInitializedCheckInstances())
                 check.cleanup(player);
         }
-        instantJoinedMap.remove(player.getUniqueId());
+        instantJoinedMap.remove(player.uuid);
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);
         HoneyPlugin.get().getViolationService().remove(player);
-        HoneyPlugin.get().getNotificationService().unsubscribe(player);
+        HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
 
         HoneyPlugin.get().removeRecentPingLookup(player);
 

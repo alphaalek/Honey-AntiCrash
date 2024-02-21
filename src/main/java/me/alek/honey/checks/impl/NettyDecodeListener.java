@@ -2,6 +2,7 @@ package me.alek.honey.checks.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
@@ -51,25 +52,25 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     }
 
     @Override
-    public void cleanup(Player player) {
-        nettyL.byteBufSizeMap.remove(player.getUniqueId());
-        nettyL.waitingFlagSet.remove(player.getUniqueId());
-        nettyL.lastFlagMap.remove(player.getUniqueId());
-        nettyO.byteBufSizeMap.remove(player.getUniqueId());
-        nettyO.waitingFlagSet.remove(player.getUniqueId());
-        nettyO.lastFlagMap.remove(player.getUniqueId());
+    public void cleanup(HoneyPlayer player) {
+        nettyL.byteBufSizeMap.remove(player.uuid);
+        nettyL.waitingFlagSet.remove(player.uuid);
+        nettyL.lastFlagMap.remove(player.uuid);
+        nettyO.byteBufSizeMap.remove(player.uuid);
+        nettyO.waitingFlagSet.remove(player.uuid);
+        nettyO.lastFlagMap.remove(player.uuid);
 
-        nettyM.lastFlagMap.remove(player.getUniqueId());
-        nettyN.lastFlagMap.remove(player.getUniqueId());
-        nettyO.lastFlagMap.remove(player.getUniqueId());
+        nettyM.lastFlagMap.remove(player.uuid);
+        nettyN.lastFlagMap.remove(player.uuid);
+        nettyO.lastFlagMap.remove(player.uuid);
 
-        ((NettyO)nettyO).categorizedHandlerMap.remove(player.getUniqueId());
+        ((NettyO)nettyO).categorizedHandlerMap.remove(player.uuid);
     }
 
     public static class NettyC implements DecodeCheck, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 // check if the player sends invalid bytes to be decoded to a packet
                 if (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0) {
@@ -104,7 +105,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyD implements DecodeCheck, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 int readableBytes = byteBuf.readableBytes();
@@ -137,7 +138,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyE implements DecodeCheck, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 int readableBytes = byteBuf.readableBytes();
@@ -170,7 +171,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyF implements DecodeCheck, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             int prevReaderIndex = byteBuf.readerIndex();
 
             int byteSize = 0;
@@ -211,7 +212,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyG implements DecodeCheck, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 int byteSize = container.getStorage().getInt(0);
 
@@ -250,7 +251,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         ).build();
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 int size = tracker.getTrackerSize();
@@ -300,19 +301,19 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         private final Set<UUID> waitingFlagSet = new HashSet<>();
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (!byteBufSizeMap.containsKey(player.getUniqueId())) {
-                    byteBufSizeMap.put(player.getUniqueId(), new HashMap<>());
+                if (!byteBufSizeMap.containsKey(player.uuid)) {
+                    byteBufSizeMap.put(player.uuid, new HashMap<>());
                 }
-                final Map<Long, DecayingListeningCounter> map = this.byteBufSizeMap.get(player.getUniqueId());
+                final Map<Long, DecayingListeningCounter> map = this.byteBufSizeMap.get(player.uuid);
                 if (byteBuf.capacity() > getSetting().threshold) {
 
                     long diff = System.currentTimeMillis() -
-                            lastFlagMap.computeIfAbsent(player.getUniqueId(), (d) -> System.currentTimeMillis() - getSetting().min + 1);
+                            lastFlagMap.computeIfAbsent(player.uuid, (d) -> System.currentTimeMillis() - getSetting().min + 1);
 
-                    lastFlagMap.put(player.getUniqueId(), System.currentTimeMillis());
+                    lastFlagMap.put(player.uuid, System.currentTimeMillis());
                     if (diff > getSetting().min) {
 
                         boolean foundMatch = false;
@@ -325,7 +326,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                         }
                         if (!foundMatch) {
                             final DecayingListeningCounter counter = new DecayingListeningCounter(
-                                    () -> (long) getSetting().interval, () -> waitingFlagSet.add(player.getUniqueId()), () -> (long) getSetting().maxPerInterval);
+                                    () -> (long) getSetting().interval, () -> waitingFlagSet.add(player.uuid), () -> (long) getSetting().maxPerInterval);
                             counter.count();
 
                             long key = getKey(player, byteBuf);
@@ -333,8 +334,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                         }
                     }
                 }
-                if (waitingFlagSet.contains(player.getUniqueId())) {
-                    waitingFlagSet.remove(player.getUniqueId());
+                if (waitingFlagSet.contains(player.uuid)) {
+                    waitingFlagSet.remove(player.uuid);
                     return ResponseBuilder.inst().cancel().flag(getSetting().maxPerInterval).build();
                 }
             }
@@ -346,9 +347,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
-        public abstract boolean check(Player player, long sizeKey, ByteBuf byteBuf);
+        public abstract boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf);
 
-        public abstract long getKey(Player player, ByteBuf byteBuf);
+        public abstract long getKey(HoneyPlayer player, ByteBuf byteBuf);
     }
 
     public static class NettyL extends AbstractCategorizedCheck {
@@ -369,12 +370,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public boolean check(Player player, long sizeKey, ByteBuf byteBuf) {
+        public boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf) {
             return Math.abs(sizeKey - byteBuf.capacity()) < getSetting().max;
         }
 
         @Override
-        public long getKey(Player player, ByteBuf byteBuf) {
+        public long getKey(HoneyPlayer player, ByteBuf byteBuf) {
             return byteBuf.capacity();
         }
     }
@@ -384,12 +385,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         private final Map<UUID, Long> lastFlagMap = new HashMap<>();
 
         @Override
-        public ResponseContainer check(Player player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled() && byteBuf.capacity() > getSetting().threshold) {
                 long diff = System.currentTimeMillis() -
-                        lastFlagMap.computeIfAbsent(player.getUniqueId(), (d) -> System.currentTimeMillis() - getSetting().min + 1);
+                        lastFlagMap.computeIfAbsent(player.uuid, (d) -> System.currentTimeMillis() - getSetting().min + 1);
 
-                lastFlagMap.put(player.getUniqueId(), System.currentTimeMillis());
+                lastFlagMap.put(player.uuid, System.currentTimeMillis());
 
                 if (diff > getSetting().min) {
                     return ResponseBuilder.inst().flag().build();
@@ -493,14 +494,14 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public boolean check(Player player, long sizeKey, ByteBuf byteBuf) {
-            return categorizedHandlerMap.computeIfAbsent(player.getUniqueId(), (d) -> new LocalCategorizedHandler(this::getSetting))
+        public boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf) {
+            return categorizedHandlerMap.computeIfAbsent(player.uuid, (d) -> new LocalCategorizedHandler(this::getSetting))
                     .check(sizeKey, byteBuf);
         }
 
         @Override
-        public long getKey(Player player, ByteBuf byteBuf) {
-            return categorizedHandlerMap.computeIfAbsent(player.getUniqueId(), (d) -> new LocalCategorizedHandler(this::getSetting))
+        public long getKey(HoneyPlayer player, ByteBuf byteBuf) {
+            return categorizedHandlerMap.computeIfAbsent(player.uuid, (d) -> new LocalCategorizedHandler(this::getSetting))
                     .getKey(byteBuf);
         }
     }

@@ -23,7 +23,7 @@ public interface HoneyAPI {
 
     void reload();
 
-    boolean shouldExempt(Player player);
+    boolean shouldExempt(HoneyPlayer player);
 
     PacketLibrary getPacketLibrary();
 
@@ -61,9 +61,9 @@ public interface HoneyAPI {
 
     Thread getServerThread();
 
-    int getRecentPing(Player player);
+    int getRecentPing(HoneyPlayer player);
 
-    void removeRecentPingLookup(Player player);
+    void removeRecentPingLookup(HoneyPlayer player);
 
     void onEnable();
 

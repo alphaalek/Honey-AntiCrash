@@ -3,6 +3,7 @@ package me.alek.honey.checks.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -43,7 +44,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     private final MethodInvoker<?> ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemReflection.getNMSItemStackClass());
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
         ByteBuf priorSerializer;
         try {
             priorSerializer = (ByteBuf) packetContainer.getPacket().getDataSerializer().getHandle();
@@ -68,7 +69,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
 
     }
 
@@ -98,7 +99,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadA implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
@@ -132,7 +133,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
     public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class,0);
@@ -169,11 +170,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadC implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = container.getStorage().poll(ItemStack.class);
-                ItemStack itemInHand = player.getItemInHand();
+                ItemStack itemInHand = player.player.getItemInHand();
 
                 final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
                 if (!(ItemAnalysis.checkItem(player, itemInHand, developmentData) || ItemAnalysis.checkItem(player, item, developmentData))) {
@@ -221,11 +222,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadD implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
-                ItemStack itemInHand = player.getItemInHand();
+                ItemStack itemInHand = player.player.getItemInHand();
 
                 if (!channel.isEmpty()) {
                     if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
@@ -268,7 +269,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadE implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
@@ -278,9 +279,9 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (channel.equalsIgnoreCase("register")) {
 
-                    if (player.getListeningPluginChannels().size() > getSetting().max) {
+                    if (player.player.getListeningPluginChannels().size() > getSetting().max) {
                         serializer.release();
-                        container.getDevelopmentData(this).addPoint("Channel Size", player.getListeningPluginChannels().size());
+                        container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size());
 
                         return ResponseBuilder.inst().cancel().flag().terminate().build();
                     }
@@ -313,7 +314,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, KeyedViolationCheck<WrappedPlayInCustomPayload, String> {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
             if (ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadF.class).isEnabled()) {
 
                 if (ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
@@ -352,7 +353,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public static class PayloadG implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();

@@ -23,28 +23,28 @@ public class MessageFormat {
                 startIndex = index + text.length();
             }
         }
-        int[] missingIndicesBits = new int[message.length()];
+        int[] mib = new int[message.length()];
 
         for (MessageIndex index : indices) {
             for (int betweenIndex = index.getStartIndex(); betweenIndex <= index.getEndIndex(); betweenIndex++) {
-                missingIndicesBits[betweenIndex] = 1;
+                mib[betweenIndex] = 1;
             }
         }
 
-        int currentStartIntervalIndex = -1;
-        for (int index = 0; index < missingIndicesBits.length; index++) {
+        int startIndex = -1;
+        for (int index = 0; index < mib.length; index++) {
 
-            if (missingIndicesBits[index] == 1 && currentStartIntervalIndex != -1) {
-                indices.add(MessageIndex.asSubstring(currentStartIntervalIndex, index, message));
-                currentStartIntervalIndex = -1;
+            if (mib[index] == 1 && startIndex != -1) {
+                indices.add(MessageIndex.asSubstring(startIndex, index, message));
+                startIndex = -1;
 
-            } else if (missingIndicesBits[index] == 0 && currentStartIntervalIndex == -1) {
-                currentStartIntervalIndex = index;
+            } else if (mib[index] == 0 && startIndex == -1) {
+                startIndex = index;
             }
         }
 
-        if (currentStartIntervalIndex != -1) {
-            indices.add(MessageIndex.asSubstring(currentStartIntervalIndex, missingIndicesBits.length - 1, message));
+        if (startIndex != -1) {
+            indices.add(MessageIndex.asSubstring(startIndex, mib.length - 1, message));
         }
 
         return new MessageFormat(indices);

@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -27,12 +28,12 @@ import java.util.function.Supplier;
 public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer) {
 
     }
 
@@ -58,10 +59,10 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                if (player.getGameMode() != GameMode.CREATIVE) {
+                if (player.player.getGameMode() != GameMode.CREATIVE) {
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
@@ -92,12 +93,12 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int slot = packet.getSlot();
 
-                if (slot > (player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
+                if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
                     container.getDevelopmentData(this).addPoint("Slot", slot);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
@@ -129,7 +130,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     public static class CreativeC implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (ItemAnalysis.checkItem(player, packet.getItem(), container.getDevelopmentData(this))) {

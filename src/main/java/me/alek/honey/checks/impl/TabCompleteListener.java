@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
@@ -30,12 +31,12 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container) {
         return packetContainer.getPacket().getMessage().startsWith("/");
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInTabComplete> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer) {
 
     }
 
@@ -49,6 +50,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         CheckVisitor<WrappedPlayInTabComplete> visitor = new CheckVisitor<>();
         visitor.visit(new TabA());
         visitor.visit(new TabB());
+        visitor.visit(new TabC());
         return visitor;
     }
 
@@ -63,8 +65,8 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     }
 
     @Override
-    public void cleanup(Player player) {
-        TabB.tabCompleteQueueMap.remove(player.getUniqueId());
+    public void cleanup(HoneyPlayer player) {
+        TabB.tabCompleteQueueMap.remove(player.uuid);
     }
 
     public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
@@ -72,7 +74,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         private static String[] prohibitedCommands;
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
             String message = packet.getMessage();
             String label = message.split(" ")[0];
 
@@ -122,10 +124,10 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
             HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutTabComplete>() {
 
                 @Override
-                public void onPacketSend(Player player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
+                public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
                     int size = packetContainer.getPacket().getSuggestionsSize();
 
-                    ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>())
+                    ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>())
                             .poll();
 
                     if (listener != null) listener.accept(size);
@@ -135,11 +137,10 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                UUID uuid = player.getUniqueId();
-                tabCompleteQueueMap.computeIfAbsent(uuid, (d) -> new LinkedList<>()).add(new ResponseListener() {
+                tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new ResponseListener() {
                     @Override
                     public void accept(int size) {
                         container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
@@ -175,18 +176,21 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     public static class TabC implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
-            return null;
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
+                return ResponseBuilder.inst().flag(packet.getMessage().length()).build();
+            }
+            return ResponseBuilder.SUCCESS;
         }
 
         @Override
         public String getName() {
-            return null;
+            return "Tab.C";
         }
 
         @Override
         public String getDescription() {
-            return null;
+            return "Lenth of tab complete exceeded";
         }
 
         @Override
@@ -196,7 +200,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return null;
+            return ConfigurationOptions.getVlSetting(ConfigurationOptions.TabComplete.TabC.class);
         }
     }
 }

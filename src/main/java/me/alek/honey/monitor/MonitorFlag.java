@@ -200,7 +200,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return input.getPlayer().getName().equalsIgnoreCase(playerName);
+            return input.getPlayer().name.equalsIgnoreCase(playerName);
         }
     }
 

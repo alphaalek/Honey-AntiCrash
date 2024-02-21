@@ -1,6 +1,7 @@
 package me.alek.honey.netty.injector.connection;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
@@ -25,7 +26,7 @@ public class SpigotPipelineInjector {
 
             InboundPacketDecoder decoder = new InboundPacketDecoder(channel);
             channel.pipeline().addAfter("splitter", PacketLibrary.get().getDecoderName(), decoder);
-            channel.pipeline().addBefore("packet_handler", PacketLibrary.get().getHandlerName(), new DuplexChannelHandler(channel, decoder));
+            channel.pipeline().addBefore("packet_handler", PacketLibrary.get().getHandlerName(), new DuplexChannelHandler(decoder));
         }
     }
 
@@ -55,8 +56,8 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public void updatePlayer(Player player) throws MissingHandlerException {
-        Channel channel = NMSUtils.getChannel(player);
+    public void updatePlayer(HoneyPlayer player) throws MissingHandlerException {
+        Channel channel = player.channel;
         if (channel == null) {
             throw new MissingHandlerException();
         }

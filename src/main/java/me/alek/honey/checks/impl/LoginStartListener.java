@@ -2,6 +2,7 @@ package me.alek.honey.checks.impl;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -29,12 +30,12 @@ import java.util.function.Supplier;
 public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLoginStart> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedLoginInLoginStart> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedLoginInLoginStart> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packetContainer) {
 
     }
 
@@ -59,7 +60,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     public static class LoginA implements PacketCheck<WrappedLoginInLoginStart> {
 
         @Override
-        public ResponseContainer check(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
 
             if (profile == null)
@@ -93,7 +94,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     public static class LoginB implements PacketCheck<WrappedLoginInLoginStart> {
 
         @Override
-        public ResponseContainer check(Player player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

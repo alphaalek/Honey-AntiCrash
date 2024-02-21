@@ -1,5 +1,6 @@
 package me.alek.honey.monitor;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
@@ -27,32 +28,32 @@ public class TrackerUtils {
             this.tracker = tracker;
         }
 
-        public double getOfAverage(Player player, Timespan timespan) {
+        public double getOfAverage(HoneyPlayer player, Timespan timespan) {
             return NumberConversions.format(tracker.getTimeToAverageQuotient(player, timespan) * 100, 1);
         }
 
-        public double getOfAverageWithout(Player player, Timespan timespan) {
+        public double getOfAverageWithout(HoneyPlayer player, Timespan timespan) {
             return NumberConversions.format(tracker.getTimeToAverageWithoutQuotient(player, timespan) * 100, 1);
         }
 
-        public double getOfTotal(Player player, Timespan timespan) {
+        public double getOfTotal(HoneyPlayer player, Timespan timespan) {
             return NumberConversions.format(tracker.getTimeToTotalQuotient(player, timespan) * 100, 1);
         }
 
-        public double getOfPacketTask(Player player, Timespan timespan) {
+        public double getOfPacketTask(HoneyPlayer player, Timespan timespan) {
             return NumberConversions.format(tracker.getHalfServerThreadQuotient(player, timespan) * 100, 1);
         }
 
-        public String getOfPacketTaskFormatted(Player player, Timespan timespan) {
+        public String getOfPacketTaskFormatted(HoneyPlayer player, Timespan timespan) {
             double value = getOfPacketTask(player, timespan);
             return value + "%" + (value < 100 ? "" : "§c⚠");
         }
 
-        public void clearExceedingNodes(Player player) {
+        public void clearExceedingNodes(HoneyPlayer player) {
             tracker.clearExceedingNodes(player);
         }
 
-        public void clearExceedingNodes(Player player, Timespan timespan) {
+        public void clearExceedingNodes(HoneyPlayer player, Timespan timespan) {
             tracker.clearExceedingNodes(player, timespan, System.currentTimeMillis());
         }
 

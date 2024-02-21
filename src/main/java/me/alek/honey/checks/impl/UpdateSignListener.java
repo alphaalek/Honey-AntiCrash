@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -20,12 +21,12 @@ import java.util.function.Supplier;
 public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInUpdateSign> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer) {
 
     }
 
@@ -54,7 +55,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
         };
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
                     return ResponseBuilder.inst().cancel().punish().build();

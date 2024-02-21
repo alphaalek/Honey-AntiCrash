@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -39,12 +40,12 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
     }
 
     @Override
-    public boolean onPrePacketReceive(Player player, PacketContainer<WrappedPlayInUseEntity> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUseEntity> packetContainer, CheckContextContainer container) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WrappedPlayInUseEntity> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUseEntity> packetContainer) {
     }
 
     @Override
@@ -60,7 +61,7 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
     public static class UseEntityA implements PacketCheck<WrappedPlayInUseEntity>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInUseEntity packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInUseEntity packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 if (packet.getAction() != WrappedPlayInUseEntity.EnumEntityUseAction.INTERACT_AT && packet.getTarget().isPresent()) {
@@ -94,7 +95,7 @@ public class UseEntityListener extends AbstractPacketListener<WrappedPlayInUseEn
     public static class UseEntityB implements PacketCheck<WrappedPlayInUseEntity>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WrappedPlayInUseEntity packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInUseEntity packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 final Optional<Vector> targetVectorOptional = packet.getTarget();

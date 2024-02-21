@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
@@ -33,12 +34,12 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     private static final ViolationService.CheckKey pitchKey = new ViolationService.CheckKey("pitch");
 
     @Override
-    public synchronized boolean onPrePacketReceive(Player player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
         Location location = packetContainer.getPacket().getLocation();
 
         if (location.getPitch() == 0 && location.getYaw() == 0) {
-            lastYawMap.put(player.getUniqueId(), 0f);
-            lastPitchMap.put(player.getUniqueId(), 0f);
+            lastYawMap.put(player.uuid, 0f);
+            lastPitchMap.put(player.uuid, 0f);
             return false;
         }
         float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player, location.getYaw()));
@@ -50,8 +51,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         ).build();
         container.getStorage().put(ResponseContainer.class, response);
 
-        lastYawMap.put(player.getUniqueId(), location.getYaw());
-        lastPitchMap.put(player.getUniqueId(), location.getPitch());
+        lastYawMap.put(player.uuid, location.getYaw());
+        lastPitchMap.put(player.uuid, location.getPitch());
 
         container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
         container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
@@ -59,7 +60,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     }
 
     @Override
-    public void onPostPacketReceive(Player player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
 
     }
 
@@ -86,23 +87,23 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     }
 
     @Override
-    public void cleanup(Player player) {
-        lastYawMap.remove(player.getUniqueId());
-        lastPitchMap.remove(player.getUniqueId());
+    public void cleanup(HoneyPlayer player) {
+        lastYawMap.remove(player.uuid);
+        lastPitchMap.remove(player.uuid);
     }
 
-    public static float getLastYawFor(Player player, float yaw) {
-        return lastYawMap.getOrDefault(player.getUniqueId(), yaw);
+    public static float getLastYawFor(HoneyPlayer player, float yaw) {
+        return lastYawMap.getOrDefault(player.uuid, yaw);
     }
 
-    public static float getLastPitchFor(Player player, float pitch) {
-        return lastPitchMap.getOrDefault(player.getUniqueId(), pitch);
+    public static float getLastPitchFor(HoneyPlayer player, float pitch) {
+        return lastPitchMap.getOrDefault(player.uuid, pitch);
     }
 
     public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 final float pitch = packet.getPitch();
 
@@ -137,7 +138,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (packet.getYaw() == 0 || PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
@@ -173,7 +174,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(Player player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getYaw() != 0) {

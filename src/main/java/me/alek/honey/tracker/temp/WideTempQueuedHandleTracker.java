@@ -1,5 +1,6 @@
 package me.alek.honey.tracker.temp;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.tracker.timed.TimedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.Bukkit;
@@ -8,33 +9,33 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, Player> {
+public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, HoneyPlayer> {
 
     private final Map<UUID, TempTimedQueuedTracker> trackerMap = new HashMap<>();
     private final TempTimedQueuedTracker commonTracker = new TempTimedQueuedTracker();
 
     @Override
-    public synchronized void remove(Player key) {
-        if (trackerMap.containsKey(key.getUniqueId())) {
+    public synchronized void remove(HoneyPlayer key) {
+        if (trackerMap.containsKey(key.uuid)) {
             for (Timespan timespan : Timespan.values()) {
                 timespan.clearContext(getTracker(key));
             }
-            trackerMap.remove(key.getUniqueId());
+            trackerMap.remove(key.uuid);
         }
     }
 
-    public synchronized TempTimedQueuedTracker getTracker(Player player) {
-        return trackerMap.computeIfAbsent(player.getUniqueId(), (d) -> new TempTimedQueuedTracker());
+    public synchronized TempTimedQueuedTracker getTracker(HoneyPlayer player) {
+        return trackerMap.computeIfAbsent(player.uuid, (d) -> new TempTimedQueuedTracker());
     }
 
-    public void clearExceedingNodes(Player player) {
+    public void clearExceedingNodes(HoneyPlayer player) {
         long time = System.currentTimeMillis();
         for (Timespan timespan : Timespan.values()) {
             clearExceedingNodes(player, timespan, time);
         }
     }
 
-    public void clearExceedingNodes(Player player, Timespan timespan, long time) {
+    public void clearExceedingNodes(HoneyPlayer player, Timespan timespan, long time) {
         getTracker(player).clearExceedingNodes(timespan, time);
         commonTracker.clearExceedingNodes(timespan, time);
     }
@@ -55,7 +56,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     @Override
-    public synchronized void registerTime(Player key, Double value) {
+    public synchronized void registerTime(HoneyPlayer key, Double value) {
         if (value <= 0) return;
 
         long time = System.currentTimeMillis();
@@ -72,20 +73,20 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
         return 0;
     }
 
-    private double getExceedingTimedNode(Player player, Timespan timespan) {
+    private double getExceedingTimedNode(HoneyPlayer player, Timespan timespan) {
         return getExceedingTimedNode(getTracker(player), timespan);
     }
 
-    public double getHalfServerThreadQuotient(Player player, Timespan timespan) {
+    public double getHalfServerThreadQuotient(HoneyPlayer player, Timespan timespan) {
         return getPlayerTotal(player, timespan) / (1000 * timespan.getTimespan()) * 2;
     }
 
-    public double getPlayerTotal(Player player, Timespan timespan) {
+    public double getPlayerTotal(HoneyPlayer player, Timespan timespan) {
         getTracker(player).clearExceedingNodes(timespan, System.currentTimeMillis());
         return getTracker(player).getTotal(timespan) - getExceedingTimedNode(player, timespan);
     }
 
-    public double[] getStatistics(Player player) {
+    public double[] getStatistics(HoneyPlayer player) {
         double[] statistics = new double[Timespan.values().length];
         int i = 0;
         for (Timespan timespan : Timespan.values()) {
@@ -95,17 +96,17 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     @Override
-    public double getTimeToAverageQuotient(Player key, Timespan timespan) {
+    public double getTimeToAverageQuotient(HoneyPlayer key, Timespan timespan) {
         return Math.max(0, getPlayerTotal(key, timespan) / getAverage(timespan));
     }
 
     @Override
-    public double getTimeToAverageWithoutQuotient(Player key, Timespan timespan) {
+    public double getTimeToAverageWithoutQuotient(HoneyPlayer key, Timespan timespan) {
         return Math.max(0, getPlayerTotal(key, timespan) / getAverageWithout(key, timespan));
     }
 
     @Override
-    public double getTimeToTotalQuotient(Player key, Timespan timespan) {
+    public double getTimeToTotalQuotient(HoneyPlayer key, Timespan timespan) {
         return Math.max(0, getPlayerTotal(key, timespan) / getTotal(timespan));
     }
 
@@ -114,7 +115,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
         return getTotal(timespan) / getTrackerSize();
     }
 
-    public double getAverageWithout(Player player, Timespan timespan) {
+    public double getAverageWithout(HoneyPlayer player, Timespan timespan) {
         if (getTrackerSize() == 1) return Math.max(getTotal(timespan), getPlayerTotal(player, timespan));
 
         return (getTotal(timespan) - getPlayerTotal(player, timespan)) / (getTrackerSize() - 1);
@@ -131,19 +132,19 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, P
     }
 
     @Override
-    public Set<Player> getTrackers() {
+    public Set<HoneyPlayer> getTrackers() {
         return trackerMap.keySet().stream()
-                .map(Bukkit::getPlayer)
-                .filter(p -> p != null && p.isOnline())
+                .map(HoneyPlayer::getPlayer)
+                .filter(p -> p.player.isOnline())
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public List<Player> getTrackersOrdered() {
-        List<Player> trackersList = new ArrayList<>(getTrackers());
-        trackersList.sort(new Comparator<Player>() {
+    public List<HoneyPlayer> getTrackersOrdered() {
+        List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
+        trackersList.sort(new Comparator<HoneyPlayer>() {
             @Override
-            public int compare(Player o1, Player o2) {
+            public int compare(HoneyPlayer o1, HoneyPlayer o2) {
                 return Double.compare(getPlayerTotal(o1, Timespan.TEN_SECOND), getPlayerTotal(o2, Timespan.TEN_SECOND));
             }
         });

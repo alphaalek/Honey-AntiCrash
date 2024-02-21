@@ -194,9 +194,9 @@ public class HoneyPlugin implements HoneyAPI {
         new BukkitRunnable() {
             @Override
             public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
+                for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
                     synchronized (recentPingLookup) {
-                        recentPingLookup.put(player.getUniqueId(), HoneyPlugin.get().getNotificationService().getPing(player));
+                        recentPingLookup.put(player.uuid, HoneyPlugin.get().getNotificationService().getPing(player));
                     }
                 }
                 if (!HoneyPlugin.get().isRunning())
@@ -262,7 +262,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         sqlManager.reload();
         if (sqlManager.isEnabled()) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
+            for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
                 try {
                     sqlManager.preparePlayer(player);
                 } catch (Exception ex) {
@@ -290,7 +290,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
     }
 
-    public boolean shouldExempt(Player player) {
+    public boolean shouldExempt(HoneyPlayer player) {
         return tickloop.evaluateTPS(Timespan.TEN_SECOND) < ConfigurationOptions.Exempt.MIN_TPS ||
                 getRecentPing(player) > ConfigurationOptions.Exempt.MAX_PING;
     }
@@ -379,15 +379,15 @@ public class HoneyPlugin implements HoneyAPI {
         return watchdogThread;
     }
 
-    public int getRecentPing(Player player) {
+    public int getRecentPing(HoneyPlayer player) {
         synchronized (recentPingLookup) {
-            return recentPingLookup.computeIfAbsent(player.getUniqueId(), (d) -> notificationService.getPing(player));
+            return recentPingLookup.computeIfAbsent(player.uuid, (d) -> notificationService.getPing(player));
         }
     }
 
-    public void removeRecentPingLookup(Player player) {
+    public void removeRecentPingLookup(HoneyPlayer player) {
         synchronized (recentPingLookup) {
-            recentPingLookup.remove(player.getUniqueId());
+            recentPingLookup.remove(player.uuid);
         }
     }
 }

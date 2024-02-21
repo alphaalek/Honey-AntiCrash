@@ -1,13 +1,14 @@
 package me.alek.honey.monitor;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.entity.Player;
 
 public class PlayerMonitorer implements ScheduledMonitorer {
 
-    private final Player player;
+    private final HoneyPlayer player;
 
-    public PlayerMonitorer(Player player) {
+    public PlayerMonitorer(HoneyPlayer player) {
         this.player = player;
     }
 
@@ -18,7 +19,7 @@ public class PlayerMonitorer implements ScheduledMonitorer {
 
     @Override
     public String getName() {
-        return "player monitor of " + player.getName();
+        return "player monitor of " + player.name;
     }
 
     private double getOfAverageWithout(Timespan timespan) {

@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -31,7 +32,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private Object handle;
     private WP wrappedPacket;
     private Runnable postAction;
-    private final Player player;
+    private final HoneyPlayer player;
     private final Channel channel;
     private ReflectStructure<Object, ?> packetStructure;
     private boolean cancelled;
@@ -41,16 +42,20 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
 
     public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type) {
+        this(rawPacket, HoneyPlayer.getPlayer(player.getUniqueId()), channel, postAction, type);
+    }
+
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
         this(player, channel);
         set(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(Object rawPacket, Player player, Channel channel) {
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel) {
         this(player, channel);
         this.handle = rawPacket;
     }
 
-    public InternalPacketContainer(Player player, Channel channel) {
+    public InternalPacketContainer(HoneyPlayer player, Channel channel) {
         this.player = player;
         this.channel = channel;
     }
@@ -67,7 +72,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public String toString() {
         if (type == null) return "Unmodifiable Packet";
 
-        return "Packet:{Type:" + type + ",Player:{ " + player.getName() + "}}";
+        return "Packet:{Type:" + type + ",Player:{ " + player.name + "}}";
     }
 
     @Override
@@ -147,7 +152,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public Player getPlayer() {
+    public HoneyPlayer getPlayer() {
         return player;
     }
 
