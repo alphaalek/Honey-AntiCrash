@@ -1,14 +1,11 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.temp;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import org.bukkit.Bukkit;
+import me.alek.honey.tracker.timed.Timespan;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 public class TempQueue {
 

@@ -19,7 +19,6 @@ import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -125,7 +124,6 @@ public class ViolationService {
         Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.kickPlayer("Disconnected"));
 
         HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
-        HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
     }
 
     public class ViolationContext {
@@ -327,7 +325,7 @@ public class ViolationService {
         }
 
         public void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
-            if (ConfigurationOptions.PacketDump.ENABLED) {
+            if (ConfigurationOptions.PacketDump.VLS_ENABLED) {
 
                 PacketBundleFilter filter = check.getDumpFilter();
                 if (filter != null && filter.getAcceptedPacketTypes() != null

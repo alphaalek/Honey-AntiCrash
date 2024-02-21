@@ -1,10 +1,10 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.temp;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.Tuple2;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class TempFixedQueuedTracker extends TempQueuedTracker {
 

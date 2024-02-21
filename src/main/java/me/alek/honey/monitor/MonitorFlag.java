@@ -10,7 +10,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.PredicateUtils;
 
 import java.lang.annotation.Retention;

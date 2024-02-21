@@ -3,9 +3,9 @@ package me.alek.honey.command.impl;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
-import me.alek.honey.tracker.MarkableHandleTracker;
-import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.markable.MarkableHandleTracker;
+import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 

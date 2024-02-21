@@ -1,4 +1,6 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.markable;
+
+import me.alek.honey.tracker.statistic.StatedHandleTracker;
 
 public interface MarkableHandleTracker<I extends Number, T> extends StatedHandleTracker<I, T> {
 

@@ -440,12 +440,17 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public List<C> readFieldValues() {
-            final List<C> list = new ArrayList<>();
+        public Collection<C> readFieldValues() {
+            return readFieldEntries().values();
+        }
+
+        @Override
+        public Map<String, C> readFieldEntries() {
+            final Map<String, C> entries = new HashMap<>();
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
-               list.add(get(accessor));
+                entries.put(accessor.getName(), get(accessor));
             }
-            return list;
+            return entries;
         }
 
         @Override

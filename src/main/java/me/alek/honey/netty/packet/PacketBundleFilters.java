@@ -38,7 +38,7 @@ public class PacketBundleFilters {
 
     public static void updateFilterAllPackets() {
         Set<PacketTypeEnum> packets = new HashSet<>();
-        for (String ignoredPacket : ConfigurationOptions.PacketDump.FILTER_ALL) {
+        for (String ignoredPacket : ConfigurationOptions.PacketDump.VLS_FILTER_ALL) {
             packets.add(PacketWrapperInvokerFactory.getPacketTypeForName(ignoredPacket));
         }
         FILTER_ALL_PACKETS = packets;

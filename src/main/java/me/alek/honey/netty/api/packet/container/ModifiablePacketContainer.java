@@ -29,7 +29,7 @@ public interface ModifiablePacketContainer {
 
     IStructureModifier<Object> getObjects();
 
-    IStructureModifier<?> getAll();
+    IStructureModifier<Object> getAll();
 
     IStructureModifier<UUID> getUUIDS();
 

@@ -6,6 +6,7 @@ import me.alek.honey.netty.utility.MethodInvoker;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 public interface IStructureModifier<T> {
@@ -40,7 +41,9 @@ public interface IStructureModifier<T> {
 
     T invokeMethodWithException(String name, int index, Object... params) throws Exception;
 
-    List<T> readFieldValues();
+    Collection<T> readFieldValues();
+
+    Map<String, T> readFieldEntries();
 
     boolean hasField(int index);
 

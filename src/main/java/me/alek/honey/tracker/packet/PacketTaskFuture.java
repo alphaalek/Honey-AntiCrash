@@ -1,7 +1,6 @@
-package me.alek.honey.tracker.task;
+package me.alek.honey.tracker.packet;
 
 import me.alek.honey.HoneyPlugin;
-import org.bukkit.Bukkit;
 
 import java.util.UUID;
 import java.util.concurrent.FutureTask;

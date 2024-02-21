@@ -1,4 +1,6 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.statistic;
+
+import me.alek.honey.tracker.statistic.Statistic;
 
 import java.util.HashMap;
 import java.util.Map;

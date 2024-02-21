@@ -1,6 +1,8 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.temp;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import me.alek.honey.tracker.temp.TempQueue;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.utility.Tuple2;
 
 public class TempTimedQueuedTracker extends TempQueuedTracker {

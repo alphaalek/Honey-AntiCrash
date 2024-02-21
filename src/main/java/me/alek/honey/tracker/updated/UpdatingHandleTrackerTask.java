@@ -1,4 +1,6 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.updated;
+
+import me.alek.honey.tracker.HandleTracker;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

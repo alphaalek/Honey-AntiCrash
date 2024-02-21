@@ -1,4 +1,4 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tracker.statistic;
 
 public interface Statistic<I extends Number> {
 

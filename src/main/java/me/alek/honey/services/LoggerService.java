@@ -7,14 +7,15 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
+import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.tracker.TempTimedQueuedTracker;
-import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
+import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.DecayingWindowCounter;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.entity.Player;
@@ -59,8 +60,70 @@ public class LoggerService {
         }
     };
 
+    public LoggerService() {
+        reload();
+    }
+
+    public void reload() {
+        enabled = ConfigurationOptions.PacketLogger.ENABLED;
+        detailed = ConfigurationOptions.PacketLogger.DETAILED;
+        debug = ConfigurationOptions.PacketLogger.DEBUG;
+        ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
+        ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
+
+        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
+        if (!isRegistered) {
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT));
+        }
+    }
+
     public Logger getLogger() {
         return HoneyPlugin.get().getPlugin().getLogger();
+    }
+
+    public int getPacketRate(Player player) {
+        return packetRate.get(player.getUniqueId()).size(0);
+    }
+
+    public int getTotalPacketRate() {
+        return totalPacketRate.size(0);
+    }
+
+    public String getTotalPacketRateGrade(int packetRate) {
+        int prevRate = totalPacketRate.size(1, 2);
+        return getPacketRateGrade(packetRate, prevRate);
+    }
+
+    public String getPacketRateGrade(Player player, int packetRate) {
+        int prevRate = (int) (this.packetRate.get(player.getUniqueId()).size(1, 2) * 0.965);
+        return getPacketRateGrade(packetRate, prevRate);
+    }
+
+    public String getPacketRateGrade(int rate, int prevRate) {
+        double grade = ((double)rate) / (((double)prevRate) / 8);
+        if (prevRate == 0) grade = 1;
+
+        if (grade > 1.025) return "§a+" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
+        if (grade > 0.975) return "§e~0%";
+        else return "§c-" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
+    }
+
+    public void removePacketData(Player player) {
+        recentPackets.remove(player.getUniqueId());
+        packetRate.remove(player.getUniqueId());
+    }
+
+    public double getPacketRatePerQueueExecution(Timespan timespan) {
+        return packetRatePerQueueExecution.getTotal(timespan) / packetRatePerQueueExecution.getLength(timespan);
+    }
+
+    public void registerQueueExecutionPacket() {
+        currentQueueExecutionPacket.addAndGet(1);
+    }
+
+    public void registerQueueExecutionStop() {
+        packetRatePerQueueExecution.add(currentQueueExecutionPacket.get(), System.currentTimeMillis());
+        currentQueueExecutionPacket.set(0);
     }
 
     public void logToMonitors(Player player, PacketContainer<?> packet) {
@@ -101,80 +164,9 @@ public class LoggerService {
         }
     }
 
-    public void removePacketData(Player player) {
-        recentPackets.remove(player.getUniqueId());
-        packetRate.remove(player.getUniqueId());
-    }
-
-    public int getPacketRate(Player player) {
-        return packetRate.get(player.getUniqueId()).size(0);
-    }
-
-    public int getTotalPacketRate() {
-        return totalPacketRate.size(0);
-    }
-
-    public String getTotalPacketRateGrade(int packetRate) {
-        int prevRate = totalPacketRate.size(1, 2);
-        return getPacketRateGrade(packetRate, prevRate);
-    }
-
-    public String getPacketRateGrade(Player player, int packetRate) {
-        int prevRate = (int) (this.packetRate.get(player.getUniqueId()).size(1, 2) * 0.965);
-        return getPacketRateGrade(packetRate, prevRate);
-    }
-
-    public String getPacketRateGrade(int rate, int prevRate) {
-        double grade = ((double)rate) / (((double)prevRate) / 8);
-        if (prevRate == 0) grade = 1;
-
-        if (grade > 1.025) return "§a+" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
-        if (grade > 0.975) return "§e~0%";
-        else return "§c-" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
-    }
-
-    public double getPacketRatePerQueueExecution(Timespan timespan) {
-        return packetRatePerQueueExecution.getTotal(timespan) / packetRatePerQueueExecution.getLength(timespan);
-    }
-
-    public void registerQueueExecutionPacket() {
-        currentQueueExecutionPacket.addAndGet(1);
-    }
-
-    public void registerQueueExecutionStop() {
-        packetRatePerQueueExecution.add(currentQueueExecutionPacket.get(), System.currentTimeMillis());
-        currentQueueExecutionPacket.set(0);
-    }
-
-    public LoggerService() {
-        reload();
-    }
-
-    public enum LoggingStrategy {
-        FLAG, VIOLATE
-    }
-
-    public void reload() {
-        enabled = ConfigurationOptions.PacketLogger.ENABLED;
-        detailed = ConfigurationOptions.PacketLogger.DETAILED;
-        debug = ConfigurationOptions.PacketLogger.DEBUG;
-        ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
-        ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
-
-        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
-        if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT));
-        }
-    }
-
-    public void logDebug(LoggingStrategy strategy, Object handle, String playerName, String violationName) {
-        if (!debug) return;
-        if (ignoredPlayers.contains(playerName) || ignoredPackets.contains(handle.getClass().getSimpleName())) {
-            return;
-        }
-        String logType = (strategy == LoggingStrategy.FLAG) ? "flagged" : "violated";
-
-        getLogger().info("DEBUG: " + logType + " " + playerName + " for " + violationName);
+    public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
+        getLogger().info("Auto dump for heavy packet sent by " + packet.getPlayer().getName() + ": " + packet.getName()
+                + " (" + packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
@@ -182,7 +174,7 @@ public class LoggerService {
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime, boolean ignore) {
-        if (ignore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getHandle().getClass().getSimpleName()))) {
+        if (ignore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getName()))) {
             return;
         }
         StringBuilder message = new StringBuilder();
@@ -192,16 +184,11 @@ public class LoggerService {
             message.append(" (").append(comparingTime - packetContainer.getTime()).append("ms ago)");
         }
 
-        message.append(": ").append(playerName).append(" sent ").append(packetContainer.getHandle().getClass().getSimpleName());
+        message.append(": ").append(playerName).append(" sent ").append(packetContainer.getName());
         if (detailed)
             message.append(": ").append(packetContainer.getAll().readFieldValues());
 
         getLogger().info(message.toString());
-    }
-
-    public void logPunish(String playerName, String violationName) {
-        if (!debug) return;
-        getLogger().info("DEBUG: Kicking " + playerName + " for " + violationName);
     }
 
     public boolean isEnabled() {
@@ -210,17 +197,5 @@ public class LoggerService {
 
     public boolean isDebug() {
         return debug;
-    }
-
-    public boolean isDetailed() {
-        return detailed;
-    }
-
-    public List<String> getIgnoredPlayers() {
-        return ignoredPlayers;
-    }
-
-    public List<String> getIgnoredPackets() {
-        return ignoredPackets;
     }
 }

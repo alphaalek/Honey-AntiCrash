@@ -29,6 +29,8 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     Object getHandle();
 
+    String getName();
+
     boolean isCancelled();
 
     boolean isDumped();

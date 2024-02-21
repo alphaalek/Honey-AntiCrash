@@ -14,16 +14,16 @@ import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.Reflection;
-import me.alek.honey.tracker.task.PacketTaskFuture;
-import me.alek.honey.tracker.task.PacketTaskHandler;
+import me.alek.honey.tracker.packet.PacketTaskFuture;
+import me.alek.honey.tracker.packet.PacketTaskHandler;
+import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
@@ -135,19 +135,17 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 return otherTask;
             }
             calls++;
-            Player player = null;
             // check if this packet is not the first one handled in this tick
             if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
                 // get the player who sent the previously polled packet from the queue
-                player = Bukkit.getPlayer(recentPacketAuthor.get());
+                Player player = Bukkit.getPlayer(recentPacketAuthor.get());
                 recentPacketAuthor.set(null);
 
                 if (player != null && player.isOnline()) {
                     // evaluate the difference in time
                     double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
 
-                    Bukkit.getLogger().info("register time " + deltaTime + " " + player.getName());
                     registerTime(player, Math.max(0, deltaTime - 0.0025));
                 }
                 recentDeltaTime = -1;
@@ -186,8 +184,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
                 if (Thread.interrupted()) {
-                    HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag. "
-                            + (player == null ? "" : " Maybe sent from " + player.getName() + "."));
+                    HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
                 }
 
                 // we can confidently call after all packets is being handled without fearing locked server thread,
@@ -206,6 +203,10 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         @Override
         public synchronized boolean add(Object value) {
+            // add it two times if it's empty, so we always have one extra element
+            // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
+            if (super.isEmpty() && pollsOneExtra) super.add(EMPTY_VALUE);
+
             // only register tracking for tasks added by netty threads (packet handling)
             if (!Thread.currentThread().getName().startsWith("Netty")) return super.add(value);
 

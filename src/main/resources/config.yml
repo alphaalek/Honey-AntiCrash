@@ -27,6 +27,7 @@ notify-permission: "honey.notify"
 # OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
 pastebin-developer-key: ""
 
+
 # Formatting for messages sent by Honey
 messages:
   # Prefix for command usage
@@ -37,6 +38,7 @@ messages:
 
   # Punish
   punish: "%prefix% &7%player% %network%&7 was kicked for &e%check%&7."
+
 
 # MySQL settings for storage
 mysql:
@@ -58,6 +60,7 @@ mysql:
   # Name of the database that data should be stored in
   name: "sample"
 
+
 # Exempt flood and related checks
 exempt:
   # Honey will stop doing flood checks (except for Flood A) at the following things
@@ -72,6 +75,7 @@ exempt:
   # The following interval will be blocked after the max-time-between value has been exceeded
   spike-interval: 750
 
+
 # monitor
 monitor:
   # Packets which the player monitor should ignore.
@@ -85,6 +89,7 @@ monitor:
 
   # Interval for sending messages when having a monitor enabled.
   message-interval: 500
+
 
 # packet logger
 packet-logger:
@@ -107,18 +112,11 @@ packet-logger:
   # Should the packet logger be detailed, which means it shows all the properties of each packet.
   detailed: true
 
+
 # packet dump
 packet-dump:
-  # Packet dump is the packets shown in the logs, when a player gets violated.
-
-  # Should packet dump be enabled or not.
+  # Should packet dump for check violations be enabled or not.
   enabled: true
-
-  # Max time
-  max-server-handle-packet-dump: 1000
-
-  # Max time thread dump
-  max-server-handle-thread-dump:
 
   # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
   # E.g. violations of position checks will still dump position packets even though you have added it below.
@@ -128,6 +126,20 @@ packet-dump:
   # - "PacketPlayInLook"
   # - "PacketPlayInPosition"
   # - "PacketPlayInPositionLook"
+
+  heavy-packet:
+    # Should packet dump for heavy handled packets be enabled
+    enabled: true
+
+    # Min main thread handle time for packet to be dumped in log
+    min-server-handle: 10
+
+  server-thread-dump:
+    # Should server thread dump for heavy handled packets be enabled
+    enabled: true
+
+    # Min main thread handle time for thread to be dumped in log
+    min-server-handle: 750
 
 ############################################################
 # +------------------------------------------------------+ #

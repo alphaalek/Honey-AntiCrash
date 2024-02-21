@@ -102,6 +102,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
+    public String getName() {
+        return handle.getClass().getSimpleName();
+    }
+
+    @Override
     public boolean isDumped() {
         return dumped;
     }
@@ -200,8 +205,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public IStructureModifier<?> getAll() {
-        return packetStructure.withTarget(handle);
+    public IStructureModifier<Object> getAll() {
+        return (IStructureModifier<Object>) packetStructure.withTarget(handle);
     }
 
     @Override

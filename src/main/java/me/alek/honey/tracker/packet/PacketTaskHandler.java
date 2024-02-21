@@ -1,4 +1,4 @@
-package me.alek.honey.tracker.task;
+package me.alek.honey.tracker.packet;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
 import me.alek.honey.HoneyPlugin;
@@ -20,11 +20,8 @@ import org.bukkit.entity.Player;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.util.*;
-import java.util.concurrent.ThreadFactory;
 
 public class PacketTaskHandler {
-
-    private static final int MAX_HANDLE_TIME_BEFORE_DUMP = 10000;
 
     public static final Object lock = new Object();
     private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
@@ -38,7 +35,8 @@ public class PacketTaskHandler {
         new DefaultThreadFactory("Honey Packet Task Handler").newThread(() -> {
             while (HoneyPlugin.get().isRunning()) {
                 synchronized (lock) {
-                    if (handledTask != null && System.currentTimeMillis() - handledTask.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
+                    if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                            && System.currentTimeMillis() - handledTask.getT2() >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) continue;
@@ -48,12 +46,12 @@ public class PacketTaskHandler {
                     }
                 }
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-        });
+        }).start();
     }
 
     public static Tuple2<PacketTaskFuture<?>, Long> getHandledTask() {
@@ -67,24 +65,22 @@ public class PacketTaskHandler {
     public static void dumpThread(UUID uuid) {
         String name = Optional.ofNullable(Bukkit.getPlayer(uuid)).map(Player::getName).orElse("Unknown");
         HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX + " §cThe server seems to be frozen after a packet was sent by " + name + ". See the log for thread dump and more info."));
-        HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
-        HoneyPlugin.get().getLoggerService().getLogger().severe("Packet sent by " + name + " (" + uuid + ")");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("Auto thread dump for heavy packet sent by " + name + ":");
 
         PacketContainer<? extends WrappedPacket<?>> packet = packetBundleSavers.get(uuid).getOldest(false);
         if (packet != null) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
-            HoneyPlugin.get().getLoggerService().getLogger().severe("  Fields: ");
-            for (FieldAccessor<?> accessor : packet.getAll().getAccessors()) {
-                Object value = accessor.get(packet.getHandle());
-                if (value instanceof Object[]) {
-                    value = Arrays.toString((Object[]) value);
-                }
-                HoneyPlugin.get().getLoggerService().getLogger().severe("   \"" + accessor.getName() + "\": " + accessor.getType().getName() + ": " + value);
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
+
+            Map<String, Object> fields = packet.getAll().readFieldEntries();
+            for (Map.Entry<String,? > field : fields.entrySet()) {
+                fields.put(field.getKey(), (field.getValue() instanceof Object[]) ? Arrays.toString((Object[]) field.getValue()) : field.getValue());
             }
-        } else HoneyPlugin.get().getLoggerService().getLogger().severe("  Packet data unknown.");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Properties: " + fields);
+
+        } else HoneyPlugin.get().getLoggerService().getLogger().severe("Packet data unknown.");
 
         HoneyPlugin.get().getLoggerService().getLogger().severe("");
-        HoneyPlugin.get().getLoggerService().getLogger().severe("  Thread dump (Server Thread):");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("Thread dump:");
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
 
         StackTraceElement[] elements = info.getStackTrace();
@@ -96,23 +92,20 @@ public class PacketTaskHandler {
                 combinedTotal++;
             }
             else {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("\t" + element);
+                HoneyPlugin.get().getLoggerService().getLogger().severe(element.toString());
                 notMatch = true;
             }
             prevElement = element.toString();
 
             if (notMatch) {
                 if (combinedTotal > 0) {
-                    HoneyPlugin.get().getLoggerService().getLogger().severe("\t" + "[...] x" + combinedTotal);
+                    HoneyPlugin.get().getLoggerService().getLogger().severe("[...] x" + combinedTotal);
                 }
                 combinedTotal = 0;
             }
         }
         if (prevElement != null)
-            HoneyPlugin.get().getLoggerService().getLogger().severe("\t" + prevElement);
-        HoneyPlugin.get().getLoggerService().getLogger().severe("End of thread dump");
-
-        HoneyPlugin.get().getLoggerService().getLogger().severe("*******************************************************************************************");
+            HoneyPlugin.get().getLoggerService().getLogger().severe(prevElement);
     }
 
     public static <V> void registerTask(PacketTaskFuture<V> task){
@@ -143,6 +136,11 @@ public class PacketTaskHandler {
                 PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                 if (packet != null) {
                     packet.getEventloopStateTimings().stopTimings();
+
+                    if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
+                            && packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
+                        HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
+                    }
 
                     if (packet.getPlayer() != null) // we have to make sure it's not an unmodifiable packet
                         monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
