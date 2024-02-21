@@ -931,6 +931,12 @@ public class ConfigurationOptions {
         public static class TabB extends VlSetting implements VlBufferThrottleRequiredContentsSetting {
 
         }
+
+        @Setting
+        @Violation(prefixPaths = "tab-complete.c", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class TabC extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
+
+        }
     }
 
     @Setting

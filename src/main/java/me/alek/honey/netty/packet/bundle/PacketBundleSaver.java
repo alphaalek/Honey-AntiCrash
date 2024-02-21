@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet;
+package me.alek.honey.netty.packet.bundle;
 
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -10,10 +10,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class PacketBundleSaver {
-    private static final Map<Set<PacketTypeEnum>, Integer> PACKET_SAVES_SIZES = new HashMap<>();
+    private static final Set<PacketSaverWindow> PACKET_SAVER_WINDOWS = new HashSet<>();
     private static byte MAX_PACKET_ID;
 
-    private final Map<Set<PacketTypeEnum>, Deque<PacketContainer<?>>> PACKET_SAVES = new HashMap<>();
+    public final Map<PacketSaverWindow, Deque<PacketContainer<?>>> packetSaves = new HashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     static {
@@ -21,11 +21,11 @@ public class PacketBundleSaver {
     }
 
     public static void reloadFilters() {
-        PACKET_SAVES_SIZES.clear();
-        PACKET_SAVES_SIZES.putAll(PacketBundleFilters.getPacketSaves());
+        PACKET_SAVER_WINDOWS.clear();
+        PACKET_SAVER_WINDOWS.addAll(PacketBundleFilters.getPacketSaves());
 
         byte max = 0;
-        for (PacketTypeEnum packetType : PACKET_SAVES_SIZES.keySet().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+        for (PacketTypeEnum packetType : PACKET_SAVER_WINDOWS.stream().flatMap((w) -> w.getPacketTypes().stream()).collect(Collectors.toSet())) {
             if (packetType.getPacketId() > max)
                 max = packetType.getPacketId();
         }
@@ -40,27 +40,31 @@ public class PacketBundleSaver {
     public PacketBundleSaver() {
         packets = new List[MAX_PACKET_ID + 1];
 
-        for (Set<PacketTypeEnum> packetTypeSet : PACKET_SAVES_SIZES.keySet()) {
+        for (PacketSaverWindow window : PACKET_SAVER_WINDOWS) {
+            if (window.size() == 0) continue;
+
+            Set<PacketTypeEnum> packetTypeSet = window.getPacketTypes();
             for (PacketTypeEnum packetType : packetTypeSet) {
                 List<PacketSaverQueue> packets = this.packets[packetType.getPacketId()];
                 if (packets == null) {
                     this.packets[packetType.getPacketId()] = (packets = new ArrayList<>());
                 }
-                boolean hasForPacketTypes = false;
+                boolean hasWindow = false;
                 for (PacketSaverQueue queue : packets) {
-                    if (queue.packetTypes.equals(packetTypeSet)) {
-                        hasForPacketTypes = true;
+                    if (queue.getWindow().equals(window)) {
+                        hasWindow = true;
                         break;
                     }
                 }
-                if (!hasForPacketTypes) {
-                    int size = PACKET_SAVES_SIZES.get(packetTypeSet);
-                    if (size == 0) continue;
-
-                    packets.add(new PacketSaverQueue(packetTypeSet, size));
+                if (!hasWindow) {
+                    packets.add(new PacketSaverQueue(this, window));
                 }
             }
         }
+    }
+
+    public Map<PacketSaverWindow, Deque<PacketContainer<?>>> getPacketSaves() {
+        return packetSaves;
     }
 
     public void transferTo(PacketBundleSaver bundleSaver) {
@@ -73,26 +77,6 @@ public class PacketBundleSaver {
             transferedTo = bundleSaver;
         } finally {
             lock.writeLock().unlock();
-        }
-    }
-
-    private class PacketSaverQueue {
-
-        private final Set<PacketTypeEnum> packetTypes;
-        private final int size;
-        private final Deque<PacketContainer<?>> packets;
-
-        public PacketSaverQueue(Set<PacketTypeEnum> packetTypes, int size) {
-            this.packetTypes = packetTypes;
-            this.size = size;
-            packets = PACKET_SAVES.computeIfAbsent(packetTypes, (d) -> new LinkedList<>());
-        }
-
-        public void add(PacketContainer<?> packet) {
-            if (!packetTypes.contains(packet.getType())) return;
-
-            packets.add(packet);
-            if (packets.size() > size) packets.remove();
         }
     }
 
@@ -163,7 +147,7 @@ public class PacketBundleSaver {
             if (queues == null) return null;
 
             for (PacketSaverQueue queue : queues) {
-                if (queue.packetTypes.equals(packetTypeSet))
+                if (queue.getWindow().getPacketTypes().equals(packetTypeSet) && !queue.isEmpty())
                     return get(queue, remove);
             }
         } finally {
@@ -173,7 +157,7 @@ public class PacketBundleSaver {
     }
 
     public List<PacketContainer<?>> get(Set<PacketTypeEnum> packetTypeSet, int amount, boolean remove) {
-        if (amount == 0) return null;
+        if (amount == 0) return Collections.emptyList();
 
         lock.readLock().lock();
         try {
@@ -188,12 +172,17 @@ public class PacketBundleSaver {
             List<PacketSaverQueue> queues = getQueue(first);
             if (queues == null) return null;
 
+            PacketSaverQueue largestQueue = null;
             for (PacketSaverQueue queue : queues) {
-                if (queue.packetTypes.equals(packetTypeSet)) {
-                    return getPackets(queue, amount, remove);
+                if (queue.getWindow().getPacketTypes().equals(packetTypeSet)
+                        && (largestQueue == null || largestQueue.size() < queue.size())) {
+                    largestQueue = queue;
                 }
             }
-            return new ArrayList<>();
+            if (largestQueue != null)
+                return getPackets(largestQueue, amount, remove);
+            else
+                return Collections.emptyList();
         } finally {
             lock.readLock().unlock();
         }
@@ -219,7 +208,7 @@ public class PacketBundleSaver {
     private List<PacketContainer<?>> peekPackets(PacketSaverQueue queue, int amount, boolean fromHead) {
         List<PacketContainer<?>> packets = new LinkedList<>();
 
-        List<PacketContainer<?>> queuePackets = new ArrayList<>(queue.packets);
+        List<PacketContainer<?>> queuePackets = new ArrayList<>(queue.getPackets());
         if (!fromHead) Collections.reverse(queuePackets);
 
         for (PacketContainer<?> packet : queuePackets) {
@@ -236,13 +225,13 @@ public class PacketBundleSaver {
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketSaverQueue queue, boolean remove) {
-        if (!remove) return (PacketContainer<WP>) queue.packets.peek();
+        if (!remove) return (PacketContainer<WP>) queue.getPackets().peek();
 
         return poll(queue, true);
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue, boolean fromHead) {
-        PacketContainer<WP> packet = (PacketContainer<WP>) (fromHead ? queue.packets.poll() : queue.packets.pollLast());
+        PacketContainer<WP> packet = (PacketContainer<WP>) (fromHead ? queue.getPackets().poll() : queue.getPackets().pollLast());
         removeFromSavers(packet);
 
         return packet;
@@ -255,7 +244,7 @@ public class PacketBundleSaver {
         if (queues == null) return;
 
         for (PacketSaverQueue queue : queues) {
-            queue.packets.remove(packet);
+            queue.getPackets().remove(packet);
         }
     }
 
@@ -293,7 +282,7 @@ public class PacketBundleSaver {
                 return;
             }
 
-            for (Deque<PacketContainer<?>> packetList : PACKET_SAVES.values()) {
+            for (Deque<PacketContainer<?>> packetList : packetSaves.values()) {
                 packetList.clear();
             }
             commonPackets.clear();

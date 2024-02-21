@@ -1,6 +1,6 @@
 package me.alek.honey.checks.types;
 
-import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 
 public interface HoneyCheck {
 

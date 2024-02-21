@@ -603,6 +603,11 @@ tab-complete:
     decay-amount: 800
     vls-amount: 3
 
+  c:
+    enabled: true
+    threshold: 256
+    vls-amount: 3
+
 # |--- set creative slot ---|
 set-creative-slot:
   a:

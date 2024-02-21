@@ -10,11 +10,10 @@ import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.PacketBundleSaver;
+import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;

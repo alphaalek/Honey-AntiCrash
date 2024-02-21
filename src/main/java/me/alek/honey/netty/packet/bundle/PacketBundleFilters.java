@@ -1,8 +1,9 @@
-package me.alek.honey.netty.packet;
+package me.alek.honey.netty.packet.bundle;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 
@@ -44,23 +45,14 @@ public class PacketBundleFilters {
         FILTER_ALL_PACKETS = packets;
     }
 
-    public static Map<Set<PacketTypeEnum>, Integer> getPacketSaves() {
-        Map<Set<PacketTypeEnum>, Integer> saves = new HashMap<>();
+    public static Set<PacketSaverWindow> getPacketSaves() {
+        Set<PacketSaverWindow> saves = new HashSet<>();
         for (PacketBundleFilter filter : getAllFilters()) {
             int size = filter.size();
             Set<PacketTypeEnum> packetTypes = Sets.newHashSet(filter.getAcceptedPacketTypes());
+            packetTypes.removeAll(FILTER_ALL_PACKETS);
 
-            if (packetTypes.size() == PacketBundleFilterFactory.getLenientFilterSize()) {
-                for (PacketTypeEnum packetType : FILTER_ALL_PACKETS) {
-                    packetTypes.remove(packetType);
-                }
-            }
-            if (!packetTypes.isEmpty() &&
-                    (!saves.containsKey(packetTypes) ||
-                            (saves.containsKey(packetTypes) && saves.get(packetTypes) < size)
-                    )
-            )
-                saves.put(packetTypes, size);
+            saves.add(new PacketSaverWindow(size, packetTypes));
         }
         return saves;
     }
@@ -72,6 +64,7 @@ public class PacketBundleFilters {
                 filters.add((PacketBundleFilter) field.get(null));
             } catch (Exception ex) {
                 String name = field.getName();
+
                 if (name.endsWith("_FILTER"))
                     HoneyPlugin.get().getLoggerService().getLogger().severe("Failed to get packet bundle filter: " + name.substring(0, name.length() - "_FILTER".length()));
             }

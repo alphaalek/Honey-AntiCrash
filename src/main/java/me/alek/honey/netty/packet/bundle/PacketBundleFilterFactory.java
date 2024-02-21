@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packet;
+package me.alek.honey.netty.packet.bundle;
 
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;

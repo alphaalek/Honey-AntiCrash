@@ -2,10 +2,6 @@ package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
-import me.alek.honey.command.CommandManager;
-import me.alek.honey.netty.packet.PacketBundleFilterFactory;
-import me.alek.honey.netty.packet.PacketBundleFilters;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public class HelpCommand implements CommandImpl {

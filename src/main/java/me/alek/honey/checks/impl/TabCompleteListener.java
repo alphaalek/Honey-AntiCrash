@@ -13,8 +13,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
-import me.alek.honey.netty.packet.PacketBundleFilter;
-import me.alek.honey.netty.packet.PacketBundleFilters;
+import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
+import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -24,7 +24,6 @@ import me.alek.honey.services.ViolationService;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
 public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTabComplete> implements IPacketListener {
@@ -170,6 +169,34 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.TabComplete.TabB.class);
+        }
+    }
+
+    public static class TabC implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
+
+        @Override
+        public ResponseContainer check(Player player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+            return null;
+        }
+
+        @Override
+        public String getName() {
+            return null;
+        }
+
+        @Override
+        public String getDescription() {
+            return null;
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LONG_TAB_COMPLETE_FILTER;
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return null;
         }
     }
 }

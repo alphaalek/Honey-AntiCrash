@@ -12,7 +12,7 @@ import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
-import me.alek.honey.netty.packet.PacketBundleFilter;
+import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
@@ -332,10 +332,10 @@ public class ViolationService {
                         && DuplexChannelHandler.getPacketBundleSavers().containsKey(player.getUniqueId())) {
 
                     List<PacketContainer<?>> dumpedPackets = DuplexChannelHandler.getPacketBundleSavers().get(player.getUniqueId())
-                            .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), false);
+                            .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
 
                     if (dumpedPackets != null) {
-                        HoneyPlugin.get().getLoggerService().dumpPackets(dumpedPackets);
+                        HoneyPlugin.get().getLoggerService().dumpPackets(player, dumpedPackets);
                     }
                 }
             }

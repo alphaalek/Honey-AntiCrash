@@ -150,17 +150,12 @@ public class LoggerService {
         monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
-    public void dumpPackets(List<PacketContainer<?>> packets) {
-        if (packets == null
-                || packets.isEmpty()
-                || packets.get(0).getPlayer() == null) return;
-
-        String playerName = packets.get(0).getPlayer().getName();
-        getLogger().info("Packet dump of " + packets.size() + " packets from " + playerName);
+    public void dumpPackets(Player player, List<PacketContainer<?>> packets) {
+        getLogger().info("Packet dump of " + packets.size() + " packets from " + player.getName());
 
         long time = System.currentTimeMillis();
         for (PacketContainer<?> packet : packets) {
-            logPacket(packet, playerName, true, time, false);
+            logPacket(packet, player.getName(), true, time, false);
         }
     }
 
