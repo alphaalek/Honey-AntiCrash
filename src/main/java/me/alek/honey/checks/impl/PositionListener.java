@@ -454,7 +454,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 setting.maxPerInterval = maxPerInterval * 3;
 
                 // force a new packet limit handler to be created with the new flight setting
-                HoneyPlugin.get().getViolationService().getLimits(player, flightKey, setting);
+                HoneyPlugin.get().getViolationService().getDistributor(player, flightKey, setting);
 
                 manipulatedFlightSettingsMap.add(player.getUniqueId());
             }

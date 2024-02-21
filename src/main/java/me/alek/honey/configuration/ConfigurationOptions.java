@@ -263,7 +263,7 @@ public class ConfigurationOptions {
         VlSettingImplType value();
     }
 
-   public enum VlSettingImplType {
+    public enum VlSettingImplType {
         MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED, THROTTLE_AFTER;
 
         public String getPathName() {
@@ -476,7 +476,7 @@ public class ConfigurationOptions {
 
         public static void load() {
             CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp", 120000);
-            PREFIX = file.getString("prefix", "&6Honey &8»");
+            PREFIX = file.getString("messages.prefix", "&6Honey &8»");
 
             HIDE_COMMAND_ENABLED = file.getBoolean("hide-command", false);
             HIDE_BYPASS_PERMISSION = file.getString("hide-bypass-permission", "honey.hide.bypass");

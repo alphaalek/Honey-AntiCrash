@@ -10,8 +10,11 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.services.messages.MessageFormat;
+import me.alek.honey.services.messages.MessageOffer;
+import me.alek.honey.services.messages.Placeholders;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
@@ -108,7 +111,7 @@ public class NotificationService {
             public void notify(Player player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey) {
                 MessageOffer offer = getOffer(player, type, checkKey);
                 offer = offer.builder()
-                        .offer(MessageFormat.Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
+                        .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
                         .build();
                 String message = getMessage(violationFormat, offer);
 
@@ -137,9 +140,9 @@ public class NotificationService {
 
     public MessageOffer getOffer(Player player, String type, ViolationService.CheckKey checkKey) {
         return new MessageOffer.Builder()
-                .offer(MessageFormat.Placeholders.PLAYER, player::getName)
-                .offer(MessageFormat.Placeholders.NETWORK, () -> formatNetworkStats(player))
-                .offer(MessageFormat.Placeholders.CHECK, () -> type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"))
+                .offer(Placeholders.PLAYER, player::getName)
+                .offer(Placeholders.NETWORK, () -> formatNetworkStats(player))
+                .offer(Placeholders.CHECK, () -> type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"))
                 .build();
     }
 

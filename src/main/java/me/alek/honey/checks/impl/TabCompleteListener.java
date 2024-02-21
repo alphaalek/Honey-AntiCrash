@@ -112,7 +112,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     public static class TabB implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
         private static final ViolationService.CheckKey key = new ViolationService.CheckKey(TabB.class, "TabB");
-        private static final Map<UUID, LinkedBlockingQueue<ResponseListener>> tabCompleteQueueMap = new HashMap<>();
+        private static final Map<UUID, Queue<ResponseListener>> tabCompleteQueueMap = new HashMap<>();
 
         private interface ResponseListener {
 
@@ -124,20 +124,12 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
                 @Override
                 public void onPacketSend(Player player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
+                    int size = packetContainer.getPacket().getSuggestionsSize();
 
-                    synchronized (tabCompleteQueueMap) {
-                        int size = packetContainer.getPacket().getSuggestionsSize();
+                    ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedList<>())
+                            .poll();
 
-                        try {
-                            ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.getUniqueId(), (d) -> new LinkedBlockingQueue<>())
-                                    .poll();
-
-                            if (listener != null) listener.accept(size);
-
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
+                    if (listener != null) listener.accept(size);
                 }
 
             }, ListenerPriority.NORMAL, () -> PacketType.Play.Server.TAB_COMPLETE);
@@ -148,16 +140,13 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
             if (getSetting().isEnabled()) {
 
                 UUID uuid = player.getUniqueId();
-                synchronized (tabCompleteQueueMap) {
-                    tabCompleteQueueMap.computeIfAbsent(uuid, (d) -> new LinkedBlockingQueue<>()).add(new ResponseListener() {
-                        @Override
-                        public void accept(int size) {
-
-                            container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                            HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this), false);
-                        }
-                    });
-                }
+                tabCompleteQueueMap.computeIfAbsent(uuid, (d) -> new LinkedList<>()).add(new ResponseListener() {
+                    @Override
+                    public void accept(int size) {
+                        container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this), false);
+                    }
+                });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
                 // and therefore will block this packet. I do this by just flagging with 0.
                 return ResponseBuilder.inst().flag(0).withLimitsKey(key).build();

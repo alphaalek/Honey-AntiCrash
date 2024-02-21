@@ -26,15 +26,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ViolationService {
 
     private final Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
     private final List<UUID> punishing = new CopyOnWriteArrayList<>();
-    private final LoggerService loggerService = HoneyPlugin.get().getLoggerService();
-    private final Lock punishLock = new ReentrantLock();
 
     public void reload() {
 
@@ -51,119 +47,85 @@ public class ViolationService {
         }
     }
 
-    public List<UUID> getPunishing() {
-        return punishing;
-    }
-
-    public Map<UUID, ViolationContext> getViolatedMap() {
-        return violatedMap;
-    }
-
     public boolean isPunishing(Player player) {
-        if (player == null)
-            return false;
-
-        if (punishing.isEmpty())
-            return false; // optimized
-
         return punishing.contains(player.getUniqueId());
     }
 
     public synchronized void add(Player player) {
-        if (violatedMap.containsKey(player.getUniqueId()))
-            return;
+        if (violatedMap.containsKey(player.getUniqueId())) return;
 
         violatedMap.put(player.getUniqueId(), new ViolationContext(player));
-        punishing.remove(player.getUniqueId());
     }
 
     public void remove(Player player) {
         violatedMap.remove(player.getUniqueId());
+        punishing.remove(player.getUniqueId());
     }
 
-    public synchronized ViolationContext getViolationContext(Player player) {
-        if (!violatedMap.containsKey(player.getUniqueId()))
-            add(player);
-
+    public ViolationContext getViolationContext(Player player) {
+        add(player);
         return violatedMap.get(player.getUniqueId());
     }
 
-    public ViolationDistributor getLimits(Player player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
-        final ViolationContext context = getViolationContext(player);
-        return context.getLimits(checkKey, setting);
+    public ViolationDistributor getDistributor(Player player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
+        return getViolationContext(player).getLimits(checkKey, setting);
     }
 
-    public boolean flag(
-            Player player,
-            Object handle,
-            CancellablePacketObserver cancellablePacketObserver,
-            CheckKey violationContextKey,
-            CheckKey checkKey,
-            double amount,
-            Runnable onPunish,
-            Runnable onViolation,
-            Runnable onFlag,
-            HoneyCheck check,
-            ConfigurationOptions.VlSetting setting,
-            CheckContextContainer.DevelopmentData developmentData,
-            boolean ignoreSpike
+    public boolean flag(Player player,
+                        Object handle,
+                        CancellablePacketObserver cancellablePacketObserver,
+                        CheckKey violationContextKey,
+                        CheckKey checkKey,
+                        double amount,
+                        Runnable onPunish,
+                        Runnable onViolation,
+                        Runnable onFlag,
+                        HoneyCheck check,
+                        ConfigurationOptions.VlSetting setting,
+                        CheckContextContainer.DevelopmentData developmentData,
+                        boolean ignoreSpike
     ) {
-        return getLimits(player, violationContextKey, setting)
+        return getDistributor(player, violationContextKey, setting)
                 .flag(checkKey, handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, ignoreSpike);
     }
 
-    public boolean flag(
-            Player player,
-            Object handle,
-            CancellablePacketObserver cancellablePacketObserver,
-            CheckKey violationContextKey,
-            CheckKey checkKey,
-            double amount,
-            HoneyCheck check,
-            ConfigurationOptions.VlSetting setting,
-            CheckContextContainer.DevelopmentData developmentData,
-            boolean ignoreSpike
+    public boolean flag(Player player,
+                        Object handle,
+                        CancellablePacketObserver cancellablePacketObserver,
+                        CheckKey violationContextKey,
+                        CheckKey checkKey,
+                        double amount,
+                        HoneyCheck check,
+                        ConfigurationOptions.VlSetting setting,
+                        CheckContextContainer.DevelopmentData developmentData,
+                        boolean ignoreSpike
     ) {
         return flag(player, handle, cancellablePacketObserver, violationContextKey, checkKey, amount, null, null, null, check, setting, developmentData, ignoreSpike);
     }
 
     public void punish(Runnable onPunish, Player player, String violationName, CheckKey checkKey) {
         if (onPunish != null) onPunish.run();
-        try {
-            punishLock.lock();
-            if (punishing.contains(player.getUniqueId())) {
-                return;
-            }
-            punishing.add(player.getUniqueId());
 
-            loggerService.logToMonitors(player, null);
-
-            Channel channel = NMSUtils.getChannel(player);
-            if (channel != null) {
-                channel.eventLoop().execute(() -> {
-                    BungeeMessenger.sendPluginMessage(player, "kickPlayer", player.getName(), "Disconnected");
-                    Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.kickPlayer("Disconnected"));
-
-                    if (channel.isActive()) {
-                        channel.close();
-                    }
-                });
-            }
-            HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
-            HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
-
-        } finally {
-            punishLock.unlock();
+        if (punishing.contains(player.getUniqueId())) {
+            return;
         }
-        new BukkitRunnable() {
+        punishing.add(player.getUniqueId());
 
-            @Override
-            public void run() {
-                if (!player.isOnline()) {
-                    punishing.remove(player.getUniqueId());
+        HoneyPlugin.get().getLoggerService().logToMonitors(player, null);
+
+        Channel channel = NMSUtils.getChannel(player);
+        if (channel != null) {
+            channel.eventLoop().execute(() -> {
+                if (channel.isActive()) {
+                    channel.close();
                 }
-            }
-        }.runTaskLaterAsynchronously(HoneyPlugin.get().getPlugin(), 5L);
+            });
+        }
+        BungeeMessenger.sendPluginMessage(player, "kickPlayer", player.getName(), "Disconnected");
+        Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.kickPlayer("Disconnected"));
+
+        HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
+        HoneyPlugin.get().getLoggerService().logPunish(player.getName(), violationName);
     }
 
     public class ViolationContext {

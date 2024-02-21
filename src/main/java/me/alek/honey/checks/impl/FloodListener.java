@@ -13,7 +13,6 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.packet.ListenerPriority;
 import me.alek.honey.netty.api.packet.container.PacketContainer;
-import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.PacketBundleFilter;
 import me.alek.honey.netty.packet.PacketBundleFilters;
@@ -25,10 +24,8 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -237,7 +234,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.Exempt.SPIKE_INTERVAL;
 
             // force the violation service to make a packet limit handler with the shared key and shared setting
-            HoneyPlugin.get().getViolationService().getLimits(player, sharedIgnoringKey, sharedIgnoringSetting);
+            HoneyPlugin.get().getViolationService().getDistributor(player, sharedIgnoringKey, sharedIgnoringSetting);
 
             InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(packet.getContainer().getChannel());
 

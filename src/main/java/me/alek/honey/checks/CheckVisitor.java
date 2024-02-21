@@ -31,7 +31,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return checks;
     }
 
-    private void handleCommonCheck(Player player, Object handle, Function<HoneyCheck, ResponseContainer> responseGeneratorFunction,
+    private void handleCommonCheck(Player player, Object handle, Function<HoneyCheck, ResponseContainer> responseGenerator,
             WP packet, CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer) {
         AtomicInteger skipping = null;
 
@@ -55,7 +55,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             // do the check and get the response, and register the time taken to the check handle tracker
             if (setting != null && setting.isEnabled())
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
-            final ResponseContainer responses = responseGeneratorFunction.apply(check);
+            final ResponseContainer responses = responseGenerator.apply(check);
             if (setting != null && setting.isEnabled())
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName());
 
@@ -82,7 +82,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
                 if (response.FLAG != -1 && player != null) {
                     if (setting == null) {
-
                         if (response.TERMINATE) terminated = true;
                         continue;
                     }

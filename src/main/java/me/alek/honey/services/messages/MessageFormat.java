@@ -1,10 +1,11 @@
-package me.alek.honey.services;
+package me.alek.honey.services.messages;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class MessageFormat {
 
@@ -34,7 +35,7 @@ public class MessageFormat {
         for (int index = 0; index < missingIndicesBits.length; index++) {
 
             if (missingIndicesBits[index] == 1 && currentStartIntervalIndex != -1) {
-                indices.add(MessageIndex.of(currentStartIntervalIndex, index, message));
+                indices.add(MessageIndex.asSubstring(currentStartIntervalIndex, index, message));
                 currentStartIntervalIndex = -1;
 
             } else if (missingIndicesBits[index] == 0 && currentStartIntervalIndex == -1) {
@@ -43,69 +44,10 @@ public class MessageFormat {
         }
 
         if (currentStartIntervalIndex != -1) {
-            indices.add(MessageIndex.of(currentStartIntervalIndex, missingIndicesBits.length - 1, message));
+            indices.add(MessageIndex.asSubstring(currentStartIntervalIndex, missingIndicesBits.length - 1, message));
         }
 
         return new MessageFormat(indices);
-    }
-
-    public enum Placeholders {
-
-        PREFIX("prefix"),
-        NETWORK("network"),
-        CHECK("check"),
-        CONTEXT("context"),
-        PLAYER("player");
-
-        private final String placeholder;
-
-        Placeholders(String placeholder) {
-            this.placeholder = placeholder;
-        }
-
-        public String getText() {
-            return placeholder;
-        }
-    }
-
-    public static class MessageIndex {
-
-        private final int startIndex;
-        private final int endIndex;
-        private Function<MessageOffer, String> messageFunction;
-
-        private MessageIndex(int startIndex, int endIndex) {
-            this.startIndex = startIndex;
-            this.endIndex = endIndex;
-        }
-
-        public MessageIndex(int startIndex, int endIndex, Placeholders placeholder) {
-            this(startIndex, endIndex);
-            messageFunction = (offer) -> offer.get(placeholder.getText());
-        }
-
-        public MessageIndex(int startIndex, int endIndex, String message) {
-            this(startIndex, endIndex);
-            messageFunction = (offer) -> message;
-        }
-
-        public static MessageIndex of(int startIndex, int endIndex, String message) {
-            if (startIndex == endIndex) return new MessageIndex(startIndex, endIndex, " ");
-
-            return new MessageIndex(startIndex, endIndex, message.substring(startIndex, endIndex));
-        }
-
-        public int getStartIndex() {
-            return startIndex;
-        }
-
-        public int getEndIndex() {
-            return endIndex;
-        }
-
-        public String getMessage(MessageOffer offer) {
-            return messageFunction.apply(offer);
-        }
     }
 
     private final List<MessageIndex> indices;
@@ -129,5 +71,4 @@ public class MessageFormat {
         }
         return ChatColor.translateAlternateColorCodes('&', builder.toString());
     }
-
 }

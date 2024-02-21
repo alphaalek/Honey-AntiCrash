@@ -1,6 +1,7 @@
-package me.alek.honey.services;
+package me.alek.honey.services.messages;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.services.NotificationService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +14,7 @@ public class MessageOffer {
     private static final Map<String, Supplier<String>> globalOffers = new HashMap<>();
 
     static {
-        globalOffers.put(MessageFormat.Placeholders.PREFIX.getText(), notificationService::getPrefix);
+        globalOffers.put(Placeholders.PREFIX.getText(), notificationService::getPrefix);
     }
 
     private final Map<String, Supplier<String>> offers = new HashMap<>();
@@ -47,7 +48,7 @@ public class MessageOffer {
             return this;
         }
 
-        public Builder offer(MessageFormat.Placeholders placeholder, Supplier<String> value) {
+        public Builder offer(Placeholders placeholder, Supplier<String> value) {
             return offer(placeholder.getText(), value);
         }
 
