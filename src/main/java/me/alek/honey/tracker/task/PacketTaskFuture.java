@@ -9,7 +9,6 @@ import java.util.concurrent.FutureTask;
 public class PacketTaskFuture<V> extends FutureTask<V> {
 
     private final UUID uuid;
-    private boolean hasRun;
 
     public PacketTaskFuture(Runnable runnable, UUID uuid) {
         super(runnable, null);
@@ -22,9 +21,6 @@ public class PacketTaskFuture<V> extends FutureTask<V> {
 
     @Override
     public synchronized void run() {
-        if (hasRun) return;
-        hasRun = true;
-
         PacketTaskHandler.registerTask(this);
         try {
             super.run();

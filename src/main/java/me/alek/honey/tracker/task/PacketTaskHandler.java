@@ -1,5 +1,6 @@
 package me.alek.honey.tracker.task;
 
+import io.netty.util.concurrent.DefaultThreadFactory;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.util.*;
+import java.util.concurrent.ThreadFactory;
 
 public class PacketTaskHandler {
 
@@ -33,22 +35,25 @@ public class PacketTaskHandler {
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
-        new Thread(() -> {
-            while (true) {
+        new DefaultThreadFactory("Honey Packet Task Handler").newThread(() -> {
+            while (HoneyPlugin.get().isRunning()) {
                 synchronized (lock) {
-                    while (handledTask != null && System.currentTimeMillis() - handledTask.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
-                        UUID uuid = Optional.ofNullable(handledTask.getT1()).map(PacketTaskFuture::getUUID).orElse(null);
-                        dumpThread(uuid);
-                        unregisterTask();
+                    if (handledTask != null && System.currentTimeMillis() - handledTask.getT2() > MAX_HANDLE_TIME_BEFORE_DUMP) {
+
+                        PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
+                        if (packet == null || packet.isDumped()) continue;
+
+                        dumpThread(packet.getPlayer().getUniqueId());
+                        packet.dump();
                     }
                 }
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(100);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-        }).start();
+        });
     }
 
     public static Tuple2<PacketTaskFuture<?>, Long> getHandledTask() {
@@ -122,22 +127,27 @@ public class PacketTaskHandler {
         handledTask = new Tuple2<>(task, System.currentTimeMillis());
     }
 
+    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
+        PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
+        if (saver != null)
+            return saver.getOldest(true);
+        else
+            return null;
+    }
+
     public static void unregisterTask() {
         synchronized (lock) {
             if (handledTask != null) {
                 tracker.decrementPacketsInQueueExecution(handledTask.getT1().getUUID());
 
-                PacketBundleSaver saver = packetBundleSavers.get(handledTask.getT1().getUUID());
-                if (saver != null) {
-                    PacketContainer<? extends WrappedPacket<?>> packet = saver.getOldest(true);
-                    if (packet != null) {
-                        packet.getEventloopStateTimings().stopTimings();
+                PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
+                if (packet != null) {
+                    packet.getEventloopStateTimings().stopTimings();
 
-                        if (packet.getPlayer() != null) // we have to make sure it's not an unmodifiable packet
-                            monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
-                    }
-                    lastHandledPacket = packet;
+                    if (packet.getPlayer() != null) // we have to make sure it's not an unmodifiable packet
+                        monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
                 }
+                lastHandledPacket = packet;
                 handledTask = null;
             }
         }

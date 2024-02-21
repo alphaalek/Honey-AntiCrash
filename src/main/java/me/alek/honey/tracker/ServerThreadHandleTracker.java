@@ -14,6 +14,7 @@ import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.tracker.task.PacketTaskFuture;
 import me.alek.honey.tracker.task.PacketTaskHandler;
 import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
@@ -27,11 +28,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadLocalAccessor<ConcurrentLinkedDeque<UUID>> packetSendQueue = new ThreadLocalAccessor<>(ConcurrentLinkedDeque::new);
     private final ThreadLocalAccessor<UUID> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
-    private final AtomicBoolean initiallyTickRound = new AtomicBoolean(true);
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public ServerThreadHandleTracker() {
@@ -65,9 +64,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
         private final AtomicReference<UUID> recentPacketAuthor = new AtomicReference<>();
-        private final ThreadLocalAccessor<ConcurrentLinkedQueue<Object>> seperatedQueue = new ThreadLocalAccessor<>(ConcurrentLinkedQueue::new);
-        private final boolean havingOneMoreElement;
+        private final ThreadLocalAccessor<ConcurrentLinkedQueue<PacketTaskFuture<Object>>> nettySubmitQueue = new ThreadLocalAccessor<>(ConcurrentLinkedQueue::new);
         private ConstructorInvoker<?> tickTaskConstructor;
+        private final boolean pollsOneExtra;
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
@@ -81,9 +80,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             while (!delegate.isEmpty()) {
                 add(delegate.poll());
             }
-            havingOneMoreElement = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14);
-
-            EMPTY_TICK_TASK = havingOneMoreElement ? null
+            EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null
                     : (tickTaskConstructor = Reflection.getConstructor(NMSUtils.getTickTaskClass(), int.class, Runnable.class))
                     .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
 
@@ -139,48 +136,48 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
             calls++;
             Player player = null;
-            // ignore packets in the first tick round, because the synchronization with the packet send queue might be wrong
-            if (!initiallyTickRound.get()) {
+            // check if this packet is not the first one handled in this tick
+            if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
-                // check if this packet is not the first one handled in this tick
-                if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
+                // get the player who sent the previously polled packet from the queue
+                player = Bukkit.getPlayer(recentPacketAuthor.get());
+                recentPacketAuthor.set(null);
 
-                    // get the player who sent the previously polled packet from the queue
-                    player = Bukkit.getPlayer(recentPacketAuthor.get());
-                    recentPacketAuthor.set(null);
+                if (player != null && player.isOnline()) {
+                    // evaluate the difference in time
+                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
 
-                    if (player != null && player.isOnline()) {
-                        // evaluate the difference in time
-                        double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
-
-                        registerTime(player, Math.max(0, deltaTime - 0.0025));
-                    }
-                    recentDeltaTime = -1;
+                    Bukkit.getLogger().info("register time " + deltaTime + " " + player.getName());
+                    registerTime(player, Math.max(0, deltaTime - 0.0025));
                 }
-                recentPollStart = System.nanoTime();
+                recentDeltaTime = -1;
             }
-            Object task = null;
-            Thread thread = seperatedQueue.getAnyThread((queue) -> !queue.isEmpty());
+            recentPollStart = System.nanoTime();
+
+            PacketTaskFuture<Object> task = null;
+            Thread thread = nettySubmitQueue.getAnyThread((queue) -> !queue.isEmpty());
 
             if (thread != null) {
-                recentPacketAuthor.set(packetSendQueue.get(thread).poll());
-                task = seperatedQueue.get(thread).poll();
+                task = nettySubmitQueue.get(thread).poll();
+                recentPacketAuthor.set(Optional.ofNullable(task).map(PacketTaskFuture::getUUID).orElse(null));
             }
 
             if (task != null)
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
 
-            Object tickTask = task == null ? null : newTickTask(recentPacketAuthor.get() == null
-                    ? (Runnable) task : PacketTaskHandler.wrapTask(task, recentPacketAuthor.get()));
+            Object tickTask = task == null ? null : newTickTask(task);
 
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tickloop is being completed by polling one extra time
-            if (!nullPoll && !havingOneMoreElement && super.peek() == null) {
+            if (!nullPoll && !pollsOneExtra && super.peek() == null) {
                 nullPoll = true;
                 poll();
             }
 
             if (task == null) {
+                packetsInQueueExecution.clear();
+                nettySubmitQueue.forEach(ConcurrentLinkedQueue::clear);
+                clear();
 
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;
@@ -192,16 +189,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                     HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag. "
                             + (player == null ? "" : " Maybe sent from " + player.getName() + "."));
                 }
-                packetsInQueueExecution.clear();
-                packetSendQueue.forEach(ConcurrentLinkedDeque::clear);
-                seperatedQueue.forEach(ConcurrentLinkedQueue::clear);
 
                 // we can confidently call after all packets is being handled without fearing locked server thread,
                 // because then spigot watchdog would handle it
                 if (calls > 1) QueueExecutionWatchdogThread.call(System.currentTimeMillis());
                 calls = 0;
-
-                if (initiallyTickRound.get()) initiallyTickRound.set(false);
             }
             return tickTask;
         }
@@ -214,10 +206,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         @Override
         public synchronized boolean add(Object value) {
-            // add it two times if it's empty, so we always have one extra element
-            // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
-            if (super.isEmpty() && havingOneMoreElement) super.add(EMPTY_VALUE);
-
             // only register tracking for tasks added by netty threads (packet handling)
             if (!Thread.currentThread().getName().startsWith("Netty")) return super.add(value);
 
@@ -243,10 +231,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
                 } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
             }
-            packetSendQueue.get().add(uuid);
-
             super.add(EMPTY_VALUE);
-            return seperatedQueue.get().add(value);
+
+            return nettySubmitQueue.get().add(PacketTaskHandler.wrapTask(value, uuid));
         }
     }
 

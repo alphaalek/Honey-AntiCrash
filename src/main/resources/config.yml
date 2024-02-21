@@ -114,6 +114,12 @@ packet-dump:
   # Should packet dump be enabled or not.
   enabled: true
 
+  # Max time
+  max-server-handle-packet-dump: 1000
+
+  # Max time thread dump
+  max-server-handle-thread-dump:
+
   # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
   # E.g. violations of position checks will still dump position packets even though you have added it below.
   # (PacketPlayInKeepAlive is ignored as default, and you can't change that)

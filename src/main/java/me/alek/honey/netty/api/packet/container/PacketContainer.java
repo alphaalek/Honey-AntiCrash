@@ -31,7 +31,11 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     boolean isCancelled();
 
+    boolean isDumped();
+
     void cancel();
+
+    void dump();
 
     boolean isHandledByServer();
 

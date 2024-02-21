@@ -34,7 +34,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final Player player;
     private final Channel channel;
     private ReflectStructure<Object, ?> packetStructure;
-    private boolean cancelled = false;
+    private boolean cancelled;
+    private boolean dumped;
     private boolean handledByServer;
     private final long time = System.currentTimeMillis();
     private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
@@ -101,6 +102,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
+    public boolean isDumped() {
+        return dumped;
+    }
+
+    @Override
     public boolean isCancelled() {
         return cancelled;
     }
@@ -108,6 +114,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void cancel() {
         this.cancelled = true;
+    }
+
+    @Override
+    public void dump() {
+        this.dumped = true;
     }
 
     @Override
