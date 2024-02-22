@@ -132,7 +132,7 @@ packet-dump:
     enabled: true
 
     # Min main thread handle time for packet to be dumped in log
-    min-server-handle: 10
+    min-server-handle: 15
 
   server-thread-dump:
     # Should server thread dump for heavy handled packets be enabled
@@ -164,9 +164,6 @@ item-analysis:
     # Player's which the item-analysis should ignore.
     ignored-players:
     # - Alek05
-
-  # How many bytes may a container (chest/shulker ...) have.
-  max-container-data: 1000000
 
   # How high enchantment level may an item have.
   max-enchantment-level: 256

@@ -65,7 +65,7 @@ public class PacketTaskHandler {
     public static void dumpThread(HoneyPlayer player) {
         HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX
                 + " §cThe server seems to be frozen after a packet was sent by " + player.name + ". See the log for thread dump and more info."));
-        HoneyPlugin.get().getLoggerService().getLogger().severe("Auto thread dump for heavy packet sent by " + player.name + ":");
+        HoneyPlugin.get().getLoggerService().getLogger().severe("Auto thread dump for packet sent by " + player.name + ":");
 
         PacketContainer<? extends WrappedPacket<?>> packet = player.packetBundleSaver.getOldest(false);
         if (packet != null) {

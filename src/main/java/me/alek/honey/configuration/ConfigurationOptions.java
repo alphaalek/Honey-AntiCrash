@@ -609,9 +609,6 @@ public class ConfigurationOptions {
 
     @Setting
     public static class ItemAnalysis {
-
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_CONTAINER_CHECK)
-        public static int MAX_CONTAINER_DATA;
         @ItemAnalysisSetting(ItemCheckRegistry.MAX_ENCHANTMENT_LEVEL_CHECK)
         public static int MAX_ENCHANTMENT_LEVEL;
         @ItemAnalysisSetting(ItemCheckRegistry.MAX_AMOUNT_CHECK)
@@ -632,8 +629,6 @@ public class ConfigurationOptions {
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
 
         public static void load() {
-            MAX_CONTAINER_DATA = file.getInt("item-analysis.max-container-data", 250000);
-
             MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level", 256);
             MAX_AMOUNT = file.getInt("item-analysis.max-amount", 64);
 

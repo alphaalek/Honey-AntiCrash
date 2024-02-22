@@ -7,9 +7,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public enum ItemCheckRegistry {
-    MAX_CONTAINER_CHECK(ItemChecks.MaxContainerCheck::new,
-            Material.CHEST, Material.TRAPPED_CHEST, Material.DROPPER, Material.HOPPER, Material.HOPPER_MINECART,
-            MaterialMappings.getItemIfAny("storage-minecart"), Material.ENDER_CHEST, Material.DISPENSER),
     MAX_ENCHANTMENT_LEVEL_CHECK(ItemChecks.MaxEnchantmentLevelCheck::new),
     MAX_AMOUNT_CHECK(ItemChecks.MaxAmountCheck::new),
     MAX_DISPLAYNAME_LENGTH_CHECK(ItemChecks.MaxDisplayNameLengthCheck::new),

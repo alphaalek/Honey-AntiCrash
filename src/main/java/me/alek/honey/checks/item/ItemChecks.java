@@ -59,26 +59,6 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxContainerCheck implements ItemAnalysis.ItemChecker {
-
-        private int MAX_CONTAINER_DATA;
-
-        @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return item.getItemMeta().toString().getBytes().length > MAX_CONTAINER_DATA;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_CONTAINER_DATA = value;
-        }
-
-        @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_METADATA;
-        }
-    }
-
     public static class MaxEnchantmentLevelCheck implements ItemAnalysis.ItemChecker {
 
         private int MAX_ENCHANTMENT_LEVEL;

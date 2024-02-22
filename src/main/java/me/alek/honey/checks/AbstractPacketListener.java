@@ -50,13 +50,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
-        if (packetContainer.getState() == PacketState.PLAY) {
-            if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-                return;
-            }
-        }
         CheckContextContainer checkContextContainer = new CheckContextContainer();
-
         if (player != null) {
             CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 

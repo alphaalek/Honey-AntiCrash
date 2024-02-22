@@ -45,5 +45,7 @@ public class BukkitEventInternal implements Listener {
 
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(NMSUtils.getChannel(player));
         NMSUtils.removeChannelLookup(player.getUniqueId());
+
+        HoneyPlayer.removePlayer(player.getUniqueId());
     }
 }

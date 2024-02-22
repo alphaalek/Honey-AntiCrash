@@ -160,7 +160,7 @@ public class LoggerService {
     }
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
-        getLogger().info("Auto dump for heavy packet sent by " + packet.getPlayer().name + ": " + packet.getName()
+        getLogger().info("Auto dump for packet sent by " + packet.getPlayer().name + ": " + packet.getName()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
 
@@ -168,20 +168,20 @@ public class LoggerService {
         logPacket(packetContainer, playerName, this.detailed, 0, true);
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime, boolean ignore) {
-        if (ignore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getName()))) {
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime, boolean canIgnore) {
+        if (canIgnore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getName()))) {
             return;
         }
         StringBuilder message = new StringBuilder();
         message.append(packetContainer.getTime());
 
         if (comparingTime > packetContainer.getTime()) {
-            message.append(" (").append(comparingTime - packetContainer.getTime()).append("ms ago)");
+            message.append(" (" + (comparingTime - packetContainer.getTime()) + "ms ago)");
         }
 
-        message.append(": ").append(playerName).append(" sent ").append(packetContainer.getName());
+        message.append(": " + playerName + " sent " + packetContainer.getName());
         if (detailed)
-            message.append(": ").append(packetContainer.getAll().readFieldValues());
+            message.append(": " + packetContainer.getAll().readFieldEntries());
 
         getLogger().info(message.toString());
     }
