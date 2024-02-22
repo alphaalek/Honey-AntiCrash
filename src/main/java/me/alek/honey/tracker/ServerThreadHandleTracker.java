@@ -15,6 +15,7 @@ import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.ThreadLocalAccessor;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -169,7 +170,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (task == null) {
                 packetsInQueueExecution.clear();
                 nettySubmitQueue.forEach(ConcurrentLinkedQueue::clear);
-                clear();
 
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;

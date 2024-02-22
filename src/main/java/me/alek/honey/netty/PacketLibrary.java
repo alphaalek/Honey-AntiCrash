@@ -31,11 +31,20 @@ public class PacketLibrary {
     private final ServerPacketManager packetManager;
     private boolean enabled = true;
 
+    private static PacketLibrary INSTANCE;
+
     public static PacketLibrary set(PacketLibrarySettings settings) {
+        if (INSTANCE != null) return INSTANCE;
+
         return new PacketLibrary(settings);
     }
 
+    public static PacketLibrary get() {
+        return INSTANCE;
+    }
+
     private PacketLibrary(PacketLibrarySettings settings) {
+        INSTANCE = this;
         this.settings = settings;
         plugin = settings.getPlugin();
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), plugin);

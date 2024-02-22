@@ -211,13 +211,14 @@ public class HoneyPlugin implements HoneyAPI {
     public void onDisable() {
         isRunning = false;
 
-        if (packetLibrary != null) packetLibrary.disable();
+        getPacketLibrary().disable();
 
         QueueExecutionWatchdogThread.stopWatchdog();
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
         for (IListener check : ListenerRegistry.getChecks()) {
+
             if (check instanceof SyncPacketAdapter) {
                 ListenerPriority priority = check.getPriority();
 
@@ -303,6 +304,8 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public PacketLibrary getPacketLibrary() {
+        if (packetLibrary == null)
+            packetLibrary = PacketLibrary.get();
         return packetLibrary;
     }
 

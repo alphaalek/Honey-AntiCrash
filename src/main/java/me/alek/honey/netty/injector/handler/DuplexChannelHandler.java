@@ -78,7 +78,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
             return;
         }
-        if (player != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
+        if (player != null && packetContainer.getPlayer() != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
             packetSendMarker.set(player);
         }
 
