@@ -5,9 +5,8 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;

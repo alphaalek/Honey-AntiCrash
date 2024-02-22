@@ -1,7 +1,7 @@
 package me.alek.honey.netty.modelwrappers.network;
 
 import io.netty.util.AttributeKey;
-import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;

@@ -2,18 +2,16 @@ package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.utility.*;
-import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
-import java.util.Optional;
 
 public class NBTFactory {
 

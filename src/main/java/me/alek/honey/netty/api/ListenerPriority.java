@@ -1,4 +1,4 @@
-package me.alek.honey.netty.api.packet;
+package me.alek.honey.netty.api;
 
 public enum ListenerPriority {
     HIGHEST,

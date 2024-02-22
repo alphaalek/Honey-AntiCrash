@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import me.alek.honey.netty.api.packet.IStructureModifier;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.NMSUtils;

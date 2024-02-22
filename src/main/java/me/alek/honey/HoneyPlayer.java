@@ -2,6 +2,7 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.services.ViolationService;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -39,12 +40,16 @@ public class HoneyPlayer {
 
     public final Channel channel;
 
+    public ViolationService.ViolationContext violationContext;
+    public boolean punished;
+
     public HoneyPlayer(Player player) {
         this.player = player;
 
         uuid = player.getUniqueId();
         channel = NMSUtils.getChannel(player);
         name = player.getName();
+        violationContext = new ViolationService.ViolationContext(this);
     }
 
     public boolean isOnline() {

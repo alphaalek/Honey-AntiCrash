@@ -1,13 +1,11 @@
-package me.alek.honey.netty.api.packet;
+package me.alek.honey.netty.api;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

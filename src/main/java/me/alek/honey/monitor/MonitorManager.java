@@ -6,10 +6,9 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -20,7 +19,7 @@ public class MonitorManager {
 
     public static final Monitorer SERVER_MONITOR = new ServerMonitorer();
 
-    boolean packetsMonitored; // cache the value for better performance
+    boolean packetsMonitored; // cache the value
     private final Set<Monitorer> packetMonitorers = new HashSet<>();
     private final Map<Monitorer, List<MonitorObserver>> monitorObservers = new HashMap<>();
     private final Map<UUID, Monitorer> playerMonitorerMap = new HashMap<>();

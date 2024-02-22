@@ -15,8 +15,8 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.packet.ListenerPriority;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -30,7 +30,6 @@ import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;

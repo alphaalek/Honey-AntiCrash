@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet.bundle;
 
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 
 import java.util.Deque;
 import java.util.LinkedList;

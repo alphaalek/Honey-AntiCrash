@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
 import me.alek.honey.netty.structure.ReflectStructureCache;

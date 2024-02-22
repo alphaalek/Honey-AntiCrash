@@ -1,8 +1,7 @@
 package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.packet.ListenerPriority;
-import org.bukkit.entity.Player;
+import me.alek.honey.netty.api.ListenerPriority;
 
 public interface IListener {
 

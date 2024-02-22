@@ -1,17 +1,13 @@
 package me.alek.honey.netty.utility;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.api.packet.IStructureModifier;
-import me.alek.honey.netty.structure.ReflectStructureCache;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class NMSUtils {
 

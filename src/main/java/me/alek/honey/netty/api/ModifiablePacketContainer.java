@@ -1,6 +1,5 @@
-package me.alek.honey.netty.api.packet.container;
+package me.alek.honey.netty.api;
 
-import me.alek.honey.netty.api.packet.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;

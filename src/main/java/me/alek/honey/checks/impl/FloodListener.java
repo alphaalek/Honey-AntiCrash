@@ -12,8 +12,8 @@ import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.packet.ListenerPriority;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -26,7 +26,6 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.function.Supplier;

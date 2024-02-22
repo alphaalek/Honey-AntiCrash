@@ -6,14 +6,13 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.QueueExecutionWatchdogThread;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.packet.PacketProcessor;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 

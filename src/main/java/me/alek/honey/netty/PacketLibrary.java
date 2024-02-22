@@ -1,8 +1,8 @@
 package me.alek.honey.netty;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.packet.ListenerPriority;
-import me.alek.honey.netty.api.packet.PacketProcessor;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
@@ -16,7 +16,6 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.List;

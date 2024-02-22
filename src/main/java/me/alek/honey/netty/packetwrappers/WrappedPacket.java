@@ -1,12 +1,11 @@
 package me.alek.honey.netty.packetwrappers;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WrappedPacket<WP>> {
 

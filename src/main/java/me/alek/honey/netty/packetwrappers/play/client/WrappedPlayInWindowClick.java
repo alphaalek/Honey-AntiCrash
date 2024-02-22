@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;

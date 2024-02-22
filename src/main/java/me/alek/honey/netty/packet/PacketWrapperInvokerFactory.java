@@ -2,7 +2,7 @@ package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -22,7 +22,6 @@ import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.Reflection;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.annotation.ElementType;

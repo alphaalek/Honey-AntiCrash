@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers.play.client.common;
 
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Location;
 

@@ -1,6 +1,6 @@
 package me.alek.honey.netty.structure;
 
-import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -8,7 +8,6 @@ import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.IReflectResolver;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

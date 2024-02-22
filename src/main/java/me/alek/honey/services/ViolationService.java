@@ -1,7 +1,6 @@
 package me.alek.honey.services;
 
 import com.google.common.collect.Sets;
-import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
@@ -10,11 +9,10 @@ import me.alek.honey.checks.impl.FloodListener;
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
@@ -29,8 +27,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ViolationService {
 
-    private final Map<UUID, ViolationContext> violatedMap = new ConcurrentHashMap<>();
-    private final List<UUID> punishing = new CopyOnWriteArrayList<>();
+    private static ViolationService INSTANCE;
+
+    public ViolationService() { INSTANCE = this; }
 
     public void reload() {
 
@@ -42,33 +41,13 @@ public class ViolationService {
         }
 
         // loop through all the players and update their packet limit handlers
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            violatedMap.remove(player.getUniqueId());
+        for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
+            player.violationContext = new ViolationContext(player);
         }
     }
 
-    public boolean isPunishing(HoneyPlayer player) {
-        return punishing.contains(player.uuid);
-    }
-
-    public synchronized void add(HoneyPlayer player) {
-        if (violatedMap.containsKey(player.uuid)) return;
-
-        violatedMap.put(player.uuid, new ViolationContext(player));
-    }
-
-    public void remove(HoneyPlayer player) {
-        violatedMap.remove(player.uuid);
-        punishing.remove(player.uuid);
-    }
-
-    public ViolationContext getViolationContext(HoneyPlayer player) {
-        add(player);
-        return violatedMap.get(player.uuid);
-    }
-
     public ViolationDistributor getDistributor(HoneyPlayer player, CheckKey checkKey, ConfigurationOptions.VlSetting setting) {
-        return getViolationContext(player).getLimits(checkKey, setting);
+        return player.violationContext.getLimits(checkKey, setting);
     }
 
     public boolean flag(HoneyPlayer player,
@@ -106,27 +85,25 @@ public class ViolationService {
     public void punish(Runnable onPunish, HoneyPlayer player, String violationName, CheckKey checkKey) {
         if (onPunish != null) onPunish.run();
 
-        if (punishing.contains(player.uuid)) {
+        if (player.punished) {
             return;
         }
-        punishing.add(player.uuid);
+        player.punished = true;
 
         HoneyPlugin.get().getLoggerService().logToMonitors(player, null);
 
-        if (player.channel != null) {
-            player.channel.eventLoop().execute(() -> {
-                if (player.channel.isActive()) {
-                    player.channel.close();
-                }
-            });
-        }
+        player.channel.eventLoop().execute(() -> {
+            if (player.channel.isActive()) {
+                player.channel.close();
+            }
+        });
         BungeeMessenger.sendPluginMessage(player.player, "kickPlayer", player.name, "Disconnected");
         Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
 
         HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
     }
 
-    public class ViolationContext {
+    public static class ViolationContext {
 
         private final Map<CheckKey, ViolationDistributor> packetLimitMap = new ConcurrentHashMap<>();
         private final HoneyPlayer player;
@@ -166,7 +143,7 @@ public class ViolationService {
         }
     }
 
-    private AbstractPacketLimitHandler generatePacketLimitHandler(PacketLimitHandlerType type, HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+    private static AbstractPacketLimitHandler generatePacketLimitHandler(PacketLimitHandlerType type, HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
         switch (type) {
             case SIMPLE:
                 return new PacketSimpleHandler(player, setting);
@@ -224,7 +201,7 @@ public class ViolationService {
         }
     }
 
-    public class KeyedViolationLookupGenerator {
+    public static class KeyedViolationLookupGenerator {
 
         private final AbstractPacketLimitHandler handler;
         private final ConfigurationOptions.VlSetting setting;
@@ -301,7 +278,7 @@ public class ViolationService {
         }
     }
 
-    public abstract class AbstractPacketLimitHandler {
+    public static abstract class AbstractPacketLimitHandler {
 
         private final HoneyPlayer player;
         private final ConfigurationOptions.VlSetting setting;
@@ -370,7 +347,7 @@ public class ViolationService {
 
             if (violations.get() < getSetting().vlsAmount) return false;
 
-            punish(onPunish, getPlayer(), check.getName(), checkKey);
+            INSTANCE.punish(onPunish, getPlayer(), check.getName(), checkKey);
             return true;
         }
 
@@ -396,7 +373,7 @@ public class ViolationService {
         public abstract PacketLimitHandlerType getType();
     }
 
-    public class PacketChipstateThrottleHandler extends AbstractPacketLimitHandler {
+    public static class PacketChipstateThrottleHandler extends AbstractPacketLimitHandler {
 
         public PacketChipstateThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
             super(player, setting);
@@ -419,7 +396,7 @@ public class ViolationService {
         }
     }
 
-    public class PacketTriggerThrottleHandler extends AbstractPacketLimitHandler {
+    public static class PacketTriggerThrottleHandler extends AbstractPacketLimitHandler {
 
         private double lastFlag;
 
@@ -446,7 +423,7 @@ public class ViolationService {
         }
     }
 
-    public class PacketSimpleHandler extends AbstractPacketLimitHandler {
+    public static class PacketSimpleHandler extends AbstractPacketLimitHandler {
 
 
         public PacketSimpleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
@@ -467,7 +444,7 @@ public class ViolationService {
         }
     }
 
-    public class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {
+    public static class PacketSingleOverflowHandler extends AbstractPacketLimitHandler {
 
         private double amount;
 
@@ -495,7 +472,7 @@ public class ViolationService {
         }
     }
 
-    public abstract class PacketBufferHandler extends AbstractPacketLimitHandler {
+    public static abstract class PacketBufferHandler extends AbstractPacketLimitHandler {
 
         protected double bufferIndexCopy;
         protected boolean hasDecayed;
@@ -542,7 +519,7 @@ public class ViolationService {
 
     }
 
-    public class PacketBufferThrottleHandler extends PacketBufferHandler {
+    public static class PacketBufferThrottleHandler extends PacketBufferHandler {
 
 
         public PacketBufferThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
@@ -576,7 +553,7 @@ public class ViolationService {
         }
     }
 
-    public class PacketBufferOverflowHandler extends PacketBufferHandler {
+    public static class PacketBufferOverflowHandler extends PacketBufferHandler {
 
 
         public PacketBufferOverflowHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
@@ -595,7 +572,7 @@ public class ViolationService {
         }
     }
 
-    public class PacketIntervalHandler extends AbstractPacketLimitHandler {
+    public static class PacketIntervalHandler extends AbstractPacketLimitHandler {
 
         private boolean violatedForInterval;
         private boolean ignoringSpikeForInterval;
@@ -650,7 +627,7 @@ public class ViolationService {
         }
     }
 
-    public class PacketIntervalThrottleHandler extends AbstractPacketLimitHandler {
+    public static class PacketIntervalThrottleHandler extends AbstractPacketLimitHandler {
 
         private double amount;
         private boolean currentlyCancelling;

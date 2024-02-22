@@ -1,4 +1,4 @@
-package me.alek.honey.netty.api.packet.container;
+package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
@@ -6,7 +6,6 @@ import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.entity.Player;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer {
 

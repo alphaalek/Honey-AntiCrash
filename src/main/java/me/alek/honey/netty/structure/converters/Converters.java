@@ -1,6 +1,6 @@
 package me.alek.honey.netty.structure.converters;
 
-import me.alek.honey.netty.api.packet.IStructureModifier;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;

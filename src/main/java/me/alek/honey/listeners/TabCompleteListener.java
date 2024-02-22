@@ -2,10 +2,9 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

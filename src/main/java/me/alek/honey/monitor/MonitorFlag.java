@@ -1,7 +1,7 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketBound;

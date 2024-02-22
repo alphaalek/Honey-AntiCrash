@@ -2,11 +2,10 @@ package me.alek.honey.netty.listener;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.packet.container.PacketContainer;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.entity.Player;
 
 public class SyncPacketAdapter<WP extends WrappedPacket<WP>> {
 
