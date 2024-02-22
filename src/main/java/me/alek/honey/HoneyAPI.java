@@ -68,6 +68,4 @@ public interface HoneyAPI {
     void onEnable();
 
     void onDisable();
-
-    QueueExecutionWatchdogThread getWatchdog();
 }

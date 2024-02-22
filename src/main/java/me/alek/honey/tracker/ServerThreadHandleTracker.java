@@ -65,8 +65,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
-        private int calls;
-
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
 
@@ -129,7 +127,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 recentPollStart = -1;
                 return otherTask;
             }
-            calls++;
             // check if this packet is not the first one handled in this tick
             if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
 
@@ -180,11 +177,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 if (Thread.interrupted()) {
                     HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
                 }
-
-                // we can confidently call after all packets is being handled without fearing locked server thread,
-                // because then spigot watchdog would handle it
-                if (calls > 1) QueueExecutionWatchdogThread.call(System.currentTimeMillis());
-                calls = 0;
             }
             return tickTask;
         }

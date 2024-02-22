@@ -4,17 +4,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.tracker.QueueExecutionWatchdogThread;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
-
-import java.util.*;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
@@ -46,6 +41,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
             cause.printStackTrace();
         }
+
         super.exceptionCaught(ctx, cause);
     }
 
@@ -68,9 +64,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
-
-        if (packetContainer.getState() == PacketState.PLAY)
-            QueueExecutionWatchdogThread.clearVerification();
 
         // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {

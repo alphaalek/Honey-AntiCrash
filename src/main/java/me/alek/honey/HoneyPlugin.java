@@ -69,7 +69,6 @@ public class HoneyPlugin implements HoneyAPI {
     private boolean isRunning;
     private PacketLibrary packetLibrary;
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
-    private QueueExecutionWatchdogThread watchdogThread;
     private Thread serverThread;
 
     private final Plugin plugin;
@@ -116,7 +115,6 @@ public class HoneyPlugin implements HoneyAPI {
         isLoaded = true;
         INSTANCE = this;
         serverThread = Thread.currentThread();
-        watchdogThread = new QueueExecutionWatchdogThread();
 
         // setup configuration and check if it is misconfigured
         configuration = new DedicatedConfiguration();
@@ -213,7 +211,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         getPacketLibrary().disable();
 
-        QueueExecutionWatchdogThread.stopWatchdog();
+        getLoggerService().getLogger().info("Honey is now disabled!");
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
@@ -375,10 +373,6 @@ public class HoneyPlugin implements HoneyAPI {
 
     public Thread getServerThread() {
         return serverThread;
-    }
-
-    public QueueExecutionWatchdogThread getWatchdog() {
-        return watchdogThread;
     }
 
     public int getRecentPing(HoneyPlayer player) {
