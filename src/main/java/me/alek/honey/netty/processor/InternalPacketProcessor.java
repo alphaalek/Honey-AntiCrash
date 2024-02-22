@@ -261,13 +261,11 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     private void registerToBundle(HoneyPlayer player, PacketBound packetBound, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        PacketBundleSaver bundleSaver;
-        if (packetBound == PacketBound.CLIENT && player != null
-                && (bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(player.uuid)) != null) {
+        if (packetBound == PacketBound.CLIENT && player != null) {
             if (packetContainer.getType() == null)
-                bundleSaver.addToCommon(packetContainer);
+                player.packetBundleSaver.addToCommon(packetContainer);
             else
-                bundleSaver.add(packetContainer);
+                player.packetBundleSaver.add(packetContainer);
         }
     }
 

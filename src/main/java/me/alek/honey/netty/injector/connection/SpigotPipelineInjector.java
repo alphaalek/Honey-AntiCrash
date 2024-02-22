@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector.connection;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
@@ -19,25 +20,30 @@ public class SpigotPipelineInjector {
                 return;
             }
 
-            if (channel.pipeline().get(PacketLibrary.get().getHandlerName()) != null
-                    || channel.pipeline().get(PacketLibrary.get().getDecoderName()) != null) {
+            String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
+            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+
+            if (channel.pipeline().get(handlerName) != null
+                    || channel.pipeline().get(decoderName) != null) {
                 ejectChannel(channel);
             }
 
             InboundPacketDecoder decoder = new InboundPacketDecoder(channel);
-            channel.pipeline().addAfter("splitter", PacketLibrary.get().getDecoderName(), decoder);
-            channel.pipeline().addBefore("packet_handler", PacketLibrary.get().getHandlerName(), new DuplexChannelHandler(decoder));
+            channel.pipeline().addAfter("splitter", decoderName, decoder);
+            channel.pipeline().addBefore("packet_handler", handlerName, new DuplexChannelHandler(decoder));
         }
     }
 
     public boolean relocateHandlers(Channel channel) {
         synchronized (channel) {
-            InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(channel);
+            InboundPacketDecoder decoder = (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
             if (decoder != null) {
-                channel.pipeline().remove(PacketLibrary.get().getDecoderName());
+                String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+
+                channel.pipeline().remove(decoderName);
 
                 if (channel.pipeline().get("decompress") != null) {
-                    channel.pipeline().addAfter("decompress", PacketLibrary.get().getDecoderName(), new InboundPacketDecoder(decoder));
+                    channel.pipeline().addAfter("decompress", decoderName, new InboundPacketDecoder(decoder));
                     return true;
                 }
             }
@@ -47,11 +53,15 @@ public class SpigotPipelineInjector {
 
     public void ejectChannel(Channel channel) {
         synchronized (channel) {
-            if (channel.pipeline().get(PacketLibrary.get().getHandlerName()) != null) {
-                channel.pipeline().remove(PacketLibrary.get().getHandlerName());
+
+            String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
+            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+
+            if (channel.pipeline().get(handlerName) != null) {
+                channel.pipeline().remove(handlerName);
             }
-            if (channel.pipeline().get(PacketLibrary.get().getDecoderName()) != null) {
-                channel.pipeline().remove(PacketLibrary.get().getDecoderName());
+            if (channel.pipeline().get(decoderName) != null) {
+                channel.pipeline().remove(decoderName);
             }
         }
     }
@@ -62,8 +72,8 @@ public class SpigotPipelineInjector {
             throw new MissingHandlerException();
         }
 
-        UpdatableChannel handler = PacketLibrary.get().getPacketManager().getHandler(channel);
-        UpdatableChannel decoder = PacketLibrary.get().getPacketManager().getDecoder(channel);
+        UpdatableChannel handler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
+        UpdatableChannel decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
         if (handler == null || decoder == null) {
             throw new MissingHandlerException();
         }

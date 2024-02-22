@@ -211,7 +211,7 @@ public class HoneyPlugin implements HoneyAPI {
     public void onDisable() {
         isRunning = false;
 
-        if (PacketLibrary.get() != null) PacketLibrary.get().disable();
+        if (packetLibrary != null) packetLibrary.disable();
 
         QueueExecutionWatchdogThread.stopWatchdog();
     }
@@ -222,10 +222,10 @@ public class HoneyPlugin implements HoneyAPI {
                 ListenerPriority priority = check.getPriority();
 
                 if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
-                    PacketLibrary.get().addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
+                    packetLibrary.addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
 
                 if (check.getCheckType() == HoneyCheckType.DECODE)
-                    PacketLibrary.get().addDecodeListener((SyncPacketAdapter<?>) check, priority);
+                    packetLibrary.addDecodeListener((SyncPacketAdapter<?>) check, priority);
 
                 check.load();
             }
@@ -281,11 +281,11 @@ public class HoneyPlugin implements HoneyAPI {
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();
 
-        for (Map.Entry<UUID, PacketBundleSaver> bundleSaver : new ArrayList<>(DuplexChannelHandler.getPacketBundleSavers().entrySet())) {
+        for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
             PacketBundleSaver newBundleSaver = new PacketBundleSaver();
-            bundleSaver.getValue().transferTo(newBundleSaver);
+            player.packetBundleSaver.transferTo(newBundleSaver);
 
-            DuplexChannelHandler.getPacketBundleSavers().put(bundleSaver.getKey(), newBundleSaver);
+            player.packetBundleSaver = newBundleSaver;
         }
     }
 

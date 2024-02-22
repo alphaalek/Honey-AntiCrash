@@ -8,6 +8,7 @@ import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.IReflectResolver;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -389,7 +390,8 @@ public class ReflectStructure<T, C> {
         @Override
         public C invokeMethodWithException(Predicate<MethodInvoker<?>> filter, Object... params) throws Exception {
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (Arrays.equals(invoker.getMethod().getParameterTypes(), params) && filter.test(invoker))
+                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), invoker.getMethod().getParameterTypes())
+                        && filter.test(invoker))
                     return invoke(invoker, params);
             }
             return null;
@@ -411,7 +413,7 @@ public class ReflectStructure<T, C> {
                 return null;
             }
             final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
-            if (!Arrays.equals(params, invoker.getMethod().getParameterTypes())) {
+            if (!Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), invoker.getMethod().getParameterTypes())) {
                 return null;
             }
             return invoke(invoker, params);
@@ -430,7 +432,7 @@ public class ReflectStructure<T, C> {
             int specificIndex = 0;
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
 
-                if (Arrays.equals(params, invoker.getMethod().getParameterTypes())
+                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), invoker.getMethod().getParameterTypes())
                         && invoker.getName().equals(name) && index == specificIndex++) {
                     return invoke(invoker, params);
                 }

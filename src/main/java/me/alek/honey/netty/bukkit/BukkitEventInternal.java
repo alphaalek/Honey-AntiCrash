@@ -2,6 +2,7 @@ package me.alek.honey.netty.bukkit;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
@@ -22,7 +23,6 @@ public class BukkitEventInternal implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        PacketLibrary library = PacketLibrary.get();
         Channel channel = NMSUtils.getChannel(player);
 
         if (channel == null || channel.pipeline().toMap().isEmpty()) {
@@ -31,7 +31,7 @@ public class BukkitEventInternal implements Listener {
         }
         HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
 
-        SpigotPipelineInjector injector = library.getPipelineInjector();
+        SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
         try {
             injector.updatePlayer(honeyPlayer);
         } catch (MissingHandlerException exception) {
@@ -43,10 +43,7 @@ public class BukkitEventInternal implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        PacketLibrary.get().getPipelineInjector().ejectChannel(NMSUtils.getChannel(player));
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(NMSUtils.getChannel(player));
         NMSUtils.removeChannelLookup(player.getUniqueId());
-
-        DuplexChannelHandler.getPacketBundleSavers().remove(player.getUniqueId());
-        InboundPacketDecoder.unregisterPlayer(player);
     }
 }

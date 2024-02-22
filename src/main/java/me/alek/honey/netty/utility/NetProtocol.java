@@ -1,5 +1,7 @@
 package me.alek.honey.netty.utility;
 
+import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.packet.type.RangedPacketTypeEnum;
 import org.bukkit.Bukkit;
@@ -54,7 +56,7 @@ public enum NetProtocol {
             if (Bukkit.getVersion().contains(name))
                 return version;
         }
-        NetProtocol fallbackVersion = PacketLibrary.get().getSettings().getFallbackProtocol();
+        NetProtocol fallbackVersion = HoneyPlugin.get().getPacketLibrary().getFallbackProtocol();
         if (fallbackVersion != null)
             return fallbackVersion;
 

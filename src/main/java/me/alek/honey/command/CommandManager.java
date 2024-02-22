@@ -61,7 +61,7 @@ public class CommandManager implements CommandExecutor {
 
         sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
         sender.sendMessage("");
-        sender.sendMessage("§6* §aDiscord: §7https://discord.gg/KvHahGdFYQ");
+        sender.sendMessage("§6* §aDiscord: §7https://discord.gg/veAtFHG65u");
         sender.sendMessage("");
         sender.sendMessage("§7Type §e/honey help §7for help on command usage.");
     }

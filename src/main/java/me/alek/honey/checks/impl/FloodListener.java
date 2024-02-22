@@ -231,7 +231,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getDistributor(player, sharedIgnoringKey, sharedIgnoringSetting);
 
-            InboundPacketDecoder decoder = (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(packet.getContainer().getChannel());
+            InboundPacketDecoder decoder = (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(packet.getContainer().getChannel());
 
             if (getSetting(packet).isEnabled() && decoder != null) {
                 // check if the delta time is high enough to exempt the next packet spike for this player

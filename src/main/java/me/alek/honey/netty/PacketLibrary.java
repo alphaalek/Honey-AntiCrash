@@ -31,19 +31,11 @@ public class PacketLibrary {
     private final ServerPacketManager packetManager;
     private boolean enabled = true;
 
-    private static PacketLibrary INSTANCE;
-
-    public static PacketLibrary get() {
-        return INSTANCE;
-    }
-
     public static PacketLibrary set(PacketLibrarySettings settings) {
-        if (INSTANCE == null) new PacketLibrary(settings);
-        return INSTANCE;
+        return new PacketLibrary(settings);
     }
 
     private PacketLibrary(PacketLibrarySettings settings) {
-        INSTANCE = this;
         this.settings = settings;
         plugin = settings.getPlugin();
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), plugin);
@@ -99,14 +91,6 @@ public class PacketLibrary {
 
     public PacketProcessor getPacketProcessor() {
         return packetProcessor;
-    }
-
-    public void writePacket(HoneyPlayer player, WrappedPacket<?> packet) {
-        packetManager.writePacket(player, packet.getHandle());
-    }
-
-    public void flushPackets(HoneyPlayer player) {
-        packetManager.flushPackets(player);
     }
 
     public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {

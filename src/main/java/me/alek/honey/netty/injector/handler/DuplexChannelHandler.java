@@ -18,12 +18,10 @@ import java.util.*;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
-    private static final Map<UUID, PacketBundleSaver> packetBundleSavers = new HashMap<>();
     private static final ThreadLocalAccessor<HoneyPlayer> packetSendMarker = new ThreadLocalAccessor<>();
-    private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
     private final InboundPacketDecoder decoder;
-    private final PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     private volatile HoneyPlayer player;
 
     public DuplexChannelHandler(InboundPacketDecoder decoder) {
@@ -32,7 +30,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
-        packetBundleSavers.put(player.uuid, packetBundleSaver);
     }
 
     public HoneyPlayer getPlayer() {
@@ -41,10 +38,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
     public static ThreadLocalAccessor<HoneyPlayer> getPacketSendMarker() {
         return packetSendMarker;
-    }
-
-    public static Map<UUID, PacketBundleSaver> getPacketBundleSavers() {
-        return packetBundleSavers;
     }
 
     @Override
@@ -65,8 +58,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, decoder.getRecentDeltaDecode());
 
         PacketContainer<?> recent;
-        if (player != null && (recent = packetBundleSaver.getRecent(false)) != null && !recent.isHandledByServer()) {
-            packetBundleSaver.getRecent(true);
+        if (player != null && (recent = player.packetBundleSaver.getRecent(false)) != null && !recent.isHandledByServer()) {
+            player.packetBundleSaver.getRecent(true);
         }
 
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet, readStart);

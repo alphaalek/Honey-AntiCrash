@@ -198,7 +198,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             InboundPacketDecoder packetDecoder =
-                    (InboundPacketDecoder) PacketLibrary.get().getPacketManager().getDecoder(packet.getContainer().getChannel());
+                    (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(packet.getContainer().getChannel());
             if (packetDecoder == null || !packetDecoder.hasReadYet()) return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
             // disable this check if the TPS is really low or ping of the player is too high

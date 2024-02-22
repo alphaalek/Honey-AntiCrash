@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
@@ -22,19 +23,8 @@ import java.util.UUID;
 
 public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 
-    private static final Set<UUID> registeredPacketDecoders = new HashSet<>();
-    private static final PacketProcessor packetProcessor = PacketLibrary.get().getPacketProcessor();
+    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocalAccessor<>();
-
-    public static void unregisterPlayer(Player player) {
-        synchronized (registeredPacketDecoders) {
-            registeredPacketDecoders.remove(player.getUniqueId());
-        }
-    }
-
-    public static boolean isDecoderRegistered(Player player) {
-        return registeredPacketDecoders.contains(player.getUniqueId());
-    }
 
     public static ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> getEarlyPacketInitializer() {
         return earlyPacketInitializer;
@@ -43,7 +33,6 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
     private double recentDecodeStart;
     private double recentDeltaReceived = 0;
     private boolean isFirstRead = true;
-    private boolean hasRead;
     private boolean hasBeenRelocated;
     private HoneyPlayer player;
     private final Channel channel;
@@ -54,7 +43,6 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
         hasBeenRelocated = true;
         recentDeltaReceived = decoder.recentDeltaReceived;
         recentDecodeStart = decoder.recentDecodeStart;
-        hasRead = decoder.hasRead;
         isFirstRead = false;
     }
 
@@ -82,12 +70,6 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
         }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
-            if (!hasRead) {
-                hasRead = true;
-                synchronized (registeredPacketDecoders) {
-                    registeredPacketDecoders.add(player.uuid);
-                }
-            }
             checkRelocation(channel);
 
             earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
@@ -108,14 +90,14 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> imple
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
-        checkRelocation(ctx.channel());
+        checkRelocation(ctx.channel()); // triggered by ViaVersion sometimes
         super.userEventTriggered(ctx, event);
     }
 
     public void checkRelocation(Channel channel) {
         if (!hasBeenRelocated) {
 
-            hasBeenRelocated = PacketLibrary.get().getPipelineInjector().relocateHandlers(channel);
+            hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel);
         }
     }
 

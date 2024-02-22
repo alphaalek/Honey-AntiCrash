@@ -43,7 +43,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
                 developmentData.setLine(5, check.getDescription());
 
-                if (HoneyPlugin.get().getViolationService().isPunishing(player)) {
+                if (player.punished) {
                     cancellablePacketObserver.cancel();
                     return;
                 }

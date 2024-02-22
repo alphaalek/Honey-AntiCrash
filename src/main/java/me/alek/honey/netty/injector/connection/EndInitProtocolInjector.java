@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 
 public class EndInitProtocolInjector {
@@ -15,7 +16,7 @@ public class EndInitProtocolInjector {
             channel.pipeline().addLast(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(Channel channel) {
-                    PacketLibrary.get().getPipelineInjector().injectChannel(channel);
+                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
                 }
             });
         }
@@ -26,7 +27,7 @@ public class EndInitProtocolInjector {
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
             try {
-                PacketLibrary.get().getPipelineInjector().injectChannel(ctx.channel());
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(ctx.channel());
 
             } catch (Exception ex) {
                 ex.printStackTrace();

@@ -255,7 +255,7 @@ public class NotificationService {
         counter.count();
 
         int size = counter.size();
-        if (size < 10) return;
+        if (size < 5) return;
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
@@ -273,11 +273,12 @@ public class NotificationService {
                 "{\"text\":\"§cCancelling inbound packets... [" + size + "]\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
-        HoneyPlugin.get().getPacketLibrary().getPacketManager().writePacket(player, actionBarPacket);
+        HoneyPlugin.get().getPacketLibrary().getPacketManager().writePacket(player, actionBarPacket, true);
     }
 
     public void notify(String notification) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+
             if (!hasNotifyPermission(observer.getKey())) {
                 continue;
             }
@@ -287,7 +288,8 @@ public class NotificationService {
 
     public void notify(HoneyPlayer player, String notification, ViolationService.CheckKey checkKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
-            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || HoneyPlugin.get().getViolationService().isPunishing(player)) {
+
+            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
                 continue;
             }
             observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, checkKey);
@@ -296,7 +298,8 @@ public class NotificationService {
 
     public void warn(HoneyPlayer player, String warning, ViolationService.CheckKey checkKey) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
-            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline()) {
+
+            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
                 continue;
             }
             observer.getValue().warn(player, warning, checkKey);

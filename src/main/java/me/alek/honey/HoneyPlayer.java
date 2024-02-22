@@ -1,6 +1,7 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
+import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Location;
@@ -37,9 +38,9 @@ public class HoneyPlayer {
     public final Player player;
     public final UUID uuid;
     public final String name;
-
     public final Channel channel;
 
+    public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public ViolationService.ViolationContext violationContext;
     public boolean punished;
 

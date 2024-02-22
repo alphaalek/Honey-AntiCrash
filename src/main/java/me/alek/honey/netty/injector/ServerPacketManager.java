@@ -1,6 +1,7 @@
 package me.alek.honey.netty.injector;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -11,20 +12,23 @@ import io.netty.channel.Channel;
 
 public class ServerPacketManager {
 
-    public void writePacket(HoneyPlayer player, Object rawPacket) {
-        writePacket(player.channel, rawPacket);
+    public void writePacket(HoneyPlayer player, Object rawPacket, boolean flushAfter) {
+        writePacket(player.channel, rawPacket, flushAfter);
     }
 
-    public <WP extends WrappedPacket<WP>> void writePacket(HoneyPlayer player, WrappedPacket<WP> packet) {
-        writePacket(player, packet.getHandle());
+    public <WP extends WrappedPacket<WP>> void writePacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) {
+        writePacket(player, packet.getHandle(), flushAfter);
     }
 
-    public void writePacket(Channel channel, Object rawPacket) {
-        channel.write(rawPacket);
+    public void writePacket(Channel channel, Object rawPacket, boolean flushAfter) {
+        if (!flushAfter)
+            channel.write(rawPacket);
+        else
+            channel.writeAndFlush(rawPacket);
     }
 
-    public <WP extends WrappedPacket<WP>> void writePacket(Channel channel, WrappedPacket<WP> packet) {
-        writePacket(channel, packet.getHandle());
+    public <WP extends WrappedPacket<WP>> void writePacket(Channel channel, WrappedPacket<WP> packet, boolean flushafter) {
+        writePacket(channel, packet.getHandle(), flushafter);
     }
 
     public void flushPackets(HoneyPlayer player) {
@@ -44,10 +48,10 @@ public class ServerPacketManager {
     }
 
     public UpdatableChannel getHandler(Channel channel) {
-        return (UpdatableChannel) channel.pipeline().get(PacketLibrary.get().getHandlerName());
+        return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
     }
 
     public UpdatableChannel getDecoder(Channel channel) {
-        return (UpdatableChannel) channel.pipeline().get(PacketLibrary.get().getDecoderName());
+        return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
     }
 }

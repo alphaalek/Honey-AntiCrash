@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -110,7 +111,7 @@ public class SpigotServerInjector {
                 Channel channel = NMSUtils.getChannelFromNetworkManager(networkManager);
                 if (channel == null) continue;
 
-                PacketLibrary.get().getPipelineInjector().injectChannel(channel);
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
             }
         }
         injected = true;
@@ -136,7 +137,7 @@ public class SpigotServerInjector {
                 Channel channel = NMSUtils.getChannelFromNetworkManager(networkManager);
                 if (channel == null) continue;
 
-                PacketLibrary.get().getPipelineInjector().ejectChannel(channel);
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
             }
         }
         injected = false;

@@ -4,6 +4,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Version;
+import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.NetProtocol;
@@ -45,12 +47,14 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
             CHECKED_NETTY_VERSION = true;
         }
 
+        String connectorName = HoneyPlugin.get().getPacketLibrary().getConnectorName();
+
         //Depends on netty version, if we cannot resolve that we just check server version.
         if ((NETTY_VERSION != null && NETTY_VERSION.isNewerThan(MODERN_NETTY_VERSION))
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
-            channel.pipeline().addLast(PacketLibrary.get().getConnectorName(), new EndInitProtocolInjector.Initializer_v1_12());
+            channel.pipeline().addLast(connectorName, new EndInitProtocolInjector.Initializer_v1_12());
         } else {
-            channel.pipeline().addFirst(PacketLibrary.get().getConnectorName(), new EndInitProtocolInjector.Initializer_v1_8());
+            channel.pipeline().addFirst(connectorName, new EndInitProtocolInjector.Initializer_v1_8());
         }
         super.channelRead(ctx, msg);
     }

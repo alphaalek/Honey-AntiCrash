@@ -88,8 +88,6 @@ public class ViolationService {
         if (player.punished) {
             return;
         }
-        player.punished = true;
-
         HoneyPlugin.get().getLoggerService().logToMonitors(player, null);
 
         player.channel.eventLoop().execute(() -> {
@@ -101,6 +99,8 @@ public class ViolationService {
         Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
 
         HoneyPlugin.get().getNotificationService().warn(player, violationName, checkKey);
+
+        player.punished = true;
     }
 
     public static class ViolationContext {
@@ -305,10 +305,9 @@ public class ViolationService {
             if (ConfigurationOptions.PacketDump.VLS_ENABLED) {
 
                 PacketBundleFilter filter = check.getDumpFilter();
-                if (filter != null && filter.getAcceptedPacketTypes() != null
-                        && DuplexChannelHandler.getPacketBundleSavers().containsKey(player.uuid)) {
+                if (filter != null && filter.getAcceptedPacketTypes() != null) {
 
-                    List<PacketContainer<?>> dumpedPackets = DuplexChannelHandler.getPacketBundleSavers().get(player.uuid)
+                    List<PacketContainer<?>> dumpedPackets = player.packetBundleSaver
                             .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
 
                     if (dumpedPackets != null) {

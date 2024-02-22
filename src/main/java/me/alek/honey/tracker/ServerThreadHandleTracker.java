@@ -6,15 +6,10 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.ConstructorInvoker;
-import me.alek.honey.netty.utility.FieldAccessor;
-import me.alek.honey.netty.utility.NMSUtils;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.utility.*;
 import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
@@ -202,6 +197,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         @Override
         public synchronized boolean add(Object value) {
+            // why add something to an execution queue, without it being a runnable?
+            if (!(value instanceof Runnable)) return false;
+
             // add it two times if it's empty, so we always have one extra element
             // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
             if (super.isEmpty() && pollsOneExtra) super.add(EMPTY_VALUE);
@@ -215,19 +213,12 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             HoneyPlayer player = packetSendMarker.remove();
             if (player == null) return super.add(value);
 
-            UUID uuid = player.uuid;
-
-            PacketBundleSaver bundleSaver = DuplexChannelHandler.getPacketBundleSavers().get(uuid);
-            // if the uuid from the packet send marker does not have a bundle saver, we will not continue doing anything.
-            // we do this because this scenario is only possible if the player has leaved the server in the gap between
-            // send marker register and add to queue execution
-            if (bundleSaver == null) return false;
-
-            PacketContainer<?> packet = bundleSaver.getRecent(false);
+            PacketContainer<?> packet = player.packetBundleSaver.getRecent(false);
             // if it somehow tries to add multiple times, we will cancel it
-            if (packet.isHandledByServer()) return true;
+            if (packet == null || packet.isHandledByServer()) return true;
 
             packet.setHandledByServer();
+            UUID uuid = player.uuid;
             synchronized (PacketTaskHandler.lock) {
                 if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
@@ -235,7 +226,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
             super.add(EMPTY_VALUE);
 
-            return nettySubmitQueue.get().add(PacketTaskHandler.wrapTask(value, player));
+            return nettySubmitQueue.get().add(new PacketTaskFuture<>((Runnable) value, player));
         }
     }
 

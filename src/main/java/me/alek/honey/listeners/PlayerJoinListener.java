@@ -30,7 +30,6 @@ public class PlayerJoinListener implements Listener {
             if (check.hasInitializedCheckInstances())
                 check.setup(player);
         }
-        HoneyPlugin.get().getViolationService().add(player);
         HoneyPlugin.get().getNotificationService().setup(player);
 
         instantJoinedMap.put(player.uuid, System.currentTimeMillis());
@@ -70,7 +69,6 @@ public class PlayerJoinListener implements Listener {
         instantJoinedMap.remove(player.uuid);
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);
-        HoneyPlugin.get().getViolationService().remove(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
 
         HoneyPlugin.get().removeRecentPingLookup(player);
