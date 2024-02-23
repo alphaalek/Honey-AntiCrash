@@ -205,6 +205,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             HoneyPlayer player = packetSendMarker.remove();
             if (player == null) return super.add(value);
 
+            Bukkit.broadcastMessage("Hey");
+
             PacketContainer<?> packet = player.packetBundleSaver.getRecent(false);
             // if it somehow tries to add multiple times, we will cancel it
             if (packet == null || packet.isHandledByServer()) return true;
