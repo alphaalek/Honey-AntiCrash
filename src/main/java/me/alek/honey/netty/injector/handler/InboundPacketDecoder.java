@@ -48,16 +48,19 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
             super.channelRead(ctx, msg);
             return;
         }
-        ((ByteBuf)msg).retain();
+        ReferenceCountUtil.retain(msg);
 
         asyncDecoder.decode((s) -> {
-            try {
-                super.channelRead(ctx, msg);
-            } catch (Exception ex) {
+            if (asyncDecoder.getPlayer().isOnline()) {
                 try {
-                    super.exceptionCaught(ctx, ex);
-                } catch (Exception ignored) {
+                    Bukkit.getLogger().info("Calling " + Thread.currentThread().getName());
+                    super.channelRead(ctx, msg);
+                } catch (Exception ex) {
+                    try {
+                        super.exceptionCaught(ctx, ex);
+                    } catch (Exception ignored) {
 
+                    }
                 }
             }
         });

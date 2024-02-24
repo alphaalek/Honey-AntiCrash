@@ -70,7 +70,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         if (player != null) {
             checkRelocation(channel);
 
-            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
+            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel(), false));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
         } else earlyPacketInitializer.remove();
 

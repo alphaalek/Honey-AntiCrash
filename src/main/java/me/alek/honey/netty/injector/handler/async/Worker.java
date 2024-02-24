@@ -8,12 +8,18 @@ public interface Worker<T> {
 
     Queue<ChainedCallable<T>> getPendingTasks();
 
+    ChainedCallable<T> getCurrentTask();
+
     boolean shouldRelocate(TaskSupplier<T> supplier);
+
+    boolean shouldQuarantine();
 
     boolean isQuarantined();
 
-    ChainedCallable<T> getCurrentTask();
-
     void setQuarantined();
+
+    boolean isActive();
+
+    void destroy();
 
 }

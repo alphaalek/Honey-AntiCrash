@@ -35,29 +35,37 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final HoneyPlayer player;
     private final Channel channel;
     private ReflectStructure<Object, ?> packetStructure;
+    private final boolean forced;
     private boolean cancelled;
     private boolean dumped;
     private boolean handledByServer;
     private final long time = System.currentTimeMillis();
     private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
 
-    public InternalPacketContainer(Object rawPacket, Player player, Channel channel, Runnable postAction, PacketTypeEnum type) {
-        this(rawPacket, HoneyPlayer.getPlayer(player.getUniqueId()), channel, postAction, type);
-    }
-
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
-        this(player, channel);
+        this(player, channel, false);
         set(rawPacket, postAction, type);
     }
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel) {
-        this(player, channel);
+        this(player, channel, false);
         this.handle = rawPacket;
     }
 
-    public InternalPacketContainer(HoneyPlayer player, Channel channel) {
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, boolean forced) {
+        this(player, channel, forced);
+        set(rawPacket, postAction, type);
+    }
+
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, boolean forced) {
+        this(player, channel, forced);
+        this.handle = rawPacket;
+    }
+
+    public InternalPacketContainer(HoneyPlayer player, Channel channel, boolean forced) {
         this.player = player;
         this.channel = channel;
+        this.forced = forced;
     }
 
     public void set(Object rawPacket, Runnable postAction, PacketTypeEnum type) {
@@ -109,6 +117,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public String getName() {
         return handle.getClass().getSimpleName();
+    }
+
+    @Override
+    public boolean isForced() {
+        return forced;
     }
 
     @Override

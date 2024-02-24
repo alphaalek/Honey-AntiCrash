@@ -23,7 +23,28 @@ public class PredicateUtils {
         return (t) -> !predicate.test(t);
     }
 
+    @SafeVarargs
+    public static <T> Predicate<T> or(Predicate<T>... predicates) {
+        return (t) -> {
+            for (Predicate<T> predicate : predicates) {
+                if (predicate.test(t)) return true;
+            }
+            return false;
+        };
+    }
+
+    @SafeVarargs
+    public static <T> Predicate<T> and(Predicate<T>... predicates) {
+        return (t) -> {
+            for (Predicate<T> predicate : predicates) {
+                if (!predicate.test(t)) return false;
+            }
+            return true;
+        };
+    }
+
     public static <T, F> BiPredicate<T, F> notBi(BiPredicate<T, F> predicate) {
         return (t, f) -> !predicate.test(t, f);
     }
+
 }

@@ -1,17 +1,27 @@
 package me.alek.honey.netty.injector;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.handler.OutboundPacketEncoder;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-
-import io.netty.channel.Channel;
 
 public class ServerPacketManager {
 
     public void writePacket(HoneyPlayer player, Object rawPacket, boolean flushAfter) {
         writePacket(player.channel, rawPacket, flushAfter);
+    }
+
+    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) {
+        ChannelHandler encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(player.channel);
+        if (!(encoder instanceof OutboundPacketEncoder)) {
+            writePacket(player, packet, flushAfter);
+            return;
+        }
+        OutboundPacketEncoder outboundPacketEncoder = (OutboundPacketEncoder) encoder;
+        outboundPacketEncoder.writeForcedPacket(packet.getHandle());
     }
 
     public <WP extends WrappedPacket<WP>> void writePacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) {
@@ -55,5 +65,9 @@ public class ServerPacketManager {
 
     public ChannelHandler getDecoder(Channel channel) {
         return channel.pipeline().get("decoder");
+    }
+
+    public ChannelHandler getEncoder(Channel channel) {
+        return channel.pipeline().get("encoder");
     }
 }

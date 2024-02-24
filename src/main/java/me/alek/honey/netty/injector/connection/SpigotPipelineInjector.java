@@ -4,10 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
-import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
-import me.alek.honey.netty.injector.handler.InboundPacketFilter;
-import me.alek.honey.netty.injector.handler.UpdatableChannel;
+import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
 
@@ -47,6 +44,7 @@ public class SpigotPipelineInjector {
 
                     AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
                     channel.pipeline().replace(channel.pipeline().get("decoder"), "decoder", new InboundPacketDecoder(asyncDecoder));
+                    channel.pipeline().replace(channel.pipeline().get("encoder"), "encoder", new OutboundPacketEncoder(channel, asyncDecoder));
                     return true;
                 }
             }

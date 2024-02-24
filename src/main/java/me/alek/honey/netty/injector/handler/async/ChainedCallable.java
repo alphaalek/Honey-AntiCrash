@@ -11,6 +11,7 @@ public class ChainedCallable<T> implements Callable<T> {
     private final TaskSupplier<T> from;
     private final Callable<T> callable;
     private final List<Consumer<T>> listeners = new ArrayList<>();
+    private boolean called;
 
     public ChainedCallable(TaskSupplier<T> from, Callable<T> delegate) {
         this.from = from;
@@ -31,9 +32,14 @@ public class ChainedCallable<T> implements Callable<T> {
         return from;
     }
 
+    public boolean isCalled() {
+        return called;
+    }
+
     @Override
     public T call() throws Exception {
         T value = callable.call();
+        called = true;
         for (Consumer<T> listener : listeners) {
             listener.accept(value);
         }

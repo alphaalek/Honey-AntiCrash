@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -128,9 +129,7 @@ public class PacketWrapperInvokerFactory {
         String value();
     }
 
-    public static <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(Player player, PacketTypeEnum packetTypeEnum) {
-        Channel channel = NMSUtils.getChannel(player);
-
+    public static <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(HoneyPlayer player, PacketTypeEnum packetTypeEnum) {
         Object rawPacket;
         try {
             rawPacket = packetTypeEnum.getNmsClass().newInstance();
@@ -138,7 +137,7 @@ public class PacketWrapperInvokerFactory {
         } catch (Exception ex) {
             return null;
         }
-        PacketContainer<WP> packetContainer = new InternalPacketContainer<>(rawPacket, player, channel, null, packetTypeEnum);
+        PacketContainer<WP> packetContainer = new InternalPacketContainer<>(rawPacket, player, player.channel, null, packetTypeEnum);
 
         return packetContainer.getPacket();
     }

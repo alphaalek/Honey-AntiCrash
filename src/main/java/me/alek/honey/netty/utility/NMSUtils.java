@@ -196,6 +196,10 @@ public class NMSUtils {
         return getFuzzyClass("{nms}.PacketDecoder", "{nms}.network.PacketDecoder");
     }
 
+    public static Class<Object> getPacketEncoderClass() {
+        return getFuzzyClass("{nms}.PacketEncoder", "{nms}.network.PacketEncoder");
+    }
+
     @SuppressWarnings("unchecked")
     public static Class<Enum<?>> getEnumProtocolDirectionClass() {
         return (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocolDirection", "{nms}.network.protocol.EnumProtocolDirection");

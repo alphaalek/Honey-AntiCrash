@@ -277,7 +277,7 @@ public class NotificationService {
                 "{\"text\":\"" + text + "\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
-        HoneyPlugin.get().getPacketLibrary().getPacketManager().writePacket(player, actionBarPacket, true);
+        HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket, true);
     }
 
     public void notify(String notification) {
