@@ -1,12 +1,10 @@
 package me.alek.honey.netty.injector;
 
+import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.NMSUtils;
-import org.bukkit.entity.Player;
 
 import io.netty.channel.Channel;
 
@@ -51,7 +49,11 @@ public class ServerPacketManager {
         return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
     }
 
-    public UpdatableChannel getDecoder(Channel channel) {
-        return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
+    public UpdatableChannel getFilter(Channel channel) {
+        return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getFilterName());
+    }
+
+    public ChannelHandler getDecoder(Channel channel) {
+        return channel.pipeline().get("decoder");
     }
 }

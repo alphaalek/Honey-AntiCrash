@@ -11,10 +11,10 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -197,17 +197,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            InboundPacketDecoder packetDecoder =
-                    (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(packet.getContainer().getChannel());
-            if (packetDecoder == null || !packetDecoder.hasReadYet()) return ResponseBuilder.SUCCESS.builder().skip(1).build();
-
-            // disable this check if the TPS is really low or ping of the player is too high
-            boolean exempt = HoneyPlugin.get().shouldExempt(player);
-            container.getStorage().putBoolean(exempt);
-            if (exempt) return ResponseBuilder.SUCCESS;
+            InboundPacketFilter packetFilter =
+                    (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
+            if (packetFilter == null || !packetFilter.hasReadYet()) return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
             // evaluate the duration of decoding this packet
-            double decodeTime = packetDecoder.getRecentDeltaDecode();
+            double decodeTime = packetFilter.getRecentDeltaDecode();
             container.getStorage().putDouble(decodeTime);
 
             if (getSetting().isEnabled() && decodeTime > 0) {

@@ -37,42 +37,58 @@ messages:
   violation: "%prefix% &7%player% %network%&7 failed &e%check%&7. %context%"
 
   # Punish
-  punish: "%prefix% &7%player% %network%&7 was kicked for &e%check%&7."
+  punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
 
-# MySQL settings for storage
-mysql:
-  # Should storing of data in mysql database be enabled
-  enabled: false
+# packet dump
+packet-dump:
+  # Should packet dump for check violations be enabled or not.
+  enabled: true
 
-  # Host of the database
-  host: "localhost"
+  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
+  # E.g. violations of position checks will still dump position packets even though you have added it below.
+  # (PacketPlayInKeepAlive is ignored as default, and you can't change that)
+  filter-all:
+    - "PacketPlayInFlying"
+  # - "PacketPlayInLook"
+  # - "PacketPlayInPosition"
+  # - "PacketPlayInPositionLook"
 
-  # Port of the database
-  port: 3306
+  heavy-packet:
+    # Should packet dump for heavy handled packets be enabled.
+    enabled: true
 
-  # Root username to the database
-  username: "rootuser"
+    # Min main thread handle time for packet to be dumped in log.
+    min-server-handle: 15
 
-  # Root password to the database
-  password: "rootpass"
+  server-thread-dump:
+    # Should server thread dump for heavy handled packets be enabled.
+    enabled: true
 
-  # Name of the database that data should be stored in
-  name: "sample"
+    # Min main thread handle time for thread to be dumped in log.
+    min-server-handle: 750
 
 
-# Exempt flood and related checks
-exempt:
-  # Honey will stop doing flood checks (except for Flood A) at the following things
+# Asynchronous packet decoder
+async-decoder:
+  # Should the async decoder be enabled.
+  enabled: true
 
-  # If the TPS / ping of the server or player gets above or below these values
-  min-tps: 17
-  max-ping: 100
+  # If you edit the values below, you will have to restart the server for the changes to be applied.
 
-  # If the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored
+  # Minimum of worker threads to be used for packet decoding. At urgency relocation there will be created more worker threads.
+  min-worker-threads: 4
+
+  # Minimum packet decode time (in millis), before a task is quarantined and there will be relocation of the worker thread's pending task queue.
+  min-time-for-quarantine: 25.0
+
+
+# Exempt spike flood
+spike-flood:
+  # If the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored.
   max-time-between: 500
 
-  # The following interval will be blocked after the max-time-between value has been exceeded
+  # The following interval will be blocked after the max-time-between value has been exceeded.
   spike-interval: 750
 
 
@@ -113,33 +129,26 @@ packet-logger:
   detailed: true
 
 
-# packet dump
-packet-dump:
-  # Should packet dump for check violations be enabled or not.
-  enabled: true
+# MySQL settings for storage
+mysql:
+  # Should storing of data in mysql database be enabled
+  enabled: false
 
-  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
-  # E.g. violations of position checks will still dump position packets even though you have added it below.
-  # (PacketPlayInKeepAlive is ignored as default, and you can't change that)
-  filter-all:
-    - "PacketPlayInFlying"
-  # - "PacketPlayInLook"
-  # - "PacketPlayInPosition"
-  # - "PacketPlayInPositionLook"
+  # Host of the database
+  host: "localhost"
 
-  heavy-packet:
-    # Should packet dump for heavy handled packets be enabled
-    enabled: true
+  # Port of the database
+  port: 3306
 
-    # Min main thread handle time for packet to be dumped in log
-    min-server-handle: 15
+  # Root username to the database
+  username: "rootuser"
 
-  server-thread-dump:
-    # Should server thread dump for heavy handled packets be enabled
-    enabled: true
+  # Root password to the database
+  password: "rootpass"
 
-    # Min main thread handle time for thread to be dumped in log
-    min-server-handle: 750
+  # Name of the database that data should be stored in
+  name: "sample"
+
 
 ############################################################
 # +------------------------------------------------------+ #

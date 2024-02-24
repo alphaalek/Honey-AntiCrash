@@ -82,6 +82,29 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
         }
 
+        private double getEventloopTimingsIfAny(HoneyPlayer player) {
+            PacketContainer<? extends WrappedPacket<?>> packet = PacketTaskHandler.getLastHandledPacket();
+            if (packet == null || !player.equals(packet.getPlayer())) return 0;
+
+            return packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
+        }
+
+        private double getDeltaTime() {
+            return ((double) (System.nanoTime() - recentPollStart)) / 1_000_000;
+        }
+
+        private double getDeltaTimeExact(HoneyPlayer player) {
+            double eventloopTimings = getEventloopTimingsIfAny(player);
+
+            return eventloopTimings != 0 ? eventloopTimings : getDeltaTime();
+        }
+
+        private Object newTickTask(Runnable runnable) {
+            if (tickTaskConstructor == null) return runnable;
+
+            return tickTaskConstructor.invoke(Integer.MAX_VALUE - 3, runnable);
+        }
+
         @Override
         public Object peek() {
             // if we have any packets ready to be run, we will return an empty value to mark we're ready
@@ -99,23 +122,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if ((poll = poll()) != null) return poll;
 
             return EMPTY_TICK_TASK;
-        }
-
-        private double getEventloopTimingsIfAny(HoneyPlayer player) {
-            PacketContainer<? extends WrappedPacket<?>> packet = PacketTaskHandler.getLastHandledPacket();
-            if (packet == null || !player.equals(packet.getPlayer())) return 0;
-
-            return packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
-        }
-
-        private double getDeltaTime() {
-            return ((double) (System.nanoTime() - recentPollStart)) / 1_000_000;
-        }
-
-        private double getDeltaTimeExact(HoneyPlayer player) {
-            double eventloopTimings = getEventloopTimingsIfAny(player);
-
-            return eventloopTimings != 0 ? eventloopTimings : getDeltaTime();
         }
 
         @Override
@@ -181,12 +187,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             return tickTask;
         }
 
-        private Object newTickTask(Runnable runnable) {
-            if (tickTaskConstructor == null) return runnable;
-
-            return tickTaskConstructor.invoke(Integer.MAX_VALUE - 3, runnable);
-        }
-
         @Override
         public synchronized boolean add(Object value) {
             // why add something to an execution queue, without it being a runnable?
@@ -204,8 +204,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // elements to the execution queue from netty threads which are not packets
             HoneyPlayer player = packetSendMarker.remove();
             if (player == null) return super.add(value);
-
-            Bukkit.broadcastMessage("Hey");
 
             PacketContainer<?> packet = player.packetBundleSaver.getRecent(false);
             // if it somehow tries to add multiple times, we will cancel it

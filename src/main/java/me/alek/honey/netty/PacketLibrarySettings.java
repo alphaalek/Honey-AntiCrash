@@ -8,31 +8,31 @@ public class PacketLibrarySettings {
     private NetProtocol fallbackProtocol;
     private final Plugin plugin;
     private final String handlerName;
-    private final String decoderName;
-    private final String connectionName;
+    private final String filterName;
+    private final String connectorName;
 
     public PacketLibrarySettings(
             Plugin plugin,
             String handlerName,
-            String decoderName,
+            String filterName,
             String connectorName
     ) {
         this.plugin = plugin;
         this.handlerName = handlerName;
-        this.decoderName = decoderName;
-        this.connectionName = connectorName;
+        this.filterName = filterName;
+        this.connectorName = connectorName;
     }
 
     public String getHandlerName() {
         return handlerName;
     }
 
-    public String getDecoderName() {
-        return decoderName;
+    public String getFilterName() {
+        return filterName;
     }
 
     public String getConnectorName() {
-        return connectionName;
+        return connectorName;
     }
 
     public Plugin getPlugin() {

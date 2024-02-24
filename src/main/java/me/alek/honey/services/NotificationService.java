@@ -261,6 +261,10 @@ public class NotificationService {
             player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
             return;
         }
+        sendActionBarPacket1_8(player, "§cCancelling inbound packets... [" + size + "]");
+    }
+
+    public void sendActionBarPacket1_8(HoneyPlayer player, String text) {
         WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
@@ -270,7 +274,7 @@ public class NotificationService {
                 .withType(NMSUtils.getIChatBaseComponentClass())
                 .withTarget(null);
         Object chatComponent = chatSerializer.invokeMethod(0,
-                "{\"text\":\"§cCancelling inbound packets... [" + size + "]\"}");
+                "{\"text\":\"" + text + "\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         HoneyPlugin.get().getPacketLibrary().getPacketManager().writePacket(player, actionBarPacket, true);

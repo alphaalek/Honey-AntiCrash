@@ -1,6 +1,5 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
@@ -86,8 +85,8 @@ public class PacketLibrary {
         return settings.getHandlerName();
     }
 
-    public String getDecoderName() {
-        return settings.getDecoderName();
+    public String getFilterName() {
+        return settings.getFilterName();
     }
 
     public String getConnectorName() {

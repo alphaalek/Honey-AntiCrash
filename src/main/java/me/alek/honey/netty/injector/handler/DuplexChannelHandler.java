@@ -16,11 +16,11 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     private static final ThreadLocalAccessor<HoneyPlayer> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
-    private final InboundPacketDecoder decoder;
+    private final InboundPacketFilter filter;
     private volatile HoneyPlayer player;
 
-    public DuplexChannelHandler(InboundPacketDecoder decoder) {
-        this.decoder = decoder;
+    public DuplexChannelHandler(InboundPacketFilter filter) {
+        this.filter = filter;
     }
 
     public void setPlayer(HoneyPlayer player) {
@@ -51,7 +51,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
         // register the handle time between the last handled packet and this one
         if (player != null)
-            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, decoder.getRecentDeltaDecode());
+            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, filter.getRecentDeltaDecode());
 
         PacketContainer<?> recent;
         if (player != null && (recent = player.packetBundleSaver.getRecent(false)) != null && !recent.isHandledByServer()) {

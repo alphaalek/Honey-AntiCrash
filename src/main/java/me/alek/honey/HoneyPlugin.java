@@ -18,6 +18,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
@@ -183,7 +184,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private void setupPacketLibrary() {
         if (packetLibrary == null) {
-            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey_packet_handler", "honey_packet_decoder", " honey_connection_handler"));
+            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey_packet_handler", "honey_packet_filter", " honey_connection_handler"));
         }
     }
 
@@ -210,6 +211,8 @@ public class HoneyPlugin implements HoneyAPI {
         isRunning = false;
 
         getPacketLibrary().disable();
+
+        WorkerPool.ASYNC_PACKET_DECODER_POOL.terminate();
 
         getLoggerService().getLogger().info("Honey is now disabled!");
     }
@@ -275,7 +278,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         monitorManager.reload();
 
-        ((ServerThreadHandleTracker)packetServerThreadHandleTimeTracker).reload();
+        ((ServerThreadHandleTracker) packetServerThreadHandleTimeTracker).reload();
 
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();
@@ -286,11 +289,6 @@ public class HoneyPlugin implements HoneyAPI {
 
             player.packetBundleSaver = newBundleSaver;
         }
-    }
-
-    public boolean shouldExempt(HoneyPlayer player) {
-        return tickloop.evaluateTPS(Timespan.TEN_SECOND) < ConfigurationOptions.Exempt.MIN_TPS ||
-                getRecentPing(player) > ConfigurationOptions.Exempt.MAX_PING;
     }
 
     public static HoneyAPI get() {

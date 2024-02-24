@@ -20,10 +20,10 @@ import java.util.*;
 
 public class PlayerJoinListener implements Listener {
 
-    private final static Map<UUID, Long> instantJoinedMap = new HashMap<>();
-
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        if (!event.getPlayer().isOnline()) return; // kicked from other event?
+
         final HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
 
         for (IListener check : ListenerRegistry.getChecks()) {
@@ -31,8 +31,6 @@ public class PlayerJoinListener implements Listener {
                 check.setup(player);
         }
         HoneyPlugin.get().getNotificationService().setup(player);
-
-        instantJoinedMap.put(player.uuid, System.currentTimeMillis());
 
         if (player.player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
             new BukkitRunnable() {
@@ -55,18 +53,14 @@ public class PlayerJoinListener implements Listener {
     }
 
     @EventHandler
-    public void onClick(InventoryClickEvent event) {
-
-    }
-
-    @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        final HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
+        HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
+        if (player == null) player = HoneyPlayer.registerPlayer(event.getPlayer());
+
         for (IListener check : ListenerRegistry.getChecks()) {
             if (check.hasInitializedCheckInstances())
                 check.cleanup(player);
         }
-        instantJoinedMap.remove(player.uuid);
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
@@ -78,13 +72,4 @@ public class PlayerJoinListener implements Listener {
 
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
     }
-
-    public static Map<UUID, Long> getInstantJoinedMap() {
-        return instantJoinedMap;
-    }
-
-    public static long getInstantJoined(Player player) {
-        return instantJoinedMap.getOrDefault(player.getUniqueId(), System.currentTimeMillis());
-    }
-
 }

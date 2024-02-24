@@ -3,105 +3,72 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.utility.ThreadLocalAccessor;
+import io.netty.util.IllegalReferenceCountException;
+import io.netty.util.ReferenceCountUtil;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
+import me.alek.honey.netty.injector.handler.async.ChainedCallable;
+import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.Reflection;
+import org.bukkit.Bukkit;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
-public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
+public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 
-    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocalAccessor<>();
+    private static final Method packetDecode;
+    private static final Object commonPacketDecoder;
 
-    public static ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> getEarlyPacketInitializer() {
-        return earlyPacketInitializer;
-    }
+    static {
+        try {
+            packetDecode = ByteToMessageDecoder.class.getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
+            packetDecode.setAccessible(true);
 
-    private double recentDecodeStart;
-    private double recentDeltaReceived = 0;
-    private boolean isFirstRead = true;
-    private boolean hasBeenRelocated;
-    private HoneyPlayer player;
-    private final Channel channel;
+            commonPacketDecoder = NMSUtils.getPacketDecoderClass().getDeclaredConstructor(NMSUtils.getEnumProtocolDirectionClass())
+                    .newInstance(Reflection.getEnumAtIndex(NMSUtils.getEnumProtocolDirectionClass(), 0));
 
-    public InboundPacketDecoder(InboundPacketDecoder decoder) {
-        this.channel = decoder.channel;
-        this.player = decoder.player;
-        hasBeenRelocated = true;
-        recentDeltaReceived = decoder.recentDeltaReceived;
-        recentDecodeStart = decoder.recentDecodeStart;
-        isFirstRead = false;
-    }
-
-    public InboundPacketDecoder(Channel channel) {
-        this.channel = channel;
-    }
-
-    public void setPlayer(HoneyPlayer player) {
-        this.player = player;
-    }
-
-    public HoneyPlayer getPlayer() {
-        return player;
-    }
-
-    public boolean hasReadYet() {
-        return !isFirstRead;
-    }
-
-    @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        if (isFirstRead) {
-            recentDecodeStart = System.currentTimeMillis();
-            isFirstRead = false;
-        }
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
-        if (player != null) {
-            checkRelocation(channel);
-
-            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
-            packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
-        } else earlyPacketInitializer.remove();
-
-        packetProcessor.callDecode(player, byteBuf);
-
-        long currentTime = System.currentTimeMillis();
-        recentDeltaReceived = currentTime - recentDecodeStart;
-        recentDecodeStart = currentTime;
-
-        if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
-        list.add(byteBuf.readBytes(byteBuf.readableBytes()));
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
-        checkRelocation(ctx.channel()); // triggered by ViaVersion sometimes
-        super.userEventTriggered(ctx, event);
-    }
-
-    public void checkRelocation(Channel channel) {
-        if (!hasBeenRelocated) {
-
-            hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Failed to setup packet decoder environment!");
         }
     }
 
-    public double getRecentDeltaReceived() {
-        return recentDeltaReceived;
+    private final AsyncDecoder asyncDecoder;
+
+    public InboundPacketDecoder(AsyncDecoder asyncDecoder) {
+        this.asyncDecoder = asyncDecoder;
     }
 
-    public double getRecentDeltaDecode() {
-        return System.currentTimeMillis() - recentDecodeStart;
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
+            super.channelRead(ctx, msg);
+            return;
+        }
+        ((ByteBuf)msg).retain();
+
+        asyncDecoder.decode((s) -> {
+            try {
+                super.channelRead(ctx, msg);
+            } catch (Exception ex) {
+                try {
+                    super.exceptionCaught(ctx, ex);
+                } catch (Exception ignored) {
+
+                }
+            }
+        });
     }
 
-    public double getRecentStartDecode() {
-        return recentDecodeStart;
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
+        try {
+            packetDecode.invoke(commonPacketDecoder, ctx, byteBuf, list);
+        } catch (Throwable throwable) {
+            throw (Exception) throwable;
+        }
     }
 }

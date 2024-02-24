@@ -8,6 +8,7 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -279,7 +280,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (type.getBound() == PacketBound.SERVER) {
             return new InternalPacketContainer<>(packet, player, channel, postAction, type);
         }
-        PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket = InboundPacketDecoder.getEarlyPacketInitializer().get();
+        PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket = InboundPacketFilter.getEarlyPacketInitializer().get();
         if (earlyInitializedPacket != null && earlyInitializedPacket.getPlayer().equals(player)) {
             earlyInitializedPacket.getEventloopStateTimings().stopTimings(readStart);
             earlyInitializedPacket.set(packet, postAction, type);

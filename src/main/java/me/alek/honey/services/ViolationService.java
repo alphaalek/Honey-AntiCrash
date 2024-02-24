@@ -10,18 +10,15 @@ import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,7 +34,7 @@ public class ViolationService {
         ConfigurationOptions.VlSetting sharedIgnoringSetting = FloodListener.getSharedIgnoringSetting();
         if (sharedIgnoringSetting != null) {
             // set the interval of this setting to be the spike interval specified in the configuration
-            sharedIgnoringSetting.interval = ConfigurationOptions.Exempt.SPIKE_INTERVAL;
+            sharedIgnoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
         }
 
         // loop through all the players and update their packet limit handlers

@@ -489,6 +489,44 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class PacketDump {
+
+        public static boolean VLS_ENABLED;
+        public static List<String> VLS_FILTER_ALL;
+
+        public static boolean HEAVY_PACKET_DUMP_ENABLED;
+        public static double MIN_SERVER_HANDLE_PACKET_DUMP;
+
+        public static boolean HEAVY_SERVER_THREAD_DUMP_ENABLED;
+        public static double MIN_SERVER_HANDLE_THREAD_DUMP;
+
+        public static void load() {
+            VLS_ENABLED = file.getBoolean("packet-dump.enabled", true);
+            VLS_FILTER_ALL = file.getStringList("packet-dump.filter-all");
+
+            HEAVY_PACKET_DUMP_ENABLED = file.getBoolean("packet-dump.heavy-packet.enabled", true);
+            MIN_SERVER_HANDLE_PACKET_DUMP = file.getDouble("packet-dump.heavy-packet.min-server-handle", 5d);
+
+            HEAVY_SERVER_THREAD_DUMP_ENABLED = file.getBoolean("packet-dump.server-thread-dump.enabled", true);
+            MIN_SERVER_HANDLE_THREAD_DUMP = file.getDouble("packet-dump.server-thread-dump.min-server-handle", 500d);
+        }
+    }
+
+    @Setting
+    public static class AsyncDecoder {
+
+        public static boolean ENABLED;
+        public static int MIN_WORKER_THREADS;
+        public static double MIN_TIME_FOR_QUARANTINE;
+
+        public static void load() {
+            ENABLED = file.getBoolean("async-decoder.enabled");
+            MIN_WORKER_THREADS = file.getInt("async-decoder.min-worker-threads");
+            MIN_TIME_FOR_QUARANTINE = file.getDouble("async-decoder.min-time-for-quarantine");
+        }
+    }
+
+    @Setting
     public static class Messages {
 
         public static String VIOLATION_MESSAGE;
@@ -501,18 +539,14 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class Exempt {
+    public static class SpikeFlood {
 
-        public static int MIN_TPS;
-        public static int MAX_PING;
         public static int MAX_TIME_BETWEEN;
         public static int SPIKE_INTERVAL;
 
         public static void load() {
-            MIN_TPS = file.getInt("exempt.min-tps", 18);
-            MAX_PING = file.getInt("exempt.max-ping", 70);
-            MAX_TIME_BETWEEN = file.getInt("exempt.max-time-between", 550);
-            SPIKE_INTERVAL = file.getInt("exempt.spike-interval", 700);
+            MAX_TIME_BETWEEN = file.getInt("spike-flood.max-time-between", 550);
+            SPIKE_INTERVAL = file.getInt("spike-flood.spike-interval", 700);
         }
     }
 
@@ -547,30 +581,6 @@ public class ConfigurationOptions {
             ENABLE_PACKET_LOGGER = file.getBoolean("monitor.enable-packet-logger", true);
             MESSAGE_INTERVAL = file.getLong("monitor.message-interval", 500L);
             IGNORED_PACKETS = file.getStringList("monitor.ignored-packets");
-        }
-    }
-
-    @Setting
-    public static class PacketDump {
-
-        public static boolean VLS_ENABLED;
-        public static List<String> VLS_FILTER_ALL;
-
-        public static boolean HEAVY_PACKET_DUMP_ENABLED;
-        public static double MIN_SERVER_HANDLE_PACKET_DUMP;
-
-        public static boolean HEAVY_SERVER_THREAD_DUMP_ENABLED;
-        public static double MIN_SERVER_HANDLE_THREAD_DUMP;
-
-        public static void load() {
-            VLS_ENABLED = file.getBoolean("packet-dump.enabled", true);
-            VLS_FILTER_ALL = file.getStringList("packet-dump.filter-all");
-
-            HEAVY_PACKET_DUMP_ENABLED = file.getBoolean("packet-dump.heavy-packet.enabled", true);
-            MIN_SERVER_HANDLE_PACKET_DUMP = file.getDouble("packet-dump.heavy-packet.min-server-handle", 5d);
-
-            HEAVY_SERVER_THREAD_DUMP_ENABLED = file.getBoolean("packet-dump.server-thread-dump.enabled", true);
-            MIN_SERVER_HANDLE_THREAD_DUMP = file.getDouble("packet-dump.server-thread-dump.min-server-handle", 500d);
         }
     }
 

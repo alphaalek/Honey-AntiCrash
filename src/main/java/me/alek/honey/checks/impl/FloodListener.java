@@ -11,10 +11,10 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
@@ -153,12 +153,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer getResponse(HoneyPlayer player) {
-            ResponseContainer response = ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
-
-            if (HoneyPlugin.get().shouldExempt(player)) {
-                return response.builder().terminate().build();
-            }
-            return response;
+            return ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
         }
 
         @Override
@@ -226,16 +221,16 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
             // it gets updated when the configuration is being reloaded, but not here
-            if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.Exempt.SPIKE_INTERVAL;
+            if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
 
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getDistributor(player, sharedIgnoringKey, sharedIgnoringSetting);
 
-            InboundPacketDecoder decoder = (InboundPacketDecoder) HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(packet.getContainer().getChannel());
+            InboundPacketFilter filter = (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
 
-            if (getSetting(packet).isEnabled() && decoder != null) {
+            if (getSetting(packet).isEnabled() && filter != null) {
                 // check if the delta time is high enough to exempt the next packet spike for this player
-                if (decoder.getRecentDeltaReceived() > (ConfigurationOptions.Exempt.MAX_TIME_BETWEEN * 1_000)) {
+                if (filter.getRecentDeltaReceived() > (ConfigurationOptions.SpikeFlood.MAX_TIME_BETWEEN * 1_000)) {
 
                     return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
                 }
