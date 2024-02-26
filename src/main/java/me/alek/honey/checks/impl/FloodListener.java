@@ -13,7 +13,6 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;

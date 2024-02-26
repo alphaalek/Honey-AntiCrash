@@ -18,6 +18,16 @@ import java.util.function.Predicate;
 
 public class ReflectStructure<T, C> {
 
+    private static final Map<Class<?>, Class<?>> WRAPPER_CLASSSES = new HashMap<Class<?>, Class<?>>(){{
+        put(int.class, Integer.class);
+        put(double.class, Double.class);
+        put(float.class, Float.class);
+        put(long.class, Long.class);
+        put(char.class, Character.class);
+        put(byte.class, Byte.class);
+        put(boolean.class, Boolean.class);
+    }};
+
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final Class<?> handle;
     private JavaConverter<T, C> converter;
@@ -390,7 +400,7 @@ public class ReflectStructure<T, C> {
         @Override
         public C invokeMethodWithException(Predicate<MethodInvoker<?>> filter, Object... params) throws Exception {
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), invoker.getMethod().getParameterTypes())
+                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
                         && filter.test(invoker))
                     return invoke(invoker, params);
             }
@@ -413,10 +423,14 @@ public class ReflectStructure<T, C> {
                 return null;
             }
             final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
-            if (!Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), invoker.getMethod().getParameterTypes())) {
+            if (!Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))) {
                 return null;
             }
             return invoke(invoker, params);
+        }
+
+        private Object[] getWrapperClasses(Class<?>[] classes) {
+            return Arrays.stream(classes).map(clazz -> WRAPPER_CLASSSES.getOrDefault(clazz, clazz)).toArray();
         }
 
         @Override
@@ -432,7 +446,7 @@ public class ReflectStructure<T, C> {
             int specificIndex = 0;
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
 
-                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), invoker.getMethod().getParameterTypes())
+                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
                         && invoker.getName().equals(name) && index == specificIndex++) {
                     return invoke(invoker, params);
                 }

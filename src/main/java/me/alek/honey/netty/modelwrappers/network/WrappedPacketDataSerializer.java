@@ -20,8 +20,8 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
 
     private final ByteBuf handle;
 
-    public WrappedPacketDataSerializer(Object handle, ByteBuf byteBufHandle) {
-        super(handle);
+    public WrappedPacketDataSerializer(ByteBuf byteBufHandle) {
+        super(null);
         this.handle = byteBufHandle;
     }
 

@@ -10,17 +10,20 @@ public class PacketLibrarySettings {
     private final String handlerName;
     private final String filterName;
     private final String connectorName;
+    private final String decoderName;
 
     public PacketLibrarySettings(
             Plugin plugin,
             String handlerName,
             String filterName,
-            String connectorName
+            String connectorName,
+            String decoderName
     ) {
         this.plugin = plugin;
         this.handlerName = handlerName;
         this.filterName = filterName;
         this.connectorName = connectorName;
+        this.decoderName = decoderName;
     }
 
     public String getHandlerName() {
@@ -33,6 +36,10 @@ public class PacketLibrarySettings {
 
     public String getConnectorName() {
         return connectorName;
+    }
+
+    public String getDecoderName(){
+        return decoderName;
     }
 
     public Plugin getPlugin() {

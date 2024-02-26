@@ -1,8 +1,7 @@
 package me.alek.honey.netty.injector.handler.async;
 
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.utility.PredicateUtils;
+import me.alek.honey.netty.injector.handler.async.worker.*;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -10,100 +9,119 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class WorkerPool<T> {
 
+    public static Class<DelegatedIsolatorWorker<?>>[] WORKERS_CLASSES = new Class[]{
+            HeavyPacketIsolatorWorker.class,
+            HighPendingIsolatorWorker.class};
     public static WorkerPool<Object> ASYNC_PACKET_DECODER_POOL =
-            new WorkerPool<>(ConfigurationOptions.AsyncDecoder.MIN_WORKER_THREADS, ConfigurationOptions.AsyncDecoder.MIN_TIME_FOR_QUARANTINE);
+            new WorkerPool<>(
+                    ConfigurationOptions.AsyncDecoder.MIN_WORKER_THREADS,
+                    ConfigurationOptions.AsyncDecoder.MIN_TIME_FOR_QUARANTINE,
+                    ConfigurationOptions.AsyncDecoder.MIN_PENDING_TASK_FOR_QUARANTINE);
 
     private Worker<T>[] workers;
     private final List<Worker<T>> allWorkers = new ArrayList<>();
     private final int minimumWorkerThreads;
+    private final int minimumPendingTaskSizeForQuarantine;
     private final double minimumTaskTimeForQuarantine;
+
+    public double getMinimumTaskTimeForQuarantine() {
+        return minimumTaskTimeForQuarantine;
+    }
+
+    public int getMinimumPendingTaskSizeForQuarantine() {
+        return minimumPendingTaskSizeForQuarantine;
+    }
+
+    public int getMinimumWorkerThreads() {
+        return minimumWorkerThreads;
+    }
+
+    private List<RunnableWorker<T>> initializeDelegatedWorkers() {
+        List<RunnableWorker<T>> workers = new ArrayList<>();
+        for (Class<DelegatedIsolatorWorker<?>> workerClass : WORKERS_CLASSES) {
+            try {
+                @SuppressWarnings("unchecked")
+                RunnableWorker<T> workerWrapper = IsolatorWorkerWrapper.class.getDeclaredConstructor(WorkerPool.class, Class.class)
+                        .newInstance(this, workerClass);
+
+                workers.add(workerWrapper);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return workers;
+    }
 
     public class TaskWorker implements Worker<T>, Runnable {
 
-        private final LinkedBlockingQueue<ChainedCallable<T>> pendingTasks = new LinkedBlockingQueue<>();
-        private ChainedCallable<T> currentTask;
-        private long recentTaskStart;
-        private boolean quarantined;
         private boolean running = true;
 
-        @Override
-        public void submit(ChainedCallable<T> task) {
-            pendingTasks.add(task);
-        }
-
-        @Override
-        public Queue<ChainedCallable<T>> getPendingTasks() {
-            return pendingTasks;
-        }
-
-        @Override
-        public boolean shouldRelocate(TaskSupplier<T> supplier) {
-            if (shouldQuarantine()) {
-                quarantined = true;
-                return currentTask != null && currentTask.getFrom() != supplier;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean shouldQuarantine() {
-            return recentTaskStart != 0 && System.currentTimeMillis() - recentTaskStart > minimumTaskTimeForQuarantine;
-        }
-
-        @Override
-        public boolean isQuarantined() {
-            return quarantined;
-        }
-
-        @Override
-        public ChainedCallable<T> getCurrentTask() {
-            return currentTask;
-        }
-
-        @Override
-        public void setQuarantined() {
-            quarantined = true;
-        }
-
-        @Override
-        public boolean isActive() {
-            return recentTaskStart != 0;
-        }
-
-        @Override
-        public void destroy() {
-            running = false;
-        }
+        private final List<RunnableWorker<T>> workers = initializeDelegatedWorkers();
+        private RunnableWorker<T> worker = workers.get(0);
 
         @Override
         public void run() {
             while (running) {
                 try {
-                    currentTask = pendingTasks.take();
-                    recentTaskStart = System.currentTimeMillis();
-                    try {
-                        currentTask.call();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when executing task.");
-                    }
-                    recentTaskStart = 0;
-                    quarantined = false;
+                    worker.run();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-            synchronized (this) {
+            synchronized (WorkerPool.this) {
                 allWorkers.remove(this);
             }
+        }
+
+        @Override
+        public boolean relocate(TaskSupplier<T> supplier) {
+            for (RunnableWorker<T> worker : workers) {
+                if (worker.relocate(supplier)) {
+                    if (!isQuarantined()) this.worker = worker;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void submit(ChainedCallable<T> task) {
+            worker.submit(task);
+        }
+
+        @Override
+        public Queue<ChainedCallable<T>> getPendingTasks() {
+            return worker.getPendingTasks();
+        }
+
+        @Override
+        public Queue<ChainedCallable<T>> getPendingTasks(TaskSupplier<T> supplier) {
+            return worker.getPendingTasks(supplier);
+        }
+
+        @Override
+        public ChainedCallable<T> getCurrentTask() {
+            return worker.getCurrentTask();
+        }
+
+        @Override
+        public boolean isQuarantined() {
+            return worker.isQuarantined();
+        }
+
+        @Override
+        public long recentTaskStart() {
+            return worker.recentTaskStart();
+        }
+
+        @Override
+        public void destroy() {
+            running = false;
         }
     }
 
@@ -125,8 +143,7 @@ public class WorkerPool<T> {
                 workers[i - 1] = otherWorker;
             }
         }
-        Bukkit.getLogger().info("Getting worker " + workers.length + " " + headWorker + " " + workers[workers.length - 1].isQuarantined());
-        if (workers[0].isQuarantined() || workers[0].getPendingTasks().size() > 100) {
+        if (workers[0].isQuarantined()) {
             return createNewTaskWorker();
         }
 
@@ -154,11 +171,9 @@ public class WorkerPool<T> {
     }
 
     public synchronized void garbageCollect() {
-        List<Worker<T>> pressuredWorkers = Arrays.stream(workers).filter(PredicateUtils.or(
-                Worker::isQuarantined,
-                Worker::shouldQuarantine,
-                worker -> worker.getPendingTasks().size() > 100)
-        ).collect(Collectors.toList());
+        List<Worker<T>> pressuredWorkers = Arrays.stream(workers)
+                .filter(Worker::isQuarantined)
+                .collect(Collectors.toList());
 
         if (workers.length - pressuredWorkers.size() < minimumWorkerThreads) return;
 
@@ -166,6 +181,7 @@ public class WorkerPool<T> {
         int i = 0;
         for (Worker<T> worker : workers) {
             if (!pressuredWorkers.contains(worker)) newWorkers[i++] = worker;
+            if (i == minimumWorkerThreads) break;
         }
         workers = newWorkers;
 
@@ -179,9 +195,16 @@ public class WorkerPool<T> {
     }
 
     public Worker<T> relocateWorkerTasks(Worker<T> from) {
-        from.setQuarantined();
+        return relocateWorkerTasks(from.getPendingTasks());
+    }
+
+    public Worker<T> relocateWorkerTasks(TaskSupplier<T> supplier, Worker<T> from) {
+        return relocateWorkerTasks(from.getPendingTasks(supplier));
+    }
+
+    private Worker<T> relocateWorkerTasks(Queue<ChainedCallable<T>> tasks) {
         Worker<T> worker = getWorkerForTask();
-        for (ChainedCallable<T> task : from.getPendingTasks()) {
+        for (ChainedCallable<T> task : tasks) {
             worker.submit(task);
         }
         return worker;
@@ -191,9 +214,10 @@ public class WorkerPool<T> {
         return "packet-decoder-" + indexName + "-thread";
     }
 
-    public WorkerPool(int minimumWorkerThreads, double minimumTaskTimeForQuarantine) {
+    public WorkerPool(int minimumWorkerThreads, double minimumTaskTimeForQuarantine, int minimumPendingTaskSizeForQuarantine) {
         this.minimumWorkerThreads = minimumWorkerThreads;
         this.minimumTaskTimeForQuarantine = minimumTaskTimeForQuarantine;
+        this.minimumPendingTaskSizeForQuarantine = minimumPendingTaskSizeForQuarantine;
 
         this.workers = new Worker[minimumWorkerThreads];
         for (int i = 0; i < minimumWorkerThreads; i++) {

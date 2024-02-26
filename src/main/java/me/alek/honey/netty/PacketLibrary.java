@@ -93,6 +93,10 @@ public class PacketLibrary {
         return settings.getConnectorName();
     }
 
+    public String getDecoderName() {
+        return settings.getDecoderName();
+    }
+
     public PacketLibrarySettings getSettings() {
         return settings;
     }

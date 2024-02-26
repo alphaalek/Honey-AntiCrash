@@ -95,6 +95,17 @@ public class SpigotServerInjector {
         }
     }
 
+    public Object getNetworkManagerFor(Channel channel) {
+        synchronized (networkManagers) {
+            for (Object networkManager : networkManagers) {
+
+                if (channel.equals(NMSUtils.getChannelFromNetworkManager(networkManager)))
+                    return networkManager;
+            }
+        }
+        return null;
+    }
+
     public synchronized void inject() {
         if (injected) return;
 

@@ -2,7 +2,9 @@ package me.alek.honey.netty.injector.handler.async;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import org.bukkit.Bukkit;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 public class AsyncDecoder implements TaskSupplier<Object> {
@@ -11,6 +13,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     private final WorkerPool<Object> workerPool;
     private ChainedCallable<Object> currentTask;
     private Worker<Object> worker;
+    private AtomicLong lastHandledTask = new AtomicLong();
 
     public AsyncDecoder(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
@@ -36,16 +39,21 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     public void submitTask(ChainedCallable<Object> task) {
         currentTask = task;
 
+        if (lastHandledTask.get() == 0) lastHandledTask.set(System.currentTimeMillis());
+        currentTask.addListener((Consumer<Object>) (d) -> lastHandledTask.set(System.currentTimeMillis()));
+
         if (worker != null)
             worker.submit(currentTask);
         else
             worker = workerPool.submit(this);
 
-        if (worker.shouldRelocate(this))
-            worker = workerPool.relocateWorkerTasks(worker);
+        if (worker.relocate(this))
+            worker = workerPool.relocateWorkerTasks(this, worker);
+
+        Bukkit.getLogger().info("Worker: " + worker + " " + worker.relocate(this) + " " + worker.isQuarantined() + " " + player.name);
 
         if (worker.isQuarantined() && worker.getCurrentTask().getFrom().equals(this))
-            HoneyPlugin.get().getNotificationService().sendActionBarPacket1_8(player, "§cDecoder worker moved to quarantine...");
+            HoneyPlugin.get().getNotificationService().sendActionBarPacket1_8(player, "§cDecoder worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
     }
 
     @Override

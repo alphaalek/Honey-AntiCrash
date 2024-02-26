@@ -79,8 +79,11 @@ async-decoder:
   # Minimum of worker threads to be used for packet decoding. At urgency relocation there will be created more worker threads.
   min-worker-threads: 4
 
-  # Minimum packet decode time (in millis), before a task is quarantined and there will be relocation of the worker thread's pending task queue.
-  min-time-for-quarantine: 25.0
+  # Minimum packet decode time (in millis), before a worker is quarantined.
+  min-time-for-quarantine: 15.0
+
+  # Minimum pending task size, before a worker is quarantined.
+  min-pending-task-size-for-quarantine: 30
 
 
 # Exempt spike flood

@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -31,7 +32,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     private double recentDecodeStart;
     private double recentDeltaReceived = 0;
-    private boolean isFirstRead = true;
     private boolean hasBeenRelocated;
     private HoneyPlayer player;
     private final Channel channel;
@@ -42,7 +42,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         hasBeenRelocated = true;
         recentDeltaReceived = decoder.recentDeltaReceived;
         recentDecodeStart = decoder.recentDecodeStart;
-        isFirstRead = false;
     }
 
     public InboundPacketFilter(Channel channel) {
@@ -57,20 +56,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return player;
     }
 
-    public boolean hasReadYet() {
-        return !isFirstRead;
-    }
-
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        if (isFirstRead) {
-            recentDecodeStart = System.currentTimeMillis();
-            isFirstRead = false;
-        }
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
             checkRelocation(channel);
 
-            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel(), false));
+            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
         } else earlyPacketInitializer.remove();
 
@@ -80,13 +71,16 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         recentDeltaReceived = currentTime - recentDecodeStart;
         recentDecodeStart = currentTime;
 
-        if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+        if (packetContainer != null) {
+            packetContainer.getEventloopStateTimings().stopTimings();
+        }
+
         list.add(byteBuf.readBytes(byteBuf.readableBytes()));
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
-        checkRelocation(ctx.channel()); // triggered by ViaVersion sometimes
+        checkRelocation(ctx.channel()); // triggered by ViaVersion
         super.userEventTriggered(ctx, event);
     }
 
@@ -103,9 +97,5 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     public double getRecentDeltaDecode() {
         return System.currentTimeMillis() - recentDecodeStart;
-    }
-
-    public double getRecentStartDecode() {
-        return recentDecodeStart;
     }
 }

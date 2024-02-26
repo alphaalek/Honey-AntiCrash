@@ -13,7 +13,6 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
@@ -199,7 +198,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             InboundPacketFilter packetFilter =
                     (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
-            if (packetFilter == null || !packetFilter.hasReadYet()) return ResponseBuilder.SUCCESS.builder().skip(1).build();
+            if (packetFilter == null) return ResponseBuilder.SUCCESS.builder().skip(1).build();
 
             // evaluate the duration of decoding this packet
             double decodeTime = packetFilter.getRecentDeltaDecode();

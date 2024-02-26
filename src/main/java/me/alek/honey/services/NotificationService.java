@@ -152,7 +152,9 @@ public class NotificationService {
     }
 
     public void unsubscribe(CommandSender observer) {
-        observerMap.remove(observer);
+        synchronized (observerMap) {
+            observerMap.remove(observer);
+        }
 
         if (observer instanceof Player) {
             recentlyCancelledPacketsMap.remove(((Player)observer).getUniqueId());
@@ -291,22 +293,26 @@ public class NotificationService {
     }
 
     public void notify(HoneyPlayer player, String notification, ViolationService.CheckKey checkKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        synchronized (observerMap) {
+            for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
-            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
-                continue;
+                if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
+                    continue;
+                }
+                observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, checkKey);
             }
-            observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, checkKey);
         }
     }
 
     public void warn(HoneyPlayer player, String warning, ViolationService.CheckKey checkKey) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        synchronized (observerMap) {
+            for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
-            if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
-                continue;
+                if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
+                    continue;
+                }
+                observer.getValue().warn(player, warning, checkKey);
             }
-            observer.getValue().warn(player, warning, checkKey);
         }
     }
 

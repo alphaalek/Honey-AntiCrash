@@ -181,10 +181,6 @@ public class Converters {
         return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class));
     }
 
-    public static <V> JavaConverter<Object, WrappedLongObjectHashMap<V>> getLongObjectHashMapConverter() {
-        return getConverter(WrappedLongObjectHashMap.class, (clazz) -> new SimpleWrapperConverter<>(WrappedLongObjectHashMap.class));
-    }
-
     public static JavaConverter<Object, WrappedSuggestions> getSuggestionsConverter() {
         return getConverter(WrappedSuggestions.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestions.class));
     }

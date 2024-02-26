@@ -1,5 +1,6 @@
 package me.alek.honey.netty.injector.handler.async;
 
+import java.util.List;
 import java.util.Queue;
 
 public interface Worker<T> {
@@ -8,17 +9,15 @@ public interface Worker<T> {
 
     Queue<ChainedCallable<T>> getPendingTasks();
 
+    Queue<ChainedCallable<T>> getPendingTasks(TaskSupplier<T> supplier);
+
     ChainedCallable<T> getCurrentTask();
 
-    boolean shouldRelocate(TaskSupplier<T> supplier);
-
-    boolean shouldQuarantine();
+    boolean relocate(TaskSupplier<T> supplier);
 
     boolean isQuarantined();
 
-    void setQuarantined();
-
-    boolean isActive();
+    long recentTaskStart();
 
     void destroy();
 

@@ -7,6 +7,7 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import org.bukkit.Bukkit;
 
 public class SpigotPipelineInjector {
 
@@ -18,15 +19,15 @@ public class SpigotPipelineInjector {
             }
 
             String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
-            String decoderName = HoneyPlugin.get().getPacketLibrary().getFilterName();
+            String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
 
             if (channel.pipeline().get(handlerName) != null
-                    || channel.pipeline().get(decoderName) != null) {
+                    || channel.pipeline().get(filterName) != null) {
                 ejectChannel(channel);
             }
 
             InboundPacketFilter filter = new InboundPacketFilter(channel);
-            channel.pipeline().addAfter("splitter", decoderName, filter);
+            channel.pipeline().addAfter("splitter", filterName, filter);
             channel.pipeline().addBefore("packet_handler", handlerName, new DuplexChannelHandler(filter));
         }
     }
@@ -36,15 +37,22 @@ public class SpigotPipelineInjector {
             InboundPacketFilter filter = (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             if (filter != null) {
                 String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
-
                 channel.pipeline().remove(filterName);
+
+                String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
 
                 if (channel.pipeline().get("decompress") != null) {
                     channel.pipeline().addAfter("decompress", filterName, new InboundPacketFilter(filter));
 
                     AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
-                    channel.pipeline().replace(channel.pipeline().get("decoder"), "decoder", new InboundPacketDecoder(asyncDecoder));
-                    channel.pipeline().replace(channel.pipeline().get("encoder"), "encoder", new OutboundPacketEncoder(channel, asyncDecoder));
+
+                    channel.pipeline().addBefore(InboundPacketDecoder.getObjectDecoderPosition(channel.pipeline()), decoderName,
+                            new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
+                    //channel.pipeline().replace(channel.pipeline().get("encoder"), "encoder",
+                    //        new OutboundPacketEncoder(channel, asyncDecoder));
+
+                    Bukkit.broadcastMessage("Done: " + channel.pipeline().toMap());
+
                     return true;
                 }
             }

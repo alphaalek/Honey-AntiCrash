@@ -184,7 +184,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private void setupPacketLibrary() {
         if (packetLibrary == null) {
-            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey_packet_handler", "honey_packet_filter", " honey_connection_handler"));
+            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey_packet_handler", "honey_filter", "honey_connection", "honey_compat"));
         }
     }
 

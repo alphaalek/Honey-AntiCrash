@@ -35,7 +35,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final HoneyPlayer player;
     private final Channel channel;
     private ReflectStructure<Object, ?> packetStructure;
-    private final boolean forced;
     private boolean cancelled;
     private boolean dumped;
     private boolean handledByServer;
@@ -43,29 +42,18 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
-        this(player, channel, false);
+        this(player, channel);
         set(rawPacket, postAction, type);
     }
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel) {
-        this(player, channel, false);
+        this(player, channel);
         this.handle = rawPacket;
     }
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, boolean forced) {
-        this(player, channel, forced);
-        set(rawPacket, postAction, type);
-    }
-
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, boolean forced) {
-        this(player, channel, forced);
-        this.handle = rawPacket;
-    }
-
-    public InternalPacketContainer(HoneyPlayer player, Channel channel, boolean forced) {
+    public InternalPacketContainer(HoneyPlayer player, Channel channel) {
         this.player = player;
         this.channel = channel;
-        this.forced = forced;
     }
 
     public void set(Object rawPacket, Runnable postAction, PacketTypeEnum type) {
@@ -117,11 +105,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public String getName() {
         return handle.getClass().getSimpleName();
-    }
-
-    @Override
-    public boolean isForced() {
-        return forced;
     }
 
     @Override

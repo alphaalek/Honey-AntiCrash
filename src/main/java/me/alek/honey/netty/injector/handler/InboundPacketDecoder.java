@@ -1,34 +1,131 @@
 package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import io.netty.util.IllegalReferenceCountException;
-import io.netty.util.ReferenceCountUtil;
+import io.netty.util.AttributeKey;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
-import me.alek.honey.netty.injector.handler.async.ChainedCallable;
-import me.alek.honey.netty.utility.NMSUtils;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.utility.*;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
-public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
+public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
-    private static final Method packetDecode;
-    private static final Object commonPacketDecoder;
+    private static final String INTERCEPTOR = "_interceptor";
+    private static volatile String decoderPosition;
 
-    static {
+    public static String getObjectDecoderPosition(ChannelPipeline pipeline) {
+        if (decoderPosition == null)
+            resolveObjectDecoderPosition(pipeline);
+        return decoderPosition;
+    }
+
+    private static void resolveObjectDecoderPosition(ChannelPipeline pipeline) { // only called once for each server start
+        boolean started = false;
+        boolean ended = false;
+        List<String> wrappedHandlers = new ArrayList<>();
+        String prevName = null;
+        for (String name : pipeline.names()) {
+
+            ChannelHandler handler = pipeline.context(name).handler();
+            if (!(handler instanceof ChannelInboundHandler)) {
+                continue;
+            }
+
+            if (prevName != null && prevName.equals("decoder")) ended = true;
+
+            String prevInterceptor = pipeline.get(prevName + INTERCEPTOR) != null ? prevName + INTERCEPTOR : prevName;
+            if (started) {
+                wrappedHandlers.add(name + INTERCEPTOR);
+                String prevNameFinal = prevName;
+                pipeline.addAfter(prevInterceptor, name + INTERCEPTOR, new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
+                    @Override
+                    public void channelRead(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+                        if (!(o instanceof ByteBuf)) {
+                            decoderPosition = prevNameFinal;
+                            return;
+                        }
+                        ((ChannelInboundHandler)pipeline.context(name).handler()).channelRead(channelHandlerContext, o);
+                    }
+                });
+            }
+            if (ended) break;
+
+            if (name.equals("decompress")) started = true;
+            prevName = name;
+        }
+        pipeline.context("decompress").fireChannelRead(createPositionByteBufPacket(pipeline.channel()));
+
+        for (String name : wrappedHandlers) {
+            pipeline.remove(name);
+        }
+    }
+
+    private static ByteBuf createPositionByteBufPacket(Channel channel) {
+        @SuppressWarnings("unchecked")
+        AttributeKey<Object> key = ReflectStructureCache.acquireStructure(NMSUtils.getNetworkManagerClass())
+                .withType(AttributeKey.class).withTarget(PacketLibrary.get().getServerInjector().getNetworkManagerFor(channel)).readField(0);
+        if (key == null) {
+            throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
+        }
+
+        WrappedEnumProtocol protocol = Converters.getEnumProtocolConverter().convertDelegate(channel.attr(key).get());
+        if (!protocol.getProtocol().equalsIgnoreCase("play")) {
+            throw new UnsupportedOperationException("Can't create keep alive packet because the current gamestate protocol for this channel is not PLAY.");
+        }
+
+        WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(Unpooled.buffer());
+        dataSerializer.writeDouble(1);
+        dataSerializer.writeDouble(1);
+        dataSerializer.writeDouble(1);
+        dataSerializer.writeBoolean(false);
+
+        for (int id = 0; ; id++) {
+            Object packet = protocol.createLegacyPacket(PacketBound.SERVER, id);
+            if (packet == null) return null;
+            if (packet.getClass().getSimpleName().equals("PacketPlayInPosition")) {
+                ByteBuf buf = Unpooled.buffer();
+                buf.writeByte(id);
+                buf.writeDouble(1);
+                buf.writeDouble(1);
+                buf.writeDouble(1);
+                buf.writeBoolean(false);
+
+                return buf;
+            }
+        }
+    }
+
+    private final AsyncDecoder asyncDecoder;
+    private Method decodeInvoker;
+    private ChannelHandler decoder;
+
+    public InboundPacketDecoder(AsyncDecoder asyncDecoder, ChannelPipeline pipeline) {
+        this.asyncDecoder = asyncDecoder;
+        setupMethodInvoke(pipeline);
+    }
+
+    private void setupMethodInvoke(ChannelPipeline pipeline) {
         try {
-            packetDecode = ByteToMessageDecoder.class.getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
-            packetDecode.setAccessible(true);
+            decoder = pipeline.get(decoderPosition);
 
-            commonPacketDecoder = NMSUtils.getPacketDecoderClass().getDeclaredConstructor(NMSUtils.getEnumProtocolDirectionClass())
-                    .newInstance(Reflection.getEnumAtIndex(NMSUtils.getEnumProtocolDirectionClass(), 0));
+            decodeInvoker = decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
+            decodeInvoker.setAccessible(true);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -36,25 +133,33 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
         }
     }
 
-    private final AsyncDecoder asyncDecoder;
+    public void read(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
+        List<Object> nonRecycledList = new ArrayList<>();
 
-    public InboundPacketDecoder(AsyncDecoder asyncDecoder) {
-        this.asyncDecoder = asyncDecoder;
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
-            super.channelRead(ctx, msg);
+            decodeInvoker.invoke(decoder, ctx, byteBuf.retain(), nonRecycledList);
+            for (Object element : nonRecycledList) {
+                ctx.fireChannelRead(element);
+            }
             return;
         }
-        ReferenceCountUtil.retain(msg);
 
+        ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
+        byteBuf.release();
+
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyPacketInitializer().get();
         asyncDecoder.decode((s) -> {
             if (asyncDecoder.getPlayer().isOnline()) {
                 try {
-                    Bukkit.getLogger().info("Calling " + Thread.currentThread().getName());
-                    super.channelRead(ctx, msg);
+                    if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+                    decodeInvoker.invoke(decoder, ctx, wrappedBuffer, nonRecycledList);
+                    if (packetContainer != null) packetContainer.getEventloopStateTimings().stopTimings();
+
+                    wrappedBuffer.release();
+                    for (Object element : nonRecycledList) {
+                        ctx.fireChannelRead(element);
+                    }
+
                 } catch (Exception ex) {
                     try {
                         super.exceptionCaught(ctx, ex);
@@ -67,11 +172,19 @@ public class InboundPacketDecoder extends MessageToMessageDecoder<ByteBuf> {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object packet) {
+        if (!(packet instanceof ByteBuf)) return;
+
         try {
-            packetDecode.invoke(commonPacketDecoder, ctx, byteBuf, list);
-        } catch (Throwable throwable) {
-            throw (Exception) throwable;
+            read(ctx, (ByteBuf) packet);
+
+        } catch (Exception ex) {
+            try {
+                super.exceptionCaught(ctx, ex);
+            } catch (Exception ignored) {
+
+            }
         }
     }
+
 }

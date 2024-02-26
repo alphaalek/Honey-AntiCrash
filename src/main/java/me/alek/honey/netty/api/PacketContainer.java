@@ -31,8 +31,6 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     String getName();
 
-    boolean isForced();
-
     boolean isCancelled();
 
     boolean isDumped();

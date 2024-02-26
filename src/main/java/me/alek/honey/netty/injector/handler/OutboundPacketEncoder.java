@@ -19,6 +19,9 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     private static final Method packetEncode;
     private static final Object commonPacketEncoder;
+    private static final Class<?> packetClass;
+    private static boolean encoding;
+    private static boolean checkEncoding;
 
     static {
         try {
@@ -27,6 +30,8 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
             commonPacketEncoder = NMSUtils.getPacketEncoderClass().getDeclaredConstructor(NMSUtils.getEnumProtocolDirectionClass())
                     .newInstance(Reflection.getEnumAtIndex(NMSUtils.getEnumProtocolDirectionClass(), 1));
+
+            packetClass = NMSUtils.getPacketClass();
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -46,16 +51,14 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     @Override
     public synchronized void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (forced || !ConfigurationOptions.AsyncDecoder.ENABLED) {
-            super.write(ctx, msg, promise);
+            write0(ctx, msg, promise, false);
             return;
         }
-
-        ReferenceCountUtil.retain(msg);
 
         asyncDecoder.encode((s) -> {
             if (asyncDecoder.getPlayer().isOnline()) {
                 try {
-                    super.write(ctx, msg, new DefaultChannelPromise(ctx.channel()));
+                    write0(ctx, msg, new DefaultChannelPromise(ctx.channel()), true);
                 } catch (Exception ex) {
                     try {
                         super.exceptionCaught(ctx, ex);
@@ -65,6 +68,19 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
                 }
             }
         });
+    }
+
+    private void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) throws Exception {
+        if (!checkEncoding) {
+            checkEncoding = true;
+            encoding = packetClass.isInstance(msg);
+        }
+        if (retain) ReferenceCountUtil.retain(msg);
+
+        if (encoding)
+            super.write(ctx, msg, promise);
+        else
+            ctx.write(msg, promise);
     }
 
     public synchronized void writeForcedPacket(Object value) {
@@ -78,7 +94,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         try {
             packetEncode.invoke(commonPacketEncoder, ctx, value, byteBuf);
         } catch (Throwable throwable) {
-            throw (Exception) throwable;
+            throw new Exception(throwable);
         }
     }
 }

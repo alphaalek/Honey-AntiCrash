@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -50,10 +51,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
         long readStart = HoneyPlugin.get().getMonitorManager().isPacketsMonitored() ? System.nanoTime() : 0;
 
-        // register the handle time between the last handled packet and this one
-        if (player != null)
-            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, filter.getRecentDeltaDecode());
-
         PacketContainer<?> recent;
         if (player != null && (recent = player.packetBundleSaver.getRecent(false)) != null && !recent.isHandledByServer()) {
             player.packetBundleSaver.getRecent(true);
@@ -65,6 +62,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
+        HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
 
         // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {
