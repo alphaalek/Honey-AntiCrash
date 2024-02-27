@@ -25,7 +25,6 @@ public enum ListenerRegistry {
     v13(EncryptionBeginListener::new),
     v14(WindowClickListener::new),
     v15(RotationListener::new),
-    v16(UseEntityListener::new),
     v17(BlockDigListener::new),
     v18(TabCompleteListener::new);
 

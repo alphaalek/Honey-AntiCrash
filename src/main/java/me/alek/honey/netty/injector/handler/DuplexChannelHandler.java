@@ -62,7 +62,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
-        HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
 
         // check if the packet should be cancelled
         if (packetContainer.isCancelled()) {

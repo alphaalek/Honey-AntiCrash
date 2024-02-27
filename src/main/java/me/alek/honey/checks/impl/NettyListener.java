@@ -82,7 +82,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 return ResponseBuilder.inst().flag(1).build();
 
             Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();
-            if (task != null && task.getT1().getPlayer().equals(player.uuid) && System.currentTimeMillis() - task.getT2() > 25)
+            if (task != null && task.getT1().getPlayer().equals(player) && System.currentTimeMillis() - task.getT2() > 25)
                 return ResponseBuilder.inst().flag(1).build();
 
             return ResponseBuilder.SUCCESS;
@@ -202,8 +202,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             if (getSetting().isEnabled() && decodeTime > 0) {
                 container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
-                final double decodeTimeFinal = decodeTime;
-                return ResponseBuilder.inst().flag(decodeTime).onViolation(() -> HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, decodeTimeFinal)).build();
+                return ResponseBuilder.inst().flag(decodeTime).build();
             }
             return ResponseBuilder.SUCCESS;
         }

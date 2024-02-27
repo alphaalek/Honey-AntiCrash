@@ -3,6 +3,7 @@ package me.alek.honey.netty.processor;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
@@ -280,6 +281,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket = InboundPacketFilter.getEarlyPacketInitializer().get();
         if (earlyInitializedPacket != null && earlyInitializedPacket.getPlayer().equals(player)) {
             earlyInitializedPacket.set(packet, postAction, type);
+
+            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, (double) earlyInitializedPacket.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
             return earlyInitializedPacket;
         }
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
