@@ -7,7 +7,6 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
-import org.bukkit.Bukkit;
 
 public class SpigotPipelineInjector {
 
@@ -46,12 +45,10 @@ public class SpigotPipelineInjector {
 
                     AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
 
-                    channel.pipeline().addBefore(InboundPacketDecoder.getObjectDecoderPosition(channel.pipeline()), decoderName,
+                    channel.pipeline().addBefore(InboundPacketDecoder.getDecoderPosition(channel.pipeline()), decoderName,
                             new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
-                    //channel.pipeline().replace(channel.pipeline().get("encoder"), "encoder",
-                    //        new OutboundPacketEncoder(channel, asyncDecoder));
-
-                    Bukkit.broadcastMessage("Done: " + channel.pipeline().toMap());
+                    channel.pipeline().replace(channel.pipeline().get("encoder"), "encoder",
+                            new OutboundPacketEncoder(channel, asyncDecoder));
 
                     return true;
                 }

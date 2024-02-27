@@ -4,6 +4,7 @@ import me.alek.honey.netty.injector.handler.async.ChainedCallable;
 import me.alek.honey.netty.injector.handler.async.TaskSupplier;
 import me.alek.honey.netty.injector.handler.async.Worker;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;

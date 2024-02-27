@@ -5,6 +5,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.utility.ConstructorInvoker;
+import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.Reflection;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +31,13 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
     public WrappedPacketDataSerializer(Object handle) {
         super(handle);
         this.handle = getModifier(ByteBuf.class).readField(0);
+    }
+
+    public Object toNMSSerializer() {
+        if (getHandle() != null) return getHandle();
+
+        ConstructorInvoker<Object> invoker = Reflection.getConstructor(NMSUtils.getPacketDataSerializerClass(), ByteBuf.class);
+        return invoker.invoke(handle);
     }
 
     public int readVarInt() {

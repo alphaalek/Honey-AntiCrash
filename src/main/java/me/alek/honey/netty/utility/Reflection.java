@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Reflection {
 
@@ -93,7 +94,7 @@ public class Reflection {
             } catch (Exception ex) {
             }
         }
-        throw new RuntimeException("Reflection error (class): " + Arrays.toString(names));
+        throw new RuntimeException("Reflection error (class): " + Arrays.stream(names).map(Reflection::setPlaceholders).collect(Collectors.toList()));
     }
 
     public static Class<Object> getFuzzyObjectClass(String... names) {

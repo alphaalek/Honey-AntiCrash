@@ -10,9 +10,7 @@ public class SimpleWrapperConverter<WO extends WrappedObject<WO>> implements Jav
     public SimpleWrapperConverter(Class<WO> clazz, Class<?>... params) {
         Class<?>[] paramsFixed = new Class[params.length + 1];
         paramsFixed[0] = Object.class;
-        for (int i = 0; i < params.length; i++) {
-            paramsFixed[i + 1] = params[i].getClass();
-        }
+        System.arraycopy(params, 0, paramsFixed, 1, params.length);
         this.constructorInvoker = new ConstructorInvoker<>(clazz, paramsFixed);
     }
 

@@ -1,6 +1,7 @@
 package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -19,6 +20,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
@@ -95,7 +97,4 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return recentDeltaReceived;
     }
 
-    public double getRecentDeltaDecode() {
-        return System.currentTimeMillis() - recentDecodeStart;
-    }
 }

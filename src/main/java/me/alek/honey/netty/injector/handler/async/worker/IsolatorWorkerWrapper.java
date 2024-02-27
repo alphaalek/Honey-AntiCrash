@@ -44,7 +44,7 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
 
     @Override
     public synchronized boolean relocate(TaskSupplier<T> supplier) {
-        return isQuarantined() && worker.relocate(supplier);
+        return worker.relocate(supplier);
     }
 
     @Override
@@ -77,6 +77,11 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
     @Override
     public long recentTaskStart() {
         return recentTaskStart;
+    }
+
+    @Override
+    public boolean isActive() {
+        return true;
     }
 
     @Override

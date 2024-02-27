@@ -1,10 +1,7 @@
 package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.DefaultChannelPromise;
+import io.netty.channel.*;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -18,7 +15,6 @@ import java.lang.reflect.Method;
 public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     private static final Method packetEncode;
-    private static final Object commonPacketEncoder;
     private static final Class<?> packetClass;
     private static boolean encoding;
     private static boolean checkEncoding;
@@ -27,9 +23,6 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         try {
             packetEncode = MessageToByteEncoder.class.getDeclaredMethod("encode", ChannelHandlerContext.class, Object.class, ByteBuf.class);
             packetEncode.setAccessible(true);
-
-            commonPacketEncoder = NMSUtils.getPacketEncoderClass().getDeclaredConstructor(NMSUtils.getEnumProtocolDirectionClass())
-                    .newInstance(Reflection.getEnumAtIndex(NMSUtils.getEnumProtocolDirectionClass(), 1));
 
             packetClass = NMSUtils.getPacketClass();
 
@@ -41,11 +34,13 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     private final AsyncDecoder asyncDecoder;
     private final Channel channel;
+    private final MessageToByteEncoder<Object> encoder;
     private volatile boolean forced;
 
     public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder) {
         this.channel = channel;
         this.asyncDecoder = asyncDecoder;
+        encoder = (MessageToByteEncoder<Object>) channel.pipeline().get("encoder");
     }
 
     @Override
@@ -92,7 +87,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Object value, ByteBuf byteBuf) throws Exception {
         try {
-            packetEncode.invoke(commonPacketEncoder, ctx, value, byteBuf);
+            packetEncode.invoke(encoder, ctx, value, byteBuf);
         } catch (Throwable throwable) {
             throw new Exception(throwable);
         }

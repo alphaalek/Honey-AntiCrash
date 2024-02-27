@@ -207,7 +207,7 @@ public class NMSUtils {
 
     @SuppressWarnings("unchecked")
     public static Class<Enum<?>> getEnumProtocolClass() {
-        return (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocol", "{nms}.network.protocol.EnumProtocol");
+        return (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol");
     }
 
     public static Class<Object> getPacketClass() {

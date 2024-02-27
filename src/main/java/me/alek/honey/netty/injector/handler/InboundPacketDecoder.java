@@ -3,8 +3,6 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.AttributeKey;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
@@ -29,17 +27,19 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     private static final String INTERCEPTOR = "_interceptor";
     private static volatile String decoderPosition;
 
-    public static String getObjectDecoderPosition(ChannelPipeline pipeline) {
+    public static String getDecoderPosition(ChannelPipeline pipeline) {
         if (decoderPosition == null)
-            resolveObjectDecoderPosition(pipeline);
+            resolveDecoderPosition(pipeline);
         return decoderPosition;
     }
 
-    private static void resolveObjectDecoderPosition(ChannelPipeline pipeline) { // only called once for each server start
+    private static void resolveDecoderPosition(ChannelPipeline pipeline) { // only called once for each server start
         boolean started = false;
         boolean ended = false;
+
         List<String> wrappedHandlers = new ArrayList<>();
         String prevName = null;
+
         for (String name : pipeline.names()) {
 
             ChannelHandler handler = pipeline.context(name).handler();
@@ -77,37 +77,45 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     }
 
     private static ByteBuf createPositionByteBufPacket(Channel channel) {
-        @SuppressWarnings("unchecked")
-        AttributeKey<Object> key = ReflectStructureCache.acquireStructure(NMSUtils.getNetworkManagerClass())
-                .withType(AttributeKey.class).withTarget(PacketLibrary.get().getServerInjector().getNetworkManagerFor(channel)).readField(0);
+        AttributeKey<Object> key;
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
+            key = ReflectStructureCache.acquireStructure(NMSUtils.getNetworkManagerClass())
+                .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(PacketLibrary.get().getServerInjector().getNetworkManagerFor(channel)).readField(0);
+        else
+            key = ReflectStructureCache.acquireStructure(NMSUtils.getPacketDecoderClass())
+                .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("decoder")).readField(0);
         if (key == null) {
             throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
         }
 
         WrappedEnumProtocol protocol = Converters.getEnumProtocolConverter().convertDelegate(channel.attr(key).get());
-        if (!protocol.getProtocol().equalsIgnoreCase("play")) {
-            throw new UnsupportedOperationException("Can't create keep alive packet because the current gamestate protocol for this channel is not PLAY.");
-        }
 
-        WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(Unpooled.buffer());
-        dataSerializer.writeDouble(1);
-        dataSerializer.writeDouble(1);
-        dataSerializer.writeDouble(1);
-        dataSerializer.writeBoolean(false);
+        ByteBuf serializer = Unpooled.buffer();
+        serializer.writeBytes(new byte[64]);
+        serializer.writeDouble(Double.MAX_VALUE);
+        serializer.writeDouble(Double.MAX_VALUE);
+        serializer.writeDouble(Double.MAX_VALUE);
+        serializer.writeBoolean(false);
 
         for (int id = 0; ; id++) {
-            Object packet = protocol.createLegacyPacket(PacketBound.SERVER, id);
-            if (packet == null) return null;
-            if (packet.getClass().getSimpleName().equals("PacketPlayInPosition")) {
+            Object packet = null;
+            try {
+                packet = protocol.createPacket(PacketBound.SERVER, id, new WrappedPacketDataSerializer(serializer));
+            } catch (Exception ignored) {
+            }
+
+            if (packet != null && packet.getClass().getSimpleName().equals("PacketPlayInPosition")) {
                 ByteBuf buf = Unpooled.buffer();
                 buf.writeByte(id);
-                buf.writeDouble(1);
-                buf.writeDouble(1);
-                buf.writeDouble(1);
+
+                buf.writeDouble(Double.MAX_VALUE);
+                buf.writeDouble(Double.MAX_VALUE);
+                buf.writeDouble(Double.MAX_VALUE);
                 buf.writeBoolean(false);
 
                 return buf;
             }
+            serializer.readerIndex(0);
         }
     }
 

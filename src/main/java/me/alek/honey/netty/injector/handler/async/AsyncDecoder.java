@@ -13,7 +13,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     private final WorkerPool<Object> workerPool;
     private ChainedCallable<Object> currentTask;
     private Worker<Object> worker;
-    private AtomicLong lastHandledTask = new AtomicLong();
+    private final AtomicLong lastHandledTask = new AtomicLong();
 
     public AsyncDecoder(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
@@ -47,13 +47,13 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         else
             worker = workerPool.submit(this);
 
-        if (worker.relocate(this))
-            worker = workerPool.relocateWorkerTasks(this, worker);
+        Bukkit.getLogger().info("Worker " + worker + " " + worker.relocate(this) + " " + worker.isQuarantined());
 
-        Bukkit.getLogger().info("Worker: " + worker + " " + worker.relocate(this) + " " + worker.isQuarantined() + " " + player.name);
-
-        if (worker.isQuarantined() && worker.getCurrentTask().getFrom().equals(this))
-            HoneyPlugin.get().getNotificationService().sendActionBarPacket1_8(player, "§cDecoder worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
+        if (worker.isQuarantined())
+            if (worker.relocate(this))
+                worker = workerPool.relocateWorkerTasks(this, worker);
+            else
+                HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cDecoder worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
     }
 
     @Override

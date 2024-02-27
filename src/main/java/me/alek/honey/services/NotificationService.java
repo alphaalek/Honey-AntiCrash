@@ -259,14 +259,14 @@ public class NotificationService {
         int size = counter.size();
         if (size < 5) return;
 
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cCancelling inbound packets... [" + size + "]"));
-            return;
-        }
-        sendActionBarPacket1_8(player, "§cCancelling inbound packets... [" + size + "]");
+        sendActionBar(player, "§cCancelling inbound packets... [" + size + "]");
     }
 
-    public void sendActionBarPacket1_8(HoneyPlayer player, String text) {
+    public void sendActionBar(HoneyPlayer player, String text) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
+            player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
+            return;
+        }
         WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
@@ -275,8 +275,7 @@ public class NotificationService {
         IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMSUtils.getChatSerializerClass())
                 .withType(NMSUtils.getIChatBaseComponentClass())
                 .withTarget(null);
-        Object chatComponent = chatSerializer.invokeMethod(0,
-                "{\"text\":\"" + text + "\"}");
+        Object chatComponent = chatSerializer.invokeMethod(0, "{\"text\":\"" + text + "\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket, true);

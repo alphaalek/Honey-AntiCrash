@@ -83,7 +83,7 @@ async-decoder:
   min-time-for-quarantine: 15.0
 
   # Minimum pending task size, before a worker is quarantined.
-  min-pending-task-size-for-quarantine: 30
+  min-pending-task-size-for-quarantine: 20
 
 
 # Exempt spike flood

@@ -19,6 +19,7 @@ public interface Worker<T> {
 
     long recentTaskStart();
 
-    void destroy();
+    boolean isActive();
 
+    void destroy();
 }

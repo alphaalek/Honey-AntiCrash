@@ -14,6 +14,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.InboundPacketFilter;
+import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -196,13 +197,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            InboundPacketFilter packetFilter =
-                    (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
-            if (packetFilter == null) return ResponseBuilder.SUCCESS.builder().skip(1).build();
-
             // evaluate the duration of decoding this packet
-            double decodeTime = packetFilter.getRecentDeltaDecode();
-            container.getStorage().putDouble(decodeTime);
+            double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
 
             if (getSetting().isEnabled() && decodeTime > 0) {
                 container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
@@ -239,7 +235,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                double decodeTime = container.getStorage().getDouble(0);
+                double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
                 if (decodeTime > 0) {
 
                     container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
