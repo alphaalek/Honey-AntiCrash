@@ -7,6 +7,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.handler.OutboundPacketEncoder;
 import me.alek.honey.netty.injector.handler.UpdatableChannel;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 public class ServerPacketManager {
 
@@ -14,7 +15,7 @@ public class ServerPacketManager {
         writePacket(player.channel, rawPacket, flushAfter);
     }
 
-    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) {
+    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) throws Exception {
         ChannelHandler encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(player.channel);
         if (!(encoder instanceof OutboundPacketEncoder)) {
             writePacket(player, packet, flushAfter);
@@ -64,10 +65,10 @@ public class ServerPacketManager {
     }
 
     public ChannelHandler getDecoder(Channel channel) {
-        return channel.pipeline().get("decoder");
+        return channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
     }
 
     public ChannelHandler getEncoder(Channel channel) {
-        return channel.pipeline().get("encoder");
+        return channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getEncoderName());
     }
 }

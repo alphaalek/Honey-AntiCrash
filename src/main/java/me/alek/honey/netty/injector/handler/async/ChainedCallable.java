@@ -1,7 +1,9 @@
 package me.alek.honey.netty.injector.handler.async;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -10,7 +12,7 @@ public class ChainedCallable<T> implements Callable<T> {
 
     private final TaskSupplier<T> from;
     private final Callable<T> callable;
-    private final List<Consumer<T>> listeners = new ArrayList<>();
+    private final Queue<Consumer<T>> listeners = new LinkedList<>();
     private boolean called;
 
     public ChainedCallable(TaskSupplier<T> from, Callable<T> delegate) {

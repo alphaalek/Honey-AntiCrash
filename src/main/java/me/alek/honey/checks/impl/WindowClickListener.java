@@ -140,11 +140,9 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                if (player.player.getOpenInventory().getType().name().equals("LECTERN")) {
-
-                    if (packet.getMode() == 1) {
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
+                if (player.player.getOpenInventory().getType().name().equals("LECTERN")
+                        && packet.getMode() == 1) {
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;

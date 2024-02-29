@@ -4,10 +4,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.utility.NMSUtils;
-import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
@@ -16,8 +16,6 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     private static final Method packetEncode;
     private static final Class<?> packetClass;
-    private static boolean encoding;
-    private static boolean checkEncoding;
 
     static {
         try {
@@ -30,6 +28,14 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
             ex.printStackTrace();
             throw new RuntimeException("Failed to setup packet encoder environment!");
         }
+    }
+
+    private static volatile String encoderPosition;
+
+    public static String getEncoderPosition(ChannelPipeline pipeline) {
+        if (encoderPosition == null)
+            encoderPosition = InboundPacketDecoder.setupInterceptors(pipeline, true);
+        return encoderPosition;
     }
 
     private final AsyncDecoder asyncDecoder;
@@ -66,21 +72,17 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     }
 
     private void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) throws Exception {
-        if (!checkEncoding) {
-            checkEncoding = true;
-            encoding = packetClass.isInstance(msg);
-        }
         if (retain) ReferenceCountUtil.retain(msg);
 
-        if (encoding)
+        if (packetClass.isInstance(msg))
             super.write(ctx, msg, promise);
         else
             ctx.write(msg, promise);
     }
 
-    public synchronized void writeForcedPacket(Object value) {
+    public synchronized void writeForcedPacket(Object value) throws Exception {
         forced = true;
-        channel.write(value);
+        write(channel.pipeline().context(this), value, new DefaultChannelPromise(channel));
         forced = false;
     }
 

@@ -32,7 +32,7 @@ public class PacketTaskHandler {
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
-        new DefaultThreadFactory("Honey Packet Task Handler").newThread(() -> {
+        new Thread(() -> {
             while (HoneyPlugin.get().isRunning()) {
                 synchronized (lock) {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
@@ -51,7 +51,7 @@ public class PacketTaskHandler {
                     ex.printStackTrace();
                 }
             }
-        }).start();
+        }, "Honey Packet Task Handler").start();
     }
 
     public static Tuple2<PacketTaskFuture<?>, Long> getHandledTask() {

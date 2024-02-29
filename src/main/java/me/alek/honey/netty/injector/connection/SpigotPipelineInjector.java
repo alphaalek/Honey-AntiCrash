@@ -1,12 +1,21 @@
 package me.alek.honey.netty.injector.connection;
 
-import io.netty.channel.Channel;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.*;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.MessageToByteEncoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import me.alek.honey.netty.utility.MethodInvoker;
+import me.alek.honey.netty.utility.Reflection;
+import org.bukkit.Bukkit;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpigotPipelineInjector {
 
@@ -25,9 +34,8 @@ public class SpigotPipelineInjector {
                 ejectChannel(channel);
             }
 
-            InboundPacketFilter filter = new InboundPacketFilter(channel);
-            channel.pipeline().addAfter("splitter", filterName, filter);
-            channel.pipeline().addBefore("packet_handler", handlerName, new DuplexChannelHandler(filter));
+            channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
+            channel.pipeline().addBefore("packet_handler", handlerName, new DuplexChannelHandler());
         }
     }
 
@@ -38,16 +46,14 @@ public class SpigotPipelineInjector {
                 String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
                 channel.pipeline().remove(filterName);
 
-                String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
-
                 if (channel.pipeline().get("decompress") != null) {
                     channel.pipeline().addAfter("decompress", filterName, new InboundPacketFilter(filter));
 
                     AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
 
-                    channel.pipeline().addBefore(InboundPacketDecoder.getDecoderPosition(channel.pipeline()), decoderName,
+                    channel.pipeline().addBefore(InboundPacketDecoder.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
                             new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
-                    channel.pipeline().replace(channel.pipeline().get("encoder"), "encoder",
+                    channel.pipeline().addAfter(OutboundPacketEncoder.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
                             new OutboundPacketEncoder(channel, asyncDecoder));
 
                     return true;
@@ -59,6 +65,10 @@ public class SpigotPipelineInjector {
 
     public void ejectChannel(Channel channel) {
         synchronized (channel) {
+            if (!channel.eventLoop().inEventLoop()) {
+                channel.eventLoop().submit(() -> ejectChannel(channel));
+                return;
+            }
 
             String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();

@@ -18,12 +18,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     private static final ThreadLocalAccessor<HoneyPlayer> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
-    private final InboundPacketFilter filter;
     private volatile HoneyPlayer player;
-
-    public DuplexChannelHandler(InboundPacketFilter filter) {
-        this.filter = filter;
-    }
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;

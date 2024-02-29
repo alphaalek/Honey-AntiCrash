@@ -66,7 +66,7 @@ public class PacketEventloopStateTimings {
     }
 
     private double toMillis(long value) {
-        return Math.pow(value, -6);
+        return value * Math.pow(10, -6);
     }
 
     public EventloopState getCurrentState() {

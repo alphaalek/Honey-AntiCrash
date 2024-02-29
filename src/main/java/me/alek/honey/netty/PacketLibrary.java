@@ -97,6 +97,10 @@ public class PacketLibrary {
         return settings.getDecoderName();
     }
 
+    public String getEncoderName() {
+        return settings.getEncoderName();
+    }
+
     public PacketLibrarySettings getSettings() {
         return settings;
     }

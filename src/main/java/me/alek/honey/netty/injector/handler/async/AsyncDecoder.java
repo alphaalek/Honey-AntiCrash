@@ -24,11 +24,11 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         return player;
     }
 
-    public void decode(Consumer<Object> consumer) {
+    public synchronized void decode(Consumer<Object> consumer) {
         submitTask(new ChainedCallable<>(this, () -> null).addListener(consumer));
     }
 
-    public void encode(Consumer<Object> consumer) {
+    public synchronized void encode(Consumer<Object> consumer) {
         if (currentTask == null || currentTask.isCalled())
             consumer.accept(currentTask);
         else

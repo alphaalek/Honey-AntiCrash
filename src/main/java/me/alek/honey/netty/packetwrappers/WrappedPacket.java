@@ -5,6 +5,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WrappedPacket<WP>> {
@@ -21,7 +22,7 @@ public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends Wrappe
     }
 
     public World getWorld() {
-        return getPlayer().getWorld();
+        return getPlayer() != null ? getPlayer().getWorld() : Bukkit.getWorlds().get(0);
     }
 
     public PacketContainer<WP> getContainer() {

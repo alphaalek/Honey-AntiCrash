@@ -15,6 +15,15 @@ public class PacketFactory {
 
     public static Map<PacketTypeEnum, MethodInvoker<Object>> WRAPPER_CACHE = new ConcurrentHashMap<>();
 
+    public static Object createRawPacket(PacketTypeEnum type) {
+        try {
+            return type.getNmsClass().newInstance();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player) {
         return createNewPacket(type, player, player.channel, null);
     }

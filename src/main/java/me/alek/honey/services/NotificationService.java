@@ -278,7 +278,11 @@ public class NotificationService {
         Object chatComponent = chatSerializer.invokeMethod(0, "{\"text\":\"" + text + "\"}");
         packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
-        HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket, true);
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket, true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public void notify(String notification) {

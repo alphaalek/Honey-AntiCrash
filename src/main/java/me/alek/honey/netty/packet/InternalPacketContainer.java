@@ -19,6 +19,7 @@ import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -68,7 +69,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public String toString() {
         if (type == null) return "Unmodifiable Packet";
 
-        return "Packet:{Type:" + type + ",Player:{ " + player.name + "}}";
+        return "Packet:{Type:" + type + ",Player:{ " + Optional.ofNullable(player).map(p -> p.name).orElse("None") + "}}";
     }
 
     @Override
