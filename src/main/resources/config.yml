@@ -467,9 +467,6 @@ custom-payload:
       max-per-interval: 4
       vls-amount: 6
 
-  g:
-    enabled: true
-
 # |--- held item ---|
 held-item:
   a:
@@ -655,19 +652,6 @@ window-click:
   d:
     enabled: false
     vls-amount: 3
-
-# |--- use entity ---|
-use-entity:
-  a:
-    enabled: true
-    vls-amount: 3
-
-  b:
-    enabled: true
-    vls-amount: 3
-    max-x: 16.0
-    max-y: 12.6
-    max-z: 16.0
 
 ############################################################
 # +------------------------------------------------------+ #

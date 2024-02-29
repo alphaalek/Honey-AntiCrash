@@ -348,40 +348,4 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             return packet.getChannel();
         }
     }
-
-    public static class PayloadG implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
-
-        @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-
-                String channel = packet.getChannel();
-                if (channel.equals("WDL|INIT") || channel.equals("WDL|CONTROL") || channel.equals("WDL|REQUEST")) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getName() {
-            return "Payload.G (World Downloader)";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Using world download mod";
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadG.class);
-        }
-    }
-
 }

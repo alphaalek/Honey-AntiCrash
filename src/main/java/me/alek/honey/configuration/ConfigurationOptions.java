@@ -815,12 +815,6 @@ public class ConfigurationOptions {
 
             }
         }
-
-        @Setting
-        @Violation(prefixPaths = "custom-payload.g", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PayloadG extends VlSetting {
-
-        }
     }
 
     @Setting
@@ -1202,31 +1196,6 @@ public class ConfigurationOptions {
                         VlSettingImplType.VLS_AMOUNT,
                         VlSettingImplType.MAX
                 );
-            }
-        }
-    }
-
-    @Setting
-    public static class UseEntity {
-
-        @Setting
-        @Violation(prefixPaths = "use-entity.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class UseEntityA extends VlSetting implements VlSimpleRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "use-entity.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class UseEntityB extends VlSetting implements VlSimpleRequiredContentsSetting {
-
-            public static double MAX_X;
-            public static double MAX_Y;
-            public static double MAX_Z;
-
-            public static void load() {
-                MAX_X = file.getDouble("use-entity.b.max-x", 16.0);
-                MAX_Y = file.getDouble("use-entity.b.max-y", 12.6);
-                MAX_Z = file.getDouble("use-entity.b.max-z", 16.0);
             }
         }
     }
