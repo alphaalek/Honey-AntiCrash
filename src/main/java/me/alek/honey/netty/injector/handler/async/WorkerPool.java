@@ -4,6 +4,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.injector.handler.async.worker.*;
 import me.alek.honey.utility.PredicateUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -20,6 +21,14 @@ public class WorkerPool<T> {
                     ConfigurationOptions.AsyncDecoder.MIN_WORKER_THREADS,
                     ConfigurationOptions.AsyncDecoder.MIN_TIME_FOR_QUARANTINE,
                     ConfigurationOptions.AsyncDecoder.MIN_PENDING_TASK_FOR_QUARANTINE);
+
+    public void sendDebug(CommandSender sender) {
+        sender.sendMessage(workers.length + " available workers");
+        sender.sendMessage(allWorkers.size() + " registered workers");
+        for (Worker<T> worker : workers) {
+            sender.sendMessage("Worker: " + worker.getPendingTasks().size() + " pending, quarantined: " + worker.isQuarantined() + ", task start: " + worker.recentTaskStart() + ", active: " + worker.isActive());
+        }
+    }
 
     private Worker<T>[] workers;
     private final List<Worker<T>> allWorkers = new ArrayList<>();

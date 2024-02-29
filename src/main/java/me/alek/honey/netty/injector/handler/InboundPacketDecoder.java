@@ -25,9 +25,7 @@ import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -132,7 +130,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         if (desc) Collections.reverse(names);
         for (String name : names) {
 
-            ChannelHandler handler = null;
+            ChannelHandler handler;
             if (pipeline.context(name) == null || !accept.test(handler = pipeline.context(name).handler())) {
                 continue;
             }
@@ -149,7 +147,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             if (start == null || name.equals(start)) started = true;
             prevName = name;
         }
-        Bukkit.getLogger().info(pipeline.toMap() + "");
         return wrappedHandlers;
     }
 

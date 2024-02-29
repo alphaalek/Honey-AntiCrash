@@ -86,7 +86,6 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         visitor.visit(new PayloadD());
         visitor.visit(new PayloadE());
         visitor.visit(new PayloadF());
-        visitor.visit(new PayloadG());
         return visitor;
     }
 

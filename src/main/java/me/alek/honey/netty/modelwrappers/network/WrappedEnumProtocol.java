@@ -33,7 +33,6 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     }
 
     public Object createModernPacket(WrappedPacketDataSerializer serializer, int id) throws Exception {
-        Bukkit.broadcastMessage(invoke(id, serializer.toNMSSerializer()) + "");
         return invoke(id, serializer.toNMSSerializer());
     }
 

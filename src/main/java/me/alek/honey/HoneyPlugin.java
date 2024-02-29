@@ -18,6 +18,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.async.DebugCommand;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -41,6 +42,7 @@ import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -164,6 +166,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         // setup commands
         commandManager = new CommandManager(plugin);
+        ((JavaPlugin)plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
 
         // setup metrics
         new Metrics(plugin, 19028);

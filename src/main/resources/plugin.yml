@@ -7,3 +7,5 @@ api-version: 1.13
 main: me.alek.honey.DevHoneyPluginInitializer
 commands:
   honey:
+  asyncdecoderdebug:
+

@@ -85,7 +85,6 @@ public class ViolationService {
         if (player.punished) {
             return;
         }
-        HoneyPlugin.get().getLoggerService().logToMonitors(player, null);
 
         player.channel.eventLoop().execute(() -> {
             if (player.channel.isActive()) {

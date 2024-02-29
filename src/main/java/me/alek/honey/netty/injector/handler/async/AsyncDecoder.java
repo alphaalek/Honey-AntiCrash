@@ -47,12 +47,10 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         else
             worker = workerPool.submit(this);
 
-        Bukkit.getLogger().info("Worker " + worker + " " + worker.relocate(this) + " " + worker.isQuarantined());
-
         if (worker.isQuarantined())
             if (worker.relocate(this))
                 worker = workerPool.relocateWorkerTasks(this, worker);
-            else
+            else if (System.currentTimeMillis() - lastHandledTask.get() > 100)
                 HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cDecoder worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
     }
 
