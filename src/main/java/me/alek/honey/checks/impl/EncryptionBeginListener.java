@@ -29,7 +29,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer, CheckContextContainer container) {
 
     }
 

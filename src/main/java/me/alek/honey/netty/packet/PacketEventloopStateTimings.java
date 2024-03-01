@@ -57,6 +57,10 @@ public class PacketEventloopStateTimings {
         return toMillis(getTimeFor(state));
     }
 
+    public double getTimeForMillisFormatted(EventloopState state) {
+        return NumberConversions.format(getTimeForMillis(state), 2);
+    }
+
     public long getServerTime() {
         return getTimeFor(EventloopState.SERVER_DECODE) + getTimeFor(EventloopState.SERVER_HANDLE);
     }

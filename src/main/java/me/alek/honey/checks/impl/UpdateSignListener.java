@@ -25,7 +25,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container) {
 
     }
 

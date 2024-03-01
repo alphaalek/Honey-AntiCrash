@@ -38,7 +38,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
     }
 
@@ -78,12 +78,10 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
-        if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld())))
+        if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld()))
+                || blockPosition.isInvalid())
             // dont flag because it might just be server lag, just cancel it
             return ResponseBuilder.inst().cancel().build();
-
-        if (blockPosition.isInvalid())
-            return ResponseBuilder.inst().cancel().flag().terminate().build();
 
         // checks distance between the player and the block placed
         Location playerLocation = PositionListener.getLastLocationFor(player);
@@ -92,17 +90,14 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         final double distance = blockPosition.distance(playerLocation);
 
         // the distance is higher than the recent client location
-        if (distance > maxDistance || distance == -1) {
+        if (distance == -1 ||
+                distance > maxDistance && !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
+                        player, maxDistance, blockPosition::distance)) {
 
-            // let's now check the distance to the recent server locations, and see if that is also way off
-            if (distance == -1
-                    || !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
-                            player, maxDistance, blockPosition::distance)) {
-                // add the distance to the development data
-                developmentData.addPoint("BlockPos", blockPosition);
-                developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));
-                return ResponseBuilder.inst().cancel().flag().build();
-            }
+            // add the distance to the development data
+            developmentData.addPoint("BlockPos", blockPosition);
+            developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));
+            return ResponseBuilder.inst().cancel().flag().build();
         }
         return ResponseBuilder.SUCCESS;
     }

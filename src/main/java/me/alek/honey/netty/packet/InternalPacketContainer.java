@@ -16,7 +16,6 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.NMSUtils;
 import me.alek.honey.netty.utility.Reflection;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -243,7 +242,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public IStructureModifier<ItemStack> getItems() {
-        return getModifier(NMSUtils.getItemStackClass(), Converters.getItemstackConverter());
+        return getModifier(NMSUtils.getItemStackClass(), Converters.getItemStackConverter());
     }
 
     @Override

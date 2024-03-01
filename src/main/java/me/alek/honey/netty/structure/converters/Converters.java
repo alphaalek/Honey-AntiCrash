@@ -131,7 +131,7 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, ItemStack> getItemstackConverter() {
+    public static JavaConverter<Object, ItemStack> getItemStackConverter() {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
             public ItemStack convertDelegate(Object delegate, Object... params) {

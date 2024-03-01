@@ -20,6 +20,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.utility.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,7 +36,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer, CheckContextContainer container) {
     }
 
     @Override

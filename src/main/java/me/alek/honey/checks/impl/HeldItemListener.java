@@ -30,7 +30,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container) {
 
     }
 

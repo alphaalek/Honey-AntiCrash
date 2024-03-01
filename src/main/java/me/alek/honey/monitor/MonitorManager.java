@@ -8,6 +8,7 @@ import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;
@@ -137,6 +138,7 @@ public class MonitorManager {
 
             String message = independentMonitorer.getMessage(packetContainer);
             if (message == null) continue;
+             Bukkit.broadcastMessage("Sending info " + packetContainer + " " + packetContainer.getTime() + " " + sendAt);
 
             for (MonitorObserver observer : monitorObservers.get(independentMonitorer)) {
                 observer.sendInfo(message);

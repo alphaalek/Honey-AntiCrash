@@ -187,7 +187,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
     }
 

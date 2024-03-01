@@ -59,7 +59,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
     }
 

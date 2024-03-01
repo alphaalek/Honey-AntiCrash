@@ -24,10 +24,7 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import me.alek.honey.netty.utility.ConstructorInvoker;
-import me.alek.honey.netty.utility.ItemReflection;
-import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.utility.*;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -44,32 +41,32 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
-        ByteBuf priorSerializer;
+        ByteBuf serializer;
         try {
-            priorSerializer = (ByteBuf) packetContainer.getPacket().getDataSerializer().getHandle();
+            serializer = (ByteBuf) packetContainer.getPacket().getDataSerializer().getHandle();
         } catch (Exception ex) {
             return false;
         }
-        ByteBuf newSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(priorSerializer));
+        ByteBuf copiedSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(serializer));
 
-        ItemStack bukkitItem = null;
         try {
-            Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(newSerializer);
-            bukkitItem = ItemReflection.asBukkitItem(item);
+            Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
+            ItemStack bukkitItem = ItemReflection.asBukkitItem(item);
+            container.getStorage().put(ItemStack.class, bukkitItem);
         } catch (Exception ex) {
         }
 
-        container.getStorage().put(ByteBuf.class, priorSerializer);
-        container.getStorage().put(ItemStack.class, bukkitItem);
-
+        container.getStorage().put(ByteBuf.class, serializer);
         container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
-        container.getDefaultDevelopmentData().addPoint("ByteBuf", newSerializer.readableBytes() + " bytes");
+        container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
+        ByteBuf byteBuf = container.getStorage().get(ByteBuf.class, 0);
+        if (byteBuf != null)
+            byteBuf.release();
     }
 
     @Override
@@ -102,7 +99,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (serializer == null || serializer instanceof EmptyByteBuf) {
-                    return ResponseBuilder.inst().cancel().flag().terminate().build();
+                    return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -138,8 +135,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (serializer == null) {
                     return ResponseBuilder.SUCCESS;
                 }
-                container.getDevelopmentData(this).addPoint("Serializer Capacity", serializer.capacity());
-                return ResponseBuilder.inst().flag(serializer.capacity()).onViolation(serializer::release).terminate().build();
+                return ResponseBuilder.inst().flag(serializer.readableBytes()).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -172,26 +168,20 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (getSetting().isEnabled()) {
 
                 ItemStack item = container.getStorage().poll(ItemStack.class);
-                ItemStack itemInHand = player.player.getItemInHand();
+                if (item != null) {
+                    CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
-                final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
-                if (!(ItemAnalysis.checkItem(player, itemInHand, developmentData) || ItemAnalysis.checkItem(player, item, developmentData))) {
-                    if (item == null) {
-                        return ResponseBuilder.SUCCESS;
+                    NBTCompound nbt = NBTFactory.fromItem(item);
+                    if (ItemAnalysis.checkItem(player, item, nbt, developmentData)) {
+                        return ResponseBuilder.inst().cancel().flag().build();
+                    }
+
+                    int nbtSize = nbt.toString().getBytes().length;
+                    if (nbtSize > getSetting().max) {
+                        container.getDevelopmentData(this).addPoint("NBT Size", nbtSize);
+                        return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }
-                NBTCompound tag = NBTFactory.fromItem(item);
-                int byteSize;
-                if (tag == null || (byteSize = tag.toString().getBytes().length) <= getSetting().max) {
-                    return ResponseBuilder.SUCCESS;
-                }
-
-                ByteBuf serializer = container.getStorage().poll(ByteBuf.class);
-                if (serializer != null && serializer.refCnt() > 0) {
-                    serializer.release();
-                }
-                container.getDevelopmentData(this).addPoint("NBT Byte Size", byteSize);
-                return ResponseBuilder.inst().cancel().flag().terminate().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -230,7 +220,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
                         return ResponseBuilder.SUCCESS;
                     }
-                    if (itemInHand.getType() == Material.BOOK_AND_QUILL || itemInHand.getType() == Material.WRITTEN_BOOK) {
+                    if (itemInHand.getType() == MaterialMappings.getItem("writable-book") || itemInHand.getType() == Material.WRITTEN_BOOK) {
                         return ResponseBuilder.SUCCESS;
                     }
                 }
@@ -238,7 +228,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (serializer != null) {
                     serializer.release();
                 }
-                return ResponseBuilder.inst().cancel().flag().terminate().build();
+                return ResponseBuilder.inst().cancel().flag().build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -250,7 +240,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return "Illegal usage book channel";
+            return "Illegal usage of book channel";
         }
 
         @Override
@@ -271,17 +261,12 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
-                if (channel.equals("BungeeCord") || channel.contains("FML") || channel.equals("ML|OpenTE") || channel.equals("WECUI")) {
-                    return ResponseBuilder.SUCCESS; // ingen grund til at tjekke for Community channels
-                }
-                ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (channel.equalsIgnoreCase("register")) {
 
                     if (player.player.getListeningPluginChannels().size() > getSetting().max) {
-                        serializer.release();
                         container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size());
 
-                        return ResponseBuilder.inst().cancel().flag().terminate().build();
+                        return ResponseBuilder.inst().cancel().flag().build();
                     }
                 }
             }

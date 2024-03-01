@@ -35,7 +35,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packetContainer, CheckContextContainer container) {
 
     }
 

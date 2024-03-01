@@ -32,7 +32,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer, CheckContextContainer container) {
 
     }
 

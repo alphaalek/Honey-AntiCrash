@@ -35,7 +35,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container) {
 
     }
 
@@ -154,7 +154,9 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
-        public String getName() { return "Tab.B"; }
+        public String getName() {
+            return "Tab.B";
+        }
 
         @Override
         public String getDescription() {
@@ -189,7 +191,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getDescription() {
-            return "Lenth of tab complete exceeded";
+            return "Length of tab complete exceeded";
         }
 
         @Override

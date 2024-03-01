@@ -162,7 +162,7 @@ public class LoggerService {
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
         getLogger().info("Auto dump for packet sent by " + packet.getPlayer().name + ": " + packet.getName()
-                + " (" + packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
+                + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {

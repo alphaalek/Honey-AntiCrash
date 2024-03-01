@@ -22,7 +22,7 @@ public class NumberConversions {
         return value >= Integer.MAX_VALUE || value <= Integer.MIN_VALUE || isInfinite(value) || isNaN(value);
     }
 
-    public static boolean isInvalid(double[] values) {
+    public static boolean isInvalid(double... values) {
         for (double value : values) {
             if (isInvalid(value)) {
                 return true;
@@ -35,21 +35,8 @@ public class NumberConversions {
         return value == Float.MAX_VALUE || value == Integer.MIN_VALUE || isInfinite(value) || isNaN(value);
     }
 
-    public static boolean isInvalid(float[] values) {
+    public static boolean isInvalid(float... values) {
         for (float value : values) {
-            if (isInvalid(value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean inInvalid(long value) {
-        return value == Long.MAX_VALUE || value == Long.MIN_VALUE;
-    }
-
-    public static boolean isInvalid(long[] values) {
-        for (long value : values) {
             if (isInvalid(value)) {
                 return true;
             }

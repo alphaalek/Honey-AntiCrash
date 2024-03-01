@@ -37,8 +37,6 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         Location location = packetContainer.getPacket().getLocation();
 
         if (location.getPitch() == 0 && location.getYaw() == 0) {
-            lastYawMap.put(player.uuid, 0f);
-            lastPitchMap.put(player.uuid, 0f);
             return false;
         }
         float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player, location.getYaw()));
@@ -59,7 +57,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
     }
 

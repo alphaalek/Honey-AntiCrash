@@ -38,7 +38,7 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInBlockDig> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInBlockDig> packetContainer, CheckContextContainer container) {
 
     }
 

@@ -37,7 +37,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container) {
 
     }
 

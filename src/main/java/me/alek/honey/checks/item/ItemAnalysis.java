@@ -97,13 +97,17 @@ public class ItemAnalysis {
                 || item == null || item.getType() == Material.AIR) {
             return false;
         }
+        NBTCompound nbt = NBTFactory.fromItem(item);
+        return checkItem(player, item, nbt, context);
+    }
+
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CheckContextContainer.DevelopmentData context) {
         for (final String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer) || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
                 return false;
             }
         }
-        final NBTCompound nbt = NBTFactory.fromItem(item);
-        final ItemCheckRegistry flaggedCheck = checkItem(item, nbt);
+        ItemCheckRegistry flaggedCheck = checkItem(item, nbt);
         if (flaggedCheck == null) {
             return false;
         }

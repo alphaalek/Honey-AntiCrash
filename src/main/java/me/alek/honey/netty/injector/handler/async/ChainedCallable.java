@@ -13,19 +13,19 @@ public class ChainedCallable<T> implements Callable<T> {
     private final TaskSupplier<T> from;
     private final Callable<T> callable;
     private final Queue<Consumer<T>> listeners = new LinkedList<>();
-    private boolean called;
+    private volatile boolean called;
 
     public ChainedCallable(TaskSupplier<T> from, Callable<T> delegate) {
         this.from = from;
         this.callable = delegate;
     }
 
-    public ChainedCallable<T> addListener(Consumer<T> listener) {
+    public synchronized ChainedCallable<T> addListener(Consumer<T> listener) {
         this.listeners.add(listener);
         return this;
     }
 
-    public ChainedCallable<T> addListener(Function<T, T> listener) {
+    public synchronized ChainedCallable<T> addListener(Function<T, T> listener) {
         this.listeners.add((s) -> new ChainedCallable<>(from, () -> s).addListener(listener));
         return this;
     }
@@ -42,8 +42,10 @@ public class ChainedCallable<T> implements Callable<T> {
     public T call() throws Exception {
         T value = callable.call();
         called = true;
-        for (Consumer<T> listener : listeners) {
-            listener.accept(value);
+        synchronized (this) {
+            for (Consumer<T> listener : listeners) {
+                listener.accept(value);
+            }
         }
         return value;
     }

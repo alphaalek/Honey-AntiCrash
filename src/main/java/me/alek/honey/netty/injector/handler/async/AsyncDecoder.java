@@ -47,6 +47,8 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         else
             worker = workerPool.submit(this);
 
+        // Bukkit.getLogger().info("Worker " + worker + " " + worker.relocate(this) + " " + worker.isQuarantined());
+
         if (worker.isQuarantined())
             if (worker.relocate(this))
                 worker = workerPool.relocateWorkerTasks(this, worker);

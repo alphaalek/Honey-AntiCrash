@@ -238,13 +238,14 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object o) {
         if (!(o instanceof ByteBuf)) return;
 
-        List<Object> nonRecycledList = new ArrayList<>();
-
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyPacketInitializer().get();
         ByteBuf byteBuf = (ByteBuf) o;
 
+        List<Object> nonRecycledList = new ArrayList<>();
+
         if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
+            return;
         }
 
         ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
@@ -253,8 +254,8 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         asyncDecoder.decode((s) -> {
             if (asyncDecoder.getPlayer().isOnline()) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
+                // Bukkit.getLogger().info("Done read " + nonRecycledList);
             }
         });
     }
-
 }

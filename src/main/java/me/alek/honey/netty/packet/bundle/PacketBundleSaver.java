@@ -5,6 +5,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ public class PacketBundleSaver {
     private static final Set<PacketSaverWindow> PACKET_SAVER_WINDOWS = new HashSet<>();
     private static byte MAX_PACKET_ID;
 
-    public final Map<PacketSaverWindow, Deque<PacketContainer<?>>> packetSaves = new HashMap<>();
+    public final Map<PacketSaverWindow, Deque<PacketContainer<?>>> packetSaves = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     static {
@@ -34,6 +35,7 @@ public class PacketBundleSaver {
 
     private final List<PacketSaverQueue>[] packets;
     private final LinkedList<PacketContainer<?>> commonPackets = new LinkedList<>();
+    private final LinkedList<PacketContainer<?>> nettySubmitQueue = new LinkedList<>();
 
     private PacketBundleSaver transferedTo;
 
@@ -99,6 +101,7 @@ public class PacketBundleSaver {
 
     public <WP extends WrappedPacket<WP>> void addToCommon(PacketContainer<WP> packet) {
         commonPackets.add(packet);
+        nettySubmitQueue.add(packet);
     }
 
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketTypeEnum packetType, boolean remove) {
@@ -255,7 +258,7 @@ public class PacketBundleSaver {
                 return transferedTo.getOldest(remove);
             }
 
-            return (PacketContainer<WP>) (remove ? commonPackets.poll() : commonPackets.peek());
+            return getPacketAndNettySubmit(remove);
         } finally {
             lock.readLock().unlock();
         }
@@ -268,10 +271,20 @@ public class PacketBundleSaver {
                 return transferedTo.getRecent(remove);
             }
 
-            return (PacketContainer<WP>) (remove ? commonPackets.pollLast() : commonPackets.peekLast());
+            return getPacketAndNettySubmit(remove);
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> getPacketAndNettySubmit(boolean remove) {
+        if (remove) getNettySubmit();
+
+        return (PacketContainer<WP>) (remove ? commonPackets.pollLast() : commonPackets.peekLast());
+    }
+
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getNettySubmit() {
+        return (PacketContainer<WP>) nettySubmitQueue.poll();
     }
 
     public void clear() {

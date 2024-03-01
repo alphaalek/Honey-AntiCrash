@@ -12,6 +12,7 @@ import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
@@ -79,12 +80,15 @@ public class ViolationService {
         return flag(player, handle, cancellablePacketObserver, violationContextKey, checkKey, amount, null, null, null, check, setting, developmentData, ignoreSpike);
     }
 
-    public void punish(Runnable onPunish, HoneyPlayer player, String violationName, CheckKey checkKey) {
+    public synchronized void punish(Runnable onPunish, HoneyPlayer player, String violationName, CheckKey checkKey) {
         if (onPunish != null) onPunish.run();
 
         if (player.punished) {
             return;
         }
+        PacketContainer<? extends WrappedPacket<?>> packet = player.packetBundleSaver.getOldest(true);
+        if (packet != null)
+            HoneyPlugin.get().getLoggerService().logToMonitors(player, packet);
 
         player.channel.eventLoop().execute(() -> {
             if (player.channel.isActive()) {

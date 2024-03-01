@@ -13,7 +13,6 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
@@ -68,7 +67,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
     }
 
@@ -125,7 +124,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+        public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
         }
 

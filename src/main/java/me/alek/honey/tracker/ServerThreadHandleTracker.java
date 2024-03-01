@@ -205,7 +205,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             HoneyPlayer player = packetSendMarker.remove();
             if (player == null) return super.add(value);
 
-            PacketContainer<?> packet = player.packetBundleSaver.getRecent(false);
+            PacketContainer<?> packet = player.packetBundleSaver.getNettySubmit();
             // if it somehow tries to add multiple times, we will cancel it
             if (packet == null || packet.isHandledByServer()) return true;
 

@@ -2,10 +2,8 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.NumberConversions;
@@ -65,7 +63,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             return;
         }
         getCachedVisitor().check(player, packetContainer, checkContextContainer);
-        onPostPacketReceive(player, packetContainer);
+        onPostPacketReceive(player, packetContainer, checkContextContainer);
     }
 
     public synchronized CheckVisitor<WP> getCachedVisitor() {
@@ -83,6 +81,6 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public abstract boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container);
 
-    public abstract void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer);
+    public abstract void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container);
 
 }

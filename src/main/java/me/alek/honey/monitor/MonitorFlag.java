@@ -328,7 +328,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, List<String> data) {
-            data.add(getState().getFormat() + ":" + input.getEventloopStateTimings().getTimeForMillis(getState()) + "ms");
+            data.add(getState().getFormat() + ":" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms");
         }
 
         public abstract EventloopState getState();

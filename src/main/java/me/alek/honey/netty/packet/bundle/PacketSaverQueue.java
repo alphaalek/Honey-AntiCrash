@@ -4,6 +4,8 @@ import me.alek.honey.netty.api.PacketContainer;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PacketSaverQueue {
 
@@ -12,7 +14,7 @@ public class PacketSaverQueue {
 
     public PacketSaverQueue(PacketBundleSaver saver, PacketSaverWindow window) {
         this.window = window;
-        packets = saver.getPacketSaves().computeIfAbsent(window, (d) -> new LinkedList<>());
+        packets = saver.getPacketSaves().computeIfAbsent(window, (d) -> new ConcurrentLinkedDeque<>());
     }
 
     public void add(PacketContainer<?> packet) {

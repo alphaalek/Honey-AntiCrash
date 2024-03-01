@@ -55,7 +55,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public boolean isInvalid() {
-        return NumberConversions.isInvalid(new int[]{x, y, z});
+        return NumberConversions.isInvalid(x, y, z);
     }
 
     public Vector toVector() {
@@ -75,7 +75,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public double distance(double x, double y, double z) {
-        if (NumberConversions.isInvalid(new double[]{x, y, z})) {
+        if (NumberConversions.isInvalid(x, y, z)) {
             return -1;
         }
         double deltaX = Math.abs(this.x - x);
