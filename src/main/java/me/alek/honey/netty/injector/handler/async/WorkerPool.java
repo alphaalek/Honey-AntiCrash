@@ -31,7 +31,7 @@ public class WorkerPool<T> {
     }
 
     private Worker<T>[] workers;
-    private final List<Worker<T>> allWorkers = new ArrayList<>();
+    private final Set<Worker<T>> allWorkers = new HashSet<>();
     private final int minimumWorkerThreads;
     private final int minimumPendingTaskSizeForQuarantine;
     private final double minimumTaskTimeForQuarantine;
@@ -83,6 +83,7 @@ public class WorkerPool<T> {
             synchronized (WorkerPool.this) {
                 allWorkers.remove(this);
             }
+            running = false;
         }
 
         @Override
@@ -185,6 +186,7 @@ public class WorkerPool<T> {
 
     public synchronized void garbageCollect() {
         List<Worker<T>> availableWorkers = Arrays.asList(workers);
+        allWorkers.addAll(availableWorkers);
         for (Worker<T> worker : allWorkers) {
             if (!availableWorkers.contains(worker)) {
                 worker.destroy();

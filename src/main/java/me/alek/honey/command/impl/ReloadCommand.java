@@ -7,12 +7,26 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class ReloadCommand implements CommandImpl {
+
+    private final AtomicBoolean reloading = new AtomicBoolean();
+
     @Override
     public void perform(CommandSender sender, String[] args) {
+        if (reloading.get()) {
+            sender.sendMessage(CommandManager.PREFIX + "§c The plugin is already reloading!");
+            return;
+        }
         sender.sendMessage(CommandManager.PREFIX + "§7 Reloading the plugin...");
-        HoneyPlugin.get().reload();
-        sender.sendMessage(CommandManager.PREFIX + "§7 Reload done.");
+
+        reloading.set(true);
+        HoneyPlugin.get().getPlugin().getServer().getScheduler().runTaskAsynchronously(HoneyPlugin.get().getPlugin(), () -> {
+            HoneyPlugin.get().reload();
+            sender.sendMessage(CommandManager.PREFIX + "§7 Reload done.");
+            reloading.set(false);
+        });
     }
 
     @Override
