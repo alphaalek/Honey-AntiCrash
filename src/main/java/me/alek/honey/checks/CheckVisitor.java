@@ -78,10 +78,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     if (response.TERMINATE) terminated = true;
                     continue;
                 }
-                if (response.CANCELLED) {
-                    Bukkit.broadcastMessage("Cancelled " + check.getName());
-                    cancellablePacketObserver.cancel();
-                }
+                if (response.CANCELLED) cancellablePacketObserver.cancel();
 
                 final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
                 if (response.FLAG != -1 && player != null) {

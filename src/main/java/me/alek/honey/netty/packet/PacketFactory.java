@@ -1,12 +1,16 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.MethodInvoker;
+import me.alek.honey.netty.utility.NMSUtils;
+import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,13 +28,23 @@ public class PacketFactory {
         return null;
     }
 
+    public static Object createRawPacket(PacketTypeEnum type, ByteBuf serializer) {
+        try {
+            return type.getNmsClass().getDeclaredConstructor(NMSUtils.getPacketDataSerializerClass())
+                    .newInstance(new WrappedPacketDataSerializer(serializer).toNMSSerializer());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player) {
         return createNewPacket(type, player, player.channel, null);
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player, Channel channel, Runnable postAction) {
         try {
-            Object rawPacket = type.getNmsClass().newInstance();
+            Object rawPacket = createRawPacket(type);
 
             return createWrappedPacket(type, rawPacket, player, channel, postAction);
         } catch (Exception ex) {

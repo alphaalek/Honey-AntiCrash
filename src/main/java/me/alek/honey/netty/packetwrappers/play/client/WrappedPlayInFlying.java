@@ -2,6 +2,8 @@ package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.play.client.common.WrappedAbstractPositional;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends WrappedAbstractPositional<WP> {

@@ -106,7 +106,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         @Override
         public String getMessage() {
-            return "You have an invalid license specified in your config.yml. Open the file at /plugins/honey/config.yml and follow the instructions at the top.";
+            return "You have an invalid license specified in your config.yml. Open the configuration file at /plugins/honey/config.yml and follow the instructions at the top.";
         }
     }
 

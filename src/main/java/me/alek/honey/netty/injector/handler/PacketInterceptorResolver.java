@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -66,16 +67,21 @@ public class PacketInterceptorResolver {
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
 
         AtomicReference<String> prev = new AtomicReference<>();
-        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel());
+        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel(), (serializer) -> {
+            serializer.writeDouble(Double.MAX_VALUE);
+            serializer.writeDouble(Double.MAX_VALUE);
+            serializer.writeDouble(Double.MAX_VALUE);
+            serializer.writeBoolean(false);
+        });
         List<String> handlers = setupInterceptorEnv(pipeline, false, "decompress", handler -> handler instanceof ChannelInboundHandler, handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object o) {
+                String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
                 if (!(o instanceof ByteBuf)) {
                     position.set(prev.get());
                     return;
                 }
                 try {
-                    String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
                     prev.set(name);
 
                     ChannelHandler intercepted = ctx.pipeline().get(name);
@@ -94,13 +100,18 @@ public class PacketInterceptorResolver {
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) { // only called once for each server start
 
         AtomicReference<String> prev = new AtomicReference<>();
-        PacketContainer<WrappedPlayOutPosition> packet = PacketFactory.<WrappedPlayOutPosition>createNewPacket(PacketType.Play.Server.POSITION, null, pipeline.channel(), null).getContainer();
-        packet.getDoubles()
-                .writeField(0, Double.MAX_VALUE)
-                .writeField(1, Double.MAX_VALUE)
-                .writeField(2, Double.MAX_VALUE);
-        packet.getBooleans()
-                .writeField(0, false);
+        ByteBuf buf = createPositionByteBufPacket(pipeline.channel(), (serializer) -> {
+            serializer.writeDouble(Double.MAX_VALUE);
+            serializer.writeDouble(Double.MAX_VALUE);
+            serializer.writeDouble(Double.MAX_VALUE);
+            serializer.writeFloat(Float.MAX_VALUE);
+            serializer.writeFloat(Float.MAX_VALUE);
+            serializer.writeShort(0);
+            serializer.writeInt(0);
+        }).copy();
+
+        PacketContainer<WrappedPlayOutPosition> packet = PacketFactory.<WrappedPlayOutPosition>createWrappedPacket(
+                PacketType.Play.Server.POSITION, PacketFactory.createRawPacket(PacketType.Play.Server.POSITION, buf), null, pipeline.channel(), null).getContainer();
         List<String> handlers = setupInterceptorEnv(pipeline, true, null, handler -> handler instanceof ChannelOutboundHandler, handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
             @Override
             public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) throws Exception {
@@ -154,7 +165,7 @@ public class PacketInterceptorResolver {
         return wrappedHandlers;
     }
 
-    private static ByteBuf createPositionByteBufPacket(Channel channel) {
+    private static ByteBuf createPositionByteBufPacket(Channel channel, Consumer<ByteBuf> write) {
         AttributeKey<Object> key;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
             key = ReflectStructureCache.acquireStructure(NMSUtils.getNetworkManagerClass())
@@ -170,10 +181,7 @@ public class PacketInterceptorResolver {
 
         ByteBuf serializer = Unpooled.buffer();
         serializer.writeBytes(new byte[64]);
-        serializer.writeDouble(Double.MAX_VALUE);
-        serializer.writeDouble(Double.MAX_VALUE);
-        serializer.writeDouble(Double.MAX_VALUE);
-        serializer.writeBoolean(false);
+        write.accept(serializer);
 
         for (int id = 0; ; id++) {
             Object packet = null;
@@ -185,11 +193,7 @@ public class PacketInterceptorResolver {
             if (packet != null && packet.getClass().getSimpleName().equals("PacketPlayInPosition")) {
                 ByteBuf buf = Unpooled.buffer();
                 buf.writeByte(id);
-
-                buf.writeDouble(Double.MAX_VALUE);
-                buf.writeDouble(Double.MAX_VALUE);
-                buf.writeDouble(Double.MAX_VALUE);
-                buf.writeBoolean(false);
+                write.accept(buf);
 
                 return buf;
             }
