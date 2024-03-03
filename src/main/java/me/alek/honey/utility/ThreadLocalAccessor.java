@@ -49,7 +49,10 @@ public class ThreadLocalAccessor<T> {
     }
 
     public synchronized void set(Thread thread, T value) {
-        seperatedQueues.put(thread, value);
+        if (value == null)
+            seperatedQueues.remove(thread);
+        else
+            seperatedQueues.put(thread, value);
     }
 
     public void set(T value) {

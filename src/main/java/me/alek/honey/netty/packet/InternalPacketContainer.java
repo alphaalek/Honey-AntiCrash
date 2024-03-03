@@ -43,7 +43,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
         this(player, channel);
-        set(rawPacket, postAction, type);
+        init(rawPacket, postAction, type);
     }
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel) {
@@ -56,8 +56,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.channel = channel;
     }
 
-    public void set(Object rawPacket, Runnable postAction, PacketTypeEnum type) {
+    public void setHandle(Object rawPacket) {
         this.handle = rawPacket;
+    }
+
+    public void init(Object rawPacket, Runnable postAction, PacketTypeEnum type) {
+        if (rawPacket != null) setHandle(rawPacket);
         this.postAction = postAction;
         this.type = type;
         this.packetStructure = ReflectStructureCache.acquireStructure(type);

@@ -30,14 +30,6 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         }
     }
 
-    private static volatile String encoderPosition;
-
-    public static String getEncoderPosition(ChannelPipeline pipeline) {
-        if (encoderPosition == null)
-            encoderPosition = InboundPacketDecoder.setupInterceptors(pipeline, true);
-        return encoderPosition;
-    }
-
     private final AsyncDecoder asyncDecoder;
     private final Channel channel;
     private final MessageToByteEncoder<Object> encoder;

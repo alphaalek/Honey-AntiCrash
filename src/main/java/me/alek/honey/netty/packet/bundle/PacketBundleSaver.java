@@ -88,7 +88,7 @@ public class PacketBundleSaver {
         return packets[packetType.getPacketId()];
     }
 
-    public <WP extends WrappedPacket<WP>> void add(PacketContainer<WP> packet) {
+    public void add(PacketContainer<? extends WrappedPacket<?>> packet) {
         addToCommon(packet);
 
         List<PacketSaverQueue> queues = getQueue(packet.getType());
@@ -99,19 +99,19 @@ public class PacketBundleSaver {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> void addToCommon(PacketContainer<WP> packet) {
+    public void addToCommon(PacketContainer<? extends WrappedPacket<?>> packet) {
         commonPackets.add(packet);
         nettySubmitQueue.add(packet);
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketTypeEnum packetType, boolean remove) {
+    public PacketContainer<? extends WrappedPacket<?>> get(PacketTypeEnum packetType, boolean remove) {
         List<PacketSaverQueue> queues = getQueue(packetType);
         if (queues == null) return null;
 
         for (PacketSaverQueue queue : queues) {
             PacketContainer<?> packet = get(queue, remove);
             if (packet != null && packet.getType() == packetType)
-                return (PacketContainer<WP>) packet;
+                return packet;
         }
         return null;
     }
@@ -134,7 +134,7 @@ public class PacketBundleSaver {
         return mostRecent;
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> get(Set<PacketTypeEnum> packetTypeSet, boolean remove) {
+    public PacketContainer<? extends WrappedPacket<?>> get(Set<PacketTypeEnum> packetTypeSet, boolean remove) {
         lock.readLock().lock();
 
         try {
@@ -227,14 +227,14 @@ public class PacketBundleSaver {
         packetTypes.removeIf(filteredPacketTypes::contains);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> get(PacketSaverQueue queue, boolean remove) {
-        if (!remove) return (PacketContainer<WP>) queue.getPackets().peek();
+    private PacketContainer<? extends WrappedPacket<?>> get(PacketSaverQueue queue, boolean remove) {
+        if (!remove) return queue.getPackets().peek();
 
         return poll(queue, true);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> poll(PacketSaverQueue queue, boolean fromHead) {
-        PacketContainer<WP> packet = (PacketContainer<WP>) (fromHead ? queue.getPackets().poll() : queue.getPackets().pollLast());
+    private PacketContainer<? extends WrappedPacket<?>> poll(PacketSaverQueue queue, boolean fromHead) {
+        PacketContainer<? extends WrappedPacket<?>> packet = fromHead ? queue.getPackets().poll() : queue.getPackets().pollLast();
         removeFromSavers(packet);
 
         return packet;
@@ -251,7 +251,7 @@ public class PacketBundleSaver {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getOldest(boolean remove) {
+    public PacketContainer<? extends WrappedPacket<?>> getOldest(boolean remove) {
         lock.readLock().lock();
         try {
             if (transferedTo != null) {
@@ -264,7 +264,7 @@ public class PacketBundleSaver {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getRecent(boolean remove) {
+    public PacketContainer<? extends WrappedPacket<?>> getRecent(boolean remove) {
         lock.readLock().lock();
         try {
             if (transferedTo != null) {
@@ -277,14 +277,14 @@ public class PacketBundleSaver {
         }
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> getPacketAndNettySubmit(boolean remove) {
+    private PacketContainer<? extends WrappedPacket<?>> getPacketAndNettySubmit(boolean remove) {
         if (remove) getNettySubmit();
 
-        return (PacketContainer<WP>) (remove ? commonPackets.pollLast() : commonPackets.peekLast());
+        return remove ? commonPackets.pollLast() : commonPackets.peekLast();
     }
 
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> getNettySubmit() {
-        return (PacketContainer<WP>) nettySubmitQueue.poll();
+    public PacketContainer<? extends WrappedPacket<?>> getNettySubmit() {
+        return nettySubmitQueue.poll();
     }
 
     public void clear() {

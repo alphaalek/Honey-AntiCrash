@@ -114,7 +114,6 @@ public class PacketTaskHandler {
         if (packet != null)
             packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 
-        Bukkit.getLogger().info("Register " + packet);
         handledTask = new Tuple2<>(task, System.currentTimeMillis());
     }
 

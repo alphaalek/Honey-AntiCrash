@@ -28,8 +28,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocalAccessor<>();
 
-    public static ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> getEarlyPacketInitializer() {
-        return earlyPacketInitializer;
+    public static PacketContainer<? extends WrappedPacket<?>> getEarlyInitializedPacket() {
+        return earlyPacketInitializer.get();
     }
 
     private double recentDecodeStart;
@@ -38,16 +38,17 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     private HoneyPlayer player;
     private final Channel channel;
 
-    public InboundPacketFilter(InboundPacketFilter decoder) {
-        this.channel = decoder.channel;
-        this.player = decoder.player;
-        hasBeenRelocated = true;
-        recentDeltaReceived = decoder.recentDeltaReceived;
-        recentDecodeStart = decoder.recentDecodeStart;
-    }
-
     public InboundPacketFilter(Channel channel) {
         this.channel = channel;
+    }
+
+    public InboundPacketFilter copy() {
+        InboundPacketFilter copy = new InboundPacketFilter(channel);
+        copy.hasBeenRelocated = true;
+        copy.recentDeltaReceived = recentDeltaReceived;
+        copy.recentDecodeStart = recentDecodeStart;
+        copy.player = player;
+        return copy;
     }
 
     public void setPlayer(HoneyPlayer player) {
@@ -65,7 +66,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
             earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
-        } else earlyPacketInitializer.remove();
+        } else earlyPacketInitializer.set(null);
 
         packetProcessor.callDecode(player, byteBuf);
 

@@ -1,21 +1,13 @@
 package me.alek.honey.netty.injector.connection;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
-import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Bukkit;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SpigotPipelineInjector {
 
@@ -36,24 +28,27 @@ public class SpigotPipelineInjector {
 
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
             channel.pipeline().addBefore("packet_handler", handlerName, new DuplexChannelHandler());
+
+            Bukkit.getLogger().info("Init " + channel.pipeline().toMap());
+
         }
     }
 
     public boolean relocateHandlers(Channel channel, HoneyPlayer player) {
         synchronized (channel) {
-            InboundPacketFilter filter = (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
+            InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             if (filter != null) {
                 String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
                 channel.pipeline().remove(filterName);
 
                 if (channel.pipeline().get("decompress") != null) {
-                    channel.pipeline().addAfter("decompress", filterName, new InboundPacketFilter(filter));
+                    channel.pipeline().addAfter("decompress", filterName, filter.copy());
 
                     AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
 
-                    channel.pipeline().addBefore(InboundPacketDecoder.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
+                    channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
                             new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
-                    channel.pipeline().addAfter(OutboundPacketEncoder.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
+                    channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
                             new OutboundPacketEncoder(channel, asyncDecoder));
 
                     return true;

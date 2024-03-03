@@ -224,16 +224,14 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public boolean hasListeners(Class<?> clazz) {
-        if (!PACKET_ADAPTERS.containsKey(clazz)) {
-            return false;
-        }
+        if (!PACKET_ADAPTERS.containsKey(clazz)) return false;
+
         return !PACKET_ADAPTERS.get(clazz).isEmpty();
     }
 
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
-         if (!hasListeners(clazz)) {
-            return;
-        }
+         if (!hasListeners(clazz)) return;
+
         PACKET_ADAPTERS.get(clazz).callPacket(player, packetContainer, isRead);
     }
 
@@ -242,16 +240,14 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public void errorListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
-        if (!hasListeners(clazz)) {
-            return;
-        }
+        if (!hasListeners(clazz)) return;
+
         PACKET_ADAPTERS.get(clazz).error(player, PacketType.getPacketType(clazz), packetContainer);
     }
 
     public void cancelListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
-        if (!hasListeners(clazz)) {
-            return;
-        }
+        if (!hasListeners(clazz)) return;
+
         PACKET_ADAPTERS.get(clazz).cancel(player, packetContainer, isRead);
     }
 
@@ -279,12 +275,26 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (type.getBound() == PacketBound.SERVER) {
             return new InternalPacketContainer<>(packet, player, channel, postAction, type);
         }
-        PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket = InboundPacketFilter.getEarlyPacketInitializer().get();
-        if (earlyInitializedPacket != null && earlyInitializedPacket.getPlayer().equals(player)) {
-            earlyInitializedPacket.set(packet, postAction, type);
+        if (player != null) {
+            if (player.decoder == null) {
+                player.decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
+                if (player.decoder == null)
+                    return new InternalPacketContainer<>(packet, player, channel, postAction, type);
+            }
+            if (player.decoder.earlyInitializedPacketQueue.isEmpty())
+                return new InternalPacketContainer<>(packet, player, channel, postAction, type);
 
-            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, (double) earlyInitializedPacket.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
-            return earlyInitializedPacket;
+            PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket;
+            while ((earlyInitializedPacket = player.decoder.earlyInitializedPacketQueue.poll()) != null && !earlyInitializedPacket.getHandle().equals(packet)) {
+
+            }
+
+            if (earlyInitializedPacket != null && earlyInitializedPacket.getHandle().equals(packet)) {
+                earlyInitializedPacket.init(packet, postAction, type);
+
+                HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, (double) earlyInitializedPacket.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+                return earlyInitializedPacket;
+            }
         }
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
     }

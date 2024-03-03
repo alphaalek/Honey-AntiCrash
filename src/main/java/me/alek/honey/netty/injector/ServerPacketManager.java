@@ -4,8 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.injector.handler.OutboundPacketEncoder;
-import me.alek.honey.netty.injector.handler.UpdatableChannel;
+import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
@@ -56,19 +55,19 @@ public class ServerPacketManager {
         channel.pipeline().fireChannelRead(rawPacket);
     }
 
-    public UpdatableChannel getHandler(Channel channel) {
-        return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
+    public DuplexChannelHandler getHandler(Channel channel) {
+        return (DuplexChannelHandler) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
     }
 
-    public UpdatableChannel getFilter(Channel channel) {
-        return (UpdatableChannel) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getFilterName());
+    public InboundPacketFilter getFilter(Channel channel) {
+        return (InboundPacketFilter) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getFilterName());
     }
 
-    public ChannelHandler getDecoder(Channel channel) {
-        return channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
+    public InboundPacketDecoder getDecoder(Channel channel) {
+        return (InboundPacketDecoder) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
     }
 
-    public ChannelHandler getEncoder(Channel channel) {
-        return channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getEncoderName());
+    public OutboundPacketEncoder getEncoder(Channel channel) {
+        return (OutboundPacketEncoder) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getEncoderName());
     }
 }

@@ -11,7 +11,9 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketEventloopStateTimings getEventloopStateTimings();
 
-    void set(Object packet, Runnable postAction, PacketTypeEnum packetType);
+    void setHandle(Object packet);
+
+    void init(Object packet, Runnable postAction, PacketTypeEnum packetType);
 
     long getTime();
 
