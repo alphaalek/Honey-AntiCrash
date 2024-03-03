@@ -285,7 +285,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 return new InternalPacketContainer<>(packet, player, channel, postAction, type);
 
             PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket;
-            while ((earlyInitializedPacket = player.decoder.earlyInitializedPacketQueue.poll()) != null && !earlyInitializedPacket.getHandle().equals(packet)) {
+            while ((earlyInitializedPacket = player.decoder.earlyInitializedPacketQueue.poll()) != null && !packet.equals(earlyInitializedPacket.getHandle())) {
 
             }
 

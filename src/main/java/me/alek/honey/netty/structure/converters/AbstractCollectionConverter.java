@@ -1,8 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
-import com.google.common.collect.Iterators;
-
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 public class AbstractCollectionConverter<K, V> implements CollectionConverter<K, V> {
@@ -103,7 +102,7 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     @Override
     public Iterator<V> iterator() {
-        if (checkCollections()) return Iterators.emptyIterator();
+        if (checkCollections()) return Collections.emptyIterator();
 
         return delegatedCollection.iterator();
     }

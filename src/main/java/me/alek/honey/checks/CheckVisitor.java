@@ -13,6 +13,7 @@ import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,10 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     if (response.TERMINATE) terminated = true;
                     continue;
                 }
-                if (response.CANCELLED) cancellablePacketObserver.cancel();
+                if (response.CANCELLED) {
+                    Bukkit.broadcastMessage("Cancelled " + check.getName());
+                    cancellablePacketObserver.cancel();
+                }
 
                 final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
                 if (response.FLAG != -1 && player != null) {

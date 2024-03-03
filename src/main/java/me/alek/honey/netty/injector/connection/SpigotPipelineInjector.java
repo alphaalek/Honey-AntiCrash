@@ -28,9 +28,6 @@ public class SpigotPipelineInjector {
 
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
             channel.pipeline().addBefore("packet_handler", handlerName, new DuplexChannelHandler());
-
-            Bukkit.getLogger().info("Init " + channel.pipeline().toMap());
-
         }
     }
 

@@ -1,6 +1,5 @@
 package me.alek.honey.netty.packet;
 
-import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
@@ -19,11 +18,9 @@ import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInPing;
 import me.alek.honey.netty.packetwrappers.status.client.WrappedStatusInStart;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutPong;
 import me.alek.honey.netty.packetwrappers.status.server.WrappedStatusOutServerInfo;
-import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.Reflection;
-import org.bukkit.entity.Player;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -66,6 +63,8 @@ public class PacketWrapperInvokerFactory {
             final MethodInvoker<Object> methodInvoker = Reflection.getMethod(method);
             METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
         }
+
+
 
         PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.PLAY), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().info("NULL: " + packetType.getClass().getName() + " " + packetType.getPacketId());

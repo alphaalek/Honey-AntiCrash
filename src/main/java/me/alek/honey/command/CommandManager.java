@@ -56,7 +56,7 @@ public class CommandManager implements CommandExecutor {
     }
 
     public void showInfo(CommandSender sender) {
-        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
+        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated! Latest: v" + HoneyPlugin.get().getLatestVersion() + ")" : "";
         String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 
         sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);

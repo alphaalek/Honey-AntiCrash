@@ -33,6 +33,7 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.NumberConversions;
 import me.alek.honey.utility.Tuple2;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -293,16 +294,21 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan);
                         if ((trackerSize > 25 && hsq > 0.45 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.6 * multiplier) {
+                            Bukkit.getLogger().info(hsq + " " + multiplier  + " hsq");
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("hsq")).flag(1).build();
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan);
                         if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
+                            Bukkit.getLogger().info(ta + " " + multiplier+ " ta");
+
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                         }
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan);
                         if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
+                            Bukkit.getLogger().info(tt + " " + multiplier+ " tt");
+
                             return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
                         }
                     }

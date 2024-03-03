@@ -2,10 +2,10 @@ package me.alek.honey;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class DevHoneyPluginInitializer extends JavaPlugin {
+public class HoneyPluginInitializer extends JavaPlugin {
 
     private final HoneyAPI plugin = new HoneyPlugin(this,
-            getDescription().getVersion(), getDescription().getVersion());
+            getDescription().getVersion(), null);
 
     @Override
     public void onEnable() {

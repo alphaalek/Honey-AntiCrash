@@ -45,7 +45,12 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,8 +85,9 @@ public class HoneyPlugin implements HoneyAPI {
 
     public HoneyPlugin(Plugin plugin, String version, String latestVersion) {
         this.plugin = plugin;
-        this.latestVersion = latestVersion;
-        isUsingOldVersion = !version.equals(latestVersion);
+
+        this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
+        isUsingOldVersion = !version.equals(this.latestVersion);
 
         if (!plugin.getDescription().getVersion().equals(version)) {
             try {
@@ -96,7 +102,51 @@ public class HoneyPlugin implements HoneyAPI {
         }
     }
 
+    private static class InvalidLicenseException extends RuntimeException {
+
+        @Override
+        public String getMessage() {
+            return "You have an invalid license specified in your config.yml. Open the file at /plugins/honey/config.yml and follow the instructions at the top.";
+        }
+    }
+
+    private HttpURLConnection getConnection() {
+        plugin.saveDefaultConfig();
+        String license = plugin.getConfig().getString("license");
+
+        if (license.isEmpty()) {
+            throw new InvalidLicenseException();
+        }
+
+        try {
+            URL url = new URL("http://178.128.196.32:4000/api/v1/license/verify-license?license=" + license);
+
+            return (HttpURLConnection) url.openConnection();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            Bukkit.getLogger().severe("An error occurred when connecting to license auth servers!");
+        }
+        return null;
+    }
+
+    private String verifyAndGetLatestVersion() {
+        HttpURLConnection connection = getConnection();
+
+        try {
+            if (connection != null && connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                return new BufferedReader(
+                        new InputStreamReader(connection.getInputStream())).readLine();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Bukkit.getLogger().severe("An error occurred when connecting to license auth servers!");
+        }
+        throw new InvalidLicenseException();
+    }
+
     public synchronized void onEnable() {
+        // verify the license key specified
+
         // check compatability and conflicts of runtime load or minecraft version
         String conflict = null;
         if (isLoaded || isRunning)
@@ -206,18 +256,16 @@ public class HoneyPlugin implements HoneyAPI {
         }.runTaskTimerAsynchronously(plugin, 0L, 60L);
     }
 
-    private void setupSaltVerification() {
-
-    }
-
     public void onDisable() {
-        isRunning = false;
+        if (isRunning) {
+            isRunning = false;
 
-        getPacketLibrary().disable();
+            getPacketLibrary().disable();
 
-        WorkerPool.ASYNC_PACKET_DECODER_POOL.terminate();
+            WorkerPool.ASYNC_PACKET_DECODER_POOL.terminate();
 
-        getLoggerService().getLogger().info("Honey is now disabled!");
+            getLoggerService().getLogger().info("Honey is now disabled!");
+        }
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {

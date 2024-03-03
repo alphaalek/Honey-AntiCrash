@@ -149,7 +149,7 @@ public class ItemAnalysis {
                 return getRegistryFrom(checker);
             }
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().info("Error occurred at item analysis check");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred at item analysis check");
             ex.printStackTrace();
         }
         return null;

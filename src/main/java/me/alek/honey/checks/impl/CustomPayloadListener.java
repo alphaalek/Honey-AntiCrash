@@ -64,9 +64,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
     @Override
     public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
-        ByteBuf byteBuf = container.getStorage().get(ByteBuf.class, 0);
-        if (byteBuf != null)
-            byteBuf.release();
+        if (packetContainer.isCancelled()) {
+            ByteBuf byteBuf = container.getStorage().get(ByteBuf.class, 0);
+            if (byteBuf != null)
+                byteBuf.release();
+        }
     }
 
     @Override
@@ -176,8 +178,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                         return ResponseBuilder.inst().cancel().flag().build();
                     }
 
-                    int nbtSize = nbt.toString().getBytes().length;
-                    if (nbtSize > getSetting().max) {
+                    int nbtSize;
+                    if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
                         container.getDevelopmentData(this).addPoint("NBT Size", nbtSize);
                         return ResponseBuilder.inst().cancel().flag().build();
                     }

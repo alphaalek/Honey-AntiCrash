@@ -44,7 +44,7 @@ public class MessageFormat {
         }
 
         if (startIndex != -1) {
-            indices.add(MessageIndex.asSubstring(startIndex, mib.length - 1, message));
+            indices.add(MessageIndex.asSubstring(startIndex, mib.length, message));
         }
 
         return new MessageFormat(indices);

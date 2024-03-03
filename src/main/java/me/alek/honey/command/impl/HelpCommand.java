@@ -2,13 +2,14 @@ package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public class HelpCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender, String[] args) {
-        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated)" : "";
+        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated! Latest: v" + HoneyPlugin.get().getLatestVersion() + ")" : "";
         String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 
         sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);

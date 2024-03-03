@@ -2,9 +2,9 @@ name: Honey
 description: One of the best advanced AntiCrash-plugins securing servers for Minecraft Exploits and Netty Crashes.
 author: Alek05
 website: https://discord.gg/veAtFHG65u
-version: -Dev
+version: 2.0
 api-version: 1.13
-main: me.alek.honey.DevHoneyPluginInitializer
+main: me.alek.honey.HoneyPluginInitializer
 commands:
   honey:
   asyncdecoderdebug:
