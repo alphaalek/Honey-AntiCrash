@@ -910,12 +910,6 @@ public class ConfigurationOptions {
                 return BlockInteractA.getRequiredContentTypes();
             }
         }
-
-        @Setting
-        @Violation(prefixPaths = "block-interact.f", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class BlockInteractF extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-        }
     }
 
     @Setting

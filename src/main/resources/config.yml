@@ -616,12 +616,6 @@ block-interact:
     interval: 1000
     vls-amount: 5
 
-  f:
-    enabled: true
-    max-per-interval: 50
-    interval: 1450
-    vls-amount: 3
-
 # |--- tab complete ---|
 tab-complete:
   a:

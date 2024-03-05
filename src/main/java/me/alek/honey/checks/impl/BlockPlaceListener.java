@@ -56,7 +56,6 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             visitor.visit(new BlockInteractD<>());
         }
-        visitor.visit(new BlockInteractF<>());
         return visitor;
     }
 
@@ -261,58 +260,6 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractD.class);
-        }
-    }
-
-    public static class BlockInteractF<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
-
-        private boolean isValidTileEntity(Material type) {
-            final String name = type.name();
-            return name.contains("CHEST") || name.contains("BARREL") || name.contains("SHULKER_BOX") || name.contains("ANVIL")
-                    || name.contains("WORKBENCH") || name.contains("ENCHANTMENT_TABLE") || name.contains("FURNACE") || name.contains("NOTE_BLOCK")
-                    || name.contains("JUKEBOX") || name.contains("HOPPER") || name.contains("DISPENSER") || name.contains("DROPPER")
-                    || name.contains("GRINDSTONE") || name.contains("CARTOGRAPHY_TABLE") || name.contains("SMITHING_TABLE") || name.contains("FLETCHING_TABLE")
-                    || name.contains("STONECUTTER") || name.contains("LECTERN") || name.contains("LOOM") || name.contains("BEACON")
-                    || name.contains("BREWING_STAND");
-        }
-
-        @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-
-                final WrappedBlockPosition position = packet.getBlockPosition();
-                if (position != null) {
-                    final Location location = position.toLocation(player.getWorld());
-                    if (!PositionListener.isChunkLoaded(location)) {
-                        return ResponseBuilder.SUCCESS;
-                    }
-                    final Material type = location.getBlock().getType();
-                    if (isValidTileEntity(type)) {
-                        return ResponseBuilder.inst().flag().build();
-                    }
-                }
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public String getName() {
-            return "BlockInteract.F";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Interacting too quickly with certain tile entities";
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.BLOCK_PLACE_FILTER;
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractF.class);
         }
     }
 }
