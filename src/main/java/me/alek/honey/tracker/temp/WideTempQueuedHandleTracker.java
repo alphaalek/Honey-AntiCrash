@@ -78,7 +78,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double getHalfServerThreadQuotient(HoneyPlayer player, Timespan timespan) {
-        return getPlayerTotal(player, timespan) / (1000 * timespan.getTimespan()) * 2;
+        return getPlayerTotal(player, timespan) / (Math.pow(10, 9) * timespan.getTimespan()) * 2;
     }
 
     public double getPlayerTotal(HoneyPlayer player, Timespan timespan) {

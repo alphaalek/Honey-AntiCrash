@@ -86,11 +86,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             PacketContainer<? extends WrappedPacket<?>> packet = PacketTaskHandler.getLastHandledPacket();
             if (packet == null || !player.equals(packet.getPlayer())) return 0;
 
-            return packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
+            return packet.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_HANDLE);
         }
 
         private double getDeltaTime() {
-            return ((double) (System.nanoTime() - recentPollStart)) / 1_000_000;
+            return System.nanoTime() - recentPollStart;
         }
 
         private double getDeltaTimeExact(HoneyPlayer player) {
@@ -144,7 +144,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                     // evaluate the difference in time
                     double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
 
-                    registerTime(player, Math.max(0, deltaTime - 0.0025));
+                    registerTime(player, deltaTime);
                 }
                 recentDeltaTime = -1;
             }

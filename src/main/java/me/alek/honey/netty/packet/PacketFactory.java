@@ -10,6 +10,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.util.Map;
@@ -20,6 +21,8 @@ public class PacketFactory {
     public static Map<PacketTypeEnum, MethodInvoker<Object>> WRAPPER_CACHE = new ConcurrentHashMap<>();
 
     public static Object createRawPacket(PacketTypeEnum type) {
+        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) throw new UnsupportedOperationException();
+
         try {
             return type.getNmsClass().newInstance();
         } catch (Exception ex) {
@@ -29,6 +32,8 @@ public class PacketFactory {
     }
 
     public static Object createRawPacket(PacketTypeEnum type, ByteBuf serializer) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) return createRawPacket(type);
+
         try {
             return type.getNmsClass().getDeclaredConstructor(NMSUtils.getPacketDataSerializerClass())
                     .newInstance(new WrappedPacketDataSerializer(serializer).toNMSSerializer());

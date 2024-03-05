@@ -13,6 +13,7 @@ import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.NMSUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabComplete> {
 
@@ -37,12 +38,6 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         return getWrappedSuggestionsObject().getSuggestions(controlDeclaring);
     }
 
-    private Object[] getHandleFromArrayList(List<?> list) {
-        final IStructureModifier<Object[]> modifier = ReflectStructureCache.acquireStructure(list.getClass())
-                .withType(Object[].class).withTarget(list);
-        return modifier.readField(2);
-    }
-
     private String[] createStringArrayFromObjectArray(Object[] objects) {
         if (objects instanceof String[]) return (String[]) objects;
 
@@ -54,10 +49,9 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
     }
 
     private Object[] removeNullsFromArray(Object[] array) {
-        final List<?> list = new ArrayList<>(Arrays.asList(array));
-        list.removeIf(value -> Objects.isNull(value) || value.toString().equals("null"));
-
-        return list.toArray();
+        Set<Object> set = Arrays.stream(array).collect(Collectors.toSet());
+        set.removeAll(Collections.singleton(null));
+        return set.toArray();
     }
 
     public List<String> getControllableSuggestions() {
@@ -67,17 +61,17 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
             public boolean remove(Object o) {
                 if (!(o instanceof String)) return false;
 
-                final List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
-                suggestions.remove(o);
-
                 if (!IS_MODERN) {
+                    final List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
+                    boolean removed = suggestions.remove(o);
+
                     getContainer().getStringArrays().writeField(0,
                             createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
+                    return removed;
                 }
                 else {
-                    getSuggestionsHandle(true).removeConverted(new WrappedSuggestion((String)o));
+                    return getSuggestionsHandle(true).removeConverted(new WrappedSuggestion((String)o));
                 }
-                return true;
             }
 
             @Override
