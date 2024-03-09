@@ -5,10 +5,9 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 
 import java.util.*;
 
@@ -28,9 +27,9 @@ public class SpigotServerInjector {
 
     private <T> List<T> getNonEmptyServerConnectionList(Class<T> clazz) {
         if (serverConnectionListAccessor == null) {
-            Object serverConnection = NMSUtils.getServerConnection();
+            Object serverConnection = NMS.getServerConnection();
 
-            serverConnectionListAccessor = ReflectStructureCache.acquireStructure(NMSUtils.getServerConnectionClass())
+            serverConnectionListAccessor = ReflectStructureCache.acquireStructure(NMS.getServerConnectionClass())
                     .<List<?>>withWeakType(List.class).withTarget(serverConnection);
         }
         if (serverConnectionListAccessor == null) return null;
@@ -85,7 +84,7 @@ public class SpigotServerInjector {
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
 
-                Channel networkManagerChannel = NMSUtils.getChannelFromNetworkManager(networkManager);
+                Channel networkManagerChannel = NMS.getChannelFromNetworkManager(networkManager);
                 if (networkManagerChannel == null || !networkManagerChannel.isOpen()) continue;
 
                 if (networkManagerChannel.localAddress().equals(channel.localAddress())) {
@@ -99,7 +98,7 @@ public class SpigotServerInjector {
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
 
-                if (channel.equals(NMSUtils.getChannelFromNetworkManager(networkManager)))
+                if (channel.equals(NMS.getChannelFromNetworkManager(networkManager)))
                     return networkManager;
             }
         }
@@ -119,7 +118,7 @@ public class SpigotServerInjector {
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
 
-                Channel channel = NMSUtils.getChannelFromNetworkManager(networkManager);
+                Channel channel = NMS.getChannelFromNetworkManager(networkManager);
                 if (channel == null) continue;
 
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
@@ -145,7 +144,7 @@ public class SpigotServerInjector {
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
 
-                Channel channel = NMSUtils.getChannelFromNetworkManager(networkManager);
+                Channel channel = NMS.getChannelFromNetworkManager(networkManager);
                 if (channel == null) continue;
 
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);

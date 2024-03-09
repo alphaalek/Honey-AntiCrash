@@ -11,9 +11,8 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -11,7 +11,7 @@ import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.utility.NetProtocol;
 import org.bukkit.Bukkit;

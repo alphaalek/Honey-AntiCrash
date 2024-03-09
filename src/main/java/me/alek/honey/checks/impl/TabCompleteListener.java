@@ -19,8 +19,8 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
+import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 
 import java.util.*;
@@ -55,7 +55,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
     @Override
     public void load() {
-        TabA.prohibitedCommands = ChatListener.getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);;
+        TabA.prohibitedCommands = ChatListener.getSatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);;
     }
 
     @Override

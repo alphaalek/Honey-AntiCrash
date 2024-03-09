@@ -3,7 +3,7 @@ package me.alek.honey;
 import io.netty.channel.Channel;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.services.ViolationService;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -50,7 +50,7 @@ public class HoneyPlayer {
         this.player = player;
 
         uuid = player.getUniqueId();
-        channel = NMSUtils.getChannel(player);
+        channel = NMS.getChannel(player);
         name = player.getName();
         violationContext = new ViolationService.ViolationContext(this);
     }

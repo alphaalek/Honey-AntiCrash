@@ -7,7 +7,7 @@ import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInUseEntity;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInUseEntity;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
@@ -16,7 +16,7 @@ import me.alek.honey.netty.structure.converters.dedicated.SimpleMapConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleSetConverter;
 import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.ItemReflection;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Chunk;
 import org.bukkit.inventory.ItemStack;
@@ -66,10 +66,10 @@ public class Converters {
                 if (delegate == null) {
                     return null;
                 }
-                if (!NMSUtils.isBlockPosition(delegate)) {
+                if (!NMS.isBlockPosition(delegate)) {
                     return null;
                 }
-                ReflectStructure<Object, ?> blockPositionStructure = ReflectStructureCache.acquireStructure(NMSUtils.getBaseBlockPositionClass());
+                ReflectStructure<Object, ?> blockPositionStructure = ReflectStructureCache.acquireStructure(NMS.getBaseBlockPositionClass());
                 IStructureModifier<Integer> intStructure = blockPositionStructure.asInt().withTarget(delegate);
 
                 if (intStructure.fieldSize() < 3) {
@@ -85,7 +85,7 @@ public class Converters {
                     return null;
                 }
                 ConstructorInvoker<Object> blockPositionConstructor = Reflection.getConstructor(
-                        NMSUtils.getBlockPositionClass(), int.class, int.class, int.class);
+                        NMS.getBlockPositionClass(), int.class, int.class, int.class);
                 try {
                     return blockPositionConstructor.invoke(
                             blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
@@ -104,7 +104,7 @@ public class Converters {
                     return null;
                 }
 
-                ReflectStructure<Object, ?> vec3DModifier = ReflectStructureCache.acquireStructure(NMSUtils.getVec3DClass());
+                ReflectStructure<Object, ?> vec3DModifier = ReflectStructureCache.acquireStructure(NMS.getVec3DClass());
                 IStructureModifier<Double> doubleModifier = vec3DModifier.asDouble().withTarget(delegate);
 
                 if (doubleModifier.fieldSize() < 3) {
@@ -120,7 +120,7 @@ public class Converters {
                     return null;
                 }
                 ConstructorInvoker<Object> blockPositionConstructor = Reflection.getConstructor(
-                        NMSUtils.getVec3DClass(), double.class, double.class, double.class);
+                        NMS.getVec3DClass(), double.class, double.class, double.class);
                 try {
                     return blockPositionConstructor.invoke(
                             object.getX(), object.getY(), object.getZ());
@@ -157,8 +157,8 @@ public class Converters {
 
             @Override
             public Object convertDeclaring(Chunk object) {
-                IStructureModifier<Object> craftChunkModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftChunkClass())
-                        .withType(NMSUtils.getChunkClass())
+                IStructureModifier<Object> craftChunkModifier = ReflectStructureCache.acquireStructure(NMS.getCraftChunkClass())
+                        .withType(NMS.getChunkClass())
                         .withTarget(object);
                 return craftChunkModifier.invokeMethod("getHandle");
             }
@@ -192,7 +192,7 @@ public class Converters {
     public static JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction> getEntityUseActionConverter() {
         return getConverter(WrappedPlayInUseEntity.EnumEntityUseAction.class, (clazz) -> new JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction>() {
 
-            private final Class<Object> enumEntityUseActionClass = NMSUtils.getEntityUseActionClass();
+            private final Class<Object> enumEntityUseActionClass = NMS.getEntityUseActionClass();
 
             @Override
             public WrappedPlayInUseEntity.EnumEntityUseAction convertDelegate(Object delegate, Object... params) {
@@ -221,7 +221,7 @@ public class Converters {
                     return null;
                 }
                 ConstructorInvoker<Object> constructorInvoker = Reflection.getConstructor(
-                        NMSUtils.getChunkCoordIntPairClass(), int.class, int.class
+                        NMS.getChunkCoordIntPairClass(), int.class, int.class
                 );
                 Object chunkPair;
                 try {

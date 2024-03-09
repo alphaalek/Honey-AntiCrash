@@ -1,0 +1,16 @@
+package me.alek.honey.packetwrappers.login.client;
+
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.packetwrappers.WrappedPacket;
+
+public class WrappedLoginInLoginStart extends WrappedPacket<WrappedLoginInLoginStart> {
+
+    public WrappedLoginInLoginStart(Object rawPacket, PacketContainer<WrappedLoginInLoginStart> packetContainer) {
+        super(rawPacket, packetContainer);
+    }
+
+    public WrappedGameProfile getProfile() {
+        return getContainer().getGameProfiles().readField(0);
+    }
+}

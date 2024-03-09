@@ -13,8 +13,8 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
+import me.alek.honey.netty.utility.NMS;
 
 import java.net.InetSocketAddress;
 import java.util.Collections;
@@ -57,8 +57,8 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 
-            if (NMSUtils.getNetworkManagerClass().isInstance(handler)) {
-                InetSocketAddress address = NMSUtils.getSocketAddress(handler);
+            if (NMS.getNetworkManagerClass().isInstance(handler)) {
+                InetSocketAddress address = NMS.getSocketAddress(handler);
 
                 if (address == null || address.getAddress() == null) {
                     return ResponseBuilder.inst().cancel().build();

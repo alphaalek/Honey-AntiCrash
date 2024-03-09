@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,7 +19,7 @@ public class BukkitEventInternal implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        Channel channel = NMSUtils.getChannel(player);
+        Channel channel = NMS.getChannel(player);
 
         if (channel == null || channel.pipeline().toMap().isEmpty()) {
             player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
@@ -39,8 +39,8 @@ public class BukkitEventInternal implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(NMSUtils.getChannel(player));
-        NMSUtils.removeChannelLookup(player.getUniqueId());
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(NMS.getChannel(player));
+        NMS.removeChannelLookup(player.getUniqueId());
 
         HoneyPlayer.removePlayer(player.getUniqueId());
     }

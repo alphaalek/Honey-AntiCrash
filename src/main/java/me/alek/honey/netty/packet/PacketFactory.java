@@ -7,11 +7,10 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +34,7 @@ public class PacketFactory {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) return createRawPacket(type);
 
         try {
-            return type.getNmsClass().getDeclaredConstructor(NMSUtils.getPacketDataSerializerClass())
+            return type.getNmsClass().getDeclaredConstructor(NMS.getPacketDataSerializerClass())
                     .newInstance(new WrappedPacketDataSerializer(serializer).toNMSSerializer());
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -8,10 +8,10 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
+import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.messages.MessageFormat;
 import me.alek.honey.services.messages.MessageOffer;
@@ -172,9 +172,9 @@ public class NotificationService {
     }
 
     public int getTPS() {
-        Object minecraftServer = NMSUtils.getMinecraftServer();
+        Object minecraftServer = NMS.getMinecraftServer();
 
-        IStructureModifier<double[]> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getMinecraftServerClass())
+        IStructureModifier<double[]> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
                 .withType(double[].class).withTarget(minecraftServer);
 
         return (int) minecraftServerModifier.readField(0)[0];
@@ -183,14 +183,14 @@ public class NotificationService {
     public int getPing(HoneyPlayer player) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
-                    ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
+                    ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
                     .asInt().withTarget(player.player);
 
             return craftPlayerModifier.invokeMethod("getPing");
         }
         IStructureModifier<Object> craftPlayerModifier =
-                ReflectStructureCache.acquireStructure(NMSUtils.getCraftPlayerClass())
-                .withType(NMSUtils.getEntityPlayerClass()).withTarget(player.player);
+                ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
+                .withType(NMS.getEntityPlayerClass()).withTarget(player.player);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle");
 
@@ -273,11 +273,11 @@ public class NotificationService {
 
         packetContainer.getBytes().writeField(0, (byte) 2);
 
-        IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMSUtils.getChatSerializerClass())
-                .withType(NMSUtils.getIChatBaseComponentClass())
+        IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
+                .withType(NMS.getIChatBaseComponentClass())
                 .withTarget(null);
         Object chatComponent = chatSerializer.invokeMethod(0, "{\"text\":\"" + text + "\"}");
-        packetContainer.getObjects(NMSUtils.getIChatBaseComponentClass()).writeField(0, chatComponent);
+        packetContainer.getObjects(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         try {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket, true);

@@ -1,0 +1,11 @@
+package me.alek.honey.packetwrappers.play.server;
+
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.packetwrappers.WrappedPacket;
+
+public class WrappedPlayOutOpenWindowMerchant extends WrappedPacket<WrappedPlayOutOpenWindowMerchant> {
+
+    public WrappedPlayOutOpenWindowMerchant(Object rawPacket, PacketContainer<WrappedPlayOutOpenWindowMerchant> packetContainer) {
+        super(rawPacket, packetContainer);
+    }
+}

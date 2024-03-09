@@ -7,7 +7,7 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.ChatColor;

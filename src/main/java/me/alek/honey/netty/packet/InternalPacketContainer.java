@@ -9,12 +9,12 @@ import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.inventory.ItemStack;
 
@@ -246,12 +246,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public IStructureModifier<ItemStack> getItems() {
-        return getModifier(NMSUtils.getItemStackClass(), Converters.getItemStackConverter());
+        return getModifier(NMS.getItemStackClass(), Converters.getItemStackConverter());
     }
 
     @Override
     public IStructureModifier<WrappedGameProfile> getGameProfiles() {
-        return getModifier(NMSUtils.getGameProfileClass(), Converters.getGameProfileConverter());
+        return getModifier(NMS.getGameProfileClass(), Converters.getGameProfileConverter());
     }
 
     @Override
@@ -261,7 +261,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public IStructureModifier<WrappedBlockPosition> getBlockPositions() {
-        return getModifier(NMSUtils.getBlockPositionClass(), Converters.getBlockPositionConverter());
+        return getModifier(NMS.getBlockPositionClass(), Converters.getBlockPositionConverter());
     }
 
     @Override

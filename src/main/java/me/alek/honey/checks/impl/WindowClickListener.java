@@ -18,9 +18,8 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.utility.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 

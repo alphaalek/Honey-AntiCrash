@@ -13,12 +13,11 @@ import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
+import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,9 +52,6 @@ public class PacketInterceptorResolver {
             handlers = setupEncoderPosition(pipeline, position);
         else
             handlers = setupDecoderInterceptors(pipeline, position);
-
-        Bukkit.getLogger().info("handlers " + handlers);
-        Bukkit.getLogger().info("position " + position);
 
         for (String handler : handlers) {
             pipeline.remove(handler);
@@ -168,10 +164,10 @@ public class PacketInterceptorResolver {
     private static ByteBuf createPositionByteBufPacket(Channel channel, Consumer<ByteBuf> write) {
         AttributeKey<Object> key;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
-            key = ReflectStructureCache.acquireStructure(NMSUtils.getNetworkManagerClass())
+            key = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(PacketLibrary.get().getServerInjector().getNetworkManagerFor(channel)).readField(0);
         else
-            key = ReflectStructureCache.acquireStructure(NMSUtils.getPacketDecoderClass())
+            key = ReflectStructureCache.acquireStructure(NMS.getPacketDecoderClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("decoder")).readField(0);
         if (key == null) {
             throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");

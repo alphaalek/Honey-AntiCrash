@@ -23,6 +23,8 @@ public interface HoneyAPI {
 
     void reload();
 
+    String getLicense();
+
     PacketLibrary getPacketLibrary();
 
     ViolationService getViolationService();

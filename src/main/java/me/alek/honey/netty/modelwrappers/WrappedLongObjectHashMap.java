@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 
 import java.util.Collection;
 import java.util.Map;
@@ -11,7 +11,7 @@ public class WrappedLongObjectHashMap<V> extends WrappedObject<WrappedLongObject
     private final Class<V> clazz;
 
     public WrappedLongObjectHashMap(Object handle) {
-        this(handle, (Class<V>) NMSUtils.getChunkClass());
+        this(handle, (Class<V>) NMS.getChunkClass());
     }
 
     public WrappedLongObjectHashMap(Object handle, Class<V> clazz) {

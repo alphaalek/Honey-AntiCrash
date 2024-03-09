@@ -17,7 +17,7 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import org.bukkit.GameMode;
 
 import java.util.Collections;

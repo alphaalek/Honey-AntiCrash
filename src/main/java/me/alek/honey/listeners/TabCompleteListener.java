@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 
 import java.util.List;
 

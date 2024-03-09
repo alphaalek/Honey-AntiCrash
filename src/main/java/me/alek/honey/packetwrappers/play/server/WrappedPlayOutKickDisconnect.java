@@ -1,0 +1,11 @@
+package me.alek.honey.packetwrappers.play.server;
+
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.packetwrappers.WrappedPacket;
+
+public class WrappedPlayOutKickDisconnect extends WrappedPacket<WrappedPlayOutKickDisconnect> {
+
+    public WrappedPlayOutKickDisconnect(Object rawPacket, PacketContainer<WrappedPlayOutKickDisconnect> packetContainer) {
+        super(rawPacket, packetContainer);
+    }
+}

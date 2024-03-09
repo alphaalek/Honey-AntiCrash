@@ -7,8 +7,7 @@ import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.IReflectResolver;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.IReflectMember;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -67,7 +66,7 @@ public class ReflectStructure<T, C> {
     }
 
     private void setDefault(
-            Map<Integer, ? extends IReflectResolver<?>> defaults,
+            Map<Integer, ? extends IReflectMember<?>> defaults,
             boolean isFields
     ) {
         AtomicInteger index = new AtomicInteger();
@@ -79,15 +78,15 @@ public class ReflectStructure<T, C> {
         }
     }
 
-    private Map<Integer, ? extends IReflectResolver<?>> setDefaultSpecific(
+    private Map<Integer, ? extends IReflectMember<?>> setDefaultSpecific(
             AtomicInteger index,
-            Map<Integer, ? extends IReflectResolver<?>> defaults,
+            Map<Integer, ? extends IReflectMember<?>> defaults,
             Class<?> clazz,
             boolean isFields
     ) {
         Object[] handles = (isFields) ? clazz.getDeclaredFields() : clazz.getDeclaredMethods();
         for (Object handle : handles) {
-            IReflectResolver<?> toucher = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
+            IReflectMember<?> toucher = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
             defaults.put(index.getAndIncrement(), castReflectToucher(toucher));
         }
         return defaults;
@@ -103,13 +102,13 @@ public class ReflectStructure<T, C> {
         return (Map<Integer, MethodInvoker<T>>) getAcquired(type, new HashMap<Integer, MethodInvoker<T>>(), DEFAULT_INVOKERS);
     }
 
-    private synchronized Map<Integer, ? extends IReflectResolver<T>> getAcquired(
+    private synchronized Map<Integer, ? extends IReflectMember<T>> getAcquired(
             Class<?> targetType,
-            Map<Integer, ? extends IReflectResolver<T>> acquiredMap,
-            Map<Integer, ? extends IReflectResolver<?>> defaultMap
+            Map<Integer, ? extends IReflectMember<T>> acquiredMap,
+            Map<Integer, ? extends IReflectMember<?>> defaultMap
     ) {
         int index = 0;
-        for (IReflectResolver<?> reflectToucher : defaultMap.values()) {
+        for (IReflectMember<?> reflectToucher : defaultMap.values()) {
             if (targetType != null && !targetType.isAssignableFrom(reflectToucher.getType())) {
                 continue;
             }
@@ -120,7 +119,7 @@ public class ReflectStructure<T, C> {
     }
 
     @SuppressWarnings("unchecked")
-    private <R extends IReflectResolver<?>> R castReflectToucher(IReflectResolver<?> reflectToucher) {
+    private <R extends IReflectMember<?>> R castReflectToucher(IReflectMember<?> reflectToucher) {
         return (R) reflectToucher;
     }
 

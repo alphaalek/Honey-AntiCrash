@@ -4,11 +4,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
-import me.alek.honey.netty.utility.NMSUtils;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.utility.NMS;
 
 import java.lang.reflect.Method;
 
@@ -22,7 +20,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
             packetEncode = MessageToByteEncoder.class.getDeclaredMethod("encode", ChannelHandlerContext.class, Object.class, ByteBuf.class);
             packetEncode.setAccessible(true);
 
-            packetClass = NMSUtils.getPacketClass();
+            packetClass = NMS.getPacketClass();
 
         } catch (Exception ex) {
             ex.printStackTrace();

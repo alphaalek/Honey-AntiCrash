@@ -17,10 +17,10 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
@@ -57,7 +57,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
     @Override
     public void load() {
-       CommandsA.prohibitedCommands = getStatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
+       CommandsA.prohibitedCommands = getSatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
     }
 
     @Override
@@ -113,10 +113,9 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                int maxLength = below_1_11 ? 100 : 256;
                 int messageLength = packet.getMessage().length();
 
-                if (messageLength > maxLength) {
+                if (messageLength > (below_1_11 ? 100 : 256)) {
                     container.getDevelopmentData(this).addPoint("Message length", messageLength);
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
@@ -158,8 +157,8 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         return command.toLowerCase();
     }
 
-    public static String[] getStatisfiedList(List<String> commands) {
-        IStructureModifier<CommandMap> craftServerModifier = ReflectStructureCache.acquireStructure(NMSUtils.getCraftServerClass())
+    public static String[] getSatisfiedList(List<String> commands) {
+        IStructureModifier<CommandMap> craftServerModifier = ReflectStructureCache.acquireStructure(NMS.getCraftServerClass())
                 .withType(CommandMap.class)
                 .withTarget(Bukkit.getServer());
         final CommandMap commandMap = craftServerModifier.readField(0);

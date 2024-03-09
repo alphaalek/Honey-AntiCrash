@@ -10,8 +10,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
+import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

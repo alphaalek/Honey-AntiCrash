@@ -26,7 +26,7 @@ public class NBTFactory {
         final NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES + 10);
         final ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
         final IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
-                .withTypeWithoutCache(NMSUtils.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))
+                .withTypeWithoutCache(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))
                 .withTarget(nmsItem);
 
         final NBTBase<?, ?> base = structureModifier.readField(0);
@@ -105,7 +105,7 @@ public class NBTFactory {
             return structureModifier.invokeMethod("getTypeId");
         }
         return structureModifier.invokeMethod(
-                (invoker) -> invoker.getMethod().getDeclaringClass().getSuperclass() != NMSUtils.getNBTBaseClass());
+                (invoker) -> invoker.getMethod().getDeclaringClass().getSuperclass() != NMS.getNBTBaseClass());
     }
 
     public static NBTType getType(Object handle, boolean ignoreNestedLists, NBTBase<?, ?> owner) {

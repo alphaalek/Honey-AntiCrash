@@ -8,14 +8,13 @@ import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.*;
 import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.ThreadLocalAccessor;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -43,8 +42,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private void tryInject() {
         Class<?> queueHolderClass = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)
-                ? NMSUtils.getMinecraftServerClass() : NMSUtils.getIAsyncTaskHandlerClass();
-        Object minecraftServer = NMSUtils.getMinecraftServer();
+                ? NMS.getMinecraftServerClass() : NMS.getIAsyncTaskHandlerClass();
+        Object minecraftServer = NMS.getMinecraftServer();
 
         FieldAccessor<Queue<?>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
 
@@ -74,7 +73,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 add(delegate.poll());
             }
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null
-                    : (tickTaskConstructor = Reflection.getConstructor(NMSUtils.getTickTaskClass(), int.class, Runnable.class))
+                    : (tickTaskConstructor = Reflection.getConstructor(NMS.getTickTaskClass(), int.class, Runnable.class))
                     .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
 
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {

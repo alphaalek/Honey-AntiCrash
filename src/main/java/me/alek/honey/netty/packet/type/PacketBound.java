@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet.type;
 
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.Reflection;
 
 public enum PacketBound {
@@ -9,6 +9,6 @@ public enum PacketBound {
     CLIENT;
 
     public Enum<?> getNMSWrapperType() {
-        return Reflection.getEnumAtIndex(NMSUtils.getEnumProtocolDirectionClass(), ordinal());
+        return Reflection.getEnumAtIndex(NMS.getEnumProtocolDirectionClass(), ordinal());
     }
 }

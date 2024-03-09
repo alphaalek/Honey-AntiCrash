@@ -1,0 +1,10 @@
+package me.alek.honey.packetwrappers.play.server;
+
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.packetwrappers.WrappedPacket;
+
+public class WrappedPlayOutSpawnEntity extends WrappedPacket<WrappedPlayOutSpawnEntity> {
+    public WrappedPlayOutSpawnEntity(Object rawPacket, PacketContainer<WrappedPlayOutSpawnEntity> packetContainer) {
+        super(rawPacket, packetContainer);
+    }
+}

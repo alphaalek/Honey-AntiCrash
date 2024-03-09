@@ -4,10 +4,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Version;
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.utility.LibVersion;
 
@@ -38,7 +36,7 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof Channel) || NMSUtils.isFakeChannel((Channel) msg)) return;
+        if (!(msg instanceof Channel) || NMS.isFakeChannel((Channel) msg)) return;
 
         Channel channel = (Channel) msg;
         //Resolve netty version only once.

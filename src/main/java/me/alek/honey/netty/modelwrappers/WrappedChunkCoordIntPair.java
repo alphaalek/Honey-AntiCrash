@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 
 public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
 
@@ -37,7 +37,7 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
             WrappedChunkCoordIntPair chunkPair = (WrappedChunkCoordIntPair) object;
             return this.x == chunkPair.getX() && this.z == chunkPair.getZ();
         }
-        if (NMSUtils.getChunkCoordIntPairClass().isInstance(object)) {
+        if (NMS.getChunkCoordIntPairClass().isInstance(object)) {
             return equals(new WrappedChunkCoordIntPair(object));
         }
         return false;

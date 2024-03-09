@@ -7,7 +7,6 @@ import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.Configuration;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinListener;
@@ -17,14 +16,13 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
 import me.alek.honey.netty.injector.handler.async.DebugCommand;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.Reflection;
@@ -32,13 +30,14 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.session.NoSessionEncryption;
+import me.alek.honey.session.Session;
 import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.*;
 import me.alek.honey.tracker.markable.RegistryMarkableHandleTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.markable.MarkableHandleTracker;
-import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -52,7 +51,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -85,6 +83,10 @@ public class HoneyPlugin implements HoneyAPI {
 
     public HoneyPlugin(Plugin plugin, String version, String latestVersion) {
         this.plugin = plugin;
+        INSTANCE = this;
+
+        Session.setup();
+        Session.requestSession();
 
         this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
         isUsingOldVersion = !version.equals(this.latestVersion);
@@ -112,14 +114,13 @@ public class HoneyPlugin implements HoneyAPI {
 
     private HttpURLConnection getConnection() {
         plugin.saveDefaultConfig();
-        String license = plugin.getConfig().getString("license");
 
-        if (license.isEmpty()) {
+        if (getLicense().isEmpty()) {
             throw new InvalidLicenseException();
         }
 
         try {
-            URL url = new URL("http://178.128.196.32:4000/api/v1/license/verify-license?license=" + license);
+            URL url = new URL("http://178.128.196.32:4000/api/v1/license/verify-license?license=" + getLicense());
 
             return (HttpURLConnection) url.openConnection();
         } catch (IOException ex) {
@@ -145,7 +146,6 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public synchronized void onEnable() {
-        // verify the license key specified
 
         // check compatability and conflicts of runtime load or minecraft version
         String conflict = null;
@@ -166,10 +166,10 @@ public class HoneyPlugin implements HoneyAPI {
 
         isRunning = true;
         isLoaded = true;
-        INSTANCE = this;
         serverThread = Thread.currentThread();
 
         // setup configuration and check if it is misconfigured
+        plugin.saveDefaultConfig();
         configuration = new DedicatedConfiguration();
 
         if (configuration.isMisconfigured()) {
@@ -264,6 +264,14 @@ public class HoneyPlugin implements HoneyAPI {
 
             WorkerPool.ASYNC_PACKET_DECODER_POOL.terminate();
 
+            try {
+                Session.sessionDecrypterClass.getDeclaredMethod("checkShutdown", boolean.class, boolean.class)
+                        .invoke(null, false, true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                getLoggerService().getLogger().severe("Failed to shutdown session!");
+            }
+
             getLoggerService().getLogger().info("Honey is now disabled!");
         }
     }
@@ -340,6 +348,12 @@ public class HoneyPlugin implements HoneyAPI {
 
             player.packetBundleSaver = newBundleSaver;
         }
+    }
+
+    @NoSessionEncryption
+    @Override
+    public String getLicense() {
+        return plugin.getConfig().getString("license", "");
     }
 
     public static HoneyAPI get() {

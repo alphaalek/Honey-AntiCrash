@@ -1,26 +1,18 @@
 package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
-import me.alek.honey.netty.injector.handler.async.ChainedCallable;
-import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
-import org.bukkit.Bukkit;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {

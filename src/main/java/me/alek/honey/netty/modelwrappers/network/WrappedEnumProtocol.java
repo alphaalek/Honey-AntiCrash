@@ -2,11 +2,8 @@ package me.alek.honey.netty.modelwrappers.network;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NMSUtils;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
-import org.bukkit.Bukkit;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
@@ -37,6 +34,6 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     }
 
     private Object invoke(Object... params) throws Exception {
-        return getModifier(NMSUtils.getPacketClass()).invokeMethodWithException(0, params);
+        return getModifier(NMS.getPacketClass()).invokeMethodWithException(0, params);
     }
 }

@@ -42,7 +42,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         if (lastHandledTask.get() == 0) lastHandledTask.set(System.currentTimeMillis());
         currentTask.addListener((Consumer<Object>) (d) -> lastHandledTask.set(System.currentTimeMillis()));
 
-        if (worker != null)
+        if (worker != null && worker.isActive())
             worker.submit(currentTask);
         else
             worker = workerPool.submit(this);

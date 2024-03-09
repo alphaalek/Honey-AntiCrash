@@ -1,7 +1,7 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.util.ArrayList;
 import java.util.List;
