@@ -226,10 +226,6 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                         return ResponseBuilder.SUCCESS;
                     }
                 }
-                ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
-                if (serializer != null) {
-                    serializer.release();
-                }
                 return ResponseBuilder.inst().cancel().flag().build();
             }
             return ResponseBuilder.SUCCESS;

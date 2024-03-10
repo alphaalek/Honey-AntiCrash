@@ -1,6 +1,7 @@
 package me.alek.honey.session;
 
 import me.alek.honey.HoneyPlugin;
+import org.bukkit.inventory.ItemStack;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;

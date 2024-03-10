@@ -9,7 +9,6 @@ import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;
 import me.alek.honey.storage.model.ViolationEntry;
-import org.bukkit.entity.Player;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -40,7 +39,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         reload(true);
 
         tryConnect();
-        this.queryFactory = new AsyncQueryFactoryHelper(this.connection);
+        this.queryFactory = new SyncQueryFactory(this.connection);
 
         // prepare repositories
         prepareRepositories();

@@ -2,7 +2,6 @@ package me.alek.honey.storage;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
-import org.bukkit.Bukkit;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,12 +11,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class AsyncQueryFactoryHelper implements QueryFactory {
+public class SyncQueryFactory implements QueryFactory {
 
     private Connection connection;
     private final ReentrantLock databaseQueryLock = new ReentrantLock();
 
-    public AsyncQueryFactoryHelper(Connection connection) {
+    public SyncQueryFactory(Connection connection) {
         this.connection = connection;
     }
 

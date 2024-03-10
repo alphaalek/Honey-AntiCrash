@@ -126,19 +126,6 @@ public class PacketWrapperInvokerFactory {
         String value();
     }
 
-    public static <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(HoneyPlayer player, PacketTypeEnum packetTypeEnum) {
-        Object rawPacket;
-        try {
-            rawPacket = packetTypeEnum.getNmsClass().newInstance();
-
-        } catch (Exception ex) {
-            return null;
-        }
-        PacketContainer<WP> packetContainer = new InternalPacketContainer<>(rawPacket, player, player.channel, null, packetTypeEnum);
-
-        return packetContainer.getPacket();
-    }
-
     public static String getNameFor(PacketTypeEnum packetType) {
         return NAME_CACHE.get(packetType);
     }
