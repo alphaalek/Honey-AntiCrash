@@ -16,6 +16,7 @@ import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -316,13 +317,19 @@ public class ViolationService {
 
             HoneyPlugin.get().getNotificationService().notify(getPlayer(), check.getName(), checkKey, getSetting(), this, developmentData);
 
-            try {
-                HoneyPlugin.get().getSQLManager().postViolation(
-                        player, check.getName() + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"),
-                        ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            new BukkitRunnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        HoneyPlugin.get().getSQLManager().postViolation(
+                                player, check.getName() + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"),
+                                ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
         }
 
         public boolean violate(CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
