@@ -39,7 +39,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         reload(true);
 
         tryConnect();
-        this.queryFactory = new SyncQueryFactory(this.connection);
+        this.queryFactory = new AsyncQueryFactory(this.connection);
 
         // prepare repositories
         prepareRepositories();

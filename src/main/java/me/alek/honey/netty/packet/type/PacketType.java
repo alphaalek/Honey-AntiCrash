@@ -958,6 +958,5 @@ public enum PacketType implements PacketTypeEnum {
                 return protocolRange;
             }
         }
-
     }
 }

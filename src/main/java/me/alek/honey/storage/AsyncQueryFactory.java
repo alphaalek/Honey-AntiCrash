@@ -11,33 +11,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SyncQueryFactory implements QueryFactory {
+public class AsyncQueryFactory implements QueryFactory {
 
     private Connection connection;
-    private final ReentrantLock databaseQueryLock = new ReentrantLock();
 
-    public SyncQueryFactory(Connection connection) {
+    public AsyncQueryFactory(Connection connection) {
         this.connection = connection;
     }
 
     public void checkConnection() {
         if (isConnectionClosed()) throw new IllegalArgumentException();
-    }
-
-    public <T> T sync(Callable<T> callable) {
-        T value = null;
-
-        databaseQueryLock.lock();
-        try {
-            value = callable.call();
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        finally {
-            databaseQueryLock.unlock();
-        }
-        return value;
     }
 
     public Connection getConnection() {
@@ -58,7 +41,7 @@ public class SyncQueryFactory implements QueryFactory {
     }
 
     public CompletableFuture<PreparedStatement> runStatement(String query, Object... values) {
-        return sync(() -> CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             checkConnection();
             try {
                 PreparedStatement statement = this.connection.prepareStatement(query);
@@ -74,7 +57,7 @@ public class SyncQueryFactory implements QueryFactory {
                 ex.printStackTrace();
             }
             throw new SQLFactoryException();
-        }));
+        });
     }
 
     public CompletableFuture<ResultSet> runQuery(String query, Object... values) {
