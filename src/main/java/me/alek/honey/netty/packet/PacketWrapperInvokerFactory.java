@@ -64,8 +64,6 @@ public class PacketWrapperInvokerFactory {
             METHODS_CACHE.put(wrappedPacket.value(), methodInvoker);
         }
 
-
-
         PLAY_CACHE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.PLAY), (packetType) -> {
             if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().info("NULL: " + packetType.getClass().getName() + " " + packetType.getPacketId());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());

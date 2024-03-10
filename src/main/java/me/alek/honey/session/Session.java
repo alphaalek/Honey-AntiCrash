@@ -54,7 +54,7 @@ public class Session {
 
     public static String getString(String encryptedText, int encryption, long cacheDividend, long cacheDivisor) {
         try {
-            Object invoke = methodHandle.invoke(new Object[]{encryptedText, encryption, cacheDividend, cacheDivisor});
+            Object invoke = methodHandle.invoke(encryptedText, encryption, cacheDividend, cacheDivisor);
 
             return invoke.toString();
         } catch (Throwable ex) {
