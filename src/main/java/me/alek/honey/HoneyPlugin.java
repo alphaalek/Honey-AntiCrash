@@ -118,9 +118,10 @@ public class HoneyPlugin implements HoneyAPI {
         if (getLicense().isEmpty()) {
             throw new InvalidLicenseException();
         }
+        String urlString = "http://178.128.196.32:4000/api/v1/license/verify-license?license=" + getLicense();
 
         try {
-            URL url = new URL("http://178.128.196.32:4000/api/v1/license/verify-license?license=" + getLicense());
+            URL url = new URL(urlString);
 
             return (HttpURLConnection) url.openConnection();
         } catch (IOException ex) {

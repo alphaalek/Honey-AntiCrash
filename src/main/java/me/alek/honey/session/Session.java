@@ -22,12 +22,13 @@ public class Session {
         if (compilerFeedback != null && compilerFeedback.isSuccess()) {
 
             try {
-                sessionDecrypterClass = compiler.getCompiledClass("me.alek.honey.SessionDecrypter");
+                sessionDecrypterClass = compiler.getCompiledClass("me.alek.honey.session.SessionDecrypter");
 
                 MethodType methodType = MethodType.methodType(String.class, String.class, int.class, long.class, long.class);
                 methodHandle = MethodHandles.lookup().findStatic(sessionDecrypterClass, "getString", methodType);
 
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
+            } catch (ClassNotFoundException |  NoSuchMethodException | IllegalAccessException e) {
+
                 throw new RuntimeException("Failed to setup session decrypting environment!", e);
             }
         } else if (compilerFeedback != null) {
@@ -46,22 +47,20 @@ public class Session {
                     .invoke(null, HoneyPlugin.get().getPlugin(), HoneyPlugin.get().getLicense());
 
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Failed to request session ID to auth servers");
+            throw new RuntimeException("Failed to request session ID to auth servers", ex);
         }
     }
 
     private static MethodHandle methodHandle;
 
-    public static String getString(String encryptedText, int encryption, long cacheDividend, long cacheDivisor) {
+    public static String getString(String encryptedText, int encryption, long cacheDividend, long cacheDivisor) throws Exception {
         try {
             Object invoke = methodHandle.invoke(encryptedText, encryption, cacheDividend, cacheDivisor);
 
             return invoke.toString();
         } catch (Throwable ex) {
-            ex.printStackTrace();
+            throw new Exception(ex);
         }
-        return "Session Error ?";
     }
 
 }
