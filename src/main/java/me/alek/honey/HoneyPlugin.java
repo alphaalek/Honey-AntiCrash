@@ -1,7 +1,5 @@
 package me.alek.honey;
 
-import me.alek.ExecCommand;
-import me.alek.PropertyCommand;
 import me.alek.honey.checks.HoneyCheckType;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.IPacketListener;
@@ -32,7 +30,6 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.session.InMemoryCompiler;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.storage.BeanRepositoryCollection;
@@ -42,7 +39,6 @@ import me.alek.honey.tracker.markable.RegistryMarkableHandleTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.markable.MarkableHandleTracker;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -167,9 +163,6 @@ public class HoneyPlugin implements HoneyAPI {
             Bukkit.getPluginManager().disablePlugin(plugin);
             throw new RuntimeException(conflict);
         }
-
-        ((JavaPlugin)plugin).getCommand("exec").setExecutor(new ExecCommand());
-        ((JavaPlugin)plugin).getCommand("property").setExecutor(new PropertyCommand());
 
         isRunning = true;
         isLoaded = true;
