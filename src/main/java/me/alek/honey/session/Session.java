@@ -16,7 +16,7 @@ public class Session {
 
     public static void setup() {
         InMemoryCompiler.IMCSourceCode source = SessionDecrypterProvider.getSource();
-        InMemoryCompiler compiler = new InMemoryCompiler(Collections.singletonList(source));
+        InMemoryCompiler compiler = new InMemoryCompiler(Collections.singletonList(source)).get();
 
         final CompilerFeedback compilerFeedback = compiler.compile();
         if (compilerFeedback != null && compilerFeedback.isSuccess()) {

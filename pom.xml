@@ -32,17 +32,6 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.4</version>
 
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>
@@ -55,6 +44,10 @@
     </build>
 
     <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
         <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
@@ -89,11 +82,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>me.alek.honey</groupId>
-            <artifactId>honey-verifier</artifactId>
-            <version>2.0</version>
-            <systemPath>${basedir}/libs/HoneyVerifier.jar</systemPath>
-            <scope>system</scope>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>commons-compiler</artifactId>
+            <version>3.0.16</version>
         </dependency>
     </dependencies>
 </project>
