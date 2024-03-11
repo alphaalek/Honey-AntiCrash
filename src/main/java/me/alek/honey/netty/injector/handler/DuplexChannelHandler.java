@@ -63,6 +63,11 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
         }
         if (player != null && packetContainer.getPlayer() != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
             packetSendMarker.set(player);
+
+            PacketContainer<? extends WrappedPacket<?>> polledPacket;
+            while ((polledPacket = player.packetBundleSaver.getOldest(false)) != null && polledPacket.isHandledByServer()) {
+                player.packetBundleSaver.getOldest(true);
+            }
         }
 
         super.channelRead(ctx, packetContainer.getHandle());

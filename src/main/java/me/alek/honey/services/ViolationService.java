@@ -324,7 +324,7 @@ public class ViolationService {
                     try {
                         HoneyPlugin.get().getSQLManager().postViolation(
                                 player, check.getName() + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"),
-                                ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, this)), developmentData);
+                                ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)), developmentData);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

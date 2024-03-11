@@ -33,11 +33,11 @@ public class PacketTaskHandler {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
                             && System.currentTimeMillis() - handledTask.getT2() >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
-                        PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket(false);
+                        PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) continue;
 
-                        dumpThread(packet.getPlayer());
                         packet.dump();
+                        dumpThread(packet.getPlayer(), packet);
                     }
                 }
                 try {
@@ -57,12 +57,11 @@ public class PacketTaskHandler {
         return lastHandledPacket;
     }
 
-    public static void dumpThread(HoneyPlayer player) {
+    public static void dumpThread(HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
         HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX
                 + " §cThe server seems to be frozen after a packet was sent by " + player.name + ". See the log for thread dump and more info."));
         HoneyPlugin.get().getLoggerService().getLogger().severe("Auto thread dump for packet sent by " + player.name + ":");
 
-        PacketContainer<? extends WrappedPacket<?>> packet = player.packetBundleSaver.getOldest(false);
         if (packet != null) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
 
@@ -112,10 +111,10 @@ public class PacketTaskHandler {
         handledTask = new Tuple2<>(task, System.currentTimeMillis());
     }
 
-    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket(boolean remove) {
+    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
         if (handledTask == null) return null;
 
-        return handledTask.getT1().getPlayer().packetBundleSaver.getOldest(remove);
+        return handledTask.getT1().getPacket();
     }
 
     public static void unregisterTask() {
@@ -123,7 +122,7 @@ public class PacketTaskHandler {
             if (handledTask != null) {
                 tracker.decrementPacketsInQueueExecution(handledTask.getT1().getPlayer().uuid);
 
-                PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket(true);
+                PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                 if (packet != null) {
                     packet.getEventloopStateTimings().stopTimings();
 

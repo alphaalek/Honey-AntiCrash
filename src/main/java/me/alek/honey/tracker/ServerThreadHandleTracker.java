@@ -205,8 +205,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (player == null) return super.add(value);
 
             PacketContainer<?> packet = player.packetBundleSaver.getNettySubmit();
-            // if it somehow tries to add multiple times, we will cancel it
-            if (packet == null || packet.isHandledByServer()) return true;
+            if (packet == null) return true;
 
             packet.setHandledByServer();
             UUID uuid = player.uuid;
@@ -217,7 +216,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
             super.add(EMPTY_VALUE);
 
-            return nettySubmitQueue.get().add(new PacketTaskFuture<>((Runnable) value, player));
+            return nettySubmitQueue.get().add(new PacketTaskFuture<>((Runnable) value, player, packet));
         }
     }
 
