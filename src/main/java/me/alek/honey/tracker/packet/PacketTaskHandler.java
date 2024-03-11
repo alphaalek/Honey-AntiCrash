@@ -104,9 +104,8 @@ public class PacketTaskHandler {
     public static <V> void registerTask(PacketTaskFuture<V> task){
         lastHandledPacket = null;
 
-        PacketContainer<? extends WrappedPacket<?>> packet = task.getPlayer().packetBundleSaver.getOldest(false);
-        if (packet != null)
-            packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
+        PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
+        packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 
         handledTask = new Tuple2<>(task, System.currentTimeMillis());
     }

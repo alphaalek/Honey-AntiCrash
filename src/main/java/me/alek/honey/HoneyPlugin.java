@@ -344,10 +344,7 @@ public class HoneyPlugin implements HoneyAPI {
         PacketBundleSaver.reloadFilters();
 
         for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
-            PacketBundleSaver newBundleSaver = new PacketBundleSaver();
-            player.packetBundleSaver.transferTo(newBundleSaver);
-
-            player.packetBundleSaver = newBundleSaver;
+            player.packetBundleSaver = new PacketBundleSaver();
         }
     }
 

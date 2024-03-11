@@ -34,10 +34,6 @@ public class PacketBundleSaver {
     }
 
     private final List<PacketSaverQueue>[] packets;
-    private final LinkedList<PacketContainer<?>> commonPackets = new LinkedList<>();
-    private final LinkedList<PacketContainer<?>> nettySubmitQueue = new LinkedList<>();
-
-    private PacketBundleSaver transferedTo;
 
     public PacketBundleSaver() {
         packets = new List[MAX_PACKET_ID + 1];
@@ -69,19 +65,6 @@ public class PacketBundleSaver {
         return packetSaves;
     }
 
-    public void transferTo(PacketBundleSaver bundleSaver) {
-        lock.writeLock().lock();
-        try {
-            PacketContainer<?> packet;
-            while ((packet = getOldest(true)) != null) {
-                bundleSaver.add(packet);
-            }
-            transferedTo = bundleSaver;
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
     private synchronized List<PacketSaverQueue> getQueue(PacketTypeEnum packetType) {
         if (packetType.getPacketId() > MAX_PACKET_ID) return null;
 
@@ -89,19 +72,12 @@ public class PacketBundleSaver {
     }
 
     public void add(PacketContainer<? extends WrappedPacket<?>> packet) {
-        addToCommon(packet);
-
         List<PacketSaverQueue> queues = getQueue(packet.getType());
         if (queues == null) return;
 
         for (PacketSaverQueue queue : queues) {
             queue.add(packet);
         }
-    }
-
-    public void addToCommon(PacketContainer<? extends WrappedPacket<?>> packet) {
-        commonPackets.add(packet);
-        nettySubmitQueue.add(packet);
     }
 
     public PacketContainer<? extends WrappedPacket<?>> get(PacketTypeEnum packetType, boolean remove) {
@@ -138,10 +114,6 @@ public class PacketBundleSaver {
         lock.readLock().lock();
 
         try {
-            if (transferedTo != null) {
-                return transferedTo.get(packetTypeSet, remove);
-            }
-
             filterPacketTypes(packetTypeSet);
 
             PacketTypeEnum first = packetTypeSet.iterator().next();
@@ -164,10 +136,6 @@ public class PacketBundleSaver {
 
         lock.readLock().lock();
         try {
-            if (transferedTo != null) {
-                return transferedTo.get(packetTypeSet, amount, remove);
-            }
-
             filterPacketTypes(packetTypeSet);
 
             PacketTypeEnum first = packetTypeSet.iterator().next();
@@ -251,54 +219,12 @@ public class PacketBundleSaver {
         }
     }
 
-    public PacketContainer<? extends WrappedPacket<?>> getOldest(boolean remove) {
-        lock.readLock().lock();
-        try {
-            if (transferedTo != null) {
-                return transferedTo.getOldest(remove);
-            }
-
-            return getPacketAndNettySubmit(remove);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    public PacketContainer<? extends WrappedPacket<?>> getRecent(boolean remove) {
-        lock.readLock().lock();
-        try {
-            if (transferedTo != null) {
-                return transferedTo.getRecent(remove);
-            }
-
-            return getPacketAndNettySubmit(remove);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    private PacketContainer<? extends WrappedPacket<?>> getPacketAndNettySubmit(boolean remove) {
-        if (remove) getNettySubmit();
-
-        return remove ? commonPackets.pollLast() : commonPackets.peekLast();
-    }
-
-    public PacketContainer<? extends WrappedPacket<?>> getNettySubmit() {
-        return nettySubmitQueue.poll();
-    }
-
     public void clear() {
         lock.readLock().lock();
         try {
-            if (transferedTo != null) {
-                transferedTo.clear();
-                return;
-            }
-
             for (Deque<PacketContainer<?>> packetList : packetSaves.values()) {
                 packetList.clear();
             }
-            commonPackets.clear();
         } finally {
             lock.readLock().unlock();
         }

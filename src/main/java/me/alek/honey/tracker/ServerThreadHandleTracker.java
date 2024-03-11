@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadLocalAccessor<HoneyPlayer> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
+    private final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
@@ -201,14 +201,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // we will make sure that this thread is currently trying to add a packet to the server sent by a player.
             // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
             // elements to the execution queue from netty threads which are not packets
-            HoneyPlayer player = packetSendMarker.remove();
-            if (player == null) return super.add(value);
-
-            PacketContainer<?> packet = player.packetBundleSaver.getNettySubmit();
-            if (packet == null) return true;
+            PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.remove();
+            if (packet == null) return super.add(value);
 
             packet.setHandledByServer();
-            UUID uuid = player.uuid;
+            UUID uuid = packet.getPlayer().uuid;
             synchronized (PacketTaskHandler.lock) {
                 if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
@@ -216,7 +213,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
             super.add(EMPTY_VALUE);
 
-            return nettySubmitQueue.get().add(new PacketTaskFuture<>((Runnable) value, player, packet));
+            return nettySubmitQueue.get().add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
         }
     }
 

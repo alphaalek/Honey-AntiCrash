@@ -256,10 +256,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private void registerToBundle(HoneyPlayer player, PacketBound packetBound, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetBound == PacketBound.CLIENT && player != null) {
-            if (packetContainer.getType() == null)
-                player.packetBundleSaver.addToCommon(packetContainer);
-            else
-                player.packetBundleSaver.add(packetContainer);
+            player.packetBundleSaver.add(packetContainer);
         }
     }
 

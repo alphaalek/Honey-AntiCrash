@@ -12,7 +12,7 @@ import me.alek.honey.utility.ThreadLocalAccessor;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
-    private static final ThreadLocalAccessor<HoneyPlayer> packetSendMarker = new ThreadLocalAccessor<>();
+    private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocalAccessor<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
     private volatile HoneyPlayer player;
@@ -25,7 +25,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
         return player;
     }
 
-    public static ThreadLocalAccessor<HoneyPlayer> getPacketSendMarker() {
+    public static ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
         return packetSendMarker;
     }
 
@@ -43,11 +43,6 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
         long readStart = HoneyPlugin.get().getMonitorManager().isPacketsMonitored() ? System.nanoTime() : 0;
 
-        PacketContainer<?> recent;
-        if (player != null && (recent = player.packetBundleSaver.getRecent(false)) != null && !recent.isHandledByServer()) {
-            player.packetBundleSaver.getRecent(true);
-        }
-
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet, readStart);
 
         if (packetContainer == null) {
@@ -62,12 +57,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             return;
         }
         if (player != null && packetContainer.getPlayer() != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
-            packetSendMarker.set(player);
-
-            PacketContainer<? extends WrappedPacket<?>> polledPacket;
-            while ((polledPacket = player.packetBundleSaver.getOldest(false)) != null && polledPacket.isHandledByServer()) {
-                player.packetBundleSaver.getOldest(true);
-            }
+            packetSendMarker.set(packetContainer);
         }
 
         super.channelRead(ctx, packetContainer.getHandle());
