@@ -1,5 +1,6 @@
 package me.alek.honey.tracker.temp;
 
+import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.tracker.timed.TimedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
@@ -21,6 +22,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
                 timespan.clearContext(getTracker(key));
             }
             trackerMap.remove(key.uuid);
+        }
+        for (UUID uuid : Sets.newHashSet(trackerMap.keySet())) {
+            if (HoneyPlayer.getPlayer(uuid) == null) trackerMap.remove(uuid);
         }
     }
 
@@ -135,7 +139,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     public Set<HoneyPlayer> getTrackers() {
         return trackerMap.keySet().stream()
                 .map(HoneyPlayer::getPlayer)
-                .filter(p -> p.player.isOnline())
+                .filter(p -> p != null && p.player.isOnline())
                 .collect(Collectors.toSet());
     }
 
