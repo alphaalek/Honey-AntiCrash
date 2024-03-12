@@ -37,7 +37,7 @@ public class PlayerJoinListener implements Listener {
                 @Override
                 public void run() {
                     player.sendMessage(NotificationService.PREFIX + " §7Found an update: v" + HoneyPlugin.get().getLatestVersion() + ". Download:");
-                    player.sendMessage("§ahttps://github.com/alphaalek/Honey-AntiCrash/releases/");
+                    player.sendMessage("§ahttps://builtbybit.com/resources/honey-anti-crash-anti-packet-exploit.40905/");
                 }
             }.runTaskLater(HoneyPlugin.get().getPlugin(), 40L);
         }
