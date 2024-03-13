@@ -265,8 +265,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             final List<Location> lockedLocations = sampleDecayableList.getLocked();
 
             // check if any of those locations is within the distance specified
-            return within(recentLocations, distanceFunction, diff)
-                    || within(lockedLocations, distanceFunction, diff);
+            return within(recentLocations, distanceFunction, diff) || within(lockedLocations, distanceFunction, diff);
         }
         return false;
     }
@@ -339,9 +338,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             container.getStorage().putDouble(distanceY);
 
             if (getSetting().isEnabled()) {
-
                 final double maxDistance = getSetting().max;
-
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
                     return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("2d"))
@@ -402,7 +399,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.SUCCESS;
 
                 final UUID uuid = player.uuid;
-                // ignores packets close to the recent flag to minimize false flags at lagspikes
+                // ignores packets close to the recent flag
                 if (lastFlaggedLocationMap.containsKey(uuid)) {
                     if (Locations.calculate3DDistance(lastFlaggedLocationMap.get(uuid), packet.getLocation()) < 1.5)
                         return ResponseBuilder.SUCCESS;
@@ -410,10 +407,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 lastFlaggedLocationMap.put(player.uuid, packet.getLocation());
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
-                if (priorDistance > 20)
-                    return ResponseBuilder.SUCCESS;
-
-                return ResponseBuilder.inst().flag(priorDistance).build();
+                return ResponseBuilder.inst().flag(Math.min(10, priorDistance)).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -702,8 +696,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 if (delta2D > 0.05) {
                     if (guessedDelta2D.get(uuid) == delta2D) {
-                        builder.add(ResponseBuilder.inst().flag()
-                                .withViolationKey(new ViolationService.CheckKey("2d")).build());
+                        builder.add(
+                                ResponseBuilder.inst().flag()
+                                        .withViolationKey(new ViolationService.CheckKey("2d"))
+                                        .build()
+                        );
                         hasPattern = true;
                     }
                     guessedDelta2D.put(uuid, delta2D);
@@ -711,14 +708,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (deltaY > 0.5) {
                     if (guessedDeltaY.get(uuid) == deltaY) {
                         final Material material = player.player.getEyeLocation().getBlock().getType();
-                        if (material.name().contains("WATER") || material.name().contains("LAVA")) {
+                        if (material.name().contains("WATER") || material.name().contains("LAVA")
+                                || deltaY % 0.375 < 0.01) {
                             return response;
                         }
-                        if (deltaY % 0.375 < 0.01) {
-                            return response;
-                        }
-                        builder.add(ResponseBuilder.inst().flag()
-                                .withViolationKey(new ViolationService.CheckKey("y")).build());
+                        builder.add(
+                                ResponseBuilder.inst().flag()
+                                        .withViolationKey(new ViolationService.CheckKey("y"))
+                                        .build()
+                        );
                         hasPattern = true;
                     }
                     guessedDeltaY.put(uuid, deltaY);
@@ -801,19 +799,19 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         return ResponseBuilder.inst().cancel().build();
 
                     return ResponseBuilder.inst().cancel().flag().onPunish(() -> {
-                        double y_ = y;
+                        double yPosFix = y;
                         if (y < getSetting().min) {
-                            while (player.getWorld().getBlockAt((int) x, (int) y_++, (int) z).getType() != Material.AIR || y_ < 0) {
-                                if (y_ > getSetting().max - 3) break;
+                            while (player.getWorld().getBlockAt((int) x, (int) yPosFix++, (int) z).getType() != Material.AIR || yPosFix < 0) {
+                                if (yPosFix > getSetting().max - 3) break;
                             }
                         }
                         if (y > getSetting().max) {
-                            while (player.getWorld().getBlockAt((int) x, (int) y_--, (int) z).getType() == Material.AIR) {
-                                if (y_ < 16) break;
+                            while (player.getWorld().getBlockAt((int) x, (int) yPosFix--, (int) z).getType() == Material.AIR) {
+                                if (yPosFix < 16) break;
                             }
-                            y_ += 2;
+                            yPosFix += 2;
                         }
-                        player.player.teleport(new Location(player.getWorld(), x, y_, z));
+                        player.player.teleport(new Location(player.getWorld(), x, yPosFix, z));
                     }).build();
                 }
             }

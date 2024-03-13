@@ -85,7 +85,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         asyncDecoder.decode((s) -> {
             if (asyncDecoder.getPlayer().isOnline()) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
-                // Bukkit.getLogger().info("Done read " + nonRecycledList);
             }
         });
     }

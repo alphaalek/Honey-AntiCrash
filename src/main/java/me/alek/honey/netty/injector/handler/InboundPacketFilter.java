@@ -81,7 +81,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     public void checkRelocation(Channel channel) {
         if (!hasBeenRelocated && player != null) {
-
             hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, player);
         }
     }
