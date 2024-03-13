@@ -252,6 +252,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
+            // temporary disabled, because a different system should be used that's not called on packet decode
+            /*
             if (getSetting().isEnabled()) {
 
                 int size = tracker.getTrackerSize();
@@ -268,6 +270,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 }
                 return success;
             }
+            */
             return ResponseBuilder.SUCCESS;
         }
 
