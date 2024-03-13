@@ -12,7 +12,6 @@ public class ResponseContainer implements Cloneable {
     public boolean CANCELLED;
     public boolean PUNISH;
     public boolean IGNORE_SPIKE;
-    public boolean NOTIFY;
     public boolean SUCCESS;
     public boolean TERMINATE;
     public AtomicInteger SKIP_INDICES;

@@ -7,8 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResponseBuilder {
 
-    public static ResponseContainer SUCCESS =
-        ResponseBuilder
+    public static ResponseContainer SUCCESS = ResponseBuilder
             .inst()
             .success()
             .build();

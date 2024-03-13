@@ -74,11 +74,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            if (tracker.getPacketsInQueueExecution(player.uuid) > 10 && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
+            if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
+                    && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
                 return ResponseBuilder.inst().flag(1).build();
 
             Tuple2<PacketTaskFuture<?>, Long> task = PacketTaskHandler.getHandledTask();
-            if (task != null && task.getT1().getPlayer().equals(player) && System.currentTimeMillis() - task.getT2() > 25)
+            if (task != null && task.getT1().getPlayer().equals(player)
+                    && System.currentTimeMillis() - task.getT2() > ConfigurationOptions.Netty.NettyA.MAX_HANDLE)
                 return ResponseBuilder.inst().flag(1).build();
 
             return ResponseBuilder.SUCCESS;

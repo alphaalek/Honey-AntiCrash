@@ -1082,9 +1082,13 @@ public class ConfigurationOptions {
         public static class NettyA extends VlSetting {
 
             public static List<String> IGNORED_PACKETS;
+            public static int MAX_PACKETS;
+            public static double MAX_HANDLE;
 
             public static void load() {
                 IGNORED_PACKETS = file.getStringList("netty.a.ignored-packets");
+                MAX_PACKETS = file.getInt("netty.a.max-packets", 10);
+                MAX_HANDLE = file.getDouble("netty.a.max-handle", 25.0);
             }
         }
 

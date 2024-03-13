@@ -323,6 +323,8 @@ commands:
 netty:
   a:
     enabled: true
+    max-packets: 10
+    max-handle: 25.0
     ignored-packets:
       - "PacketPlayInFlying"
       - "PacketPlayInLook"
