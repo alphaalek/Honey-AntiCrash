@@ -23,8 +23,12 @@ public class ResponseContainer implements Cloneable {
     public Runnable ON_PUNISH;
     public double FLAG = -1;
 
-    public ResponseBuilder builder() {
+    public ResponseBuilder builderCopy() {
         return new ResponseBuilder(this.clone());
+    }
+
+    public ResponseBuilder builder() {
+        return new ResponseBuilder(this);
     }
 
     @Override

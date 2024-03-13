@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 

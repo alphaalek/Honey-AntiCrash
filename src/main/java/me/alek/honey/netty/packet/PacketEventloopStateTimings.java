@@ -2,12 +2,13 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.utility.NumberConversions;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PacketEventloopStateTimings {
 
-    private final Map<EventloopState, Long> times = new HashMap<>();
+    private final Map<EventloopState, Long> times = new EnumMap<>(EventloopState.class);
     private EventloopState currentState = EventloopState.NO_STATE;
     private long currentStateStart;
     private long totalTime;

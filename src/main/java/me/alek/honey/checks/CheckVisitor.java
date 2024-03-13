@@ -17,6 +17,7 @@ import me.alek.honey.services.ViolationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
@@ -32,7 +33,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     private void handleCommonCheck(HoneyPlayer player, Object handle, Function<HoneyCheck, ResponseContainer> responseGenerator,
-            WP packet, CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer) {
+            WP packet, CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         AtomicInteger skipping = null;
 
         for (HoneyCheck check : checks) {
@@ -55,7 +56,9 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             // do the check and get the response, and register the time taken to the check handle tracker
             if (setting != null && setting.isEnabled())
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
+
             final ResponseContainer responses = responseGenerator.apply(check);
+
             if (setting != null && setting.isEnabled())
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName());
 
@@ -64,6 +67,11 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
             boolean terminated = false;
             for (ResponseContainer response : responsesList) {
+
+                // run callbacks
+                if (callback != null)
+                    callback.call(response);
+
                 // get the setting for this check
                 if (check instanceof KeyedViolationCheck) {
                     KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
@@ -71,13 +79,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
 
                 // checks the contents of the response container and do whatever action it represents
-                if (response.SKIP_INDICES != null) skipping = response.SKIP_INDICES;
+                if (response.SKIP_INDICES != null)
+                    skipping = response.SKIP_INDICES;
 
                 if (response.SUCCESS) {
                     if (response.TERMINATE) terminated = true;
                     continue;
                 }
-                if (response.CANCELLED) cancellablePacketObserver.cancel();
+                if (response.CANCELLED)
+                    cancellablePacketObserver.cancel();
 
                 final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
                 if (response.FLAG != -1 && player != null) {
@@ -90,7 +100,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 if (response.PUNISH && player != null)
                     HoneyPlugin.get().getViolationService().punish(null, player, check.getName(), key);
 
-                if (response.TERMINATE) terminated = true;
+                if (response.TERMINATE)
+                    terminated = true;
             }
             if (terminated) return;
         }
@@ -116,11 +127,11 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 e.printStackTrace();
             }
             return ResponseBuilder.SUCCESS;
-        }, null, cancellablePacketObserver, checkContextContainer);
+        }, null, cancellablePacketObserver, checkContextContainer, null);
     }
 
     @SuppressWarnings("unchecked")
-    public void check(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer) throws Exception {
+    public void check(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) throws Exception {
         final CancellablePacketObserver cancellablePacketObserver = new CancellablePacketDelegateImpl(packetContainer);
         handleCommonCheck(player, packetContainer.getHandle(), (check) -> {
             try {
@@ -129,6 +140,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 e.printStackTrace();
             }
             return ResponseBuilder.SUCCESS;
-        }, packetContainer.getPacket(), cancellablePacketObserver, checkContextContainer);
+        }, packetContainer.getPacket(), cancellablePacketObserver, checkContextContainer, callback);
     }
 }

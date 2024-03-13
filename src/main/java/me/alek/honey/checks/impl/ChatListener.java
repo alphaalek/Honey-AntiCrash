@@ -1,10 +1,7 @@
 package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
@@ -32,7 +29,7 @@ import java.util.function.Supplier;
 public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 
@@ -116,8 +113,9 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                 int messageLength = packet.getMessage().length();
 
                 if (messageLength > (below_1_11 ? 100 : 256)) {
-                    container.getDevelopmentData(this).addPoint("Message length", messageLength);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Message length", messageLength))
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -208,9 +206,12 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             for (String prohibitedCommand : prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
-                    String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
-                    container.getDevelopmentData(this).addPoint("Command", messageFormatted);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> {
+                                String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
+                                container.getDevelopmentData(this).addPoint("Command", messageFormatted);
+                            })
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;

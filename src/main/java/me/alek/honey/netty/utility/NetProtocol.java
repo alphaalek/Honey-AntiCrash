@@ -1,8 +1,6 @@
 package me.alek.honey.netty.utility;
 
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.packet.type.RangedPacketTypeEnum;
 import org.bukkit.Bukkit;
 
@@ -25,23 +23,11 @@ public enum NetProtocol {
     UNKNOWN(-1);
 
     private static NetProtocol PROTOCOL_CACHE;
-    private static final HashMap<Integer, List<NetProtocol>> protocolVersionMap = new HashMap<>();
     private static final List<NetProtocol> PROTOCOLS = new ArrayList<>();
-    private static final List<NetProtocol> REVERSED_PROTOCOLS = new ArrayList<>();
 
     static {
-        REVERSED_PROTOCOLS.addAll(Arrays.asList(NetProtocol.values()));
-        PROTOCOLS.addAll(REVERSED_PROTOCOLS);
-
-        Collections.reverse(REVERSED_PROTOCOLS);
-
-        for (NetProtocol version : PROTOCOLS) {
-
-            int protocol = version.getProtocolVersion();
-            if (!protocolVersionMap.containsKey(protocol))
-                protocolVersionMap.put(protocol, new ArrayList<>());
-            protocolVersionMap.get(protocol).add(version);
-        }
+        PROTOCOLS.addAll(Arrays.asList(NetProtocol.values()));
+        Collections.reverse(PROTOCOLS);
     }
 
     private final int protocolVersion;
@@ -51,7 +37,7 @@ public enum NetProtocol {
     }
 
     private static NetProtocol acquireProtocol() {
-        for (NetProtocol version : REVERSED_PROTOCOLS) {
+        for (NetProtocol version : PROTOCOLS) {
             final String name = version.name().replace("v", "").substring(1).replace("_", ".");
             if (Bukkit.getVersion().contains(name))
                 return version;
@@ -108,7 +94,7 @@ public enum NetProtocol {
     }
 
     public NetProtocol getAfter() {
-        if (ordinal() == REVERSED_PROTOCOLS.get(1).ordinal()) {
+        if (ordinal() == PROTOCOLS.get(1).ordinal()) {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() + 1];
@@ -128,7 +114,7 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getLatest() {
-        return REVERSED_PROTOCOLS.get(1);
+        return PROTOCOLS.get(1);
     }
 
     public static NetProtocol getOldest() {

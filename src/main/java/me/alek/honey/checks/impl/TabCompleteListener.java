@@ -2,10 +2,7 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
@@ -30,7 +27,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return packetContainer.getPacket().getMessage().startsWith("/");
     }
 
@@ -80,9 +77,12 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
             for (String prohibitedCommand : prohibitedCommands) {
 
                 if (ChatListener.match(prohibitedCommand, label)) {
-                    String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
-                    container.getDevelopmentData(this).addPoint("Message", messageFormatted);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> {
+                                String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;;
+                                container.getDevelopmentData(this).addPoint("Message", messageFormatted);
+                            })
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;

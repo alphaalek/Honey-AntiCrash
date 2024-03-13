@@ -1,10 +1,7 @@
 package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -25,7 +22,7 @@ import java.util.function.Supplier;
 public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 
@@ -60,9 +57,9 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
-
-                    container.getDevelopmentData(this).addPoint("Slot", slot);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Slot", slot))
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;

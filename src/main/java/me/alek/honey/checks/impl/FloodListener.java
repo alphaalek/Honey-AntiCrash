@@ -2,10 +2,7 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.KeyedViolationCheck;
@@ -45,7 +42,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
 
         // return if the player is removing content from his inventory by using the clear all slots button in creative menu
         if (packetContainer.getType() == PacketType.Play.Client.SET_CREATIVE_SLOT) {
@@ -225,7 +222,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             // force the violation service to make a packet limit handler with the shared key and shared setting
             HoneyPlugin.get().getViolationService().getDistributor(player, sharedIgnoringKey, sharedIgnoringSetting);
 
-            InboundPacketFilter filter = (InboundPacketFilter) HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
+            InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
 
             if (getSetting(packet).isEnabled() && filter != null) {
                 // check if the delta time is high enough to exempt the next packet spike for this player

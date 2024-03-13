@@ -2,10 +2,7 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
@@ -62,7 +59,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 
@@ -119,7 +116,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+        public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
             return true;
         }
 
@@ -200,8 +197,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
 
             if (getSetting().isEnabled() && decodeTime > 0) {
-                container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
-                return ResponseBuilder.inst().flag(decodeTime).build();
+                return ResponseBuilder.inst().flag(decodeTime)
+                        .onViolation(() -> container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms"))
+                        .build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -235,9 +233,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
                 if (decodeTime > 0) {
-
-                    container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
-                    return ResponseBuilder.inst().flag(decodeTime).build();
+                    return ResponseBuilder.inst().flag(decodeTime)
+                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms"))
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;

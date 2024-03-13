@@ -4,10 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -40,7 +37,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     private final MethodInvoker<?> ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemReflection.getNMSItemStackClass());
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         ByteBuf serializer;
         try {
             serializer = (ByteBuf) packetContainer.getPacket().getDataSerializer().getHandle();
@@ -57,8 +54,17 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         container.getStorage().put(ByteBuf.class, serializer);
-        container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
-        container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
+
+        callback.addAction(response -> {
+            response.builder().onViolation(() -> {
+                container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
+                container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
+
+                if (response.ON_VIOLATION != null)
+                    response.ON_VIOLATION.run();
+            });
+        });
+
         return true;
     }
 
@@ -180,8 +186,9 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                     int nbtSize;
                     if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
-                        container.getDevelopmentData(this).addPoint("NBT Size", nbtSize);
-                        return ResponseBuilder.inst().cancel().flag().build();
+                        return ResponseBuilder.inst().cancel().flag()
+                                .onViolation(() -> container.getDevelopmentData(this).addPoint("NBT Size", nbtSize))
+                                .build();
                     }
                 }
             }
@@ -259,13 +266,12 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();
-                if (channel.equalsIgnoreCase("register")) {
+                if (channel.equalsIgnoreCase("register") &&
+                        player.player.getListeningPluginChannels().size() > getSetting().max) {
 
-                    if (player.player.getListeningPluginChannels().size() > getSetting().max) {
-                        container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size());
-
-                        return ResponseBuilder.inst().cancel().flag().build();
-                    }
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size()))
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;

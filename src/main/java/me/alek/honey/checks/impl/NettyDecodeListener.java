@@ -244,8 +244,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
     public static class NettyK implements DecodeCheck, ViolationCheck {
 
-        private final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
-        private final ResponseContainer success = ResponseBuilder.inst().add(
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+        private static final ResponseContainer success = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
@@ -257,8 +257,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 int size = tracker.getTrackerSize();
                 double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
                 if (ta > 5) {
-                    container.getDevelopmentData(this).addPoint("Size", size);
-
                     if ((size > 15 && ta > 17.5) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                     }

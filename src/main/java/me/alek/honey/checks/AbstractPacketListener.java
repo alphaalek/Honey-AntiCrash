@@ -2,6 +2,7 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -58,11 +59,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             defaultDevelopmentData.addValue(" Packet", packet);
             applyCommonDevelopmentData(defaultDevelopmentData);
         }
-
-        if (!onPrePacketReceive(player, packetContainer, checkContextContainer)) {
+        CallbackAction<ResponseContainer> callback = new CallbackAction<>();
+        if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
-        getCachedVisitor().check(player, packetContainer, checkContextContainer);
+        getCachedVisitor().check(player, packetContainer, checkContextContainer, callback);
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }
 
@@ -79,7 +80,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public abstract CheckVisitor<WP> getVisitor();
 
-    public abstract boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container);
+    public abstract boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback);
 
     public abstract void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container);
 

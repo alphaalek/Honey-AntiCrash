@@ -1,10 +1,7 @@
 package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
@@ -33,7 +30,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     private static final ViolationService.CheckKey pitchKey = new ViolationService.CheckKey("pitch");
 
     @Override
-    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         Location location = packetContainer.getPacket().getLocation();
 
         if (location.getPitch() == 0 && location.getYaw() == 0) {
@@ -51,8 +48,15 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         lastYawMap.put(player.uuid, location.getYaw());
         lastPitchMap.put(player.uuid, location.getPitch());
 
-        container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
-        container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
+        callback.addAction(responseCallback -> {
+            responseCallback.builder().onViolation(() -> {
+                container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
+                container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
+
+                if (response.ON_VIOLATION != null)
+                    response.ON_VIOLATION.run();
+            });
+        });
         return true;
     }
 
@@ -139,7 +143,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             if (packet.getYaw() == 0 || PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
-                return ResponseBuilder.SUCCESS.builder().terminate().build();
+                return ResponseBuilder.SUCCESS.builderCopy().terminate().build();
             }
             if (getSetting().isEnabled()) {
                 return container.getStorage().get(ResponseContainer.class, 0);

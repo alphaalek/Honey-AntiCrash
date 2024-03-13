@@ -2,10 +2,7 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
@@ -161,7 +158,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         final Location currentLocation = packetContainer.getPacket().getLocation();
         final Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
@@ -176,12 +173,19 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         // sharing this last location with the pipeline, so other checks can take use of it
         container.getStorage().put(Location.class, lastLocation);
 
-        final String x = format(currentLocation.getX());
-        final String y = format(currentLocation.getY());
-        final String z = format(currentLocation.getZ());
+        callback.addAction((response -> {
+            response.builder().onViolation(() -> {
+                final String x = format(currentLocation.getX());
+                final String y = format(currentLocation.getY());
+                final String z = format(currentLocation.getZ());
 
-        container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
-        container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
+                container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
+                container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
+
+                if (response.ON_VIOLATION != null)
+                    response.ON_VIOLATION.run();
+            });
+        }));
 
         return true;
     }
@@ -288,7 +292,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 if (onGround != wasOnGround) {
-                    return response.builder().flag().build();
+                    return response.builderCopy().flag().build();
                 }
             }
             return response;
@@ -325,7 +329,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
                     (location) -> Locations.calculate3DDistance(location, packetLoc))) {
-                return ResponseBuilder.SUCCESS.builder().skip(3).build();
+                return ResponseBuilder.SUCCESS.builderCopy().skip(3).build();
             }
 
             final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
@@ -340,14 +344,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
-                    container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("2d")).build();
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("2d"))
+                            .onViolation(() -> container.getDevelopmentData(this).addPoint("2D Distance", distance2d))
+                            .build();
                 }
-
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
-                    container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("y")).build();
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("y"))
+                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Y Distance", distanceY))
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;
@@ -466,7 +471,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 if (!getSetting().isEnabled() || lastChunkMap.containsKey(player.uuid) && lastChunkMap.get(player.uuid).equals(chunk)) {
                     // the player is in the same chunk as the last position update
-                    return ResponseBuilder.SUCCESS.builder().skip(1).build();
+                    return ResponseBuilder.SUCCESS.builderCopy().skip(1).build();
                 }
                 // the player has moved into a new chunk, and we have to register this chunk as the current one
                 lastChunkMap.put(player.uuid, chunk);
@@ -680,7 +685,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            final ResponseContainer response = ResponseBuilder.SUCCESS.builder().skip(1).build();
+            final ResponseContainer response = ResponseBuilder.SUCCESS.builderCopy().skip(1).build();
             if (getSetting().isEnabled()) {
 
                 final double delta2D = container.getStorage().getDouble(0);

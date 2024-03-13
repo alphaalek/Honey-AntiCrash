@@ -1,10 +1,7 @@
 package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.AbstractPacketListener;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
-import me.alek.honey.checks.IPacketListener;
+import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -33,7 +30,7 @@ import java.util.function.Supplier;
 public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 
@@ -94,9 +91,12 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                         player, maxDistance, blockPosition::distance)) {
 
             // add the distance to the development data
-            developmentData.addPoint("BlockPos", blockPosition);
-            developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));
-            return ResponseBuilder.inst().cancel().flag().build();
+            return ResponseBuilder.inst().cancel().flag()
+                    .onViolation(() -> {
+                        developmentData.addPoint("BlockPos", blockPosition);
+                        developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));
+                    })
+                    .build();
         }
         return ResponseBuilder.SUCCESS;
     }
@@ -229,14 +229,18 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                 final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
-                    developmentData.addPoint("Block Direction", placedBlockDirection);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> developmentData.addPoint("Block Direction", placedBlockDirection))
+                            .build();
                 }
                 if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
-                    developmentData.addPoint("Facing X", facingX);
-                    developmentData.addPoint("Facing Y", facingY);
-                    developmentData.addPoint("Facing Z", facingZ);
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(() -> {
+                                developmentData.addPoint("Facing X", facingX);
+                                developmentData.addPoint("Facing Y", facingY);
+                                developmentData.addPoint("Facing Z", facingZ);
+                            })
+                            .build();
                 }
             }
             return ResponseBuilder.SUCCESS;
