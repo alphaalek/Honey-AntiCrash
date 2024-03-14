@@ -8,7 +8,6 @@ import me.alek.honey.tracker.markable.MarkableHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
 
@@ -36,10 +35,10 @@ public class TrackCommand implements CommandImpl {
 
                 for (HoneyPlayer player : serverThreadHandleTracker.getTrackersOrdered()) {
 
-                    double tenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
-                    double fifteenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND);
-                    double thirtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE);
-                    double sixtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.MINUTE);
+                    double tenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, true);
+                    double fifteenSeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND, true);
+                    double thirtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE, true);
+                    double sixtySeconds = serverThreadHandleTracker.getTimeToAverageWithoutQuotient(player, Timespan.MINUTE, true);
 
                     sender.sendMessage("§e" + player.name + ": §7" + FORMATTER.format(tenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7" + FORMATTER.format(sixtySeconds * 100) + "% §8(60s)");
                 }

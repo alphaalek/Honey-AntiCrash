@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.entity.Player;
 
 public class TrackerUtils {
 
@@ -29,19 +28,19 @@ public class TrackerUtils {
         }
 
         public double getOfAverage(HoneyPlayer player, Timespan timespan) {
-            return NumberConversions.format(tracker.getTimeToAverageQuotient(player, timespan) * 100, 1);
+            return NumberConversions.format(tracker.getTimeToAverageQuotient(player, timespan, true) * 100, 1);
         }
 
         public double getOfAverageWithout(HoneyPlayer player, Timespan timespan) {
-            return NumberConversions.format(tracker.getTimeToAverageWithoutQuotient(player, timespan) * 100, 1);
+            return NumberConversions.format(tracker.getTimeToAverageWithoutQuotient(player, timespan, true) * 100, 1);
         }
 
         public double getOfTotal(HoneyPlayer player, Timespan timespan) {
-            return NumberConversions.format(tracker.getTimeToTotalQuotient(player, timespan) * 100, 1);
+            return NumberConversions.format(tracker.getTimeToTotalQuotient(player, timespan, true) * 100, 1);
         }
 
         public double getOfPacketTask(HoneyPlayer player, Timespan timespan) {
-            return NumberConversions.format(tracker.getHalfServerThreadQuotient(player, timespan) * 100, 1);
+            return NumberConversions.format(tracker.getHalfServerThreadQuotient(player, timespan, true) * 100, 1);
         }
 
         public String getOfPacketTaskFormatted(HoneyPlayer player, Timespan timespan) {

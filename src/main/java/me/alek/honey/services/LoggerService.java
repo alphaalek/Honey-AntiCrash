@@ -37,7 +37,7 @@ public class LoggerService {
     private final Map<UUID, LinkedList<PacketTypeEnum>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
-    private final TempTimedQueuedTracker packetRatePerQueueExecution = new TempTimedQueuedTracker();
+    private final TempTimedQueuedTracker packetRatePerQueueExecution = new TempTimedQueuedTracker(false);
     private final AtomicInteger currentQueueExecutionPacket = new AtomicInteger(0);
 
 

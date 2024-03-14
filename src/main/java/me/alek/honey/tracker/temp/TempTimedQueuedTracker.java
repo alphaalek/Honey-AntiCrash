@@ -7,6 +7,10 @@ import me.alek.honey.utility.Tuple2;
 
 public class TempTimedQueuedTracker extends TempQueuedTracker {
 
+    public TempTimedQueuedTracker(boolean hasId) {
+        super(hasId);
+    }
+
     public void add(double amount, long time) {
         for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
             queue.getT2().add(amount, time);

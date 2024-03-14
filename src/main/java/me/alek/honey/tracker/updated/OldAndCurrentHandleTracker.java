@@ -13,6 +13,11 @@ import java.util.*;
 
 public class OldAndCurrentHandleTracker extends UpdatingHandleTrackerTask<Double, Player> implements StatisticHandleTracker<Double, Player>, StatedHandleTracker<Double, Player> {
 
+    @Override
+    public int getID() {
+        return -1;
+    }
+
     private static class TrackerContext {
 
         private double meanSize;

@@ -2,6 +2,7 @@ package me.alek.honey.tracker.timed;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import me.alek.honey.tracker.HoneyTracker;
+import me.alek.honey.tracker.TrackerIDRegistry;
 import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
@@ -21,14 +22,20 @@ public enum Timespan {
         private final TempQueue fixed = new TempQueue(true);
         private final TempQueue timed = new TempQueue(false);
         private final AtomicDouble fixedTotal = new AtomicDouble();
-        private final AtomicDouble timedTotal = new AtomicDouble();;
+        private final AtomicDouble timedTotal = new AtomicDouble();
         private final int timespan;
+        private final HoneyTracker tracker;
 
-        TimespanContext(Timespan timespan) {
+        TimespanContext(Timespan timespan, HoneyTracker tracker) {
             this.timespan = timespan.timespan;
+            this.tracker = tracker;
 
             fixed.prepareFixed(timespan, 10 * this.timespan, this.fixedTotal, 100);
             timed.prepareTimed(timespan, this.timedTotal);
+        }
+
+        public HoneyTracker getTracker() {
+            return tracker;
         }
 
         public boolean isFixed(HoneyTracker tracker) {
@@ -53,7 +60,9 @@ public enum Timespan {
         }
     }
 
-    private final Map<HoneyTracker, TimespanContext> contextMap = new HashMap<>();
+    private static final double NANO_MULTIPLIER = Math.pow(10, 9);
+    private final Map<HoneyTracker, TimespanContext> noIDContextMap = new HashMap<>();
+    private TimespanContext[] IDContextMap = new TimespanContext[0];
 
     private final int timespan;
 
@@ -62,7 +71,24 @@ public enum Timespan {
     }
 
     private synchronized TimespanContext getContext(HoneyTracker tracker) {
-        return contextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this));
+        if (tracker.getID() == -1)
+            return noIDContextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this, tracker));
+
+        if (IDContextMap.length != TrackerIDRegistry.size()) {
+            TimespanContext[] copy = IDContextMap;
+            IDContextMap = new TimespanContext[TrackerIDRegistry.size()];
+            for (TimespanContext context : copy) {
+                if (context != null) IDContextMap[context.getTracker().getID()] = context;
+            }
+            if (tracker.getID() >= IDContextMap.length) throw new IllegalStateException("Couldn't fetch correct timespan context from tracker because of ID mismatch.");
+
+            return getContext(tracker);
+        }
+        TimespanContext context = IDContextMap[tracker.getID()];
+        if (context == null || context.getTracker() != tracker)
+            return IDContextMap[tracker.getID()] = new TimespanContext(this, tracker);
+
+        return context;
     }
 
     public TempQueue getQueue(HoneyTracker tracker) {
@@ -77,7 +103,15 @@ public enum Timespan {
         return timespan;
     }
 
+    public long getNanoTimespan() {
+        return (long) (timespan * NANO_MULTIPLIER);
+    }
+
     public synchronized void clearContext(HoneyTracker tracker) {
-        contextMap.remove(tracker);
+        noIDContextMap.remove(tracker);
+
+        if (tracker.getID() != -1) {
+            if (IDContextMap.length > tracker.getID()) IDContextMap[tracker.getID()] = null;
+        }
     }
 }

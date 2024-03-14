@@ -48,7 +48,6 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         if (channel.equals("MC|BEdit") || channel.equals("MC|BOpen") || channel.equals("MC|BSign")) {
 
             ByteBuf copiedSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(serializer));
-
             try {
                 Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
                 ItemStack bukkitItem = ItemReflection.asBukkitItem(item);

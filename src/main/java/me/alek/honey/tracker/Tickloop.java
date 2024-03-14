@@ -18,7 +18,7 @@ public class Tickloop extends TempFixedQueuedTracker {
     }
 
     public Tickloop() {
-        super();
+        super(false);
         new BukkitRunnable() {
             @Override
             public void run() {

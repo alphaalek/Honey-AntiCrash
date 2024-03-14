@@ -12,9 +12,11 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.*;
 import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
+import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.ThreadLocalAccessor;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -53,6 +55,14 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public TempTimedQueuedTracker getPropertyTracker(HoneyPlayer player) {
+        return player.serverThreadTimedQueuedTracker;
+    }
+
+    public void setPropertyTracker(HoneyPlayer player, TempTimedQueuedTracker tracker) {
+        player.serverThreadTimedQueuedTracker = tracker;
     }
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
@@ -246,7 +256,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
             @Override
             public int compare(HoneyPlayer o1, HoneyPlayer o2) {
-                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.TEN_SECOND), getTimeToAverageWithoutQuotient(o2, Timespan.TEN_SECOND));
+                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.TEN_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.TEN_SECOND, true));
             }
         });
         return trackersList;

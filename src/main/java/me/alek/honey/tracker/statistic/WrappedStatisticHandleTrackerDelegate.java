@@ -109,4 +109,9 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     public List<T> getTrackersOrdered() {
         return handleTracker.getTrackersOrdered();
     }
+
+    @Override
+    public int getID() {
+        return -1;
+    }
 }

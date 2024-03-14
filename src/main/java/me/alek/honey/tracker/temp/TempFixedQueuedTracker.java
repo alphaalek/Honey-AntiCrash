@@ -8,6 +8,10 @@ import java.util.Optional;
 
 public class TempFixedQueuedTracker extends TempQueuedTracker {
 
+    public TempFixedQueuedTracker(boolean hasId) {
+        super(hasId);
+    }
+
     public double peek(Timespan timespan) {
         Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
         if (queue == null) return 0;

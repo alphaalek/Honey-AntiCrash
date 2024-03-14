@@ -1,6 +1,5 @@
 package me.alek.honey.tracker.markable;
 
-import me.alek.honey.tracker.markable.MarkableHandleTracker;
 import me.alek.honey.tracker.updated.UpdatingHandleTrackerTask;
 
 import java.util.*;
@@ -104,5 +103,10 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
             totalReferencedTime += referencedTime;
         }
         totalCheckHandleTime.set(totalReferencedTime);
+    }
+
+    @Override
+    public int getID() {
+        return -1;
     }
 }

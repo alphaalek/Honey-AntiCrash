@@ -30,7 +30,7 @@ public class TempQueue {
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
         }
-        total.addAndGet(1000 * timespan.getTimespan());
+        total.addAndGet(timespan.getNanoTimespan());
     }
 
     public void prepareTimed(Timespan timespan, AtomicDouble total) {
@@ -59,7 +59,7 @@ public class TempQueue {
     public double add(double amount) {
         if (isFixed) return add(amount, 0);
 
-        return add(amount, System.currentTimeMillis());
+        return add(amount, System.nanoTime());
     }
 
     public double add(double amount, long time) {
@@ -97,7 +97,7 @@ public class TempQueue {
     }
 
     public void clearExceedingNodes() {
-        clearExceedingNodes(System.currentTimeMillis());
+        clearExceedingNodes(System.nanoTime());
     }
 
     public static class TimedNode {
@@ -105,7 +105,7 @@ public class TempQueue {
         public TimedNode(double value) { this.value = value; }
 
         private final double value;
-        private final long insertionInstant = System.currentTimeMillis();
+        private final long insertionInstant = System.nanoTime();
 
         public double getValue() {
             return value;
