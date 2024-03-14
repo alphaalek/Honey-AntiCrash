@@ -1,5 +1,6 @@
 package me.alek.honey.tracker.markable;
 
+import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.updated.UpdatingHandleTrackerTask;
 
 import java.util.*;
@@ -7,40 +8,79 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<Double, T> implements MarkableHandleTracker<Double, T> {
 
+    private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
     private final AtomicLong totalCheckHandleTime = new AtomicLong(0);
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
-    private final Map<T, Deque<Long>> checkHandleRegistryDeque = new HashMap<>();
+    private final Map<T, Integer> checkHandleIndexMap = new HashMap<>();
+    private final Map<T, List<TimedNode<T>>> checkHandleRegistryDeque = new HashMap<>();
+    private long key;
+    private long totalIndex;
+    private long totalTime;
 
     public RegistryMarkableHandleTracker(long updateInterval) {
         super(updateInterval);
     }
 
-    public synchronized Deque<Long> getCheckRegistryQueue(T key) {
-        return checkHandleRegistryDeque.computeIfAbsent(key, (d) -> new LinkedList<>());
+    public synchronized List<TimedNode<T>> getRegistryTracking(T key) {
+        return checkHandleRegistryDeque.computeIfAbsent(key, (d) -> new ArrayList<>());
     }
 
     @Override
-    public synchronized void registerTimeStart(T key) {
-        Deque<Long> checkRegistryDeque = getCheckRegistryQueue(key);
+    public synchronized long registerTimeStart(T key) {
+        List<TimedNode<T>> tracking = getRegistryTracking(key);
 
-        checkRegistryDeque.add(System.nanoTime());
+        TimedNode<T> node;
+        tracking.add(node = new TimedNode<>(key, this.key++));
+        if (this.key == Long.MAX_VALUE) this.key = 0;
+
+        return node.getID();
     }
 
     @Override
-    public synchronized void registerTimeStop(T key) {
-        Deque<Long> checkRegistryDeque = getCheckRegistryQueue(key);
+    public synchronized void registerTimeStop(T key, long registryKey) {
+        List<TimedNode<T>> tracking = getRegistryTracking(key);
 
-        if (checkRegistryDeque.isEmpty()) return;
+        if (tracking.isEmpty()) return;
 
-        long randomUnixTime = checkRegistryDeque.poll();
-        long deltaHandleTime = System.nanoTime() - randomUnixTime;
+        TimedNode<T> trackedNode = null;
+        for (int i = 0; i < tracking.size() && trackedNode == null; i++) {
+            TimedNode<T> node = tracking.get(i);
+            if (node.getID() == registryKey) {
+                trackedNode = node;
+            }
+        }
+        if (trackedNode == null) return;
+
+        long deltaHandleTime = System.nanoTime() - trackedNode.getInsertionInstant();
 
         totalCheckHandleTime.addAndGet(deltaHandleTime);
+        checkHandleIndexMap.put(key, checkHandleIndexMap.getOrDefault(key, 0) + 1);
         checkHandleTimeMap.put(key, checkHandleTimeMap.getOrDefault(key, 0L) + deltaHandleTime);
+
+        totalIndex++;
+        totalTime += deltaHandleTime;
+        if (totalTime > Long.MAX_VALUE - FROM_LONG_MAX_BEFORE_RESET) {
+            totalTime = totalTime / totalIndex;
+            totalIndex = 1;
+        }
     }
 
-    public long getCheckHandleTime(T getKey) {
-        return checkHandleTimeMap.getOrDefault(getKey, 0L);
+    @Override
+    public double getAverageTimePer(T key) {
+        return ((double)getCheckHandleTime(key)) / getCheckHandleIndex(key);
+    }
+
+    @Override
+    public double getAverageTimePerToAverageQuotient(T key) {
+        return getAverageTimePer(key) / (((double)totalTime) / totalIndex);
+    }
+
+    public long getCheckHandleTime(T key) {
+        return checkHandleTimeMap.getOrDefault(key, 0L);
+    }
+
+    public int getCheckHandleIndex(T key) {
+        return checkHandleIndexMap.getOrDefault(key, 0);
     }
 
     @Override

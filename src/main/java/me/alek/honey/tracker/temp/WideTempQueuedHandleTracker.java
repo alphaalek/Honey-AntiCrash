@@ -2,6 +2,7 @@ package me.alek.honey.tracker.temp;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.TrackerIDRegistry;
 import me.alek.honey.tracker.timed.TimedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
@@ -20,7 +21,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
             for (Timespan timespan : Timespan.values()) {
                 timespan.clearContext(getTracker(key));
             }
-            TrackerIDRegistry.remove(getTracker(key).getID());
+            TrackerIDRegistry.DEFAULT.remove(getTracker(key).getID());
             trackerMap.remove(key.uuid);
         }
         for (UUID uuid : Sets.newHashSet(trackerMap.keySet())) {
@@ -80,7 +81,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
-        TempQueue.TimedNode node = tracker.getQueue(timespan).asTimedQueue().peek();
+        TimedNode<Double> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
         if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (System.nanoTime() - node.getInsertionInstant()))))) {
             return node.getValue() - diff;

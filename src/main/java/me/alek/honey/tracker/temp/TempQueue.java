@@ -1,6 +1,7 @@
 package me.alek.honey.tracker.temp;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.timed.Timespan;
 
 import java.util.Iterator;
@@ -11,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TempQueue {
 
     private final Queue<Double> FIXED = new LinkedList<>();
-    private final Queue<TimedNode> TIMED = new LinkedList<>();
+    private final Queue<TimedNode<Double>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
     private Timespan timespan;
@@ -51,7 +52,7 @@ public class TempQueue {
         return FIXED;
     }
 
-    public Queue<TimedNode> asTimedQueue() {
+    public Queue<TimedNode<Double>> asTimedQueue() {
         if (isFixed) throw new UnsupportedOperationException();
 
         return TIMED;
@@ -70,7 +71,7 @@ public class TempQueue {
 
         } else if (!isFixed) {
             synchronized (this) {
-                if (amount > 0) TIMED.add(new TimedNode(amount));
+                if (amount > 0) TIMED.add(new TimedNode<>(amount, -1));
 
                 clearExceedingNodes(time);
             }
@@ -81,16 +82,16 @@ public class TempQueue {
     public synchronized void clearExceedingNodes(long time) {
         if (isFixed) return;
 
-        final Iterator<TimedNode> sampleNodeIterator = TIMED.iterator();
+        final Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
         while (sampleNodeIterator.hasNext()) {
 
-            final TimedNode node = sampleNodeIterator.next();
-            final long diff = time - node.insertionInstant;
+            final TimedNode<Double> node = sampleNodeIterator.next();
+            final long diff = time - node.getInsertionInstant();
 
             if (diff > (timespan.getNanoTimespan())) {
                 sampleNodeIterator.remove();
 
-                total.addAndGet((long) -node.value);
+                total.addAndGet((long) -node.getValue());
                 continue;
             }
             break;
@@ -99,21 +100,5 @@ public class TempQueue {
 
     public void clearExceedingNodes() {
         clearExceedingNodes(System.nanoTime());
-    }
-
-    public static class TimedNode {
-
-        public TimedNode(double value) { this.value = value; }
-
-        private final double value;
-        private final long insertionInstant = System.nanoTime();
-
-        public double getValue() {
-            return value;
-        }
-
-        public long getInsertionInstant() {
-            return insertionInstant;
-        }
     }
 }

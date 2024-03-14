@@ -2,9 +2,11 @@ package me.alek.honey.tracker;
 
 public class TrackerIDRegistry {
 
-    private static int[] ids = new int[0];
+    public static final TrackerIDRegistry DEFAULT = new TrackerIDRegistry();
 
-    public static synchronized int getID() {
+    private int[] ids = new int[0];
+
+    public synchronized int getID() {
         try {
             int i = 0;
             for (int id : ids) {
@@ -20,7 +22,7 @@ public class TrackerIDRegistry {
         }
     }
 
-    public static synchronized void remove(int id) {
+    public synchronized void remove(int id) {
         ids[id] = -1;
         int maxId = 0;
         for (int id0 : ids) {
@@ -33,7 +35,7 @@ public class TrackerIDRegistry {
         }
     }
 
-    public static int size() {
+    public int size() {
         return ids.length;
     }
 }

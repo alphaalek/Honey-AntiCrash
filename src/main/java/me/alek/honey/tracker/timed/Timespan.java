@@ -75,9 +75,9 @@ public enum Timespan {
         if (tracker.getID() == -1)
             return noIDContextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this, tracker));
 
-        if (IDContextMap.length != TrackerIDRegistry.size()) {
+        if (IDContextMap.length != TrackerIDRegistry.DEFAULT.size()) {
             TimespanContext[] copy = IDContextMap;
-            IDContextMap = new TimespanContext[TrackerIDRegistry.size()];
+            IDContextMap = new TimespanContext[TrackerIDRegistry.DEFAULT.size()];
             for (TimespanContext context : copy) {
                 if (context != null) IDContextMap[context.getTracker().getID()] = context;
             }

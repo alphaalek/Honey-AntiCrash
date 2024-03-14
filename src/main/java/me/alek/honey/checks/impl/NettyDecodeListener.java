@@ -50,12 +50,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-                // check if the player sends invalid bytes to be decoded to a packet
-                if (byteBuf instanceof EmptyByteBuf || byteBuf.readableBytes() == 0) {
-
-                    return ResponseBuilder.inst().cancel().build();
-                }
+            if (getSetting().isEnabled() && byteBuf.readableBytes() == 0) {
+                return ResponseBuilder.inst().cancel().build();
             }
             return ResponseBuilder.SUCCESS;
         }

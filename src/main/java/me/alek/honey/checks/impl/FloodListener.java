@@ -22,6 +22,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -30,15 +31,15 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
-    private static final ViolationService.CheckKey sharedIgnoringKey = new ViolationService.CheckKey();
-    private static final ConfigurationOptions.VlSetting sharedIgnoringSetting = new ConfigurationOptions.VlSetting();
+    private static final ViolationService.CheckKey ignoringKey = new ViolationService.CheckKey();
+    private static final ConfigurationOptions.VlSetting ignoringSetting = new ConfigurationOptions.VlSetting();
 
     public static ViolationService.CheckKey getSharedIgnoringKey() {
-        return sharedIgnoringKey;
+        return ignoringKey;
     }
 
     public static ConfigurationOptions.VlSetting getSharedIgnoringSetting() {
-        return sharedIgnoringSetting;
+        return ignoringSetting;
     }
 
     @Override
@@ -212,29 +213,32 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
 
+        private InboundPacketFilter filter;
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
 
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
             // it gets updated when the configuration is being reloaded, but not here
-            if (sharedIgnoringSetting.interval == 0) sharedIgnoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
+            if (ignoringSetting.interval == 0) ignoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
 
-            // force the violation service to make a packet limit handler with the shared key and shared setting
-            HoneyPlugin.get().getViolationService().getDistributor(player, sharedIgnoringKey, sharedIgnoringSetting);
+            if (filter == null) {
+                filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
 
-            InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
+                // force the violation service to make a packet limit handler with the shared key and shared setting
+                HoneyPlugin.get().getViolationService().getDistributor(player, ignoringKey, ignoringSetting);
+            }
 
-            if (getSetting(packet).isEnabled() && filter != null) {
+            if (getSetting(packet).isEnabled()) {
                 // check if the delta time is high enough to exempt the next packet spike for this player
-                if (filter.getRecentDeltaReceived() > (ConfigurationOptions.SpikeFlood.MAX_TIME_BETWEEN * 1_000)) {
-
-                    return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(sharedIgnoringKey).build();
+                if (filter.getRecentDeltaReceived() > ConfigurationOptions.SpikeFlood.MAX_TIME_BETWEEN) {
+                    return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(ignoringKey).build();
                 }
                 // flag the player for the shared ignoring key to check if it's currently ignoring a packet spike of the player,
                 // if it isn't, and it gets flagged, then the real flood setting and values will be flagged afterwards
 
                 // NOTE: it's not a shared packet limit handler, just a shared key and setting
-                return ResponseBuilder.inst().flag(0).withLimitsKey(sharedIgnoringKey).onFlag(() -> {
+                return ResponseBuilder.inst().flag(0).withLimitsKey(ignoringKey).onFlag(() -> {
                     HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(getName(), getKey(packet)), null, 1, FloodD.this, getSetting(packet), container.getDevelopmentData(FloodD.this), false);
                 }).build();
             }

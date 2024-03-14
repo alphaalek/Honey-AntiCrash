@@ -19,7 +19,7 @@ public abstract class TempQueuedTracker implements HoneyTracker {
     private final int id;
 
     public TempQueuedTracker(boolean hasId) {
-        if (hasId) id = TrackerIDRegistry.getID();
+        if (hasId) id = TrackerIDRegistry.DEFAULT.getID();
         else id = -1;
 
         setup();

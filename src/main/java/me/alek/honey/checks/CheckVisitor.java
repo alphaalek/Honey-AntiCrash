@@ -55,13 +55,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             ConfigurationOptions.VlSetting setting = getSetting(check, packet);
 
             // do the check and get the response, and register the time taken to the check handle tracker
+            long registryKey = -1;
             if (setting != null && setting.isEnabled())
-                HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
+                registryKey = HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
 
             final ResponseContainer responses = responseGenerator.apply(check);
 
-            if (setting != null && setting.isEnabled())
-                HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName());
+            if (setting != null && setting.isEnabled() && registryKey != -1)
+                HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
 
             final List<ResponseContainer> responsesList = new ArrayList<>(responses.SUB_CONTAINERS);
             responsesList.add(responses);
