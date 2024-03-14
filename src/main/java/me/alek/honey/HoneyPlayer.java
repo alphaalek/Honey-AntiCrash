@@ -1,6 +1,7 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
+import me.alek.honey.checks.CallbackAction;
 import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMS;
@@ -41,6 +42,7 @@ public class HoneyPlayer {
     public final String name;
     public final Channel channel;
 
+    public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public volatile InboundPacketDecoder decoder;
     public ViolationService.ViolationContext violationContext;

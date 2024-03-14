@@ -261,13 +261,13 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
-        private final ResponseContainer success = ResponseBuilder.inst().add(
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
+        private static final ResponseContainer success = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("hsq")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
         ).build();
-        private final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
+        private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {

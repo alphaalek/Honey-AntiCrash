@@ -10,6 +10,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
 
+import java.nio.channels.ClosedChannelException;
+
 public class DuplexChannelHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
     private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocalAccessor<>();
@@ -31,7 +33,8 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (HoneyPlugin.get().getLoggerService().isDebug()) {
+        if (HoneyPlugin.get().getLoggerService().isDebug()
+                && !(cause instanceof ClosedChannelException)) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
             cause.printStackTrace();
         }

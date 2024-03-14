@@ -77,5 +77,7 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getServerThreadHandleTracker().remove(player);
 
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
+
+        player.leaveCallback.call(player);
     }
 }

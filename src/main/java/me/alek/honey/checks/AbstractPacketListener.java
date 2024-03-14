@@ -10,9 +10,14 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
-    private CheckVisitor<WP> cachedVisitor;
+    private final UUID commonUUID = UUID.randomUUID();
+    private final Map<UUID, CheckVisitor<WP>> visitors = new HashMap<>();
     private boolean initializedCheckInstances;
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
@@ -63,15 +68,23 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
-        getCachedVisitor().check(player, packetContainer, checkContextContainer, callback);
+        getCachedVisitor(player).check(player, packetContainer, checkContextContainer, callback);
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }
 
-    public synchronized CheckVisitor<WP> getCachedVisitor() {
-        if (cachedVisitor == null) cachedVisitor = getVisitor();
+    public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player) {
+        return getCachedVisitor(player, player != null ? player.uuid : commonUUID);
+    }
+
+    public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player, UUID uuid) {
+        if (!visitors.containsKey(uuid)) {
+            visitors.put(uuid, getVisitor());
+            if (player != null)
+                player.leaveCallback.addAction(p -> visitors.remove(p.uuid));
+        }
         initializedCheckInstances = true;
 
-        return cachedVisitor;
+        return visitors.get(uuid);
     }
 
     public synchronized boolean hasInitializedCheckInstances() {

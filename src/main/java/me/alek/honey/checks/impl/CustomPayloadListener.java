@@ -56,12 +56,13 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         container.getStorage().put(ByteBuf.class, serializer);
 
         callback.addAction(response -> {
+            Runnable priorOnViolation = response.ON_VIOLATION;
             response.builder().onViolation(() -> {
                 container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
                 container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
 
-                if (response.ON_VIOLATION != null)
-                    response.ON_VIOLATION.run();
+                if (priorOnViolation != null)
+                    priorOnViolation.run();
             });
         });
 

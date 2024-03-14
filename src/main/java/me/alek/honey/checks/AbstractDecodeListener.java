@@ -6,9 +6,13 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
 
-    private CheckVisitor<?> cachedVisitor;
+    private final Map<UUID, CheckVisitor<?>> visitors = new HashMap<>();
     private boolean initializedCheckInstances;
 
     @Override
@@ -32,18 +36,18 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
         defaultDevelopmentData.addValue(" ByteBuf", byteBuf.readableBytes() + " bytes");
         AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
 
-        getCachedVisitor().check(player, byteBuf, checkContextContainer);
+        getCachedVisitor(player).check(player, byteBuf, checkContextContainer);
     }
 
     public synchronized boolean hasInitializedCheckInstances() {
         return initializedCheckInstances;
     }
 
-    public synchronized CheckVisitor<?> getCachedVisitor() {
-        if (cachedVisitor == null) cachedVisitor = getVisitor();
+    public synchronized CheckVisitor<?> getCachedVisitor(HoneyPlayer player) {
+        if (!visitors.containsKey(player.uuid)) visitors.put(player.uuid, getVisitor());
         initializedCheckInstances = true;
 
-        return cachedVisitor;
+        return visitors.get(player.uuid);
     }
 
     public abstract CheckVisitor<?> getVisitor();

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
@@ -78,7 +79,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     if (response.LIMITS_KEY == null) response.LIMITS_KEY = new ViolationService.CheckKey(check.getClass(), keyedViolationCheck.getKey(packet));
                 }
 
-                // checks the contents of the response container and do whatever action it represents
+                // now we will check the contents of the response container and do whatever actions it represents
                 if (response.SKIP_INDICES != null)
                     skipping = response.SKIP_INDICES;
 

@@ -49,12 +49,13 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         lastPitchMap.put(player.uuid, location.getPitch());
 
         callback.addAction(responseCallback -> {
+            Runnable priorOnViolation = response.ON_VIOLATION;
             responseCallback.builder().onViolation(() -> {
                 container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
                 container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
 
-                if (response.ON_VIOLATION != null)
-                    response.ON_VIOLATION.run();
+                if (priorOnViolation != null)
+                    priorOnViolation.run();
             });
         });
         return true;
