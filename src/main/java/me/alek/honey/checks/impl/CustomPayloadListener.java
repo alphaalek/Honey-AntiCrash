@@ -44,13 +44,17 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         } catch (Exception ex) {
             return false;
         }
-        ByteBuf copiedSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(serializer));
+        String channel = packetContainer.getPacket().getChannel();
+        if (channel.equals("MC|BEdit") || channel.equals("MC|BOpen") || channel.equals("MC|BSign")) {
 
-        try {
-            Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
-            ItemStack bukkitItem = ItemReflection.asBukkitItem(item);
-            container.getStorage().put(ItemStack.class, bukkitItem);
-        } catch (Exception ex) {
+            ByteBuf copiedSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(serializer));
+
+            try {
+                Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
+                ItemStack bukkitItem = ItemReflection.asBukkitItem(item);
+                container.getStorage().put(ItemStack.class, bukkitItem);
+            } catch (Exception ex) {
+            }
         }
 
         container.getStorage().put(ByteBuf.class, serializer);
@@ -58,7 +62,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         callback.addAction(response -> {
             Runnable priorOnViolation = response.ON_VIOLATION;
             response.builder().onViolation(() -> {
-                container.getDefaultDevelopmentData().addPoint("Channel", packetContainer.getPacket().getChannel());
+                container.getDefaultDevelopmentData().addPoint("Channel", channel);
                 container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
 
                 if (priorOnViolation != null)

@@ -51,13 +51,11 @@ public class ConfigurationOptions {
 
     public static boolean load() {
         try {
-            // venter på threads der allerede loader
             loadingLatch.await();
-
-            // laver en ny barrier
             loadingLatch = new CountDownLatch(1);
 
             floodSettings.clear();
+            channelFloodSettings.clear();
             load(ConfigurationOptions.class);
 
         } catch (Exception ex) {
@@ -94,8 +92,7 @@ public class ConfigurationOptions {
     }
 
     public static void setViolationSetting(Class<? extends VlSetting> clazz, PacketLimitHandlerType type, String[] prefixPaths) {
-        // makes a new violation setting instance and register it
-        final Class<? extends VlSetting> classCopy = clazz; // has to make a final copy to use it inside the functional interface
+        final Class<? extends VlSetting> classCopy = clazz;
         final VlSetting setting = vlSettingMap.computeIfAbsent(clazz, (d) -> {
             try {
                 final Constructor<? extends VlSetting> constructor = classCopy.getDeclaredConstructor();
@@ -120,12 +117,10 @@ public class ConfigurationOptions {
         }
         // just like the condition above, checks if it is a custom payload channel flood setting instead
         if (clazz.isAnnotationPresent(ChannelFlood.class)) {
-            ChannelFlood flood = clazz.getAnnotation(ChannelFlood.class);
-            channelFloodSettings.put(flood.value(), setting);
+            channelFloodSettings.put(clazz.getAnnotation(ChannelFlood.class).value(), setting);
         }
         if (clazz.isAnnotationPresent(Keyed.class)) {
-            Keyed keyed = clazz.getAnnotation(Keyed.class);
-            setting.keyedAnnotation = keyed;
+            setting.keyedAnnotation = clazz.getAnnotation(Keyed.class);
         }
 
         final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();

@@ -159,9 +159,8 @@ public class ReflectStructure<T, C> {
     }
 
     public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter, boolean withCache) {
-        if (clazz == null) {
-            return null;
-        }
+        if (clazz == null) return null;
+
         ReflectStructure<R, D> packetStructure = (withCache) ? (ReflectStructure<R, D>) SUB_TYPE_CACHE.get(clazz) : null;
         if (packetStructure == null) {
             packetStructure = new ReflectStructure<>(handle, clazz, converter);

@@ -229,7 +229,7 @@ public class WorkerPool<T> {
     }
 
     public String getTaskWorkerThreadName(int indexName) {
-        return "packet-decoder-" + indexName;
+        return "honey-packet-decoder-" + indexName;
     }
 
     public WorkerPool(int minimumWorkerThreads, double minimumTaskTimeForQuarantine, int minimumPendingTaskSizeForQuarantine) {
