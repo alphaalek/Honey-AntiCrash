@@ -193,17 +193,21 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) throws Exception {
             // evaluate the duration of decoding this packet
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
 
-            if (getSetting().isEnabled() && decodeTime > 0) {
+            if (setting.isEnabled() && decodeTime > 0) {
                 return ResponseBuilder.inst().flag(decodeTime)
-                        .onViolation(() -> container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms"))
+                        .onViolation(() -> developmentDataSupplier.get().addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms"))
                         .build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+            return check0(packet, getSetting(), () -> container.getDevelopmentData(this));
         }
 
         @Override
@@ -231,16 +235,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-
-                double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
-                if (decodeTime > 0) {
-                    return ResponseBuilder.inst().flag(decodeTime)
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms"))
-                            .build();
-                }
-            }
-            return ResponseBuilder.SUCCESS;
+            return NettyH.check0(packet, getSetting(), () -> container.getDevelopmentData(this));
         }
 
         @Override

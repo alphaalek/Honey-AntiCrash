@@ -148,8 +148,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 PacketType.Play.Client.POSITION,
                 PacketType.Play.Client.POSITION_LOOK,
                 PacketType.Play.Client.VEHICLE_MOVE,
-                PacketType.Play.Client.GROUND,
-                PacketType.Play.Client.FLYING
+                PacketType.Play.Client.GROUND
         );
     }
 
