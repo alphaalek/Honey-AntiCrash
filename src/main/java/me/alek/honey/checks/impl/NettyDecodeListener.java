@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
 import org.bukkit.Bukkit;
 
@@ -230,25 +231,22 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
-            // temporary disabled, because a different system should be used that's not called on packet decode
-            /*
             if (getSetting().isEnabled()) {
 
-                int size = tracker.getTrackerSize();
-                double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND);
+                double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, false);
                 if (ta > 5) {
+                    int size = tracker.getTrackerSize();
                     if ((size > 15 && ta > 17.5) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
                     }
 
-                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.TEN_SECOND);
+                    double tt = tracker.getTimeToTotalQuotient(player, Timespan.TEN_SECOND, false);
                     if ((size > 15 && tt > 0.65) || (size > 25 && tt > 0.55)) {
                         return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
                     }
                 }
                 return success;
             }
-            */
             return ResponseBuilder.SUCCESS;
         }
 
@@ -259,7 +257,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too high usage of netty thread";
+            return "Too high usage of netty threads";
         }
 
         @Override

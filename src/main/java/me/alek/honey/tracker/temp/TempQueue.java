@@ -86,7 +86,7 @@ public class TempQueue {
             final TimedNode node = sampleNodeIterator.next();
             final long diff = time - node.insertionInstant;
 
-            if (diff > ((long)timespan.getTimespan()) * 1000) {
+            if (diff > (timespan.getNanoTimespan())) {
                 sampleNodeIterator.remove();
 
                 total.addAndGet(-node.value);
