@@ -121,28 +121,37 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
 
     @Override
     public double getTimeToAverageWithoutQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
-        return Math.max(0, getPlayerTotal(key, timespan, update) / getAverageWithout(key, timespan, update));
+        double playerTotal = getPlayerTotal(key, timespan, update);
+        return Math.max(0, playerTotal / getAverageWithout(timespan, playerTotal, update));
     }
 
     @Override
     public double getTimeToTotalQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
-        return Math.max(0, getPlayerTotal(key, timespan, update) / getTotal(timespan));
+        return Math.max(0, getPlayerTotal(key, timespan, update) / getTotal(timespan, update));
     }
 
     @Override
     public double getAverage(Timespan timespan) {
-        return getTotal(timespan) / getTrackerSize();
+        return getTotal(timespan, true) / getTrackerSize();
     }
 
     public double getAverageWithout(HoneyPlayer player, Timespan timespan, boolean update) {
-        if (getTrackerSize() == 1) return Math.max(getTotal(timespan), getPlayerTotal(player, timespan, update));
-
-        return (getTotal(timespan) - getPlayerTotal(player, timespan, update)) / (getTrackerSize() - 1);
+        return getAverageWithout(timespan, getPlayerTotal(player, timespan, update), update);
     }
 
-    public double getTotal(Timespan timespan) {
-        commonTracker.clearExceedingNodes(timespan, System.nanoTime());
-        return commonTracker.getTotal(timespan) - getExceedingTimedNode(commonTracker, timespan);
+    public double getAverageWithout(Timespan timespan, double playerTotal, boolean update) {
+        if (getTrackerSize() == 1) return Math.max(getTotal(timespan, update), playerTotal);
+
+        return (getTotal(timespan, update) - playerTotal) / (getTrackerSize() - 1);
+    }
+
+    public double getTotal(Timespan timespan, boolean update) {
+        if (update) commonTracker.clearExceedingNodes(timespan, System.nanoTime());
+
+        double total = commonTracker.getTotal(timespan);
+        if (update) total -= getExceedingTimedNode(commonTracker, timespan);
+
+        return total;
     }
 
     @Override

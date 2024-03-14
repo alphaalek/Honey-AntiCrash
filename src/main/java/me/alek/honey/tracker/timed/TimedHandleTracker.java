@@ -12,5 +12,5 @@ public interface TimedHandleTracker<I extends Number, T> extends HandleTracker<I
 
     double getAverage(Timespan timespan);
 
-    double getTotal(Timespan timespan);
+    double getTotal(Timespan timespan, boolean update);
 }

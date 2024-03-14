@@ -5,6 +5,7 @@ import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.Tuple2;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TempFixedQueuedTracker extends TempQueuedTracker {
 
@@ -13,16 +14,16 @@ public class TempFixedQueuedTracker extends TempQueuedTracker {
     }
 
     public double peek(Timespan timespan) {
-        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
+        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
         if (queue == null) return 0;
 
         return Optional.ofNullable(queue.getT2().asFixedQueue().peek()).orElse(0d);
     }
 
     public void add(double amount) {
-        for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
+        for (Tuple2<AtomicLong, TempQueue> queue : tickDurationQueues) {
             double removed = queue.getT2().add(amount);
-            queue.getT1().addAndGet(amount - removed);
+            queue.getT1().addAndGet((long) (amount - removed));
         }
     }
 }

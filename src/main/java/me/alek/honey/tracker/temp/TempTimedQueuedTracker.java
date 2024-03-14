@@ -5,6 +5,8 @@ import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.utility.Tuple2;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class TempTimedQueuedTracker extends TempQueuedTracker {
 
     public TempTimedQueuedTracker(boolean hasId) {
@@ -12,9 +14,9 @@ public class TempTimedQueuedTracker extends TempQueuedTracker {
     }
 
     public void add(double amount, long time) {
-        for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
+        for (Tuple2<AtomicLong, TempQueue> queue : tickDurationQueues) {
             queue.getT2().add(amount, time);
-            if (amount > 0) queue.getT1().addAndGet(amount);
+            if (amount > 0) queue.getT1().addAndGet((long) amount);
         }
     }
 

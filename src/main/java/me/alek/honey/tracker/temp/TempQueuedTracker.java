@@ -10,11 +10,12 @@ import org.bukkit.Bukkit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public abstract class TempQueuedTracker implements HoneyTracker {
 
-    protected final Tuple2<AtomicDouble, TempQueue>[] tickDurationQueues = new Tuple2[Timespan.values().length];
+    protected final Tuple2<AtomicLong, TempQueue>[] tickDurationQueues = new Tuple2[Timespan.values().length];
     private final int id;
 
     public TempQueuedTracker(boolean hasId) {
@@ -36,22 +37,27 @@ public abstract class TempQueuedTracker implements HoneyTracker {
     }
 
     public void clearExceedingNodes(Timespan timespan, long time) {
-        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
+        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
         queue.getT2().clearExceedingNodes(time);
     }
 
     public double getTotal(Timespan timespan) {
-        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
+        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
         return queue.getT1().get();
     }
 
     public TempQueue getQueue(Timespan timespan) {
-        Tuple2<AtomicDouble, TempQueue> queue = getTuple(timespan);
+        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
         return queue.getT2();
     }
 
-    public synchronized Tuple2<AtomicDouble, TempQueue> getTuple(Timespan timespan) {
-        for (Tuple2<AtomicDouble, TempQueue> queue : tickDurationQueues) {
+    public synchronized Tuple2<AtomicLong, TempQueue> getTuple(Timespan timespan) {
+        Tuple2<AtomicLong, TempQueue> q;
+        if (timespan == Timespan.TEN_SECOND && tickDurationQueues.length > 0
+                && ((q = tickDurationQueues[0]).getT2().getTimespan().equals(Timespan.TEN_SECOND)))
+            return q;
+
+        for (Tuple2<AtomicLong, TempQueue> queue : tickDurationQueues) {
             if (timespan.getQueue(this).equals(queue.getT2()))
                 return queue;
         }

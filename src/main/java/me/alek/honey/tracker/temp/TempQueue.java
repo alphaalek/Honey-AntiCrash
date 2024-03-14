@@ -6,6 +6,7 @@ import me.alek.honey.tracker.timed.Timespan;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TempQueue {
 
@@ -14,7 +15,7 @@ public class TempQueue {
 
     private final boolean isFixed;
     private Timespan timespan;
-    private AtomicDouble total;
+    private AtomicLong total;
 
     public TempQueue(boolean isFixed) {
         this.isFixed = isFixed;
@@ -24,7 +25,7 @@ public class TempQueue {
         return timespan;
     }
 
-    public void prepareFixed(Timespan timespan, int amount, AtomicDouble total, double defaultValue) {
+    public void prepareFixed(Timespan timespan, int amount, AtomicLong total, double defaultValue) {
         if (!isFixed) throw new UnsupportedOperationException();
 
         for (int i = 0; i < amount; i++) {
@@ -33,7 +34,7 @@ public class TempQueue {
         total.addAndGet(timespan.getNanoTimespan());
     }
 
-    public void prepareTimed(Timespan timespan, AtomicDouble total) {
+    public void prepareTimed(Timespan timespan, AtomicLong total) {
         if (isFixed) throw new UnsupportedOperationException();
 
         this.timespan = timespan;
@@ -89,7 +90,7 @@ public class TempQueue {
             if (diff > (timespan.getNanoTimespan())) {
                 sampleNodeIterator.remove();
 
-                total.addAndGet(-node.value);
+                total.addAndGet((long) -node.value);
                 continue;
             }
             break;

@@ -9,6 +9,7 @@ import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 public enum Timespan {
     TEN_SECOND(10),
@@ -21,8 +22,8 @@ public enum Timespan {
 
         private final TempQueue fixed = new TempQueue(true);
         private final TempQueue timed = new TempQueue(false);
-        private final AtomicDouble fixedTotal = new AtomicDouble();
-        private final AtomicDouble timedTotal = new AtomicDouble();
+        private final AtomicLong fixedTotal = new AtomicLong();
+        private final AtomicLong timedTotal = new AtomicLong();
         private final int timespan;
         private final HoneyTracker tracker;
 
@@ -50,7 +51,7 @@ public enum Timespan {
             else return timed;
         }
 
-        public AtomicDouble getTotal(HoneyTracker tracker) {
+        public AtomicLong getTotal(HoneyTracker tracker) {
             if (isFixed(tracker)) return fixedTotal;
             else return timedTotal;
         }
@@ -95,7 +96,7 @@ public enum Timespan {
         return getContext(tracker).getQueue(tracker);
     }
 
-    public AtomicDouble getTotal(HoneyTracker tracker) {
+    public AtomicLong getTotal(HoneyTracker tracker) {
         return getContext(tracker).getTotal(tracker);
     }
 
