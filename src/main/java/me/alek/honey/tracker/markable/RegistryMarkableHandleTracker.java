@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<Double, T> implements MarkableHandleTracker<Double, T> {
 
     private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
-    private final AtomicLong totalCheckHandleTime = new AtomicLong(0);
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
     private final Map<T, Integer> checkHandleIndexMap = new HashMap<>();
     private final Map<T, List<TimedNode<T>>> checkHandleRegistryDeque = new HashMap<>();
@@ -54,7 +53,6 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
 
         long deltaHandleTime = System.nanoTime() - trackedNode.getInsertionInstant();
 
-        totalCheckHandleTime.addAndGet(deltaHandleTime);
         checkHandleIndexMap.put(key, checkHandleIndexMap.getOrDefault(key, 0) + 1);
         checkHandleTimeMap.put(key, checkHandleTimeMap.getOrDefault(key, 0L) + deltaHandleTime);
 
@@ -110,7 +108,7 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
     }
 
     public double getTotal() {
-        return (double) totalCheckHandleTime.get();
+        return totalTime;
     }
 
     @Override
@@ -134,16 +132,16 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
     @Override
     public void clear() {
         checkHandleTimeMap.clear();
-        totalCheckHandleTime.set(0);
+        checkHandleRegistryDeque.clear();
+        checkHandleTimeMap.clear();
+        totalTime = 0;
+        totalIndex = 0;
+        key = 0;
     }
 
     @Override
     public synchronized void update() {
-        long totalReferencedTime = 0;
-        for (long referencedTime : checkHandleTimeMap.values()) {
-            totalReferencedTime += referencedTime;
-        }
-        totalCheckHandleTime.set(totalReferencedTime);
+        throw new UnsupportedOperationException("Can't update registry tracker!");
     }
 
     @Override
