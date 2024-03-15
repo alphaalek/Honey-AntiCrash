@@ -64,6 +64,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
 
     public void clearExceedingNodes(Timespan timespan, boolean alsoPlayers, long time) {
         commonTracker.clearExceedingNodes(timespan, time);
+
         if (alsoPlayers) {
             for (TempTimedQueuedTracker tracker : trackerMap.values()) {
                 tracker.clearExceedingNodes(timespan, time);

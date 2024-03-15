@@ -32,7 +32,7 @@ public class TempQueue {
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
         }
-        total.addAndGet(timespan.getNanoTimespan());
+        total.addAndGet(timespan.getTimespan() * 1000L);
     }
 
     public void prepareTimed(Timespan timespan, AtomicLong total) {

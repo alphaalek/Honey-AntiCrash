@@ -11,8 +11,6 @@ import java.util.Map;
 
 public class CheckContextContainer {
 
-    private static final DecimalFormat decimalFormatter = new DecimalFormat("#.##");
-
     private final Storage storage = new Storage();
     private final Map<HoneyCheck, DevelopmentData> developmentDataMap = new HashMap<>();
     private final DevelopmentData defaultDevelopmentData = new DevelopmentData();

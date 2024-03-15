@@ -33,20 +33,24 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         Location location = packetContainer.getPacket().getLocation();
 
-        if (location.getPitch() == 0 && location.getYaw() == 0) {
-            return false;
-        }
-        float deltaYaw = Locations.calculateYawDistance(location.getYaw(), getLastYawFor(player, location.getYaw()));
-        float deltaPitch = Locations.calculateYawDistance(location.getPitch(), getLastPitchFor(player, location.getPitch()));
+        if (location.getPitch() == 0 && location.getYaw() == 0) return false;
+
+        float lastYaw = getLastYawFor(player, location.getYaw());
+        float lastPitch = getLastPitchFor(player, location.getPitch());
+
+        float deltaYaw = Locations.calculateYawDistance(location.getYaw(), lastYaw);
+        float deltaPitch = Locations.calculateYawDistance(location.getPitch(), lastPitch);
+
+        lastYawMap.put(player.uuid, location.getYaw());
+        lastPitchMap.put(player.uuid, location.getPitch());
+
+        if (location.getYaw() == lastYaw && location.getPitch() == lastPitch) return false;
 
         ResponseContainer response = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(deltaYaw).withViolationKey(yawKey).build(),
                 ResponseBuilder.inst().flag(deltaPitch).withViolationKey(pitchKey).build()
         ).build();
         container.getStorage().put(ResponseContainer.class, response);
-
-        lastYawMap.put(player.uuid, location.getYaw());
-        lastPitchMap.put(player.uuid, location.getPitch());
 
         callback.addAction(responseCallback -> {
             Runnable priorOnViolation = response.ON_VIOLATION;

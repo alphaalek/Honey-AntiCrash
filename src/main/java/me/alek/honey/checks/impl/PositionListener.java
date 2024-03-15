@@ -247,17 +247,20 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     private static boolean within(List<Location> list, Function<Location, Double> distanceFunction, double diff) {
-        return list.stream().anyMatch((location) -> distanceFunction.apply(location) < diff);
+        for (Location loc : list) {
+            if (distanceFunction.apply(loc) < diff) return true;
+        }
+        return false;
     }
 
     public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
         final UUID uuid = player.uuid;
 
         if (lastTeleportationLocationMap.containsKey(uuid)) {
-            final SampleDecayingList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
+            final SampleDecayingList<Location> sampleDecayingList = lastTeleportationLocationMap.get(uuid);
 
-            final List<Location> recentLocations = sampleDecayableList.getAll();
-            final List<Location> lockedLocations = sampleDecayableList.getLocked();
+            final List<Location> recentLocations = sampleDecayingList.getAll();
+            final List<Location> lockedLocations = sampleDecayingList.getLocked();
 
             // check if any of those locations is within the distance specified
             return within(recentLocations, distanceFunction, diff) || within(lockedLocations, distanceFunction, diff);

@@ -1,7 +1,6 @@
 package me.alek.honey.checks.impl;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.EmptyByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
@@ -39,6 +38,21 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         visitor.visit(new NettyN());
         visitor.visit(new NettyO());
         return visitor;
+    }
+
+    private static void processByteBuf(ByteBuf byteBuf, CheckContextContainer container) {
+        int accumulated = 0;
+
+        int readerIndex = byteBuf.readerIndex();
+        do {
+            byte currentByte = byteBuf.readByte();
+            accumulated += Math.abs(currentByte) + 8;
+
+        } while (byteBuf.isReadable());
+
+        byteBuf.readerIndex(readerIndex);
+
+        container.getStorage().putInt(accumulated);
     }
 
     @Override
@@ -81,10 +95,13 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
+            processByteBuf(byteBuf, container);
 
-                int readableBytes = byteBuf.readableBytes();
-                return ResponseBuilder.inst().flag(readableBytes).build();
+            int size = byteBuf.readableBytes();
+            container.getStorage().putInt(size);
+
+            if (getSetting().isEnabled()) {
+                return ResponseBuilder.inst().flag(size).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -115,9 +132,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-
-                int readableBytes = byteBuf.readableBytes();
-                return ResponseBuilder.inst().flag(readableBytes).build();
+                return ResponseBuilder.inst().flag(container.getStorage().getInt(1)).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -147,18 +162,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            int prevReaderIndex = byteBuf.readerIndex();
-
-            int byteSize = 0;
-            while (byteBuf.isReadable()) {
-                byteSize += Math.abs(byteBuf.readByte());
-            }
-            byteBuf.readerIndex(prevReaderIndex);
-
-            container.getStorage().putInt(byteSize);
-
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag(byteSize).build();
+                return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -189,9 +194,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                int byteSize = container.getStorage().getInt(0);
-
-                return ResponseBuilder.inst().flag(byteSize).build();
+                return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
             }
             return ResponseBuilder.SUCCESS;
         }

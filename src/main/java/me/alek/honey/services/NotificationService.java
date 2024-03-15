@@ -208,7 +208,7 @@ public class NotificationService {
 
     public String formatTPS() {
         int tps = (int) HoneyPlugin.get().getTickloop().evaluateTPS(Timespan.TEN_SECOND);
-        return ((tps > 16.5) ? "§a" : (tps < 8) ? "§e" : "§c") + tps;
+        return ((tps > 16.5) ? "§a" : (tps > 8) ? "§e" : "§c") + tps;
     }
 
     private String formatNetworkStats(HoneyPlayer player) {

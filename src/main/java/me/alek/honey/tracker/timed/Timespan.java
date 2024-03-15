@@ -1,11 +1,11 @@
 package me.alek.honey.tracker.timed;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import me.alek.honey.tracker.HoneyTracker;
 import me.alek.honey.tracker.TrackerIDRegistry;
 import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;

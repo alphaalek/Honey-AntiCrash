@@ -47,6 +47,7 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
             TimedNode<T> node = tracking.get(i);
             if (node.getID() == registryKey) {
                 trackedNode = node;
+                tracking.remove(node);
             }
         }
         if (trackedNode == null) return;

@@ -61,7 +61,7 @@ public class TrackCommand implements CommandImpl {
                     double timeToTotalQuotient = checkTimeHandleTracker.getTimeToTotalQuotient(trackName);
                     double timeToAverageQuotient = checkTimeHandleTracker.getAverageTimePerToAverageQuotient(trackName);
 
-                    sender.sendMessage("§e" + trackName + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(time of total)§7, " + FORMATTER.format(timeToAverageQuotient * 100) + "% §8(time/op. of avg.)");
+                    sender.sendMessage("§e" + trackName + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(time of total)§7, " + FORMATTER.format(timeToAverageQuotient * 100) + "% §8(avg. time/op. of t. avg.)");
                 }
                 sender.sendMessage("§7Remember, that all this work is done on the netty threads, so it wont affect the server thread at all!");
                 break;
