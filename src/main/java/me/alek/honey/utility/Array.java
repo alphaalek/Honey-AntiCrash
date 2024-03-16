@@ -7,7 +7,7 @@ public class Array<T> {
     private Object[] values = new Object[0];
     private final Object lock = new Object();
 
-    public T get(int index, Supplier<T> or) {
+    private void resolve(int index) {
         if (index >= values.length) {
             synchronized (lock) {
                 if (index >= values.length) {
@@ -17,10 +17,39 @@ public class Array<T> {
                 }
             }
         }
+    }
+
+    public T get(int index) {
+        return get(index, null);
+    }
+
+    public T get(int index, Supplier<T> or) {
+        resolve(index);
         if (values[index] == null && or != null) {
             return (T) (values[index] = or.get());
         }
 
         return (T) values[index];
+    }
+
+    public boolean has(int index) {
+        return get(index) != null;
+    }
+
+    public int size() {
+        return values.length;
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    public boolean set(int index, T value) {
+        resolve(index);
+
+        boolean present = values[index] != null;
+        values[index] = value;
+
+        return present;
     }
 }

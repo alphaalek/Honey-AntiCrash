@@ -107,7 +107,7 @@ public class ViolationService {
                     return new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(key, packetLimitHandler, setting));
                 else
-                    return new ViolationDistributor(player, key.getCheck(), packetLimitHandler);
+                    return new ViolationDistributor(player, packetLimitHandler);
             });
         }
 
@@ -220,51 +220,56 @@ public class ViolationService {
     public static class ViolationDistributor {
 
         private final HoneyPlayer player;
-        private final Map<CheckKey, AbstractPacketLimitHandler> packetLimitHandlerDelegateLookup = new HashMap<>();
+        private final Array<AbstractPacketLimitHandler> packetLimitHandlerDelegateLookup = new Array<>();
         private AbstractPacketLimitHandler cachedDefaultPacketLimitHandler;
 
         public ViolationDistributor(HoneyPlayer player, KeyedViolationLookupGenerator generator) {
             this.player = player;
-            packetLimitHandlerDelegateLookup.putAll(generator.generateMap(player));
+
+            for (Map.Entry<CheckKey, AbstractPacketLimitHandler> entry : generator.generateMap(player).entrySet()) {
+                packetLimitHandlerDelegateLookup.set(entry.getKey().getCheck().getID(), entry.getValue());
+            }
         }
 
-        public ViolationDistributor(HoneyPlayer player, HoneyCheck check, AbstractPacketLimitHandler defaultPacketLimitHandler) {
+        public ViolationDistributor(HoneyPlayer player, AbstractPacketLimitHandler defaultPacketLimitHandler) {
             this.player = player;
-            packetLimitHandlerDelegateLookup.put(CheckKey.of(check, null, null), defaultPacketLimitHandler);
+            packetLimitHandlerDelegateLookup.set(0, defaultPacketLimitHandler);
         }
 
         public AbstractPacketLimitHandler getAnyPacketLimitHandler() {
             if (packetLimitHandlerDelegateLookup.isEmpty()) return null;
 
-            return packetLimitHandlerDelegateLookup.values().iterator().next();
+            return packetLimitHandlerDelegateLookup.get(0);
         }
 
         public HoneyPlayer getPlayer() {
             return this.player;
         }
 
-        public AbstractPacketLimitHandler getPacketLimitHandler(CheckKey key) {
-            return packetLimitHandlerDelegateLookup.getOrDefault(key, getAnyPacketLimitHandler());
+        public AbstractPacketLimitHandler getPacketLimitHandler(CheckKey key, boolean orJustAny) {
+            AbstractPacketLimitHandler handler = packetLimitHandlerDelegateLookup.get(key.getCheck().getID());
+
+            return (handler != null || !orJustAny) ? handler : getAnyPacketLimitHandler();
         }
 
-        public Map<CheckKey, AbstractPacketLimitHandler> getPacketLimitHandlers() {
+        public Array<AbstractPacketLimitHandler> getPacketLimitHandlers() {
             return packetLimitHandlerDelegateLookup;
         }
 
         public boolean flag(CheckKey checkKey, Object handle, CancellablePacketObserver cancellablePacketObserver,
                                          HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
                                          CheckContextContainer.DevelopmentData developmentData) {
-            AbstractPacketLimitHandler delegate = null;
-            if (checkKey == null || !packetLimitHandlerDelegateLookup.containsKey(checkKey)) {
-                if (packetLimitHandlerDelegateLookup.isEmpty()) return false;
+            if (packetLimitHandlerDelegateLookup.isEmpty()) return false;
 
+            AbstractPacketLimitHandler delegate = null;
+            if (checkKey == null || !packetLimitHandlerDelegateLookup.has(checkKey.getCheck().getID())) {
                 delegate =
                     cachedDefaultPacketLimitHandler == null
-                        ? (cachedDefaultPacketLimitHandler = packetLimitHandlerDelegateLookup.values().iterator().next())
+                        ? (cachedDefaultPacketLimitHandler = getAnyPacketLimitHandler())
                         : cachedDefaultPacketLimitHandler;
             }
-            if (delegate == null)
-                delegate = packetLimitHandlerDelegateLookup.get(checkKey);
+            if (delegate == null && checkKey != null)
+                delegate = getPacketLimitHandler(checkKey, false);
 
             return delegate.flag(handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, checkKey);
         }
