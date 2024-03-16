@@ -46,6 +46,8 @@ public class SpigotPipelineInjector {
                 filter = new InboundPacketFilter(channel);
             }
 
+            Bukkit.getLogger().info(channel.pipeline().toMap() + "");
+
             if (channel.pipeline().get("decompress") == null) {
                 throw new MissingHandlerException("No decompress in pipeline at relocation");
             }
