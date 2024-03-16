@@ -282,13 +282,17 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
-        private static final ResponseContainer success = ResponseBuilder.inst().add(
-                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("hsq")).build(),
-                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
-                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
-        ).build();
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
         private static final double MIN_HSQ_ENTER = 0.2;
+
+        private final ViolationService.CheckKey HSQKey = new ViolationService.CheckKey(this, "hsq");
+        private final ViolationService.CheckKey TAKey = new ViolationService.CheckKey(this,"ta");
+        private final ViolationService.CheckKey TTKey = new ViolationService.CheckKey(this,"tt");
+        private final ResponseContainer success = ResponseBuilder.inst().add(
+                ResponseBuilder.inst().flag(0).withViolationKey(HSQKey).build(),
+                ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
+                ResponseBuilder.inst().flag(0).withViolationKey(TTKey).build()
+        ).build();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -308,17 +312,17 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
                         if ((trackerSize > 25 && hsq > 0.5 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.6 * multiplier) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("hsq")).flag(1).build();
+                            return ResponseBuilder.inst().cancel().withViolationKey(HSQKey).flag(1).build();
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan, true);
                         if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
+                            return ResponseBuilder.inst().cancel().withViolationKey(TAKey).flag(1).build();
                         }
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan, true);
                         if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
+                            return ResponseBuilder.inst().cancel().withViolationKey(TTKey).flag(1).build();
                         }
                     }
                 }

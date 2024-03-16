@@ -233,13 +233,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 final double maxDistance = getSetting().max;
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("2d"))
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey(this, "2d"))
                             .onViolation(() -> container.getDevelopmentData(this).addPoint("2D Distance", distance2d))
                             .build();
                 }
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey("y"))
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey(this, "y"))
                             .onViolation(() -> container.getDevelopmentData(this).addPoint("Y Distance", distanceY))
                             .build();
                 }
@@ -339,8 +339,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private WrappedChunkCoordIntPair lastChunk;
         private boolean manipulatedFlightSettings;
 
-        private final ViolationService.CheckKey flightKey = new ViolationService.CheckKey("Position.B", true);
-        private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey("Position.B", false);
+        private final ViolationService.CheckKey flightKey = new ViolationService.CheckKey(this, "Position.B", true);
+        private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey(this, "Position.B", false);
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -516,7 +516,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                         if (corr == axis.getOther(dir)) {
                             builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                    new ViolationService.CheckKey(axis.name().toLowerCase())).build());
+                                    new ViolationService.CheckKey(this, axis.name().toLowerCase())).build());
                         }
                     }
                     final ResponseContainer response;
@@ -615,7 +615,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     if (guessedDelta2D == delta2D) {
                         builder.add(
                                 ResponseBuilder.inst().flag()
-                                        .withViolationKey(new ViolationService.CheckKey("2d"))
+                                        .withViolationKey(new ViolationService.CheckKey(this, "2d"))
                                         .build()
                         );
                         hasPattern = true;
@@ -631,7 +631,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         }
                         builder.add(
                                 ResponseBuilder.inst().flag()
-                                        .withViolationKey(new ViolationService.CheckKey("y"))
+                                        .withViolationKey(new ViolationService.CheckKey(this, "y"))
                                         .build()
                         );
                         hasPattern = true;

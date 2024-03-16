@@ -26,9 +26,6 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     private static final Map<UUID, Float> lastYawMap = new HashMap<>();
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
-    private static final ViolationService.CheckKey yawKey = new ViolationService.CheckKey("yaw");
-    private static final ViolationService.CheckKey pitchKey = new ViolationService.CheckKey("pitch");
-
     @Override
     public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         Location location = packetContainer.getPacket().getLocation();
@@ -46,14 +43,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         if (location.getYaw() == lastYaw && location.getPitch() == lastPitch) return false;
 
-        ResponseContainer response = ResponseBuilder.inst().add(
-                ResponseBuilder.inst().flag(deltaYaw).withViolationKey(yawKey).build(),
-                ResponseBuilder.inst().flag(deltaPitch).withViolationKey(pitchKey).build()
-        ).build();
-        container.getStorage().put(ResponseContainer.class, response);
+        container.getStorage().put(ResponseBuilder.class, ResponseBuilder.inst().flag(deltaYaw));
+        container.getStorage().put(ResponseBuilder.class, ResponseBuilder.inst().flag(deltaPitch));
 
         callback.addAction(responseCallback -> {
-            Runnable priorOnViolation = response.ON_VIOLATION;
+            Runnable priorOnViolation = responseCallback.ON_VIOLATION;
             responseCallback.builder().onViolation(() -> {
                 container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
                 container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
@@ -148,6 +142,9 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private final ViolationService.CheckKey yawKey = new ViolationService.CheckKey(this, "yaw");
+        private final ViolationService.CheckKey pitchKey = new ViolationService.CheckKey(this, "pitch");
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (packet.getYaw() == 0 || PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
@@ -156,7 +153,10 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 return ResponseBuilder.SUCCESS.builderCopy().terminate().build();
             }
             if (getSetting().isEnabled()) {
-                return container.getStorage().get(ResponseContainer.class, 0);
+                return ResponseBuilder.inst().add(
+                        container.getStorage().get(ResponseBuilder.class, 0).withViolationKey(yawKey).build(),
+                        container.getStorage().get(ResponseBuilder.class, 1).withViolationKey(pitchKey).build()
+                ).build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -189,12 +189,18 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private final ViolationService.CheckKey yawKey = new ViolationService.CheckKey(this, "yaw");
+        private final ViolationService.CheckKey pitchKey = new ViolationService.CheckKey(this, "pitch");
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getYaw() != 0) {
-                    return container.getStorage().get(ResponseContainer.class, 0);
+                    return ResponseBuilder.inst().add(
+                            container.getStorage().get(ResponseBuilder.class, 0).withViolationKey(yawKey).build(),
+                            container.getStorage().get(ResponseBuilder.class, 1).withViolationKey(pitchKey).build()
+                    ).build();
                 }
             }
             return ResponseBuilder.SUCCESS;

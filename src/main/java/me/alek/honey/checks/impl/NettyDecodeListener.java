@@ -248,9 +248,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyK implements DecodeCheck, ViolationCheck {
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
-        private static final ResponseContainer success = ResponseBuilder.inst().add(
-                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("ta")).build(),
-                ResponseBuilder.inst().flag(0).withViolationKey(new ViolationService.CheckKey("tt")).build()
+
+        private final ViolationService.CheckKey TAKey = new ViolationService.CheckKey(this, "ta");
+        private final ViolationService.CheckKey TTKey = new ViolationService.CheckKey(this, "tt");
+        private final ResponseContainer success = ResponseBuilder.inst().add(
+                ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
+                ResponseBuilder.inst().flag(0).withViolationKey(TTKey).build()
         ).build();
 
         @Override
@@ -261,12 +264,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 if (ta > 5) {
                     int size = tracker.getTrackerSize();
                     if ((size > 15 && ta > 17.5) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
-                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("ta")).flag(1).build();
+                        return ResponseBuilder.inst().cancel().withViolationKey(TAKey).flag(1).build();
                     }
 
                     double tt = tracker.getTimeToTotalQuotient(player, Timespan.TEN_SECOND, false);
                     if ((size > 15 && tt > 0.65) || (size > 25 && tt > 0.55)) {
-                        return ResponseBuilder.inst().cancel().withViolationKey(new ViolationService.CheckKey("tt")).flag(1).build();
+                        return ResponseBuilder.inst().cancel().withViolationKey(TTKey).flag(1).build();
                     }
                 }
                 return success;

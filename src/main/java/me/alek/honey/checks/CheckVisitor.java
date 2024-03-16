@@ -79,7 +79,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 // get the setting for this check
                 if (check instanceof KeyedViolationCheck) {
                     KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
-                    if (response.LIMITS_KEY == null) response.LIMITS_KEY = new ViolationService.CheckKey(check.getClass(), keyedViolationCheck.getKey(packet));
+                    if (response.LIMITS_KEY == null) response.LIMITS_KEY = new ViolationService.CheckKey(check, check.getClass(), keyedViolationCheck.getKey(packet));
                 }
 
                 // now we will check the contents of the response container and do whatever actions it represents
@@ -91,7 +91,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
                 if (response.CANCELLED) cancellablePacketObserver.cancel();
 
-                final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
+                final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check, check.getClass(), check.getName());
                 if (response.FLAG != -1 && player != null) {
                     if (setting == null) {
                         if (response.TERMINATE) terminated = true;

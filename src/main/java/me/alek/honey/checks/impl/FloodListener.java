@@ -134,6 +134,8 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
+        private final ViolationService.CheckKey key = ViolationService.CheckKey.of(this);
+
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodA.class);
@@ -141,7 +143,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer getResponse(HoneyPlayer player) {
-            return ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
+            return ResponseBuilder.inst().flag().withLimitsKey(key).build();
         }
 
         @Override

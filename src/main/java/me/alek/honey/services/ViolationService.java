@@ -11,6 +11,7 @@ import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
+import me.alek.honey.utility.Array;
 import me.alek.honey.utility.BungeeMessenger;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
@@ -89,37 +90,33 @@ public class ViolationService {
 
     public static class ViolationContext {
 
-        private final Map<CheckKey, ViolationDistributor> packetLimitMap = new ConcurrentHashMap<>();
         private final HoneyPlayer player;
+        private final Array<ViolationDistributor> packetLimiters = new Array<>();
 
         public ViolationContext(HoneyPlayer player) {
             this.player = player;
         }
 
         public ViolationDistributor getLimits(CheckKey key, ConfigurationOptions.VlSetting setting) {
-            if (!packetLimitMap.containsKey(key)) {
-
+            return packetLimiters.get(key.getCheck().getID(), () -> {
                 final AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
                 if (packetLimitHandler == null)
                     throw new RuntimeException("No packet limit handler could be created.");
 
-                final ViolationDistributor distributor;
                 if (setting.keyedAnnotation != null)
-                    distributor = new ViolationDistributor(player,
-                            new KeyedViolationLookupGenerator(packetLimitHandler, setting));
+                    return new ViolationDistributor(player,
+                            new KeyedViolationLookupGenerator(key, packetLimitHandler, setting));
                 else
-                    distributor = new ViolationDistributor(player, packetLimitHandler);
-                packetLimitMap.put(key, distributor);
-            }
-            return packetLimitMap.get(key);
+                    return new ViolationDistributor(player, key.getCheck(), packetLimitHandler);
+            });
         }
 
-        public Map<CheckKey, ViolationDistributor> getPacketlimitMap() {
-            return packetLimitMap;
+        public Array<ViolationDistributor> getPacketlimitMap() {
+            return packetLimiters;
         }
 
         public ViolationDistributor getHandler(CheckKey key) {
-            return packetLimitMap.get(key);
+            return packetLimiters.get(key.getCheck().getID(), null);
         }
 
         public HoneyPlayer getPlayer() {
@@ -152,22 +149,31 @@ public class ViolationService {
 
     public static class CheckKey extends Tuple2<Object, Object> implements Cloneable {
 
-        public static CheckKey DEFAULT = new CheckKey(null, null);
+        private final HoneyCheck check;
 
-        public CheckKey(Object object1, Object object2) {
+        public CheckKey(HoneyCheck check, Object object1, Object object2) {
             super(object1, object2);
+            this.check = check;
         }
 
-        public CheckKey(Object object1) {
-            super(object1, null);
+        public CheckKey(HoneyCheck check, Object object1) {
+            this(check, object1, null);
         }
 
-        public CheckKey() {
-            super(UUID.randomUUID(), UUID.randomUUID());
+        public static CheckKey of(HoneyCheck check, Object object1, Object object2) {
+            return new CheckKey(check, object1, object2);
         }
 
-        public static CheckKey of(Object object1, Object object2) {
-            return new CheckKey(object1, object2);
+        public static CheckKey of(HoneyCheck check) {
+            return of(check, null, null);
+        }
+
+        public static CheckKey of(CheckKey key) {
+            return of(key.getCheck(), key.getT1(), key.getT2());
+        }
+
+        public HoneyCheck getCheck() {
+            return check;
         }
 
         @Override
@@ -189,21 +195,23 @@ public class ViolationService {
 
         private final AbstractPacketLimitHandler handler;
         private final ConfigurationOptions.VlSetting setting;
+        private final CheckKey limitsKey;
 
-        public KeyedViolationLookupGenerator(AbstractPacketLimitHandler handler, ConfigurationOptions.VlSetting setting) {
+        public KeyedViolationLookupGenerator(CheckKey limitsKey, AbstractPacketLimitHandler handler, ConfigurationOptions.VlSetting setting) {
             this.handler = handler;
             this.setting = setting;
+            this.limitsKey = limitsKey;
         }
 
         public Map<CheckKey, AbstractPacketLimitHandler> generateMap(HoneyPlayer player) {
             if (setting.keyedAnnotation == null || setting.keyedAnnotation.keys().length == 0) {
                 return new HashMap<CheckKey, AbstractPacketLimitHandler>(){{
-                    put(CheckKey.DEFAULT, handler);
+                    put(CheckKey.of(limitsKey.getCheck()), handler);
                 }};
             }
             final Map<CheckKey, AbstractPacketLimitHandler> map = new HashMap<>();
             for (final String key : setting.keyedAnnotation.keys()) {
-                map.put(new CheckKey(key), generatePacketLimitHandler(handler.getType(), player, setting));
+                map.put(new CheckKey(limitsKey.getCheck(), key), generatePacketLimitHandler(handler.getType(), player, setting));
             }
             return map;
         }
@@ -220,9 +228,9 @@ public class ViolationService {
             packetLimitHandlerDelegateLookup.putAll(generator.generateMap(player));
         }
 
-        public ViolationDistributor(HoneyPlayer player, AbstractPacketLimitHandler defaultPacketLimitHandler) {
+        public ViolationDistributor(HoneyPlayer player, HoneyCheck check, AbstractPacketLimitHandler defaultPacketLimitHandler) {
             this.player = player;
-            packetLimitHandlerDelegateLookup.put(CheckKey.DEFAULT, defaultPacketLimitHandler);
+            packetLimitHandlerDelegateLookup.put(CheckKey.of(check, null, null), defaultPacketLimitHandler);
         }
 
         public AbstractPacketLimitHandler getAnyPacketLimitHandler() {
