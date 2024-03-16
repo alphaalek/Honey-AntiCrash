@@ -66,6 +66,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
+        public int getID() {
+            return 8;
+        }
+
+        @Override
         public String getName() {
             return "Creative.A";
         }
@@ -82,7 +87,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeA.class);
         }
     }
 
@@ -104,6 +109,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         }
 
         @Override
+        public int getID() {
+            return 9;
+        }
+
+        @Override
         public String getName() {
             return "Creative.B";
         }
@@ -120,7 +130,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeB.class);
         }
     }
 
@@ -135,6 +145,11 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 10;
         }
 
         @Override
@@ -154,7 +169,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Creative.CreativeC.class);
+            return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeC.class);
         }
     }
 }

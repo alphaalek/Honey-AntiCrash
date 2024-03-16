@@ -68,6 +68,11 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         }
 
         @Override
+        public int getID() {
+            return 17;
+        }
+
+        @Override
         public String getName() {
             return "Encryption.A";
         }
@@ -81,6 +86,5 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
         public PacketBundleFilter getDumpFilter() {
             return PacketBundleFilterFactory.createEmptyFilter();
         }
-
     }
 }

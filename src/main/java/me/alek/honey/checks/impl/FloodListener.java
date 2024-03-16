@@ -136,12 +136,17 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.PacketFlood.FloodA.class);
+            return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodA.class);
         }
 
         @Override
         public ResponseContainer getResponse(HoneyPlayer player) {
             return ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.DEFAULT).build();
+        }
+
+        @Override
+        public int getID() {
+            return 17;
         }
 
         @Override
@@ -159,7 +164,12 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.PacketFlood.FloodB.class);
+            return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodB.class);
+        }
+
+        @Override
+        public int getID() {
+            return 19;
         }
 
         @Override
@@ -177,7 +187,12 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.PacketFlood.FloodC.class);
+            return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodC.class);
+        }
+
+        @Override
+        public int getID() {
+            return 20;
         }
 
         @Override
@@ -200,6 +215,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 return ResponseBuilder.inst().flag().build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 21;
         }
 
         @Override

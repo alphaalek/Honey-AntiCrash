@@ -89,6 +89,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         @Override
+        public int getID() {
+            return 54;
+        }
+
+        @Override
         public String getName() {
             return "Tab.A";
         }
@@ -105,7 +110,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.TabComplete.TabA.class);
+            return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabA.class);
         }
     }
 
@@ -143,7 +148,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                     @Override
                     public void accept(int size) {
                         container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this), false);
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
                     }
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
@@ -151,6 +156,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 return ResponseBuilder.inst().flag(0).withLimitsKey(key).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 55;
         }
 
         @Override
@@ -170,7 +180,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.TabComplete.TabB.class);
+            return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabB.class);
         }
     }
 
@@ -182,6 +192,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 return ResponseBuilder.inst().flag(packet.getMessage().length()).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 56;
         }
 
         @Override
@@ -201,7 +216,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.TabComplete.TabC.class);
+            return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabC.class);
         }
     }
 }

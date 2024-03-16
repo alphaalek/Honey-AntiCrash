@@ -185,6 +185,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 41;
+        }
+
+        @Override
         public String getName() {
             return "Position.A";
         }
@@ -201,7 +206,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionA.class);
         }
     }
 
@@ -243,6 +248,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 42;
+        }
+
+        @Override
         public String getName() {
             return "Position.B";
         }
@@ -259,7 +269,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionB.class);
         }
     }
 
@@ -299,6 +309,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 43;
+        }
+
+        @Override
         public String getName() {
             return "Position.C";
         }
@@ -315,7 +330,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionC.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionC.class);
         }
     }
 
@@ -362,6 +377,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 44;
+        }
+
+        @Override
         public String getName() {
             return "Position.D";
         }
@@ -378,7 +398,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionD.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionD.class);
         }
     }
 
@@ -390,6 +410,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 return ResponseBuilder.inst().cancel().flag().build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 45;
         }
 
         @Override
@@ -409,7 +434,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionE.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionE.class);
         }
     }
 
@@ -503,6 +528,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 46;
+        }
+
+        @Override
         public String getName() {
             return "Position.F";
         }
@@ -519,7 +549,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionF.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionF.class);
         }
     }
 
@@ -535,6 +565,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 47;
         }
 
         @Override
@@ -554,7 +589,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionG.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionG.class);
         }
     }
 
@@ -609,6 +644,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 48;
+        }
+
+        @Override
         public String getName() {
             return "Position.H";
         }
@@ -625,7 +665,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionH.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionH.class);
         }
     }
 
@@ -638,6 +678,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 return ResponseBuilder.inst().flag().build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 49;
         }
 
         @Override
@@ -657,7 +702,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionI.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionI.class);
         }
     }
 
@@ -701,6 +746,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         @Override
+        public int getID() {
+            return 50;
+        }
+
+        @Override
         public String getName() {
             return "Position.J";
         }
@@ -717,7 +767,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Position.PositionJ.class);
+            return Settings.getSetting(this, ConfigurationOptions.Position.PositionJ.class);
         }
     }
 }

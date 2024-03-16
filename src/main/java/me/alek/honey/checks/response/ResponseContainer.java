@@ -1,5 +1,6 @@
 package me.alek.honey.checks.response;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.ViolationService;
 
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ public class ResponseContainer implements Cloneable {
     public List<ResponseContainer> SUB_CONTAINERS = new ArrayList<>();
     public boolean CANCELLED;
     public boolean PUNISH;
-    public boolean IGNORE_SPIKE;
     public boolean SUCCESS;
     public boolean TERMINATE;
     public AtomicInteger SKIP_INDICES;

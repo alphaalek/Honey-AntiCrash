@@ -73,6 +73,11 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         }
 
         @Override
+        public int getID() {
+            return 24;
+        }
+
+        @Override
         public String getName() {
             return "Login.A";
         }
@@ -103,6 +108,11 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 25;
         }
 
         @Override

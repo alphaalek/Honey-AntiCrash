@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.impl.FloodListener;
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
@@ -51,11 +50,10 @@ public class ViolationService {
                         Runnable onFlag,
                         HoneyCheck check,
                         ConfigurationOptions.VlSetting setting,
-                        CheckContextContainer.DevelopmentData developmentData,
-                        boolean ignoreSpike
+                        CheckContextContainer.DevelopmentData developmentData
     ) {
         return getDistributor(player, violationContextKey, setting)
-                .flag(checkKey, handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, ignoreSpike);
+                .flag(checkKey, handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData);
     }
 
     public boolean flag(HoneyPlayer player,
@@ -66,10 +64,9 @@ public class ViolationService {
                         double amount,
                         HoneyCheck check,
                         ConfigurationOptions.VlSetting setting,
-                        CheckContextContainer.DevelopmentData developmentData,
-                        boolean ignoreSpike
+                        CheckContextContainer.DevelopmentData developmentData
     ) {
-        return flag(player, handle, cancellablePacketObserver, violationContextKey, checkKey, amount, null, null, null, check, setting, developmentData, ignoreSpike);
+        return flag(player, handle, cancellablePacketObserver, violationContextKey, checkKey, amount, null, null, null, check, setting, developmentData);
     }
 
     public synchronized void punish(Runnable onPunish, HoneyPlayer player, String violationName, CheckKey checkKey) {
@@ -248,7 +245,7 @@ public class ViolationService {
 
         public boolean flag(CheckKey checkKey, Object handle, CancellablePacketObserver cancellablePacketObserver,
                                          HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
-                                         CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike) {
+                                         CheckContextContainer.DevelopmentData developmentData) {
             AbstractPacketLimitHandler delegate = null;
             if (checkKey == null || !packetLimitHandlerDelegateLookup.containsKey(checkKey)) {
                 if (packetLimitHandlerDelegateLookup.isEmpty()) return false;
@@ -261,7 +258,7 @@ public class ViolationService {
             if (delegate == null)
                 delegate = packetLimitHandlerDelegateLookup.get(checkKey);
 
-            return delegate.flag(handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, ignoreSpike, checkKey);
+            return delegate.flag(handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, checkKey);
         }
     }
 
@@ -360,7 +357,7 @@ public class ViolationService {
             return violations.get();
         }
 
-        public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey);
+        public abstract boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey);
 
         public abstract PacketLimitHandlerType getType();
     }
@@ -372,7 +369,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (amount == 1) {
                 if (onFlag != null) onFlag.run();
                 cancellablePacketObserver.cancel();
@@ -397,7 +394,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (amount >= 1 || System.currentTimeMillis() - lastFlag < getSetting().throttleAfter) {
                 if (onFlag != null) onFlag.run();
 
@@ -423,7 +420,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (onFlag != null) onFlag.run();
 
             violate(cancellablePacketObserver, check, onPunish, onViolation, developmentData, checkKey);
@@ -445,7 +442,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (onFlag != null) onFlag.run();
 
             if ((this.amount = amount) < getSetting().threshold) return false;
@@ -483,7 +480,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             hasDecayed = false;
             if (System.currentTimeMillis() - lastDecay > getSetting().decay) {
                 hasDecayed = true;
@@ -567,7 +564,6 @@ public class ViolationService {
     public static class PacketIntervalHandler extends AbstractPacketLimitHandler {
 
         private boolean violatedForInterval;
-        private boolean ignoringSpikeForInterval;
         private long intervalStart = System.currentTimeMillis();
         private double flagged;
         public double flaggedCopy;
@@ -578,24 +574,14 @@ public class ViolationService {
 
         private synchronized void clearInterval() {
             violatedForInterval = false;
-            ignoringSpikeForInterval = false;
             flagged = 0;
             intervalStart = System.currentTimeMillis();
         }
 
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (System.currentTimeMillis() - intervalStart >= getSetting().interval)
                 clearInterval();
 
-            if (ignoreSpike) {
-                clearInterval();
-                ignoringSpikeForInterval = true;
-            }
-            if (ignoringSpikeForInterval) {
-                if (HoneyPlugin.get().getLoggerService().isDebug())
-                    HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: ignoring packet spike for interval check " + check);
-                return false;
-            }
             if (onFlag != null) onFlag.run();
 
             flagged += amount;
@@ -630,7 +616,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, boolean ignoreSpike, CheckKey checkKey) {
+        public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, CheckKey checkKey) {
             if (currentlyCancelling) {
                 if (System.currentTimeMillis() - intervalStart > getSetting().interval) {
                     intervalStart = System.currentTimeMillis();

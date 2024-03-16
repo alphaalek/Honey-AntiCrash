@@ -71,6 +71,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             final List<ResponseContainer> responsesList = defaultResponse.SUB_CONTAINERS;
             responsesList.add(defaultResponse);
             boolean terminated = false;
+            CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
 
                 if (callback != null) callback.call(response);
@@ -96,7 +97,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         if (response.TERMINATE) terminated = true;
                         continue;
                     }
-                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check, setting, developmentData, response.IGNORE_SPIKE);
+                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check, setting, developmentData);
                 }
                 if (response.PUNISH && player != null)
                     HoneyPlugin.get().getViolationService().punish(null, player, check.getName(), key);

@@ -121,6 +121,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
+        public int getID() {
+            return 51;
+        }
+
+        @Override
         public String getName() {
             return "Rotation.A";
         }
@@ -137,7 +142,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Rotation.RotationA.class);
         }
     }
 
@@ -157,6 +162,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
         }
 
         @Override
+        public int getID() {
+            return 52;
+        }
+
+        @Override
         public String getName() {
             return "Rotation.B";
         }
@@ -173,7 +183,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Rotation.RotationB.class);
         }
     }
 
@@ -188,6 +198,11 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 53;
         }
 
         @Override
@@ -207,7 +222,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Rotation.RotationC.class);
+            return Settings.getSetting(this, ConfigurationOptions.Rotation.RotationC.class);
         }
     }
 }

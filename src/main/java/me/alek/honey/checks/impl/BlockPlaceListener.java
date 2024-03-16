@@ -116,6 +116,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
+        public int getID() {
+            return 0;
+        }
+
+        @Override
         public String getName() { return "BlockInteract.A"; }
 
         @Override
@@ -130,7 +135,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractA.class);
+            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractA.class);
         }
     }
 
@@ -151,6 +156,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
+        public int getID() {
+            return 1;
+        }
+
+        @Override
         public String getName() {
             return "BlockInteract.B (IA)";
         }
@@ -167,7 +177,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractB.class);
+            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractB.class);
         }
     }
 
@@ -193,6 +203,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
+        public int getID() {
+            return 2;
+        }
+
+        @Override
         public String getName() {
             return "BlockInteract.C";
         }
@@ -209,7 +224,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractC.class);
+            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractC.class);
         }
     }
 
@@ -247,6 +262,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         }
 
         @Override
+        public int getID() {
+            return 3;
+        }
+
+        @Override
         public String getName() {
             return "BlockInteract.D";
         }
@@ -263,7 +283,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractD.class);
+            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractD.class);
         }
     }
 }

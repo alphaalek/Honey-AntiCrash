@@ -71,6 +71,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public int getID() {
+            return 28;
+        }
+
+        @Override
         public String getName() {
             return "Netty.C";
         }
@@ -87,7 +92,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyC.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyC.class);
         }
     }
 
@@ -107,6 +112,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public int getID() {
+            return 29;
+        }
+
+        @Override
         public String getName() {
             return "Netty.D";
         }
@@ -123,7 +133,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyD.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyD.class);
         }
     }
 
@@ -135,6 +145,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 return ResponseBuilder.inst().flag(container.getStorage().getInt(1)).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 30;
         }
 
         @Override
@@ -154,7 +169,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyE.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyE.class);
         }
     }
 
@@ -166,6 +181,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 31;
         }
 
         @Override
@@ -185,7 +205,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyF.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyF.class);
         }
     }
 
@@ -197,6 +217,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 32;
         }
 
         @Override
@@ -216,7 +241,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyG.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyG.class);
         }
     }
 
@@ -250,6 +275,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public int getID() {
+            return 36;
+        }
+
+        @Override
         public String getName() {
             return "Netty.K";
         }
@@ -266,7 +296,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyK.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyK.class);
         }
     }
 
@@ -327,6 +357,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyL extends AbstractCategorizedCheck {
 
         @Override
+        public int getID() {
+            return 37;
+        }
+
+        @Override
         public String getName() {
             return "Netty.L";
         }
@@ -338,7 +373,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyL.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyL.class);
         }
 
         @Override
@@ -388,17 +423,27 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyM extends AbstractFloodDecodeCheck {
 
         @Override
+        public int getID() {
+            return 38;
+        }
+
+        @Override
         public String getName() {
             return "Netty.M";
         }
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyM.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyM.class);
         }
     }
 
     public static class NettyN extends AbstractFloodDecodeCheck {
+
+        @Override
+        public int getID() {
+            return 39;
+        }
 
         @Override
         public String getName() {
@@ -407,7 +452,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyN.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyN.class);
         }
     }
 
@@ -451,6 +496,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         private final LocalCategorizedHandler categorizedHandler = new LocalCategorizedHandler(this::getSetting);
 
         @Override
+        public int getID() {
+            return 40;
+        }
+
+        @Override
         public String getName() {
             return "Netty.O";
         }
@@ -462,7 +512,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyO.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyO.class);
         }
 
         @Override

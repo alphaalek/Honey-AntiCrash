@@ -87,6 +87,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public int getID() {
+            return 26;
+        }
+
+        @Override
         public String getName() {
             return "Netty.A";
         }
@@ -103,7 +108,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyA.class);
         }
     }
 
@@ -166,6 +171,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public int getID() {
+            return 27;
+        }
+
+        @Override
         public String getName() {
             return "Netty.B";
         }
@@ -187,7 +197,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyB.class);
         }
     }
 
@@ -211,6 +221,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public int getID() {
+            return 33;
+        }
+
+        @Override
         public String getName() {
             return "Netty.H";
         }
@@ -227,7 +242,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyH.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyH.class);
         }
     }
 
@@ -236,6 +251,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             return NettyH.check0(packet, getSetting(), () -> container.getDevelopmentData(this));
+        }
+
+        @Override
+        public int getID() {
+            return 34;
         }
 
         @Override
@@ -255,7 +275,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyI.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyI.class);
         }
     }
 
@@ -308,6 +328,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
+        public int getID() {
+            return 35;
+        }
+
+        @Override
         public String getName() {
             return "Netty.J";
         }
@@ -324,7 +349,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Netty.NettyJ.class);
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyJ.class);
         }
     }
 }

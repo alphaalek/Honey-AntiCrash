@@ -64,6 +64,11 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
         }
 
         @Override
+        public int getID() {
+            return 4;
+        }
+
+        @Override
         public String getName() {
             return "BlockInteract.E";
         }
@@ -80,7 +85,7 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.BlockInteract.BlockInteractE.class);
+            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractE.class);
         }
     }
 }

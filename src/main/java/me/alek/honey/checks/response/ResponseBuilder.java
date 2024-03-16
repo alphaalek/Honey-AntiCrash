@@ -1,5 +1,6 @@
 package me.alek.honey.checks.response;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.ViolationService;
 
 import java.util.Arrays;
@@ -57,11 +58,6 @@ public class ResponseBuilder {
 
     public ResponseBuilder terminate() {
         responseContainer.TERMINATE = true;
-        return this;
-    }
-
-    public ResponseBuilder ignoreSpike() {
-        responseContainer.IGNORE_SPIKE = true;
         return this;
     }
 

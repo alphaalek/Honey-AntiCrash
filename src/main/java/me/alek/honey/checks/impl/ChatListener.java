@@ -82,6 +82,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         }
 
         @Override
+        public int getID() {
+            return 5;
+        }
+
+        @Override
         public String getName() {
             return "Chat.A";
         }
@@ -98,7 +103,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Chat.ChatA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Chat.ChatA.class);
         }
     }
 
@@ -122,6 +127,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         }
 
         @Override
+        public int getID() {
+            return 6;
+        }
+
+        @Override
         public String getName() {
             return "Chat.B";
         }
@@ -138,7 +148,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Chat.ChatB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Chat.ChatB.class);
         }
     }
 
@@ -218,6 +228,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         }
 
         @Override
+        public int getID() {
+            return 7;
+        }
+
+        @Override
         public String getName() {
             return "Command.A";
         }
@@ -234,7 +249,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.Commands.class);
+            return Settings.getSetting(this, ConfigurationOptions.Commands.class);
         }
     }
 

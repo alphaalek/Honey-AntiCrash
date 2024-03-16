@@ -78,6 +78,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         }
 
         @Override
+        public int getID() {
+            return 58;
+        }
+
+        @Override
         public String getName() {
             return "Window.A";
         }
@@ -94,7 +99,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowA.class);
+            return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowA.class);
         }
     }
 
@@ -110,6 +115,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 59;
         }
 
         @Override
@@ -129,7 +139,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowB.class);
+            return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowB.class);
         }
     }
 
@@ -144,6 +154,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 60;
         }
 
         @Override
@@ -163,7 +178,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowC.class);
+            return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowC.class);
         }
     }
 
@@ -179,6 +194,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 61;
         }
 
         @Override
@@ -198,7 +218,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.WindowClick.WindowD.class);
+            return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowD.class);
         }
     }
 }

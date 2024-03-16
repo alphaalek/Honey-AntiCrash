@@ -119,6 +119,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public int getID() {
+            return 11;
+        }
+
+        @Override
         public String getName() {
             return "Payload.A";
         }
@@ -135,7 +140,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadA.class);
+            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadA.class);
         }
     }
 
@@ -151,6 +156,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 return ResponseBuilder.inst().flag(serializer.readableBytes()).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 12;
         }
 
         @Override
@@ -170,7 +180,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadB.class);
+            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadB.class);
         }
     }
 
@@ -201,6 +211,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public int getID() {
+            return 13;
+        }
+
+        @Override
         public String getName() {
             return "Payload.C (IA)";
         }
@@ -217,7 +232,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadC.class);
+            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadC.class);
         }
     }
 
@@ -244,6 +259,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public int getID() {
+            return 14;
+        }
+
+        @Override
         public String getName() {
             return "Payload.D";
         }
@@ -260,7 +280,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadD.class);
+            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadD.class);
         }
     }
 
@@ -283,6 +303,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         }
 
         @Override
+        public int getID() {
+            return 15;
+        }
+
+        @Override
         public String getName() {
             return "Payload.E";
         }
@@ -299,7 +324,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadE.class);
+            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadE.class);
         }
     }
 
@@ -314,6 +339,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 16;
         }
 
         @Override

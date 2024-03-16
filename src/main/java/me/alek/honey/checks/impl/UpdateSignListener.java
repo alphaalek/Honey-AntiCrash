@@ -69,6 +69,11 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
         }
 
         @Override
+        public int getID() {
+            return 57;
+        }
+
+        @Override
         public String getName() {
             return "Sign.A";
         }

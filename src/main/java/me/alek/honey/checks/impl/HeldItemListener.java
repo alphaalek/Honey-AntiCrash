@@ -66,6 +66,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         }
 
         @Override
+        public int getID() {
+            return 22;
+        }
+
+        @Override
         public String getName() {
             return "HeldItem.A";
         }
@@ -82,7 +87,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemA.class);
+            return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemA.class);
         }
     }
 
@@ -97,6 +102,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
                 }
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        @Override
+        public int getID() {
+            return 23;
         }
 
         @Override
@@ -116,7 +126,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return ConfigurationOptions.getVlSetting(ConfigurationOptions.HeldItem.HeldItemB.class);
+            return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemB.class);
         }
     }
 }

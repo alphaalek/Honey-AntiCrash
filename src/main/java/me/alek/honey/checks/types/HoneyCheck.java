@@ -4,6 +4,8 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 
 public interface HoneyCheck {
 
+    int getID();
+
     String getName();
 
     String getDescription();
