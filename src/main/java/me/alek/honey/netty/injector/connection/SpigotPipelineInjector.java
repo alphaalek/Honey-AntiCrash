@@ -46,13 +46,8 @@ public class SpigotPipelineInjector {
                 filter = new InboundPacketFilter(channel);
             }
 
-            Bukkit.getLogger().info(channel.pipeline().toMap() + "");
-
-            if (channel.pipeline().get("decompress") == null) {
-                throw new MissingHandlerException("No decompress in pipeline at relocation");
-            }
             String[] requiredHandlers = new String[3];
-            channel.pipeline().addAfter("decompress", requiredHandlers[0] = filterName, filter);
+            channel.pipeline().addAfter(channel.pipeline().get("decompress") != null ?"decompress" : "splitter", requiredHandlers[0] = filterName, filter);
 
             AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
             channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
