@@ -1,16 +1,15 @@
 package me.alek.honey.netty.injector.handler;
 
+import com.avaje.ebeaninternal.server.cluster.Packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,9 +24,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     private Method decodeInvoker;
     private ChannelHandler decoder;
 
-    public InboundPacketDecoder(AsyncDecoder asyncDecoder, ChannelPipeline pipeline) {
+    public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder) {
         this.asyncDecoder = asyncDecoder;
-        setupMethodInvoke(pipeline);
+        setupMethodInvoke(channel.pipeline());
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {

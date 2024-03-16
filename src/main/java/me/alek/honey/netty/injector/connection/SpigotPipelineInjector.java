@@ -52,7 +52,7 @@ public class SpigotPipelineInjector {
 
             AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
             channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
-                    new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
+                    new InboundPacketDecoder(channel, asyncDecoder));
             channel.pipeline().addAfter(requiredHandlers[2] = PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
                     new OutboundPacketEncoder(channel, asyncDecoder));
 

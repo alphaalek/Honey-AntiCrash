@@ -18,6 +18,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,7 +70,8 @@ public class PacketInterceptorResolver {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeBoolean(false);
         });
-        List<String> handlers = setupInterceptorEnv(pipeline, false, "splitter", handler -> handler instanceof ChannelInboundHandler, handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
+        String start = pipeline.get("decompress") != null ? "decompress" : "splitter";
+        List<String> handlers = setupInterceptorEnv(pipeline, false, start, handler -> handler instanceof ChannelInboundHandler, handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object o) {
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
@@ -88,7 +90,7 @@ public class PacketInterceptorResolver {
                 }
             }
         });
-        pipeline.context(pipeline.get("decompress") != null ? "decompress" : "splitter").fireChannelRead(byteBuf);
+        pipeline.context(start).fireChannelRead(byteBuf);
 
         return handlers;
     }
