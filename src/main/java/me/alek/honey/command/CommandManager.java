@@ -60,9 +60,8 @@ public class CommandManager implements CommandExecutor {
         String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 
         sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
-        sender.sendMessage("§7" + HoneyPlugin.get().getPlugin().getDescription().getDescription());
-        sender.sendMessage("");
-        sender.sendMessage("§8* §aDiscord: §7https://discord.gg/veAtFHG65u");
+        sender.sendMessage("§8* §7" + HoneyPlugin.get().getPlugin().getDescription().getDescription());
+        sender.sendMessage("§8* §7Discord: §8https://discord.gg/veAtFHG65u");
         sender.sendMessage("");
         sender.sendMessage("§7Type §8/honey help §7for help on command usage.");
     }

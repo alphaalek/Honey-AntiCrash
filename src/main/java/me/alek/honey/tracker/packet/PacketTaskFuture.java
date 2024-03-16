@@ -11,6 +11,7 @@ public class PacketTaskFuture<V> extends FutureTask<V> {
 
     private final HoneyPlayer player;
     private final PacketContainer<? extends WrappedPacket<?>> packet;
+    private final long submitted = System.nanoTime();
 
     public PacketTaskFuture(Runnable runnable, HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
         super(runnable, null);
@@ -24,6 +25,10 @@ public class PacketTaskFuture<V> extends FutureTask<V> {
 
     public PacketContainer<? extends WrappedPacket<?>> getPacket() {
         return packet;
+    }
+
+    public long getSubmitted() {
+        return submitted;
     }
 
     @Override

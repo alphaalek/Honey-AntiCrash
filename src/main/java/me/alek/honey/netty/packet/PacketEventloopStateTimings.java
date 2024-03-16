@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class PacketEventloopStateTimings {
 
-    private final Map<EventloopState, Long> times = new EnumMap<>(EventloopState.class);
+    private final long[] times = new long[EventloopState.values().length];
     private EventloopState currentState = EventloopState.NO_STATE;
     private long currentStateStart;
     private long totalTime;
@@ -33,7 +33,7 @@ public class PacketEventloopStateTimings {
         if (currentState == EventloopState.NO_STATE) return;
 
         long deltaTime = time - currentStateStart;
-        times.put(currentState, getTimeFor(currentState) + deltaTime);
+        times[currentState.ordinal()] = getTimeFor(currentState) + deltaTime;
         totalTime += deltaTime;
 
         currentState = EventloopState.NO_STATE;
@@ -52,8 +52,8 @@ public class PacketEventloopStateTimings {
     }
 
     public long getTimeFor(EventloopState state) {
-        return times.getOrDefault(state, 0L);
-    }
+        return times[state.ordinal()];
+}
 
     public double getTimeForMillis(EventloopState state) {
         return toMillis(getTimeFor(state));

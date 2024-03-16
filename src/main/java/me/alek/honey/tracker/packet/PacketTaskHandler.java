@@ -19,11 +19,12 @@ import java.util.Map;
 
 public class PacketTaskHandler {
 
+    public static final long TO_MILLIS = (long) Math.pow(10, -6);
     public static final Object lock = new Object();
     private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
-    private static Tuple2<PacketTaskFuture<?>, Long> handledTask;
+    private static PacketTaskFuture<?> handledTask;
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
@@ -31,7 +32,7 @@ public class PacketTaskHandler {
             while (HoneyPlugin.get().isRunning()) {
                 synchronized (lock) {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                            && System.currentTimeMillis() - handledTask.getT2() >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                            && (System.nanoTime() - handledTask.getSubmitted()) * TO_MILLIS >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) continue;
@@ -49,7 +50,7 @@ public class PacketTaskHandler {
         }, "Honey Packet Task Handler").start();
     }
 
-    public static Tuple2<PacketTaskFuture<?>, Long> getHandledTask() {
+    public static PacketTaskFuture<?> getHandledTask() {
         return handledTask;
     }
 
@@ -107,19 +108,19 @@ public class PacketTaskHandler {
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 
-        handledTask = new Tuple2<>(task, System.currentTimeMillis());
+        handledTask = task;
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
         if (handledTask == null) return null;
 
-        return handledTask.getT1().getPacket();
+        return handledTask.getPacket();
     }
 
     public static void unregisterTask() {
         synchronized (lock) {
             if (handledTask != null) {
-                tracker.decrementPacketsInQueueExecution(handledTask.getT1().getPlayer().uuid);
+                tracker.decrementPacketsInQueueExecution(handledTask.getPlayer().uuid);
 
                 PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                 if (packet != null) {
