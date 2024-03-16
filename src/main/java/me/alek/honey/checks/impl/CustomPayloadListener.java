@@ -332,7 +332,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
-            if (ConfigurationOptions.getVlSetting(ConfigurationOptions.CustomPayload.PayloadF.class).isEnabled()) {
+            if (getSetting().isEnabled()) {
 
                 if (ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
                     return ResponseBuilder.inst().flag().withLimitsKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
