@@ -8,6 +8,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -81,12 +82,21 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     public void checkRelocation(Channel channel) {
         if (!hasBeenRelocated && player != null) {
-            hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, player);
+            try {
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, player);
+                hasBeenRelocated = true;
+            } catch (MissingHandlerException ex) {
+                player.player.kickPlayer(ex.getMessage());
+            }
         }
     }
 
     public double getRecentDeltaReceived() {
         return recentDeltaReceived;
+    }
+
+    public double getRecentDecodeStart() {
+        return recentDecodeStart;
     }
 
 }

@@ -9,6 +9,9 @@ import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import org.bukkit.Bukkit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SpigotPipelineInjector {
 
     public void injectChannel(Channel channel) {
@@ -31,28 +34,35 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public boolean relocateHandlers(Channel channel, HoneyPlayer player) {
+    public void relocateHandlers(Channel channel, HoneyPlayer player) throws MissingHandlerException {
         synchronized (channel) {
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
+            String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
+
             if (filter != null) {
-                String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
+                filter = filter.copy();
                 channel.pipeline().remove(filterName);
+            } else {
+                filter = new InboundPacketFilter(channel);
+            }
 
-                if (channel.pipeline().get("decompress") != null) {
-                    channel.pipeline().addAfter("decompress", filterName, filter.copy());
+            if (channel.pipeline().get("decompress") == null) {
+                throw new MissingHandlerException("No decompress in pipeline at relocation");
+            }
+            String[] requiredHandlers = new String[3];
+            channel.pipeline().addAfter("decompress", requiredHandlers[0] = filterName, filter);
 
-                    AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
+            AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
+            channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
+                    new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
+            channel.pipeline().addAfter(requiredHandlers[2] = PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
+                    new OutboundPacketEncoder(channel, asyncDecoder));
 
-                    channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
-                            new InboundPacketDecoder(asyncDecoder, channel.pipeline()));
-                    channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
-                            new OutboundPacketEncoder(channel, asyncDecoder));
-
-                    return true;
-                }
+            for (String requiredHandler : requiredHandlers) {
+                if (channel.pipeline().get(requiredHandler) == null)
+                    throw new MissingHandlerException("No \"" + requiredHandler + "\" channel handler in pipeline!");
             }
         }
-        return false;
     }
 
     public void ejectChannel(Channel channel) {

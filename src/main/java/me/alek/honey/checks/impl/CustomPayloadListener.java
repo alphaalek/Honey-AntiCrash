@@ -51,6 +51,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             try {
                 Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
                 ItemStack bukkitItem = ItemReflection.asBukkitItem(item);
+
                 container.getStorage().put(ItemStack.class, bukkitItem);
             } catch (Exception ex) {
             }

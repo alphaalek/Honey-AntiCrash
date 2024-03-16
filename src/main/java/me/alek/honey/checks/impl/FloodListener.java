@@ -218,6 +218,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
 
+
             // set the interval of this ignoring setting to be the spike interval specified in the configuration
             // it gets updated when the configuration is being reloaded, but not here
             if (ignoringSetting.interval == 0) ignoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
@@ -235,9 +236,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(ignoringKey).build();
                 }
                 // flag the player for the shared ignoring key to check if it's currently ignoring a packet spike of the player,
-                // if it isn't, and it gets flagged, then the real flood setting and values will be flagged afterwards
+                // if it isn't, and it gets flagged, then the real flood setting and values will be flagged afterward
 
-                // NOTE: it's not a shared packet limit handler, just a shared key and setting
+                // NOTE: it's not a shared packet limit handler, just a shared limits key (it still gets from its own violation distributor)
                 return ResponseBuilder.inst().flag(0).withLimitsKey(ignoringKey).onFlag(() -> {
                     HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(getName(), getKey(packet)), null, 1, FloodD.this, getSetting(packet), container.getDevelopmentData(FloodD.this), false);
                 }).build();
