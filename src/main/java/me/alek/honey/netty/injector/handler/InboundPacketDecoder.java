@@ -11,6 +11,9 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -21,7 +24,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     public final Queue<PacketContainer<? extends WrappedPacket<?>>> earlyInitializedPacketQueue = new LinkedList<>();
     private final AsyncDecoder asyncDecoder;
-    private Method decodeInvoker;
+    private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
     public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder) {
@@ -33,8 +36,10 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         try {
             decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline));
 
-            decodeInvoker = decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
-            decodeInvoker.setAccessible(true);
+            Method method = decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
+            method.setAccessible(true);
+
+            decodeInvoker = MethodHandles.lookup().unreflect(method);
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -55,7 +60,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 if (packetContainer != null && packetContainer.getHandle() == null) packetContainer.setHandle(element);
                 ctx.fireChannelRead(element);
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {

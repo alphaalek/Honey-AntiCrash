@@ -38,41 +38,42 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         AtomicInteger skipping = null;
 
         for (HoneyCheck check : checks) {
-            final CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
+            if (skipping != null && skipping.getAndDecrement() > 0) continue;
+
+            ConfigurationOptions.VlSetting setting = getSetting(check, packet);
+            // do the check and get the response, and register the time taken to the check handle tracker
+            long registryKey = -1;
+            if (setting != null && setting.isEnabled())
+                registryKey = HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
+
+            final ResponseContainer defaultResponse = responseGenerator.apply(check);
+
+            if (setting != null && setting.isEnabled() && registryKey != -1)
+                HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
 
             // add information to the development data
             if (player != null) {
-                developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
-                developmentData.setLine(5, check.getDescription());
+                Runnable priorOnViolation = defaultResponse.ON_VIOLATION;
+                defaultResponse.ON_VIOLATION = () -> {
+                    CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
+                    developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
+                    developmentData.setLine(5, check.getDescription());
+
+                    if (priorOnViolation != null)
+                        priorOnViolation.run();
+                };
 
                 if (player.punished) {
                     cancellablePacketObserver.cancel();
                     return;
                 }
             }
-            if (skipping != null && skipping.getAndDecrement() > 0) continue;
-
-            ConfigurationOptions.VlSetting setting = getSetting(check, packet);
-
-            // do the check and get the response, and register the time taken to the check handle tracker
-            long registryKey = -1;
-            if (setting != null && setting.isEnabled())
-                registryKey = HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
-
-            final ResponseContainer responses = responseGenerator.apply(check);
-
-            if (setting != null && setting.isEnabled() && registryKey != -1)
-                HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
-
-            final List<ResponseContainer> responsesList = new ArrayList<>(responses.SUB_CONTAINERS);
-            responsesList.add(responses);
-
+            final List<ResponseContainer> responsesList = defaultResponse.SUB_CONTAINERS;
+            responsesList.add(defaultResponse);
             boolean terminated = false;
             for (ResponseContainer response : responsesList) {
 
-                // run callbacks
-                if (callback != null)
-                    callback.call(response);
+                if (callback != null) callback.call(response);
 
                 // get the setting for this check
                 if (check instanceof KeyedViolationCheck) {
@@ -81,15 +82,13 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
 
                 // now we will check the contents of the response container and do whatever actions it represents
-                if (response.SKIP_INDICES != null)
-                    skipping = response.SKIP_INDICES;
+                if (response.SKIP_INDICES != null) skipping = response.SKIP_INDICES;
 
                 if (response.SUCCESS) {
                     if (response.TERMINATE) terminated = true;
                     continue;
                 }
-                if (response.CANCELLED)
-                    cancellablePacketObserver.cancel();
+                if (response.CANCELLED) cancellablePacketObserver.cancel();
 
                 final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check.getClass(), check.getName());
                 if (response.FLAG != -1 && player != null) {
@@ -102,8 +101,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 if (response.PUNISH && player != null)
                     HoneyPlugin.get().getViolationService().punish(null, player, check.getName(), key);
 
-                if (response.TERMINATE)
-                    terminated = true;
+                if (response.TERMINATE) terminated = true;
             }
             if (terminated) return;
         }
