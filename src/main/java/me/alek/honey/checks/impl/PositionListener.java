@@ -21,7 +21,9 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.utility.Locations;
+import me.alek.honey.utility.SampleDecayingList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,7 +34,7 @@ import java.util.function.Supplier;
 
 public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
-    private static final Map<UUID, SampleDecayingList<Location>> lastTeleportationLocationMap = new HashMap<>();
+    private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
@@ -41,105 +43,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             @Override
             public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
-                final UUID uuid = player.uuid;
-
-                if (!lastTeleportationLocationMap.containsKey(uuid)) lastTeleportationLocationMap.put(uuid, new SampleDecayingList<>(15000, 2, 1));
-                final SampleDecayingList<Location> sampleDecayableList = lastTeleportationLocationMap.get(uuid);
-
-                sampleDecayableList.put(packetContainer.getPacket().getLocation());
+                lastTeleportationLocationMap.put(player.uuid, packetContainer.getPacket().getLocation());
             }
 
         }, ListenerPriority.HIGHEST, () -> PacketType.Play.Server.POSITION);
-    }
-
-    public static class SampleDecayingList<T> {
-
-        private final long collectInterval;
-        private final int sampleSize;
-        private final int lockAmount;
-        private final LinkedList<SampleNode> sampleNodes = new LinkedList<>();
-        private final LinkedList<T> lockedNodes = new LinkedList<>();
-
-        public SampleDecayingList(long collectInterval, int sampleSize, int lockAmount) {
-            this.collectInterval = collectInterval;
-            this.sampleSize = sampleSize;
-            this.lockAmount = lockAmount;
-        }
-
-        public class SampleNode {
-
-            public SampleNode(T value) { this.value = value; }
-
-            private final T value;
-            private final long insertionInstant = System.currentTimeMillis();
-        }
-
-        public void put(T node) {
-            synchronized (sampleNodes) {
-                sampleNodes.addLast(new SampleNode(node));
-
-                if (sampleNodes.size() > sampleSize) sampleNodes.removeFirst();
-
-                if (lockAmount > 0) {
-                    lockedNodes.addLast(node);
-                    if (lockedNodes.size() > lockAmount) lockedNodes.removeFirst();
-                }
-            }
-        }
-
-        private void collect() {
-            synchronized (sampleNodes) {
-
-                final Iterator<SampleNode> sampleNodeIterator = sampleNodes.iterator();
-                while (sampleNodeIterator.hasNext()) {
-
-                    final SampleNode node = sampleNodeIterator.next();
-                    final long diff = System.currentTimeMillis() - node.insertionInstant;
-
-                    if (diff > collectInterval) {
-                        sampleNodeIterator.remove();
-                        continue;
-                    }
-                    break;
-                }
-            }
-        }
-
-        private T getWithoutCollecting(int index) {
-            synchronized (sampleNodes) {
-                return sampleNodes.get(index).value;
-            }
-        }
-
-        public T get(int index) {
-            collect();
-            synchronized (sampleNodes) {
-                return sampleNodes.get(index).value;
-            }
-        }
-
-        public T getLast() {
-            return get(sampleNodes.size());
-        }
-
-        public T getFirst() {
-            return get(0);
-        }
-
-        public List<T> getAll() {
-            collect();
-            final List<T> list = new ArrayList<>();
-
-            for (int i = 0; i < sampleNodes.size(); i++) {
-                list.add(getWithoutCollecting(i));
-            }
-
-            return list;
-        }
-
-        public List<T> getLocked() {
-            return lockedNodes;
-        }
     }
 
     @Override
@@ -246,24 +153,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return null;
     }
 
-    private static boolean within(List<Location> list, Function<Location, Double> distanceFunction, double diff) {
-        for (Location loc : list) {
-            if (distanceFunction.apply(loc) < diff) return true;
-        }
-        return false;
-    }
-
     public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
-        final UUID uuid = player.uuid;
+        if (lastTeleportationLocationMap.containsKey(player.uuid)) {
+            Location lastTeleportationLocation = lastTeleportationLocationMap.get(player.uuid);
+            double distance = distanceFunction.apply(lastTeleportationLocation);
 
-        if (lastTeleportationLocationMap.containsKey(uuid)) {
-            final SampleDecayingList<Location> sampleDecayingList = lastTeleportationLocationMap.get(uuid);
-
-            final List<Location> recentLocations = sampleDecayingList.getAll();
-            final List<Location> lockedLocations = sampleDecayingList.getLocked();
-
-            // check if any of those locations is within the distance specified
-            return within(recentLocations, distanceFunction, diff) || within(lockedLocations, distanceFunction, diff);
+            return distance != -1 && distance < diff;
         }
         return false;
     }

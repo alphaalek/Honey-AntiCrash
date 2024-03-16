@@ -7,6 +7,10 @@ public class TimedNode<T> {
         this.identifier = identifier;
     }
 
+    public TimedNode(T value) {
+        this(value, -1);
+    }
+
     private final T value;
     private final long identifier;
     private final long insertionInstant = System.nanoTime();
