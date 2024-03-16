@@ -13,6 +13,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.ThreadLocalAccessor;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 
@@ -86,7 +87,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, player);
                 hasBeenRelocated = true;
             } catch (MissingHandlerException ex) {
-                player.player.kickPlayer(ex.getMessage());
+                Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer(ex.getMessage()));
             }
         }
     }
