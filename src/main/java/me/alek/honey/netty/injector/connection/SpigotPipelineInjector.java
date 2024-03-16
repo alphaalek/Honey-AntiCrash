@@ -47,7 +47,8 @@ public class SpigotPipelineInjector {
             }
 
             String[] requiredHandlers = new String[3];
-            channel.pipeline().addAfter(channel.pipeline().get("decompress") != null ?"decompress" : "splitter", requiredHandlers[0] = filterName, filter);
+            channel.pipeline().addAfter(channel.pipeline().get(
+                    "decompress") != null ? "decompress" : /* no decompression on this server */ "splitter", requiredHandlers[0] = filterName, filter);
 
             AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
             channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),

@@ -69,7 +69,7 @@ public class PacketInterceptorResolver {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeBoolean(false);
         });
-        List<String> handlers = setupInterceptorEnv(pipeline, false, "decompress", handler -> handler instanceof ChannelInboundHandler, handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
+        List<String> handlers = setupInterceptorEnv(pipeline, false, "splitter", handler -> handler instanceof ChannelInboundHandler, handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object o) {
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
@@ -88,7 +88,7 @@ public class PacketInterceptorResolver {
                 }
             }
         });
-        pipeline.context("decompress").fireChannelRead(byteBuf);
+        pipeline.context(pipeline.get("decompress") != null ? "decompress" : "splitter").fireChannelRead(byteBuf);
 
         return handlers;
     }
