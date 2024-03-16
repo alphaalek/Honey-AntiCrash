@@ -30,14 +30,6 @@ public class ViolationService {
     public ViolationService() { INSTANCE = this; }
 
     public void reload() {
-
-        // update the setting for the ignoring flood handlers
-        ConfigurationOptions.VlSetting sharedIgnoringSetting = FloodListener.getSharedIgnoringSetting();
-        if (sharedIgnoringSetting != null) {
-            // set the interval of this setting to be the spike interval specified in the configuration
-            sharedIgnoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
-        }
-
         // loop through all the players and update their packet limit handlers
         for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
             player.violationContext = new ViolationContext(player);

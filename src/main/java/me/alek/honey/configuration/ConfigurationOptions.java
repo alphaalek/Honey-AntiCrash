@@ -536,18 +536,6 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class SpikeFlood {
-
-        public static int MAX_TIME_BETWEEN;
-        public static int SPIKE_INTERVAL;
-
-        public static void load() {
-            MAX_TIME_BETWEEN = file.getInt("spike-flood.max-time-between", 550);
-            SPIKE_INTERVAL = file.getInt("spike-flood.spike-interval", 700);
-        }
-    }
-
-    @Setting
     public static class SQL {
 
         public static boolean ENABLED;

@@ -26,8 +26,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return earlyPacketInitializer.get();
     }
 
-    private double recentDecodeStart;
-    private double recentDeltaReceived = 0;
     private boolean hasBeenRelocated;
     private HoneyPlayer player;
     private final Channel channel;
@@ -39,8 +37,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public InboundPacketFilter copy() {
         InboundPacketFilter copy = new InboundPacketFilter(channel);
         copy.hasBeenRelocated = true;
-        copy.recentDeltaReceived = recentDeltaReceived;
-        copy.recentDecodeStart = recentDecodeStart;
         copy.player = player;
         return copy;
     }
@@ -63,10 +59,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         } else earlyPacketInitializer.set(null);
 
         packetProcessor.callDecode(player, byteBuf);
-
-        long currentTime = System.currentTimeMillis();
-        recentDeltaReceived = currentTime - recentDecodeStart;
-        recentDecodeStart = currentTime;
 
         if (packetContainer != null) {
             packetContainer.getEventloopStateTimings().stopTimings();
@@ -91,13 +83,4 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
             }
         }
     }
-
-    public double getRecentDeltaReceived() {
-        return recentDeltaReceived;
-    }
-
-    public double getRecentDecodeStart() {
-        return recentDecodeStart;
-    }
-
 }

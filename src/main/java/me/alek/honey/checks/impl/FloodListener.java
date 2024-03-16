@@ -31,17 +31,6 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
-    private static final ViolationService.CheckKey ignoringKey = new ViolationService.CheckKey();
-    private static final ConfigurationOptions.VlSetting ignoringSetting = new ConfigurationOptions.VlSetting();
-
-    public static ViolationService.CheckKey getSharedIgnoringKey() {
-        return ignoringKey;
-    }
-
-    public static ConfigurationOptions.VlSetting getSharedIgnoringSetting() {
-        return ignoringSetting;
-    }
-
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
 
@@ -115,7 +104,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         public abstract ConfigurationOptions.VlSetting getSetting();
 
-        public abstract ResponseContainer getResponse(HoneyPlayer player);
+        public ResponseContainer getResponse(HoneyPlayer player) {
+            return ResponseBuilder.inst().flag().build();
+        }
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -172,11 +163,6 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer getResponse(HoneyPlayer player) {
-            return ResponseBuilder.inst().flag().build();
-        }
-
-        @Override
         public String getName() {
             return "Flood.B";
         }
@@ -195,11 +181,6 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         @Override
-        public ResponseContainer getResponse(HoneyPlayer player) {
-            return ResponseBuilder.inst().flag().build();
-        }
-
-        @Override
         public String getName() {
             return "Flood.C";
         }
@@ -213,35 +194,10 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
 
-        private InboundPacketFilter filter;
-
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-
-
-            // set the interval of this ignoring setting to be the spike interval specified in the configuration
-            // it gets updated when the configuration is being reloaded, but not here
-            if (ignoringSetting.interval == 0) ignoringSetting.interval = ConfigurationOptions.SpikeFlood.SPIKE_INTERVAL;
-
-            if (filter == null) {
-                filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getContainer().getChannel());
-
-                // force the violation service to make a packet limit handler with the shared key and shared setting
-                HoneyPlugin.get().getViolationService().getDistributor(player, ignoringKey, ignoringSetting);
-            }
-
             if (getSetting(packet).isEnabled()) {
-                // check if the delta time is high enough to exempt the next packet spike for this player
-                if (filter.getRecentDeltaReceived() > ConfigurationOptions.SpikeFlood.MAX_TIME_BETWEEN) {
-                    return ResponseBuilder.inst().ignoreSpike().flag(0).withLimitsKey(ignoringKey).build();
-                }
-                // flag the player for the shared ignoring key to check if it's currently ignoring a packet spike of the player,
-                // if it isn't, and it gets flagged, then the real flood setting and values will be flagged afterward
-
-                // NOTE: it's not a shared packet limit handler, just a shared limits key (it still gets from its own violation distributor)
-                return ResponseBuilder.inst().flag(0).withLimitsKey(ignoringKey).onFlag(() -> {
-                    HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), new ViolationService.CheckKey(getName(), getKey(packet)), null, 1, FloodD.this, getSetting(packet), container.getDevelopmentData(FloodD.this), false);
-                }).build();
+                return ResponseBuilder.inst().flag().build();
             }
             return ResponseBuilder.SUCCESS;
         }

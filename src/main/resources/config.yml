@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + You are currently using the version 2.2
+#   + You are currently using the version 2.2.1
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -110,15 +110,6 @@ async-decoder:
 
   # Minimum pending task size, before a worker is quarantined.
   min-pending-task-size-for-quarantine: 20
-
-
-# Exempt spike flood
-spike-flood:
-  # If the amount of time between packets received by a player is exceeding this amount, the following interval will be ignored.
-  max-time-between: 500
-
-  # The following interval will be blocked after the max-time-between value has been exceeded.
-  spike-interval: 750
 
 
 # monitor
