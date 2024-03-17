@@ -13,6 +13,7 @@ import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,29 +53,16 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
 
             // add information to the development data
-            if (player != null) {
-                callback.call(defaultResponse);
-
-                defaultResponse.builder().onViolation(onViolation -> {
-                    if (onViolation != null) onViolation.run();
-
-                    CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
-                    developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
-                    developmentData.setLine(5, check.getDescription());
-                });
-
-                if (player.punished) {
-                    cancellablePacketObserver.cancel();
-                    return;
-                }
+            if (player != null && player.punished) {
+                cancellablePacketObserver.cancel();
+                return;
             }
-            final List<ResponseContainer> responsesList = defaultResponse.SUB_CONTAINERS;
+            final List<ResponseContainer> responsesList = new ArrayList<>(defaultResponse.SUB_CONTAINERS);
             responsesList.add(defaultResponse);
+
             boolean terminated = false;
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
-            for (ResponseContainer response : new ArrayList<>(responsesList)) {
-                if (response == null) continue;
-                if (response != defaultResponse) callback.call(response);
+            for (ResponseContainer response : responsesList) {
 
                 // get the setting for this check
                 if (check instanceof KeyedViolationCheck) {
@@ -97,6 +85,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         if (response.TERMINATE) terminated = true;
                         continue;
                     }
+
+                    response.builder().onViolation(onViolation -> {
+                        developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
+                        developmentData.setLine(5, check.getDescription());
+
+                        if (onViolation != null) onViolation.run();
+                    });
+                    callback.call(response);
+
                     HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.VIOLATION_KEY, response.FLAG, response.ON_PUNISH, response.ON_VIOLATION, response.ON_FLAG, check, setting, developmentData);
                 }
                 if (response.PUNISH && player != null)
@@ -119,16 +116,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return null;
     }
 
-    public void check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
-        final CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(player, byteBuf);
+    public void check(HoneyPlayer player, CancellableByteBufImpl byteBuf, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         handleCommonCheck(player, null, (check) -> {
             try {
-                return ((DecodeCheck)check).check(player, byteBuf, checkContextContainer);
+                return ((DecodeCheck)check).check(player, byteBuf.buf(), checkContextContainer);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return ResponseBuilder.SUCCESS;
-        }, null, cancellablePacketObserver, checkContextContainer, callback);
+        }, null, byteBuf, checkContextContainer, callback);
     }
 
     @SuppressWarnings("unchecked")

@@ -18,8 +18,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -270,6 +271,8 @@ public class ViolationService {
             }
             if (delegate == null && checkKey != null)
                 delegate = getPacketLimitHandler(checkKey, false);
+
+            if (delegate == null) return false;
 
             return delegate.flag(handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, checkKey);
         }
@@ -550,7 +553,7 @@ public class ViolationService {
             cancellablePacketObserver.cancel();
 
             if (bufferIndex > getSetting().until && getSetting().isEnabled())
-                violate(cancellablePacketObserver, check, null, null, developmentData, checkKey);
+                violate(cancellablePacketObserver, check, onPunish, onViolation, developmentData, checkKey);
             return true;
         }
     }

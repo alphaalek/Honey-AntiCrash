@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
@@ -17,7 +18,7 @@ public interface PacketProcessor {
 
     PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet);
 
-    void callDecode(HoneyPlayer player, ByteBuf byteBuf);
+    void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf);
 
     void removeListener(SyncPacketAdapter<?> packetAdapter, PacketTypeEnum... packetType);
 

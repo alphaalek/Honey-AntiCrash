@@ -1,15 +1,12 @@
 package me.alek.honey.tracker.temp;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import me.alek.honey.tracker.HoneyTracker;
-import me.alek.honey.tracker.TrackerIDRegistry;
+import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -19,7 +16,7 @@ public abstract class TempQueuedTracker implements HoneyTracker {
     private final int id;
 
     public TempQueuedTracker(boolean hasId) {
-        if (hasId) id = TrackerIDRegistry.DEFAULT.getID();
+        if (hasId) id = IDRegistry.TRACKER_CONTEXT.acquireID();
         else id = -1;
 
         setup();

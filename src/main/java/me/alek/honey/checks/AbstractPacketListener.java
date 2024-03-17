@@ -3,22 +3,17 @@ package me.alek.honey.checks;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
 
-    private final UUID commonUUID = UUID.randomUUID();
-    private final Map<UUID, CheckVisitor<WP>> visitors = new HashMap<>();
+    private final Array<CheckVisitor<WP>> visitors = new Array<>();
     private boolean initializedCheckInstances;
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
@@ -56,17 +51,21 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
+
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         if (player != null) {
             callback.addAction((response) -> {
                 response.builder().onViolation(onViolation -> {
-                    if (onViolation != null) onViolation.run();
-
                     CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
-                    String packet = packetContainer.getHandle().getClass().getSimpleName();
-                    defaultDevelopmentData.addValue(" Packet", packet);
-                    applyCommonDevelopmentData(defaultDevelopmentData);
+                    if (defaultDevelopmentData.getDataSet().isEmpty()) {
+                        String packet = packetContainer.getHandle().getClass().getSimpleName();
+                        defaultDevelopmentData.addEmpty();
+                        defaultDevelopmentData.addValue(" Packet", packet);
+                        applyCommonDevelopmentData(defaultDevelopmentData);
+                    }
+
+                    if (onViolation != null) onViolation.run();
                 });
             });
         }
@@ -78,18 +77,19 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player) {
-        return getCachedVisitor(player, player != null ? player.uuid : commonUUID);
+        return getCachedVisitor(player, player != null ? player.registryID : 0);
     }
 
-    public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player, UUID uuid) {
-        if (!visitors.containsKey(uuid)) {
-            visitors.put(uuid, getVisitor());
+    public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player, int registryID) {
+        if (!visitors.has(registryID)) {
+            visitors.set(registryID, getVisitor());
+
             if (player != null)
-                player.leaveCallback.addAction(p -> visitors.remove(p.uuid));
+                player.leaveCallback.addAction(p -> visitors.remove(registryID));
         }
         initializedCheckInstances = true;
 
-        return visitors.get(uuid);
+        return visitors.get(registryID);
     }
 
     public synchronized boolean hasInitializedCheckInstances() {

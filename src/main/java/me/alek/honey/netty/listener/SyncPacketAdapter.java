@@ -3,6 +3,7 @@ package me.alek.honey.netty.listener;
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -25,7 +26,7 @@ public class SyncPacketAdapter<WP extends WrappedPacket<WP>> {
 
     }
 
-    public void onByteBufDecode(HoneyPlayer player, ByteBuf byteBuf) {
+    public void onByteBufDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
 
     }
 }

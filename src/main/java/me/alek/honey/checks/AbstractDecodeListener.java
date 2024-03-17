@@ -1,11 +1,11 @@
 package me.alek.honey.checks;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import org.bukkit.entity.Player;
+import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +17,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
     private boolean initializedCheckInstances;
 
     @Override
-    public void onByteBufDecode(HoneyPlayer player, ByteBuf byteBuf) {
+    public void onByteBufDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
         if (player == null) return;
 
         if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
@@ -27,19 +27,24 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         // cancel the decoding if the player is not even online
-        if (!player.isOnline()) {
-            byteBuf.clear();
+        if (!player.isOnline() || byteBuf.buf().refCnt() < 1) {
+            byteBuf.cancel();
             return;
         }
+
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         callback.addAction(response -> {
+            int bytes = byteBuf.buf().readableBytes();
             response.builder().onViolation(onViolation -> {
-                if (onViolation != null) onViolation.run();
 
                 CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+                if (defaultDevelopmentData.getDataSet().isEmpty()) {
+                    defaultDevelopmentData.addEmpty();
+                    defaultDevelopmentData.addValue(" ByteBuf", bytes + " bytes");
+                    AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
+                }
 
-                defaultDevelopmentData.addValue(" ByteBuf", byteBuf.readableBytes() + " bytes");
-                AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
+                if (onViolation != null) onViolation.run();
             });
         });
 

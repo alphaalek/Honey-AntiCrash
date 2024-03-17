@@ -3,7 +3,7 @@ package me.alek.honey.tracker.temp;
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.tracker.TimedNode;
-import me.alek.honey.tracker.TrackerIDRegistry;
+import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.timed.TimedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 
@@ -21,7 +21,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
             for (Timespan timespan : Timespan.values()) {
                 timespan.clearContext(getTracker(key));
             }
-            TrackerIDRegistry.DEFAULT.remove(getTracker(key).getID());
+            IDRegistry.TRACKER_CONTEXT.remove(getTracker(key).getID());
             trackerMap.remove(key.uuid);
         }
         for (UUID uuid : Sets.newHashSet(trackerMap.keySet())) {

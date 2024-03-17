@@ -2,6 +2,7 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.IDRegistry;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -79,5 +80,6 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
 
         player.leaveCallback.call(player);
+        IDRegistry.PLAYERS.remove(player.registryID);
     }
 }

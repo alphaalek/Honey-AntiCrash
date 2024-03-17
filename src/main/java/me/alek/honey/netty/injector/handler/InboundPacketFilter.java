@@ -1,9 +1,10 @@
 package me.alek.honey.netty.injector.handler;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -11,6 +12,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
@@ -73,15 +75,20 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
             earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
-        } else earlyPacketInitializer.set(null);
+        } else earlyPacketInitializer.remove();
 
-        packetProcessor.callDecode(player, byteBuf);
+        CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
+        packetProcessor.callDecode(player, cancellableByteBuf);
 
         if (packetContainer != null) {
             packetContainer.getEventloopStateTimings().stopTimings();
         }
 
-        list.add(byteBuf.readBytes(byteBuf.readableBytes()));
+        if (!cancellableByteBuf.isCancelled())
+            list.add(byteBuf.readBytes(byteBuf.readableBytes()));
+        else
+            list.add(Unpooled.buffer());
+
     }
 
     @Override

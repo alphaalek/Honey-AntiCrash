@@ -1,9 +1,10 @@
 package me.alek.honey.checks.response;
 
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.ViolationService;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -28,8 +29,15 @@ public class ResponseBuilder {
         this.responseContainer = container;
     }
 
+    public ResponseBuilder(ResponseContainer container, List<ResponseContainer> subContainers) {
+        this(container);
+        this.responseContainer.SUB_CONTAINERS = subContainers;
+    }
+
     public ResponseBuilder add(ResponseContainer... containers) {
-        responseContainer.SUB_CONTAINERS.addAll(Arrays.asList(containers));
+        List<ResponseContainer> responses = Arrays.asList(containers);
+        responses.removeAll(Collections.singleton(null));
+        responseContainer.SUB_CONTAINERS.addAll(responses);
         return this;
     }
 

@@ -1,11 +1,11 @@
 package me.alek.honey.tracker.timed;
 
 import me.alek.honey.tracker.HoneyTracker;
-import me.alek.honey.tracker.TrackerIDRegistry;
+import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
-import org.bukkit.Bukkit;
+import me.alek.honey.utility.Array;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,8 +63,7 @@ public enum Timespan {
 
     private static final double NANO_MULTIPLIER = Math.pow(10, 9);
     private final Map<HoneyTracker, TimespanContext> noIDContextMap = new HashMap<>();
-    private TimespanContext[] IDContextMap = new TimespanContext[0];
-
+    private final Array<TimespanContext> IDContext = new Array<>();
     private final int timespan;
 
     Timespan(int timespan) {
@@ -75,21 +74,7 @@ public enum Timespan {
         if (tracker.getID() == -1)
             return noIDContextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this, tracker));
 
-        if (IDContextMap.length != TrackerIDRegistry.DEFAULT.size()) {
-            TimespanContext[] copy = IDContextMap;
-            IDContextMap = new TimespanContext[TrackerIDRegistry.DEFAULT.size()];
-            for (TimespanContext context : copy) {
-                if (context != null) IDContextMap[context.getTracker().getID()] = context;
-            }
-            if (tracker.getID() >= IDContextMap.length) throw new IllegalStateException("Couldn't fetch correct timespan context from tracker because of ID mismatch.");
-
-            return getContext(tracker);
-        }
-        TimespanContext context = IDContextMap[tracker.getID()];
-        if (context == null || context.getTracker() != tracker)
-            return IDContextMap[tracker.getID()] = new TimespanContext(this, tracker);
-
-        return context;
+        return IDContext.get(tracker.getID(), () -> new TimespanContext(this, tracker));
     }
 
     public TempQueue getQueue(HoneyTracker tracker) {
@@ -112,7 +97,7 @@ public enum Timespan {
         noIDContextMap.remove(tracker);
 
         if (tracker.getID() != -1) {
-            if (IDContextMap.length > tracker.getID()) IDContextMap[tracker.getID()] = null;
+            IDContext.remove(tracker.getID());
         }
     }
 }

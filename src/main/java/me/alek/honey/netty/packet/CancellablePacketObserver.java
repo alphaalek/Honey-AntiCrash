@@ -4,4 +4,6 @@ public interface CancellablePacketObserver {
 
     void cancel();
 
+    boolean isCancelled();
+
 }

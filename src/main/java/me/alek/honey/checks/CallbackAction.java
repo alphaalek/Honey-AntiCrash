@@ -1,12 +1,12 @@
 package me.alek.honey.checks;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class CallbackAction<T> {
 
-    private final List<Consumer<T>> callbacks = new ArrayList<>();
+    private final List<Consumer<T>> callbacks = new LinkedList<>();
 
     public void addAction(Consumer<T> callback) {
         callbacks.add(callback);

@@ -1,12 +1,23 @@
-package me.alek.honey.tracker;
+package me.alek.honey;
 
-public class TrackerIDRegistry {
+public class IDRegistry {
 
-    public static final TrackerIDRegistry DEFAULT = new TrackerIDRegistry();
+    public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
+    public static final IDRegistry PLAYERS = new IDRegistry(1);
 
     private int[] ids = new int[0];
 
-    public synchronized int getID() {
+    public IDRegistry(int preMadeIDs) {
+        for (int i = 0; i < preMadeIDs; i++) {
+            acquireID();
+        }
+    }
+
+    public IDRegistry() {
+
+    }
+
+    public synchronized int acquireID() {
         try {
             int i = 0;
             for (int id : ids) {
@@ -35,7 +46,7 @@ public class TrackerIDRegistry {
         }
     }
 
-    public int size() {
+    public synchronized int size() {
         return ids.length;
     }
 }

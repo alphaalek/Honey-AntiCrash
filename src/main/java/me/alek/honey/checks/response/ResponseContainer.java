@@ -23,7 +23,7 @@ public class ResponseContainer implements Cloneable {
     public double FLAG = -1;
 
     public ResponseBuilder builderCopy() {
-        return new ResponseBuilder(this.clone());
+        return new ResponseBuilder(this.clone(), new ArrayList<>(SUB_CONTAINERS));
     }
 
     public ResponseBuilder builder() {

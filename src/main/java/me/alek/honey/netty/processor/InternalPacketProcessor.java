@@ -10,6 +10,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
@@ -46,7 +47,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void callDecode(HoneyPlayer player, ByteBuf byteBuf) {
+        public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
             callPipeline((packetAdapter) -> {
                 packetAdapter.onByteBufDecode(player, byteBuf);
             });
@@ -233,7 +234,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         PACKET_ADAPTERS.get(clazz).callPacket(player, packetContainer, isRead);
     }
 
-    public void callDecode(HoneyPlayer player, ByteBuf byteBuf) {
+    public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
         DECODE_LIST_MODIFIER.callDecode(player, byteBuf);
     }
 

@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -52,6 +51,7 @@ public class HoneyPlayer {
     public ViolationService.ViolationContext violationContext;
     public boolean punished;
     public int nettyThreadID = -1;
+    public int registryID;
 
     public HoneyPlayer(Player player) {
         this.player = player;
@@ -60,6 +60,8 @@ public class HoneyPlayer {
         channel = NMS.getChannel(player);
         name = player.getName();
         violationContext = new ViolationService.ViolationContext(this);
+
+        registryID = IDRegistry.PLAYERS.acquireID();
     }
 
     public boolean isOnline() {

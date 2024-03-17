@@ -7,11 +7,10 @@ import java.util.function.Supplier;
 public class Array<T> implements Iterable<T> {
 
     private Object[] values = new Object[0];
-    private final Object lock = new Object();
 
     private void resolve(int index) {
         if (index >= values.length) {
-            synchronized (lock) {
+            synchronized (this) {
                 if (index >= values.length) {
                     Object[] copy = values;
                     values = new Object[index + 1];
@@ -58,13 +57,19 @@ public class Array<T> implements Iterable<T> {
         return size() == 0;
     }
 
-    public boolean set(int index, T val) {
+    public synchronized boolean set(int index, T val) {
         resolve(index);
 
         boolean present = values[index] != null;
         values[index] = val;
 
         return present;
+    }
+
+    public synchronized boolean remove(int index) {
+        if (index >= values.length) return false;
+
+        return set(index, null);
     }
 
     @Override

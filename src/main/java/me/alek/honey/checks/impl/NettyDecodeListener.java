@@ -318,14 +318,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (byteBuf.capacity() > getSetting().threshold) {
-
+                if (byteBuf.readableBytes() > getSetting().threshold) {
                     long diff = System.currentTimeMillis() -
                             (lastFlag != 0 ? lastFlag : System.currentTimeMillis() - getSetting().min + 1);
-
                     lastFlag = System.currentTimeMillis();
-                    if (diff > getSetting().min) {
 
+                    if (diff > getSetting().min) {
                         boolean foundMatch = false;
                         for (final long sizeKey : new ArrayList<>(sizeMap.keySet())) {
                             if (check(player, sizeKey, byteBuf)) {
@@ -334,6 +332,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                             }
                             if (sizeMap.get(sizeKey).size() == 0) sizeMap.remove(sizeKey);
                         }
+
                         if (!foundMatch) {
                             final DecayingListeningCounter counter = new DecayingListeningCounter(
                                     () -> (long) getSetting().interval, () -> waitingFlag = true, () -> (long) getSetting().maxPerInterval);
@@ -386,12 +385,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf) {
-            return Math.abs(sizeKey - byteBuf.capacity()) < getSetting().max;
+            return Math.abs(sizeKey - byteBuf.readableBytes()) < getSetting().max;
         }
 
         @Override
         public long getKey(HoneyPlayer player, ByteBuf byteBuf) {
-            return byteBuf.capacity();
+            return byteBuf.readableBytes();
         }
     }
 
@@ -401,7 +400,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && byteBuf.capacity() > getSetting().threshold) {
+            if (getSetting().isEnabled() && byteBuf.readableBytes() > getSetting().threshold) {
                 long diff = System.currentTimeMillis() -
                         (lastFlag != 0 ? lastFlag : System.currentTimeMillis() - getSetting().min + 1);
 

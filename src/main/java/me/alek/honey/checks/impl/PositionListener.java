@@ -21,9 +21,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.utility.Locations;
-import me.alek.honey.utility.SampleDecayingList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -93,12 +91,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             });
         }));
 
+
         return true;
     }
 
     @Override
     public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-
     }
 
     @Override
@@ -210,6 +208,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionB<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private final ViolationService.CheckKey twoDKey = new ViolationService.CheckKey(this, "2d");
+        private final ViolationService.CheckKey YKey = new ViolationService.CheckKey(this, "y");
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             final Location packetLoc = packet.getLocation();
@@ -231,7 +232,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 final double maxDistance = getSetting().max;
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey(this, "2d"))
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(twoDKey)
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -241,7 +242,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey(this, "y"))
+                    return ResponseBuilder.inst().cancel().flag().withViolationKey(YKey)
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -633,7 +634,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         final Material material = player.player.getEyeLocation().getBlock().getType();
                         if (material.name().contains("WATER") || material.name().contains("LAVA")
                                 || deltaY % 0.375 < 0.01) {
-                            return response;
+                            List<ResponseContainer> subResponses;
+                            return response.builder()
+                                    .add((subResponses = builder.build().SUB_CONTAINERS).isEmpty() ? null : subResponses.get(0))
+                                    .build();
                         }
                         builder.add(
                                 ResponseBuilder.inst().flag()
@@ -644,6 +648,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }
                     guessedDeltaY = deltaY;
                 }
+                // Bukkit.getLogger().info(hasPattern + " " + builder.build().SUB_CONTAINERS);
                 if (hasPattern) return builder.build();
             }
             return response;
