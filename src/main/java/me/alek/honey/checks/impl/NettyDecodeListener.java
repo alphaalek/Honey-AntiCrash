@@ -41,6 +41,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     }
 
     private static void processByteBuf(ByteBuf byteBuf, CheckContextContainer container) {
+        if (byteBuf.readableBytes() == 0) {
+            container.getStorage().putInt(0);
+            return;
+        }
+
         int accumulated = 0;
 
         int readerIndex = byteBuf.readerIndex();
