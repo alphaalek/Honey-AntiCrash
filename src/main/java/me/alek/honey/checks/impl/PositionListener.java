@@ -25,6 +25,7 @@ import me.alek.honey.utility.Locations;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 
 import java.util.*;
 import java.util.function.Function;
@@ -138,14 +139,15 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         return location.getWorld().isChunkLoaded(x, z);
     }
 
-    public static synchronized WrappedChunkCoordIntPair getChunkAt(Location location) {
-        if (isChunkLoaded(location)) {
-            final int x = location.getBlockX() >> 4;
-            final int z = location.getBlockZ() >> 4;
+    public static boolean isChunkLoaded(World world, int x, int z) {
+        return world.isChunkLoaded(x, z);
+    }
 
-            return new WrappedChunkCoordIntPair(x, z);
-        }
-        return null;
+    public static synchronized WrappedChunkCoordIntPair getChunkAt(Location location) {
+        final int x = location.getBlockX() >> 4;
+        final int z = location.getBlockZ() >> 4;
+
+        return new WrappedChunkCoordIntPair(x, z, (world) -> isChunkLoaded(world, x, z));
     }
 
     public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
@@ -287,10 +289,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                // check if the player is flying, because then the buffer will be filled up nevertheless
-                if (player.player.isFlying())
-                    return ResponseBuilder.SUCCESS;
-
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
                 if (player.player.getVelocity().getY() < -1.5)
@@ -298,17 +296,17 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 final Location priorLocation = container.getStorage().getLocation(0);
                 // return if it's the first location being sent
-                if (priorLocation == null)
-                    return ResponseBuilder.SUCCESS;
+                if (priorLocation == null) return ResponseBuilder.SUCCESS;
 
                 // ignores packets close to the recent flag
                 if (lastFlaggedLocation != null) {
-                    if (Locations.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1.5)
+                    if (Locations.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1)
                         return ResponseBuilder.SUCCESS;
                 }
                 lastFlaggedLocation = packet.getLocation();
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
+                Bukkit.getLogger().info(Math.min(10, priorDistance) + "");
                 return ResponseBuilder.inst().flag(Math.min(10, priorDistance)).build();
             }
             return ResponseBuilder.SUCCESS;
@@ -343,43 +341,21 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private WrappedChunkCoordIntPair lastChunk;
-        private boolean manipulatedFlightSettings;
-
-        private final ViolationService.CheckKey flightKey = new ViolationService.CheckKey(this, "Position.B", true);
-        private final ViolationService.CheckKey nonFlightKey = new ViolationService.CheckKey(this, "Position.B", false);
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-
-            final ViolationService.CheckKey key = (player.player.isFlying()) ? flightKey : nonFlightKey;
-
-            // make a copy of settings to when you fly, because you can visit way more chunks then
-            if (!manipulatedFlightSettings) {
-                final double maxPerInterval = getSetting().maxPerInterval;
-                final ConfigurationOptions.VlSetting setting = getSetting().clone();
-                setting.maxPerInterval = maxPerInterval * 3;
-
-                // force a new packet limit handler to be created with the new flight setting
-                HoneyPlugin.get().getViolationService().getDistributor(player, flightKey, setting);
-
-                manipulatedFlightSettings = true;
-            }
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
             final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
-            if (chunk != null) {
-                // the chunk is loaded, and we have to make sure that all responses will skip the next check in the pipeline
+            int skip = chunk.isLoaded(player.getWorld()) ? 1 : 0;
 
-                if (!getSetting().isEnabled() || lastChunk != null && lastChunk.equals(chunk)) {
-                    // the player is in the same chunk as the last position update
-                    return ResponseBuilder.SUCCESS.builderCopy().skip(1).build();
-                }
-                // the player has moved into a new chunk, and we have to register this chunk as the current one
-                lastChunk = chunk;
-                return ResponseBuilder.inst().flag().skip(1).withLimitsKey(key).build();
+            if (!getSetting().isEnabled() || lastChunk != null && lastChunk.equals(chunk)) {
+                // the player is in the same chunk as the last position update
+                return ResponseBuilder.SUCCESS.builderCopy().skip(skip).build();
             }
-            // the chunk is not loaded and therefore Position.E should be flagged by not returning a skip response
-            return ResponseBuilder.SUCCESS;
+            // the player has moved into a new chunk, and we have to register this chunk as the current one
+            lastChunk = chunk;
+            return ResponseBuilder.inst().flag().skip(skip).build();
         }
 
         @Override
