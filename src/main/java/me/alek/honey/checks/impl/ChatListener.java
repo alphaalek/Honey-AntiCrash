@@ -221,7 +221,6 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             for (String prohibitedCommand : prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
-                    Bukkit.broadcastMessage("Matched!");
                     return ResponseBuilder.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
