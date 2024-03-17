@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.utility.Array;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -21,12 +22,20 @@ import java.util.List;
 
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 
-    private static final List<Thread> nettyThreads = new ArrayList<>();
+    private static final Array<Thread> nettyThreads = new Array<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocal<>();
 
     public static PacketContainer<? extends WrappedPacket<?>> getEarlyInitializedPacket() {
         return earlyPacketInitializer.get();
+    }
+
+    public static int getNettyThreadID() {
+        for (int i = 0; i < nettyThreads.size(); i++) {
+            Thread thread = nettyThreads.get(i);
+            if (thread == Thread.currentThread()) return i;
+        }
+        return -1;
     }
 
     private boolean hasBeenRelocated;
@@ -58,18 +67,20 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
             checkRelocation(channel);
 
             if (player.nettyThreadID == -1) {
-                Thread currentThread = Thread.currentThread();
-                for (int i = 0; i < nettyThreads.size(); i++) {
+                synchronized (nettyThreads) {
+                    Thread currentThread = Thread.currentThread();
+                    for (int i = 0; i < nettyThreads.size(); i++) {
 
-                    if (nettyThreads.get(i) == currentThread)
-                        if (player.nettyThreadID == -1)
-                            player.nettyThreadID = i;
-                        else
-                            nettyThreads.remove(i);
-                }
-                if (player.nettyThreadID == -1) {
-                    nettyThreads.add(currentThread);
-                    player.nettyThreadID = nettyThreads.size() - 1;
+                        if (nettyThreads.get(i) == currentThread)
+                            if (player.nettyThreadID == -1)
+                                player.nettyThreadID = i;
+                            else
+                                nettyThreads.remove(i);
+                    }
+                    if (player.nettyThreadID == -1) {
+                        nettyThreads.add(currentThread);
+                        player.nettyThreadID = nettyThreads.size() - 1;
+                    }
                 }
             }
 

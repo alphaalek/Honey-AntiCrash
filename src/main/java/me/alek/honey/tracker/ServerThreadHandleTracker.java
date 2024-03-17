@@ -5,6 +5,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
+import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
+import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -15,6 +17,7 @@ import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -210,6 +213,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
             // elements to the execution queue from netty threads which are not packets
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
+            Bukkit.getLogger().info("Got " + packet + " " + InboundPacketFilter.getNettyThreadID());
             if (packet == null) return super.add(value);
 
             packet.setHandledByServer();

@@ -1,6 +1,5 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.utility.Array;
 
 import java.util.function.Consumer;
@@ -16,8 +15,8 @@ public class NettyThreadLocal<T> {
         this.defaultValue = defaultValue;
     }
 
-    public T get(HoneyPlayer player) {
-        return get(player.nettyThreadID);
+    public NettyThreadLocal() {
+        this(null);
     }
 
     public T get(int thread) {
@@ -36,12 +35,8 @@ public class NettyThreadLocal<T> {
         seperatedQueues.clear();
     }
 
-    public boolean set(HoneyPlayer player, T value) {
-        return set(player.nettyThreadID, value);
-    }
-
     public boolean set(int thread, T value) {
-        if (thread == -1 || !seperatedQueues.has(thread)) return false;
+        if (thread == -1) return false;
 
         return seperatedQueues.set(thread, value);
     }

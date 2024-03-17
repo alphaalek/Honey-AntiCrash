@@ -7,6 +7,8 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
+import java.util.function.Consumer;
+
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer {
 
     PacketEventloopStateTimings getEventloopStateTimings();
@@ -16,6 +18,10 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
     void init(Object packet, Runnable postAction, PacketTypeEnum packetType);
 
     long getTime();
+
+    void addCallbackAction(Consumer<PacketContainer<WP>> action);
+
+    void invokeCallback();
 
     Channel getChannel();
 

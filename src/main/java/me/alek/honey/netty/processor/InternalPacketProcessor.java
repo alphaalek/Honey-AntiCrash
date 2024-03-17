@@ -270,7 +270,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (type.getBound() == PacketBound.SERVER) {
             return new InternalPacketContainer<>(packet, player, channel, postAction, type);
         }
-        /*
+        /* removed from packet processor - now handled in InboundPacketDecoder
+
         if (player != null) {
             if (player.decoder == null) {
                 player.decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);

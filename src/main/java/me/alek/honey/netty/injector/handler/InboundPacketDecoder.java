@@ -12,6 +12,7 @@ import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.tracker.NettyThreadLocal;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
@@ -25,6 +26,7 @@ import java.util.Queue;
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
+    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
 
     private final AsyncDecoder asyncDecoder;
     private final DuplexChannelHandler duplexChannelHandler;
@@ -72,10 +74,13 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
             packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 
-            if (duplexChannelHandler.read(packetContainer)) {
-                ctx.fireChannelRead(packetContainer.getHandle());
-            }
-            duplexChannelHandler.postRead();
+            ctx.channel().eventLoop().execute(() -> {
+                if (duplexChannelHandler.read(packetContainer)) {
+                    packetContainer.invokeCallback();
+                    ctx.fireChannelRead(packetContainer.getHandle());
+                }
+                duplexChannelHandler.postRead();
+            });
         } catch (Throwable ex) {
             try {
                 super.exceptionCaught(ctx, ex);
@@ -93,6 +98,11 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         ByteBuf byteBuf = (ByteBuf) o;
 
         List<Object> nonRecycledList = new ArrayList<>();
+
+        packetContainer.addCallbackAction(container -> {
+            Bukkit.getLogger().info("Setting marker " + packetContainer);
+            packetSendMarker.set(packetContainer);
+        });
 
         if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);

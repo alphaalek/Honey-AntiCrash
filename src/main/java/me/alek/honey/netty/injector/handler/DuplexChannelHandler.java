@@ -8,6 +8,7 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.tracker.NettyThreadLocal;
 
 import java.nio.channels.ClosedChannelException;
 
@@ -74,7 +75,9 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     }
 
     public void postRead() {
-        packetSendMarker.remove();
+        if (player != null)
+            packetSendMarker.remove();
+
         packetProcessor.postRead();
     }
 

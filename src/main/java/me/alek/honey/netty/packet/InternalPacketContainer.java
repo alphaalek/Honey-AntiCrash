@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.checks.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -19,8 +20,11 @@ import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
@@ -41,6 +45,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private boolean handledByServer;
     private final long time = System.currentTimeMillis();
     private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
+    private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
         this(player, channel);
@@ -84,6 +89,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public long getTime() {
         return this.time;
+    }
+
+    @Override
+    public void addCallbackAction(Consumer<PacketContainer<WP>> action) {
+        callbackAction.addAction(action);
+    }
+
+    @Override
+    public void invokeCallback() {
+        callbackAction.call(this);
     }
 
     @Override
