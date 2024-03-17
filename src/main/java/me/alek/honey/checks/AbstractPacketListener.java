@@ -22,7 +22,6 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     private boolean initializedCheckInstances;
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
-        Bukkit.getLogger().info("common " + developmentData.getDataSet());
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
         developmentData.removeLastInvisibleData();
         developmentData.addEmpty();
