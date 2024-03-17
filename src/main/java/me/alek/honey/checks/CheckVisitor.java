@@ -72,8 +72,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             responsesList.add(defaultResponse);
             boolean terminated = false;
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
-            for (ResponseContainer response : responsesList) {
-
+            for (ResponseContainer response : new ArrayList<>(responsesList)) {
+                if (response == null) continue;
                 if (response != defaultResponse) callback.call(response);
 
                 // get the setting for this check

@@ -8,13 +8,12 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.utility.ThreadLocalAccessor;
 
 import java.nio.channels.ClosedChannelException;
 
 public class DuplexChannelHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
-    private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocalAccessor<>();
+    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
     private volatile HoneyPlayer player;
@@ -27,7 +26,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
         return player;
     }
 
-    public static ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
+    public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
         return packetSendMarker;
     }
 

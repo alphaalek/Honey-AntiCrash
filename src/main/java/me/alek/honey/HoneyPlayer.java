@@ -51,6 +51,7 @@ public class HoneyPlayer {
     public volatile InboundPacketDecoder decoder;
     public ViolationService.ViolationContext violationContext;
     public boolean punished;
+    public int nettyThreadID = -1;
 
     public HoneyPlayer(Player player) {
         this.player = player;

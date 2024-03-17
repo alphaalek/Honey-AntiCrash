@@ -1,8 +1,10 @@
 package me.alek.honey.utility;
 
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.function.Supplier;
 
-public class Array<T> {
+public class Array<T> implements Iterable<T> {
 
     private Object[] values = new Object[0];
     private final Object lock = new Object();
@@ -44,6 +46,10 @@ public class Array<T> {
         return get(index) != null;
     }
 
+    public void clear() {
+        values = new Object[0];
+    }
+
     public int size() {
         return values.length;
     }
@@ -59,5 +65,10 @@ public class Array<T> {
         values[index] = val;
 
         return present;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return (Iterator<T>) Arrays.asList(values).iterator();
     }
 }

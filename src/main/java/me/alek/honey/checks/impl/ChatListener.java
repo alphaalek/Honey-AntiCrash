@@ -212,8 +212,6 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
-            Bukkit.getLogger().info("Check!");
-
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
                 return ResponseBuilder.SUCCESS;

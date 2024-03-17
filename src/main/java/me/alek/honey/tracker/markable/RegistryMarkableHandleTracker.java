@@ -4,14 +4,13 @@ import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.updated.UpdatingHandleTrackerTask;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<Double, T> implements MarkableHandleTracker<Double, T> {
 
     private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
     private final Map<T, Integer> checkHandleIndexMap = new HashMap<>();
-    private final Map<T, List<TimedNode<T>>> checkHandleRegistryDeque = new HashMap<>();
+    private final Map<T, List<TimedNode<T>>> checkHandleRegistry = new HashMap<>();
     private long key;
     private long totalIndex;
     private long totalTime;
@@ -21,7 +20,7 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
     }
 
     public synchronized List<TimedNode<T>> getRegistryTracking(T key) {
-        return checkHandleRegistryDeque.computeIfAbsent(key, (d) -> new ArrayList<>());
+        return checkHandleRegistry.computeIfAbsent(key, (d) -> new ArrayList<>());
     }
 
     @Override
@@ -132,7 +131,7 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
     @Override
     public void clear() {
         checkHandleTimeMap.clear();
-        checkHandleRegistryDeque.clear();
+        checkHandleRegistry.clear();
         checkHandleTimeMap.clear();
         totalTime = 0;
         totalIndex = 0;

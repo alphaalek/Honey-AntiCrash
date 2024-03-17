@@ -15,8 +15,6 @@ import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
-import me.alek.honey.utility.ThreadLocalAccessor;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
+    private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
@@ -68,7 +66,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
         private final AtomicReference<HoneyPlayer> recentPacketAuthor = new AtomicReference<>();
-        private final ThreadLocalAccessor<ConcurrentLinkedQueue<PacketTaskFuture<Object>>> nettySubmitQueue = new ThreadLocalAccessor<>(ConcurrentLinkedQueue::new);
+        private final NettyThreadLocal<ConcurrentLinkedQueue<PacketTaskFuture<Object>>> nettySubmitQueue = new NettyThreadLocal<>(ConcurrentLinkedQueue::new);
         private ConstructorInvoker<?> tickTaskConstructor;
         private final boolean pollsOneExtra;
         private long recentPollStart = -1;
@@ -160,9 +158,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             recentPollStart = System.nanoTime();
 
             PacketTaskFuture<Object> task = null;
-            Thread thread = nettySubmitQueue.getAnyThread((queue) -> !queue.isEmpty());
+            int thread = nettySubmitQueue.getAnyThread((queue) -> !queue.isEmpty());
 
-            if (thread != null) {
+            if (thread != -1) {
                 task = nettySubmitQueue.get(thread).poll();
                 recentPacketAuthor.set(Optional.ofNullable(task).map(PacketTaskFuture::getPlayer).orElse(null));
             }
@@ -211,7 +209,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // we will make sure that this thread is currently trying to add a packet to the server sent by a player.
             // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
             // elements to the execution queue from netty threads which are not packets
-            PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.remove();
+            PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
             if (packet == null) return super.add(value);
 
             packet.setHandledByServer();
@@ -223,7 +221,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
             super.add(EMPTY_VALUE);
 
-            return nettySubmitQueue.get().add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+            if (packet.getPlayer() == null || packet.getPlayer().nettyThreadID == -1)
+                return super.add(value);
+
+            return nettySubmitQueue.get(packet.getPlayer().nettyThreadID)
+                    .add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
         }
     }
 

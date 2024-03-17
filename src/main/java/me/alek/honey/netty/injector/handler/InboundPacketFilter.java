@@ -12,15 +12,16 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.utility.ThreadLocalAccessor;
 import org.bukkit.Bukkit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 
+    private static final List<Thread> nettyThreads = new ArrayList<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final ThreadLocalAccessor<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocalAccessor<>();
+    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocal<>();
 
     public static PacketContainer<? extends WrappedPacket<?>> getEarlyInitializedPacket() {
         return earlyPacketInitializer.get();
@@ -53,6 +54,22 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
             checkRelocation(channel);
+
+            if (player.nettyThreadID == -1) {
+                Thread currentThread = Thread.currentThread();
+                for (int i = 0; i < nettyThreads.size(); i++) {
+
+                    if (nettyThreads.get(i) == currentThread)
+                        if (player.nettyThreadID == -1)
+                            player.nettyThreadID = i;
+                        else
+                            nettyThreads.remove(i);
+                }
+                if (player.nettyThreadID == -1) {
+                    nettyThreads.add(currentThread);
+                    player.nettyThreadID = nettyThreads.size() - 1;
+                }
+            }
 
             earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
