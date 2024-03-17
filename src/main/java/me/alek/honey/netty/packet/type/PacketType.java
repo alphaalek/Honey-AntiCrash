@@ -3,7 +3,6 @@ package me.alek.honey.netty.packet.type;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.NetProtocolRange;
 import me.alek.honey.netty.utility.Reflection;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -16,8 +15,8 @@ public enum PacketType implements PacketTypeEnum {
     }
 
     @Override
-    public byte getPacketId() {
-        return 0;
+    public int getPacketId() {
+        return -1;
     }
 
     @Override
@@ -31,11 +30,11 @@ public enum PacketType implements PacketTypeEnum {
     }
 
     private static class PacketDetails {
-        byte packetId;
+        int packetId;
         PacketTypeEnum packetType;
     }
 
-    private static void addPacket(Class<?> clazz, byte id, PacketTypeEnum type) {
+    private static void addPacket(Class<?> clazz, int id, PacketTypeEnum type) {
         PACKET_STATE_TYPE.get(type.getState()).add(type);
 
         if (type instanceof RangedPacketTypeEnum) {
@@ -137,16 +136,14 @@ public enum PacketType implements PacketTypeEnum {
 
         private static final Class<?> SET_PROTOCOL_CLASS = Reflection.getClass("{nms}.PacketHandshakingInSetProtocol");
 
-        private static final byte SET_PROTOCOL = 0x00;
-
         public enum Client implements PacketTypeEnum {
 
-            SET_PROTOCOL(SET_PROTOCOL_CLASS, Handshake.SET_PROTOCOL);
+            SET_PROTOCOL(SET_PROTOCOL_CLASS, 0);
 
             private final Class<?> nmsPacket;
-            private final byte packetId;
+            private final int packetId;
 
-            Client(Class<?> nmsPacket, byte packetId) {
+            Client(Class<?> nmsPacket, int packetId) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
             }
@@ -157,7 +154,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 
@@ -211,7 +208,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 
@@ -274,7 +271,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 
@@ -300,18 +297,15 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> PING_CLASS = Reflection.getClass("{nms}.PacketStatusInPing");
         private static final Class<?> START_CLASS = Reflection.getClass("{nms}.PacketStatusInStart");
 
-        private static final byte START = 0x00, PING = 0x01;
-
-
         public enum Client implements PacketTypeEnum {
 
-            PING_REQUEST(PING_CLASS, PING),
-            STATUS_REQUEST(START_CLASS, START);
+            PING_REQUEST(PING_CLASS,1),
+            STATUS_REQUEST(START_CLASS, 2);
 
             private final Class<?> nmsPacket;
-            private final byte packetId;
+            private final int packetId;
 
-            Client(Class<?> nmsPacket, byte packetId) {
+            Client(Class<?> nmsPacket, int packetId) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
             }
@@ -322,7 +316,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 
@@ -340,17 +334,15 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> PONG_CLASS = Reflection.getClass("{nms}.PacketStatusOutPong");
         private static final Class<?> SERVER_INFO_CLASS = Reflection.getClass("{nms}.PacketStatusOutServerInfo");
 
-        private static final byte SERVER_INFO = 0x00, PONG = 0x01;
-
         public enum Server implements PacketTypeEnum {
 
-            PING_RESPONSE(PONG_CLASS, PONG),
-            STATUS_RESPONSE(SERVER_INFO_CLASS, SERVER_INFO);
+            PING_RESPONSE(PONG_CLASS, 3),
+            STATUS_RESPONSE(SERVER_INFO_CLASS, 4);
 
             private final Class<?> nmsPacket;
-            private final byte packetId;
+            private final int packetId;
 
-            Server(Class<?> nmsPacket, byte packetId) {
+            Server(Class<?> nmsPacket, int packetId) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
             }
@@ -361,7 +353,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 
@@ -487,85 +479,70 @@ public enum PacketType implements PacketTypeEnum {
             }
         }
 
-        private static final byte
-                TELEPORT_ACCEPT = 0x00, TILE_NBT_QUERY = 0x01, DIFFICULTY_CHANGE = 0x01,
-                CLIENT_COMMAND = 0x07, SETTINGS = 0x08, TAB_COMPLETE = 0x09, ENCHANT_ITEM = 0x0A,
-                WINDOW_CLICK = 0x0B, CLOSE_WINDOW = 0x0C, CUSTOM_PAYLOAD = 0x0D, B_EDIT = 0x0E,
-                ENTITY_NBT_QUERY = 0x0F, USE_ENTITY = 0x10, JIGSAW_GENERATE = 0x11, KEEP_ALIVE = 0x12,
-                DIFFICULTY_LOCK = 0x13, POSITION = 0x14, POSITION_LOOK = 0x15, LOOK = 0x16,
-                GROUND = 0x17, VEHICLE_MOVE = 0x18, BOAT_MOVE = 0x19, PICK_ITEM = 0x1A, AUTO_RECIPE = 0x1B,
-                ABILITIES = 0x1C, BLOCK_DIG = 0x1D, ENTITY_ACTION = 0x1E, STEER_VEHICLE = 0x1F,
-                PONG = 0x20, RECIPE_SETTINGS = 0x21, RECIPE_DISPLAYED = 0x22, ITEM_NAME = 0x23,
-                RESOURCE_PACK_STATUS = 0x24, ADVANCEMENTS = 0x25, TR_SEL = 0x026, BEACON = 0x27,
-                HELD_ITEM_SLOT = 0x28, SET_COMMAND_BLOCK = 0x29, SET_COMMAND_MINECART = 0x2A,
-                SET_CREATIVE_SLOT = 0x2B, SET_JIGSAW = 0x2C, STRUCT = 0x2D, UPDATE_SIGN = 0x2E,
-                ARM_ANIMATION = 0x2F, SPECTATE = 0x30, USE_ITEM = 0x31, BLOCK_PLACE = 0x32,
-                TRANSACTION = 0x33, FLYING = 0x34, CHAT = 0x35;
-
         public enum Client implements RangedPacketTypeEnum {
 
-            ABILITIES(ABILITIES_CLASS, Play.ABILITIES),
-            ADVANCEMENTS(ADVANCEMENTS_CLASS, Play.ADVANCEMENTS, NetProtocolRange.since(NetProtocol.v1_12)),
-            ARM_ANIMATION(ARM_ANIMATION_CLASS, Play.ARM_ANIMATION),
-            AUTO_RECIPE(AUTO_RECIPE_CLASS, Play.AUTO_RECIPE, NetProtocolRange.since(NetProtocol.v1_12)),
-            B_EDIT(B_EDIT_CLASS, Play.B_EDIT, NetProtocolRange.since(NetProtocol.v1_13)),
-            BEACON(BEACON_CLASS, Play.BEACON, NetProtocolRange.since(NetProtocol.v1_13)),
-            BLOCK_DIG(BLOCK_DIG_CLASS, Play.BLOCK_DIG),
-            BLOCK_PLACE(BLOCK_PLACE_CLASS, Play.BLOCK_PLACE),
-            BOAT_MOVE(BOAT_MOVE_CLASS, Play.BOAT_MOVE, NetProtocolRange.since(NetProtocol.v1_9)),
-            CHAT(CHAT_CLASS, Play.CHAT),
-            CLIENT_COMMAND(CLIENT_COMMAND_CLASS, Play.CLIENT_COMMAND),
-            CLOSE_WINDOW(CLOSE_WINDOW_CLASS, Play.CLOSE_WINDOW),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, Play.CUSTOM_PAYLOAD, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, Play.DIFFICULTY_CHANGE, NetProtocolRange.since(NetProtocol.v1_14)),
-            DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, Play.DIFFICULTY_LOCK, NetProtocolRange.since(NetProtocol.v1_14)),
-            ENCHANT_ITEM(ENCHANT_ITEM_CLASS, Play.ENCHANT_ITEM),
-            ENTITY_ACTION(ENTITY_ACTION_CLASS, Play.ENTITY_ACTION),
-            ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, Play.ENTITY_NBT_QUERY, NetProtocolRange.since(NetProtocol.v1_13)),
-            FLYING(FLYING_CLASS, Play.FLYING, NetProtocolRange.until(NetProtocol.v1_16_5)),
-            GROUND(GROUND_CLASS, Play.GROUND, NetProtocolRange.since(NetProtocol.v1_17)),
-            HELD_ITEM_SLOT(HELD_ITEM_SLOT_CLASS, Play.HELD_ITEM_SLOT),
-            ITEM_NAME(ITEM_NAME_CLASS, Play.ITEM_NAME, NetProtocolRange.since(NetProtocol.v1_13)),
-            JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, Play.JIGSAW_GENERATE, NetProtocolRange.since(NetProtocol.v1_16_1)),
-            KEEP_ALIVE(KEEP_ALIVE_CLASS, Play.KEEP_ALIVE, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            LOOK(LOOK_CLASS, Play.LOOK),
-            PICK_ITEM(PICK_ITEM_CLASS, Play.PICK_ITEM, NetProtocolRange.since(NetProtocol.v1_13)),
-            POSITION(POSITION_CLASS, Play.POSITION),
-            POSITION_LOOK(POSITION_LOOK_CLASS, Play.POSITION_LOOK),
-            RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, Play.RECIPE_DISPLAYED, NetProtocolRange.since(NetProtocol.v1_12)),
-            RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, Play.RECIPE_SETTINGS, NetProtocolRange.since(NetProtocol.v1_16_2)),
-            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, Play.RESOURCE_PACK_STATUS, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            SET_COMMAND_BLOCK(SET_COMMAND_BLOCK_CLASS, Play.SET_COMMAND_BLOCK, NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, Play.SET_COMMAND_MINECART, NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_CREATIVE_SLOT(SET_CREATIVE_SLOT_CLASS, Play.SET_CREATIVE_SLOT),
-            SET_JIGSAW(SET_JIGSAW_CLASS, Play.SET_JIGSAW, NetProtocolRange.since(NetProtocol.v1_14)),
-            SETTINGS(SETTINGS_CLASS, Play.SETTINGS, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            SPECTATE(SPECTATE_CLASS, Play.SPECTATE),
-            STEER_VEHICLE(STEER_VEHICLE_CLASS, Play.STEER_VEHICLE),
-            STRUCT(STRUCT_CLASS, Play.STRUCT, NetProtocolRange.since(NetProtocol.v1_13)),
-            TAB_COMPLETE(TAB_COMPLETE_CLASS, Play.TAB_COMPLETE),
-            TELEPORT_ACCEPT(TELEPORT_ACCEPT_CLASS, Play.TELEPORT_ACCEPT, NetProtocolRange.since(NetProtocol.v1_9)),
-            TILE_NBT_QUERY(TILE_NBT_QUERY_CLASAS, Play.TILE_NBT_QUERY, NetProtocolRange.since(NetProtocol.v1_13)),
-            TR_SEL(TR_SEL_CLASS, Play.TR_SEL, NetProtocolRange.since(NetProtocol.v1_13)),
-            TRANSACTION(TRANSACTION_CLASS, Play.TRANSACTION, NetProtocolRange.until(NetProtocol.v1_16_5)),
-            UPDATE_SIGN(UPDATE_SIGN_CLASS, Play.UPDATE_SIGN),
-            USE_ENTITY(USE_ENTITY_CLASS, Play.USE_ENTITY),
-            USE_ITEM(USE_ITEM_CLASS, Play.USE_ITEM, NetProtocolRange.since(NetProtocol.v1_9)),
-            VEHICLE_MOVE(VEHICLE_MOVE_CLASS, Play.VEHICLE_MOVE, NetProtocolRange.since(NetProtocol.v1_9)),
-            WINDOW_CLICK(WINDOW_CLICK_CLASS, Play.WINDOW_CLICK),
+            ABILITIES(ABILITIES_CLASS, 5),
+            ADVANCEMENTS(ADVANCEMENTS_CLASS, 6, NetProtocolRange.since(NetProtocol.v1_12)),
+            ARM_ANIMATION(ARM_ANIMATION_CLASS, 7),
+            AUTO_RECIPE(AUTO_RECIPE_CLASS, 8, NetProtocolRange.since(NetProtocol.v1_12)),
+            B_EDIT(B_EDIT_CLASS, 9, NetProtocolRange.since(NetProtocol.v1_13)),
+            BEACON(BEACON_CLASS, 10, NetProtocolRange.since(NetProtocol.v1_13)),
+            BLOCK_DIG(BLOCK_DIG_CLASS, 11),
+            BLOCK_PLACE(BLOCK_PLACE_CLASS, 12),
+            BOAT_MOVE(BOAT_MOVE_CLASS, 13, NetProtocolRange.since(NetProtocol.v1_9)),
+            CHAT(CHAT_CLASS, 14),
+            CLIENT_COMMAND(CLIENT_COMMAND_CLASS, 15),
+            CLOSE_WINDOW(CLOSE_WINDOW_CLASS, 16),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, 17, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, 18, NetProtocolRange.since(NetProtocol.v1_14)),
+            DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, 19, NetProtocolRange.since(NetProtocol.v1_14)),
+            ENCHANT_ITEM(ENCHANT_ITEM_CLASS, 20),
+            ENTITY_ACTION(ENTITY_ACTION_CLASS, 21),
+            ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, 22, NetProtocolRange.since(NetProtocol.v1_13)),
+            FLYING(FLYING_CLASS, 23, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            GROUND(GROUND_CLASS, 24, NetProtocolRange.since(NetProtocol.v1_17)),
+            HELD_ITEM_SLOT(HELD_ITEM_SLOT_CLASS, 25),
+            ITEM_NAME(ITEM_NAME_CLASS, 26, NetProtocolRange.since(NetProtocol.v1_13)),
+            JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, 27, NetProtocolRange.since(NetProtocol.v1_16_1)),
+            KEEP_ALIVE(KEEP_ALIVE_CLASS, 28, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            LOOK(LOOK_CLASS, 29),
+            PICK_ITEM(PICK_ITEM_CLASS, 30, NetProtocolRange.since(NetProtocol.v1_13)),
+            POSITION(POSITION_CLASS, 31),
+            POSITION_LOOK(POSITION_LOOK_CLASS, 32),
+            RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, 33, NetProtocolRange.since(NetProtocol.v1_12)),
+            RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, 34, NetProtocolRange.since(NetProtocol.v1_16_2)),
+            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, 35, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            SET_COMMAND_BLOCK(SET_COMMAND_BLOCK_CLASS, 36, NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, 37, NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_CREATIVE_SLOT(SET_CREATIVE_SLOT_CLASS, 38),
+            SET_JIGSAW(SET_JIGSAW_CLASS, 39, NetProtocolRange.since(NetProtocol.v1_14)),
+            SETTINGS(SETTINGS_CLASS, 40, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            SPECTATE(SPECTATE_CLASS, 41),
+            STEER_VEHICLE(STEER_VEHICLE_CLASS, 42),
+            STRUCT(STRUCT_CLASS, 43, NetProtocolRange.since(NetProtocol.v1_13)),
+            TAB_COMPLETE(TAB_COMPLETE_CLASS, 44),
+            TELEPORT_ACCEPT(TELEPORT_ACCEPT_CLASS, 45, NetProtocolRange.since(NetProtocol.v1_9)),
+            TILE_NBT_QUERY(TILE_NBT_QUERY_CLASAS, 46, NetProtocolRange.since(NetProtocol.v1_13)),
+            TR_SEL(TR_SEL_CLASS, 47, NetProtocolRange.since(NetProtocol.v1_13)),
+            TRANSACTION(TRANSACTION_CLASS, 48, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            UPDATE_SIGN(UPDATE_SIGN_CLASS, 49),
+            USE_ENTITY(USE_ENTITY_CLASS, 50),
+            USE_ITEM(USE_ITEM_CLASS, 51, NetProtocolRange.since(NetProtocol.v1_9)),
+            VEHICLE_MOVE(VEHICLE_MOVE_CLASS, 52, NetProtocolRange.since(NetProtocol.v1_9)),
+            WINDOW_CLICK(WINDOW_CLICK_CLASS, 53),
             ;
 
             private final Class<?> nmsClass;
-            private final byte packetId;
+            private final int packetId;
             private final NetProtocolRange protocolRange;
 
-            Client(Class<?> nmsClass, byte packetId) {
+            Client(Class<?> nmsClass, int packetId) {
                 this.nmsClass = nmsClass;
                 this.packetId = packetId;
                 this.protocolRange = NetProtocolRange.ALL;
             }
 
-            Client(Class<?> nmsClass, byte packetId, NetProtocolRange protocolRange) {
+            Client(Class<?> nmsClass, int packetId, NetProtocolRange protocolRange) {
                 this.nmsClass = nmsClass;
                 this.packetId = packetId;
                 this.protocolRange = protocolRange;
@@ -577,7 +554,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 
@@ -780,154 +757,118 @@ public enum PacketType implements PacketTypeEnum {
             }
         }
 
-        private static final byte
-                BUNDLE = 0x00, SPAWN_ENTITY = 0x01, SPAWN_ENTITY_EXPERIENCE_ORB = 0x02,
-                NAMED_ENTITY_SPAWN_SERVER = 0x03, ANIMATION = 0x04, STATISTIC = 0x05, BLOCK_CHANGED_ACK = 0x06,
-                BLOCK_BREAK_ANIMATION = 0x07, TILE_ENTITY_DATA = 0x08, BLOCK_ACTION = 0x09, BLOCK_CHANGE = 0x0A,
-                BOSS = 0x0B, SERVER_DIFFICULTY = 0x0C, ATTACH_ENTITY = 0x0D, CLEAR_TITLES = 0x0E,
-                TAB_COMPLETE_SERVER = 0x0F, COMMANDS = 0x10, CLOSE_WINDOW_SERVER = 0x11, WINDOW_ITEMS = 0x012,
-                WINDOW_DATA = 0x13, SET_SLOT = 0x14, SET_COOLDOWN = 0x15, CUSTOM_CHAT_COMPLETIONS = 0x16,
-                CUSTOM_PAYLOAD_SERVER = 0x17, DAMAGE_EVENT = 0x18, DELETE_CHAT_MESSAGE = 0x19, KICK_DISCONNECT = 0x1A,
-                DISGUISED_CHAT = 0x1B, ENTITY_STATUS = 0x1C, EXPLOSION = 0x1D, UNLOAD_CHUNK = 0x1E,
-                GAME_STATE_CHANGE = 0x1F, OPEN_WINDOW_HORSE = 0x20, HURT_ANIMATION = 0x21, INITIALIZE_BORDER = 0x22,
-                KEEP_ALIVE_SERVER = 0x23, MAP_CHUNK = 0x24, WORLD_EVENT = 0x25, WORLD_PARTICLES = 0x26,
-                LIGHT_UPDATE = 0x27, LOGIN = 0x28, MAP = 0x29, OPEN_WINDOW_MERCHANT = 0x2A, REL_ENTITY_MOVE = 0x2B,
-                REL_ENTITY_MOVE_LOOK = 0x2C, ENTITY_LOOK = 0x2D, VEHICLE_MOVE_SERVER = 0x2E, OPEN_BOOK = 0x2F,
-                OPEN_WINDOW = 0x30, OPEN_SIGN_EDITOR = 0x31, PING = 0x32, AUTO_RECIPE_SERVER = 0x33,
-                ABILITIES_SERVER = 0x34, CHAT_SERVER = 0x35, PLAY_COMBAT_END = 0x36, PLAYER_COMBAT_ENTER = 0x37,
-                PLAYER_COMBAT_KILL = 0x38, PLAYER_INFO_REMOVE = 0x39, PLAYER_INFO = 0x3A, LOOK_AT = 0x3B,
-                POSITION_SERVER = 0x3C, RECIPES = 0x3D, ENTITY_DESTROY = 0x3E, REMOVE_ENTITY_EFFECT = 0x3F,
-                RESOURCE_PACK_SEND = 0x40, RESPAWN = 0x41, ENTITY_HEAD_ROTATION = 0x42, MULTI_BLOCK_CHANGE = 0x43,
-                SELECT_ADVANCEMENT_TAB = 0x44, SERVER_DATA = 0x45, SET_ACTION_BAR_TEXT = 0x46, SET_BORDER_CENTER = 0x47,
-                ANIMATION_SERVER = 0x48, SET_BORDER_SIZE = 0x49, SET_BORDER_WARNING_DELAY = 0x4A,
-                SET_BORDER_WARNING_DISTANCE = 0x4B, CAMERA = 0x4C, HELD_ITEM_SLOT_SERVER = 0x4D, VIEW_CENTRE = 0x4E,
-                VIEW_DISTANCE = 0x4F, SPAWN_POSITION = 0x50, SCOREBOARD_DISPLAY_OBJECTIVE = 0x51,
-                ENTITY_METADATA = 0x52, ENTITY_VELOCITY = 0x54, ENTITY_EQUIPMENT = 0x55,
-                EXPERIENCE = 0x56, UPDATE_HEALTH = 0x57, SCOREBOARD_OBJECTIVE = 0x58, MOUNT = 0x59,
-                SCOREBOARD_TEAM = 0x5A, SCOREBOARD_SCORE = 0x5B, UPDATE_SIMULATION_DISTANCE = 0x5C,
-                SET_SUBTITLE_TEXT = 0x5D, UPDATE_TIME = 0x5E, SET_TITLE_TEXT = 0x5F, SET_TITLES_ANIMATION = 0x60,
-                ENTITY_SOUND = 0x61, NAMED_SOUND_EFFECT = 0x62, STOP_SOUND = 0x63, SYSTEM_CHAT = 0x64,
-                PLAYER_LIST_HEADER_FOOTER = 0x65, NBT_QUERY = 0x66, COLLECT = 0x67, ENTITY_TELEPORT = 0x68,
-                ADVANCEMENTS_SERVER = 0x69, UPDATE_ATTRIBUTES = 0x6A, UPDATE_ENABLED_FEATURES = 0x6B,
-                ENTITY_EFFECT = 0x6C, RECIPE_UPDATE = 0x6D, TAGS = 0x6E, MAP_CHUNK_BULK = (byte) 255,
-                SET_COMPRESSION = (byte) 254, UPDATE_ENTITY_NBT = (byte) 253, UPDATE_SIGN_SERVER = (byte) 252,
-                BED = (byte) 251, SPAWN_ENTITY_WEATHER = (byte) 250, TITLE = (byte) 249, WORLD_BORDER = (byte) 248,
-                COMBAT_EVENT = (byte) 249, TRANSACTION_SERVER = (byte) 248, ENTITY = (byte) 245,
-                SPAWN_ENTITY_LIVING = (byte) 244, SPAWN_ENTITY_PAINTING = (byte) 243, BLOCK_BREAK = (byte) 242;
-
-
         public enum Server implements RangedPacketTypeEnum {
 
-            ABILITIES(ABILITIES_SERVER_CLASS, Play.ABILITIES_SERVER),
-            ADVANCEMENTS(ADVANCEMENTS_SERVER_CLASS, Play.ADVANCEMENTS_SERVER, NetProtocolRange.since(NetProtocol.v1_12)),
-            ANIMATION(ANIMATION_CLASS, Play.ANIMATION_SERVER),
-            ATTACH_ENTITY(ATTACH_ENTITY_CLASS, Play.ATTACH_ENTITY),
-            AUTO_RECIPE(AUTO_RECIPE_SERVER_CLASS, Play.AUTO_RECIPE_SERVER, NetProtocolRange.since(NetProtocol.v1_12_1)),
-            BED(BED_CLASS, Play.BED, NetProtocolRange.until(NetProtocol.v1_13_2)),
-            BLOCK_ACTION(BLOCK_ACTION_CLASS, Play.BLOCK_ACTION),
-            BLOCK_BREAK(BLOCK_BREAK_CLASS, Play.BLOCK_BREAK, NetProtocolRange.between(NetProtocol.v1_14, NetProtocol.v1_18_2)),
-            BLOCK_BREAK_ANIMATION(BLOCK_BREAK_ANIMATION_CLASS, Play.BLOCK_BREAK_ANIMATION),
-            BLOCK_CHANGE(BLOCK_CHANGE_CLASS, Play.BLOCK_CHANGE),
-            BOSS(BOSS_CLASS, Play.BOSS, NetProtocolRange.since(NetProtocol.v1_9)),
-            CAMERA(CAMERA_CLASS, Play.CAMERA),
-            CHAT(CHAT_SERVER_CLASS, Play.CHAT_SERVER, NetProtocolRange.until(NetProtocol.v1_18_2)),
-            CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, CLOSE_WINDOW_SERVER),
-            COLLECT(COLLECT_CLASS, Play.COLLECT),
-            COMBAT_EVENT(COMBAT_EVENT_CLASS, Play.COMBAT_EVENT, NetProtocolRange.until(NetProtocol.v1_16_5)),
-            COMMANDS(COMMANDS_CLASS, Play.COMMANDS, NetProtocolRange.since(NetProtocol.v1_13)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, Play.CUSTOM_PAYLOAD_SERVER, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            ENTITY(ENTITY_CLASS, Play.ENTITY),
-            ENTITY_DESTROY(ENTITY_DESTROY_CLASS, Play.ENTITY_DESTROY),
-            ENTITY_EFFECT(ENTITY_EFFECT_CLASS, Play.ENTITY_EFFECT),
-            ENTITY_EQUIPMENT(ENTITY_EQUIPMENT_CLASS, Play.ENTITY_EQUIPMENT),
-            ENTITY_HEAD_ROTATION(ENTITY_HEAD_ROTATION_CLASS, Play.ENTITY_HEAD_ROTATION),
-            ENTITY_LOOK(ENTITY_LOOK_CLASS, Play.ENTITY_LOOK),
-            ENTITY_METADATA(ENTITY_METADATA_CLASS, Play.ENTITY_METADATA),
-            ENTITY_MOVE(REL_ENTITY_MOVE_CLASS, Play.REL_ENTITY_MOVE),
-            ENTITY_MOVE_LOOK(REL_ENTITY_MOVE_LOOK_CLASS, Play.REL_ENTITY_MOVE_LOOK),
-            ENTITY_SOUND(ENTITY_SOUND_CLASS, Play.ENTITY_SOUND, NetProtocolRange.since(NetProtocol.v1_14)),
-            ENTITY_STATUS(ENTITY_STATUS_CLASS, Play.ENTITY_STATUS),
-            ENTITY_TELEPORT(ENTITY_TELEPORT_CLASS, Play.ENTITY_TELEPORT),
-            ENTITY_VELOCITY(ENTITY_VELOCITY_CLASS, Play.ENTITY_VELOCITY),
-            EXPERIENCE(EXPERIENCE_CLASS, Play.EXPERIENCE),
-            EXPLOSION(EXPLOSION_CLASS, Play.EXPLOSION),
-            GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, Play.GAME_STATE_CHANGE),
-            HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, Play.HELD_ITEM_SLOT_SERVER),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, Play.KEEP_ALIVE_SERVER, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, Play.KICK_DISCONNECT, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            LIGHT_UPDATE(LIGHT_UPDATE_CLASS, Play.LIGHT_UPDATE, NetProtocolRange.since(NetProtocol.v1_14)),
-            LOGIN(LOGIN_CLASS, Play.LOGIN),
-            LOOK_AT(LOOK_AT_CLASS, Play.LOOK_AT, NetProtocolRange.since(NetProtocol.v1_13)),
-            MAP(MAP_CLASS, Play.MAP),
-            MAP_CHUNK(MAP_CHUNK_CLASS, Play.MAP_CHUNK, NetProtocolRange.until(NetProtocol.v1_17_1)),
-            MAP_CHUNK_BULK(MAP_CHUNK_BULK_CLASS, Play.MAP_CHUNK_BULK, NetProtocolRange.until(NetProtocol.v1_8_8)),
-            MOUNT(MOUNT_CLASS, Play.MOUNT, NetProtocolRange.since(NetProtocol.v1_9)),
-            MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, Play.MULTI_BLOCK_CHANGE),
-            NBT_QUERY(NBT_QUERY_CLASS, Play.NBT_QUERY, NetProtocolRange.since(NetProtocol.v1_13)),
-            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, Play.NAMED_ENTITY_SPAWN_SERVER, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            NAMED_SOUND_EFFECT(NAMED_SOUND_EFFECT_CLASS, Play.NAMED_SOUND_EFFECT),
-            OPEN_BOOK(OPEN_BOOK_CLASS, Play.OPEN_BOOK, NetProtocolRange.since(NetProtocol.v1_14)),
-            OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, Play.OPEN_SIGN_EDITOR),
-            OPEN_WINDOW(OPEN_WINDOW_CLASS, Play.OPEN_WINDOW),
-            OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, Play.OPEN_WINDOW_HORSE, NetProtocolRange.since(NetProtocol.v1_14)),
-            OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, Play.OPEN_WINDOW_MERCHANT, NetProtocolRange.since(NetProtocol.v1_14)),
-            PLAYER_INFO(PLAYER_INFO_CLASS, Play.PLAYER_INFO),
-            PLAYERLIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, Play.PLAYER_LIST_HEADER_FOOTER),
-            POSITION(POSITION_SERVER_CLASS, Play.POSITION_SERVER),
-            RECIPE_UPDATE(RECIPE_UPDATE_CLASS, Play.RECIPE_UPDATE, NetProtocolRange.since(NetProtocol.v1_13)),
-            RECIPES(RECIPES_CLASS, Play.RECIPES, NetProtocolRange.since(NetProtocol.v1_12)),
-            REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, Play.REMOVE_ENTITY_EFFECT),
-            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, Play.RESOURCE_PACK_SEND, NetProtocolRange.before(NetProtocol.v1_20_2)),
-            RESPAWN(RESPAWN_CLASS, Play.RESPAWN),
-            SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, Play.SCOREBOARD_DISPLAY_OBJECTIVE),
-            SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, Play.SCOREBOARD_OBJECTIVE),
-            SCOREBOARD_SCORE(SCOREBOARD_SCORE_CLASS, Play.SCOREBOARD_SCORE),
-            SCOREBOARD_TEAM(SCOREBOARD_TEAM_CLASS, Play.SCOREBOARD_TEAM),
-            SELECT_ADVANCEMENT_TAB(SELECT_ADVANCEMENT_TAB_CLASS, Play.SELECT_ADVANCEMENT_TAB, NetProtocolRange.since(NetProtocol.v1_12)),
-            SERVER_DIFFICULTY(SERVER_DIFFICULTY_CLASS, Play.SERVER_DIFFICULTY),
-            SET_COMPRESSION(SET_COMPRESSION_CLASS, Play.SET_COMPRESSION, NetProtocolRange.until(NetProtocol.v1_8_8)),
-            SET_COOLDOWN(SET_COOLDOWN_CLASS, Play.SET_COOLDOWN, NetProtocolRange.since(NetProtocol.v1_9)),
-            SET_SLOT(SET_SLOT_CLASS, Play.SET_SLOT),
-            SPAWN_ENTITY(SPAWN_ENTITY_CLASS, Play.SPAWN_ENTITY),
-            SPAWN_ENTITY_EXPERIENCE_ORB(SPAWN_ENTITY_EXPERIENCE_ORB_CLASS, Play.SPAWN_ENTITY_EXPERIENCE_ORB),
-            SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, Play.SPAWN_ENTITY_LIVING, NetProtocolRange.until(NetProtocol.v1_18_2)),
-            SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, Play.SPAWN_ENTITY_PAINTING, NetProtocolRange.until(NetProtocol.v1_18_2)),
-            SPAWN_ENTITY_WEATHER(SPAWN_ENTITY_WEATHER_CLASS, Play.SPAWN_ENTITY_WEATHER, NetProtocolRange.until(NetProtocol.v1_15_2)),
-            SPAWN_POSITION(SPAWN_POSITION_CLASS, Play.SPAWN_POSITION),
-            STATISTIC(STATISTIC_CLASS, Play.STATISTIC),
-            STOP_SOUND(STOP_SOUND_CLASS, Play.STOP_SOUND, NetProtocolRange.since(NetProtocol.v1_13)),
-            TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, Play.TAB_COMPLETE_SERVER),
-            TAGS(TAGS_CLASS, Play.TAGS, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
-            TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, Play.TILE_ENTITY_DATA),
-            TITLE(TITLE_CLASS, Play.TITLE, NetProtocolRange.until(NetProtocol.v1_16_5)),
-            TRANSACTION(TRANSACTION_SERVER_CLASS, Play.TRANSACTION_SERVER, NetProtocolRange.until(NetProtocol.v1_16_5)),
-            UNLOAD_CHUNK(UNLOAD_CHUNK_CLASS, Play.UNLOAD_CHUNK, NetProtocolRange.since(NetProtocol.v1_9)),
-            UPDATE_ATTRIBUTES(UPDATE_ATTRIBUTES_CLASS, Play.UPDATE_ATTRIBUTES),
-            UPDATE_ENTITY_NBT(UPDATE_ENTITY_NBT_CLASS, Play.UPDATE_ENTITY_NBT, NetProtocolRange.until(NetProtocol.v1_8_8)),
-            UPDATE_HEALTH(UPDATE_HEALTH_CLASS, Play.UPDATE_HEALTH),
-            UPDATE_SIGN(UPDATE_SIGN_SERVER_CLASS, Play.UPDATE_SIGN, NetProtocolRange.until(NetProtocol.v1_9_2)),
-            UPDATE_TIME(UPDATE_TIME_CLASS, Play.UPDATE_TIME),
-            VEHICLE_MOVE(VEHICLE_MOVE_SERVER_CLASS, Play.VEHICLE_MOVE_SERVER, NetProtocolRange.since(NetProtocol.v1_9)),
-            VIEW_CENTRE(VIEW_CENTRE_CLASS, Play.VIEW_CENTRE, NetProtocolRange.since(NetProtocol.v1_14)),
-            VIEW_DISTANCE(VIEW_DISTANCE_CLASS, Play.VIEW_DISTANCE, NetProtocolRange.since(NetProtocol.v1_14)),
-            WINDOW_DATA(WINDOW_DATA_CLASS, Play.WINDOW_DATA),
-            WINDOW_ITEMS(WINDOW_ITEMS_CLASS, Play.WINDOW_ITEMS),
-            WORLD_BORDER(WORLD_BORDER_CLASS, Play.WORLD_BORDER),
-            WORLD_EVENT(WORLD_EVENT_CLASS, Play.WORLD_EVENT),
-            WORLD_PARTICLES(WORLD_PARTICLES_CLASS, Play.WORLD_PARTICLES)
+            ABILITIES(ABILITIES_SERVER_CLASS, 54),
+            ADVANCEMENTS(ADVANCEMENTS_SERVER_CLASS, 55, NetProtocolRange.since(NetProtocol.v1_12)),
+            ANIMATION(ANIMATION_CLASS, 56),
+            ATTACH_ENTITY(ATTACH_ENTITY_CLASS, 57),
+            AUTO_RECIPE(AUTO_RECIPE_SERVER_CLASS, 58, NetProtocolRange.since(NetProtocol.v1_12_1)),
+            BED(BED_CLASS, 59, NetProtocolRange.until(NetProtocol.v1_13_2)),
+            BLOCK_ACTION(BLOCK_ACTION_CLASS, 60),
+            BLOCK_BREAK(BLOCK_BREAK_CLASS, 61, NetProtocolRange.between(NetProtocol.v1_14, NetProtocol.v1_18_2)),
+            BLOCK_BREAK_ANIMATION(BLOCK_BREAK_ANIMATION_CLASS, 62),
+            BLOCK_CHANGE(BLOCK_CHANGE_CLASS, 63),
+            BOSS(BOSS_CLASS, 64, NetProtocolRange.since(NetProtocol.v1_9)),
+            CAMERA(CAMERA_CLASS, 65),
+            CHAT(CHAT_SERVER_CLASS, 66, NetProtocolRange.until(NetProtocol.v1_18_2)),
+            CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, 67),
+            COLLECT(COLLECT_CLASS, 68),
+            COMBAT_EVENT(COMBAT_EVENT_CLASS, 69, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            COMMANDS(COMMANDS_CLASS, 70, NetProtocolRange.since(NetProtocol.v1_13)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, 71, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            ENTITY(ENTITY_CLASS, 72),
+            ENTITY_DESTROY(ENTITY_DESTROY_CLASS, 73),
+            ENTITY_EFFECT(ENTITY_EFFECT_CLASS, 74),
+            ENTITY_EQUIPMENT(ENTITY_EQUIPMENT_CLASS, 75),
+            ENTITY_HEAD_ROTATION(ENTITY_HEAD_ROTATION_CLASS, 76),
+            ENTITY_LOOK(ENTITY_LOOK_CLASS, 77),
+            ENTITY_METADATA(ENTITY_METADATA_CLASS, 78),
+            ENTITY_MOVE(REL_ENTITY_MOVE_CLASS, 79),
+            ENTITY_MOVE_LOOK(REL_ENTITY_MOVE_LOOK_CLASS, 80),
+            ENTITY_SOUND(ENTITY_SOUND_CLASS, 81, NetProtocolRange.since(NetProtocol.v1_14)),
+            ENTITY_STATUS(ENTITY_STATUS_CLASS, 82),
+            ENTITY_TELEPORT(ENTITY_TELEPORT_CLASS, 83),
+            ENTITY_VELOCITY(ENTITY_VELOCITY_CLASS, 84),
+            EXPERIENCE(EXPERIENCE_CLASS, 85),
+            EXPLOSION(EXPLOSION_CLASS, 86),
+            GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, 87),
+            HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, 88),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, 89, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, 90, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            LIGHT_UPDATE(LIGHT_UPDATE_CLASS, 91, NetProtocolRange.since(NetProtocol.v1_14)),
+            LOGIN(LOGIN_CLASS, 92),
+            LOOK_AT(LOOK_AT_CLASS, 93, NetProtocolRange.since(NetProtocol.v1_13)),
+            MAP(MAP_CLASS, 94),
+            MAP_CHUNK(MAP_CHUNK_CLASS, 95, NetProtocolRange.until(NetProtocol.v1_17_1)),
+            MAP_CHUNK_BULK(MAP_CHUNK_BULK_CLASS, 96, NetProtocolRange.until(NetProtocol.v1_8_8)),
+            MOUNT(MOUNT_CLASS, 97, NetProtocolRange.since(NetProtocol.v1_9)),
+            MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, 98),
+            NBT_QUERY(NBT_QUERY_CLASS, 99, NetProtocolRange.since(NetProtocol.v1_13)),
+            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, 100, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            NAMED_SOUND_EFFECT(NAMED_SOUND_EFFECT_CLASS, 101),
+            OPEN_BOOK(OPEN_BOOK_CLASS, 102, NetProtocolRange.since(NetProtocol.v1_14)),
+            OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, 103),
+            OPEN_WINDOW(OPEN_WINDOW_CLASS, 104),
+            OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, 105, NetProtocolRange.since(NetProtocol.v1_14)),
+            OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, 106, NetProtocolRange.since(NetProtocol.v1_14)),
+            PLAYER_INFO(PLAYER_INFO_CLASS, 107),
+            PLAYERLIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, 108),
+            POSITION(POSITION_SERVER_CLASS, 109),
+            RECIPE_UPDATE(RECIPE_UPDATE_CLASS, 110, NetProtocolRange.since(NetProtocol.v1_13)),
+            RECIPES(RECIPES_CLASS, 111, NetProtocolRange.since(NetProtocol.v1_12)),
+            REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, 112),
+            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, 113, NetProtocolRange.before(NetProtocol.v1_20_2)),
+            RESPAWN(RESPAWN_CLASS, 114),
+            SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, 115),
+            SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, 116),
+            SCOREBOARD_SCORE(SCOREBOARD_SCORE_CLASS, 117),
+            SCOREBOARD_TEAM(SCOREBOARD_TEAM_CLASS, 118),
+            SELECT_ADVANCEMENT_TAB(SELECT_ADVANCEMENT_TAB_CLASS, 119, NetProtocolRange.since(NetProtocol.v1_12)),
+            SERVER_DIFFICULTY(SERVER_DIFFICULTY_CLASS, 120),
+            SET_COMPRESSION(SET_COMPRESSION_CLASS, 121, NetProtocolRange.until(NetProtocol.v1_8_8)),
+            SET_COOLDOWN(SET_COOLDOWN_CLASS, 122, NetProtocolRange.since(NetProtocol.v1_9)),
+            SET_SLOT(SET_SLOT_CLASS, 123),
+            SPAWN_ENTITY(SPAWN_ENTITY_CLASS, 124),
+            SPAWN_ENTITY_EXPERIENCE_ORB(SPAWN_ENTITY_EXPERIENCE_ORB_CLASS, 125),
+            SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, 126, NetProtocolRange.until(NetProtocol.v1_18_2)),
+            SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, 127, NetProtocolRange.until(NetProtocol.v1_18_2)),
+            SPAWN_ENTITY_WEATHER(SPAWN_ENTITY_WEATHER_CLASS, 128, NetProtocolRange.until(NetProtocol.v1_15_2)),
+            SPAWN_POSITION(SPAWN_POSITION_CLASS, 129),
+            STATISTIC(STATISTIC_CLASS, 130),
+            STOP_SOUND(STOP_SOUND_CLASS, 131, NetProtocolRange.since(NetProtocol.v1_13)),
+            TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, 132),
+            TAGS(TAGS_CLASS, 133, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
+            TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, 134),
+            TITLE(TITLE_CLASS, 135, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            TRANSACTION(TRANSACTION_SERVER_CLASS, 136, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            UNLOAD_CHUNK(UNLOAD_CHUNK_CLASS, 137, NetProtocolRange.since(NetProtocol.v1_9)),
+            UPDATE_ATTRIBUTES(UPDATE_ATTRIBUTES_CLASS, 138),
+            UPDATE_ENTITY_NBT(UPDATE_ENTITY_NBT_CLASS, 139, NetProtocolRange.until(NetProtocol.v1_8_8)),
+            UPDATE_HEALTH(UPDATE_HEALTH_CLASS, 140),
+            UPDATE_SIGN(UPDATE_SIGN_SERVER_CLASS, 141, NetProtocolRange.until(NetProtocol.v1_9_2)),
+            UPDATE_TIME(UPDATE_TIME_CLASS, 142),
+            VEHICLE_MOVE(VEHICLE_MOVE_SERVER_CLASS, 143, NetProtocolRange.since(NetProtocol.v1_9)),
+            VIEW_CENTRE(VIEW_CENTRE_CLASS, 144, NetProtocolRange.since(NetProtocol.v1_14)),
+            VIEW_DISTANCE(VIEW_DISTANCE_CLASS, 145, NetProtocolRange.since(NetProtocol.v1_14)),
+            WINDOW_DATA(WINDOW_DATA_CLASS, 146),
+            WINDOW_ITEMS(WINDOW_ITEMS_CLASS, 147),
+            WORLD_BORDER(WORLD_BORDER_CLASS, 148),
+            WORLD_EVENT(WORLD_EVENT_CLASS, 149),
+            WORLD_PARTICLES(WORLD_PARTICLES_CLASS, 150)
             ;
 
             private final Class<?> nmsClass;
-            private final byte packetId;
+            private final int packetId;
             private final NetProtocolRange protocolRange;
 
-            Server(Class<?> nmsClass, byte packetId) {
+            Server(Class<?> nmsClass, int packetId) {
                 this.nmsClass = nmsClass;
                 this.packetId = packetId;
                 this.protocolRange = NetProtocolRange.ALL;
             }
 
-            Server(Class<?> nmsClass, byte packetId, NetProtocolRange protocolRange) {
+            Server(Class<?> nmsClass, int packetId, NetProtocolRange protocolRange) {
                 this.nmsClass = nmsClass;
                 this.packetId = packetId;
                 this.protocolRange = protocolRange;
@@ -939,7 +880,7 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public byte getPacketId() {
+            public int getPacketId() {
                 return packetId;
             }
 

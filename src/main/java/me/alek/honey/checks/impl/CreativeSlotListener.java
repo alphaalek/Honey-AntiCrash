@@ -96,12 +96,14 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 int slot = packet.getSlot();
-
                 if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Slot", slot))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("Slot", slot);
+                            })
                             .build();
                 }
             }

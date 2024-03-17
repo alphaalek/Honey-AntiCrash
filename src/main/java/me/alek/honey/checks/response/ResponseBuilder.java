@@ -5,6 +5,7 @@ import me.alek.honey.services.ViolationService;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class ResponseBuilder {
 
@@ -81,8 +82,9 @@ public class ResponseBuilder {
         return this;
     }
 
-    public ResponseBuilder onViolation(Runnable runnable) {
-        responseContainer.ON_VIOLATION = runnable;
+    public ResponseBuilder onViolation(Consumer<Runnable> runnable) {
+        Runnable priorOnViolation = responseContainer.ON_VIOLATION;
+        responseContainer.ON_VIOLATION = () -> runnable.accept(priorOnViolation);
         return this;
     }
 

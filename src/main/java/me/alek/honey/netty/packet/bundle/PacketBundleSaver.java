@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class PacketBundleSaver {
     private static final Set<PacketSaverWindow> PACKET_SAVER_WINDOWS = new HashSet<>();
-    private static byte MAX_PACKET_ID;
+    private static int MAX_PACKET_ID;
 
     public final Map<PacketSaverWindow, Deque<PacketContainer<?>>> packetSaves = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -25,7 +25,7 @@ public class PacketBundleSaver {
         PACKET_SAVER_WINDOWS.clear();
         PACKET_SAVER_WINDOWS.addAll(PacketBundleFilters.getPacketSaves());
 
-        byte max = 0;
+        int max = 0;
         for (PacketTypeEnum packetType : PACKET_SAVER_WINDOWS.stream().flatMap((w) -> w.getPacketTypes().stream()).collect(Collectors.toSet())) {
             if (packetType.getPacketId() > max)
                 max = packetType.getPacketId();

@@ -58,7 +58,11 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Slot", slot))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("Slot", slot);
+                            })
                             .build();
                 }
             }

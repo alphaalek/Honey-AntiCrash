@@ -1,13 +1,16 @@
 package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyCheck;
+import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Location;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class CheckContextContainer {
 
@@ -132,169 +135,125 @@ public class CheckContextContainer {
 
     public static class Storage {
 
-        private final Map<Class<?>, ContainerStructure<?>> dataContextStorageMap = new HashMap<>();
+        private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
 
         public void putBoolean(boolean bool) {
-            put(Boolean.class, bool);
+            put(ContainerStorageTypes.getIndexForBoolean(), bool);
         }
 
         public void putString(String string) {
-            put(String.class, string);
+            put(ContainerStorageTypes.getIndexForString(), string);
         }
 
         public void putChar(char character) {
-            put(Character.class, character);
+            put(ContainerStorageTypes.getIndexForChar(), character);
         }
 
         public void putInt(int integer) {
-            put(Integer.class, integer);
+            put(ContainerStorageTypes.getIndexForInt(), integer);
         }
 
         public void putFloat(float floatValue) {
-            put(Float.class, floatValue);
+            put(ContainerStorageTypes.getIndexForFloat(), floatValue);
         }
 
         public void putByte(byte byteValue) {
-            put(Byte.class, byteValue);
+            put(ContainerStorageTypes.getIndexForByte(), byteValue);
         }
 
         public void putDouble(double doubleValue) {
-            put(Double.class, doubleValue);
+            put(ContainerStorageTypes.getIndexForDouble(), doubleValue);
         }
 
         public void putLong(long longValue) {
-            put(Long.class, longValue);
+            put(ContainerStorageTypes.getIndexForLong(), longValue);
         }
 
-        public boolean getBoolean(int index) {
-            Boolean bool = get(Boolean.class, index);
-            if (bool == null) return false;
-
-            return bool;
+        public void putLocation(Location location) {
+            put(ContainerStorageTypes.getIndexForLocation(), location);
         }
 
         public String getString(int index) {
-            return get(String.class, index);
+            return get(ContainerStorageTypes.getIndexForString(), index);
+        }
+
+        public boolean getBoolean(int index) {
+            return getVal(index, ContainerStorageTypes.getIndexForBoolean(), false);
         }
 
         public char getChar(int index) {
-            Character character = get(Character.class, index);
-            if (character == null) return ' ';
-
-            return character;
+            return getVal(index, ContainerStorageTypes.getIndexForChar(), ' ');
         }
 
         public int getInt(int index) {
-            Integer integer = get(Integer.class, index);
-            if (integer == null) return 0;
-
-            return integer;
+            return getVal(index, ContainerStorageTypes.getIndexForInt(), 0);
         }
 
         public float getFloat(int index) {
-            Float floatValue = get(Float.class, index);
-            if (floatValue == null) return 0f;
-
-            return floatValue;
+            return getVal(index, ContainerStorageTypes.getIndexForFloat(), 0f);
         }
 
         public byte getByte(int index) {
-            Byte byteValue = get(Byte.class, index);
-            if (byteValue == null) return 0;
-
-            return byteValue;
+            return getVal(index, ContainerStorageTypes.getIndexForByte(), (byte) 0);
         }
 
         public double getDouble(int index) {
-            Double doubleValue = get(Double.class, index);
-            if (doubleValue == null) return 0d;
-
-            return doubleValue;
+            return getVal(index, ContainerStorageTypes.getIndexForDouble(), 0d);
         }
 
         public long getLong(int index) {
-            Long longValue = get(Long.class, index);
-            if (longValue == null) return 0L;
-
-            return longValue;
+            return getVal(index, ContainerStorageTypes.getIndexForLong(), 0L);
         }
 
-        public synchronized <T> void put(Class<T> clazz, T value) {
-            ContainerStructure<T> structure = getStructure(clazz);
+        public Location getLocation(int index) {
+            return get(index, ContainerStorageTypes.getIndexForLocation());
+        }
+
+        public synchronized <T> void put(int index, T value) {
+            ContainerStructure<T> structure = getStructure(index);
             if (structure == null) {
-                dataContextStorageMap.put(clazz, new ContainerStructure<>());
-                put(clazz, value);
-                return;
+                dataContextStorage.set(index, structure = new ContainerStructure<>());
             }
             structure.add(value);
         }
 
+        public <T> void put(Class<T> clazz, T value) {
+            put(ContainerStorageTypes.getIndex(clazz), value);
+        }
+
+        public <T> T getVal(int index, int typeIndex, T or) {
+            T val = get(typeIndex, index);
+            return val != null ? val : or;
+        }
+
         public synchronized <T> T get(Class<T> clazz, int index) {
-            ContainerStructure<T> structure = getStructure(clazz);
+            return get(ContainerStorageTypes.getIndex(clazz), index);
+        }
+
+        public synchronized <T> T get(int typeIndex, int index) {
+            ContainerStructure<T> structure = getStructure(typeIndex);
             if (structure == null) return null;
 
             return structure.get(index);
         }
 
-        public synchronized <T> T getLast(Class<T> clazz) {
-            ContainerStructure<T> structure = getStructure(clazz);
-            if (structure == null) return null;
-
-            return structure.get(structure.getSize());
-        }
-
-        public <T> T peek(Class<T> clazz) {
-            return get(clazz, 0);
-        }
-
-        public <T> T poll(Class<T> clazz) {
-            return take(clazz, 0);
-        }
-
-        public synchronized <T> T take(Class<T> clazz, int index) {
-            ContainerStructure<T> structure = getStructure(clazz);
-            if (structure == null) return null;
-
-            T value = structure.get(index);
-            structure.remove(index);
-            return value;
-        }
-
-        public <T> ContainerStructure<T> getStructure(Class<T> clazz) {
-            return (ContainerStructure<T>) dataContextStorageMap.get(clazz);
+        public <T> ContainerStructure<T> getStructure(int index) {
+            return (ContainerStructure<T>) dataContextStorage.get(index);
         }
 
         public final static class ContainerStructure<T> {
 
-            private final List<T> values = new ArrayList<>();
+            private final Array<T> values = new Array<>();
 
             public void add(T value) {
                 values.add(value);
             }
 
             public T get(int index) {
-                if (!has(index)) {
-                    return null;
-                }
+                if (!values.has(index)) return null;
+
                 return values.get(index);
             }
-
-            public void remove(int index) {
-                values.remove(index);
-            }
-
-            public boolean has(int index) {
-                return values.size() > index;
-            }
-
-            public int getSize() {
-                return values.size();
-            }
-
-            public List<T> getValues() {
-                return values;
-            }
         }
-
     }
 }

@@ -119,7 +119,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
                 if (messageLength > (below_1_11 ? 100 : 256)) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Message length", messageLength))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("Message length", messageLength);
+                            })
                             .build();
                 }
             }
@@ -208,6 +212,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
+            Bukkit.getLogger().info("Check!");
 
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
@@ -216,8 +221,11 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             for (String prohibitedCommand : prohibitedCommands) {
 
                 if (match(prohibitedCommand, message)) {
+                    Bukkit.broadcastMessage("Matched!");
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> {
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
                                 String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
                                 container.getDevelopmentData(this).addPoint("Command", messageFormatted);
                             })

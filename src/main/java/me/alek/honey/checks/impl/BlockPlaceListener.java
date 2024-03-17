@@ -92,7 +92,9 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
             // add the distance to the development data
             return ResponseBuilder.inst().cancel().flag()
-                    .onViolation(() -> {
+                    .onViolation(onViolation -> {
+                        if (onViolation != null) onViolation.run();
+
                         developmentData.addPoint("BlockPos", blockPosition);
                         developmentData.addPoint("Distance", (distance == -1 ? "Invalid" : distance));
                     })
@@ -245,12 +247,18 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> developmentData.addPoint("Block Direction", placedBlockDirection))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                developmentData.addPoint("Block Direction", placedBlockDirection);
+                            })
                             .build();
                 }
                 if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> {
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
                                 developmentData.addPoint("Facing X", facingX);
                                 developmentData.addPoint("Facing Y", facingY);
                                 developmentData.addPoint("Facing Z", facingZ);

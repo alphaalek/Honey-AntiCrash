@@ -2,6 +2,7 @@ package me.alek.honey.checks;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import org.bukkit.entity.Player;
@@ -30,13 +31,19 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
             byteBuf.clear();
             return;
         }
-        CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+        CallbackAction<ResponseContainer> callback = new CallbackAction<>();
+        callback.addAction(response -> {
+            response.builder().onViolation(onViolation -> {
+                if (onViolation != null) onViolation.run();
 
-        defaultDevelopmentData.addEmpty();
-        defaultDevelopmentData.addValue(" ByteBuf", byteBuf.readableBytes() + " bytes");
-        AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
+                CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
-        getCachedVisitor(player).check(player, byteBuf, checkContextContainer);
+                defaultDevelopmentData.addValue(" ByteBuf", byteBuf.readableBytes() + " bytes");
+                AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
+            });
+        });
+
+        getCachedVisitor(player).check(player, byteBuf, checkContextContainer, callback);
     }
 
     public synchronized boolean hasInitializedCheckInstances() {

@@ -60,13 +60,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         container.getStorage().put(ByteBuf.class, serializer);
 
         callback.addAction(response -> {
-            Runnable priorOnViolation = response.ON_VIOLATION;
-            response.builder().onViolation(() -> {
+            response.builder().onViolation(onViolation -> {
+                if (onViolation != null) onViolation.run();
+
                 container.getDefaultDevelopmentData().addPoint("Channel", channel);
                 container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
-
-                if (priorOnViolation != null)
-                    priorOnViolation.run();
             });
         });
 
@@ -190,7 +188,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ItemStack item = container.getStorage().poll(ItemStack.class);
+                ItemStack item = container.getStorage().get(ItemStack.class, 0);
                 if (item != null) {
                     CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
@@ -202,7 +200,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     int nbtSize;
                     if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
                         return ResponseBuilder.inst().cancel().flag()
-                                .onViolation(() -> container.getDevelopmentData(this).addPoint("NBT Size", nbtSize))
+                                .onViolation(onViolation -> {
+                                    if (onViolation != null) onViolation.run();
+
+                                    container.getDevelopmentData(this).addPoint("NBT Size", nbtSize);
+                                })
                                 .build();
                     }
                 }
@@ -295,7 +297,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                         player.player.getListeningPluginChannels().size() > getSetting().max) {
 
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size()))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size());
+                            })
                             .build();
                 }
             }

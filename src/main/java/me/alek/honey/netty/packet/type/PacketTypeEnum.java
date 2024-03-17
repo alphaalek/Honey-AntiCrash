@@ -4,7 +4,7 @@ public interface PacketTypeEnum {
 
     Class<?> getNmsClass();
 
-    byte getPacketId();
+    int getPacketId();
 
     PacketState getState();
 

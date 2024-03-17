@@ -78,7 +78,9 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
                 if (ChatListener.match(prohibitedCommand, label)) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> {
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
                                 String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;;
                                 container.getDevelopmentData(this).addPoint("Message", messageFormatted);
                             })

@@ -80,6 +80,10 @@ public class MonitorManager {
         removeMonitor(player.player);
     }
 
+    public boolean hasMonitorers() {
+        return !monitorObservers.isEmpty();
+    }
+
     public Monitorer removeIfHasMonitor(CommandSender sender, boolean onlyStop) {
         Monitorer monitorer = removeMonitor(sender);
         if (monitorer != null)

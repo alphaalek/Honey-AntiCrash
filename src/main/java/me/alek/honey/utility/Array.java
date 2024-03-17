@@ -32,7 +32,15 @@ public class Array<T> {
         return (T) values[index];
     }
 
+    public synchronized void add(T val) {
+        int index = size();
+        resolve(index);
+        values[index] = val;
+    }
+
     public boolean has(int index) {
+        if (index >= values.length) return false;
+
         return get(index) != null;
     }
 
@@ -44,11 +52,11 @@ public class Array<T> {
         return size() == 0;
     }
 
-    public boolean set(int index, T value) {
+    public boolean set(int index, T val) {
         resolve(index);
 
         boolean present = values[index] != null;
-        values[index] = value;
+        values[index] = val;
 
         return present;
     }

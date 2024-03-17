@@ -46,14 +46,16 @@ public class LoggerService {
         @Override
         @SuppressWarnings("unchecked")
         public void onPacketReceive(HoneyPlayer player, PacketContainer packetContainer) {
-            // notify monitor observers
-            logToMonitors(player, packetContainer);
+            if (monitorManager.hasMonitorers()) {
+                // notify monitor observers
+                logToMonitors(player, packetContainer);
 
-            long time = System.currentTimeMillis();
-            // register to packet rate
-            packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
-                    .count(time);
-            totalPacketRate.count(time);
+                long time = System.currentTimeMillis();
+                // register to packet rate
+                packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
+                        .count(time);
+                totalPacketRate.count(time);
+            }
 
             // log the packet
             if (enabled) logPacket(packetContainer, player.name);

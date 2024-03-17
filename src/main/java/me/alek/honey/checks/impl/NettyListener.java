@@ -209,7 +209,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             if (setting.isEnabled() && decodeTime > 0) {
                 return ResponseBuilder.inst().flag(decodeTime)
-                        .onViolation(() -> developmentDataSupplier.get().addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms"))
+                        .onViolation(onViolation -> {
+                            if (onViolation != null) onViolation.run();
+
+                            developmentDataSupplier.get().addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
+                        })
                         .build();
             }
             return ResponseBuilder.SUCCESS;

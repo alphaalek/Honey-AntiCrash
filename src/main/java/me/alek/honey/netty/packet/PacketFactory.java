@@ -11,13 +11,15 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.utility.Array;
 
+import java.lang.invoke.MethodHandle;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PacketFactory {
 
-    public static Map<PacketTypeEnum, MethodInvoker<Object>> WRAPPER_CACHE = new ConcurrentHashMap<>();
+    public static Array<MethodHandle> WRAPPER_CACHE = new Array<>();
 
     public static Object createRawPacket(PacketTypeEnum type) {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) throw new UnsupportedOperationException();
@@ -67,23 +69,22 @@ public class PacketFactory {
     }
 
     private static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
-        MethodInvoker<Object> wrapperInvoker = getWrapperInvoker(type);
+        MethodHandle wrapperInvoker = getWrapperInvoker(type);
         if (wrapperInvoker == null) return null;
 
         try {
-            return (WrappedPacket<WP>) wrapperInvoker.invokeWithException(null, rawPacket, packetContainer);
-        } catch (Exception ex) {
+            return (WrappedPacket<WP>) wrapperInvoker.invoke(rawPacket, packetContainer);
+        } catch (Throwable ex) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating wrapped packet for type " + type);
             ex.printStackTrace();
             return null;
         }
     }
 
-    public static MethodInvoker<Object> getWrapperInvoker(PacketTypeEnum type) {
-        return WRAPPER_CACHE.computeIfAbsent(type, packetType -> {
-            Class<?> nmsClass = packetType.getNmsClass();
-
-            return PacketWrapperInvokerFactory.createWrapperInvoker(packetType.getState(), nmsClass);
+    public static MethodHandle getWrapperInvoker(PacketTypeEnum type) {
+        return WRAPPER_CACHE.get(type.getPacketId(), () -> {
+            Class<?> nmsClass = type.getNmsClass();
+            return PacketWrapperInvokerFactory.createWrapperInvoker(type.getState(), nmsClass);
         });
     }
 }

@@ -3,6 +3,7 @@ package me.alek.honey.checks;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -21,6 +22,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     private boolean initializedCheckInstances;
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
+        Bukkit.getLogger().info("common " + developmentData.getDataSet());
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
         developmentData.removeLastInvisibleData();
         developmentData.addEmpty();
@@ -55,16 +57,20 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
-        if (player != null) {
-            CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
-
-            defaultDevelopmentData.addEmpty();
-
-            String packet = packetContainer.getHandle().getClass().getSimpleName();
-            defaultDevelopmentData.addValue(" Packet", packet);
-            applyCommonDevelopmentData(defaultDevelopmentData);
-        }
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
+        if (player != null) {
+            callback.addAction((response) -> {
+                response.builder().onViolation(onViolation -> {
+                    if (onViolation != null) onViolation.run();
+
+                    CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+
+                    String packet = packetContainer.getHandle().getClass().getSimpleName();
+                    defaultDevelopmentData.addValue(" Packet", packet);
+                    applyCommonDevelopmentData(defaultDevelopmentData);
+                });
+            });
+        }
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }

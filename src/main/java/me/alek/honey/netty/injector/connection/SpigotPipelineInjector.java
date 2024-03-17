@@ -60,6 +60,8 @@ public class SpigotPipelineInjector {
                 if (channel.pipeline().get(requiredHandler) == null)
                     throw new MissingHandlerException("No \"" + requiredHandler + "\" channel handler in pipeline!");
             }
+
+            Bukkit.getLogger().info(channel.pipeline().toMap() + "");
         }
     }
 

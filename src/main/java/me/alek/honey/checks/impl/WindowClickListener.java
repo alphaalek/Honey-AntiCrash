@@ -70,7 +70,11 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                 }
                 if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Slot", slot))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("Slot", slot);
+                            })
                             .build();
                 }
             }

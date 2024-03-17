@@ -78,20 +78,18 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         if (Locations.compare3DLocation(currentLocation, lastLocation)) return false;
 
         // sharing this last location with the pipeline, so other checks can take use of it
-        container.getStorage().put(Location.class, lastLocation);
+        container.getStorage().putLocation(lastLocation);
 
         callback.addAction((response -> {
-            Runnable priorOnViolation = response.ON_VIOLATION;
-            response.builder().onViolation(() -> {
+            response.builder().onViolation(onViolation -> {
+                if (onViolation != null) onViolation.run();
+
                 final String x = format(currentLocation.getX());
                 final String y = format(currentLocation.getY());
                 final String z = format(currentLocation.getZ());
 
                 container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
                 container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
-
-                if (priorOnViolation != null)
-                    priorOnViolation.run();
             });
         }));
 
@@ -234,13 +232,21 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
                     return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey(this, "2d"))
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("2D Distance", distance2d))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
+                            })
                             .build();
                 }
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
                     return ResponseBuilder.inst().cancel().flag().withViolationKey(new ViolationService.CheckKey(this, "y"))
-                            .onViolation(() -> container.getDevelopmentData(this).addPoint("Y Distance", distanceY))
+                            .onViolation(onViolation -> {
+                                if (onViolation != null) onViolation.run();
+
+                                container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
+                            })
                             .build();
                 }
             }

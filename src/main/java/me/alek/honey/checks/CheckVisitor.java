@@ -53,15 +53,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
             // add information to the development data
             if (player != null) {
-                Runnable priorOnViolation = defaultResponse.ON_VIOLATION;
-                defaultResponse.ON_VIOLATION = () -> {
+                callback.call(defaultResponse);
+
+                defaultResponse.builder().onViolation(onViolation -> {
+                    if (onViolation != null) onViolation.run();
+
                     CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
                     developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
                     developmentData.setLine(5, check.getDescription());
-
-                    if (priorOnViolation != null)
-                        priorOnViolation.run();
-                };
+                });
 
                 if (player.punished) {
                     cancellablePacketObserver.cancel();
@@ -74,7 +74,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
 
-                if (callback != null) callback.call(response);
+                if (response != defaultResponse) callback.call(response);
 
                 // get the setting for this check
                 if (check instanceof KeyedViolationCheck) {
@@ -119,7 +119,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return null;
     }
 
-    public void check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer checkContextContainer) {
+    public void check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         final CancellablePacketObserver cancellablePacketObserver = new CancellableByteBufImpl(player, byteBuf);
         handleCommonCheck(player, null, (check) -> {
             try {
@@ -128,7 +128,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 e.printStackTrace();
             }
             return ResponseBuilder.SUCCESS;
-        }, null, cancellablePacketObserver, checkContextContainer, null);
+        }, null, cancellablePacketObserver, checkContextContainer, callback);
     }
 
     @SuppressWarnings("unchecked")
