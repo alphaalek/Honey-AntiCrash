@@ -20,6 +20,10 @@ public class Array<T> implements Iterable<T> {
         }
     }
 
+    public Object[] toRealArray() {
+        return values;
+    }
+
     public T get(int index) {
         return get(index, null);
     }
@@ -40,9 +44,9 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(int index) {
-        if (index >= values.length) return false;
+        if (index >= values.length) return false; // avoid resolving
 
-        return get(index) != null;
+        return values[index] != null;
     }
 
     public void clear() {

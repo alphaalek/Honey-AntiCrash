@@ -18,10 +18,12 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     @Override
     public synchronized void remove(HoneyPlayer key) {
         if (trackerMap.containsKey(key.uuid)) {
+            TempTimedQueuedTracker tracker = getTracker(key);
             for (Timespan timespan : Timespan.values()) {
-                timespan.clearContext(getTracker(key));
+                timespan.clearContext(tracker);
             }
-            IDRegistry.TRACKER_CONTEXT.remove(getTracker(key).getID());
+            IDRegistry.TRACKER_CONTEXT.remove(tracker.getID());
+
             trackerMap.remove(key.uuid);
         }
         for (UUID uuid : Sets.newHashSet(trackerMap.keySet())) {

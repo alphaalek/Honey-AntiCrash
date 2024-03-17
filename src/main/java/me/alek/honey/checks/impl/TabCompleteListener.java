@@ -13,7 +13,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
-import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
+import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
@@ -150,7 +150,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                     @Override
                     public void accept(int size) {
                         container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketDelegateImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
                     }
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,

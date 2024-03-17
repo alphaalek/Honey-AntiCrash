@@ -676,15 +676,15 @@ packet-flood:
   # total
   a:
     enabled: true
-    max-per-interval: 500
-    interval: 2300
+    max-per-interval: 550
+    interval: 2000
     vls-amount: 2
 
   # common
   b:
     enabled: true
-    max-per-interval: 250
-    interval: 900
+    max-per-interval: 225
+    interval: 700
     vls-amount: 4
   c:
     enabled: true

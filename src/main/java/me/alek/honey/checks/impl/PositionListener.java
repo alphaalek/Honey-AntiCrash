@@ -75,7 +75,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         // check if the player has moved by checking if the last location is equal to the current location
         if (Locations.compare3DLocation(currentLocation, lastLocation)) return false;
 
-        // sharing this last location with the pipeline, so other checks can take use of it
+        // share this last location with the pipeline, so the checks can take use of it
         container.getStorage().putLocation(lastLocation);
 
         callback.addAction((response -> {
@@ -90,7 +90,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
             });
         }));
-
 
         return true;
     }
@@ -214,7 +213,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             final Location packetLoc = packet.getLocation();
-            final Location lastKnownPacketLoc = container.getStorage().get(Location.class, 0);
+            final Location lastKnownPacketLoc = container.getStorage().getLocation(0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
@@ -297,7 +296,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (player.player.getVelocity().getY() < -1.5)
                     return ResponseBuilder.SUCCESS;
 
-                final Location priorLocation = container.getStorage().get(Location.class, 0);
+                final Location priorLocation = container.getStorage().getLocation(0);
                 // return if it's the first location being sent
                 if (priorLocation == null)
                     return ResponseBuilder.SUCCESS;
@@ -499,7 +498,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                final Location priorLocation = container.getStorage().get(Location.class, 0);
+                final Location priorLocation = container.getStorage().getLocation(0);
                 if (priorLocation == null) // wait for next position
                     return ResponseBuilder.SUCCESS;
 
@@ -602,6 +601,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private final ViolationService.CheckKey twoDKey = new ViolationService.CheckKey(this, "2d");
+        private final ViolationService.CheckKey YKey = new ViolationService.CheckKey(this, "y");
+
         private double guessedDelta2D;
         private double guessedDeltaY;
 
@@ -622,7 +624,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     if (guessedDelta2D == delta2D) {
                         builder.add(
                                 ResponseBuilder.inst().flag()
-                                        .withViolationKey(new ViolationService.CheckKey(this, "2d"))
+                                        .withViolationKey(twoDKey)
                                         .build()
                         );
                         hasPattern = true;
@@ -641,7 +643,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         }
                         builder.add(
                                 ResponseBuilder.inst().flag()
-                                        .withViolationKey(new ViolationService.CheckKey(this, "y"))
+                                        .withViolationKey(YKey)
                                         .build()
                         );
                         hasPattern = true;

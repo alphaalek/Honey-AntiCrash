@@ -6,20 +6,15 @@ import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.*;
 
 public class CheckContextContainer {
 
-    private final Storage storage = new Storage();
+    private final SharedCheckPipelineStorage storage = new SharedCheckPipelineStorage();
     private final Map<HoneyCheck, DevelopmentData> developmentDataMap = new HashMap<>();
     private final DevelopmentData defaultDevelopmentData = new DevelopmentData();
 
-    public Storage getStorage() {
+    public SharedCheckPipelineStorage getStorage() {
         return storage;
     }
 
@@ -134,7 +129,7 @@ public class CheckContextContainer {
         }
     }
 
-    public static class Storage {
+    public static class SharedCheckPipelineStorage {
 
         private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
 
@@ -212,9 +207,6 @@ public class CheckContextContainer {
 
         public synchronized <T> void put(int index, T value) {
             ContainerStructure<T> structure = getStructure(index);
-            if (structure == null) {
-                dataContextStorage.set(index, structure = new ContainerStructure<>());
-            }
             structure.add(value);
         }
 
@@ -223,26 +215,24 @@ public class CheckContextContainer {
         }
 
         public <T> T getVal(int index, int typeIndex, T or) {
-            T val = get(typeIndex, index);
+            T val = get(index, typeIndex);
             return val != null ? val : or;
         }
 
         public synchronized <T> T get(Class<T> clazz, int index) {
-            return get(ContainerStorageTypes.getIndex(clazz), index);
+            return get(index, ContainerStorageTypes.getIndex(clazz));
         }
 
-        public synchronized <T> T get(int typeIndex, int index) {
+        public synchronized <T> T get(int index, int typeIndex) {
             ContainerStructure<T> structure = getStructure(typeIndex);
-            if (structure == null) return null;
-
             return structure.get(index);
         }
 
         public <T> ContainerStructure<T> getStructure(int index) {
-            return (ContainerStructure<T>) dataContextStorage.get(index);
+            return (ContainerStructure<T>) dataContextStorage.get(index, () -> new ContainerStructure<>());
         }
 
-        public final static class ContainerStructure<T> {
+        public static final class ContainerStructure<T> {
 
             private final Array<T> values = new Array<>();
 

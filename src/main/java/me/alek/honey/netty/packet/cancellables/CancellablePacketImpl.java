@@ -4,11 +4,11 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 
-public class CancellablePacketDelegateImpl implements CancellablePacketObserver {
+public class CancellablePacketImpl implements CancellablePacketObserver {
 
     private final PacketContainer<?> packetContainer;
 
-    public CancellablePacketDelegateImpl(PacketContainer<?> packetContainer) {
+    public CancellablePacketImpl(PacketContainer<?> packetContainer) {
         this.packetContainer = packetContainer;
     }
 

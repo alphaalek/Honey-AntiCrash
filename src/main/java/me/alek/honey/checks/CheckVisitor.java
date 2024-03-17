@@ -1,6 +1,5 @@
 package me.alek.honey.checks;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseBuilder;
@@ -10,17 +9,14 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
-import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
+import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
@@ -34,7 +30,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         return checks;
     }
 
-    private void handleCommonCheck(HoneyPlayer player, Object handle, Function<HoneyCheck, ResponseContainer> responseGenerator,
+    private void handleCommonCheck(HoneyPlayer player, Object handle, Function<HoneyCheck, ResponseContainer> getResponse,
             WP packet, CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         AtomicInteger skipping = null;
 
@@ -42,17 +38,15 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             if (skipping != null && skipping.getAndDecrement() > 0) continue;
 
             ConfigurationOptions.VlSetting setting = getSetting(check, packet);
-            // do the check and get the response, and register the time taken to the check handle tracker
             long registryKey = -1;
             if (setting != null && setting.isEnabled())
                 registryKey = HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
 
-            final ResponseContainer defaultResponse = responseGenerator.apply(check);
+            final ResponseContainer defaultResponse = getResponse.apply(check);
 
             if (setting != null && setting.isEnabled() && registryKey != -1)
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
 
-            // add information to the development data
             if (player != null && player.punished) {
                 cancellablePacketObserver.cancel();
                 return;
@@ -64,13 +58,11 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
 
-                // get the setting for this check
                 if (check instanceof KeyedViolationCheck) {
                     KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
                     if (response.LIMITS_KEY == null) response.LIMITS_KEY = new ViolationService.CheckKey(check, check.getClass(), keyedViolationCheck.getKey(packet));
                 }
 
-                // now we will check the contents of the response container and do whatever actions it represents
                 if (response.SKIP_INDICES != null) skipping = response.SKIP_INDICES;
 
                 if (response.SUCCESS) {
@@ -129,7 +121,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
     @SuppressWarnings("unchecked")
     public void check(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) throws Exception {
-        final CancellablePacketObserver cancellablePacketObserver = new CancellablePacketDelegateImpl(packetContainer);
+        final CancellablePacketObserver cancellablePacketObserver = new CancellablePacketImpl(packetContainer);
         handleCommonCheck(player, packetContainer.getHandle(), (check) -> {
             try {
                 return ((PacketCheck<WP>)check).check(player, packetContainer.getPacket(), checkContextContainer);

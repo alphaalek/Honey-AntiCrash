@@ -1,7 +1,6 @@
 package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
@@ -10,10 +9,8 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
-import me.alek.honey.netty.packet.cancellables.CancellablePacketDelegateImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -22,7 +19,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
