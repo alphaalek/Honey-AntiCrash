@@ -1,11 +1,9 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.checks.impl.PositionListener;
-import me.alek.honey.netty.utility.NMS;
 import org.bukkit.World;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
 
@@ -42,15 +40,9 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
     }
 
     public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
         if (object instanceof WrappedChunkCoordIntPair) {
             WrappedChunkCoordIntPair chunkPair = (WrappedChunkCoordIntPair) object;
             return this.x == chunkPair.getX() && this.z == chunkPair.getZ();
-        }
-        if (NMS.getChunkCoordIntPairClass().isInstance(object)) {
-            return equals(new WrappedChunkCoordIntPair(object));
         }
         return false;
     }

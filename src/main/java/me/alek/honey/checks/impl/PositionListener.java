@@ -144,10 +144,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     public static synchronized WrappedChunkCoordIntPair getChunkAt(Location location) {
-        final int x = location.getBlockX() >> 4;
-        final int z = location.getBlockZ() >> 4;
+        final int x = ((int) location.getX()) >> 4;
+        final int z = ((int) location.getZ()) >> 4;
 
-        return new WrappedChunkCoordIntPair(x, z, (world) -> isChunkLoaded(world, x, z));
+        return new WrappedChunkCoordIntPair(x, z, world -> isChunkLoaded(world, x, z));
     }
 
     public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
@@ -306,7 +306,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 lastFlaggedLocation = packet.getLocation();
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
-                Bukkit.getLogger().info(Math.min(10, priorDistance) + "");
                 return ResponseBuilder.inst().flag(Math.min(10, priorDistance)).build();
             }
             return ResponseBuilder.SUCCESS;
@@ -341,15 +340,19 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private WrappedChunkCoordIntPair lastChunk;
+        private boolean isLastChunkLoaded;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
             final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
-            int skip = chunk.isLoaded(player.getWorld()) ? 1 : 0;
+            int skip = (chunk == lastChunk && isLastChunkLoaded)
+                    ? 1
+                    : (isLastChunkLoaded = chunk.isLoaded(packet.getWorld())) ? 1 : 0;
 
-            if (!getSetting().isEnabled() || lastChunk != null && lastChunk.equals(chunk)) {
+            if (!getSetting().isEnabled() ||
+                    lastChunk != null && lastChunk.equals(chunk)) {
                 // the player is in the same chunk as the last position update
                 return ResponseBuilder.SUCCESS.builderCopy().skip(skip).build();
             }
