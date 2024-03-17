@@ -42,27 +42,38 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     }
 
     @Override
-    public synchronized void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
         long readStart = HoneyPlugin.get().getMonitorManager().isPacketsMonitored() ? System.nanoTime() : 0;
 
-        final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet, readStart);
-
+        final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet, readStart, null);
         if (packetContainer == null) {
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
 
-        // check if the packet should be cancelled
+        if (!read(packetContainer)) {
+            return;
+        }
+
+        super.channelRead(ctx, packetContainer.getHandle());
+        postRead();
+    }
+
+    public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetContainer.isCancelled()) {
             if (player != null && HoneyPlugin.get().getLoggerService().isDebug())
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
-            return;
+            return false;
         }
+
         if (player != null && packetContainer.getPlayer() != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
             packetSendMarker.set(packetContainer);
         }
 
-        super.channelRead(ctx, packetContainer.getHandle());
+        return true;
+    }
+
+    public void postRead() {
         packetSendMarker.remove();
         packetProcessor.postRead();
     }

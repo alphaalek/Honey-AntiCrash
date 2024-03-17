@@ -29,13 +29,15 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     }
 
     private final AsyncDecoder asyncDecoder;
+    private final DuplexChannelHandler duplexChannelHandler;
     private final Channel channel;
     private final MessageToByteEncoder<Object> encoder;
     private volatile boolean forced;
 
-    public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder) {
+    public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder, DuplexChannelHandler duplexChannelHandler) {
         this.channel = channel;
         this.asyncDecoder = asyncDecoder;
+        this.duplexChannelHandler = duplexChannelHandler;
         encoder = (MessageToByteEncoder<Object>) channel.pipeline().get("encoder");
     }
 

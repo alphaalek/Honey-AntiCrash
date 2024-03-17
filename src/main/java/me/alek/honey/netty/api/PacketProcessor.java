@@ -1,6 +1,5 @@
 package me.alek.honey.netty.api;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
@@ -12,9 +11,9 @@ import java.util.List;
 
 public interface PacketProcessor {
 
-    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart);
+    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket);
 
-    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet);
+    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket);
 
     PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet);
 

@@ -50,11 +50,15 @@ public class SpigotPipelineInjector {
             channel.pipeline().addAfter(channel.pipeline().get(
                     "decompress") != null ? "decompress" : /* no decompression on this server */ "splitter", requiredHandlers[0] = filterName, filter);
 
+            DuplexChannelHandler duplexChannelHandler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
             AsyncDecoder asyncDecoder = new AsyncDecoder(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
+
             channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
-                    new InboundPacketDecoder(channel, asyncDecoder));
+                    new InboundPacketDecoder(channel, asyncDecoder, duplexChannelHandler));
             channel.pipeline().addAfter(requiredHandlers[2] = PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
-                    new OutboundPacketEncoder(channel, asyncDecoder));
+                    new OutboundPacketEncoder(channel, asyncDecoder, duplexChannelHandler));
+
+            channel.pipeline().remove(duplexChannelHandler);
 
             for (String requiredHandler : requiredHandlers) {
                 if (channel.pipeline().get(requiredHandler) == null)

@@ -47,7 +47,6 @@ public class HoneyPlayer {
     public TempTimedQueuedTracker serverThreadTimedQueuedTracker;
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
-    public volatile InboundPacketDecoder decoder;
     public ViolationService.ViolationContext violationContext;
     public boolean punished;
     public int nettyThreadID = -1;

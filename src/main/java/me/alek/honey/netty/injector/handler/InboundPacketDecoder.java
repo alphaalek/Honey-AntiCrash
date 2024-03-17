@@ -1,19 +1,21 @@
 package me.alek.honey.netty.injector.handler;
 
-import com.avaje.ebeaninternal.server.cluster.Packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,13 +24,16 @@ import java.util.Queue;
 
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
-    public final Queue<PacketContainer<? extends WrappedPacket<?>>> earlyInitializedPacketQueue = new LinkedList<>();
+    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
+
     private final AsyncDecoder asyncDecoder;
+    private final DuplexChannelHandler duplexChannelHandler;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder) {
+    public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder, DuplexChannelHandler duplexChannelHandler) {
         this.asyncDecoder = asyncDecoder;
+        this.duplexChannelHandler = duplexChannelHandler;
         setupMethodInvoke(channel.pipeline());
     }
 
@@ -49,17 +54,28 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
-            earlyInitializedPacketQueue.add(packetContainer);
-
             if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
-            decodeInvoker.invoke(decoder, ctx, byteBuf, list);
-            if (packetContainer != null) packetContainer.getEventloopStateTimings().stopTimings();
 
-            byteBuf.release();
-            for (Object element : list) {
-                if (packetContainer != null && packetContainer.getHandle() == null) packetContainer.setHandle(element);
-                ctx.fireChannelRead(element);
+            decodeInvoker.invoke(decoder, ctx, byteBuf, list);
+            if (list.isEmpty()) return;
+            if (packetContainer != null) {
+                packetContainer.getEventloopStateTimings().stopTimings();
+
+                HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), packetContainer.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE));
             }
+            byteBuf.release();
+
+            if (packetContainer == null) {
+                ctx.fireChannelRead(list.get(0));
+                return;
+            }
+
+            packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
+
+            if (duplexChannelHandler.read(packetContainer)) {
+                ctx.fireChannelRead(packetContainer.getHandle());
+            }
+            duplexChannelHandler.postRead();
         } catch (Throwable ex) {
             try {
                 super.exceptionCaught(ctx, ex);

@@ -1,9 +1,7 @@
 package me.alek.honey.netty.processor;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
@@ -267,10 +265,12 @@ public class InternalPacketProcessor implements PacketProcessor {
         return packetContainer;
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(Object packet, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
+    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket,
+                                                                                  Object packet, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
         if (type.getBound() == PacketBound.SERVER) {
             return new InternalPacketContainer<>(packet, player, channel, postAction, type);
         }
+        /*
         if (player != null) {
             if (player.decoder == null) {
                 player.decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
@@ -292,10 +292,19 @@ public class InternalPacketProcessor implements PacketProcessor {
                 return earlyInitializedPacket;
             }
         }
+        */
+        if (earlyInitializedPacket != null) {
+            earlyInitializedPacket.init(packet, postAction, type);
+
+            return earlyInitializedPacket;
+        }
+
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> handleCommon(HoneyPlayer player, Channel channel, Object packet, PacketBound packetBound, long readStart) {
+    private PacketContainer<? extends WrappedPacket<?>> handleCommon(HoneyPlayer player, Channel channel,
+                                                                     Object packet, PacketBound packetBound,
+                                                                     PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket, long readStart) {
         final PacketState packetState = getPacketState(player, packet);
         if (packetState == PacketState.UNKNOWN) {
             return registerSimpleContainerToBundle(packet, player, packetBound);
@@ -313,7 +322,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         // initialize the packet container
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
-                packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
+                earlyInitializedPacket, packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
         if (packetContainer.getPacket() == null) {
             registerToBundle(player, packetBound, packetContainer);
             return packetContainer;
@@ -333,18 +342,18 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart) {
-        return handleCommon(player, channel, packet, PacketBound.CLIENT, readStart);
+    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket) {
+        return handleCommon(player, channel, packet, PacketBound.CLIENT, earlyInitializedPacket, readStart);
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet) {
-        return read(channel, player, packet, 0L);
+    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket) {
+        return read(channel, player, packet, 0L, earlyInitializedPacket);
     }
 
     @Override
     public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet) {
-        return handleCommon(player, channel, packet, PacketBound.SERVER, 0L);
+        return handleCommon(player, channel, packet, PacketBound.SERVER, null, 0L);
     }
 
     public PacketState getPacketState(HoneyPlayer player, Object packet) {
