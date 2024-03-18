@@ -79,16 +79,17 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private final Object EMPTY_TICK_TASK;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
-            // convert all elements from the previous queue to the current one, if there are any
-            while (!delegate.isEmpty()) {
-                add(delegate.poll());
-            }
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null
                     : (tickTaskConstructor = Reflection.getConstructor(NMS.getTickTaskClass(), int.class, Runnable.class))
                     .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
 
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
                 tickTaskConstructor = null;
+            }
+
+            // convert all elements from the previous queue to the current one, if there are any
+            while (!delegate.isEmpty()) {
+                add(delegate.poll());
             }
         }
 
@@ -214,9 +215,12 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // elements to the execution queue from netty threads which are not packets
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
             Bukkit.getLogger().info("Got " + packet + " " + InboundPacketFilter.getNettyThreadID());
-            if (packet == null) return super.add(value);
+            if (packet == null || packet.isHandledByServer()) return super.add(value);
 
             packet.setHandledByServer();
+            if (packet.getPlayer() == null || packet.getPlayer().nettyThreadID == -1)
+                return super.add(value);
+
             UUID uuid = packet.getPlayer().uuid;
             synchronized (PacketTaskHandler.lock) {
                 if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
@@ -224,9 +228,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
             }
             super.add(EMPTY_VALUE);
-
-            if (packet.getPlayer() == null || packet.getPlayer().nettyThreadID == -1)
-                return super.add(value);
 
             return nettySubmitQueue.get(packet.getPlayer().nettyThreadID)
                     .add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));

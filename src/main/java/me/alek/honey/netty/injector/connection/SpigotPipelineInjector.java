@@ -64,6 +64,9 @@ public class SpigotPipelineInjector {
                 if (channel.pipeline().get(requiredHandler) == null)
                     throw new MissingHandlerException("No \"" + requiredHandler + "\" channel handler in pipeline!");
             }
+            if (channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName()) != null) {
+                throw new MissingHandlerException("Could not properly eject DuplexChannelHandler from pipeline!");
+            }
         }
     }
 
