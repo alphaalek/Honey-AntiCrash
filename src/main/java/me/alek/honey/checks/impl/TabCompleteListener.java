@@ -42,8 +42,8 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInTabComplete> getVisitor() {
-        CheckVisitor<WrappedPlayInTabComplete> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInTabComplete> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInTabComplete> visitor = new CheckVisitor<>(player);
         visitor.visit(new TabA());
         visitor.visit(new TabB());
         visitor.visit(new TabC());

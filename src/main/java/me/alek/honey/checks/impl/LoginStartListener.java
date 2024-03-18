@@ -42,8 +42,8 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     }
 
     @Override
-    public CheckVisitor<WrappedLoginInLoginStart> getVisitor() {
-        CheckVisitor<WrappedLoginInLoginStart> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedLoginInLoginStart> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedLoginInLoginStart> visitor = new CheckVisitor<>(player);
         visitor.visit(new LoginA());
         visitor.visit(new LoginB());
         return visitor;

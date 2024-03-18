@@ -21,6 +21,15 @@ import java.util.function.Function;
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
     private final List<HoneyCheck> checks = new ArrayList<>();
+    private final HoneyPlayer player;
+
+    public CheckVisitor(HoneyPlayer player) {
+        this.player = player;
+    }
+
+    public HoneyPlayer getPlayer() {
+        return player;
+    }
 
     public void visit(HoneyCheck check) {
         checks.add(check);
@@ -98,14 +107,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     private ConfigurationOptions.VlSetting getSetting(HoneyCheck check, WP packet) {
-        if (check instanceof KeyedViolationCheck) {
+        if (!check.isViolation()) return null;
+
+        ViolationCheck violationCheck = (ViolationCheck) check;
+        if (violationCheck.isKeyed()) {
             KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
             return keyedViolationCheck.getSetting(packet);
         }
-        else if (check instanceof ViolationCheck) {
-            return ((ViolationCheck)check).getSetting();
-        }
-        return null;
+        return violationCheck.getSetting();
     }
 
     public void check(HoneyPlayer player, CancellableByteBufImpl byteBuf, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {

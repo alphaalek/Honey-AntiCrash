@@ -11,9 +11,9 @@ import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener {
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener, CheckVisitable {
 
-    private final Array<CheckVisitor<WP>> visitors = new Array<>();
+    private final Array<CheckVisitor<?>> visitors = new Array<>();
     private boolean initializedCheckInstances;
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
@@ -72,31 +72,36 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
-        getCachedVisitor(player).check(player, packetContainer, checkContextContainer, callback);
+        ((CheckVisitor<WP>)getCachedVisitor(visitors, this, player))
+                .check(player, packetContainer, checkContextContainer, callback);
+
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }
 
-    public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player) {
-        return getCachedVisitor(player, player != null ? player.registryID : 0);
+    public static synchronized CheckVisitor<?> getCachedVisitor(Array<CheckVisitor<?>> visitors, CheckVisitable visitable, HoneyPlayer player) {
+        return getCachedVisitor(visitors, visitable, player, player != null ? player.registryID : 0);
     }
 
-    public synchronized CheckVisitor<WP> getCachedVisitor(HoneyPlayer player, int registryID) {
-        if (!visitors.has(registryID)) {
-            visitors.set(registryID, getVisitor());
+    public static synchronized CheckVisitor<?> getCachedVisitor(Array<CheckVisitor<?>> visitors, CheckVisitable visitable, HoneyPlayer player, int registryID) {
+        if (!visitors.has(registryID)
+                || player != null && !player.equals(visitors.get(registryID).getPlayer())) {
+            visitors.set(registryID, visitable.getVisitor(player));
 
             if (player != null)
                 player.leaveCallback.addAction(p -> visitors.remove(registryID));
         }
-        initializedCheckInstances = true;
+        visitable.setInitializedCheckInstances();
 
         return visitors.get(registryID);
+    }
+
+    public void setInitializedCheckInstances() {
+        initializedCheckInstances = true;
     }
 
     public synchronized boolean hasInitializedCheckInstances() {
         return initializedCheckInstances;
     }
-
-    public abstract CheckVisitor<WP> getVisitor();
 
     public abstract boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback);
 

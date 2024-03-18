@@ -22,6 +22,7 @@ public class IDRegistry {
             int i = 0;
             for (int id : ids) {
                 if (id == -1) return ids[i] = i;
+                ++i;
             }
             int[] newIds = new int[ids.length + 1];
             System.arraycopy(ids, 0, newIds, 0, ids.length);
@@ -37,10 +38,10 @@ public class IDRegistry {
         ids[id] = -1;
         int maxId = 0;
         for (int id0 : ids) {
-            if (id0 != -1) maxId = id0;
+            if (id0 != -1) maxId = id0 - 1;
         }
-        if (maxId != ids.length - 1) {
-            int[] newIds = new int[maxId + 1];
+        if (maxId < ids.length - 1) {
+            int[] newIds = new int[maxId + 2];
             System.arraycopy(ids, 0, newIds, 0, newIds.length);
             ids = newIds;
         }

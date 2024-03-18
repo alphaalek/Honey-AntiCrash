@@ -39,8 +39,8 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInSetCreativeSlot> getVisitor() {
-        CheckVisitor<WrappedPlayInSetCreativeSlot> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInSetCreativeSlot> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInSetCreativeSlot> visitor = new CheckVisitor<>(player);
         visitor.visit(new CreativeA());
         visitor.visit(new CreativeB());
         visitor.visit(new CreativeC());

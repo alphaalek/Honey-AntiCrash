@@ -35,8 +35,8 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInUpdateSign> getVisitor() {
-        CheckVisitor<WrappedPlayInUpdateSign> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInUpdateSign> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInUpdateSign> visitor = new CheckVisitor<>(player);
         visitor.visit(new SignA());
         return visitor;
     }

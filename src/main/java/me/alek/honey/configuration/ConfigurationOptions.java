@@ -953,7 +953,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.f", packetHandler = PacketLimitHandlerType.INTERVAL)
-        @Keyed(keys = {"horizontal_1", "horizontal_2", "vertical"})
+        @Keyed(keys = {"x", "y", "z"})
         public static class PositionF extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }

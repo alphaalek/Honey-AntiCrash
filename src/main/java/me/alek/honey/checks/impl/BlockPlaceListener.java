@@ -45,8 +45,8 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor() {
-        CheckVisitor<WP> visitor = new CheckVisitor<>();
+    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new BlockInteractA<>());
         visitor.visit(new BlockInteractB<>());
         visitor.visit(new BlockInteractC<>());

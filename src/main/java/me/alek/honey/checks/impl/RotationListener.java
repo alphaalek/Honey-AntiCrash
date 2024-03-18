@@ -68,8 +68,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor() {
-        CheckVisitor<WP> visitor = new CheckVisitor<>();
+    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new RotationA<>());
         visitor.visit(new RotationB<>());
         visitor.visit(new RotationC<>());

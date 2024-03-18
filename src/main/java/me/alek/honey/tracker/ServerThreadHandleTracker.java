@@ -214,7 +214,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
             // elements to the execution queue from netty threads which are not packets
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
-            Bukkit.getLogger().info("Got " + packet + " " + InboundPacketFilter.getNettyThreadID());
             if (packet == null || packet.isHandledByServer()) return super.add(value);
 
             packet.setHandledByServer();

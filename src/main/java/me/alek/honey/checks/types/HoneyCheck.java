@@ -11,4 +11,8 @@ public interface HoneyCheck {
     String getDescription();
 
     PacketBundleFilter getDumpFilter();
+
+    default boolean isViolation() {
+        return false;
+    }
 }

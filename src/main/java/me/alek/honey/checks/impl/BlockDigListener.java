@@ -23,8 +23,8 @@ import java.util.function.Supplier;
 public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockDig> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInBlockDig> getVisitor() {
-        CheckVisitor<WrappedPlayInBlockDig> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInBlockDig> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInBlockDig> visitor = new CheckVisitor<>(player);
         visitor.visit(new BlockInteractE());
         return visitor;
     }

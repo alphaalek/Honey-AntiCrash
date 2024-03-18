@@ -13,6 +13,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.NettyThreadLocal;
+import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
@@ -98,7 +99,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         List<Object> nonRecycledList = new ArrayList<>();
 
         packetContainer.addCallbackAction(container -> {
-            Bukkit.getLogger().info("Setting marker " + packetContainer);
             packetSendMarker.set(packetContainer);
         });
 

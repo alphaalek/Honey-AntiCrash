@@ -41,8 +41,8 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInWindowClick> getVisitor() {
-        CheckVisitor<WrappedPlayInWindowClick> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInWindowClick> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInWindowClick> visitor = new CheckVisitor<>(player);
         visitor.visit(new WindowA());
         visitor.visit(new WindowB());
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {

@@ -86,8 +86,8 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInCustomPayload> getVisitor() {
-        CheckVisitor<WrappedPlayInCustomPayload> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInCustomPayload> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInCustomPayload> visitor = new CheckVisitor<>(player);
         visitor.visit(new PayloadA());
         visitor.visit(new PayloadB());
         visitor.visit(new PayloadC());

@@ -57,8 +57,8 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor() {
-        CheckVisitor<WP> visitor = new CheckVisitor<>();
+    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new FloodA<>());
         visitor.visit(new FloodB<>());
         visitor.visit(new FloodD<>());

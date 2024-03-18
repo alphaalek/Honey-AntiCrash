@@ -39,8 +39,8 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
     }
 
     @Override
-    public CheckVisitor<WrappedLoginInEncryptionResponse> getVisitor() {
-        CheckVisitor<WrappedLoginInEncryptionResponse> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedLoginInEncryptionResponse> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedLoginInEncryptionResponse> visitor = new CheckVisitor<>(player);
         visitor.visit(new EncryptionA());
         return visitor;
     }

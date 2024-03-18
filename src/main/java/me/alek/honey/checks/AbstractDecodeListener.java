@@ -5,15 +5,16 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.utility.Array;
 import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
+public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable {
 
-    private final Map<UUID, CheckVisitor<?>> visitors = new HashMap<>();
+    private final Array<CheckVisitor<?>> visitors = new Array<>();
     private boolean initializedCheckInstances;
 
     @Override
@@ -48,19 +49,19 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter {
             });
         });
 
-        getCachedVisitor(player).check(player, byteBuf, checkContextContainer, callback);
+        getVisitor(player).check(player, byteBuf, checkContextContainer, callback);
     }
 
     public synchronized boolean hasInitializedCheckInstances() {
         return initializedCheckInstances;
     }
 
-    public synchronized CheckVisitor<?> getCachedVisitor(HoneyPlayer player) {
-        if (!visitors.containsKey(player.uuid)) visitors.put(player.uuid, getVisitor());
-        initializedCheckInstances = true;
-
-        return visitors.get(player.uuid);
+    public synchronized CheckVisitor<?> getVisitor(HoneyPlayer player) {
+        return AbstractPacketListener.getCachedVisitor(visitors, this, player);
     }
 
-    public abstract CheckVisitor<?> getVisitor();
+    public void setInitializedCheckInstances() {
+        initializedCheckInstances = true;
+    }
+
 }

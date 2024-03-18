@@ -8,7 +8,8 @@ import java.util.Map;
 
 public class PacketEventloopStateTimings {
 
-    private final long[] times = new long[EventloopState.values().length];
+    private static final int LENGTH = EventloopState.values().length;
+    private final long[] times = new long[LENGTH];
     private EventloopState currentState = EventloopState.NO_STATE;
     private long currentStateStart;
     private long totalTime;

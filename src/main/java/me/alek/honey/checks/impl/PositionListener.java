@@ -22,7 +22,6 @@ import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -105,8 +104,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor() {
-        CheckVisitor<WP> visitor = new CheckVisitor<>();
+    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new PositionA<>());
         visitor.visit(new PositionB<>());
         visitor.visit(new PositionC<>());
@@ -339,6 +338,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private WrappedChunkCoordIntPair lastChunkCameFrom;
         private WrappedChunkCoordIntPair lastChunk;
         private boolean isLastChunkLoaded;
 
@@ -351,12 +351,13 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     ? 1
                     : (isLastChunkLoaded = chunk.isLoaded(packet.getWorld())) ? 1 : 0;
 
-            if (!getSetting().isEnabled() ||
-                    lastChunk != null && lastChunk.equals(chunk)) {
+            if (!getSetting().isEnabled()
+                    || chunk.equals(lastChunk) || chunk.equals(lastChunkCameFrom)) {
                 // the player is in the same chunk as the last position update
                 return ResponseBuilder.SUCCESS.builderCopy().skip(skip).build();
             }
             // the player has moved into a new chunk, and we have to register this chunk as the current one
+            lastChunkCameFrom = lastChunk;
             lastChunk = chunk;
             return ResponseBuilder.inst().flag().skip(skip).build();
         }
@@ -432,9 +433,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         }
 
         private enum Axis {
-            HORIZONTAL_1(Direction.NORTH, Direction.SOUTH),
-            HORIZONTAL_2(Direction.WEST, Direction.EAST),
-            VERTICAL(Direction.UP, Direction.DOWN);
+            X(Direction.WEST, Direction.EAST),
+            Z(Direction.NORTH, Direction.SOUTH),
+            Y(Direction.UP, Direction.DOWN);
 
             private final Direction opp1;
             private final Direction opp2;
@@ -478,8 +479,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().getLocation(0);
-                if (priorLocation == null) // wait for next position
-                    return ResponseBuilder.SUCCESS;
+                if (priorLocation == null) return ResponseBuilder.SUCCESS;
 
                 final Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
                 final Direction[] priorVelocity = lastDirectionFlow;
@@ -487,15 +487,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 lastDirectionFlow = velocity;
                 if (priorVelocity != null && priorVelocity.length == velocity.length) {
 
-                    int i = -1;
+                    int i = 0;
                     final ResponseBuilder builder = ResponseBuilder.inst();
                     for (final Direction dir : velocity) {
 
-                        // make sure that there aren't any discrepancy in the lengths and indices of the different velocities
-                        if (++i == priorVelocity.length) break;
-
                         final Axis axis = axisLookup.get(dir);
-                        final Direction corr = priorVelocity[i];
+                        final Direction corr = priorVelocity[i++];
 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 

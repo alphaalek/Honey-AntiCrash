@@ -13,4 +13,8 @@ public interface KeyedViolationCheck<WP extends WrappedPacket<WP>, T> extends Vi
 
     T getKey(WP packet);
 
+    default boolean isKeyed() {
+        return true;
+    }
+
 }

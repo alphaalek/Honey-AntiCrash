@@ -29,7 +29,6 @@ import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.NumberConversions;
-import me.alek.honey.utility.Tuple2;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -47,8 +46,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor() {
-        CheckVisitor<WP> visitor = new CheckVisitor<>();
+    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new NettyA<>());
         visitor.visit(new NettyB<>());
         visitor.visit(new NettyH<>());
@@ -116,8 +115,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
         @Override
-        public CheckVisitor<WP> getVisitor() {
-            CheckVisitor<WP> visitor = new CheckVisitor<>();
+        public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
+            CheckVisitor<WP> visitor = new CheckVisitor<>(player);
             visitor.visit(this);
             return visitor;
         }

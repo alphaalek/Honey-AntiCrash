@@ -37,8 +37,8 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInHeldItemSlot> getVisitor() {
-        CheckVisitor<WrappedPlayInHeldItemSlot> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInHeldItemSlot> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInHeldItemSlot> visitor = new CheckVisitor<>(player);
         visitor.visit(new HeldItemA());
         visitor.visit(new HeldItemB());
         return visitor;

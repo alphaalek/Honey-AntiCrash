@@ -71,7 +71,7 @@ public class TempQueue {
 
         } else if (!isFixed) {
             synchronized (this) {
-                if (amount > 0) TIMED.add(new TimedNode<>(amount, -1));
+                if (amount > 0) TIMED.add(new TimedNode<>(amount));
 
                 clearExceedingNodes(time);
             }

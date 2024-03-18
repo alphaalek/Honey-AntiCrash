@@ -24,8 +24,8 @@ import java.util.function.Supplier;
 public class NettyDecodeListener extends AbstractDecodeListener implements IListener {
 
     @Override
-    public CheckVisitor<?> getVisitor() {
-        CheckVisitor<?> visitor = new CheckVisitor<>();
+    public CheckVisitor<?> getVisitor(HoneyPlayer player) {
+        CheckVisitor<?> visitor = new CheckVisitor<>(player);
         // A, B, H, I, J, K are packet listeners and not decode listeners, so they are in a different class
         visitor.visit(new NettyC());
         visitor.visit(new NettyD());

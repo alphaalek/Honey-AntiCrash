@@ -44,8 +44,8 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInChat> getVisitor() {
-        CheckVisitor<WrappedPlayInChat> visitor = new CheckVisitor<>();
+    public CheckVisitor<WrappedPlayInChat> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInChat> visitor = new CheckVisitor<>(player);
         visitor.visit(new ChatA());
         visitor.visit(new ChatB());
         visitor.visit(new CommandsA());
