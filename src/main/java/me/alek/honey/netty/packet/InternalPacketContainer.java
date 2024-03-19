@@ -1,10 +1,12 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import io.netty.util.AttributeKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
@@ -17,16 +19,13 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.Reflection;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
@@ -64,12 +63,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.channel = channel;
     }
 
-    public void setHandle(Object rawPacket) {
-        this.handle = rawPacket;
-    }
-
     public void init(Object rawPacket, Runnable postAction, PacketTypeEnum packetType) {
-        if (rawPacket != null) setHandle(rawPacket);
+        this.handle = rawPacket;
         this.postAction = postAction;
         this.type = packetType;
         this.packetStructure = ReflectStructureCache.acquireStructure(type);

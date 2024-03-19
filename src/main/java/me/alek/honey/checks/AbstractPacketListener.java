@@ -11,6 +11,9 @@ import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener, CheckVisitable {
 
     private final Array<CheckVisitor<?>> visitors = new Array<>();
@@ -72,8 +75,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
-        ((CheckVisitor<WP>)getCachedVisitor(visitors, this, player))
-                .check(player, packetContainer, checkContextContainer, callback);
+        //((CheckVisitor<WP>)getCachedVisitor(visitors, this, player))
+        //        .check(player, packetContainer, checkContextContainer, callback);
 
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }

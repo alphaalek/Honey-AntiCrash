@@ -4,6 +4,7 @@ import io.netty.buffer.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.util.AttributeKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -18,6 +19,7 @@ import org.bukkit.Bukkit;
 
 import java.nio.channels.ClosedChannelException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 

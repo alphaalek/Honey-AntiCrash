@@ -7,13 +7,12 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer {
 
     PacketEventloopStateTimings getEventloopStateTimings();
-
-    void setHandle(Object packet);
 
     void init(Object packet, Runnable postAction, PacketTypeEnum packetType);
 

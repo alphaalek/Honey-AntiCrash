@@ -267,11 +267,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         return packetContainer;
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket,
+    private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(PacketContainer<? extends WrappedPacket<?>> packetContainer,
                                                                                   Object packet, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
-        if (type.getBound() == PacketBound.SERVER) {
-            return new InternalPacketContainer<>(packet, player, channel, postAction, type);
-        }
         /* removed from packet processor - now handled in InboundPacketDecoder
 
         if (player != null) {
@@ -296,10 +293,10 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
         */
-        if (earlyInitializedPacket != null) {
-            earlyInitializedPacket.init(packet, postAction, type);
+        if (packetContainer != null) {
+            packetContainer.init(packet, postAction, type);
 
-            return earlyInitializedPacket;
+            return packetContainer;
         }
 
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
@@ -315,7 +312,6 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         // get information about this packet
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
-        Bukkit.getLogger().info("type " + packetType + " " + packet + " " + packetBound);
         final boolean hasAdapters = hasListener(packetType);
 
         // check if this packet type has any listeners which can handle this packet.
@@ -327,6 +323,11 @@ public class InternalPacketProcessor implements PacketProcessor {
         // initialize the packet container
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
+
+        if (packetContainer.getState() == PacketState.PLAY && packetContainer.getPlayer() == null) {
+            return packetContainer;
+        }
+
         if (packetContainer.getPacket() == null) {
             registerToBundle(player, packetType, packetContainer);
             return packetContainer;
@@ -337,9 +338,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
-        // handle the packet listeners
         callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
-
         packetContainer.getEventloopStateTimings().stopTimings();
 
         return packetContainer;
@@ -368,16 +367,16 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (!LOOKUP_PACKET_STATES.containsKey(packet.getClass())) {
             String packetName = packet.getClass().getSimpleName();
 
-            if (packetName.startsWith("PacketH")) {
+            if (packetName.startsWith("PacketHandshaking")) {
                 packetState = PacketState.HANDSHAKE;
             }
-            else if (packetName.startsWith("PacketL")) {
+            else if (packetName.startsWith("PacketLogin")) {
                 packetState = PacketState.LOGIN;
             }
-            else if (packetName.startsWith("PacketS")) {
+            else if (packetName.startsWith("PacketStatus")) {
                 packetState = PacketState.STATUS;
             }
-            else if (packetName.startsWith("PacketP")) {
+            else if (packetName.startsWith("PacketPlay") || packetName.startsWith("Clientbound") || packetName.startsWith("Serverbound")) {
                 packetState = PacketState.PLAY;
             }
             else {

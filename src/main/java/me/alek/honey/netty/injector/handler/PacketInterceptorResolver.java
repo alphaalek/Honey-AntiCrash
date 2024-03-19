@@ -17,6 +17,7 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,6 +79,7 @@ public class PacketInterceptorResolver {
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
                 handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
+
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object o) {
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
@@ -98,6 +100,11 @@ public class PacketInterceptorResolver {
                     ex.printStackTrace();
                 }
             }
+
+            @Override
+            public void handlerRemoved(ChannelHandlerContext ctx) {
+            }
+
         });
 
         String start = pipeline.get("decompress") != null ? "decompress" : "splitter";

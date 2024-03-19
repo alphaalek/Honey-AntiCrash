@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
+import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.utility.NMS;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -23,27 +24,34 @@ public class BukkitEventInternal implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        CompletableFuture<Channel> channelFuture = NMS.getChannel(player);
-        channelFuture.thenAccept(channel -> {
-            channel.eventLoop().execute(() -> {
-                if (channel.pipeline().toMap().isEmpty()) {
-                    HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                            () -> player.kickPlayer("Error occurred when injecting pipeline. Try connecting again."));
-                    return;
-                }
+        Channel channel = NMS.getChannelIfSet(player.getUniqueId());
+        if (channel != null) {
+            handleChannel(player, channel);
+            return;
+        }
 
-                HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
+        NMS.getChannel(player.getUniqueId()).thenAccept((ch) -> handleChannel(player, ch));
+    }
 
-                SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
-                try {
-                    injector.updatePlayer(honeyPlayer);
-                } catch (MissingHandlerException exception) {
-                    HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                            () -> player.kickPlayer("Broken pipe!"));
-                }
+    private void handleChannel(Player player, Channel channel) {
+        channel.eventLoop().execute(() -> {
+            if (channel.pipeline().toMap().isEmpty()) {
+                HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                        () -> player.kickPlayer("Error occurred when injecting pipeline. Try connecting again."));
+                return;
+            }
 
-                PlayerJoinListener.onPostLoginSuccess(honeyPlayer);
-            });
+            HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
+
+            SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
+            try {
+                injector.updatePlayer(honeyPlayer);
+            } catch (MissingHandlerException exception) {
+                HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                        () -> player.kickPlayer("Broken pipe!"));
+            }
+
+            PlayerJoinListener.onPostLoginSuccess(honeyPlayer);
         });
     }
 

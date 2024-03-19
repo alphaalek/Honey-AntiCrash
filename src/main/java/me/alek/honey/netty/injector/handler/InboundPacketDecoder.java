@@ -70,12 +70,12 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             packetContainer.getEventloopStateTimings().stopTimings();
             HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), packetContainer.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE));
 
-            packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 
             ctx.channel().eventLoop().execute(() -> {
-                if (packetHandler.read0(packetContainer)) {
-                    packetContainer.invokeCallback();
-                    ctx.fireChannelRead(packetContainer.getHandle());
+                if (packetHandler.read0(finalPacketContainer)) {
+                    finalPacketContainer.invokeCallback();
+                    ctx.fireChannelRead(finalPacketContainer.getHandle());
                 }
                 packetHandler.postRead();
             });
