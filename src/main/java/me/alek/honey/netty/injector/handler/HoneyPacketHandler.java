@@ -20,6 +20,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.nio.channels.ClosedChannelException;
+import java.util.UUID;
 
 public class HoneyPacketHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
@@ -116,13 +117,13 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
                 && PacketInterceptorResolver.isEncoderPositionResolved() && PacketInterceptorResolver.isDecoderPositionResolved()) {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(ctx.channel()).checkRelocation();
         }
-        if (packetContainer.getType() == PacketType.Login.Server.LOGIN_SUCCESS) {
-            IStructureModifier<WrappedGameProfile> gameProfileReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass())
-                    .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
+        if (packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
+            IStructureModifier<UUID> gameProfileReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass())
+                    .withType(UUID.class)
                     .withTarget(packetContainer.getHandle());
-            WrappedGameProfile gameProfile = gameProfileReflectStructure.readField(0);
+            UUID gameProfileUUID = gameProfileReflectStructure.readField(0);
 
-            NMS.submitChannelForUUID(gameProfile.getUUID(), ctx.channel());
+            NMS.submitChannelForUUID(gameProfileUUID, ctx.channel());
         }
     }
 

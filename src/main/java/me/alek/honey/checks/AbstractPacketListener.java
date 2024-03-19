@@ -75,8 +75,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
-        //((CheckVisitor<WP>)getCachedVisitor(visitors, this, player))
-        //        .check(player, packetContainer, checkContextContainer, callback);
+        ((CheckVisitor<WP>)getCachedVisitor(visitors, this, player))
+                .check(player, packetContainer, checkContextContainer, callback);
 
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }

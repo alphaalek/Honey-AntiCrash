@@ -30,20 +30,12 @@ public class NMS {
     private static Object minecraftServer;
     private static Object serverConnection;
 
-    public static synchronized UUID getUUIDForChannel(Channel channel) {
-        for (UUID uuid : lookupChannels.keySet()) {
-            if (lookupChannels.get(uuid) == channel)
-                return uuid;
-        }
-        return null;
-    }
-
     public static synchronized CompletableFuture<Channel> getChannel(Player player) {
         return getChannel(player.getUniqueId());
     }
 
     public static synchronized CompletableFuture<Channel> getChannel(UUID uuid) {
-        return lookupChannels.computeIfAbsent(uuid, (d) -> new CompletableFuture<>()/*channel.get(getNetworkManager(player)*/);
+        return lookupChannels.computeIfAbsent(uuid, (d) -> new CompletableFuture<>() /* channel.get(getNetworkManager(player) */ );
     }
 
     public static synchronized Channel getChannelIfSet(UUID uuid) {

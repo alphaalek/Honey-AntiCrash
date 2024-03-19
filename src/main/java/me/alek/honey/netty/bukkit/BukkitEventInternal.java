@@ -35,12 +35,6 @@ public class BukkitEventInternal implements Listener {
 
     private void handleChannel(Player player, Channel channel) {
         channel.eventLoop().execute(() -> {
-            if (channel.pipeline().toMap().isEmpty()) {
-                HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                        () -> player.kickPlayer("Error occurred when injecting pipeline. Try connecting again."));
-                return;
-            }
-
             HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
 
             SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
