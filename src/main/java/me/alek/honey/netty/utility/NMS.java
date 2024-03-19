@@ -8,6 +8,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class NMS {
 
@@ -23,7 +26,7 @@ public class NMS {
             getNetworkManagerClass(), 0, SocketAddress.class
     );
 
-    private static final HashMap<UUID, Channel> lookupChannels = new HashMap<>();
+    private static final HashMap<UUID, CompletableFuture<Channel>> lookupChannels = new HashMap<>();
     private static Object minecraftServer;
     private static Object serverConnection;
 
@@ -35,15 +38,29 @@ public class NMS {
         return null;
     }
 
-    public static synchronized Channel getChannel(Player player) {
-        Channel channel = getChannel0(player);
-        if (!channel.isOpen()) removeChannelLookup(player.getUniqueId());
-
-        return getChannel0(player);
+    public static synchronized CompletableFuture<Channel> getChannel(Player player) {
+        return getChannel(player.getUniqueId());
     }
 
-    public static synchronized Channel getChannel0(Player player) {
-        return lookupChannels.computeIfAbsent(player.getUniqueId(), (d) -> channel.get(getNetworkManager(player)));
+    public static synchronized CompletableFuture<Channel> getChannel(UUID uuid) {
+        return lookupChannels.computeIfAbsent(uuid, (d) -> new CompletableFuture<>()/*channel.get(getNetworkManager(player)*/);
+    }
+
+    public static synchronized Channel getChannelIfSet(UUID uuid) {
+        CompletableFuture<Channel> channelFuture = lookupChannels.get(uuid);
+        if (channelFuture == null || !channelFuture.isDone()) return null;
+
+        try {
+            return channelFuture.get(0, TimeUnit.MILLISECONDS);
+
+        } catch (Exception ex) {
+
+        }
+        return null;
+    }
+
+    public static synchronized void submitChannelForUUID(UUID uuid, Channel channel) {
+        getChannel(uuid).complete(channel);
     }
 
     public static Channel getChannelFromNetworkManager(Object networkManager) {

@@ -8,6 +8,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -41,15 +42,13 @@ public class SpigotServerInjector {
         }
         return null;
     }
-    
+
     private void getChannelFutures() {
         List<ChannelFuture> channelFutures = getNonEmptyServerConnectionList(ChannelFuture.class);
-
         if (channelFutures == null) return;
 
         int fieldIndex = channelFuturesFieldIndex;
         if (fieldIndex == -1) {
-
             boolean foundChannelFutures = false;
             for (List<?> list : serverConnectionListAccessor.readFieldValues()) {
                 if (!foundChannelFutures) fieldIndex++;
@@ -85,7 +84,9 @@ public class SpigotServerInjector {
             for (Object networkManager : networkManagers) {
 
                 Channel networkManagerChannel = NMS.getChannelFromNetworkManager(networkManager);
-                if (networkManagerChannel == null || !networkManagerChannel.isOpen()) continue;
+                if (networkManagerChannel == null || !networkManagerChannel.isOpen()) {
+                    continue;
+                }
 
                 if (networkManagerChannel.localAddress().equals(channel.localAddress())) {
                     networkManagerChannel.close();
@@ -103,6 +104,12 @@ public class SpigotServerInjector {
             }
         }
         return null;
+    }
+
+    public void removeNetworkManager(Object networkManager) {
+        synchronized (networkManagers) {
+            networkManagers.remove(networkManager);
+        }
     }
 
     public synchronized void inject() {

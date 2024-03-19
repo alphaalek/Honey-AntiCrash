@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 public class AsyncDecoder implements TaskSupplier<Object> {
 
-    private final HoneyPlayer player;
+    private HoneyPlayer player;
     private final WorkerPool<Object> workerPool;
     private ChainedCallable<Object> currentTask;
     private Worker<Object> worker;
@@ -18,6 +18,14 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     public AsyncDecoder(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
         this.workerPool = workerPool;
+    }
+
+    public AsyncDecoder(WorkerPool<Object> workerPool) {
+        this(null, workerPool);
+    }
+
+    public void setPlayer(HoneyPlayer player) {
+        this.player = player;
     }
 
     public HoneyPlayer getPlayer() {
@@ -47,12 +55,10 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         else
             worker = workerPool.submit(this);
 
-        // Bukkit.getLogger().info("Worker " + worker + " " + worker.relocate(this) + " " + worker.isQuarantined());
-
         if (worker.isQuarantined())
             if (worker.relocate(this))
                 worker = workerPool.relocateWorkerTasks(this, worker);
-            else if (System.currentTimeMillis() - lastHandledTask.get() > 100)
+            else if (player != null && System.currentTimeMillis() - lastHandledTask.get() > 100)
                 HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cDecoder worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
     }
 

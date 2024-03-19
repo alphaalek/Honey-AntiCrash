@@ -1,8 +1,6 @@
 package me.alek.honey.netty.injector.handler.async;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;

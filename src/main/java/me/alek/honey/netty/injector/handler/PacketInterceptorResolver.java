@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.AttributeKey;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.injector.handler.wrappers.WrappedChannelOutboundHandler;
@@ -13,12 +12,11 @@ import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
-import org.bukkit.Bukkit;
+import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,25 +32,33 @@ public class PacketInterceptorResolver {
     private static volatile String decoderPosition;
     private static volatile String encoderPosition;
 
-    public static String getDecoderPosition(ChannelPipeline pipeline) {
+    public static boolean isDecoderPositionResolved() {
+        return decoderPosition != null;
+    }
+
+    public static boolean isEncoderPositionResolved() {
+        return encoderPosition != null;
+    }
+
+    public static String getDecoderPosition(ChannelPipeline pipeline, Object networkManager) {
         if (decoderPosition == null)
-            decoderPosition = setupInterceptors(pipeline, false);
+            decoderPosition = setupInterceptors(pipeline, networkManager, false);
         return decoderPosition;
     }
 
-    public static String getEncoderPosition(ChannelPipeline pipeline) {
+    public static String getEncoderPosition(ChannelPipeline pipeline, Object networkManager) {
         if (encoderPosition == null)
-            encoderPosition = setupInterceptors(pipeline, true);
+            encoderPosition = setupInterceptors(pipeline, networkManager, true);
         return encoderPosition;
     }
 
-    public static String setupInterceptors(ChannelPipeline pipeline, boolean isEncoder) {
+    public static String setupInterceptors(ChannelPipeline pipeline, Object networkManager, boolean isEncoder) {
         AtomicReference<String> position = new AtomicReference<>();
         List<String> handlers;
         if (isEncoder)
-            handlers = setupEncoderPosition(pipeline, position);
+            handlers = setupEncoderPosition(pipeline, networkManager, position);
         else
-            handlers = setupDecoderInterceptors(pipeline, position);
+            handlers = setupDecoderInterceptors(pipeline, networkManager, position);
 
         for (String handler : handlers) {
             pipeline.remove(handler);
@@ -61,17 +67,17 @@ public class PacketInterceptorResolver {
         return position.get();
     }
 
-    private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-
-        AtomicReference<String> prev = new AtomicReference<>();
-        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel(), (serializer) -> {
+    private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, Object networkManager, AtomicReference<String> position) {
+        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel(), networkManager, (serializer) -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeBoolean(false);
         });
-        String start = pipeline.get("decompress") != null ? "decompress" : "splitter";
-        List<String> handlers = setupInterceptorEnv(pipeline, false, start, handler -> handler instanceof ChannelInboundHandler, handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
+
+        AtomicReference<String> prev = new AtomicReference<>();
+        List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
+                handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object o) {
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
@@ -83,22 +89,34 @@ public class PacketInterceptorResolver {
                     prev.set(name);
 
                     ChannelHandler intercepted = ctx.pipeline().get(name);
-                    ((ChannelInboundHandler)intercepted).channelRead(ctx, byteBuf.copy());
+                    if (intercepted != null)
+                        ((ChannelInboundHandler)intercepted).channelRead(ctx, byteBuf.copy());
+                    else
+                        ctx.fireChannelRead(o);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         });
-        pipeline.context(start).fireChannelRead(byteBuf);
+
+        String start = pipeline.get("decompress") != null ? "decompress" : "splitter";
+        for (String name : pipeline.names()) {
+            if (pipeline.get(name) != null) pipeline.remove(name);
+            handlers.remove(name);
+
+            if (name.equals(start + INTERCEPTOR)) {
+                break;
+            }
+        }
+
+        pipeline.fireChannelRead(byteBuf);
 
         return handlers;
     }
 
-    private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) { // only called once for each server start
-
-        AtomicReference<String> prev = new AtomicReference<>();
-        ByteBuf buf = createPositionByteBufPacket(pipeline.channel(), (serializer) -> {
+    private static List<String> setupEncoderPosition(ChannelPipeline pipeline, Object networkManager, AtomicReference<String> position) {
+        ByteBuf buf = createPositionByteBufPacket(pipeline.channel(), networkManager, (serializer) -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -107,10 +125,12 @@ public class PacketInterceptorResolver {
             serializer.writeShort(0);
             serializer.writeInt(0);
         }).copy();
-
         PacketContainer<WrappedPlayOutPosition> packet = PacketFactory.<WrappedPlayOutPosition>createWrappedPacket(
                 PacketType.Play.Server.POSITION, PacketFactory.createRawPacket(PacketType.Play.Server.POSITION, buf), null, pipeline.channel(), null).getContainer();
-        List<String> handlers = setupInterceptorEnv(pipeline, true, null, handler -> handler instanceof ChannelOutboundHandler, handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
+
+        AtomicReference<String> prev = new AtomicReference<>();
+        List<String> handlers = setupInterceptorEnv(pipeline, false, handler -> handler instanceof ChannelOutboundHandler,
+                handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
             @Override
             public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) throws Exception {
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
@@ -129,18 +149,18 @@ public class PacketInterceptorResolver {
                 }
             }
         });
+
         pipeline.channel().writeAndFlush(packet.getHandle());
+
         return handlers;
     }
 
-    private static List<String> setupInterceptorEnv(ChannelPipeline pipeline, boolean desc, String start, Predicate<ChannelHandler> accept, Function<ChannelHandler, ChannelHandler> handlerSupplier) {
-        boolean started = false;
-
+    private static List<String> setupInterceptorEnv(ChannelPipeline pipeline, boolean asc, Predicate<ChannelHandler> accept, Function<ChannelHandler, ChannelHandler> handlerSupplier) {
         List<String> wrappedHandlers = new ArrayList<>();
         String prevName = null;
 
         List<String> names = pipeline.names();
-        if (desc) Collections.reverse(names);
+        Collections.reverse(names);
         for (String name : names) {
 
             ChannelHandler handler;
@@ -149,25 +169,32 @@ public class PacketInterceptorResolver {
             }
 
             String prevInterceptor = pipeline.get(prevName + INTERCEPTOR) != null ? prevName + INTERCEPTOR : prevName;
-            if (started) {
-                wrappedHandlers.add(name + INTERCEPTOR);
-
-                if (desc)
-                    pipeline.addBefore(prevInterceptor, name + INTERCEPTOR, handlerSupplier.apply(handler));
-                else
-                    pipeline.addAfter(prevInterceptor, name + INTERCEPTOR, handlerSupplier.apply(handler));
+            wrappedHandlers.add(name + INTERCEPTOR);
+            ChannelHandler interceptor = handlerSupplier.apply(handler);
+            try {
+                if (prevName == null) {
+                    if (asc) {
+                        pipeline.addFirst(name + INTERCEPTOR, interceptor);
+                    } else {
+                        pipeline.addLast(name + INTERCEPTOR, interceptor);
+                    }
+                }
+                if (prevName != null) {
+                    pipeline.addBefore(prevInterceptor, name + INTERCEPTOR, interceptor);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-            if (start == null || name.equals(start)) started = true;
             prevName = name;
         }
         return wrappedHandlers;
     }
 
-    private static ByteBuf createPositionByteBufPacket(Channel channel, Consumer<ByteBuf> write) {
+    private static ByteBuf createPositionByteBufPacket(Channel channel, Object networkManager, Consumer<ByteBuf> write) {
         AttributeKey<Object> key;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
             key = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
-                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(PacketLibrary.get().getServerInjector().getNetworkManagerFor(channel)).readField(0);
+                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(networkManager).readField(0);
         else
             key = ReflectStructureCache.acquireStructure(NMS.getPacketDecoderClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("decoder")).readField(0);

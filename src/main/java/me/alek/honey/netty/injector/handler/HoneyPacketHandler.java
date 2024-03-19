@@ -1,23 +1,32 @@
 package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.tracker.NettyThreadLocal;
+import org.bukkit.Bukkit;
 
 import java.nio.channels.ClosedChannelException;
 
-public class DuplexChannelHandler extends ChannelDuplexHandler implements UpdatableChannel {
+public class HoneyPacketHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
     private volatile HoneyPlayer player;
+    private Object networkManager;
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
@@ -25,6 +34,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
 
     public HoneyPlayer getPlayer() {
         return player;
+    }
+
+    public Object getNetworkManager() {
+        return networkManager;
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
@@ -52,7 +65,10 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             return;
         }
 
-        if (!read(packetContainer)) {
+        if (networkManager == null)
+            networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(ctx.channel());
+
+        if (!read0(packetContainer)) {
             return;
         }
 
@@ -60,7 +76,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
         postRead();
     }
 
-    public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+    public synchronized boolean read0(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetContainer.isCancelled()) {
             if (player != null && HoneyPlugin.get().getLoggerService().isDebug())
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
@@ -75,9 +91,7 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
     }
 
     public void postRead() {
-        if (player != null)
-            packetSendMarker.remove();
-
+        packetSendMarker.remove();
         packetProcessor.postRead();
     }
 
@@ -87,20 +101,39 @@ public class DuplexChannelHandler extends ChannelDuplexHandler implements Updata
             super.write(ctx, packet, promise);
             return;
         }
+
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), player, packet);
 
-        if (packetContainer == null) {
-            packetProcessor.errorListeners(player, packet.getClass(), null);
+        if (!write0(packetContainer, promise)) {
             return;
-        }
-        if (packetContainer.isCancelled()) {
-            return;
-        }
-        if (packetContainer.getPost() != null) {
-            promise.addListener((f) -> packetContainer.getPost().run());
         }
 
         super.write(ctx, packetContainer.getHandle(), promise);
         packetProcessor.postWrite();
+
+        if (packetContainer.getType() == PacketType.Login.Server.SET_COMPRESSION && networkManager != null
+                && PacketInterceptorResolver.isEncoderPositionResolved() && PacketInterceptorResolver.isDecoderPositionResolved()) {
+            HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(ctx.channel()).checkRelocation();
+        }
+        if (packetContainer.getType() == PacketType.Login.Server.LOGIN_SUCCESS) {
+            IStructureModifier<WrappedGameProfile> gameProfileReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass())
+                    .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
+                    .withTarget(packetContainer.getHandle());
+            WrappedGameProfile gameProfile = gameProfileReflectStructure.readField(0);
+
+            NMS.submitChannelForUUID(gameProfile.getUUID(), ctx.channel());
+        }
+    }
+
+    public boolean write0(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelPromise promise) {
+        if (packetContainer.isCancelled()) {
+            return false;
+        }
+
+        if (packetContainer.getPost() != null) {
+            promise.addListener((f) -> packetContainer.getPost().run());
+        }
+
+        return true;
     }
 }

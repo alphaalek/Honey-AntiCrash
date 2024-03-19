@@ -54,8 +54,8 @@ public class ServerPacketManager {
         channel.pipeline().fireChannelRead(rawPacket);
     }
 
-    public DuplexChannelHandler getHandler(Channel channel) {
-        return (DuplexChannelHandler) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
+    public HoneyPacketHandler getHandler(Channel channel) {
+        return (HoneyPacketHandler) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
     }
 
     public InboundPacketFilter getFilter(Channel channel) {

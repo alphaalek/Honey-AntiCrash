@@ -3,9 +3,11 @@ package me.alek.honey.netty.bukkit;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
 import me.alek.honey.netty.utility.NMS;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,33 +15,46 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.concurrent.CompletableFuture;
+
 public class BukkitEventInternal implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        Channel channel = NMS.getChannel(player);
+        CompletableFuture<Channel> channelFuture = NMS.getChannel(player);
+        channelFuture.thenAccept(channel -> {
+            channel.eventLoop().execute(() -> {
+                if (channel.pipeline().toMap().isEmpty()) {
+                    HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                            () -> player.kickPlayer("Error occurred when injecting pipeline. Try connecting again."));
+                    return;
+                }
 
-        if (channel == null || channel.pipeline().toMap().isEmpty()) {
-            player.kickPlayer("Error occurred when injecting pipeline. Try connecting again. (response: " + ((channel == null) ? 1 : 2 + ")"));
-            return;
-        }
-        HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
+                HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
 
-        SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
-        try {
-            injector.updatePlayer(honeyPlayer);
-        } catch (MissingHandlerException exception) {
-            player.kickPlayer("Broken pipe!");
-        }
+                SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
+                try {
+                    injector.updatePlayer(honeyPlayer);
+                } catch (MissingHandlerException exception) {
+                    HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                            () -> player.kickPlayer("Broken pipe!"));
+                }
+
+                PlayerJoinListener.onPostLoginSuccess(honeyPlayer);
+            });
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(NMS.getChannel(player));
+        Channel channel = NMS.getChannelIfSet(player.getUniqueId());
+        if (channel != null) {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
+        }
         NMS.removeChannelLookup(player.getUniqueId());
 
         HoneyPlayer.removePlayer(player.getUniqueId());

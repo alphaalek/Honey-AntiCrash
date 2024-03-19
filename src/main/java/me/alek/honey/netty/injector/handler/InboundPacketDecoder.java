@@ -3,46 +3,44 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.tracker.NettyThreadLocal;
-import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
+    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
 
     private final AsyncDecoder asyncDecoder;
-    private final DuplexChannelHandler duplexChannelHandler;
+    private final HoneyPacketHandler packetHandler;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder, DuplexChannelHandler duplexChannelHandler) {
+    public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.asyncDecoder = asyncDecoder;
-        this.duplexChannelHandler = duplexChannelHandler;
+        this.packetHandler = packetHandler;
         setupMethodInvoke(channel.pipeline());
+    }
+
+    public AsyncDecoder getAsyncDecoder() {
+        return asyncDecoder;
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
         try {
-            decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline));
+            decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline, packetHandler.getNetworkManager()));
 
             Method method = decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
             method.setAccessible(true);
@@ -59,7 +57,8 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         try {
             if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
 
-            decodeInvoker.invoke(decoder, ctx, byteBuf, list);
+            // explicit set variable, so Proguard recognizes the method
+            Object empty = decodeInvoker.invoke(decoder, ctx, byteBuf, list);
             byteBuf.release();
 
             if (list.isEmpty()) return;
@@ -74,11 +73,11 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 
             ctx.channel().eventLoop().execute(() -> {
-                if (duplexChannelHandler.read(packetContainer)) {
+                if (packetHandler.read0(packetContainer)) {
                     packetContainer.invokeCallback();
                     ctx.fireChannelRead(packetContainer.getHandle());
                 }
-                duplexChannelHandler.postRead();
+                packetHandler.postRead();
             });
         } catch (Throwable ex) {
             try {
@@ -111,7 +110,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (asyncDecoder.getPlayer().isOnline()) {
+            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnline()) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

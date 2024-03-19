@@ -12,15 +12,11 @@ public class ReflectStructureCache {
     public static Map<Class<?>, ReflectStructure<Object, ?>> WRAPPER_STRUCTURE_CACHE = new ConcurrentHashMap<>();
 
     public static synchronized ReflectStructure<Object, ?> acquireStructure(PacketTypeEnum packetType) {
-        return PACKET_STRUCTURE_CACHE.computeIfAbsent(packetType, packetTypeEnum -> {
-            return new ReflectStructure<>(packetType.getNmsClass());
-        });
+        return PACKET_STRUCTURE_CACHE.computeIfAbsent(packetType, packetTypeEnum -> new ReflectStructure<>(packetType.getNmsClass()));
     }
 
     public static synchronized ReflectStructure<Object, ?> acquireStructure(Class<?> clazz) {
-        return WRAPPER_STRUCTURE_CACHE.computeIfAbsent(clazz, wrapperClass -> {
-            return new ReflectStructure<>(clazz);
-        });
+        return WRAPPER_STRUCTURE_CACHE.computeIfAbsent(clazz, wrapperClass -> new ReflectStructure<>(clazz));
     }
 
     public static synchronized ReflectStructure<Object, ?> acquirePacketStructureFromNMS(Class<?> nmsClass) {

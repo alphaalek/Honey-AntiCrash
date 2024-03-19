@@ -24,14 +24,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-    public static Function<Object, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER =
-            (packet) -> new InternalPacketContainer<>(packet, null, null);
+    public static BiFunction<Object, PacketTypeEnum, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER =
+            (packet, type) -> new InternalPacketContainer<>(packet, type, null, null);
 
     private PacketTypeEnum type;
     private Object handle;
@@ -48,13 +49,14 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
-        this(player, channel);
+        this(rawPacket, type, player, channel);
         init(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel) {
+    public InternalPacketContainer(Object rawPacket, PacketTypeEnum packetType, HoneyPlayer player, Channel channel) {
         this(player, channel);
         this.handle = rawPacket;
+        this.type = packetType;
     }
 
     public InternalPacketContainer(HoneyPlayer player, Channel channel) {
@@ -66,10 +68,10 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.handle = rawPacket;
     }
 
-    public void init(Object rawPacket, Runnable postAction, PacketTypeEnum type) {
+    public void init(Object rawPacket, Runnable postAction, PacketTypeEnum packetType) {
         if (rawPacket != null) setHandle(rawPacket);
         this.postAction = postAction;
-        this.type = type;
+        this.type = packetType;
         this.packetStructure = ReflectStructureCache.acquireStructure(type);
         this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
     }

@@ -73,7 +73,8 @@ public class PacketFactory {
         if (wrapperInvoker == null) return null;
 
         try {
-            return (WrappedPacket<WP>) wrapperInvoker.invoke(rawPacket, packetContainer);
+            Object packet = wrapperInvoker.invoke(rawPacket, packetContainer);
+            return (WrappedPacket<WP>) packet;
         } catch (Throwable ex) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating wrapped packet for type " + type);
             ex.printStackTrace();
@@ -84,6 +85,7 @@ public class PacketFactory {
     public static MethodHandle getWrapperInvoker(PacketTypeEnum type) {
         return WRAPPER_CACHE.get(type.getPacketId(), () -> {
             Class<?> nmsClass = type.getNmsClass();
+
             return PacketWrapperInvokerFactory.createWrapperInvoker(type.getState(), nmsClass);
         });
     }

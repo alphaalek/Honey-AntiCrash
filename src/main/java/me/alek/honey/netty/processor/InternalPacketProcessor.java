@@ -1,17 +1,19 @@
 package me.alek.honey.netty.processor;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.*;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -253,15 +255,15 @@ public class InternalPacketProcessor implements PacketProcessor {
         POST_ACTION_MAP.put(packetType, postAction);
     }
 
-    private void registerToBundle(HoneyPlayer player, PacketBound packetBound, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        if (packetBound == PacketBound.CLIENT && player != null && packetContainer.getPlayer() != null) {
+    private void registerToBundle(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+        if (packetType.getBound() == PacketBound.CLIENT && player != null && packetContainer.getPlayer() != null) {
             player.packetBundleSaver.add(packetContainer);
         }
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> registerSimpleContainerToBundle(Object handle, HoneyPlayer player, PacketBound packetBound) {
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = InternalPacketContainer.SIMPLE_CONTAINER.apply(handle);
-        registerToBundle(player, packetBound, packetContainer);
+    private PacketContainer<? extends WrappedPacket<?>> registerSimpleContainerToBundle(Object handle, HoneyPlayer player, PacketTypeEnum packetType) {
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = InternalPacketContainer.SIMPLE_CONTAINER.apply(handle, packetType);
+        registerToBundle(player, packetType, packetContainer);
         return packetContainer;
     }
 
@@ -308,29 +310,30 @@ public class InternalPacketProcessor implements PacketProcessor {
                                                                      PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket, long readStart) {
         final PacketState packetState = getPacketState(player, packet);
         if (packetState == PacketState.UNKNOWN) {
-            return registerSimpleContainerToBundle(packet, player, packetBound);
+            return registerSimpleContainerToBundle(packet, player, null);
         }
 
         // get information about this packet
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
+        Bukkit.getLogger().info("type " + packetType + " " + packet + " " + packetBound);
         final boolean hasAdapters = hasListener(packetType);
 
         // check if this packet type has any listeners which can handle this packet.
         // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
         if (!hasAdapters) {
-            return registerSimpleContainerToBundle(packet, player, packetBound);
+            return registerSimpleContainerToBundle(packet, player, packetType);
         }
 
         // initialize the packet container
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
         if (packetContainer.getPacket() == null) {
-            registerToBundle(player, packetBound, packetContainer);
+            registerToBundle(player, packetType, packetContainer);
             return packetContainer;
         }
 
         if (packetType != PacketType.Play.Client.KEEP_ALIVE) {
-            registerToBundle(player, packetBound, packetContainer);
+            registerToBundle(player, packetType, packetContainer);
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
@@ -358,15 +361,13 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public PacketState getPacketState(HoneyPlayer player, Object packet) {
-        if (packet == null) {
-            return null;
-        }
-        if (player != null) {
-            return PacketState.PLAY;
-        }
+        if (packet == null) return null;
+        if (player != null) return PacketState.PLAY;
+
         PacketState packetState;
         if (!LOOKUP_PACKET_STATES.containsKey(packet.getClass())) {
             String packetName = packet.getClass().getSimpleName();
+
             if (packetName.startsWith("PacketH")) {
                 packetState = PacketState.HANDSHAKE;
             }
@@ -376,14 +377,19 @@ public class InternalPacketProcessor implements PacketProcessor {
             else if (packetName.startsWith("PacketS")) {
                 packetState = PacketState.STATUS;
             }
+            else if (packetName.startsWith("PacketP")) {
+                packetState = PacketState.PLAY;
+            }
             else {
                 packetState = PacketState.UNKNOWN;
             }
+
             LOOKUP_PACKET_STATES.put(packet.getClass(), packetState);
         }
         else {
             packetState = LOOKUP_PACKET_STATES.get(packet.getClass());
         }
+
         return packetState;
     }
 

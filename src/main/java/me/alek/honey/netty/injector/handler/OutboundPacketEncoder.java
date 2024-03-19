@@ -4,14 +4,20 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 
 public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
+    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Method packetEncode;
     private static final Class<?> packetClass;
 
@@ -29,16 +35,20 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     }
 
     private final AsyncDecoder asyncDecoder;
-    private final DuplexChannelHandler duplexChannelHandler;
+    private final HoneyPacketHandler packetHandler;
     private final Channel channel;
     private final MessageToByteEncoder<Object> encoder;
     private volatile boolean forced;
 
-    public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder, DuplexChannelHandler duplexChannelHandler) {
+    public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.channel = channel;
         this.asyncDecoder = asyncDecoder;
-        this.duplexChannelHandler = duplexChannelHandler;
+        this.packetHandler = packetHandler;
         encoder = (MessageToByteEncoder<Object>) channel.pipeline().get("encoder");
+    }
+
+    public AsyncDecoder getAsyncDecoder() {
+        return asyncDecoder;
     }
 
     @Override
@@ -49,7 +59,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         }
 
         asyncDecoder.encode((s) -> {
-            if (asyncDecoder.getPlayer().isOnline()) {
+            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnline()) {
                 try {
                     write0(ctx, msg, new DefaultChannelPromise(ctx.channel()), true);
                 } catch (Exception ex) {
@@ -64,6 +74,12 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     }
 
     private void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) throws Exception {
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
+
+        if (!packetHandler.write0(packetContainer, promise)) {
+            return;
+        }
+
         if (retain) ReferenceCountUtil.retain(msg);
 
         if (packetClass.isInstance(msg))

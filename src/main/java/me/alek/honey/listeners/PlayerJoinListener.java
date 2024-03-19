@@ -5,28 +5,17 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.IDRegistry;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.storage.SQLManagerWrapper;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
-
 public class PlayerJoinListener implements Listener {
 
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        if (!event.getPlayer().isOnline()) return; // kicked from other event?
-
-        final HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
-
+    public static void onPostLoginSuccess(HoneyPlayer player) {
         for (IListener check : ListenerRegistry.getChecks()) {
             if (check.hasInitializedCheckInstances())
                 check.setup(player);

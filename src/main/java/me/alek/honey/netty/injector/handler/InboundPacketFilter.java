@@ -4,7 +4,6 @@ import io.netty.buffer.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -17,7 +16,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.Array;
 import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
+import java.nio.channels.ClosedChannelException;
 import java.util.List;
 
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
@@ -41,16 +40,22 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     private boolean hasBeenRelocated;
     private HoneyPlayer player;
     private final Channel channel;
+    private final HoneyPacketHandler packetHandler;
 
-    public InboundPacketFilter(Channel channel) {
+    public InboundPacketFilter(Channel channel, HoneyPacketHandler packetHandler) {
         this.channel = channel;
+        this.packetHandler = packetHandler;
     }
 
     public InboundPacketFilter copy() {
-        InboundPacketFilter copy = new InboundPacketFilter(channel);
+        InboundPacketFilter copy = new InboundPacketFilter(channel, packetHandler);
         copy.hasBeenRelocated = true;
         copy.player = player;
         return copy;
+    }
+
+    public HoneyPacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
     public void setPlayer(HoneyPlayer player) {
@@ -64,7 +69,17 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
-            checkRelocation(channel);
+            checkRelocation();
+
+            if (player.updateHandlersLater &&
+                    PacketInterceptorResolver.isDecoderPositionResolved() && PacketInterceptorResolver.isEncoderPositionResolved()) {
+                try {
+                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().updatePlayer(player);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                player.updateHandlersLater = false;
+            }
 
             if (player.nettyThreadID == -1) {
                 synchronized (nettyThreads) {
@@ -102,19 +117,17 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     }
 
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
-        checkRelocation(ctx.channel()); // triggered by ViaVersion
-        super.userEventTriggered(ctx, event);
-    }
-
-    public void checkRelocation(Channel channel) {
-        if (!hasBeenRelocated && player != null) {
+    public void checkRelocation() {
+        if (!hasBeenRelocated) {
             try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, player);
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, packetHandler);
+
                 hasBeenRelocated = true;
             } catch (MissingHandlerException ex) {
-                Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer(ex.getMessage()));
+                if (player != null)
+                    Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer(ex.getMessage()));
+                else
+                    channel.close();
             }
         }
     }

@@ -2,7 +2,6 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.checks.CallbackAction;
-import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.services.ViolationService;
@@ -43,6 +42,8 @@ public class HoneyPlayer {
     public final String name;
     public final Channel channel;
 
+    public boolean updateHandlersLater;
+    public boolean removedPacketHandlerFromPipeline;
     public TempTimedQueuedTracker timedQueuedTracker;
     public TempTimedQueuedTracker serverThreadTimedQueuedTracker;
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
@@ -56,7 +57,7 @@ public class HoneyPlayer {
         this.player = player;
 
         uuid = player.getUniqueId();
-        channel = NMS.getChannel(player);
+        channel = NMS.getChannelIfSet(uuid);
         name = player.getName();
         violationContext = new ViolationService.ViolationContext(this);
 

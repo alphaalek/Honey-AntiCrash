@@ -4,9 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.DuplexChannelHandler;
-import me.alek.honey.netty.injector.handler.InboundPacketDecoder;
-import me.alek.honey.netty.injector.handler.InboundPacketFilter;
+import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -17,7 +15,6 @@ import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -25,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
-    private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = DuplexChannelHandler.getPacketSendMarker();
+    private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
