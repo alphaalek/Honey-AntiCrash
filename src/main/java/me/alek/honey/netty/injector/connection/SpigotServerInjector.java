@@ -103,7 +103,7 @@ public class SpigotServerInjector {
                     return networkManager;
             }
         }
-        return null;
+        return channel.pipeline().get("packet_handler");
     }
 
     public void removeNetworkManager(Object networkManager) {

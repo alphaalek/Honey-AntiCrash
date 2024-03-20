@@ -47,12 +47,12 @@ public class SpigotPipelineInjector {
 
             String[] requiredHandlers = new String[3];
             channel.pipeline().addAfter(channel.pipeline().get(
-                    "decompress") != null ? "decompress" : /* no SET_COMPRESSION */ "splitter", requiredHandlers[0] = filterName, filter);
+                    "decompress") != null ? "decompress" : /* no network compression */ "splitter", requiredHandlers[0] = filterName, filter);
 
             AsyncDecoder asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL);
-            channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline(), packetHandler.getNetworkManager()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
+            channel.pipeline().addBefore(requiredHandlers[1] = PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getDecoderName(),
                     new InboundPacketDecoder(channel, asyncDecoder, packetHandler));
-            channel.pipeline().addAfter(requiredHandlers[2] = PacketInterceptorResolver.getEncoderPosition(channel.pipeline(), packetHandler.getNetworkManager()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
+            channel.pipeline().addAfter(requiredHandlers[2] = PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), HoneyPlugin.get().getPacketLibrary().getEncoderName(),
                     new OutboundPacketEncoder(channel, asyncDecoder, packetHandler));
 
             for (String requiredHandler : requiredHandlers) {
@@ -68,8 +68,7 @@ public class SpigotPipelineInjector {
             return;
         }
         synchronized (channel) {
-            HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel).getPacketHandler();
-            HoneyPlugin.get().getPacketLibrary().getServerInjector().removeNetworkManager(packetHandler.getNetworkManager());
+            HoneyPlugin.get().getPacketLibrary().getServerInjector().removeNetworkManager(channel.pipeline().get("packet_handler"));
 
             String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
@@ -106,9 +105,7 @@ public class SpigotPipelineInjector {
             if (handler != null) handler.setPlayer(player);
             filter.setPlayer(player);
 
-            Object networkManager = filter.getPacketHandler().getNetworkManager();
-
-            if (PacketInterceptorResolver.isDecoderPositionResolved() && networkManager != null) {
+            if (PacketInterceptorResolver.isDecoderPositionResolved()) {
                 InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
                 if (decoder == null) throw new MissingHandlerException("Decoder");
 
@@ -116,7 +113,7 @@ public class SpigotPipelineInjector {
             }
             else player.updateHandlersLater = true;
 
-            if (PacketInterceptorResolver.isEncoderPositionResolved() && networkManager != null) {
+            if (PacketInterceptorResolver.isEncoderPositionResolved()) {
                 OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
                 if (encoder == null) throw new MissingHandlerException("Encoder");
 

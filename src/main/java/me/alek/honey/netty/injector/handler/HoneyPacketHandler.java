@@ -26,7 +26,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
     private volatile HoneyPlayer player;
-    private Object networkManager;
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
@@ -34,10 +33,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
 
     public HoneyPlayer getPlayer() {
         return player;
-    }
-
-    public Object getNetworkManager() {
-        return networkManager;
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
@@ -64,9 +59,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
             packetProcessor.errorListeners(player, packet.getClass(), null);
             return;
         }
-
-        if (networkManager == null)
-            networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(ctx.channel());
 
         if (!read0(packetContainer)) {
             return;
@@ -125,7 +117,7 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
             return;
         }
 
-        if (packetContainer.getType() == PacketType.Login.Server.LOGIN_SUCCESS && networkManager != null
+        if (packetContainer.getType() == PacketType.Login.Server.LOGIN_SUCCESS
                 && PacketInterceptorResolver.isEncoderPositionResolved() && PacketInterceptorResolver.isDecoderPositionResolved()) {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(ctx.channel()).checkRelocation();
         }

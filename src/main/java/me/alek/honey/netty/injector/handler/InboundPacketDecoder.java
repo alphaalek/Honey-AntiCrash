@@ -39,7 +39,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
         try {
-            decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline, packetHandler.getNetworkManager()));
+            decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline));
 
             Method method = decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
             method.setAccessible(true);

@@ -41,25 +41,25 @@ public class PacketInterceptorResolver {
         return encoderPosition != null;
     }
 
-    public static String getDecoderPosition(ChannelPipeline pipeline, Object networkManager) {
+    public static String getDecoderPosition(ChannelPipeline pipeline) {
         if (decoderPosition == null)
-            decoderPosition = setupInterceptors(pipeline, networkManager, false);
+            decoderPosition = setupInterceptors(pipeline, false);
         return decoderPosition;
     }
 
-    public static String getEncoderPosition(ChannelPipeline pipeline, Object networkManager) {
+    public static String getEncoderPosition(ChannelPipeline pipeline) {
         if (encoderPosition == null)
-            encoderPosition = setupInterceptors(pipeline, networkManager, true);
+            encoderPosition = setupInterceptors(pipeline, true);
         return encoderPosition;
     }
 
-    public static String setupInterceptors(ChannelPipeline pipeline, Object networkManager, boolean isEncoder) {
+    public static String setupInterceptors(ChannelPipeline pipeline, boolean isEncoder) {
         AtomicReference<String> position = new AtomicReference<>();
         List<String> handlers;
         if (isEncoder)
-            handlers = setupEncoderPosition(pipeline, networkManager, position);
+            handlers = setupEncoderPosition(pipeline, position);
         else
-            handlers = setupDecoderInterceptors(pipeline, networkManager, position);
+            handlers = setupDecoderInterceptors(pipeline, position);
 
         for (String handler : handlers) {
             pipeline.remove(handler);
@@ -68,8 +68,8 @@ public class PacketInterceptorResolver {
         return position.get();
     }
 
-    private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, Object networkManager, AtomicReference<String> position) {
-        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel(), networkManager, (serializer) -> {
+    private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
+        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel(), serializer -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -122,8 +122,8 @@ public class PacketInterceptorResolver {
         return handlers;
     }
 
-    private static List<String> setupEncoderPosition(ChannelPipeline pipeline, Object networkManager, AtomicReference<String> position) {
-        ByteBuf buf = createPositionByteBufPacket(pipeline.channel(), networkManager, (serializer) -> {
+    private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) {
+        ByteBuf buf = createPositionByteBufPacket(pipeline.channel(), (serializer) -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -197,11 +197,11 @@ public class PacketInterceptorResolver {
         return wrappedHandlers;
     }
 
-    private static ByteBuf createPositionByteBufPacket(Channel channel, Object networkManager, Consumer<ByteBuf> write) {
+    private static ByteBuf createPositionByteBufPacket(Channel channel, Consumer<ByteBuf> write) {
         AttributeKey<Object> key;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
             key = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
-                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(networkManager).readField(0);
+                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("packet_handler")).readField(0);
         else
             key = ReflectStructureCache.acquireStructure(NMS.getPacketDecoderClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("decoder")).readField(0);
