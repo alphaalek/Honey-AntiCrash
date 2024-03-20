@@ -1,38 +1,33 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
-import io.netty.util.AttributeKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-    public static BiFunction<Object, PacketTypeEnum, PacketContainer<? extends WrappedPacket<?>>> SIMPLE_CONTAINER =
-            (packet, type) -> new InternalPacketContainer<>(packet, type, null, null);
 
     private PacketTypeEnum type;
     private Object handle;
