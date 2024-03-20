@@ -122,10 +122,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void checkRelocation() {
         if (!hasBeenRelocated) {
             try {
+                Bukkit.getLogger().info("Relocating! " + Thread.currentThread());
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, packetHandler);
 
                 hasBeenRelocated = true;
             } catch (MissingHandlerException ex) {
+                ex.printStackTrace();
                 if (player != null)
                     Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer(ex.getMessage()));
                 else

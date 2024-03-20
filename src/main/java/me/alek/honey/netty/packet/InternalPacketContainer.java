@@ -11,6 +11,7 @@ import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -67,8 +68,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.handle = rawPacket;
         this.postAction = postAction;
         this.type = packetType;
-        this.packetStructure = ReflectStructureCache.acquireStructure(type);
-        this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
+
+        if (type != null && type != PacketType.UNKNOWN) {
+            this.packetStructure = ReflectStructureCache.acquireStructure(type);
+            this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
+        }
     }
 
     @Override

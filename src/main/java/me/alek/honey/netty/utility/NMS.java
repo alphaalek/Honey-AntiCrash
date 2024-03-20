@@ -7,9 +7,7 @@ import org.bukkit.entity.Player;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class NMS {
@@ -51,7 +49,7 @@ public class NMS {
         return null;
     }
 
-    public static synchronized void submitChannelForUUID(String name, Channel channel) {
+    public static synchronized void submitChannelForName(String name, Channel channel) {
         getChannel(name).complete(channel);
     }
 

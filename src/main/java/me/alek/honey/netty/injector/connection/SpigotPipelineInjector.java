@@ -59,9 +59,8 @@ public class SpigotPipelineInjector {
                 if (channel.pipeline().get(requiredHandler) == null)
                     throw new MissingHandlerException("No \"" + requiredHandler + "\" channel handler in pipeline!");
             }
-            if (channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName()) != null) {
-                throw new MissingHandlerException("Could not properly eject DuplexChannelHandler from pipeline!");
-            }
+
+            Bukkit.broadcastMessage(channel.pipeline().toMap() + " RELOCATED");
         }
     }
 
@@ -125,7 +124,7 @@ public class SpigotPipelineInjector {
             }
             else player.updateHandlersLater = true;
 
-            if (handler != null) channel.pipeline().remove(handler);
+            //if (handler != null) channel.pipeline().remove(handler);
             player.removedPacketHandlerFromPipeline = true;
         }
     }

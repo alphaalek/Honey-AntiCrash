@@ -1,26 +1,24 @@
 package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.nio.channels.ClosedChannelException;
-import java.util.UUID;
 
 public class HoneyPacketHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
@@ -78,12 +76,24 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         postRead();
 
         if (packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
-            IStructureModifier<WrappedGameProfile> gameProfileReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass())
-                    .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
-                    .withTarget(packetContainer.getHandle());
-            WrappedGameProfile gameProfile = gameProfileReflectStructure.readField(0);
 
-            NMS.submitChannelForUUID(gameProfile.getName(), ctx.channel());
+            ReflectStructure<?, ?> loginStartPacketReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass());
+
+            String name;
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_18_2)) {
+                IStructureModifier<WrappedGameProfile> gameProfileIStructureModifier = loginStartPacketReflectStructure
+                        .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
+                        .withTarget(packetContainer.getHandle());
+                WrappedGameProfile gameProfile = gameProfileIStructureModifier.readField(0);
+                name = gameProfile.getName();
+            } else {
+                IStructureModifier<String> stringReflectStructure = loginStartPacketReflectStructure
+                        .asString().withTarget(packetContainer.getHandle());
+                name = stringReflectStructure.readField(0);
+            }
+
+            Bukkit.getLogger().info("LOGIN START " + name);
+            NMS.submitChannelForName(name, ctx.channel());
         }
     }
 
@@ -119,13 +129,16 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
             return;
         }
 
-        super.write(ctx, packetContainer.getHandle(), promise);
-        packetProcessor.postWrite();
-
-        if (packetContainer.getType() == PacketType.Login.Server.SET_COMPRESSION && networkManager != null
+        if (packetContainer.getType() == PacketType.Login.Server.LOGIN_SUCCESS && networkManager != null
                 && PacketInterceptorResolver.isEncoderPositionResolved() && PacketInterceptorResolver.isDecoderPositionResolved()) {
+            Bukkit.getLogger().info("SET COMPRESSION");
+
+            Bukkit.getLogger().info(ctx.channel().pipeline().toMap() + " PRE RELOCATION!");
             HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(ctx.channel()).checkRelocation();
         }
+
+        super.write(ctx, packetContainer.getHandle(), promise);
+        packetProcessor.postWrite();
     }
 
     public boolean write0(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelPromise promise) {
