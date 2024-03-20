@@ -263,12 +263,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
-    private PacketContainer<? extends WrappedPacket<?>> registerSimpleContainerToBundle(Object handle, HoneyPlayer player, PacketTypeEnum packetType) {
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = InternalPacketContainer.SIMPLE_CONTAINER.apply(handle, packetType);
-        registerToBundle(player, packetType, packetContainer);
-        return packetContainer;
-    }
-
     private PacketContainer<? extends WrappedPacket<?>> initializePacketContainer(PacketContainer<? extends WrappedPacket<?>> packetContainer,
                                                                                   Object packet, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type, long readStart) {
         /* removed from packet processor - now handled in InboundPacketDecoder
@@ -307,24 +301,17 @@ public class InternalPacketProcessor implements PacketProcessor {
     private PacketContainer<? extends WrappedPacket<?>> handleCommon(HoneyPlayer player, Channel channel,
                                                                      Object packet, PacketBound packetBound,
                                                                      PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket, long readStart) {
-        final PacketState packetState = getPacketState(player, packet.getClass());
-        if (packetState == PacketState.UNKNOWN) {
-            return registerSimpleContainerToBundle(packet, player, null);
-        }
-
-        // get information about this packet
+        // initialize the packet container
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
-        final boolean hasAdapters = hasListener(packetType);
+        final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
+                earlyInitializedPacket, packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
+
 
         // check if this packet type has any listeners which can handle this packet.
         // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
-        if (!hasAdapters) {
-            return registerSimpleContainerToBundle(packet, player, packetType);
+        if (!hasListener(packetType)) {
+            return packetContainer;
         }
-
-        // initialize the packet container
-        final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
 
         if (packetContainer.getState() == PacketState.PLAY && packetContainer.getPlayer() == null) {
             return packetContainer;
@@ -340,6 +327,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
+        Bukkit.getLogger().info("Call " + packetContainer.getPacket() + " " + packetContainer.getType() + " " + packet);
         callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
         packetContainer.getEventloopStateTimings().stopTimings();
 

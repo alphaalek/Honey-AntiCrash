@@ -178,25 +178,23 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> LOGIN_START_CLASS = Reflection.getClass("{nms}.PacketLoginInStart");
         private static Class<?> CUSTOM_PAYLOAD_CLASS;
 
-        private static final byte LOGIN_START = 0x00, ENCRYPTION_RESPONSE = 0x01, CUSTOM_PAYLOAD = 0x02;
-
 
         public enum Client implements RangedPacketTypeEnum {
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, Login.CUSTOM_PAYLOAD, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
-            ENCRYPTION_RESPONSE(ENCRYPTION_RESPONSE_CLASS, Login.ENCRYPTION_RESPONSE),
-            LOGIN_START(LOGIN_START_CLASS, Login.LOGIN_START);
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, 151, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
+            ENCRYPTION_RESPONSE(ENCRYPTION_RESPONSE_CLASS, 152),
+            LOGIN_START(LOGIN_START_CLASS, 153);
 
             private final Class<?> nmsPacket;
-            private final byte packetId;
+            private final int packetId;
             private final NetProtocolRange protocolRange;
 
-            Client(Class<?> nmsPacket, byte packetId) {
+            Client(Class<?> nmsPacket, int packetId) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
                 this.protocolRange = NetProtocolRange.ALL;
             }
 
-            Client(Class<?> nmsPacket, byte packetId, NetProtocolRange protocolRange) {
+            Client(Class<?> nmsPacket, int packetId, NetProtocolRange protocolRange) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
                 this.protocolRange = protocolRange;
@@ -233,7 +231,6 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> LOGIN_SUCCESS_CLASS = Reflection.getClass("{nms}.PacketLoginOutSuccess");
         private static final Class<?> SET_COMPRESSION_CLASS = Reflection.getClass("{nms}.PacketLoginOutSetCompression");
         private static Class<?> SERVERBOUND_CUSTOM_PAYLOAD_CLASS;
-        private static final byte DISCONNECT = 0x00, ENCRYPTION_REQUEST = 0x01, LOGIN_SUCCESS = 0x02, SET_COMPRESSION = 0x03, SERVERBOUND_CUSTOM_PAYLOAD = 0x04;
 
         static {
             if (PROTOCOL_VERSION.isBetween(NetProtocol.v1_13, NetProtocol.v1_20_1)) {
@@ -243,23 +240,23 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Server implements RangedPacketTypeEnum {
-            DISCONNECT(DISCONNECT_CLASS, Login.DISCONNECT),
-            ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, Login.ENCRYPTION_REQUEST),
-            LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, Login.LOGIN_SUCCESS),
-            CUSTOM_PAYLOAD(SERVERBOUND_CUSTOM_PAYLOAD_CLASS, Login.SERVERBOUND_CUSTOM_PAYLOAD, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
-            SET_COMPRESSION(SET_COMPRESSION_CLASS, Login.SET_COMPRESSION);
+            DISCONNECT(DISCONNECT_CLASS, 154),
+            ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, 155),
+            LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, 156),
+            CUSTOM_PAYLOAD(SERVERBOUND_CUSTOM_PAYLOAD_CLASS, 157, NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
+            SET_COMPRESSION(SET_COMPRESSION_CLASS, 158);
 
             private final Class<?> nmsPacket;
-            private final byte packetId;
+            private final int packetId;
             private final NetProtocolRange protocolRange;
 
-            Server(Class<?> nmsPacket, byte packetId) {
+            Server(Class<?> nmsPacket, int packetId) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
                 protocolRange = NetProtocolRange.ALL;
             }
 
-            Server(Class<?> nmsPacket, byte packetId, NetProtocolRange protocolRange) {
+            Server(Class<?> nmsPacket, int packetId, NetProtocolRange protocolRange) {
                 this.nmsPacket = nmsPacket;
                 this.packetId = packetId;
                 this.protocolRange = protocolRange;
