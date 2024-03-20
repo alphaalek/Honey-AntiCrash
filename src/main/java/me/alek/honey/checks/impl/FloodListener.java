@@ -19,6 +19,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -210,7 +211,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
-                return ResponseBuilder.inst().flag().build();
+                return ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.of(this)).build();
             }
             return ResponseBuilder.SUCCESS;
         }

@@ -7,7 +7,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 public abstract class WrappedObject<T> {
 
     private final Object handle;
-    private ReflectStructure<Object, ?> reflectStructure;
+    private ReflectStructure<Object, Object> reflectStructure;
 
     public WrappedObject(Object handle) {
         this.handle = handle;
@@ -21,7 +21,7 @@ public abstract class WrappedObject<T> {
         return handle;
     }
 
-    public ReflectStructure<Object, ?> getReflectStructure() {
+    public ReflectStructure<Object, Object> getReflectStructure() {
         return reflectStructure;
     }
 

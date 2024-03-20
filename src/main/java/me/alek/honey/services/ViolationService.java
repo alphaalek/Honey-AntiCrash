@@ -263,7 +263,7 @@ public class ViolationService {
             if (packetLimitHandlerDelegateLookup.isEmpty()) return false;
 
             AbstractPacketLimitHandler delegate = null;
-            if (checkKey == null || !packetLimitHandlerDelegateLookup.has(checkKey.getCheck().getID())) {
+            if (checkKey == null) {
                 delegate =
                     cachedDefaultPacketLimitHandler == null
                         ? (cachedDefaultPacketLimitHandler = getAnyPacketLimitHandler())

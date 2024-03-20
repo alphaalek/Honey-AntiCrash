@@ -13,7 +13,6 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +23,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     private static final Class<?> PACKET_CLASS = NMS.getPacketClass();
 
     private final ConcurrentHashMap<Object, PacketState> LOOKUP_PACKET_STATES = new ConcurrentHashMap<>();
-    private final Map<Class<?>, ListModifier<?>> PACKET_ADAPTERS = new HashMap<>();
+    private final Map<Class<?>, ListModifier<?>> packetAdapters = new HashMap<>();
     private final ListModifier<?> DECODE_LIST_MODIFIER = new ListModifier<>();
     private final Map<PacketTypeEnum, Runnable> POST_ACTION_MAP = new HashMap<>();
 
@@ -167,10 +166,10 @@ public class InternalPacketProcessor implements PacketProcessor {
                     continue;
                 }
             }
-            if (!PACKET_ADAPTERS.containsKey(packetType.getNmsClass())) {
-                PACKET_ADAPTERS.put(packetType.getNmsClass(), new ListModifier<>());
+            if (!packetAdapters.containsKey(packetType.getNmsClass())) {
+                packetAdapters.put(packetType.getNmsClass(), new ListModifier<>());
             }
-            PACKET_ADAPTERS.get(packetType.getNmsClass()).addListener(packetAdapter, priority);
+            packetAdapters.get(packetType.getNmsClass()).addListener(packetAdapter, priority);
         }
     }
 
@@ -184,17 +183,17 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public void removeListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
-            PACKET_ADAPTERS.get(packetType.getNmsClass()).removeListener(packetAdapter);
+            packetAdapters.get(packetType.getNmsClass()).removeListener(packetAdapter);
 
-            if (PACKET_ADAPTERS.get(packetType.getNmsClass()).isEmpty()) {
-                PACKET_ADAPTERS.remove(packetType.getNmsClass());
+            if (packetAdapters.get(packetType.getNmsClass()).isEmpty()) {
+                packetAdapters.remove(packetType.getNmsClass());
             }
         }
     }
 
     @Override
     public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> check) {
-        for (ListModifier<?> listModifier : PACKET_ADAPTERS.values()) {
+        for (ListModifier<?> listModifier : packetAdapters.values()) {
             if (compareListModifier(listModifier, check)) {
                 return true;
             }
@@ -225,15 +224,15 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public boolean hasListeners(Class<?> clazz) {
-        if (!PACKET_ADAPTERS.containsKey(clazz)) return false;
+        if (!packetAdapters.containsKey(clazz)) return false;
 
-        return !PACKET_ADAPTERS.get(clazz).isEmpty();
+        return !packetAdapters.get(clazz).isEmpty();
     }
 
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
          if (!hasListeners(clazz)) return;
 
-        PACKET_ADAPTERS.get(clazz).callPacket(player, packetContainer, isRead);
+        packetAdapters.get(clazz).callPacket(player, packetContainer, isRead);
     }
 
     public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
@@ -243,13 +242,13 @@ public class InternalPacketProcessor implements PacketProcessor {
     public void errorListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         if (!hasListeners(clazz)) return;
 
-        PACKET_ADAPTERS.get(clazz).error(player, PacketType.getPacketType(clazz), packetContainer);
+        packetAdapters.get(clazz).error(player, PacketType.getPacketType(clazz), packetContainer);
     }
 
     public void cancelListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
         if (!hasListeners(clazz)) return;
 
-        PACKET_ADAPTERS.get(clazz).cancel(player, packetContainer, isRead);
+        packetAdapters.get(clazz).cancel(player, packetContainer, isRead);
     }
 
     @Override

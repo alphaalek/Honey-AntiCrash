@@ -99,14 +99,16 @@ public class SpigotPipelineInjector {
 
         synchronized (channel) {
             HoneyPacketHandler handler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
-            UpdatableChannel filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
+            InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             if ((handler == null && !player.removedPacketHandlerFromPipeline)
                     || filter == null) throw new MissingHandlerException("Handler");
 
             if (handler != null) handler.setPlayer(player);
             filter.setPlayer(player);
 
-            if (PacketInterceptorResolver.isDecoderPositionResolved()) {
+            Object networkManager = filter.getPacketHandler().getNetworkManager();
+
+            if (PacketInterceptorResolver.isDecoderPositionResolved() && networkManager != null) {
                 InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
                 if (decoder == null) throw new MissingHandlerException("Decoder");
 
@@ -114,7 +116,7 @@ public class SpigotPipelineInjector {
             }
             else player.updateHandlersLater = true;
 
-            if (PacketInterceptorResolver.isEncoderPositionResolved()) {
+            if (PacketInterceptorResolver.isEncoderPositionResolved() && networkManager != null) {
                 OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
                 if (encoder == null) throw new MissingHandlerException("Encoder");
 
@@ -122,7 +124,7 @@ public class SpigotPipelineInjector {
             }
             else player.updateHandlersLater = true;
 
-            //if (handler != null) channel.pipeline().remove(handler);
+            if (handler != null) channel.pipeline().remove(handler);
             player.removedPacketHandlerFromPipeline = true;
         }
     }

@@ -8,9 +8,11 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -22,15 +24,23 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInLook;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInPosition;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInPositionLook;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.*;
 import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -49,7 +59,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
         CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new NettyA<>());
-        visitor.visit(new NettyB<>());
         visitor.visit(new NettyH<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
@@ -114,6 +123,38 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
+
+        private static final List<PacketTypeEnum> IGNORE = Arrays.asList(PacketType.Play.Client.FLYING);
+        private static final Array<PacketReader<? extends WrappedPacket<?>>> READERS = new Array<>();
+
+        static {
+            READERS.set(PacketType.Play.Client.POSITION.getPacketId(), new PacketReader<WrappedPlayInPosition>() {
+
+                @Override
+                public Object[] read(PacketContainer<WrappedPlayInPosition> packetContainer) {
+                    IStructureModifier<Double> doubles = packetContainer.getDoubles();
+                    return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2)};
+                }
+            });
+            READERS.set(PacketType.Play.Client.POSITION_LOOK.getPacketId(), new PacketReader<WrappedPlayInPositionLook>() {
+
+                @Override
+                public Object[] read(PacketContainer<WrappedPlayInPositionLook> packetContainer) {
+                    IStructureModifier<Double> doubles = packetContainer.getDoubles();
+                    IStructureModifier<Float> floats = packetContainer.getFloats();
+                    return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2), floats.readField(0), floats.readField(1)};
+                }
+            });
+            READERS.set(PacketType.Play.Client.LOOK.getPacketId(), new PacketReader<WrappedPlayInLook>() {
+
+                @Override
+                public Object[] read(PacketContainer<WrappedPlayInLook> packetContainer) {
+                    IStructureModifier<Float> floats = packetContainer.getFloats();
+                    return new Object[]{floats.readField(0), floats.readField(1)};
+                }
+            });
+        }
+
         @Override
         public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
             CheckVisitor<WP> visitor = new CheckVisitor<>(player);
@@ -136,17 +177,18 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             return () -> {
                 final List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
+                BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
+                        structure.withType(clazz).getAccessors().stream().anyMatch(accessor -> !Modifier.isStatic(accessor.getField().getModifiers()));
                 for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.CLIENT)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 
-                    if (!structure.withType(double.class).getAccessors().isEmpty()) {
-                        packetTypes.add(packetType);
-                        continue;
-                    }
-                    if (!structure.withType(float.class).getAccessors().isEmpty()) {
+                    if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
                         packetTypes.add(packetType);
                     }
                 }
+
+                packetTypes.removeAll(IGNORE);
+
                 return packetTypes;
             };
         }
@@ -154,6 +196,21 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
+
+                PacketReader<WP> reader = (PacketReader<WP>) READERS.get(packet.getType().getPacketId());
+                if (reader != null) {
+                    Object[] values = reader.read(packet.getContainer());
+
+                    for (Object value : values) {
+                        if (value instanceof Float && NumberConversions.isInvalid((float) value)) {
+                            return ResponseBuilder.inst().cancel().flag().build();
+                        }
+                        if (value instanceof Double && NumberConversions.isInfinite((double) value)) {
+                            return ResponseBuilder.inst().cancel().flag().build();
+                        }
+                    }
+                    return ResponseBuilder.SUCCESS;
+                }
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
                     if (NumberConversions.isInvalid(value)) {

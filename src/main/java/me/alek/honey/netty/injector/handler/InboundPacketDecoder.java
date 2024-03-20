@@ -109,8 +109,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
         byteBuf.release();
 
-        Bukkit.getLogger().info();
-
         asyncDecoder.decode((s) -> {
             if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnline()) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);

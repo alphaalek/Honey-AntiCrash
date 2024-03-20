@@ -80,7 +80,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
                 if (response.CANCELLED) cancellablePacketObserver.cancel();
 
-                final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : new ViolationService.CheckKey(check, check.getClass(), check.getName());
+                final ViolationService.CheckKey key = (response.LIMITS_KEY != null) ? response.LIMITS_KEY : ViolationService.CheckKey.of(check);
                 if (response.FLAG != -1 && player != null) {
                     if (setting == null) {
                         if (response.TERMINATE) terminated = true;
