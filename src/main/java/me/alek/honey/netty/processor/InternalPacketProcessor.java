@@ -309,7 +309,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                                                                      PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket, long readStart) {
         final PacketState packetState = getPacketState(player, packet.getClass());
         if (packetState == PacketState.UNKNOWN) {
-            Bukkit.broadcastMessage("unknown " + packet);
             return registerSimpleContainerToBundle(packet, player, null);
         }
 
@@ -370,7 +369,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         PacketState packetState;
         if (!LOOKUP_PACKET_STATES.containsKey(packetClass)) {
             String packetName = packetClass.getSimpleName();
-            Bukkit.getLogger().info("Getting " + packetName);
 
             if (packetName.startsWith("PacketHandshaking")) {
                 packetState = PacketState.HANDSHAKE;
@@ -385,7 +383,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                 packetState = PacketState.PLAY;
             }
             else {
-                Bukkit.getLogger().info("unknown but trying " + packetClass.getSuperclass());
                 if (PACKET_CLASS.isAssignableFrom(packetClass.getSuperclass())) {
                     return getPacketState(null, packetClass.getSuperclass());
                 }
