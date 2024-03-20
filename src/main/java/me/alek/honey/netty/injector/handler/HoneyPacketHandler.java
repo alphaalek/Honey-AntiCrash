@@ -76,9 +76,7 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         postRead();
 
         if (packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
-
             ReflectStructure<?, ?> loginStartPacketReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass());
-
             String name;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_18_2)) {
                 IStructureModifier<WrappedGameProfile> gameProfileIStructureModifier = loginStartPacketReflectStructure
@@ -91,8 +89,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
                         .asString().withTarget(packetContainer.getHandle());
                 name = stringReflectStructure.readField(0);
             }
-
-            Bukkit.getLogger().info("LOGIN START " + name);
             NMS.submitChannelForName(name, ctx.channel());
         }
     }
@@ -131,9 +127,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
 
         if (packetContainer.getType() == PacketType.Login.Server.LOGIN_SUCCESS && networkManager != null
                 && PacketInterceptorResolver.isEncoderPositionResolved() && PacketInterceptorResolver.isDecoderPositionResolved()) {
-            Bukkit.getLogger().info("SET COMPRESSION");
-
-            Bukkit.getLogger().info(ctx.channel().pipeline().toMap() + " PRE RELOCATION!");
             HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(ctx.channel()).checkRelocation();
         }
 

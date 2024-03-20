@@ -44,8 +44,6 @@ public class BukkitEventInternal implements Listener {
                 exception.printStackTrace();
                 HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
                         () -> player.kickPlayer("Broken pipe!"));
-
-                Bukkit.broadcastMessage(channel.pipeline().toMap() + " BROKEN PIPE");
                 return;
             }
 
