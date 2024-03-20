@@ -1,6 +1,5 @@
 package me.alek.honey.netty.processor;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -11,6 +10,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.*;
+import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class InternalPacketProcessor implements PacketProcessor {
+
+    private static final Class<?> PACKET_CLASS = NMS.getPacketClass();
 
     private final ConcurrentHashMap<Object, PacketState> LOOKUP_PACKET_STATES = new ConcurrentHashMap<>();
     private final Map<Class<?>, ListModifier<?>> PACKET_ADAPTERS = new HashMap<>();
@@ -305,8 +307,9 @@ public class InternalPacketProcessor implements PacketProcessor {
     private PacketContainer<? extends WrappedPacket<?>> handleCommon(HoneyPlayer player, Channel channel,
                                                                      Object packet, PacketBound packetBound,
                                                                      PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket, long readStart) {
-        final PacketState packetState = getPacketState(player, packet);
+        final PacketState packetState = getPacketState(player, packet.getClass());
         if (packetState == PacketState.UNKNOWN) {
+            Bukkit.broadcastMessage("unknown " + packet);
             return registerSimpleContainerToBundle(packet, player, null);
         }
 
@@ -359,13 +362,15 @@ public class InternalPacketProcessor implements PacketProcessor {
         return handleCommon(player, channel, packet, PacketBound.SERVER, null, 0L);
     }
 
-    public PacketState getPacketState(HoneyPlayer player, Object packet) {
-        if (packet == null) return null;
+
+    public PacketState getPacketState(HoneyPlayer player, Class<?> packetClass) {
+        if (packetClass == null) return null;
         if (player != null) return PacketState.PLAY;
 
         PacketState packetState;
-        if (!LOOKUP_PACKET_STATES.containsKey(packet.getClass())) {
-            String packetName = packet.getClass().getSimpleName();
+        if (!LOOKUP_PACKET_STATES.containsKey(packetClass)) {
+            String packetName = packetClass.getSimpleName();
+            Bukkit.getLogger().info("Getting " + packetName);
 
             if (packetName.startsWith("PacketHandshaking")) {
                 packetState = PacketState.HANDSHAKE;
@@ -380,13 +385,17 @@ public class InternalPacketProcessor implements PacketProcessor {
                 packetState = PacketState.PLAY;
             }
             else {
+                Bukkit.getLogger().info("unknown but trying " + packetClass.getSuperclass());
+                if (PACKET_CLASS.isAssignableFrom(packetClass.getSuperclass())) {
+                    return getPacketState(null, packetClass.getSuperclass());
+                }
                 packetState = PacketState.UNKNOWN;
             }
 
-            LOOKUP_PACKET_STATES.put(packet.getClass(), packetState);
+            LOOKUP_PACKET_STATES.put(packetClass, packetState);
         }
         else {
-            packetState = LOOKUP_PACKET_STATES.get(packet.getClass());
+            packetState = LOOKUP_PACKET_STATES.get(packetClass);
         }
 
         return packetState;
