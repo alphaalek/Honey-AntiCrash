@@ -76,6 +76,15 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
 
         super.channelRead(ctx, packetContainer.getHandle());
         postRead();
+
+        if (packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
+            IStructureModifier<WrappedGameProfile> gameProfileReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass())
+                    .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
+                    .withTarget(packetContainer.getHandle());
+            WrappedGameProfile gameProfile = gameProfileReflectStructure.readField(0);
+
+            NMS.submitChannelForUUID(gameProfile.getName(), ctx.channel());
+        }
     }
 
     public synchronized boolean read0(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
@@ -116,14 +125,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         if (packetContainer.getType() == PacketType.Login.Server.SET_COMPRESSION && networkManager != null
                 && PacketInterceptorResolver.isEncoderPositionResolved() && PacketInterceptorResolver.isDecoderPositionResolved()) {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(ctx.channel()).checkRelocation();
-        }
-        if (packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
-            IStructureModifier<UUID> gameProfileReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass())
-                    .withType(UUID.class)
-                    .withTarget(packetContainer.getHandle());
-            UUID gameProfileUUID = gameProfileReflectStructure.readField(0);
-
-            NMS.submitChannelForUUID(gameProfileUUID, ctx.channel());
         }
     }
 

@@ -24,13 +24,13 @@ public class BukkitEventInternal implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        Channel channel = NMS.getChannelIfSet(player.getUniqueId());
+        Channel channel = NMS.getChannelIfSet(player.getName());
         if (channel != null) {
             handleChannel(player, channel);
             return;
         }
 
-        NMS.getChannel(player.getUniqueId()).thenAccept((ch) -> handleChannel(player, ch));
+        NMS.getChannel(player.getName()).thenAccept((ch) -> handleChannel(player, ch));
     }
 
     private void handleChannel(Player player, Channel channel) {
@@ -53,11 +53,14 @@ public class BukkitEventInternal implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        Channel channel = NMS.getChannelIfSet(player.getUniqueId());
+        Channel channel = HoneyPlayer.getPlayer(player.getUniqueId()).channel;
+        if (channel == null) {
+            channel = NMS.getChannelIfSet(player.getName());
+        }
         if (channel != null) {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
         }
-        NMS.removeChannelLookup(player.getUniqueId());
+        NMS.removeChannelLookup(player.getName());
 
         HoneyPlayer.removePlayer(player.getUniqueId());
     }

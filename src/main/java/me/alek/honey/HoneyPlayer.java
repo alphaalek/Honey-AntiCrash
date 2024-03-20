@@ -57,8 +57,8 @@ public class HoneyPlayer {
         this.player = player;
 
         uuid = player.getUniqueId();
-        channel = NMS.getChannelIfSet(uuid);
         name = player.getName();
+        channel = NMS.getChannelIfSet(name);
         violationContext = new ViolationService.ViolationContext(this);
 
         registryID = IDRegistry.PLAYERS.acquireID();

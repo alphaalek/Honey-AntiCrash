@@ -26,20 +26,20 @@ public class NMS {
             getNetworkManagerClass(), 0, SocketAddress.class
     );
 
-    private static final HashMap<UUID, CompletableFuture<Channel>> lookupChannels = new HashMap<>();
+    private static final HashMap<String, CompletableFuture<Channel>> lookupChannels = new HashMap<>();
     private static Object minecraftServer;
     private static Object serverConnection;
 
     public static synchronized CompletableFuture<Channel> getChannel(Player player) {
-        return getChannel(player.getUniqueId());
+        return getChannel(player.getName());
     }
 
-    public static synchronized CompletableFuture<Channel> getChannel(UUID uuid) {
-        return lookupChannels.computeIfAbsent(uuid, (d) -> new CompletableFuture<>() /* channel.get(getNetworkManager(player) */ );
+    public static synchronized CompletableFuture<Channel> getChannel(String name) {
+        return lookupChannels.computeIfAbsent(name, (d) -> new CompletableFuture<>() /* channel.get(getNetworkManager(player) */ );
     }
 
-    public static synchronized Channel getChannelIfSet(UUID uuid) {
-        CompletableFuture<Channel> channelFuture = lookupChannels.get(uuid);
+    public static synchronized Channel getChannelIfSet(String name) {
+        CompletableFuture<Channel> channelFuture = lookupChannels.get(name);
         if (channelFuture == null || !channelFuture.isDone()) return null;
 
         try {
@@ -51,16 +51,16 @@ public class NMS {
         return null;
     }
 
-    public static synchronized void submitChannelForUUID(UUID uuid, Channel channel) {
-        getChannel(uuid).complete(channel);
+    public static synchronized void submitChannelForUUID(String name, Channel channel) {
+        getChannel(name).complete(channel);
     }
 
     public static Channel getChannelFromNetworkManager(Object networkManager) {
         return channel.get(networkManager);
     }
 
-    public static void removeChannelLookup(UUID uuid) {
-        lookupChannels.remove(uuid);
+    public static void removeChannelLookup(String name) {
+        lookupChannels.remove(name);
     }
 
     public static Object getEntityPlayer(Player player) {

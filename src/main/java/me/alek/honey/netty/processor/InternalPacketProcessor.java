@@ -327,7 +327,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
-        Bukkit.getLogger().info("Call " + packetContainer.getPacket() + " " + packetContainer.getType() + " " + packet);
         callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
         packetContainer.getEventloopStateTimings().stopTimings();
 
