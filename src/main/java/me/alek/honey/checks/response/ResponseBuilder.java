@@ -35,9 +35,7 @@ public class ResponseBuilder {
     }
 
     public ResponseBuilder add(ResponseContainer... containers) {
-        List<ResponseContainer> responses = Arrays.asList(containers);
-        responses.removeAll(Collections.singleton(null));
-        responseContainer.SUB_CONTAINERS.addAll(responses);
+        responseContainer.SUB_CONTAINERS.addAll(Arrays.asList(containers));
         return this;
     }
 

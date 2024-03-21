@@ -1,6 +1,5 @@
 package me.alek.honey.utility;
 
-import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Supplier;

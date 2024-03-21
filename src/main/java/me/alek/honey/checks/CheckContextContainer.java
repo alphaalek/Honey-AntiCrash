@@ -11,7 +11,7 @@ import java.util.*;
 public class CheckContextContainer {
 
     private final SharedCheckPipelineStorage storage = new SharedCheckPipelineStorage();
-    private final Map<HoneyCheck, DevelopmentData> developmentDataMap = new HashMap<>();
+    private final Array<DevelopmentData> developmentDataMap = new Array<>();
     private final DevelopmentData defaultDevelopmentData = new DevelopmentData();
 
     public SharedCheckPipelineStorage getStorage() {
@@ -19,7 +19,7 @@ public class CheckContextContainer {
     }
 
     public DevelopmentData getDevelopmentData(HoneyCheck check) {
-        return developmentDataMap.computeIfAbsent(check, (d) -> new DevelopmentData());
+        return developmentDataMap.get(check.getID(), DevelopmentData::new);
     }
 
     public DevelopmentData getDefaultDevelopmentData() {
@@ -54,7 +54,7 @@ public class CheckContextContainer {
             developmentDataSet.add(line);
 
             if (defaultDevelopmentData == this) {
-                for (DevelopmentData developmentDataDelegate : developmentDataMap.values()) {
+                for (DevelopmentData developmentDataDelegate : developmentDataMap) {
                     developmentDataDelegate.addText(line);
                 }
             }
@@ -64,7 +64,7 @@ public class CheckContextContainer {
             developmentDataSet.set(index, line);
 
             if (defaultDevelopmentData == this) {
-                for (DevelopmentData developmentDataDelegate : developmentDataMap.values()) {
+                for (DevelopmentData developmentDataDelegate : developmentDataMap) {
                     developmentDataDelegate.setText(index, line);
                 }
             }

@@ -14,6 +14,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -66,6 +67,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             boolean terminated = false;
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
+                if (response == null) continue;
 
                 if (check instanceof KeyedViolationCheck) {
                     KeyedViolationCheck<WP, Object> keyedViolationCheck = (KeyedViolationCheck<WP, Object>) check;
