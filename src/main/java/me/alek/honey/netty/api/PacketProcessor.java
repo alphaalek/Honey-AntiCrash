@@ -33,8 +33,6 @@ public interface PacketProcessor {
 
     void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead);
 
-    void errorListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer);
-
     void setPostAction(PacketTypeEnum packetType, Runnable postAction);
 
     void postRead();

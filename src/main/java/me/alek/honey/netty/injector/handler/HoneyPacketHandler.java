@@ -55,10 +55,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         long readStart = HoneyPlugin.get().getMonitorManager().isPacketsMonitored() ? System.nanoTime() : 0;
 
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.read(ctx.channel(), player, packet, readStart, null);
-        if (packetContainer == null) {
-            packetProcessor.errorListeners(player, packet.getClass(), null);
-            return;
-        }
 
         if (!read0(packetContainer)) {
             return;

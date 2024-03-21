@@ -22,10 +22,10 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private static final Class<?> PACKET_CLASS = NMS.getPacketClass();
 
-    private final ConcurrentHashMap<Object, PacketState> LOOKUP_PACKET_STATES = new ConcurrentHashMap<>();
-    private final Map<Class<?>, ListModifier<?>> packetAdapters = new HashMap<>();
     private final ListModifier<?> DECODE_LIST_MODIFIER = new ListModifier<>();
-    private final Map<PacketTypeEnum, Runnable> POST_ACTION_MAP = new HashMap<>();
+    private final ConcurrentHashMap<Object, PacketState> lookupPacketStates = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ListModifier<?>> packetAdapters = new HashMap<>();
+    private final Map<PacketTypeEnum, Runnable> postActions = new HashMap<>();
 
     private static class ListModifier<WP extends WrappedPacket<WP>> {
 
@@ -43,7 +43,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    error(player, packetContainer.getType(), packetContainer);
                 }
             });
         }
@@ -64,20 +63,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                     }
                 }
             }
-        }
-
-        public void cancel(HoneyPlayer player, PacketContainer<?> packetContainer, boolean isRead) {
-            final PacketBound bound = (isRead) ? PacketBound.CLIENT : PacketBound.SERVER;
-
-            callPipeline((packetAdapter) -> {
-                packetAdapter.onPacketCancel(player, (PacketContainer<WP>) packetContainer, bound);
-            });
-        }
-
-        public void error(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<?> packetContainer) {
-            callPipeline((packetAdapter) -> {
-                packetAdapter.onPacketError(player, packetType, (PacketContainer<WP>) packetContainer);
-            });
         }
 
         public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority) {
@@ -239,21 +224,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         DECODE_LIST_MODIFIER.callDecode(player, byteBuf);
     }
 
-    public void errorListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
-        if (!hasListeners(clazz)) return;
-
-        packetAdapters.get(clazz).error(player, PacketType.getPacketType(clazz), packetContainer);
-    }
-
-    public void cancelListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
-        if (!hasListeners(clazz)) return;
-
-        packetAdapters.get(clazz).cancel(player, packetContainer, isRead);
-    }
-
     @Override
     public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {
-        POST_ACTION_MAP.put(packetType, postAction);
+        postActions.put(packetType, postAction);
     }
 
     private void registerToBundle(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
@@ -303,7 +276,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         // initialize the packet container
         final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
         final PacketContainer<? extends WrappedPacket<?>> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, channel, POST_ACTION_MAP.get(packetType), packetType, readStart);
+                earlyInitializedPacket, packet, player, channel, postActions.get(packetType), packetType, readStart);
 
 
         // check if this packet type has any listeners which can handle this packet.
@@ -353,7 +326,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (player != null) return PacketState.PLAY;
 
         PacketState packetState;
-        if (!LOOKUP_PACKET_STATES.containsKey(packetClass)) {
+        if (!lookupPacketStates.containsKey(packetClass)) {
             String packetName = packetClass.getSimpleName();
 
             if (packetName.startsWith("PacketHandshaking")) {
@@ -375,10 +348,10 @@ public class InternalPacketProcessor implements PacketProcessor {
                 packetState = PacketState.UNKNOWN;
             }
 
-            LOOKUP_PACKET_STATES.put(packetClass, packetState);
+            lookupPacketStates.put(packetClass, packetState);
         }
         else {
-            packetState = LOOKUP_PACKET_STATES.get(packetClass);
+            packetState = lookupPacketStates.get(packetClass);
         }
 
         return packetState;
