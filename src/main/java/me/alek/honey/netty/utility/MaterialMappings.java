@@ -91,19 +91,19 @@ public enum MaterialMappings {
         }
     }
 
-    public static Material getItemIfAny(String key) {
-        Material material = getItem(key);
+    public static Material getTypeIfAny(String key) {
+        Material material = getType(key);
         if (material == Material.AIR) throw new IllegalArgumentException("Couldn't find any material matching the item key " + key);
 
         return material;
     }
 
-    public static Material getItem(String key) {
+    public static Material getType(String key) {
         if (!mappingsOfKey.containsKey(key)) return org.bukkit.Material.AIR;
 
         for (MaterialMappings mapping : mappingsOfKey.get(key)) {
-            if (mapping.getItem() != null && mapping.getRange().match(NetProtocol.getProtocol())) {
-                return mapping.getItem();
+            if (mapping.getType() != null && mapping.getRange().match(NetProtocol.getProtocol())) {
+                return mapping.getType();
             }
         }
         return Material.AIR;
@@ -131,7 +131,7 @@ public enum MaterialMappings {
         return itemKeys;
     }
 
-    public Material getItem() {
+    public Material getType() {
         try {
             return Material.matchMaterial(name);
         } catch (Exception ex) {

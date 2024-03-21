@@ -19,6 +19,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.injector.handler.async.DebugCommand;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -212,7 +213,8 @@ public class HoneyPlugin implements HoneyAPI {
         checkHandleTracker = new RegistryMarkableHandleTracker<>(200L);
 
         // setup checks
-        plugin.getServer().getScheduler().runTaskLater(plugin, this::registerChecks, 20L);
+        registerChecks();
+        PacketExecutors.register();
         ItemAnalysis.reload();
 
         // setup commands

@@ -8,6 +8,7 @@ import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.IReflectMember;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -238,6 +239,10 @@ public class ReflectStructure<T, C> {
             this.converter = converter;
         }
 
+        public ReflectStructure<?, C> getStructure() {
+            return ReflectStructure.this;
+        }
+
         @Override
         public Object getHandle() {
             return handle;
@@ -253,7 +258,7 @@ public class ReflectStructure<T, C> {
                 accessor.set(handle, converter.convertDeclaring(value));
             }
             else {
-                // T & C er den samme i generic context
+                // T & C is the same in generic context
                 accessor.set(handle, (T) value);
             }
         }

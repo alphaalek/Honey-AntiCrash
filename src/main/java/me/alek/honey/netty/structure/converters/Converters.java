@@ -135,12 +135,12 @@ public class Converters {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
             public ItemStack convertDelegate(Object delegate, Object... params) {
-                return ItemReflection.asBukkitItem(delegate);
+                return ItemReflection.asBukkitCopy(delegate);
             }
 
             @Override
             public Object convertDeclaring(ItemStack itemStack) {
-                return ItemReflection.asNMSItem(itemStack);
+                return ItemReflection.asNMSCopy(itemStack);
             }
         });
     }

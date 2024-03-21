@@ -56,22 +56,20 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
-        if (player != null) {
-            callback.addAction((response) -> {
-                response.builder().onViolation(onViolation -> {
-                    CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+        callback.addAction((response) -> {
+            response.builder().onViolation(onViolation -> {
+                CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
-                    if (defaultDevelopmentData.getDataSet().isEmpty()) {
-                        String packet = packetContainer.getHandle().getClass().getSimpleName();
-                        defaultDevelopmentData.addEmpty();
-                        defaultDevelopmentData.addValue(" Packet", packet);
-                        applyCommonDevelopmentData(defaultDevelopmentData);
-                    }
+                if (defaultDevelopmentData.getDataSet().isEmpty()) {
+                    String packet = packetContainer.getHandle().getClass().getSimpleName();
+                    defaultDevelopmentData.addEmpty();
+                    defaultDevelopmentData.addValue(" Packet", packet);
+                    applyCommonDevelopmentData(defaultDevelopmentData);
+                }
 
-                    if (onViolation != null) onViolation.run();
-                });
+                if (onViolation != null) onViolation.run();
             });
-        }
+        });
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }

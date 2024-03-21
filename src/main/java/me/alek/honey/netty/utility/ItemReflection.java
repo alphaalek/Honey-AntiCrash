@@ -1,5 +1,7 @@
 package me.alek.honey.netty.utility;
 
+import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -22,7 +24,7 @@ public class ItemReflection {
     }
 
 
-    public static ItemStack asBukkitItem(Object itemStack) {
+    public static ItemStack asBukkitCopy(Object itemStack) {
         if (itemStack != null) {
             try {
                 if (itemStackClass.isInstance(itemStack)) {
@@ -35,7 +37,7 @@ public class ItemReflection {
         return new ItemStack(Material.AIR);
     }
 
-    public static Object asNMSItem(ItemStack item) {
+    public static Object asNMSCopy(ItemStack item) {
         if (item != null && Arrays.equals(nmsCopyInvoker.getMethod().getParameterTypes(), new Class[]{ItemStack.class})) {
 
             try {
@@ -48,6 +50,20 @@ public class ItemReflection {
             }
         }
         return null;
+    }
+
+    public static Object getHandleItem(ItemStack item) {
+        if (craftItemStackClass.isInstance(item)) {
+            IStructureModifier<?> structure = ReflectStructureCache.acquireStructure(craftItemStackClass)
+                    .withType(itemStackClass)
+                    .withTarget(item);
+
+            Object handle = structure.readField(0);
+            if (handle != null) {
+                return handle;
+            }
+        }
+        return ItemReflection.asNMSCopy(item);
     }
 
     public static boolean isNMSItem(Object item) {

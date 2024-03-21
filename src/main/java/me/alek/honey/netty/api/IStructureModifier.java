@@ -1,5 +1,6 @@
 package me.alek.honey.netty.api;
 
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.netty.utility.MethodInvoker;
@@ -11,6 +12,8 @@ import java.util.function.Predicate;
 public interface IStructureModifier<T> {
 
     Object getHandle();
+
+    ReflectStructure<?, T> getStructure();
 
     JavaConverter<?, T> getConverter();
 

@@ -4,22 +4,27 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.tracker.ServerThreadHandleTracker;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.function.Consumer;
 
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
+    private static final Queue<Object> serverThreadExecutionQueue = ((ServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker()).getExecutionQueue();
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
 
     private final AsyncDecoder asyncDecoder;
@@ -71,11 +76,23 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 
+            Runnable packetExecutorTask = null;
+            if (ConfigurationOptions.AsyncDecoder.ENABLED) {
+                packetExecutorTask = packetProcessor.getPacketExecutorTask(finalPacketContainer);
+            }
+
+            Runnable finalPacketExecutorTask = packetExecutorTask;
             ctx.channel().eventLoop().execute(() -> {
                 if (packetHandler.read0(finalPacketContainer)) {
-                    finalPacketContainer.invokeCallback();
+
+                    if (finalPacketExecutorTask != null) {
+                        serverThreadExecutionQueue.add(finalPacketExecutorTask);
+                        return;
+                    }
+
                     ctx.fireChannelRead(finalPacketContainer.getHandle());
                 }
+
                 packetHandler.postRead();
             });
         } catch (Throwable ex) {
@@ -93,10 +110,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
         ByteBuf byteBuf = (ByteBuf) o;
-
-        if (packetContainer != null) {
-            packetContainer.addCallbackAction(container -> packetSendMarker.set(packetContainer));
-        }
 
         List<Object> nonRecycledList = new ArrayList<>();
 

@@ -3,6 +3,7 @@ package me.alek.honey.netty.modelwrappers;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 
 public abstract class WrappedObject<T> {
 
@@ -27,5 +28,9 @@ public abstract class WrappedObject<T> {
 
     public <R> IStructureModifier<R> getModifier(Class<R> clazz) {
         return reflectStructure.withType(clazz).withTarget(handle);
+    }
+
+    public <T, R> IStructureModifier<R> getModifier(Class<T> clazz, JavaConverter<T, R> converter) {
+        return reflectStructure.withType(clazz, converter).withTarget(handle);
     }
 }

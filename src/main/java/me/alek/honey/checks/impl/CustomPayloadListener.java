@@ -50,7 +50,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
             ByteBuf copiedSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(serializer));
             try {
                 Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
-                ItemStack bukkitItem = ItemReflection.asBukkitItem(item);
+                ItemStack bukkitItem = ItemReflection.asBukkitCopy(item);
 
                 container.getStorage().put(ItemStack.class, bukkitItem);
             } catch (Exception ex) {
@@ -251,7 +251,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
                         return ResponseBuilder.SUCCESS;
                     }
-                    if (itemInHand.getType() == MaterialMappings.getItem("writable-book") || itemInHand.getType() == Material.WRITTEN_BOOK) {
+                    if (itemInHand.getType() == MaterialMappings.getType("writable-book") || itemInHand.getType() == Material.WRITTEN_BOOK) {
                         return ResponseBuilder.SUCCESS;
                     }
                 }

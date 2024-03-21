@@ -25,6 +25,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
+    private PacketQueueWrapper executionQueue;
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
 
     public ServerThreadHandleTracker() {
@@ -47,12 +48,16 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         FieldAccessor<Queue<?>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
 
-        PacketQueueWrapper queueWrapper = new PacketQueueWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
+        PacketQueueWrapper queueWrapper = executionQueue = new PacketQueueWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
         try {
             Reflection.setFinalField(minecraftServer, queueAccessor, queueWrapper);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public Queue<Object> getExecutionQueue() {
+        return executionQueue;
     }
 
     public TempTimedQueuedTracker getPropertyTracker(HoneyPlayer player) {

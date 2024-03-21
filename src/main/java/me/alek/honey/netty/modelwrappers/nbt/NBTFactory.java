@@ -15,23 +15,37 @@ import java.util.List;
 
 public class NBTFactory {
 
-    public static NBTCompound fromItem(ItemStack item) {
+    public  static NBTCompound fromItem(ItemStack item) {
+        return fromItem(item, false);
+    }
+
+    public static NBTCompound fromItem(ItemStack item, boolean createIfNone) {
         if (item == null || item.getType() == Material.AIR) {
             return null;
         }
-        final Object nmsItem = ItemReflection.asNMSItem(item);
+        final Object nmsItem = ItemReflection.getHandleItem(item);
         if (nmsItem == null) {
             return null;
         }
-        final NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES + 10);
+        final NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES);
         final ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
         final IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root))
                 .withTarget(nmsItem);
 
         final NBTBase<?, ?> base = structureModifier.readField(0);
-        if (base == null) {
-            return null;
+        if (base == null && createIfNone) {
+            try {
+                Object handle = NMS.getNBTTagCompoundClass().getDeclaredConstructor().newInstance();
+
+                NBTCompound createdNBT = new NBTCompound(handle, root, root);
+                structureModifier.writeField(0, createdNBT);
+
+                return createdNBT;
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return (NBTCompound) base;
     }

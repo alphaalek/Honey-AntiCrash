@@ -2,12 +2,15 @@ package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface PacketProcessor {
 
@@ -23,6 +26,10 @@ public interface PacketProcessor {
 
     void removeListener(SyncPacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetType);
 
+    void addPacketExecutor(PacketExecutor<? extends WrappedPacket<?>> packetExecutor, PacketTypeEnum packetType);
+
+    <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer);
+
     void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetType);
 
     void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetType);
@@ -34,9 +41,5 @@ public interface PacketProcessor {
     void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead);
 
     void setPostAction(PacketTypeEnum packetType, Runnable postAction);
-
-    void postRead();
-
-    void postWrite();
 }
 

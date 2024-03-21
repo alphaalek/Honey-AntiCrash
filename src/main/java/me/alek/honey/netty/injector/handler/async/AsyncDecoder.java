@@ -59,7 +59,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
             if (worker.relocate(this))
                 worker = workerPool.relocateWorkerTasks(this, worker);
             else if (player != null && System.currentTimeMillis() - lastHandledTask.get() > 100)
-                HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cDecoder worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
+                HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cDecode worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
     }
 
     @Override

@@ -97,7 +97,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
 
     public void postRead() {
         packetSendMarker.remove();
-        packetProcessor.postRead();
     }
 
     @Override
@@ -119,7 +118,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         }
 
         super.write(ctx, packetContainer.getHandle(), promise);
-        packetProcessor.postWrite();
     }
 
     public boolean write0(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelPromise promise) {

@@ -115,6 +115,10 @@ public class NMS {
         return getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
     }
 
+    public static Class<Object> getEntityClass() {
+        return getFuzzyClass("{nms}.Entity", "{nms}.world.entity.Entity");
+    }
+
     public static Class<Object> getPlayerConnectionClass() {
         return getFuzzyClass("{nms}.PlayerConnection", "{nms}.server.network.PlayerConnection");
     }
@@ -141,6 +145,10 @@ public class NMS {
 
     public static Class<Object> getCraftPlayerClass() {
         return getFuzzyClass("{obc}.entity.CraftPlayer");
+    }
+
+    public static Class<Object> getCraftEntityClass() {
+        return getFuzzyClass("{obc}.entity.CraftEntity");
     }
 
     public static Class<Object> getCraftWorldClass() {

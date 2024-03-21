@@ -53,9 +53,9 @@ public class CheckContextContainer {
         public void addText(String line) {
             developmentDataSet.add(line);
 
-            if (defaultDevelopmentData == this) {
+            if (defaultDevelopmentData == this && !developmentDataMap.isEmpty()) {
                 for (DevelopmentData developmentDataDelegate : developmentDataMap) {
-                    developmentDataDelegate.addText(line);
+                    if (developmentDataDelegate != null) developmentDataDelegate.addText(line);
                 }
             }
         }
@@ -63,9 +63,9 @@ public class CheckContextContainer {
         public void setText(int index, String line) {
             developmentDataSet.set(index, line);
 
-            if (defaultDevelopmentData == this) {
+            if (defaultDevelopmentData == this && !developmentDataMap.isEmpty()) {
                 for (DevelopmentData developmentDataDelegate : developmentDataMap) {
-                    developmentDataDelegate.setText(index, line);
+                    if (developmentDataDelegate != null) developmentDataDelegate.setText(index, line);
                 }
             }
         }

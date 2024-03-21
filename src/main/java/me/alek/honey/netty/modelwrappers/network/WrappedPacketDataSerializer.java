@@ -5,9 +5,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.ConstructorInvoker;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.Reflection;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,10 +24,15 @@ import java.util.UUID;
 
 public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketDataSerializer> {
 
+    public static Object toNMSSerializer(ByteBuf bytebuf) {
+        ConstructorInvoker<Object> invoker = Reflection.getConstructor(NMS.getPacketDataSerializerClass(), ByteBuf.class);
+        return invoker.invoke(bytebuf);
+    }
+
     private final ByteBuf handle;
 
     public WrappedPacketDataSerializer(ByteBuf byteBufHandle) {
-        super(null);
+        super(toNMSSerializer(byteBufHandle));
         this.handle = byteBufHandle;
     }
 
@@ -36,8 +44,7 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
     public Object toNMSSerializer() {
         if (getHandle() != null) return getHandle();
 
-        ConstructorInvoker<Object> invoker = Reflection.getConstructor(NMS.getPacketDataSerializerClass(), ByteBuf.class);
-        return invoker.invoke(handle);
+        return toNMSSerializer(handle);
     }
 
     public int readVarInt() {
@@ -64,6 +71,10 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
                 throw new RuntimeException("VarLong too big");
         } while ((b0 & 0x80) == 128);
         return i;
+    }
+
+    public ItemStack readItemStack() {
+        return getModifier(NMS.getItemStackClass(), Converters.getItemStackConverter()).invokeMethod(0);
     }
 
     public UUID readUUID() {

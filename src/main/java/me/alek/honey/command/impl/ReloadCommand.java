@@ -14,7 +14,7 @@ public class ReloadCommand implements CommandImpl {
     private final AtomicBoolean reloading = new AtomicBoolean();
 
     @Override
-    public void perform(CommandSender sender, String[] args) {
+    public synchronized void perform(CommandSender sender, String[] args) {
         if (reloading.get()) {
             sender.sendMessage(CommandManager.PREFIX + "§c The plugin is already reloading!");
             return;

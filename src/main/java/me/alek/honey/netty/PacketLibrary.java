@@ -8,6 +8,7 @@ import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.connection.SpigotServerInjector;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -63,6 +64,7 @@ public class PacketLibrary {
             // late bind, so we inject a bit later
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, serverInjector::inject);
         }
+
     }
 
     public SpigotServerInjector getServerInjector() {
