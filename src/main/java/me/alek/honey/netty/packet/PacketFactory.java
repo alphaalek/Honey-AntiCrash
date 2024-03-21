@@ -8,14 +8,11 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.utility.Array;
 
 import java.lang.invoke.MethodHandle;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PacketFactory {
 
@@ -73,7 +70,7 @@ public class PacketFactory {
         if (wrapperInvoker == null) return null;
 
         try {
-            Object packet = wrapperInvoker.invoke(rawPacket, packetContainer);
+            Object packet = wrapperInvoker.invokeWithArguments(new Object[]{rawPacket, packetContainer});
             return (WrappedPacket<WP>) packet;
         } catch (Throwable ex) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating wrapped packet for type " + type);

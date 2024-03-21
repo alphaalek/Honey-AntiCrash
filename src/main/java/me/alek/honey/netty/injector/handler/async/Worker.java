@@ -1,6 +1,5 @@
 package me.alek.honey.netty.injector.handler.async;
 
-import java.util.List;
 import java.util.Queue;
 
 public interface Worker<T> {

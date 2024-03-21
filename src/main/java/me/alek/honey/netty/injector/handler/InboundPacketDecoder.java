@@ -57,7 +57,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
 
             // explicit set variable, so Proguard recognizes the method
-            Object empty = decodeInvoker.invoke(decoder, ctx, byteBuf, list);
+            Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
             byteBuf.release();
 
             if (list.isEmpty()) return;

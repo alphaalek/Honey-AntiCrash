@@ -2,12 +2,13 @@ package me.alek.honey.netty.injector.handler.async.worker;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.handler.async.*;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
@@ -49,8 +50,12 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
     }
 
     @Override
-    public void submit(ChainedCallable<T> task) {
-        pendingTasks.add(task);
+    public synchronized void submit(ChainedCallable<T> task) {
+        try {
+            pendingTasks.offer(task, 0, TimeUnit.MILLISECONDS);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override

@@ -26,7 +26,7 @@ public class WorkerPool<T> {
         sender.sendMessage(workers.length + " available workers");
         sender.sendMessage(allWorkers.size() + " registered workers");
         for (Worker<T> worker : workers) {
-            sender.sendMessage("Worker: " + worker.getPendingTasks().size() + " pending, quarantined: " + worker.isQuarantined() + ", task start: " + worker.recentTaskStart() + ", active: " + worker.isActive());
+            sender.sendMessage("Worker: " + worker.getPendingTasks().size() + " pending, quarantined: " + worker.isQuarantined() + ", task start: " + worker.recentTaskStart() + ", active: " + worker.isActive() + ", registered: " + allWorkers.contains(worker));
         }
     }
 
@@ -147,10 +147,15 @@ public class WorkerPool<T> {
     public synchronized Worker<T> getWorkerForTask() {
         Worker<T> headWorker = workers[0];
 
+        boolean duplicate = false;
         for (int i = 1; i < workers.length; i++) {
             Worker<T> otherWorker = workers[i];
 
-            if (headWorker.isQuarantined() ||
+            if (headWorker == otherWorker) {
+                duplicate = true;
+            }
+
+            if (headWorker.isQuarantined() || duplicate ||
                     !otherWorker.isQuarantined() && headWorker.getPendingTasks().size() + 1 > otherWorker.getPendingTasks().size()) {
 
                 workers[i] = headWorker;
@@ -158,13 +163,22 @@ public class WorkerPool<T> {
             }
         }
         if (workers[0].isQuarantined()) {
-            return createNewTaskWorker();
+            return createAndPushNewTaskWorker();
+        }
+        if (duplicate) {
+            Bukkit.getLogger().info("Replacing worker because of duplication");
+            return createAndReplaceNewTaskWorker();
         }
 
         return workers[0];
     }
-    
-    public Worker<T> createNewTaskWorker() {
+
+    public synchronized Worker<T> createAndReplaceNewTaskWorker() {
+        allWorkers.remove(workers[workers.length - 1]);
+        return initNewTaskWorker(workers, workers.length -1);
+    }
+
+    public synchronized Worker<T> createAndPushNewTaskWorker() {
         Worker<T>[] newWorkers = new Worker[workers.length + 1];
         System.arraycopy(workers, 0, newWorkers, 1, workers.length);
 
@@ -174,7 +188,7 @@ public class WorkerPool<T> {
         return newWorker;
     }
 
-    private Worker<T> initNewTaskWorker(Worker<T>[] newWorkers, int index) {
+    private synchronized Worker<T> initNewTaskWorker(Worker<T>[] newWorkers, int index) {
         TaskWorker newWorker = new TaskWorker();
         newWorkers[index] = newWorker;
         allWorkers.add(newWorker);
@@ -185,6 +199,7 @@ public class WorkerPool<T> {
     }
 
     public synchronized void garbageCollect() {
+        // remove old worker threads and change to fresh ones
         List<Worker<T>> availableWorkers = Arrays.asList(workers);
         allWorkers.addAll(availableWorkers);
         for (Worker<T> worker : allWorkers) {
@@ -195,18 +210,19 @@ public class WorkerPool<T> {
         }
         allWorkers.removeIf(PredicateUtils.not(Worker::isActive));
 
+        // remove workers if there are too many unused
         List<Worker<T>> pressuredWorkers = Arrays.stream(workers)
                 .filter(Worker::isQuarantined)
                 .collect(Collectors.toList());
-
         if (workers.length - pressuredWorkers.size() > minimumWorkerThreads) {
             Worker<T>[] newWorkers = new Worker[minimumWorkerThreads + pressuredWorkers.size()];
             System.arraycopy(pressuredWorkers.toArray(new Worker[0]), 0, newWorkers, workers.length - pressuredWorkers.size() - 1, pressuredWorkers.size());
 
+            List<Worker<T>> otherWorkers = Arrays.stream(workers).filter(PredicateUtils.not(pressuredWorkers::contains)).collect(Collectors.toList());
             int i = 0;
-            for (Worker<T> worker : workers) {
-                newWorkers[i++] = worker;
-                if (i == newWorkers.length || newWorkers[i] != null) break;
+            for (Worker<T> worker : otherWorkers) {
+                if (++i == newWorkers.length || newWorkers[i] != null) break;
+                workers[i] = worker;
             }
             workers = newWorkers;
         }
