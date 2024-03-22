@@ -23,16 +23,21 @@ public class SpigotPipelineInjector {
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
 
             if (channel.pipeline().get(handlerName) != null
-                    || channel.pipeline().get(filterName) != null) {
-                //ejectChannel(channel);
+                    && channel.pipeline().get(filterName) != null) {
                 return;
+            }
+
+            if (channel.pipeline().get(handlerName) != null) {
+                channel.pipeline().remove(handlerName);
+            }
+
+            if (channel.pipeline().get(filterName) != null) {
+                channel.pipeline().remove(filterName);
             }
 
             HoneyPacketHandler packetHandler = new HoneyPacketHandler();
             channel.pipeline().addBefore("packet_handler", handlerName, packetHandler);
-            // Bukkit.broadcastMessage("Injecting");
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel, packetHandler));
-            // Bukkit.broadcastMessage("Done injecting " +channel.pipeline().toMap());
         }
     }
 
