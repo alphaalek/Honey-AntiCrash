@@ -1,7 +1,5 @@
-package me.alek.honey.tracker.timed;
+package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.HoneyTracker;
-import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;

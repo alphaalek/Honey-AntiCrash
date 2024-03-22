@@ -1,7 +1,6 @@
 package me.alek.honey.tracker.temp;
 
-import com.google.common.util.concurrent.AtomicDouble;
-import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.Tuple2;
 
 import java.util.Optional;

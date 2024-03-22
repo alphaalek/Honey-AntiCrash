@@ -16,7 +16,7 @@ import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.messages.MessageFormat;
 import me.alek.honey.services.messages.MessageOffer;
 import me.alek.honey.services.messages.Placeholders;
-import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;

@@ -4,8 +4,8 @@ import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.IDRegistry;
-import me.alek.honey.tracker.timed.TimedHandleTracker;
-import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.tracker.TimedHandleTracker;
+import me.alek.honey.tracker.Timespan;
 
 import java.util.*;
 import java.util.stream.Collectors;

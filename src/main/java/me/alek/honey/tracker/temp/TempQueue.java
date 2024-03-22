@@ -1,8 +1,7 @@
 package me.alek.honey.tracker.temp;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import me.alek.honey.tracker.TimedNode;
-import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.tracker.Timespan;
 
 import java.util.Iterator;
 import java.util.LinkedList;

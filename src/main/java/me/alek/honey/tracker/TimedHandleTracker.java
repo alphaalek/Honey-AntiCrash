@@ -1,6 +1,4 @@
-package me.alek.honey.tracker.timed;
-
-import me.alek.honey.tracker.HandleTracker;
+package me.alek.honey.tracker;
 
 public interface TimedHandleTracker<I extends Number, T> extends HandleTracker<I, T> {
 

@@ -32,7 +32,7 @@ import me.alek.honey.tracker.*;
 import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.tracker.timed.Timespan;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
 

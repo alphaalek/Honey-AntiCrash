@@ -1,4 +1,4 @@
-package me.alek.honey.tracker.markable;
+package me.alek.honey.tracker;
 
 import me.alek.honey.tracker.statistic.StatedHandleTracker;
 

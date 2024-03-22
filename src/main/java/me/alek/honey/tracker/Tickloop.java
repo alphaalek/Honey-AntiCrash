@@ -2,7 +2,6 @@ package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
-import me.alek.honey.tracker.timed.Timespan;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.CyclicBarrier;

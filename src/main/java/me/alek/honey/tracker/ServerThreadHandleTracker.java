@@ -14,7 +14,6 @@ import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.tracker.timed.Timespan;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;

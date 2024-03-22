@@ -1,6 +1,5 @@
-package me.alek.honey.tracker.markable;
+package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.updated.UpdatingHandleTrackerTask;
 
 import java.util.*;

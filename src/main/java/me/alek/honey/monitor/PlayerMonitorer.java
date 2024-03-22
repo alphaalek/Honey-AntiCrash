@@ -1,8 +1,7 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.tracker.timed.Timespan;
-import org.bukkit.entity.Player;
+import me.alek.honey.tracker.Timespan;
 
 public class PlayerMonitorer implements ScheduledMonitorer {
 
