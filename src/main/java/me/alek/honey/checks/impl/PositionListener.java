@@ -22,7 +22,6 @@ import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -209,8 +208,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionB<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.CheckKey twoDKey = new ViolationService.CheckKey(this, "2d");
-        private final ViolationService.CheckKey YKey = new ViolationService.CheckKey(this, "y");
+        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(this, "2d");
+        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(this, "y");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -499,11 +498,11 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                         if (corr == axis.getOther(dir)) {
                             builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                    new ViolationService.CheckKey(this, axis.name().toLowerCase())).build());
+                                    ViolationService.HoneyKey.of(this, axis.name().toLowerCase())).build());
                         }
                     }
                     final ResponseContainer response;
-                    if (!(response = builder.build()).SUB_CONTAINERS.isEmpty())
+                    if (!(response = builder.build()).subContainers.isEmpty())
                         return response;
                 }
             }
@@ -578,8 +577,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.CheckKey twoDKey = new ViolationService.CheckKey(this, "2d");
-        private final ViolationService.CheckKey YKey = new ViolationService.CheckKey(this, "y");
+        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(this, "2d");
+        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(this, "y");
 
         private double guessedDelta2D;
         private double guessedDeltaY;
@@ -615,7 +614,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                                 || deltaY % 0.375 < 0.01) {
                             List<ResponseContainer> subResponses;
                             return response.builder()
-                                    .add((subResponses = builder.build().SUB_CONTAINERS).isEmpty() ? null : subResponses.get(0))
+                                    .add((subResponses = builder.build().subContainers).isEmpty() ? null : subResponses.get(0))
                                     .build();
                         }
                         builder.add(
@@ -627,7 +626,6 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }
                     guessedDeltaY = deltaY;
                 }
-                // Bukkit.getLogger().info(hasPattern + " " + builder.build().SUB_CONTAINERS);
                 if (hasPattern) return builder.build();
             }
             return response;

@@ -3,14 +3,15 @@ package me.alek.honey.checks;
 import me.alek.honey.checks.impl.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public enum ListenerRegistry {
 
     v1(FloodListener::new),
+    ;
+    /*
     v2(PositionListener::new),
     v3(HeldItemListener::new),
     v4(CreativeSlotListener::new),
@@ -27,6 +28,7 @@ public enum ListenerRegistry {
     v15(RotationListener::new),
     v17(BlockDigListener::new),
     v18(TabCompleteListener::new);
+    */
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;
@@ -40,6 +42,19 @@ public enum ListenerRegistry {
             checks = checkList;
         }
         return checks;
+    }
+
+    public static int getMaxID() {
+        AtomicInteger maxID = new AtomicInteger();
+        for (IListener listener : getChecks()) {
+            if (listener instanceof CheckVisitable) {
+                ((CheckVisitable)listener).getVisitor(null)
+                        .getChecks().stream()
+                                .filter(check -> check.getID() > maxID.get())
+                                .forEach(check -> maxID.set(check.getID()));
+            }
+        }
+        return maxID.get();
     }
 
     ListenerRegistry(Supplier<IListener> check) {

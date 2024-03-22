@@ -35,12 +35,10 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
@@ -345,9 +343,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
         private static final double MIN_HSQ_ENTER = 0.2;
 
-        private final ViolationService.CheckKey HSQKey = new ViolationService.CheckKey(this, "hsq");
-        private final ViolationService.CheckKey TAKey = new ViolationService.CheckKey(this,"ta");
-        private final ViolationService.CheckKey TTKey = new ViolationService.CheckKey(this,"tt");
+        private final ViolationService.HoneyKey HSQKey = ViolationService.HoneyKey.of(this, "hsq");
+        private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this,"ta");
+        private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(this,"tt");
         private final ResponseContainer success = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(0).withViolationKey(HSQKey).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),

@@ -10,7 +10,6 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
-import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
@@ -93,7 +92,6 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         visitor.visit(new PayloadC());
         visitor.visit(new PayloadD());
         visitor.visit(new PayloadE());
-        visitor.visit(new PayloadF());
         return visitor;
     }
 
@@ -331,51 +329,6 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadE.class);
-        }
-    }
-
-    public static class PayloadF implements PacketCheck<WrappedPlayInCustomPayload>, KeyedViolationCheck<WrappedPlayInCustomPayload, String> {
-
-        @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) throws Exception {
-            ConfigurationOptions.VlSetting setting = getSetting(packet);
-            if (setting != null && setting.isEnabled()) {
-
-                if (ConfigurationOptions.getChannelFloodSettings().containsKey(packet.getChannel())) {
-                    return ResponseBuilder.inst().flag().withLimitsKey(new ViolationService.CheckKey(this, packet.getChannel())).build();
-                }
-            }
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public int getID() {
-            return 16;
-        }
-
-        @Override
-        public String getName() {
-            return "Payload.F";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Packet flood for payload channels";
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting(WrappedPlayInCustomPayload packet) {
-            return ConfigurationOptions.getChannelFloodSettings().get(packet.getChannel());
-        }
-
-        @Override
-        public String getKey(WrappedPlayInCustomPayload packet) {
-            return packet.getChannel();
         }
     }
 }

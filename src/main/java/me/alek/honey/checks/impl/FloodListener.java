@@ -6,6 +6,7 @@ import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
@@ -19,7 +20,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -82,28 +82,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         };
     }
 
-    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
-
-        private final Map<PacketTypeEnum, ConfigurationOptions.VlSetting> settingMap = new HashMap<>();
-
-        public AbstractCustomizableFloodCheck() {
-            final ConfigurationOptions.VlSetting commonSetting = getSetting();
-            for (Map.Entry<PacketTypeEnum, ConfigurationOptions.VlSetting> settingEntry : ConfigurationOptions.getFloodSettings().entrySet()) {
-
-                final ConfigurationOptions.VlSetting setting = settingEntry.getValue().clone();
-                setting.interval = commonSetting.interval;
-                setting.maxPerInterval = commonSetting.maxPerInterval;
-                setting.vlsAmount = commonSetting.vlsAmount;
-
-                settingMap.put(settingEntry.getKey(), setting);
-            }
-        }
-
-        public abstract ConfigurationOptions.VlSetting getSetting();
-
-        public ResponseContainer getResponse(HoneyPlayer player) {
-            return ResponseBuilder.inst().flag().build();
-        }
+    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -113,25 +92,19 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             return ResponseBuilder.SUCCESS;
         }
 
-        @Override
-        public ConfigurationOptions.VlSetting getSetting(WP packet) {
-            return settingMap.get(packet.getType());
+        public ResponseContainer getResponse(HoneyPlayer player) {
+            return ResponseBuilder.inst().flag().build();
         }
 
         @Override
         public PacketBundleFilter getDumpFilter() {
             return PacketBundleFilters.FLOOD_FILTER;
         }
-
-        @Override
-        public PacketTypeEnum getKey(WP packet) {
-            return packet.getType();
-        }
     }
 
     public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
-        private final ViolationService.CheckKey key = ViolationService.CheckKey.of(this);
+        private final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(this);
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
@@ -206,12 +179,14 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     }
 
-    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP, PacketTypeEnum> {
+    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP> {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
-                return ResponseBuilder.inst().flag().withLimitsKey(ViolationService.CheckKey.of(this)).build();
+                return ResponseBuilder.inst().flag()
+                        .withLimitsKey(ViolationService.HoneyKey.of(new ViolationService.HoneyKeyRegistry(this, packet.getType().getPacketId())))
+                        .build();
             }
             return ResponseBuilder.SUCCESS;
         }
@@ -239,11 +214,6 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ConfigurationOptions.VlSetting getSetting(WP packet) {
             return ConfigurationOptions.getFloodSettings().get(packet.getType());
-        }
-
-        @Override
-        public PacketTypeEnum getKey(WP packet) {
-            return packet.getType();
         }
     }
 

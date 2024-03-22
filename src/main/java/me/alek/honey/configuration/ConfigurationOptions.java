@@ -22,15 +22,10 @@ public class ConfigurationOptions {
     private static CountDownLatch loadingLatch = new CountDownLatch(0);
     private static FileConfiguration file;
     private static final Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
-    private static final Map<String, VlSetting> channelFloodSettings = new HashMap<>();
-    private static final Map<Class<? extends VlSetting>, VlSetting> vlSettingMap = new HashMap<>();
+    private static final Map<Class<? extends VlSetting>, VlSetting> vlSettings = new HashMap<>();
 
     public static Map<PacketTypeEnum, VlSetting> getFloodSettings() {
         return floodSettings;
-    }
-
-    public static Map<String, VlSetting> getChannelFloodSettings() {
-        return channelFloodSettings;
     }
 
     public static void setFile(FileConfiguration file) {
@@ -55,7 +50,6 @@ public class ConfigurationOptions {
             loadingLatch = new CountDownLatch(1);
 
             floodSettings.clear();
-            channelFloodSettings.clear();
             load(ConfigurationOptions.class);
 
         } catch (Exception ex) {
@@ -93,7 +87,7 @@ public class ConfigurationOptions {
 
     public static void setViolationSetting(Class<? extends VlSetting> clazz, PacketLimitHandlerType type, String[] prefixPaths) {
         final Class<? extends VlSetting> classCopy = clazz;
-        final VlSetting setting = vlSettingMap.computeIfAbsent(clazz, (d) -> {
+        final VlSetting setting = vlSettings.computeIfAbsent(clazz, (d) -> {
             try {
                 final Constructor<? extends VlSetting> constructor = classCopy.getDeclaredConstructor();
                 return constructor.newInstance();
@@ -105,7 +99,7 @@ public class ConfigurationOptions {
         if (setting == null) return;
         setting.packetLimitHandlerType = type;
 
-        vlSettingMap.put(clazz, setting);
+        vlSettings.put(clazz, setting);
 
         // checks if this violation setting is a flood setting, so we can register it to the map of flood settings
         if (clazz.isAnnotationPresent(Flood.class)) {
@@ -114,10 +108,6 @@ public class ConfigurationOptions {
             for (PacketTypeEnum packetType : flood.value()) {
                 floodSettings.put(packetType, setting);
             }
-        }
-        // just like the condition above, checks if it is a custom payload channel flood setting instead
-        if (clazz.isAnnotationPresent(ChannelFlood.class)) {
-            channelFloodSettings.put(clazz.getAnnotation(ChannelFlood.class).value(), setting);
         }
         if (clazz.isAnnotationPresent(Keyed.class)) {
             setting.keyedAnnotation = clazz.getAnnotation(Keyed.class);
@@ -202,13 +192,13 @@ public class ConfigurationOptions {
             ex.printStackTrace();
         }
 
-        if (!vlSettingMap.containsKey(clazz)) {
+        if (!vlSettings.containsKey(clazz)) {
             HoneyPlugin.get().resetConfiguration();
             Bukkit.getPluginManager().disablePlugin(HoneyPlugin.get().getPlugin());
 
             throw new RuntimeException("You have a misconfigured config.yml. The file is now deleted, you just have to restart the server.");
         }
-        return vlSettingMap.get(clazz);
+        return vlSettings.get(clazz);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -235,13 +225,6 @@ public class ConfigurationOptions {
     private @interface Flood {
 
         PacketType.Play.Client[] value();
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
-    private @interface ChannelFlood {
-
-        String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -729,74 +712,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "custom-payload.e", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PayloadE extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
 
-        }
-
-        @Setting
-        @Violation(prefixPaths = "custom-payload.f", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class PayloadF extends VlSetting {
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.adv-cmd"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|AdvCmd")
-            public static class AdvCmd extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.auto-cmd"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|AutoCmd")
-            public static class AutoCmd extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.beacon"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|Beacon")
-            public static class Beacon extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.b-edit"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|BEdit")
-            public static class BEdit extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.b-open"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|BOpen")
-            public static class BOpen extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.brand"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|Brand")
-            public static class Brand extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.b-sign"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("MC|BSign")
-            public static class BSign extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.register"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("REGISTER")
-            public static class Register extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Setting
-            @Violation(prefixPaths = {"custom-payload.f", "custom-payload.f.unregister"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            @ChannelFlood("UNREGISTER")
-            public static class Unregister extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
         }
     }
 

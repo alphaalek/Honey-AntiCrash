@@ -119,7 +119,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     public static class TabB implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
         private static final Map<UUID, Queue<ResponseListener>> tabCompleteQueueMap = new HashMap<>();
-        private final ViolationService.CheckKey key = new ViolationService.CheckKey(this, TabB.class, "TabB");
+        private final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(this);
 
         private interface ResponseListener {
 

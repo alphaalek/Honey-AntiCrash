@@ -109,8 +109,8 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey) {
-                MessageOffer offer = getOffer(player, type, checkKey);
+            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
+                MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
                         .build();
@@ -133,17 +133,17 @@ public class NotificationService {
             }
 
             @Override
-            public void warn(HoneyPlayer player, String type, ViolationService.CheckKey checkKey) {
-                observer.sendMessage(getMessage(punishFormat, getOffer(player, type, checkKey)));
+            public void warn(HoneyPlayer player, String type, ViolationService.HoneyKey honeyKey) {
+                observer.sendMessage(getMessage(punishFormat, getOffer(player, type, honeyKey)));
             }
         });
     }
 
-    public MessageOffer getOffer(HoneyPlayer player, String type, ViolationService.CheckKey checkKey) {
+    public MessageOffer getOffer(HoneyPlayer player, String type, ViolationService.HoneyKey honeyKey) {
         return new MessageOffer.Builder()
                 .offer(Placeholders.PLAYER, () -> player.name)
                 .offer(Placeholders.NETWORK, () -> formatNetworkStats(player))
-                .offer(Placeholders.CHECK, () -> type + (checkKey == null ? "" : " (" + checkKey.getT1() + ")"))
+                .offer(Placeholders.CHECK, () -> type + (honeyKey == null ? "" : " (" + honeyKey.getT1() + ")"))
                 .build();
     }
 
@@ -296,26 +296,26 @@ public class NotificationService {
         }
     }
 
-    public void notify(HoneyPlayer player, String notification, ViolationService.CheckKey checkKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
         synchronized (observerMap) {
             for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
                 if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
                     continue;
                 }
-                observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, checkKey);
+                observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, honeyKey);
             }
         }
     }
 
-    public void warn(HoneyPlayer player, String warning, ViolationService.CheckKey checkKey) {
+    public void warn(HoneyPlayer player, String warning, ViolationService.HoneyKey honeyKey) {
         synchronized (observerMap) {
             for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
                 if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
                     continue;
                 }
-                observer.getValue().warn(player, warning, checkKey);
+                observer.getValue().warn(player, warning, honeyKey);
             }
         }
     }
@@ -324,8 +324,8 @@ public class NotificationService {
 
         void notify(String notification);
 
-        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.CheckKey checkKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
 
-        void warn(HoneyPlayer player, String notification, ViolationService.CheckKey checkKey);
+        void warn(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey);
     }
 }

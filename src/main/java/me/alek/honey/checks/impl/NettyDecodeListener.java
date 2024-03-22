@@ -16,7 +16,6 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.timed.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -254,8 +253,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
 
-        private final ViolationService.CheckKey TAKey = new ViolationService.CheckKey(this, "ta");
-        private final ViolationService.CheckKey TTKey = new ViolationService.CheckKey(this, "tt");
+        private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this, "ta");
+        private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(this, "tt");
         private final ResponseContainer success = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(TTKey).build()

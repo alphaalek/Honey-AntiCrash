@@ -6,11 +6,11 @@ public interface ViolationCheck extends HoneyCheck {
 
     ConfigurationOptions.VlSetting getSetting();
 
-    default boolean isKeyed() {
-        return false;
-    }
-
     default boolean isViolation() {
         return true;
+    }
+
+    default boolean isKeyed() {
+        return false;
     }
 }

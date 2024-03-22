@@ -1,6 +1,5 @@
 package me.alek.honey.checks.response;
 
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.ViolationService;
 
 import java.util.ArrayList;
@@ -9,21 +8,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResponseContainer implements Cloneable {
 
-    public List<ResponseContainer> SUB_CONTAINERS = new ArrayList<>();
-    public boolean CANCELLED;
-    public boolean PUNISH;
-    public boolean SUCCESS;
-    public boolean TERMINATE;
-    public AtomicInteger SKIP_INDICES;
-    public ViolationService.CheckKey LIMITS_KEY;
-    public ViolationService.CheckKey VIOLATION_KEY;
-    public Runnable ON_VIOLATION;
-    public Runnable ON_FLAG;
-    public Runnable ON_PUNISH;
-    public double FLAG = -1;
+    public List<ResponseContainer> subContainers = new ArrayList<>();
+    public boolean cancelled;
+    public boolean punish;
+    public boolean success;
+    public boolean terminate;
+    public int skipIndices;
+    public ViolationService.HoneyKey limitsKey;
+    public ViolationService.HoneyKey violationKey;
+    public Runnable onViolation;
+    public Runnable onFlag;
+    public Runnable onPunish;
+    public double flag = -1;
 
     public ResponseBuilder builderCopy() {
-        return new ResponseBuilder(this.clone(), new ArrayList<>(SUB_CONTAINERS));
+        return new ResponseBuilder(this.clone(), new ArrayList<>(subContainers));
     }
 
     public ResponseBuilder builder() {

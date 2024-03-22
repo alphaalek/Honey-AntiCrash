@@ -437,55 +437,6 @@ custom-payload:
     enabled: true
     max: 110
 
-  f:
-    enabled: true
-
-    # common settings
-    interval: 1000
-    vls-amount: 3
-
-    # adv cmd
-    adv-cmd:
-      max-per-interval: 7
-      vls-amount: 4
-
-    # auto cmd
-    auto-cmd:
-      max-per-interval: 7
-      vls-amount: 4
-
-    # beacon
-    beacon:
-      max-per-interval: 6
-      vls-amount: 5
-
-    # b edit
-    b-edit:
-      max-per-interval: 6
-
-    # b open
-    b-open:
-      max-per-interval: 12
-
-    # b sign
-    b-sign:
-      max-per-interval: 4
-
-    # brand
-    brand:
-      max-per-interval: 3
-      vls-amount: 5
-
-    # register plugin channel
-    register:
-      max-per-interval: 4
-      vls-amount: 6
-
-    # unregister plugin channel
-    unregister:
-      max-per-interval: 4
-      vls-amount: 6
-
 # |--- held item ---|
 held-item:
   a:

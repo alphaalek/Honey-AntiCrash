@@ -3,7 +3,6 @@ package me.alek.honey.checks.response;
 import me.alek.honey.services.ViolationService;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -31,21 +30,21 @@ public class ResponseBuilder {
 
     public ResponseBuilder(ResponseContainer container, List<ResponseContainer> subContainers) {
         this(container);
-        this.responseContainer.SUB_CONTAINERS = subContainers;
+        this.responseContainer.subContainers = subContainers;
     }
 
     public ResponseBuilder add(ResponseContainer... containers) {
-        responseContainer.SUB_CONTAINERS.addAll(Arrays.asList(containers));
+        responseContainer.subContainers.addAll(Arrays.asList(containers));
         return this;
     }
 
     public ResponseBuilder success() {
-        responseContainer.SUCCESS = true;
+        responseContainer.success = true;
         return this;
     }
 
     public ResponseBuilder cancel() {
-        responseContainer.CANCELLED = true;
+        responseContainer.cancelled = true;
         return this;
     }
 
@@ -54,48 +53,48 @@ public class ResponseBuilder {
     }
 
     public ResponseBuilder flag(double amount) {
-        responseContainer.FLAG = amount;
+        responseContainer.flag = amount;
         return this;
     }
 
     public ResponseBuilder punish() {
-        responseContainer.PUNISH = true;
+        responseContainer.punish = true;
         return this;
     }
 
     public ResponseBuilder terminate() {
-        responseContainer.TERMINATE = true;
+        responseContainer.terminate = true;
         return this;
     }
 
     public ResponseBuilder skip(int indices) {
-        responseContainer.SKIP_INDICES = new AtomicInteger(indices);
+        responseContainer.skipIndices = indices;
         return this;
     }
 
-    public ResponseBuilder withLimitsKey(ViolationService.CheckKey key) {
-        responseContainer.LIMITS_KEY = key;
+    public ResponseBuilder withLimitsKey(ViolationService.HoneyKey key) {
+        responseContainer.limitsKey = key;
         return this;
     }
 
-    public ResponseBuilder withViolationKey(ViolationService.CheckKey key) {
-        responseContainer.VIOLATION_KEY = key;
+    public ResponseBuilder withViolationKey(ViolationService.HoneyKey key) {
+        responseContainer.violationKey = key;
         return this;
     }
 
     public ResponseBuilder onPunish(Runnable runnable) {
-        responseContainer.ON_PUNISH = runnable;
+        responseContainer.onPunish = runnable;
         return this;
     }
 
     public ResponseBuilder onViolation(Consumer<Runnable> runnable) {
-        Runnable priorOnViolation = responseContainer.ON_VIOLATION;
-        responseContainer.ON_VIOLATION = () -> runnable.accept(priorOnViolation);
+        Runnable priorOnViolation = responseContainer.onViolation;
+        responseContainer.onViolation = () -> runnable.accept(priorOnViolation);
         return this;
     }
 
     public ResponseBuilder onFlag(Runnable runnable) {
-        responseContainer.ON_FLAG = runnable;
+        responseContainer.onFlag = runnable;
         return this;
     }
 
