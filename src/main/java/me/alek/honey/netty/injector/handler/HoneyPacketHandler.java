@@ -120,13 +120,13 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         super.write(ctx, packetContainer.getHandle(), promise);
     }
 
-    public boolean write0(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelPromise promise) {
+    public <WP extends WrappedPacket<WP>> boolean write0(PacketContainer<WP> packetContainer, ChannelPromise promise) {
         if (packetContainer.isCancelled()) {
             return false;
         }
 
         if (packetContainer.getPost() != null) {
-            promise.addListener((f) -> packetContainer.getPost().run());
+            promise.addListener((f) -> packetContainer.getPost().call(packetContainer));
         }
 
         return true;

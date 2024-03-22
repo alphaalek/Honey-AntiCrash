@@ -135,26 +135,30 @@ public class SpigotServerInjector {
     }
 
     public synchronized void eject() {
-        synchronized (channelFutures) {
-            serverConnectionListAccessor.writeField(channelFuturesFieldIndex, Collections.synchronizedList(new ArrayList<>(channelFutures)));
+        if (channelFutures != null) {
+            synchronized (channelFutures) {
+                serverConnectionListAccessor.writeField(channelFuturesFieldIndex, Collections.synchronizedList(new ArrayList<>(channelFutures)));
 
-            for (ChannelFuture channelFuture : channelFutures) {
+                for (ChannelFuture channelFuture : channelFutures) {
 
-                for (Map.Entry<String, ChannelHandler> handler : channelFuture.channel().pipeline()) {
-                    if (handler.getValue() instanceof BeginInitProtocolInjector) {
-                        channelFuture.channel().pipeline().remove(handler.getValue());
+                    for (Map.Entry<String, ChannelHandler> handler : channelFuture.channel().pipeline()) {
+                        if (handler.getValue() instanceof BeginInitProtocolInjector) {
+                            channelFuture.channel().pipeline().remove(handler.getValue());
+                        }
                     }
                 }
             }
         }
 
-        synchronized (networkManagers) {
-            for (Object networkManager : networkManagers) {
+        if (networkManagers != null) {
+            synchronized (networkManagers) {
+                for (Object networkManager : networkManagers) {
 
-                Channel channel = NMS.getChannelFromNetworkManager(networkManager);
-                if (channel == null) continue;
+                    Channel channel = NMS.getChannelFromNetworkManager(networkManager);
+                    if (channel == null) continue;
 
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
+                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
+                }
             }
         }
         injected = false;

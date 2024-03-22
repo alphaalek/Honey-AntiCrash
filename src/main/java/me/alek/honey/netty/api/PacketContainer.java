@@ -2,6 +2,7 @@ package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.checks.CallbackAction;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -14,7 +15,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketEventloopStateTimings getEventloopStateTimings();
 
-    void init(Object packet, Runnable postAction, PacketTypeEnum packetType);
+    void init(Object packet, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum packetType);
 
     long getTime();
 
@@ -30,7 +31,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     WP getPacket();
 
-    Runnable getPost();
+    CallbackAction<PacketContainer<WP>> getPost();
 
     HoneyPlayer getPlayer();
 

@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
+import org.bukkit.Bukkit;
 
 public class EndInitProtocolInjector {
 

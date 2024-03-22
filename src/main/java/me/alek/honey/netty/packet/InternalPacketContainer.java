@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
@@ -32,7 +33,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PacketTypeEnum type;
     private Object handle;
     private WP wrappedPacket;
-    private Runnable postAction;
+    private CallbackAction<PacketContainer<WP>> postAction;
     private final HoneyPlayer player;
     private final Channel channel;
     private ReflectStructure<Object, ?> packetStructure;
@@ -43,7 +44,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
     private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Runnable postAction, PacketTypeEnum type) {
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
         this(rawPacket, type, player, channel);
         init(rawPacket, postAction, type);
     }
@@ -59,7 +60,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.channel = channel;
     }
 
-    public void init(Object rawPacket, Runnable postAction, PacketTypeEnum packetType) {
+    public void init(Object rawPacket, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum packetType) {
         this.handle = rawPacket;
         this.postAction = postAction;
         this.type = packetType;
@@ -154,7 +155,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public Runnable getPost() {
+    public CallbackAction<PacketContainer<WP>> getPost() {
         return postAction;
     }
 
