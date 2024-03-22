@@ -10,8 +10,6 @@ import java.util.function.Supplier;
 public enum ListenerRegistry {
 
     v1(FloodListener::new),
-    ;
-    /*
     v2(PositionListener::new),
     v3(HeldItemListener::new),
     v4(CreativeSlotListener::new),
@@ -28,7 +26,7 @@ public enum ListenerRegistry {
     v15(RotationListener::new),
     v17(BlockDigListener::new),
     v18(TabCompleteListener::new);
-    */
+
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;
