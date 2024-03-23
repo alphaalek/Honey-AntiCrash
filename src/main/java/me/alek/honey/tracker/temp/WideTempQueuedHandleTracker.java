@@ -2,10 +2,12 @@ package me.alek.honey.tracker.temp;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -144,7 +146,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double getAverageWithout(Timespan timespan, double playerTotal, boolean update) {
-        if (getTrackerSize() == 1) return Math.max(getTotal(timespan, update), playerTotal);
+        if (getTrackerSize() == 1) return playerTotal;
 
         return (getTotal(timespan, update) - playerTotal) / (getTrackerSize() - 1);
     }

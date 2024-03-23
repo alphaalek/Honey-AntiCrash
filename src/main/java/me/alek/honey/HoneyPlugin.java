@@ -210,7 +210,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup trackers
         packetNettyHandleTracker = new WideTempQueuedHandleTracker();
         packetServerThreadHandleTimeTracker = new ServerThreadHandleTracker();
-        checkHandleTracker = new RegistryMarkableHandleTracker<>(200L);
+        checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
         // setup checks
         registerChecks();

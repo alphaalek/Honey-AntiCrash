@@ -46,7 +46,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                                    CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         int skipping = 0;
         for (HoneyCheck check : checks) {
-            if (--skipping > 0) continue;
+            if (--skipping >= 0) continue;
 
             ConfigurationOptions.VlSetting setting = getSetting.apply(check);
             long registryKey = -1;
@@ -70,7 +70,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
                 if (response == null) continue;
-                if (response.skipIndices == 0) skipping = response.skipIndices;
+                if (response.skipIndices != 0) skipping = response.skipIndices;
                 if (response.success) {
                     if (response.terminate) terminated = true;
                     continue;

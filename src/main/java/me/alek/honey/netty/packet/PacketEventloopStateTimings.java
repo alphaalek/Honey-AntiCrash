@@ -13,7 +13,7 @@ public class PacketEventloopStateTimings {
     private EventloopState currentState = EventloopState.NO_STATE;
     private long currentStateStart;
     private long totalTime;
-    private static final long TO_MILLIS_MULTIPLIER = (long) Math.pow(10, -6);
+    private static final double TO_MILLIS_MULTIPLIER = Math.pow(10, -6);
 
     public void startTimings(EventloopState state) {
         startTimings(state, System.nanoTime());
@@ -73,7 +73,7 @@ public class PacketEventloopStateTimings {
     }
 
     private double toMillis(long value) {
-        return value * TO_MILLIS_MULTIPLIER;
+        return ((double)value) * TO_MILLIS_MULTIPLIER;
     }
 
     public EventloopState getCurrentState() {

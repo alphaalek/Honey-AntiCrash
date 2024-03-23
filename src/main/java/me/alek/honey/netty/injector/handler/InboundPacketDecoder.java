@@ -12,6 +12,7 @@ import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -72,7 +73,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             }
 
             packetContainer.getEventloopStateTimings().stopTimings();
-            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), packetContainer.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE));
+            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 

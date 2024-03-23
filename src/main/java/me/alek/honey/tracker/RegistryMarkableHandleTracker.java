@@ -1,10 +1,8 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.updated.UpdatingHandleTrackerTask;
-
 import java.util.*;
 
-public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<Double, T> implements MarkableHandleTracker<Double, T> {
+public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<Double, T> {
 
     private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
@@ -13,10 +11,6 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
     private long key;
     private long totalIndex;
     private long totalTime;
-
-    public RegistryMarkableHandleTracker(long updateInterval) {
-        super(updateInterval);
-    }
 
     public synchronized List<TimedNode<T>> getRegistryTracking(T key) {
         return checkHandleRegistry.computeIfAbsent(key, (d) -> new ArrayList<>());
@@ -135,11 +129,6 @@ public class RegistryMarkableHandleTracker<T> extends UpdatingHandleTrackerTask<
         totalTime = 0;
         totalIndex = 0;
         key = 0;
-    }
-
-    @Override
-    public synchronized void update() {
-        throw new UnsupportedOperationException("Can't update registry tracker!");
     }
 
     @Override

@@ -22,6 +22,7 @@ import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -349,7 +350,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
             int skip = (chunk == lastChunk && isLastChunkLoaded)
                     ? 1
-                    : (isLastChunkLoaded = chunk.isLoaded(packet.getWorld())) ? 1 : 0;
+                    : (isLastChunkLoaded = chunk.isLoaded(player.getWorld())) ? 1 : 0;
 
             if (!getSetting().isEnabled()
                     || chunk.equals(lastChunk) || chunk.equals(lastChunkCameFrom)) {
