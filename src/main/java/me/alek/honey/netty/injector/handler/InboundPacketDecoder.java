@@ -109,11 +109,14 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object o) {
         if (!(o instanceof ByteBuf)) return;
 
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
         ByteBuf byteBuf = (ByteBuf) o;
+        if (byteBuf.readableBytes() == 0) {
+            return;
+        }
+
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
-
         if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;

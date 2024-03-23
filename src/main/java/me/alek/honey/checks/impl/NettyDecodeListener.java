@@ -68,9 +68,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && byteBuf.readableBytes() == 0) {
-                return ResponseBuilder.inst().cancel().build();
-            }
             return ResponseBuilder.SUCCESS;
         }
 
@@ -199,7 +196,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Buffer of absolute bits exceeded";
+            return "Buffer of accumulated byte count exceeded";
         }
 
         @Override
@@ -235,7 +232,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too high absolute sum of bytes";
+            return "Too high accumulated byte count";
         }
 
         @Override
@@ -414,7 +411,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Packet flood for big packets to be decoded";
+            return "Packet flood for big packets";
         }
 
         @Override
