@@ -6,9 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
-import me.alek.honey.netty.injector.handler.InboundPacketFilter;
 import me.alek.honey.netty.utility.NMS;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,8 +14,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-
-import java.util.concurrent.CompletableFuture;
 
 public class BukkitEventInternal implements Listener {
 
@@ -55,17 +51,17 @@ public class BukkitEventInternal implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLoginDisallow(PlayerLoginEvent event) {
         if(!event.getResult().equals(PlayerLoginEvent.Result.ALLOWED)) {
-            ejectIfInjected(event.getPlayer());
+            tryEject(event.getPlayer());
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
-        ejectIfInjected(event.getPlayer());
+        tryEject(event.getPlayer());
 
     }
 
-    protected void ejectIfInjected(Player player) {
+    protected void tryEject(Player player) {
         Channel channel = HoneyPlayer.getPlayer(player.getUniqueId()).channel;
         if (channel == null) {
             channel = NMS.getChannelIfSet(player.getName());
