@@ -2,12 +2,10 @@ package me.alek.honey.tracker.temp;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,6 +83,10 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         commonTracker.add(value, time);
     }
 
+    public boolean hasCollected(HoneyPlayer player, Timespan timespan) {
+        return getTracker(player).getQueue(timespan).isCollected();
+    }
+
     private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
         TimedNode<Double> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
@@ -102,6 +104,24 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return getPlayerTotal(player, timespan, update) / timespan.getNanoTimespan() * 2;
     }
 
+    public double getPlayerRate(HoneyPlayer player, Timespan timespan, boolean update) {
+        return getPlayerTotal(player, timespan, update) / timespan.getTimespan();
+    }
+
+    public double getPlayerRateAcceleration(HoneyPlayer player, boolean average, boolean update) {
+        return getPlayerRate(player, average ? Timespan.TWO_SECOND : Timespan.ONE_SECOND, update);
+    }
+
+    public double getPlayerRateAccelerationQuotient(HoneyPlayer player, Timespan timespan, boolean average, boolean update) {
+        double accel = getPlayerRateAcceleration(player, average, update);
+
+        double deltaTotal = getPlayerTotal(player, timespan, update) - accel;
+        if (deltaTotal == 0) return 0;
+        double delta = timespan.getTimespan();
+
+        return accel / (deltaTotal / delta);
+    }
+
     public double getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
         if (update) getTracker(player).clearExceedingNodes(timespan, System.nanoTime());
 
@@ -112,9 +132,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double[] getStatistics(HoneyPlayer player) {
-        double[] statistics = new double[Timespan.values().length];
+        double[] statistics = new double[Timespan.Used.USED.size()];
         int i = 0;
-        for (Timespan timespan : Timespan.values()) {
+        for (Timespan timespan : Timespan.Used.USED) {
             statistics[i++] = getTimeToAverageWithoutQuotient(player, timespan, true);
         }
         return statistics;

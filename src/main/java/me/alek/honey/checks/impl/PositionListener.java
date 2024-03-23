@@ -341,16 +341,21 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         private WrappedChunkCoordIntPair lastChunkCameFrom;
         private WrappedChunkCoordIntPair lastChunk;
-        private boolean lastChunkFlagged;
+        private boolean lastChunkLoaded;
+        private boolean checkedChunkLoaded;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
             final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
-            int skip = (chunk == lastChunk && !lastChunkFlagged)
+            int skip = (chunk == lastChunk || chunk == lastChunkCameFrom)
                     ? 1
-                    : !(lastChunkFlagged = !chunk.isLoaded(player.getWorld())) ? 1 : 0;
+                    : (checkedChunkLoaded ? lastChunkLoaded : (lastChunkLoaded = chunk.isLoaded(player.getWorld()))) ? 1 : 0;
+
+            if (chunk != lastChunk) {
+                checkedChunkLoaded = true;
+            }
 
             if (!getSetting().isEnabled()
                     || chunk.equals(lastChunk) || chunk.equals(lastChunkCameFrom)) {
@@ -358,6 +363,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 return ResponseBuilder.SUCCESS.builderCopy().skip(skip).build();
             }
             // the player has moved into a new chunk, and we have to register this chunk as the current one
+            lastChunkLoaded = false;
+            checkedChunkLoaded = false;
             lastChunkCameFrom = lastChunk;
             lastChunk = chunk;
             return ResponseBuilder.inst().flag().skip(skip).build();

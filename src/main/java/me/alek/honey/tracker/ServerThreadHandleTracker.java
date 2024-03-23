@@ -7,6 +7,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.*;
@@ -14,6 +15,7 @@ import me.alek.honey.tracker.packet.PacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -69,13 +71,16 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
+        private static final int POSITION_DEFAULT = 50000;
+
         private final AtomicReference<HoneyPlayer> recentPacketAuthor = new AtomicReference<>();
-        private final NettyThreadLocal<ConcurrentLinkedQueue<PacketTaskFuture<Object>>> nettySubmitQueue = new NettyThreadLocal<>(ConcurrentLinkedQueue::new);
+        private final ConcurrentLinkedQueue<PacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
         private ConstructorInvoker<?> tickTaskConstructor;
         private final boolean pollsOneExtra;
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
+        private int trackCurrentPacket;
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
 
@@ -154,24 +159,34 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
                 if (player != null && player.player.isOnline()) {
                     // evaluate the difference in time
-                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
+                    double deltaTime;
+                    if (trackCurrentPacket != -1) {
+                        deltaTime = trackCurrentPacket;
+                    } else {
+                        deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
+                    }
 
                     registerTime(player, deltaTime);
                 }
                 recentDeltaTime = -1;
             }
             recentPollStart = System.nanoTime();
+            trackCurrentPacket = -1;
 
-            PacketTaskFuture<Object> task = null;
-            int thread = nettySubmitQueue.getAnyThread((queue) -> !queue.isEmpty());
+            PacketTaskFuture<Object> task = nettySubmitQueue.poll();
+            recentPacketAuthor.set(Optional.ofNullable(task).map(PacketTaskFuture::getPlayer).orElse(null));
 
-            if (thread != -1) {
-                task = nettySubmitQueue.get(thread).poll();
-                recentPacketAuthor.set(Optional.ofNullable(task).map(PacketTaskFuture::getPlayer).orElse(null));
-            }
-
-            if (task != null)
+            if (task != null) {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
+
+                // don't track position packets, because you can legitimately cause a lot of server thread performance by chunk loading in legacy versions (when chunk loading wasn't async)
+                PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
+                if (packet != null && (
+                        packet.getType() == PacketType.Play.Client.POSITION
+                                || packet.getType() == PacketType.Play.Client.POSITION_LOOK
+                                || packet.getType() == PacketType.Play.Client.FLYING))
+                    trackCurrentPacket = POSITION_DEFAULT;
+            }
 
             Object tickTask = task == null ? null : newTickTask(task);
 
@@ -184,7 +199,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
             if (task == null) {
                 packetsInQueueExecution.clear();
-                nettySubmitQueue.forEach(ConcurrentLinkedQueue::clear);
+                nettySubmitQueue.clear();
 
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;
@@ -204,38 +219,36 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // why add something to an execution queue, without it being a runnable?
             if (!(value instanceof Runnable)) return false;
 
+            // only register tracking for tasks added by netty threads (packet handling)
+            if (!Thread.currentThread().getName().startsWith("Netty")) return super.add(value);
+
+            PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
+            if (packet == null || packet.isHandledByServer() || packet.getPlayer() == null) {
+                return super.add(value);
+            }
+            packet.setHandledByServer();
+
             // add it two times if it's empty, so we always have one extra element
             // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
             if (super.isEmpty() && pollsOneExtra) super.add(EMPTY_VALUE);
 
-            // only register tracking for tasks added by netty threads (packet handling)
-            if (!Thread.currentThread().getName().startsWith("Netty")) return super.add(value);
-
-            // we will make sure that this thread is currently trying to add a packet to the server sent by a player.
-            // it is not enough to just check the packet send queue, because in newer versions there will sometimes be added
-            // elements to the execution queue from netty threads which are not packets
-            PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
-            if (packet == null || packet.isHandledByServer()) return super.add(value);
-
-            packet.setHandledByServer();
-            if (packet.getPlayer() == null || packet.getPlayer().nettyThreadID == -1)
+            if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))
                 return super.add(value);
 
             UUID uuid = packet.getPlayer().uuid;
-            synchronized (PacketTaskHandler.lock) {
+            synchronized (PacketTaskHandler.ignoreDecrementLock) {
                 if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
                 } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
             }
             super.add(EMPTY_VALUE);
 
-            return nettySubmitQueue.get(packet.getPlayer().nettyThreadID)
-                    .add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+            return nettySubmitQueue.add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
         }
     }
 
     public void decrementPacketsInQueueExecution(UUID uuid) {
-        synchronized (PacketTaskHandler.lock) {
+        synchronized (PacketTaskHandler.ignoreDecrementLock) {
             int ignoredDecrement = ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0);
             if (ignoredDecrement > 0)
                 ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredDecrement - 1);
@@ -263,7 +276,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
             @Override
             public int compare(HoneyPlayer o1, HoneyPlayer o2) {
-                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.TEN_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.TEN_SECOND, true));
+                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true));
             }
         });
         return trackersList;

@@ -26,7 +26,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public CheckVisitor<?> getVisitor(HoneyPlayer player) {
         CheckVisitor<?> visitor = new CheckVisitor<>(player);
         // A, B, H, I, J, K are packet listeners and not decode listeners, so they are in a different class
-        visitor.visit(new NettyC());
         visitor.visit(new NettyD());
         visitor.visit(new NettyE());
         visitor.visit(new NettyF());
@@ -62,39 +61,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     @Override
     public HoneyCheckType getCheckType() {
         return HoneyCheckType.DECODE;
-    }
-
-    public static class NettyC implements DecodeCheck, ViolationCheck {
-
-        @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
-            return ResponseBuilder.SUCCESS;
-        }
-
-        @Override
-        public int getID() {
-            return 28;
-        }
-
-        @Override
-        public String getName() {
-            return "Netty.C";
-        }
-
-        @Override
-        public String getDescription() {
-            return "No bytes to be decoded";
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyC.class);
-        }
     }
 
     public static class NettyD implements DecodeCheck, ViolationCheck {
@@ -249,6 +215,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     public static class NettyK implements DecodeCheck, ViolationCheck {
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+        private static final double MIN_TA_ENTER = 5;
 
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this, "ta");
         private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(this, "tt");
@@ -262,7 +229,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             if (getSetting().isEnabled()) {
 
                 double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, false);
-                if (ta > 5) {
+                if (ta > MIN_TA_ENTER) {
                     int size = tracker.getTrackerSize();
                     if ((size > 15 && ta > 17.5) || (size > 25 && ta > 15) || (size > 40 && ta > 12.5)) {
                         return ResponseBuilder.inst().cancel().withViolationKey(TAKey).flag(1).build();

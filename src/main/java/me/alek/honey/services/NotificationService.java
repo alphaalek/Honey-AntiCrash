@@ -207,7 +207,7 @@ public class NotificationService {
     }
 
     public String formatTPS() {
-        int tps = (int) HoneyPlugin.get().getTickloop().evaluateTPS(Timespan.TEN_SECOND);
+        int tps = (int) HoneyPlugin.get().getTickloop().evaluateTPS(Timespan.FIVE_SECOND);
         return ((tps > 16.5) ? "§a" : (tps > 8) ? "§e" : "§c") + tps;
     }
 

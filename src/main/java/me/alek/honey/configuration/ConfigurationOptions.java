@@ -362,7 +362,7 @@ public class ConfigurationOptions {
         @VlSettingImpl(VlSettingImplType.DECAY)
         public int decay;
         @VlSettingImpl(VlSettingImplType.THROTTLE_AFTER)
-        public int throttleAfter;
+        public int throttleAfter = 500;
         @VlSettingImpl(VlSettingImplType.DECAY_AMOUNT)
         public int decayAmount;
         @VlSettingImpl(VlSettingImplType.MIN)
@@ -997,7 +997,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.SIMPLE)
+        @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
         public static class NettyC extends VlSetting {
 
         }

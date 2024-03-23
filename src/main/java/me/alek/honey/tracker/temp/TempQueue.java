@@ -14,6 +14,7 @@ public class TempQueue {
     private final Queue<TimedNode<Double>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
+    private boolean collected;
     private Timespan timespan;
     private AtomicLong total;
 
@@ -39,6 +40,10 @@ public class TempQueue {
 
         this.timespan = timespan;
         this.total = total;
+    }
+
+    public boolean isCollected() {
+        return collected;
     }
 
     public int getQueueSize() {
@@ -81,20 +86,32 @@ public class TempQueue {
     public synchronized void clearExceedingNodes(long time) {
         if (isFixed) return;
 
+        TimedNode<Double> peekedNode = TIMED.peek();
+        if (peekedNode == null || !clearNode(peekedNode, time)) {
+            return;
+        }
+        TIMED.remove();
+
         final Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
         while (sampleNodeIterator.hasNext()) {
 
-            final TimedNode<Double> node = sampleNodeIterator.next();
-            final long diff = time - node.getInsertionInstant();
-
-            if (diff > (timespan.getNanoTimespan())) {
+            if (clearNode(sampleNodeIterator.next(), time)) {
                 sampleNodeIterator.remove();
-
-                total.addAndGet((long) -node.getValue());
                 continue;
             }
             break;
         }
+    }
+
+    private boolean clearNode(TimedNode<Double> node, long time) {
+        final long diff = time - node.getInsertionInstant();
+
+        if (diff > (timespan.getNanoTimespan())) {
+            total.addAndGet((long) -node.getValue());
+            collected = true;
+            return true;
+        }
+        return false;
     }
 
     public void clearExceedingNodes() {

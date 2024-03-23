@@ -7,9 +7,9 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
-import me.alek.honey.utility.Tuple2;
 import org.bukkit.ChatColor;
 
 import java.lang.management.ManagementFactory;
@@ -19,8 +19,8 @@ import java.util.Map;
 
 public class PacketTaskHandler {
 
-    public static final long TO_MILLIS = (long) Math.pow(10, -6);
-    public static final Object lock = new Object();
+    public static final double TO_MILLIS_MULTIPLIER = PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER;
+    public static final Object ignoreDecrementLock = new Object();
     private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
@@ -30,9 +30,9 @@ public class PacketTaskHandler {
     static {
         new Thread(() -> {
             while (HoneyPlugin.get().isRunning()) {
-                synchronized (lock) {
+                synchronized (ignoreDecrementLock) {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                            && (System.nanoTime() - handledTask.getSubmitted()) * TO_MILLIS >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                            && (System.nanoTime() - handledTask.getSubmitted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) continue;
@@ -118,7 +118,7 @@ public class PacketTaskHandler {
     }
 
     public static void unregisterTask() {
-        synchronized (lock) {
+        synchronized (ignoreDecrementLock) {
             if (handledTask != null) {
                 tracker.decrementPacketsInQueueExecution(handledTask.getPlayer().uuid);
 

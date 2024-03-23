@@ -32,41 +32,30 @@ public abstract class TempQueuedTracker implements HoneyTracker {
         }
     }
 
-    public void clearExceedingNodes(Timespan timespan, long time) {
-        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
-        queue.getT2().clearExceedingNodes(time);
+    public double getTotal(Timespan timespan) {
+        return getTuple(timespan).getT1().get();
     }
 
-    public double getTotal(Timespan timespan) {
-        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
-        return queue.getT1().get();
+    public void clearExceedingNodes(Timespan timespan, long time) {
+        getQueue(timespan).clearExceedingNodes(time);
     }
 
     public TempQueue getQueue(Timespan timespan) {
-        Tuple2<AtomicLong, TempQueue> queue = getTuple(timespan);
-        return queue.getT2();
+        return getTuple(timespan).getT2();
     }
 
     public synchronized Tuple2<AtomicLong, TempQueue> getTuple(Timespan timespan) {
-        Tuple2<AtomicLong, TempQueue> q;
-        if (timespan == Timespan.TEN_SECOND && tickDurationQueues.length > 0
-                && ((q = tickDurationQueues[0]).getT2().getTimespan().equals(Timespan.TEN_SECOND)))
-            return q;
-
-        for (Tuple2<AtomicLong, TempQueue> queue : tickDurationQueues) {
-            if (timespan.getQueue(this).equals(queue.getT2()))
-                return queue;
+        if (tickDurationQueues.length < timespan.ordinal()) {
+            setup();
         }
-        setup();
-        return getTuple(timespan);
+        Tuple2<AtomicLong, TempQueue> queue = tickDurationQueues[timespan.ordinal()];
+        if (timespan.getQueue(this).equals(queue.getT2())) {
+            return queue;
+        }
+        throw new IllegalStateException("Couldn't find tuple for timespan " + timespan);
     }
 
     public synchronized int getLength(Timespan timespan) {
-        for (TempQueue queue : Arrays.stream(tickDurationQueues).map(Tuple2::getT2).collect(Collectors.toSet())) {
-            if (queue.getTimespan() == timespan)
-                return queue.getQueueSize();
-        }
-        setup();
-        return getLength(timespan);
+        return getTuple(timespan).getT2().getQueueSize();
     }
 }

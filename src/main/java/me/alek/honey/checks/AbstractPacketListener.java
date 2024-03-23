@@ -3,6 +3,7 @@ package me.alek.honey.checks;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -55,6 +56,10 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
+        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+            return;
+        }
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         callback.addAction((response) -> {
             response.builder().onViolation(onViolation -> {

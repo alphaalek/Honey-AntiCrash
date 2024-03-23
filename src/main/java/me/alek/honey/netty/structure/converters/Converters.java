@@ -225,7 +225,7 @@ public class Converters {
                 );
                 Object chunkPair;
                 try {
-                    chunkPair = constructorInvoker.invoke(object.getX(), object.getZ());
+                    chunkPair = constructorInvoker.invoke(object.getX(), object.getY());
                 } catch (Exception ex) {
                     throw new RuntimeException("Reflection error");
                 }

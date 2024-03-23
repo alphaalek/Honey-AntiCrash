@@ -329,6 +329,7 @@ netty:
 
   c:
     enabled: true
+    throttle-after: 500
 
   d:
     enabled: true
@@ -371,13 +372,11 @@ netty:
 
   j:
     enabled: true
-    throttle-after: 700
-    vls-amount: 3
+    throttle-after: 500
 
   k:
     enabled: true
-    throttle-after: 700
-    vls-amount: 4
+    throttle-after: 500
 
   l:
     enabled: true # size categorized

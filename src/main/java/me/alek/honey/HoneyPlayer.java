@@ -50,7 +50,6 @@ public class HoneyPlayer {
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public ViolationService.ViolationContext violationContext;
     public boolean punished;
-    public int nettyThreadID = -1;
     public int registryID;
 
     public HoneyPlayer(Player player) {

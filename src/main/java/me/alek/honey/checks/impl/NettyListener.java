@@ -12,6 +12,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
@@ -27,6 +28,7 @@ import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPosition;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPositionLook;
+import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.*;
 import me.alek.honey.tracker.packet.PacketTaskFuture;
@@ -35,8 +37,10 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.Array;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
+import java.nio.file.FileVisitOption;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
@@ -57,6 +61,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
         CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new NettyA<>());
+        visitor.visit(new NettyC<>());
         visitor.visit(new NettyH<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
@@ -86,7 +91,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             PacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
             if (task != null && task.getPlayer().equals(player)
-                    && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS > ConfigurationOptions.Netty.NettyA.MAX_HANDLE)
+                    && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE)
                 return ResponseBuilder.inst().flag(1).build();
 
             return ResponseBuilder.SUCCESS;
@@ -255,6 +260,58 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
+    public static class NettyC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
+
+        private static final double RATE_5S = 100 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_15S = 70 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+
+        @Override
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+
+            Bukkit.broadcastMessage(player.name + " (stq): rate: " + format(player, Timespan.FIVE_SECOND) + "ms/s, accel: "
+                    + NumberConversions.format(tracker.getPlayerRate(player, Timespan.TWO_SECOND, true) * PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER, 2) + "ms " + NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) * 100, 2) + "%");
+
+            if (tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true) > RATE_5S
+                    || tracker.getPlayerRate(player, Timespan.FIFTEEN_SECOND, true) > RATE_15S) {
+                return ResponseBuilder.inst().flag(1).build();
+            }
+
+            return ResponseBuilder.SUCCESS;
+        }
+
+        private double format(HoneyPlayer player, Timespan timespan) {
+            return NumberConversions.format(
+                    PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER * tracker.getPlayerRate(player, timespan, true), 2);
+        }
+
+        @Override
+        public int getID() {
+            return 28;
+        }
+
+        @Override
+        public String getName() {
+            return "Netty.C";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Too high usage of server thread";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.LENIENT_LONG_FILTER;
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyC.class);
+        }
+    }
+
     public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) throws Exception {
@@ -341,7 +398,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
-        private static final double MIN_HSQ_ENTER = 0.2;
+        private static final double MIN_HSQ_ENTER = 0.1;
 
         private final ViolationService.HoneyKey HSQKey = ViolationService.HoneyKey.of(this, "hsq");
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this,"ta");
@@ -356,12 +413,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.TEN_SECOND, false);
+                double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND, false);
                 if (hsq > MIN_HSQ_ENTER) {
                     int trackerSize = tracker.getTrackerSize();
                     int i = 0;
-                    long time = System.currentTimeMillis();
-                    for (Timespan timespan : Timespan.values()) {
+                    long time = System.nanoTime();
+                    for (Timespan timespan : Timespan.Used.USED) {
                         tracker.clearExceedingNodes(player, timespan, time);
 
                         double multiplier = (i >= timespanMultipliers.length)
