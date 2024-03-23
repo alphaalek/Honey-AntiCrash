@@ -7,6 +7,7 @@ import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.Configuration;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinListener;
@@ -213,7 +214,7 @@ public class HoneyPlugin implements HoneyAPI {
         checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
         // setup checks
-        registerChecks();
+        plugin.getServer().getScheduler().runTask(plugin, this::registerChecks); // register checks on the next tick (when the server has finished loading)
         PacketExecutors.register();
         ItemAnalysis.reload();
 
@@ -284,10 +285,8 @@ public class HoneyPlugin implements HoneyAPI {
 
             if (check instanceof SyncPacketAdapter) {
                 ListenerPriority priority = check.getPriority();
-
                 if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
                     packetLibrary.addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
-
                 if (check.getCheckType() == HoneyCheckType.DECODE)
                     packetLibrary.addDecodeListener((SyncPacketAdapter<?>) check, priority);
 

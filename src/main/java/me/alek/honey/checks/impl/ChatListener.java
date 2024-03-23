@@ -22,6 +22,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
