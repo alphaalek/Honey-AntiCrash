@@ -39,10 +39,12 @@ public class ChainedCallable<T> implements Callable<T> {
     @Override
     public T call() throws Exception {
         T value = callable.call();
-        called = true;
-        for (Consumer<T> listener : listeners) {
-            listener.accept(value);
+        synchronized (this) {
+            for (Consumer<T> listener : listeners) {
+                listener.accept(value);
+            }
         }
+        called = true;
         return value;
     }
 }

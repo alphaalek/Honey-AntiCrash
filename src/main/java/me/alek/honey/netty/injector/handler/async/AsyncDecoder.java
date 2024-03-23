@@ -40,7 +40,13 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         if (currentTask == null || currentTask.isCalled())
             consumer.accept(currentTask);
         else {
-            currentTask.addListener(consumer);
+            synchronized (currentTask) {
+                if (currentTask.isCalled()) {
+                    consumer.accept(currentTask);
+                }
+
+                currentTask.addListener(consumer);
+            }
         }
     }
 
