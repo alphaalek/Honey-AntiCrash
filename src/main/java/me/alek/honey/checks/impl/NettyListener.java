@@ -270,8 +270,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
 
+            /*
             Bukkit.broadcastMessage(player.name + " (stq): rate: " + format(player, Timespan.FIVE_SECOND) + "ms/s, accel: "
                     + NumberConversions.format(tracker.getPlayerRate(player, Timespan.TWO_SECOND, true) * PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER, 2) + "ms " + NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) * 100, 2) + "%");
+            */
 
             if (tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true) > RATE_5S
                     || tracker.getPlayerRate(player, Timespan.FIFTEEN_SECOND, true) > RATE_15S) {

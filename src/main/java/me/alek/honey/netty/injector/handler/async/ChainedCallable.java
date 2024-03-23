@@ -18,12 +18,12 @@ public class ChainedCallable<T> implements Callable<T> {
         this.callable = delegate;
     }
 
-    public synchronized ChainedCallable<T> addListener(Consumer<T> listener) {
+    public ChainedCallable<T> addListener(Consumer<T> listener) {
         this.listeners.add(listener);
         return this;
     }
 
-    public synchronized ChainedCallable<T> addListener(Function<T, T> listener) {
+    public ChainedCallable<T> addListener(Function<T, T> listener) {
         this.listeners.add((s) -> new ChainedCallable<>(from, () -> s).addListener(listener));
         return this;
     }
@@ -39,12 +39,12 @@ public class ChainedCallable<T> implements Callable<T> {
     @Override
     public T call() throws Exception {
         T value = callable.call();
-        called = true;
         synchronized (this) {
             for (Consumer<T> listener : listeners) {
                 listener.accept(value);
             }
         }
+        called = true;
         return value;
     }
 }
