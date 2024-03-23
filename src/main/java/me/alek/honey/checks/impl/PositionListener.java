@@ -341,16 +341,16 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         private WrappedChunkCoordIntPair lastChunkCameFrom;
         private WrappedChunkCoordIntPair lastChunk;
-        private boolean isLastChunkLoaded;
+        private boolean lastChunkFlagged;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
             final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
-            int skip = (chunk == lastChunk && isLastChunkLoaded)
+            int skip = (chunk == lastChunk && !lastChunkFlagged)
                     ? 1
-                    : (isLastChunkLoaded = chunk.isLoaded(player.getWorld())) ? 1 : 0;
+                    : !(lastChunkFlagged = !chunk.isLoaded(player.getWorld())) ? 1 : 0;
 
             if (!getSetting().isEnabled()
                     || chunk.equals(lastChunk) || chunk.equals(lastChunkCameFrom)) {

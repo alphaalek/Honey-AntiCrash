@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -58,6 +59,13 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (!HoneyPacketHandler.onExceptionCaught(cause)) {
+            super.exceptionCaught(ctx, cause);
+        }
+    }
+
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
@@ -81,8 +89,8 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             if (ConfigurationOptions.AsyncDecoder.ENABLED) {
                 packetExecutorTask = packetProcessor.getPacketExecutorTask(finalPacketContainer);
             }
-
             Runnable finalPacketExecutorTask = packetExecutorTask;
+
             ctx.channel().eventLoop().execute(() -> {
                 if (packetHandler.read0(finalPacketContainer)) {
 

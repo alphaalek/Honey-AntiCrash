@@ -124,7 +124,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 e.printStackTrace();
             }
             return ResponseBuilder.SUCCESS;
-        },null, checkContextContainer, callback);
+        }, byteBuf, checkContextContainer, callback);
     }
 
     @SuppressWarnings("unchecked")

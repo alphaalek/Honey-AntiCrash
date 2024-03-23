@@ -68,6 +68,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return player;
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (!HoneyPacketHandler.onExceptionCaught(cause)) {
+            super.exceptionCaught(ctx, cause);
+        }
+    }
+
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
