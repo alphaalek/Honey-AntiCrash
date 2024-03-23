@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.concurrent.CompletableFuture;
@@ -51,10 +52,20 @@ public class BukkitEventInternal implements Listener {
         });
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLoginDisallow(PlayerLoginEvent event) {
+        if(!event.getResult().equals(PlayerLoginEvent.Result.ALLOWED)) {
+            ejectIfInjected(event.getPlayer());
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
+        ejectIfInjected(event.getPlayer());
 
+    }
+
+    protected void ejectIfInjected(Player player) {
         Channel channel = HoneyPlayer.getPlayer(player.getUniqueId()).channel;
         if (channel == null) {
             channel = NMS.getChannelIfSet(player.getName());
