@@ -52,7 +52,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     }
 
     @Override
-    public synchronized void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (forced || !ConfigurationOptions.AsyncDecoder.ENABLED) {
             write0(ctx, msg, promise, false);
             return;
@@ -88,9 +88,27 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
             ctx.write(msg, promise);
     }
 
-    public synchronized void writeForcedPacket(Object value) throws Exception {
+    public void writeForcedPacket(Object value) {
+        if (!channel.eventLoop().inEventLoop()) {
+
+            channel.eventLoop().submit(() -> {
+                forced = true;
+                try {
+                    write(channel.pipeline().context(this), value, new DefaultChannelPromise(channel));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                forced = false;
+            });
+            return;
+        }
+
         forced = true;
-        write(channel.pipeline().context(this), value, new DefaultChannelPromise(channel));
+        try {
+            write(channel.pipeline().context(this), value, new DefaultChannelPromise(channel));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         forced = false;
     }
 

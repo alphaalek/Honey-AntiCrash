@@ -280,7 +280,7 @@ public class NotificationService {
         packetContainer.getObjects(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         try {
-            HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket, true);
+            HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

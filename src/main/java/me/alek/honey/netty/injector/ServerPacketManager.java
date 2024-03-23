@@ -13,14 +13,11 @@ public class ServerPacketManager {
         writePacket(player.channel, rawPacket, flushAfter);
     }
 
-    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) throws Exception {
-        ChannelHandler encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(player.channel);
-        if (!(encoder instanceof OutboundPacketEncoder)) {
-            writePacket(player, packet, flushAfter);
-            return;
-        }
-        OutboundPacketEncoder outboundPacketEncoder = (OutboundPacketEncoder) encoder;
-        outboundPacketEncoder.writeForcedPacket(packet.getHandle());
+    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet) throws Exception {
+        if (player == null || player.channel == null) return;
+
+        OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(player.channel);
+        encoder.writeForcedPacket(packet.getHandle());
     }
 
     public <WP extends WrappedPacket<WP>> void writePacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) {
