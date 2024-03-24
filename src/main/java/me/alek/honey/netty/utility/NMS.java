@@ -50,6 +50,7 @@ public class NMS {
     }
 
     public static synchronized void submitChannelForName(String name, Channel channel) {
+        lookupChannels.remove(name);
         getChannel(name).complete(channel);
     }
 

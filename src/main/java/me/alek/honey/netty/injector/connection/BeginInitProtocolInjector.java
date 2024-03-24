@@ -55,6 +55,7 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
         } else {
             channel.pipeline().addFirst(connectorName, new EndInitProtocolInjector.Initializer_v1_8());
         }
+
         super.channelRead(ctx, msg);
     }
 }

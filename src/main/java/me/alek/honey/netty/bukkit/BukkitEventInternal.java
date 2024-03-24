@@ -7,6 +7,7 @@ import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
 import me.alek.honey.netty.utility.NMS;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -58,7 +59,6 @@ public class BukkitEventInternal implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         tryEject(event.getPlayer());
-
     }
 
     protected void tryEject(Player player) {
