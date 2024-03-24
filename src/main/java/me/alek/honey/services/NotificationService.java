@@ -257,7 +257,7 @@ public class NotificationService {
         counter.count();
 
         int size = counter.size();
-        if (size < 15) return;
+        if (size < 20) return;
 
         sendActionBar(player, "§cCancelling inbound packets... [" + size + "]");
     }

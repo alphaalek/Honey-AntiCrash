@@ -43,8 +43,8 @@ public class ChainedCallable<T> implements Callable<T> {
             for (Consumer<T> listener : listeners) {
                 listener.accept(value);
             }
+            called = true;
         }
-        called = true;
         return value;
     }
 }

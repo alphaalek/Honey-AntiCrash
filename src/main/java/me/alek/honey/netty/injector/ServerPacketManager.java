@@ -17,6 +17,8 @@ public class ServerPacketManager {
         if (player == null || player.channel == null) return;
 
         OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(player.channel);
+        if (encoder == null) return;
+
         encoder.writeForcedPacket(packet.getHandle());
     }
 

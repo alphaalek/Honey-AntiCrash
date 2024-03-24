@@ -311,7 +311,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         final PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, packetType, readStart);
 
-
         // check if this packet type has any listeners which can handle this packet.
         // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
         if (packetType == PacketType.UNKNOWN || !hasListener(packetType)) {

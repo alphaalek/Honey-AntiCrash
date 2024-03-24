@@ -1,5 +1,9 @@
 package me.alek.honey.utility.pastebin;
 
+import me.alek.honey.utility.pastebin.enums.Expiration;
+import me.alek.honey.utility.pastebin.enums.Format;
+import me.alek.honey.utility.pastebin.enums.Visibility;
+
 import java.util.HashMap;
 import java.util.Map;
 

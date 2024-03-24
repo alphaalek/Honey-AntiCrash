@@ -117,7 +117,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
 
         double deltaTotal = getPlayerTotal(player, timespan, update) - accel;
         if (deltaTotal == 0) return 0;
-        double delta = timespan.getTimespan();
+        double delta = timespan.getTimespan() - 1;
 
         return accel / (deltaTotal / delta);
     }

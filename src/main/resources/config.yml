@@ -696,7 +696,7 @@ packet-flood:
 
     # custom payload
     custom-payload:
-      max-per-interval: 55 # more specific settings regarding custom payload packets can be seen in the section packet flood under Custom Payload check
+      max-per-interval: 50
       vls-amount: 3
 
     # enchant item
@@ -721,25 +721,25 @@ packet-flood:
 
     # keep alive
     keep-alive:
-      max-per-interval: 30
+      max-per-interval: 35
       vls-amount: 10
 
     # look
     look:
-      max-per-interval: 60
+      max-per-interval: 65
       interval: 700
       vls-amount: 10
 
     # position
     position:
-      max-per-interval: 100
+      max-per-interval: 105
       interval: 650
       vls-amount: 7
 
     # set creative slot
     set-creative-slot:
       interval: 600
-      max-per-interval: 100
+      max-per-interval: 115
 
     # spectate
     spectate:
@@ -771,7 +771,7 @@ packet-flood:
 
     # window click
     window-click:
-      max-per-interval: 110
+      max-per-interval: 115
       interval: 600
       vls-amount: 8
 

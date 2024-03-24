@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector.handler.async.worker;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.handler.async.*;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -52,7 +53,9 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
     @Override
     public synchronized void submit(ChainedCallable<T> task) {
         try {
-            pendingTasks.offer(task, 0, TimeUnit.MILLISECONDS);
+            if (!pendingTasks.offer(task, 0, TimeUnit.MILLISECONDS)) {
+                Bukkit.getLogger().info("Couldn't offer task to worker");
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }

@@ -108,7 +108,7 @@ public class SpigotPipelineInjector {
             HoneyPacketHandler handler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             if ((handler == null && !player.removedPacketHandlerFromPipeline)
-                    || filter == null) throw new MissingHandlerException("Handlers: " + handler + ", " + filter + ", " + player.removedPacketHandlerFromPipeline);
+                    || filter == null) throw new MissingHandlerException("Handler: " + handler + ", Filter: " + filter + ", Removed: " + player.removedPacketHandlerFromPipeline);
 
             if (handler != null) handler.setPlayer(player);
             filter.setPlayer(player);

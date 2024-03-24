@@ -38,7 +38,6 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     private final HoneyPacketHandler packetHandler;
     private final Channel channel;
     private final MessageToByteEncoder<Object> encoder;
-    private volatile boolean forced;
 
     public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.channel = channel;
@@ -53,7 +52,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (forced || !ConfigurationOptions.AsyncDecoder.ENABLED) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
             write0(ctx, msg, promise, false);
             return;
         }
@@ -74,42 +73,38 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     }
 
     private void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) throws Exception {
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
+        if (ctx == null) return;
 
-        if (!packetHandler.write0(packetContainer, promise)) {
-            return;
+        if (asyncDecoder.getPlayer() != null) {
+            PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
+
+            if (!packetHandler.write0(packetContainer, promise)) {
+                return;
+            }
         }
 
-        if (retain) ReferenceCountUtil.retain(msg);
+        if (retain) {
+            ReferenceCountUtil.retain(msg);
+        }
 
-        if (packetClass.isInstance(msg))
+        if (packetClass.isInstance(msg)) {
             super.write(ctx, msg, promise);
-        else
+        } else {
             ctx.write(msg, promise);
+        }
     }
 
     public void writeForcedPacket(Object value) {
         if (!channel.eventLoop().inEventLoop()) {
-
-            channel.eventLoop().submit(() -> {
-                forced = true;
-                try {
-                    write(channel.pipeline().context(this), value, new DefaultChannelPromise(channel));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                forced = false;
-            });
+            channel.eventLoop().submit(() -> writeForcedPacket(value));
             return;
         }
 
-        forced = true;
         try {
-            write(channel.pipeline().context(this), value, new DefaultChannelPromise(channel));
+            write0(channel.pipeline().context(this), value, new DefaultChannelPromise(channel), false);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        forced = false;
     }
 
     @Override

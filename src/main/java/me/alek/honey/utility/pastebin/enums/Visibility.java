@@ -1,8 +1,6 @@
-package me.alek.honey.utility.pastebin;
+package me.alek.honey.utility.pastebin.enums;
 
 public enum Visibility {
-    PRIVATE(2, "Private"),
-    UNLISTED(1, "Unlisted"),
     PUBLIC(0, "Public");
 
     private final int code;

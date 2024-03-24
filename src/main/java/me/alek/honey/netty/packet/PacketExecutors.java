@@ -1,7 +1,6 @@
 package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
@@ -12,11 +11,9 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.*;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -32,6 +29,9 @@ public class PacketExecutors {
     }
 
     private static class CustomPayloadPacketExecutor implements PacketExecutor<WrappedPlayInCustomPayload> {
+
+        private static final Class<?> craftEventFactory = Reflection.getClass("{obc}.event.CraftEventFactory");
+        private static final MethodInvoker<Object> handleBookEditEventInvoker = Reflection.getMethod(craftEventFactory, "handleEditBookEvent", NMS.getEntityPlayerClass(), NMS.getItemStackClass());
 
         @Override
         public boolean accepts(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
@@ -91,9 +91,6 @@ public class PacketExecutors {
         }
 
         private void callHandleBookEditEvent(Player player, ItemStack item) {
-            Class<?> craftEventFactory = Reflection.getClass("{obc}.event.CraftEventFactory");
-            MethodInvoker<Object> invoker = Reflection.getMethod(craftEventFactory, "handleEditBookEvent", NMS.getEntityPlayerClass(), NMS.getItemStackClass());
-
             IStructureModifier<Object> entityStructureModifier = ReflectStructureCache.acquireStructure(NMS.getCraftEntityClass())
                     .withType(NMS.getEntityClass())
                     .withTarget(player);
@@ -101,15 +98,14 @@ public class PacketExecutors {
 
             Object nmsItem = ItemReflection.getHandleItem(item);
 
-            invoker.invoke(null, entityPlayer, nmsItem);
+            handleBookEditEventInvoker.invoke(null, entityPlayer, nmsItem);
         }
-
 
         private ItemStack handlePrerequisites(PacketContainer<WrappedPlayInCustomPayload> packetContainer,
                                               ItemStack item, NBTCompound nbt, Material type, BiConsumer<NBTCompound, NBTCompound> nbtConsumer) {
 
             ItemStack playerItem = getItemInMainHand(packetContainer.getPlayer().player);
-            if (playerItem.getType() !=  MaterialMappings.getTypeIfAny("writable-book") || type != item.getType()) {
+            if (playerItem.getType() != MaterialMappings.getTypeIfAny("writable-book") || type != item.getType()) {
                 return null;
             }
 
@@ -132,10 +128,12 @@ public class PacketExecutors {
 
         private boolean isValidBookTag(NBTCompound nbt) {
             String title;
+            String author;
             return isValidQuillTag(nbt)
                     && nbt.hasKeyOfType("title", NBTType.STRING)
-                    && (title = nbt.getString("title")) != null && title.length() < 32
-                    && nbt.hasKeyOfType("author", NBTType.STRING);
+                    && (title = nbt.getString("title")) != null && title.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH
+                    && nbt.hasKeyOfType("author", NBTType.STRING)
+                    && (author = nbt.getString("author")) != null && author.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
         }
 
         private boolean isValidQuillTag(NBTCompound nbt) {
@@ -146,7 +144,8 @@ public class PacketExecutors {
 
         private boolean isPageTooLong(NBTCompound nbt) {
             for (NBTElement<String> page : nbt.<String>getListOf("pages", NBTType.STRING)) {
-                if (page == null || page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
+                if (page == null
+                        || page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
                     return true;
                 }
             }

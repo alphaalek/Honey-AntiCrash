@@ -1,16 +1,16 @@
 package me.alek.honey.command.impl;
 
-import me.alek.honey.utility.pastebin.Expiration;
+import me.alek.honey.utility.pastebin.enums.Expiration;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.storage.model.ViolationEntry;
-import me.alek.honey.utility.pastebin.Format;
+import me.alek.honey.utility.pastebin.enums.Format;
 import me.alek.honey.utility.pastebin.PasteRequest;
 import me.alek.honey.utility.pastebin.PastebinClient;
-import me.alek.honey.utility.pastebin.Visibility;
+import me.alek.honey.utility.pastebin.enums.Visibility;
 import org.bukkit.command.CommandSender;
 
 import java.util.Date;

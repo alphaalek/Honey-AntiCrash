@@ -264,28 +264,28 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
 
-        private static final double RATE_5S = 100 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_15S = 70 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_5S = 95 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_15S = 75 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_ACCEL_5S = 37.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double QUOTIENT_ACCEL_5S = 22.5;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled()) {
 
-            /*
-            Bukkit.broadcastMessage(player.name + " (stq): rate: " + format(player, Timespan.FIVE_SECOND) + "ms/s, accel: "
-                    + NumberConversions.format(tracker.getPlayerRate(player, Timespan.TWO_SECOND, true) * PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER, 2) + "ms " + NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) * 100, 2) + "%");
-            */
+                double playerRate5S;
+                if ((playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true)) > RATE_5S
+                        || tracker.getPlayerRate(player, Timespan.FIFTEEN_SECOND, true) > RATE_15S) {
+                    return ResponseBuilder.inst().flag(1).build();
+                }
 
-            if (tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true) > RATE_5S
-                    || tracker.getPlayerRate(player, Timespan.FIFTEEN_SECOND, true) > RATE_15S) {
-                return ResponseBuilder.inst().flag(1).build();
+                if (playerRate5S > RATE_ACCEL_5S
+                        && tracker.hasCollected(player, Timespan.FIVE_SECOND)
+                        && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
+                    return ResponseBuilder.inst().flag(1).build();
+                }
             }
-
             return ResponseBuilder.SUCCESS;
-        }
-
-        private double format(HoneyPlayer player, Timespan timespan) {
-            return NumberConversions.format(
-                    PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER * tracker.getPlayerRate(player, timespan, true), 2);
         }
 
         @Override
