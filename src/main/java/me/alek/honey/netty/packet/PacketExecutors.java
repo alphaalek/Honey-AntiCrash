@@ -66,7 +66,17 @@ public class PacketExecutors {
                 case "MC|BSign":
                     if (!isValidBookTag(nbt)) break;
 
-                    return () -> handleMCBSign(packetContainer, nbt);
+                    NBTList<String> pages = nbt.getListOf("pages", NBTType.STRING);
+                    if (pages == null) {
+                        pages = new NBTList<>(NBTType.STRING);
+                    }
+
+                    if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
+                        serializeTextComponents(pages);
+                    }
+
+                    NBTList<String> finalPages = pages;
+                    return () -> handleMCBSign(packetContainer, nbt, finalPages);
                 default:
                     return null;
             }
@@ -85,20 +95,10 @@ public class PacketExecutors {
             callHandleBookEditEvent(packetContainer.getPlayer().player, editedItem);
         }
 
-        private void handleMCBSign(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt) {
+        private void handleMCBSign(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt, NBTList<String> pages) {
             ItemStack editedItem = handlePrerequisites(packetContainer, nbt, Material.WRITTEN_BOOK, (packetNBT, editedNBT) -> {
                 editedNBT.put("author", packetNBT.get("author"));
                 editedNBT.put("title", packetNBT.get("title"));
-
-                NBTList<String> pages = packetNBT.getListOf("pages", NBTType.STRING);
-                if (pages == null) {
-                    pages = new NBTList<>(NBTType.STRING);
-                }
-
-                if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
-                    serializeTextComponents(pages);
-                }
-
                 editedNBT.put("pages", pages);
             });
 
