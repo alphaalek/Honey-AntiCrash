@@ -8,6 +8,7 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
 import org.bukkit.ChatColor;
@@ -38,7 +39,11 @@ public class PacketTaskHandler {
                         if (packet == null || packet.isDumped()) continue;
 
                         packet.dump();
-                        dumpThread(packet.getPlayer(), packet);
+                        if (packet.getType() != PacketType.Play.Client.FLYING
+                                && packet.getType() != PacketType.Play.Client.POSITION
+                                && packet.getType() != PacketType.Play.Client.POSITION_LOOK) {
+                            dumpThread(packet.getPlayer(), packet);
+                        }
                     }
                 }
                 try {

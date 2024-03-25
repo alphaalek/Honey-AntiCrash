@@ -23,12 +23,11 @@ public class BukkitEventInternal implements Listener {
         Player player = event.getPlayer();
 
         Channel channel = NMS.getChannelIfSet(player.getName());
-        if (channel != null) {
-            handleChannel(player, channel);
+        if (channel == null) {
+            player.kickPlayer("No channel lookup found!");
             return;
         }
-
-        NMS.getChannel(player.getName()).thenAccept((ch) -> handleChannel(player, ch));
+        handleChannel(player, channel);
     }
 
     private void handleChannel(Player player, Channel channel) {
@@ -62,14 +61,16 @@ public class BukkitEventInternal implements Listener {
     }
 
     protected void tryEject(Player player) {
-        Channel channel = HoneyPlayer.getPlayer(player.getUniqueId()).channel;
-        if (channel == null) {
-            channel = NMS.getChannelIfSet(player.getName());
+        HoneyPlayer honeyPlayer = HoneyPlayer.getPlayer(player.getUniqueId());
+
+        NMS.removeChannelLookup(player.getName());
+        if (honeyPlayer == null) {
+            return;
         }
+        Channel channel = honeyPlayer.channel != null ? honeyPlayer.channel : NMS.getChannel(player.getName());
         if (channel != null) {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
         }
-        NMS.removeChannelLookup(player.getName());
 
         HoneyPlayer.removePlayer(player.getUniqueId());
     }

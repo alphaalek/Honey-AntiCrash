@@ -24,34 +24,20 @@ public class NMS {
             getNetworkManagerClass(), 0, SocketAddress.class
     );
 
-    private static final HashMap<String, CompletableFuture<Channel>> lookupChannels = new HashMap<>();
+    private static final HashMap<String, Channel> lookupChannels = new HashMap<>();
     private static Object minecraftServer;
     private static Object serverConnection;
 
-    public static synchronized CompletableFuture<Channel> getChannel(Player player) {
-        return getChannel(player.getName());
-    }
-
-    public static synchronized CompletableFuture<Channel> getChannel(String name) {
-        return lookupChannels.computeIfAbsent(name, (d) -> new CompletableFuture<>() /* channel.get(getNetworkManager(player) */ );
+    public static synchronized Channel getChannel(String name) {
+        return lookupChannels.get(name);
     }
 
     public static synchronized Channel getChannelIfSet(String name) {
-        CompletableFuture<Channel> channelFuture = lookupChannels.get(name);
-        if (channelFuture == null || !channelFuture.isDone()) return null;
-
-        try {
-            return channelFuture.get(0, TimeUnit.MILLISECONDS);
-
-        } catch (Exception ex) {
-
-        }
-        return null;
+        return getChannel(name);
     }
 
     public static synchronized void submitChannelForName(String name, Channel channel) {
-        lookupChannels.remove(name);
-        getChannel(name).complete(channel);
+        lookupChannels.put(name, channel);
     }
 
     public static Channel getChannelFromNetworkManager(Object networkManager) {
