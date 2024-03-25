@@ -87,13 +87,17 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return getTracker(player).getQueue(timespan).isCollected();
     }
 
-    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
+    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan, long time) {
         TimedNode<Double> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
-        if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (System.nanoTime() - node.getInsertionInstant()))))) {
+        if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (time - node.getInsertionInstant()))))) {
             return node.getValue() - diff;
         }
         return 0;
+    }
+
+    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
+        return getExceedingTimedNode(tracker, timespan, System.nanoTime());
     }
 
     private double getExceedingTimedNode(HoneyPlayer player, Timespan timespan) {
@@ -123,10 +127,16 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
-        if (update) getTracker(player).clearExceedingNodes(timespan, System.nanoTime());
+        long time = 0;
+        TempTimedQueuedTracker tracker = getTracker(player);
+        if (update) {
+            tracker.clearExceedingNodes(timespan, time = System.nanoTime());
+        }
 
-        double total = getTracker(player).getTotal(timespan);
-        if (update) total -= getExceedingTimedNode(player, timespan);
+        double total = tracker.getTotal(timespan);
+        if (update) {
+            total -= getExceedingTimedNode(tracker, timespan, time);
+        }
 
         return total;
     }

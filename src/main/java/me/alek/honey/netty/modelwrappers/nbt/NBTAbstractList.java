@@ -24,6 +24,11 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
         this.typeOf = typeOf;
     }
 
+    public NBTAbstractList(NBTType typeOf) {
+        super(NBTType.LIST.create());
+        this.typeOf = typeOf;
+    }
+
     @Override
     public Iterator<T> iterator() {
         return getValue().getDelegatedList().iterator();
@@ -102,11 +107,17 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     }
 
     public T remove(int index) {
-        return getValue().removeConverted(index);
+        T val = getValue().removeConverted(index);
+        deleteInherited(val);
+        return val;
     }
 
     public boolean remove(T value) {
-        return getValue().removeConverted(value);
+        boolean present = getValue().removeConverted(value);
+        if (present) {
+            deleteInherited(value);
+        }
+        return present;
     }
 
     public boolean contains(T value) {
@@ -118,14 +129,26 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     }
 
     public T set(int index, T value) {
+        setInherited(value);
         return getValue().setConverted(index, value);
+    }
+
+    public boolean add(T value) {
+        setInherited(value);
+        return getValue().addConverted(value);
     }
 
     public List<T> getValues() {
         return getValue().getDelegatedList();
     }
 
-    public boolean add(T value) {
-        return getValue().addConverted(value);
+    private void setInherited(T value) {
+        value.setRoot(getRoot());
+        value.setOwner(this);
+    }
+
+    private void deleteInherited(T value) {
+        value.setRoot(null);
+        value.setOwner(null);
     }
 }

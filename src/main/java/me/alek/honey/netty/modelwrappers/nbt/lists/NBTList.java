@@ -7,4 +7,8 @@ public class NBTList<T> extends NBTAbstractList<NBTElement<T>> {
     public NBTList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner) {
         super(base, typeOf, root, owner);
     }
+
+    public NBTList(NBTType typeOf) {
+        super(typeOf);
+    }
 }

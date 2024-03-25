@@ -4,39 +4,48 @@ import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.utility.ConstructorInvoker;
+import me.alek.honey.netty.utility.Reflection;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public enum NBTType {
-    END(0, void.class),
-    BYTE(1, byte.class),
-    SHORT(2, short.class),
-    INT(3, int.class),
-    LONG(4, long.class),
-    FLOAT(5, float.class),
-    DOUBLE(6, double.class),
-    BYTEARRAY(7, byte[].class),
-    STRING(8, String.class),
+    END(0, void.class, getNBTClass("NBTTagEnd")),
+    BYTE(1, byte.class, getNBTClass("NBTTagByte")),
+    SHORT(2, short.class, getNBTClass("NBTTagShort")),
+    INT(3, int.class, getNBTClass("NBTTagInt")),
+    LONG(4, long.class, getNBTClass("NBTTagLong")),
+    FLOAT(5, float.class, getNBTClass("NBTTagFloat")),
+    DOUBLE(6, double.class, getNBTClass("NBTTagDouble")),
+    BYTEARRAY(7, byte[].class, getNBTClass("NBTTagByteArray")),
+    STRING(8, String.class, getNBTClass("NBTTagString")),
     @SuppressWarnings("unchecked")
-    LIST(9, List.class,
+    LIST(9, List.class, getNBTClass("NBTTagList"),
             new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class, NBTRoot.class, NBTBase.class)),
-    COMPOUND(10, Map.class,
+    COMPOUND(10, Map.class, getNBTClass("NBTTagCompound"),
             new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, NBTRoot.class, NBTBase.class)),
-    INTARRAY(11, int[].class),
-    LONGARRAY(12, long[].class),
-    LISTOFCOMOUND(-1, List.class,
+    INTARRAY(11, int[].class, getNBTClass("NBTTagIntArray")),
+    LONGARRAY(12, long[].class, getNBTClass("NBTTagLongArray")),
+    LISTOFCOMOUND(-1, List.class, getNBTClass("NBTTagList"),
             new ConstructorInvoker<>(castNBTBase(NBTListOfCompound.class), Object.class, NBTRoot.class, NBTBase.class)),
-    LISTOFLIST(-1, List.class,
+    LISTOFLIST(-1, List.class, getNBTClass("NBTTagList"),
             new ConstructorInvoker<>(castNBTBase(NBTListOfList.class), Object.class, NBTRoot.class, NBTBase.class)),
-    UNKNOWN(-1, null);
+    UNKNOWN(-1, null, null);
 
     private final int typeId;
     private final Class<?> clazz;
-    private final ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker;
+    private ConstructorInvoker<?> baseInvoker;
+    private ConstructorInvoker<?> elementBaseInvoker;
+    private final ConstructorInvoker<? extends NBTBase<?, ?>> wrappedInvoker;
+    private final Supplier<Object> getterWithoutParams;
 
     private static final Map<Class<?>, NBTType> typeLookup;
+
+    private static Class<?> getNBTClass(String name) {
+        return Reflection.getFuzzyClass("{nms}." + name, "{nms}.nbt." + name);
+    }
 
     static {
         typeLookup = new HashMap<>();
@@ -64,15 +73,42 @@ public enum NBTType {
     }
 
     @SuppressWarnings("unchecked")
-    NBTType(int typeId, Class<?> clazz) {
-        this(typeId, clazz, new ConstructorInvoker<>(castNBTBase(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class));
+    NBTType(int typeId, Class<?> clazz, Class<?> baseClass) {
+        this(typeId, clazz, baseClass, new ConstructorInvoker<>(castNBTBase(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class));
     }
 
-    NBTType(int typeId, Class<?> clazz, ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker) {
+    NBTType(int typeId, Class<?> clazz, Class<?> baseClass, ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker) {
         this.typeId = typeId;
         this.clazz = clazz;
-        this.constructorInvoker = constructorInvoker;
+
+        try {
+            this.baseInvoker = Reflection.getConstructor(baseClass);
+        } catch (Exception ex) {
+            this.baseInvoker = null;
+        }
+
+        try {
+            this.elementBaseInvoker = Reflection.getConstructor(baseClass, clazz);
+        } catch (Exception ex) {
+            this.elementBaseInvoker = null;
+        }
+
+        this.wrappedInvoker = constructorInvoker;
+
+        this.getterWithoutParams = () -> {
+            try {
+                return baseInvoker != null ? baseInvoker.invoke() : baseClass.newInstance();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return null;
+            }
+        };
     }
+
+    public Object create() {
+        return getterWithoutParams.get();
+    }
+
     public Class<?> getClazz() {
         return clazz;
     }
@@ -81,10 +117,17 @@ public enum NBTType {
         return typeId;
     }
 
-    public ConstructorInvoker<? extends NBTBase<?, ?>> getConstructorInvoker() {
-        return constructorInvoker;
+    public ConstructorInvoker<? extends NBTBase<?, ?>> getWrappedInvoker() {
+        return wrappedInvoker;
     }
 
+    public ConstructorInvoker<?> getBaseInvoker() {
+        return baseInvoker;
+    }
+
+    public ConstructorInvoker<?> getElementBaseInvoker() {
+        return elementBaseInvoker;
+    }
 
     public static NBTType getFromTypeId(byte typeId) {
         try {

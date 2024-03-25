@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + You are currently using the version 2.2.2
+#   + You are currently using the version 2.3-b1
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -330,7 +330,7 @@ netty:
   c:
     enabled: true
     throttle-after: 500
-    vls-amount: 1
+    vls-amount: 5
 
   d:
     enabled: true
@@ -369,17 +369,17 @@ netty:
     threshold: 600
     decay: 150
     decay-amount: 500
-    vls-amount: 1
+    vls-amount: 5
 
   j:
     enabled: true
     throttle-after: 500
-    vls-amount: 1
+    vls-amount: 4
 
   k:
     enabled: true
     throttle-after: 500
-    vls-amount: 1
+    vls-amount: 4
 
   l:
     enabled: true # size categorized
@@ -639,11 +639,6 @@ packet-flood:
     max-per-interval: 225
     interval: 700
     vls-amount: 4
-  c:
-    enabled: true
-    max-per-interval: 375
-    interval: 1350
-    vls-amount: 3
 
   # specific
   d:
@@ -713,7 +708,7 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 220
+      max-per-interval: 235
       vls-amount: 10
 
     # held item slot
@@ -735,7 +730,7 @@ packet-flood:
 
     # position
     position:
-      max-per-interval: 105
+      max-per-interval: 115
       interval: 650
       vls-amount: 7
 
@@ -763,13 +758,13 @@ packet-flood:
 
     # use item
     use-item:
-      max-per-interval: 65
+      max-per-interval: 70
       interval: 650
       vls-amount: 7
 
     # use entity
     use-entity:
-      max-per-interval: 65
+      max-per-interval: 70
       interval: 650
 
     # window click

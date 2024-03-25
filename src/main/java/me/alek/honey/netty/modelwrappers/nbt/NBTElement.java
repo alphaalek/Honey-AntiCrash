@@ -19,6 +19,14 @@ public class NBTElement<T> extends NBTBase<T, T> {
         super(base, root, owner);
     }
 
+    public NBTElement(NBTType type) {
+        super(type.create());
+    }
+
+    public NBTElement(NBTType type, T value) {
+        super(type.getElementBaseInvoker().invoke(value));
+    }
+
     @Override
     public ApplicableConverter<T, T> getConverter() {
         return null;

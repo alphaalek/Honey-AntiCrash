@@ -214,7 +214,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
     public static class NettyK implements DecodeCheck, ViolationCheck {
 
-        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketTracker();
         private static final double MIN_TA_ENTER = 5;
 
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this, "ta");
@@ -226,7 +226,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
+            if (getSetting().isEnabled() && player != null) {
 
                 double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, false);
                 if (ta > MIN_TA_ENTER) {
@@ -289,7 +289,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                     if (diff > getSetting().min) {
                         boolean foundMatch = false;
                         for (final long sizeKey : new ArrayList<>(sizeMap.keySet())) {
-                            if (check(player, sizeKey, byteBuf)) {
+                            if (check(sizeKey, byteBuf)) {
                                 foundMatch = true;
                                 sizeMap.get(sizeKey).count();
                             }
@@ -301,7 +301,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                                     () -> (long) getSetting().interval, () -> waitingFlag = true, () -> (long) getSetting().maxPerInterval);
                             counter.count();
 
-                            long key = getKey(player, byteBuf);
+                            long key = getKey(byteBuf);
                             if (key > 0) sizeMap.put(key, counter);
                         }
                     }
@@ -319,9 +319,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
-        public abstract boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf);
+        public abstract boolean check(long sizeKey, ByteBuf byteBuf);
 
-        public abstract long getKey(HoneyPlayer player, ByteBuf byteBuf);
+        public abstract long getKey(ByteBuf byteBuf);
     }
 
     public static class NettyL extends AbstractCategorizedCheck {
@@ -347,12 +347,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf) {
+        public boolean check(long sizeKey, ByteBuf byteBuf) {
             return Math.abs(sizeKey - byteBuf.readableBytes()) < getSetting().max;
         }
 
         @Override
-        public long getKey(HoneyPlayer player, ByteBuf byteBuf) {
+        public long getKey(ByteBuf byteBuf) {
             return byteBuf.readableBytes();
         }
     }
@@ -486,12 +486,12 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
-        public boolean check(HoneyPlayer player, long sizeKey, ByteBuf byteBuf) {
+        public boolean check(long sizeKey, ByteBuf byteBuf) {
             return categorizedHandler.check(sizeKey, byteBuf);
         }
 
         @Override
-        public long getKey(HoneyPlayer player, ByteBuf byteBuf) {
+        public long getKey(ByteBuf byteBuf) {
             return categorizedHandler.getKey(byteBuf);
         }
     }

@@ -1112,12 +1112,6 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "packet-flood.c", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class FloodC extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-        }
-
-        @Setting
         public static class FloodD {
 
             @Flood(PacketType.Play.Client.ABILITIES)

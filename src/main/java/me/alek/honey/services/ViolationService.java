@@ -437,6 +437,8 @@ public class ViolationService {
 
     public static class PacketTriggerThrottleHandler extends AbstractPacketLimitHandler {
 
+        private boolean notFlaggedLast;
+        private boolean flagged;
         private double lastFlag;
 
         public PacketTriggerThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
@@ -445,12 +447,24 @@ public class ViolationService {
 
         @Override
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+            if (amount < 1) {
+                notFlaggedLast = true;
+                flagged = false;
+            }
+
             if (amount >= 1 || System.currentTimeMillis() - lastFlag < getSetting().throttleAfter) {
                 if (onFlag != null) onFlag.run();
 
-                if (amount >= 1) lastFlag = System.currentTimeMillis();
-                cancellablePacketObserver.cancel();
+                if (amount >= 1) {
+                    if (notFlaggedLast && !flagged) {
+                        violate(cancellablePacketObserver, check, onPunish, onViolation, developmentData, honeyKey);
+                        flagged = true;
+                    }
 
+                    lastFlag = System.currentTimeMillis();
+                    notFlaggedLast = true;
+                }
+                cancellablePacketObserver.cancel();
                 return true;
             }
             return false;

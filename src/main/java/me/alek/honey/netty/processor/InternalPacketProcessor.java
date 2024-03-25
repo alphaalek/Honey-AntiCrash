@@ -164,7 +164,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 double end = System.nanoTime();
 
                 if (runnable != null) {
-                    HoneyPlugin.get().getServerThreadHandleTracker().registerTime(packetContainer.getPlayer(), end - start);
+                    HoneyPlugin.get().getServerThreadTracker().registerTime(packetContainer.getPlayer(), end - start);
                     return runnable;
                 }
             }

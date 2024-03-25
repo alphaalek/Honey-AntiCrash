@@ -69,8 +69,8 @@ public class HoneyPlugin implements HoneyAPI {
     private CommandManager commandManager;
     private SQLManagerWrapper sqlManager;
     private Configuration configuration;
-    private WideTempQueuedHandleTracker packetServerThreadHandleTimeTracker;
-    private WideTempQueuedHandleTracker packetNettyHandleTracker;
+    private WideTempQueuedHandleTracker serverThreadTracker;
+    private WideTempQueuedHandleTracker packetNettyTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
     private Tickloop tickloop;
     private MonitorManager monitorManager;
@@ -88,6 +88,7 @@ public class HoneyPlugin implements HoneyAPI {
         this.plugin = plugin;
         INSTANCE = this;
 
+        plugin.saveDefaultConfig();
         Session.setup();
         try {
             Session.requestSession();
@@ -220,8 +221,8 @@ public class HoneyPlugin implements HoneyAPI {
         sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
 
         // setup trackers
-        packetNettyHandleTracker = new WideTempQueuedHandleTracker();
-        packetServerThreadHandleTimeTracker = new ServerThreadHandleTracker();
+        packetNettyTracker = new WideTempQueuedHandleTracker();
+        serverThreadTracker = new ServerThreadHandleTracker();
         checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
         // setup checks
@@ -350,7 +351,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         monitorManager.reload();
 
-        ((ServerThreadHandleTracker) packetServerThreadHandleTimeTracker).reload();
+        ((ServerThreadHandleTracker) serverThreadTracker).reload();
 
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();
@@ -400,12 +401,12 @@ public class HoneyPlugin implements HoneyAPI {
         return loggerService;
     }
 
-    public WideTempQueuedHandleTracker getNettyPacketHandleTracker() {
-        return packetNettyHandleTracker;
+    public WideTempQueuedHandleTracker getNettyPacketTracker() {
+        return packetNettyTracker;
     }
 
-    public WideTempQueuedHandleTracker getServerThreadHandleTracker() {
-        return packetServerThreadHandleTimeTracker;
+    public WideTempQueuedHandleTracker getServerThreadTracker() {
+        return serverThreadTracker;
     }
 
     public MarkableHandleTracker<Double, String> getCheckHandleTracker() {

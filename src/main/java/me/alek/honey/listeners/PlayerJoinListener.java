@@ -9,7 +9,6 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.storage.SQLManagerWrapper;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -63,8 +62,8 @@ public class PlayerJoinListener implements Listener {
 
         HoneyPlugin.get().removeRecentPingLookup(player);
 
-        HoneyPlugin.get().getNettyPacketHandleTracker().remove(player);
-        HoneyPlugin.get().getServerThreadHandleTracker().remove(player);
+        HoneyPlugin.get().getNettyPacketTracker().remove(player);
+        HoneyPlugin.get().getServerThreadTracker().remove(player);
 
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
 

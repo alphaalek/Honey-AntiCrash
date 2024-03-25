@@ -27,16 +27,22 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         this.root = root;
         this.owner = owner;
 
-        if (getRoot().getTotalElements() <= getRoot().getMaximumElementsWithin()) { // set limit on elements in nbt structure
-            if (base != null) {
-                valueStructureModifier = applyStructure(getConverter())
-                        .apply(getReflectStructure())
-                        .withTarget(base);
-            }
+        if (getRoot().getTotalElements() > getRoot().getMaximumElementsWithin()) {
+            return;
+        }
+
+        if (base != null) {
+            valueStructureModifier = applyStructure(getConverter())
+                    .apply(getReflectStructure())
+                    .withTarget(base);
+
             getRoot().subscribe(getOwner(), this);
         }
     }
 
+    public NBTBase(Object base) {
+        this(base, new NBTRoot(Integer.MAX_VALUE), null);
+    }
 
     public abstract ApplicableConverter<T, V> getConverter();
 
@@ -69,11 +75,19 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         return root;
     }
 
+    public void setRoot(NBTRoot root) {
+        this.root = root;
+    }
+
     public NBTBase<?, ?> getOwner() {
         if (owner == null) {
-            owner = this;
+            owner = getRoot();
         }
         return owner;
+    }
+
+    public void setOwner(NBTBase<?, ?> owner) {
+        this.owner = owner;
     }
 
     public NBTAbstractList<?> asList() {

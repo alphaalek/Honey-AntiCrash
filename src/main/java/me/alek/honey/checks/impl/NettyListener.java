@@ -12,6 +12,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
@@ -36,6 +37,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.Array;
 import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.utility.NumberConversions;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -78,7 +80,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
+        private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadTracker();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -259,30 +261,67 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
 
-        private static final double RATE_5S = 95 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_15S = 75 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_ACCEL_5S = 37.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double QUOTIENT_ACCEL_5S = 22.5;
+        private static final double IGNORE_RATE_5S = 7.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_5S = 85 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_10S = 62.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_ACCEL_5S = 32.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double QUOTIENT_ACCEL_5S = 12.5;
+        private static final double RATE_ACCEL = 115 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                double playerRate5S;
-                if ((playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true)) > RATE_5S
-                        || tracker.getPlayerRate(player, Timespan.FIFTEEN_SECOND, true) > RATE_15S) {
-                    return ResponseBuilder.inst().flag(1).build();
+                double playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, false);
+                if (playerRate5S < IGNORE_RATE_5S || (playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true)) < IGNORE_RATE_5S) {
+                    return ResponseBuilder.SUCCESS;
+                }
+
+                if (playerRate5S > RATE_5S
+                        || tracker.getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S) {
+                    return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
+                        if (onViolation != null) onViolation.run();
+
+                        container.getDevelopmentData(this).addPoint("Rate (5s)",
+                                toMillis(tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true)));
+                        container.getDevelopmentData(this).addPoint("Rate (10s)",
+                                toMillis(tracker.getPlayerRate(player, Timespan.TEN_SECOND, true)));
+                    }).build();
                 }
 
                 if (playerRate5S > RATE_ACCEL_5S
                         && tracker.hasCollected(player, Timespan.FIVE_SECOND)
                         && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
-                    return ResponseBuilder.inst().flag(1).build();
+                    return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
+                        if (onViolation != null) onViolation.run();
+
+                        container.getDevelopmentData(this).addPoint("Accel quotient (5s)",
+                                NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) * 100, 2) + "%");
+                        container.getDevelopmentData(this).addPoint("Avg. accel quotient (5s)",
+                                NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, true, true) * 100, 2) + "%");
+                    }).build();
                 }
+
+                if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL) {
+                    return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
+                        if (onViolation != null) onViolation.run();
+
+                        container.getDevelopmentData(this).addPoint("Accel",
+                                toMillis(tracker.getPlayerRateAcceleration(player, false, true)));
+                        container.getDevelopmentData(this).addPoint("Avg. accel",
+                                toMillis(tracker.getPlayerRateAcceleration(player, true, true)));
+                    }).build();
+                }
+
+                return ResponseBuilder.inst().flag(0).build();
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        private double toMillis(double amount) {
+            return amount * PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
         }
 
         @Override
@@ -292,7 +331,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getName() {
-            return "Netty.C";
+            return "Netty.C (experimental)";
         }
 
         @Override
@@ -395,7 +434,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadHandleTracker();
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
         private static final double MIN_HSQ_ENTER = 0.1;
 

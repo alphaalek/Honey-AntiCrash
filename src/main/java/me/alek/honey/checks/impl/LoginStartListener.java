@@ -38,6 +38,11 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
     }
 
     @Override
+    public boolean requiresPlayer() {
+        return false;
+    }
+
+    @Override
     public ListenerPriority getPriority() {
         return ListenerPriority.NORMAL;
     }

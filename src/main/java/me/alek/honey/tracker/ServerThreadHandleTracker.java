@@ -71,7 +71,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
-        private static final int POSITION_DEFAULT = 50000;
+        private static final int POSITION_DEFAULT = 25000;
 
         private final AtomicReference<HoneyPlayer> recentPacketAuthor = new AtomicReference<>();
         private final ConcurrentLinkedQueue<PacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();

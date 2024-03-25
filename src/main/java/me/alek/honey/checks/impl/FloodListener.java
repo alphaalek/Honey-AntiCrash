@@ -64,7 +64,6 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new FloodA<>());
         visitor.visit(new FloodB<>());
         visitor.visit(new FloodD<>());
-        visitor.visit(new FloodC<>());
         return visitor;
     }
 
@@ -154,30 +153,6 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public String getDescription() {
             return "Packet flood for sudden spikes";
         }
-    }
-
-    public static class FloodC<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodC.class);
-        }
-
-        @Override
-        public int getID() {
-            return 20;
-        }
-
-        @Override
-        public String getName() {
-            return "Flood.C";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Packet flood for sudden spikes";
-        }
-
     }
 
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP> {

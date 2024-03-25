@@ -7,4 +7,8 @@ public class NBTListOfCompound extends NBTAbstractList<NBTCompound> {
     public NBTListOfCompound(Object base, NBTRoot root, NBTBase<?, ?> owner) {
         super(base, NBTType.COMPOUND, root, owner);
     }
+
+    public NBTListOfCompound() {
+        super(NBTType.COMPOUND);
+    }
 }

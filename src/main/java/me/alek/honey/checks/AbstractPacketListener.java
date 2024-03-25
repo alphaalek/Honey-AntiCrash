@@ -31,8 +31,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public static void applyQuotients(HoneyPlayer player, CheckContextContainer.DevelopmentData developmentData) {
-        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadHandleTracker();
-        WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketHandleTracker();
+        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadTracker();
+        WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
         String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
         String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
@@ -55,7 +55,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                && player != null && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
             return;
         }
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
@@ -76,8 +76,10 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
-        ((CheckVisitor<WP>)getCachedVisitor(visitors, this, player))
-                .check(player, packetContainer, checkContextContainer, callback);
+        CheckVisitor<WP> visitor = (CheckVisitor<WP>) getCachedVisitor(visitors, this, player);
+        if (visitor != null) {
+            visitor.check(player, packetContainer, checkContextContainer, callback);
+        }
 
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }
@@ -87,8 +89,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public static synchronized CheckVisitor<?> getCachedVisitor(Array<CheckVisitor<?>> visitors, CheckVisitable visitable, HoneyPlayer player, int registryID) {
-        if (!visitors.has(registryID)
-                || player != null && !player.equals(visitors.get(registryID).getPlayer())) {
+        if (!visitable.requiresPlayer() && !visitors.has(registryID)
+                || player != null && player.isOnline() && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
             visitors.set(registryID, visitable.getVisitor(player));
 
             if (player != null)

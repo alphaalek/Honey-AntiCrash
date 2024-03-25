@@ -3,9 +3,7 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -21,12 +19,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.function.Consumer;
 
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final Queue<Object> serverThreadExecutionQueue = ((ServerThreadHandleTracker)HoneyPlugin.get().getServerThreadHandleTracker()).getExecutionQueue();
+    private static final Queue<Object> serverThreadExecutionQueue = ((ServerThreadHandleTracker)HoneyPlugin.get().getServerThreadTracker()).getExecutionQueue();
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
 
     private final AsyncDecoder asyncDecoder;
@@ -84,13 +81,13 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
             packetContainer.getEventloopStateTimings().stopTimings();
             if (asyncDecoder.getPlayer() != null) {
-                HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+                HoneyPlugin.get().getNettyPacketTracker().registerTime(asyncDecoder.getPlayer(), (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
             }
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 
             Runnable packetExecutorTask = null;
-            if (ConfigurationOptions.AsyncDecoder.ENABLED) {
+            if (ConfigurationOptions.AsyncDecoder.ENABLED && !finalPacketContainer.isCancelled()) {
                 packetExecutorTask = packetProcessor.getPacketExecutorTask(finalPacketContainer);
             }
             Runnable finalPacketExecutorTask = packetExecutorTask;

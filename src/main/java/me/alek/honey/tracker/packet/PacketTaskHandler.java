@@ -19,9 +19,9 @@ import java.util.Map;
 
 public class PacketTaskHandler {
 
-    public static final double TO_MILLIS_MULTIPLIER = PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER;
+    public static final double TO_MILLIS_MULTIPLIER = PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
     public static final Object ignoreDecrementLock = new Object();
-    private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadHandleTracker();
+    private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     private static PacketTaskFuture<?> handledTask;

@@ -2,10 +2,6 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.utility.NumberConversions;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-
 public class PacketEventloopStateTimings {
 
     private static final int LENGTH = EventloopState.values().length;
@@ -13,7 +9,7 @@ public class PacketEventloopStateTimings {
     private EventloopState currentState = EventloopState.NO_STATE;
     private long currentStateStart;
     private long totalTime;
-    public static final double TO_MILLIS_MULTIPLIER = Math.pow(10, -6);
+    public static final double NANOS_TO_MILLIS_MULTIPLIER = Math.pow(10, -6);
 
     public void startTimings(EventloopState state) {
         startTimings(state, System.nanoTime());
@@ -73,7 +69,7 @@ public class PacketEventloopStateTimings {
     }
 
     private double toMillis(long value) {
-        return ((double)value) * TO_MILLIS_MULTIPLIER;
+        return ((double)value) * NANOS_TO_MILLIS_MULTIPLIER;
     }
 
     public EventloopState getCurrentState() {

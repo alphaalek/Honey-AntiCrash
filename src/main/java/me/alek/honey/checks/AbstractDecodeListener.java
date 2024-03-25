@@ -15,16 +15,14 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
 
     @Override
     public void onByteBufDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
-        if (player == null) return;
-
         if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                && player != null && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
             return;
         }
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         // cancel the decoding if the player is not even online
-        if (!player.isOnline() || byteBuf.buf().refCnt() < 1) {
+        if (player != null && (!player.isOnline() || byteBuf.buf().refCnt() < 1)) {
             byteBuf.cancel();
             return;
         }

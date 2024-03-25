@@ -10,4 +10,8 @@ public class NBTListOfList extends NBTAbstractList<NBTAbstractList<?>> {
     public NBTListOfList(Object base, NBTRoot root, NBTBase<?, ?> owner) {
         super(base, NBTType.LIST, root, owner);
     }
+
+    public NBTListOfList() {
+        super(NBTType.LIST);
+    }
 }

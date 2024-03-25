@@ -8,4 +8,7 @@ public interface CheckVisitable {
 
     void setInitializedCheckInstances();
 
+    default boolean requiresPlayer() {
+        return true;
+    }
 }

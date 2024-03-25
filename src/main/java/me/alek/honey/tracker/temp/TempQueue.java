@@ -106,7 +106,7 @@ public class TempQueue {
     private boolean clearNode(TimedNode<Double> node, long time) {
         final long diff = time - node.getInsertionInstant();
 
-        if (diff > (timespan.getNanoTimespan())) {
+        if (diff > timespan.getNanoTimespan()) {
             total.addAndGet((long) -node.getValue());
             collected = true;
             return true;

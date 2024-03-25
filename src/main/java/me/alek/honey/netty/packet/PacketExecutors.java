@@ -9,11 +9,13 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.modelwrappers.nbt.NBTType;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.*;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -25,20 +27,25 @@ public class PacketExecutors {
     public static void register() {
         PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
-        packetProcessor.addPacketExecutor(new CustomPayloadPacketExecutor(), PacketType.Play.Client.CUSTOM_PAYLOAD);
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
+            packetProcessor.addPacketExecutor(new CustomPayloadPacketExecutor(), PacketType.Play.Client.CUSTOM_PAYLOAD);
+        }
     }
 
     private static class CustomPayloadPacketExecutor implements PacketExecutor<WrappedPlayInCustomPayload> {
 
         private static final Class<?> craftEventFactory = Reflection.getClass("{obc}.event.CraftEventFactory");
         private static final MethodInvoker<Object> handleBookEditEventInvoker = Reflection.getMethod(craftEventFactory, "handleEditBookEvent", NMS.getEntityPlayerClass(), NMS.getItemStackClass());
+        private static final ConstructorInvoker<Object> chatComponentTextConstructor = Reflection.getConstructor(
+                Reflection.getClass("{nms}.ChatComponentText"), String.class);
+        private static final MethodInvoker<Object> chatComponentSerializerInvoker = Reflection.getMethod(
+                Reflection.getClass("{nms}.IChatBaseComponent$ChatSerializer"), 0, Reflection.getClass("{nms}.IChatBaseComponent"));
 
         @Override
         public boolean accepts(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
             String channel = packetContainer.getPacket().getChannel();
 
-            return NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) &&
-                    (channel.equals("MC|BEdit") || channel.equals("MC|BSign"));
+            return channel.equals("MC|BEdit") || channel.equals("MC|BSign");
         }
 
         @Override
@@ -55,21 +62,22 @@ public class PacketExecutors {
                 case "MC|BEdit":
                     if (!isValidQuillTag(nbt)) break;
 
-                    return () -> handleMCBEdit(packetContainer, item, nbt);
+                    return () -> handleMCBEdit(packetContainer, nbt);
                 case "MC|BSign":
                     if (!isValidBookTag(nbt)) break;
 
-                    return () -> handleMCBSign(packetContainer, item, nbt);
+                    return () -> handleMCBSign(packetContainer, nbt);
                 default:
                     return null;
             }
             return () -> packetContainer.getPlayer().player.kickPlayer("Invalid book data!");
         }
 
-        private void handleMCBEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
-            ItemStack editedItem = handlePrerequisites(packetContainer, item, nbt, MaterialMappings.getTypeIfAny("writable-book"), (packetNBT, editedNBT) -> {
+        private void handleMCBEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt) {
+            ItemStack editedItem = handlePrerequisites(packetContainer, nbt, MaterialMappings.getTypeIfAny("writable-book"), (packetNBT, editedNBT) -> {
                 editedNBT.put("pages", packetNBT.get("pages"));
             });
+
             if (editedItem == null) {
                 return;
             }
@@ -77,17 +85,43 @@ public class PacketExecutors {
             callHandleBookEditEvent(packetContainer.getPlayer().player, editedItem);
         }
 
-        private void handleMCBSign(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
-            ItemStack editedItem = handlePrerequisites(packetContainer, item, nbt, Material.WRITTEN_BOOK, (packetNBT, editedNBT) -> {
+        private void handleMCBSign(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt) {
+            ItemStack editedItem = handlePrerequisites(packetContainer, nbt, Material.WRITTEN_BOOK, (packetNBT, editedNBT) -> {
                 editedNBT.put("author", packetNBT.get("author"));
                 editedNBT.put("title", packetNBT.get("title"));
-                editedNBT.put("pages", packetNBT.get("pages"));
+
+                NBTList<String> pages = packetNBT.getListOf("pages", NBTType.STRING);
+                if (pages == null) {
+                    pages = new NBTList<>(NBTType.STRING);
+                }
+
+                if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
+                    serializeTextComponents(pages);
+                }
+
+                editedNBT.put("pages", pages);
             });
+
             if (editedItem == null) {
                 return;
             }
 
             callHandleBookEditEvent(packetContainer.getPlayer().player, editedItem);
+        }
+
+        private void serializeTextComponents(NBTList<String> pages) {
+            for (int i = 0; i < pages.size(); i++) {
+                NBTElement<String> page = pages.get(i);
+
+                try {
+                    Object chatComponent = chatComponentTextConstructor.invoke(page.getValue());
+                    String serialized = (String) chatComponentSerializerInvoker.invoke(null, chatComponent);
+
+                    pages.set(i, new NBTElement<>(NBTType.STRING, serialized));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
 
         private void callHandleBookEditEvent(Player player, ItemStack item) {
@@ -102,14 +136,16 @@ public class PacketExecutors {
         }
 
         private ItemStack handlePrerequisites(PacketContainer<WrappedPlayInCustomPayload> packetContainer,
-                                              ItemStack item, NBTCompound nbt, Material type, BiConsumer<NBTCompound, NBTCompound> nbtConsumer) {
+                                              NBTCompound nbt, Material type, BiConsumer<NBTCompound, NBTCompound> nbtConsumer) {
 
             ItemStack playerItem = getItemInMainHand(packetContainer.getPlayer().player);
-            if (playerItem.getType() != MaterialMappings.getTypeIfAny("writable-book") || type != item.getType()) {
+            if (playerItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
                 return null;
             }
 
-            playerItem.setType(type);
+            if (playerItem.getType() != type) {
+                playerItem.setType(type);
+            }
 
             NBTCompound editedNBT = NBTFactory.fromItem(playerItem, true);
             nbtConsumer.accept(nbt, editedNBT);

@@ -171,7 +171,7 @@ public class Reflection {
     }
 
     public static MethodInvoker<Object> getMethod(Class<?> target, int index, Class<?>... parameters) {
-        int currentIndex = -1;
+        int currentIndex = 0;
 
         for (Method method : target.getDeclaredMethods()) {
             if (Arrays.equals(method.getParameterTypes(), parameters)) {

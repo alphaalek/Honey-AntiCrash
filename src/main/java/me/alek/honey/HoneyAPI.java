@@ -36,9 +36,9 @@ public interface HoneyAPI {
 
     LoggerService getLoggerService();
 
-    WideTempQueuedHandleTracker getNettyPacketHandleTracker();
+    WideTempQueuedHandleTracker getNettyPacketTracker();
 
-    WideTempQueuedHandleTracker getServerThreadHandleTracker();
+    WideTempQueuedHandleTracker getServerThreadTracker();
 
     MarkableHandleTracker<Double, String> getCheckHandleTracker();
 

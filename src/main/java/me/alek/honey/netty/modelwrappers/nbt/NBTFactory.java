@@ -63,7 +63,7 @@ public class NBTFactory {
         if (type == null || type == NBTType.UNKNOWN) {
             return null;
         }
-        final ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker = type.getConstructorInvoker();
+        final ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker = type.getWrappedInvoker();
         if (constructorInvoker == null) {
             return null;
         }

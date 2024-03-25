@@ -27,7 +27,7 @@ public class TrackCommand implements CommandImpl {
 
         switch (args[0]) {
             case "players":
-                WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getServerThreadHandleTracker();
+                WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getServerThreadTracker();
 
                 if (stTracker.getTrackerSize() == 0) {
                     sender.sendMessage(CommandManager.PREFIX + " §cNo data to be shown yet!");
@@ -75,7 +75,7 @@ public class TrackCommand implements CommandImpl {
     }
 
     private String format(double nanos) {
-        return NumberConversions.format(nanos * PacketEventloopStateTimings.TO_MILLIS_MULTIPLIER, 2) + "ms";
+        return NumberConversions.format(nanos * PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER, 2) + "ms";
     }
 
     @Override

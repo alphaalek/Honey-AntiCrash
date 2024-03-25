@@ -23,6 +23,10 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         super(rawNms, root, owner);
     }
 
+    public NBTCompound() {
+        super(NBTType.COMPOUND.create());
+    }
+
     @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>>> applyStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> converter) {
         return (structure) -> structure.withSpecificType(Map.class, converter, false);
@@ -40,10 +44,19 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     public NBTBase<?, ?> remove(String key) {
-        return getValue().removeConverted(key);
+        NBTBase<?, ?> val = getValue().removeConverted(key);
+        if (val != null) {
+            deleteInherited(val);
+        }
+        return val;
     }
 
     public void clear() {
+        for (NBTBase<?, ?> value : getValue().convertedValues()) {
+            if (value != null) {
+                deleteInherited(value);
+            }
+        }
         getValue().clear();
     }
 
@@ -73,6 +86,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     public void put(String key, NBTBase<?, ?> base) {
         getValue().putConverted(key, base);
+        setInherited(base);
     }
 
     public void putIfAbsent(String key, NBTBase<?, ?> base) {
@@ -205,5 +219,15 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     public long[] getLongArray(String key) {
         return getSpecific(key);
+    }
+
+    private void setInherited(NBTBase<?, ?> value) {
+        value.setRoot(getRoot());
+        value.setOwner(this);
+    }
+
+    private void deleteInherited(NBTBase<?, ?> value) {
+        value.setRoot(null);
+        value.setOwner(null);
     }
 }

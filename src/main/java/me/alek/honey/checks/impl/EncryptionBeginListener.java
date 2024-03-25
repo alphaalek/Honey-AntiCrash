@@ -35,6 +35,11 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
     }
 
     @Override
+    public boolean requiresPlayer() {
+        return false;
+    }
+
+    @Override
     public ListenerPriority getPriority() {
         return ListenerPriority.NORMAL;
     }

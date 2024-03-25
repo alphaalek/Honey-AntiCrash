@@ -16,8 +16,27 @@ public class ServerPacketManager {
     public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet) throws Exception {
         if (player == null || player.channel == null) return;
 
-        OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(player.channel);
-        if (encoder == null) return;
+        ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
+        OutboundPacketEncoder encoder = packetManager.getEncoder(player.channel);
+        if (encoder == null) {
+
+            if (PacketInterceptorResolver.isEncoderPositionResolved()
+                    && packetManager.getDecoder(player.channel) != null) {
+                InboundPacketFilter filter  = packetManager.getFilter(player.channel);
+                HoneyPacketHandler packetHandler;
+                if (filter != null && (packetHandler = filter.getPacketHandler()) != null) {
+                    try {
+                        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(player.channel, packetHandler);
+                    } catch (MissingHandlerException exception) {
+                        return;
+                    }
+                }
+            }
+
+            if ((encoder = packetManager.getEncoder(player.channel)) == null) {
+                return;
+            }
+        }
 
         encoder.writeForcedPacket(packet.getHandle());
     }

@@ -8,8 +8,8 @@ import me.alek.honey.utility.NumberConversions;
 
 public class TrackerUtils {
 
-    private static final TrackerAccessor serverThreadTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getServerThreadHandleTracker());
-    private static final TrackerAccessor nettyPacketTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getNettyPacketHandleTracker());
+    private static final TrackerAccessor serverThreadTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getServerThreadTracker());
+    private static final TrackerAccessor nettyPacketTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getNettyPacketTracker());
 
     public static TrackerAccessor getServer() {
         return serverThreadTrackerAccessor;
