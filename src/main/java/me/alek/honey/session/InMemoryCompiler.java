@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.HttpsURLConnection;
 import javax.tools.*;
 import java.io.*;
 import java.net.URI;
@@ -50,7 +51,9 @@ public class InMemoryCompiler {
         }
 
         try {
-            URL url = new URL("http://178.128.196.32:4000/api/v1/license/javax-tools/download");
+            URL url = new URL("https://api.honey-license.workers.dev/javax-tools/download");
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0) Gecko/20100101 Firefox/10.0");
 
             InputStream inputStream = url.openStream();
             File outputFile = new File(file.getAbsolutePath() + File.separator + "tools.jar");

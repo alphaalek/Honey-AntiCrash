@@ -1,4 +1,4 @@
-package me.alek.honey.checks;
+package me.alek.honey.utility;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -8,11 +8,11 @@ public class CallbackAction<T> {
 
     private final List<Consumer<T>> callbacks = new LinkedList<>();
 
-    public void addAction(Consumer<T> callback) {
+    public synchronized void addAction(Consumer<T> callback) {
         callbacks.add(callback);
     }
 
-    public void call(T val) {
+    public synchronized void call(T val) {
         for (Consumer<T> callback : callbacks) {
             callback.accept(val);
         }

@@ -1,7 +1,7 @@
 package me.alek.honey.utility.pastebin.enums;
 
 public enum Expiration {
-    ONE_HOUR("1H", "1 Hour");
+    ONE_DAY("1D", "1 Day");
 
     private final String code;
     private final String description;

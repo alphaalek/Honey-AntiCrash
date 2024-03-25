@@ -6,11 +6,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.utility.Array;
-import org.bukkit.Bukkit;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import me.alek.honey.utility.CallbackAction;
 
 public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable {
 

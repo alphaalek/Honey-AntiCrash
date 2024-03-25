@@ -19,6 +19,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.utility.CallbackAction;
 
 import java.util.*;
 import java.util.function.Supplier;

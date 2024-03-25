@@ -1,9 +1,8 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
-import jdk.nashorn.internal.codegen.CompilerConstants;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.CallbackAction;
+import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -23,7 +22,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {

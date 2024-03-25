@@ -3,8 +3,7 @@ package me.alek.honey.netty.processor;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.CallbackAction;
-import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -19,7 +18,6 @@ import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.Array;
 
-import javax.security.auth.callback.Callback;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;

@@ -52,7 +52,8 @@ public abstract class TempQueuedTracker implements HoneyTracker {
         if (timespan.getQueue(this).equals(queue.getT2())) {
             return queue;
         }
-        throw new IllegalStateException("Couldn't find tuple for timespan " + timespan);
+        setup();
+        return getTuple(timespan);
     }
 
     public synchronized int getLength(Timespan timespan) {

@@ -12,11 +12,10 @@ import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
+import me.alek.honey.utility.CallbackAction;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {

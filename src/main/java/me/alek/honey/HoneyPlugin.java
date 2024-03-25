@@ -46,6 +46,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -88,7 +89,11 @@ public class HoneyPlugin implements HoneyAPI {
         INSTANCE = this;
 
         Session.setup();
-        Session.requestSession();
+        try {
+            Session.requestSession();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load Honey", ex.getCause());
+        }
 
         this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
         isUsingOldVersion = !version.equals(this.latestVersion);
@@ -114,33 +119,39 @@ public class HoneyPlugin implements HoneyAPI {
         }
     }
 
-    private HttpURLConnection getConnection() {
+    private HttpsURLConnection getConnection() {
         plugin.saveDefaultConfig();
 
         if (getLicense().isEmpty()) {
             throw new InvalidLicenseException();
         }
-        String urlString = "http://178.128.196.32:4000/api/v1/license/verify-license?license=" + getLicense();
+        String urlString = "https://api.honey-license.workers.dev/verify-license?license=" + getLicense();
 
         try {
             URL url = new URL(urlString);
 
-            return (HttpURLConnection) url.openConnection();
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0) Gecko/20100101 Firefox/10.0");
+
+            return connection;
         } catch (IOException ex) {
             ex.printStackTrace();
             Bukkit.getLogger().severe("An error occurred when connecting to license auth servers!");
         }
+
         return null;
     }
 
     private String verifyAndGetLatestVersion() {
-        HttpURLConnection connection = getConnection();
+        HttpsURLConnection connection = getConnection();
 
         try {
             if (connection != null && connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 return new BufferedReader(
                         new InputStreamReader(connection.getInputStream())).readLine();
             }
+            Bukkit.getLogger().info(new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
+
         } catch (Exception ex) {
             ex.printStackTrace();
             Bukkit.getLogger().severe("An error occurred when connecting to license auth servers!");

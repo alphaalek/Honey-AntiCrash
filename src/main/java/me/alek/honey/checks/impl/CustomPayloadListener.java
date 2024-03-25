@@ -21,7 +21,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.netty.utility.*;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

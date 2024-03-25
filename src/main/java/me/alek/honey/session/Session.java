@@ -9,6 +9,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 @NoSessionEncryption
@@ -40,14 +41,9 @@ public class Session {
 
     public static Class<?> sessionDecrypterClass;
 
-    public static void requestSession() {
-        try {
-            sessionDecrypterClass.getDeclaredMethod("requestSession", Object.class, String.class)
-                    .invoke(null, HoneyPlugin.get().getPlugin(), HoneyPlugin.get().getLicense());
-
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to request session ID to auth servers", ex);
-        }
+    public static void requestSession() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        sessionDecrypterClass.getDeclaredMethod("requestSession", Object.class, String.class)
+                .invoke(null, HoneyPlugin.get().getPlugin(), HoneyPlugin.get().getLicense());
     }
 
     private static MethodHandle methodHandle;

@@ -9,11 +9,9 @@ import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.Array;
+import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener, CheckVisitable {
 

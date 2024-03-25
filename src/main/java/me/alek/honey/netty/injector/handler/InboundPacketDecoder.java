@@ -68,7 +68,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
-            if (packetContainer != null) packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+            if (packetContainer != null) {
+                packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+            }
 
             // explicit set variable, so Proguard recognizes the method
             Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
@@ -81,7 +83,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             }
 
             packetContainer.getEventloopStateTimings().stopTimings();
-            HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+            if (asyncDecoder.getPlayer() != null) {
+                HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(asyncDecoder.getPlayer(), (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+            }
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
 
@@ -125,7 +129,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED || asyncDecoder.getPlayer() == null) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;
         }
@@ -134,7 +138,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnline()) {
+            if (asyncDecoder.getPlayer().isOnline() && !asyncDecoder.getPlayer().punished) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

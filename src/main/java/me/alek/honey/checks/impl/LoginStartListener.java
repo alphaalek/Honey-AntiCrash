@@ -16,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

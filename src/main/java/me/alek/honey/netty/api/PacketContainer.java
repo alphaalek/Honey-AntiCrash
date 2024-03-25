@@ -2,13 +2,12 @@ package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.CallbackAction;
+import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer {

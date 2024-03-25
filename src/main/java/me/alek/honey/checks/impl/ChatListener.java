@@ -18,6 +18,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 

@@ -17,6 +17,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 

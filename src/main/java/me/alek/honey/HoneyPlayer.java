@@ -1,7 +1,7 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
-import me.alek.honey.checks.CallbackAction;
+import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.services.ViolationService;
