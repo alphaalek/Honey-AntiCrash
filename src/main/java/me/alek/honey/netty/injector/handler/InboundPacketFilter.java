@@ -61,9 +61,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (!HoneyPacketHandler.onExceptionCaught(cause)) {
-            super.exceptionCaught(ctx, cause);
-        }
+        HoneyPacketHandler.onExceptionCaught(cause);
+        super.exceptionCaught(ctx, cause);
     }
 
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {

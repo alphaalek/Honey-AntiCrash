@@ -28,7 +28,7 @@ public class Session {
                 MethodType methodType = MethodType.methodType(String.class, String.class, int.class, long.class, long.class);
                 methodHandle = MethodHandles.lookup().findStatic(sessionDecrypterClass, "getString", methodType);
 
-            } catch (ClassNotFoundException |  NoSuchMethodException | IllegalAccessException e) {
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
                 throw new RuntimeException("Failed to setup session decrypting environment!", e);
             }
         } else if (compilerFeedback != null) {

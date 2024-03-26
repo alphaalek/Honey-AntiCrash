@@ -69,12 +69,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf byteBuf = createPositionByteBufPacket(pipeline.channel(), serializer -> {
-            serializer.writeDouble(Double.MAX_VALUE);
-            serializer.writeDouble(Double.MAX_VALUE);
-            serializer.writeDouble(Double.MAX_VALUE);
-            serializer.writeBoolean(false);
-        });
+        ByteBuf byteBuf = createByteBufPacket(pipeline.channel(), PacketBound.SERVER, "PacketPlayInFlying", serializer -> serializer.writeBoolean(false));
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
@@ -123,7 +118,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf buf = createPositionByteBufPacket(pipeline.channel(), (serializer) -> {
+        ByteBuf buf = createByteBufPacket(pipeline.channel(), PacketBound.CLIENT, "PacketPlayOutPosition", (serializer) -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -197,14 +192,14 @@ public class PacketInterceptorResolver {
         return wrappedHandlers;
     }
 
-    private static ByteBuf createPositionByteBufPacket(Channel channel, Consumer<ByteBuf> write) {
+    private static ByteBuf createByteBufPacket(Channel channel, PacketBound bound, String name, Consumer<ByteBuf> write) {
         AttributeKey<Object> key;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
             key = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("packet_handler")).readField(0);
         else
             key = ReflectStructureCache.acquireStructure(NMS.getPacketDecoderClass())
-                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("decoder")).readField(0);
+                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(bound.getProtocolHandlerName()).readField(0);
         if (key == null) {
             throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
         }
@@ -218,11 +213,11 @@ public class PacketInterceptorResolver {
         for (int id = 0; ; id++) {
             Object packet = null;
             try {
-                packet = protocol.createPacket(PacketBound.SERVER, id, new WrappedPacketDataSerializer(serializer));
+                packet = protocol.createPacket(bound, id, new WrappedPacketDataSerializer(serializer));
             } catch (Exception ignored) {
             }
 
-            if (packet != null && packet.getClass().getSimpleName().equals("PacketPlayInPosition")) {
+            if (packet != null && packet.getClass().getSimpleName().equals(name)) {
                 ByteBuf buf = Unpooled.buffer();
                 buf.writeByte(id);
                 write.accept(buf);

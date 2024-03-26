@@ -40,22 +40,19 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         return packetSendMarker;
     }
 
-    public static boolean onExceptionCaught(Throwable cause) {
+    public static void onExceptionCaught(Throwable cause) {
         if (HoneyPlugin.get().getLoggerService().isDebug()
                 && !(cause instanceof ClosedChannelException)
                 && /* ViaVersion */ !cause.getMessage().equals(VIA_VERSION_CLOSED_CHANNEL_EXCEPTION_MESSAGE)) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
             cause.printStackTrace();
-            return true;
         }
-        return false;
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-         if (!onExceptionCaught(cause)) {
-             super.exceptionCaught(ctx, cause);
-         }
+         onExceptionCaught(cause);
+         super.exceptionCaught(ctx, cause);
     }
 
     @Override

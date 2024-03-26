@@ -1,5 +1,6 @@
 package me.alek.honey.services;
 
+import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -182,8 +183,15 @@ public class LoggerService {
         }
 
         message.append(": " + playerName + " sent " + packetContainer.getName());
-        if (detailed)
-            message.append(": " + packetContainer.getAll().readFieldEntries());
+        if (detailed) {
+            Map<String, Object> entries = packetContainer.getAll().readFieldEntries();
+            for (Map.Entry<String, Object> entry : Sets.newHashSet(entries.entrySet())) {
+                if (entry.getValue() instanceof Object[]) {
+                    entries.put(entry.getKey(), Arrays.toString((Object[]) entry.getValue()));
+                }
+            }
+            message.append(": " + entries);
+        }
 
         getLogger().info(message.toString());
     }
