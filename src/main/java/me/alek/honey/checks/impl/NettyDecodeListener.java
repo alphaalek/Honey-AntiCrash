@@ -25,7 +25,6 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
     @Override
     public CheckVisitor<?> getVisitor(HoneyPlayer player) {
         CheckVisitor<?> visitor = new CheckVisitor<>(player);
-        // A, B, H, I, J, K are packet listeners and not decode listeners, so they are in a different class
         visitor.visit(new NettyD());
         visitor.visit(new NettyE());
         visitor.visit(new NettyF());

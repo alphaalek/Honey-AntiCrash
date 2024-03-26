@@ -409,9 +409,8 @@ netty:
 
   o:
     enabled: true # timed categorized
-
     min: 50 # difference in received packets. Should be min. this to get into a category at all
-    max: 50 # difference in delta packet time spans. Can be max. this to get into the compared entry
+    max: 50 # difference in delta packet timespans. Can be max. this to get into the compared entry
             # that means the min. and max. values are not checking for the same thing
     interval: 4000
     threshold: 2500
@@ -472,14 +471,14 @@ position:
 
   d:
     enabled: true
-    max-per-interval: 20
-    interval: 3200
+    max-per-interval: 22
+    interval: 2000
     vls-amount: 3
 
   e:
     enabled: true
-    max-per-interval: 12
-    interval: 3500
+    max-per-interval: 15
+    interval: 2000
     vls-amount: 3
 
   f:
@@ -636,13 +635,13 @@ packet-flood:
   # common
   b:
     enabled: true
-    max-per-interval: 225
+    max-per-interval: 285
     interval: 700
     vls-amount: 4
 
   # specific
   d:
-    # These are common settings, if you want anything other you have to change it in the different
+    # These are common settings, if you want anything other, you have to change it in the different
     # sections below dedicated to that packet. they are higher priority than these common settings.
     enabled: true
     vls-amount: 5

@@ -64,7 +64,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         visitor.visit(new NettyH<>());
         visitor.visit(new NettyI<>());
         visitor.visit(new NettyJ<>());
-
         return visitor;
     }
 

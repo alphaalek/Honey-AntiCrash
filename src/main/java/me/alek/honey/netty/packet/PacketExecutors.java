@@ -51,10 +51,17 @@ public class PacketExecutors {
         @Override
         public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
             WrappedPacketDataSerializer serializer = new WrappedPacketDataSerializer(packetContainer.getPacket().getDataSerializer().getHandle());
-            ItemStack item = serializer.readItemStack();
-            if (item == null) return null;
+            ItemStack item = null;
+            try {
+                item = serializer.readItemStack();
+            } catch (Exception ex) {
 
+            }
             serializer.release();
+
+            if (item == null) {
+                return null;
+            }
 
             NBTCompound nbt = NBTFactory.fromItem(item);
 
