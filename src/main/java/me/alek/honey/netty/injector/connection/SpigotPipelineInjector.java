@@ -62,12 +62,12 @@ public class SpigotPipelineInjector {
             String decoderName = requiredHandlers[1] = HoneyPlugin.get().getPacketLibrary().getDecoderName();
             String encoderName = requiredHandlers[2] =  HoneyPlugin.get().getPacketLibrary().getEncoderName();
 
-            if (channel.pipeline().get(decoderName) == null) {
+            if (channel.pipeline().get(decoderName) == null && PacketInterceptorResolver.getDecoderPosition(channel.pipeline()) != null) {
                 channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), decoderName,
                         new InboundPacketDecoder(channel, asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL), packetHandler));
             }
 
-            if (channel.pipeline().get(encoderName) == null) {
+            if (channel.pipeline().get(encoderName) == null && PacketInterceptorResolver.getEncoderPosition(channel.pipeline()) != null) {
                 channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), encoderName,
                         new OutboundPacketEncoder(channel, (asyncDecoder != null ? asyncDecoder : new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL)), packetHandler));
             }
@@ -138,7 +138,7 @@ public class SpigotPipelineInjector {
             }
             else player.updateHandlersLater = true;
 
-            //if (handler != null) channel.pipeline().remove(handler);
+            if (handler != null) channel.pipeline().remove(handler);
             player.removedPacketHandlerFromPipeline = true;
         }
     }

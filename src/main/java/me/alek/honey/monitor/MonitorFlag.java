@@ -292,7 +292,7 @@ public interface MonitorFlag<T> {
     class IgnorePositionFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>>, NoArgumentMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
 
         private static final PacketTypeEnum[] POSITION_PACKETS = Arrays.asList(
-                PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.LOOK, PacketType.Play.Client.FLYING).toArray(new PacketTypeEnum[0]);
+                PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.LOOK, PacketType.Play.Client.GROUND, PacketType.Play.Client.FLYING).toArray(new PacketTypeEnum[0]);
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {

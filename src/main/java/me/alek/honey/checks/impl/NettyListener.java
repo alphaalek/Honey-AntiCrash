@@ -263,12 +263,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
 
-        private static final double IGNORE_RATE_5S = 7.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_5S = 85 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_10S = 62.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_ACCEL_5S = 32.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double QUOTIENT_ACCEL_5S = 12.5;
-        private static final double RATE_ACCEL = 115 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double IGNORE_RATE_5S = /* 7.5 */ 12.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_5S = /* 85*/ 100 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_10S = /* 62.5 */ 80 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_ACCEL_5S = /* 32.5 */ 40 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double QUOTIENT_ACCEL_5S = /* 12.5 */ 30;
+        private static final double RATE_ACCEL = /*115 */ 250 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -456,7 +456,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     int trackerSize = tracker.getTrackerSize();
                     int i = 0;
                     long time = System.nanoTime();
-                    for (Timespan timespan : Timespan.Used.USED) {
+                    for (Timespan timespan : Timespan.Used.USED_FOR_TRACKERS) {
                         tracker.clearExceedingNodes(player, timespan, time);
 
                         double multiplier = (i >= timespanMultipliers.length)
@@ -464,7 +464,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                                         : timespanMultipliers[i++];
 
                         hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
-                        if ((trackerSize > 25 && hsq > 0.5 * multiplier) || (trackerSize > 10 && hsq > 0.55 * multiplier) || hsq > 0.6 * multiplier) {
+                        if ((trackerSize > 25 && hsq > 0.4 * multiplier) || (trackerSize > 10 && hsq > 0.5 * multiplier) || hsq > 0.55 * multiplier) {
                             return ResponseBuilder.inst().cancel().withViolationKey(HSQKey).flag(1).build();
                         }
 

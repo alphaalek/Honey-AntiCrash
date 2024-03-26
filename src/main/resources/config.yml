@@ -335,7 +335,7 @@ netty:
   d:
     enabled: true
     vls-amount: 1
-    threshold: 16500
+    threshold: 18500
 
   e:
     enabled: true

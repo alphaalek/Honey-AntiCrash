@@ -64,7 +64,7 @@ public enum Timespan {
     }
 
     public static class Used {
-        public static final Set<Timespan> USED = new HashSet<>();
+        public static final Set<Timespan> USED_FOR_TRACKERS = new HashSet<>();
     }
 
     public static final double MILLIS_TO_NANO_MULTIPLIER = Math.pow(10, 6);
@@ -75,7 +75,7 @@ public enum Timespan {
 
     Timespan(int timespan, boolean used) {
         this.timespan = timespan;
-        if (used) Used.USED.add(this);
+        if (used) Used.USED_FOR_TRACKERS.add(this);
     }
 
     private synchronized TimespanContext getContext(HoneyTracker tracker) {

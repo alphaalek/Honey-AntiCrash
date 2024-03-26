@@ -91,7 +91,7 @@ public class PacketInterceptorResolver {
                     prev.set(name);
 
                     ChannelHandler intercepted = ctx.pipeline().get(name);
-                    if (intercepted != null)
+                    if (intercepted != null && !name.equals("via-decoder"))
                         ((ChannelInboundHandler)intercepted).channelRead(ctx, byteBuf.copy());
                     else
                         ctx.fireChannelRead(o);

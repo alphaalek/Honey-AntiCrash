@@ -142,9 +142,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double[] getStatistics(HoneyPlayer player) {
-        double[] statistics = new double[Timespan.Used.USED.size()];
+        double[] statistics = new double[Timespan.Used.USED_FOR_TRACKERS.size()];
         int i = 0;
-        for (Timespan timespan : Timespan.Used.USED) {
+        for (Timespan timespan : Timespan.Used.USED_FOR_TRACKERS) {
             statistics[i++] = getTimeToAverageWithoutQuotient(player, timespan, true);
         }
         return statistics;

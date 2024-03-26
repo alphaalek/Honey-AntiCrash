@@ -43,8 +43,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 packets.add(packetType);
             } else {
                 for (PacketTypeEnum type : PacketType.getTypesAvailableFor(NetProtocol.getProtocol())) {
-                    if (type.toString().equalsIgnoreCase(packetType.toString())) {
-                        packets.add(packetType);
+                    if (type.toString().equalsIgnoreCase(ignoredPacket)) {
+                        packets.add(type);
                         break;
                     }
                 }
@@ -82,7 +82,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
-        private static final int POSITION_DEFAULT = 25000;
+        private static final int POSITION_DEFAULT = 17500;
 
         private final AtomicReference<HoneyPlayer> recentPacketAuthor = new AtomicReference<>();
         private final ConcurrentLinkedQueue<PacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
@@ -195,7 +195,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 if (packet != null && (
                         packet.getType() == PacketType.Play.Client.POSITION
                                 || packet.getType() == PacketType.Play.Client.POSITION_LOOK
-                                || packet.getType() == PacketType.Play.Client.FLYING))
+                                || packet.getType() == PacketType.Play.Client.FLYING
+                                || packet.getType() == PacketType.Play.Client.GROUND))
                     trackCurrentPacket = POSITION_DEFAULT;
             }
 

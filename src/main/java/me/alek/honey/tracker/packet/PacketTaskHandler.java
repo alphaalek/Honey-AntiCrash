@@ -41,7 +41,8 @@ public class PacketTaskHandler {
                         packet.dump();
                         if (packet.getType() != PacketType.Play.Client.FLYING
                                 && packet.getType() != PacketType.Play.Client.POSITION
-                                && packet.getType() != PacketType.Play.Client.POSITION_LOOK) {
+                                && packet.getType() != PacketType.Play.Client.POSITION_LOOK
+                                && packet.getType() != PacketType.Play.Client.GROUND) {
                             dumpThread(packet.getPlayer(), packet);
                         }
                     }

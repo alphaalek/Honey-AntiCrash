@@ -58,7 +58,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    //return ResponseBuilder.inst().cancel().punish().build();
                 }
                 for (String string : ILLEGAL_COMPONENT_STRINGS) {
                     if (line.toLowerCase().replace("\"", "").trim().contains(string)) {
@@ -66,6 +66,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
                     }
                 }
             }
+
             return ResponseBuilder.SUCCESS;
         }
 
