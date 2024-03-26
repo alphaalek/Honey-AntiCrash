@@ -90,7 +90,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
             PacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
             if (task != null && task.getPlayer().equals(player)
-                    && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE)
+                    && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
+                    && !tracker.ignoredPacketsInQueueExecutionSaver.contains(task.getPacket().getType()))
                 return ResponseBuilder.inst().flag(1).build();
 
             return ResponseBuilder.SUCCESS;
@@ -479,7 +480,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         }
                     }
                 }
-                return success;
+                return success.builderCopy().build();
             }
             return ResponseBuilder.SUCCESS;
         }

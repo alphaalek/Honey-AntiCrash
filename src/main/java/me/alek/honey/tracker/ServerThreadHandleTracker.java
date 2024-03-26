@@ -37,7 +37,18 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     public void reload() {
         Set<PacketTypeEnum> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.Netty.NettyA.IGNORED_PACKETS) {
-            packets.add(PacketWrapperInvokerFactory.getPacketTypeForName(ignoredPacket));
+
+            PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(ignoredPacket);
+            if (packetType != null) {
+                packets.add(packetType);
+            } else {
+                for (PacketTypeEnum type : PacketType.getTypesAvailableFor(NetProtocol.getProtocol())) {
+                    if (type.toString().equalsIgnoreCase(packetType.toString())) {
+                        packets.add(packetType);
+                        break;
+                    }
+                }
+            }
         }
         ignoredPacketsInQueueExecutionSaver = packets;
     }

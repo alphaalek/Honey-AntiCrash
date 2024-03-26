@@ -5,7 +5,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInCustomPayload;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
@@ -17,11 +16,8 @@ import me.alek.honey.packetwrappers.status.client.WrappedStatusInPing;
 import me.alek.honey.packetwrappers.status.client.WrappedStatusInStart;
 import me.alek.honey.packetwrappers.status.server.WrappedStatusOutPong;
 import me.alek.honey.packetwrappers.status.server.WrappedStatusOutServerInfo;
-import me.alek.honey.netty.utility.MethodInvoker;
 import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.Reflection;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.minecart.CommandMinecart;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -94,8 +90,8 @@ public class PacketWrapperInvokerFactory {
     }
 
     private static final NetProtocol PROTOCOL_VERSION = NetProtocol.getProtocol();
-    private static final Map<PacketTypeEnum, String> NAMES = new HashMap<>();
-    private static final Map<String, PacketTypeEnum> NAMES_REVERSED = new HashMap<>();
+    private static final Map<PacketTypeEnum, String> NAMES_FROM_TYPE = new HashMap<>();
+    private static final Map<String, PacketTypeEnum> NAMES_TO_TYPE = new HashMap<>();
     private static final Map<String, MethodHandle> INVOKERS = new HashMap<>();
     private static Map<PacketTypeEnum, MethodHandle> PLAY;
     private static Map<PacketTypeEnum, MethodHandle> HANDSHAKE;
@@ -105,8 +101,8 @@ public class PacketWrapperInvokerFactory {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     private static MethodHandle getCachedInvoker(PacketTypeEnum packetType, String name) {
-        NAMES.put(packetType, name);
-        NAMES_REVERSED.put(name, packetType);
+        NAMES_FROM_TYPE.put(packetType, name);
+        NAMES_TO_TYPE.put(name, packetType);
         if (INVOKERS.get(name) != null)
             return INVOKERS.get(name);
 
@@ -142,15 +138,15 @@ public class PacketWrapperInvokerFactory {
     }
 
     public static String getNameFor(PacketTypeEnum packetType) {
-        return NAMES.get(packetType);
+        return NAMES_FROM_TYPE.get(packetType);
     }
 
     public static PacketTypeEnum getPacketTypeForName(String name) {
-        return NAMES_REVERSED.get(name);
+        return NAMES_TO_TYPE.get(name);
     }
 
     public static PacketTypeEnum getPacketTypeForNameIgnoreCase(String name) {
-        for (Map.Entry<String, PacketTypeEnum> packetTypeEntry : NAMES_REVERSED.entrySet()) {
+        for (Map.Entry<String, PacketTypeEnum> packetTypeEntry : NAMES_TO_TYPE.entrySet()) {
             if (packetTypeEntry.getKey().equalsIgnoreCase(name))
                 return packetTypeEntry.getValue();
         }

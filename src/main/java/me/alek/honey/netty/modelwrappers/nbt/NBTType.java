@@ -4,6 +4,7 @@ import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.utility.ConstructorInvoker;
+import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.Reflection;
 
 import java.util.HashMap;
@@ -27,7 +28,7 @@ public enum NBTType {
     COMPOUND(10, Map.class, getNBTClass("NBTTagCompound"),
             new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, NBTRoot.class, NBTBase.class)),
     INTARRAY(11, int[].class, getNBTClass("NBTTagIntArray")),
-    LONGARRAY(12, long[].class, getNBTClass("NBTTagLongArray")),
+    LONGARRAY(12, long[].class, NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2) ? getNBTClass("NBTTagLongArray") : null),
     LISTOFCOMOUND(-1, List.class, getNBTClass("NBTTagList"),
             new ConstructorInvoker<>(castNBTBase(NBTListOfCompound.class), Object.class, NBTRoot.class, NBTBase.class)),
     LISTOFLIST(-1, List.class, getNBTClass("NBTTagList"),
@@ -81,28 +82,35 @@ public enum NBTType {
         this.typeId = typeId;
         this.clazz = clazz;
 
-        try {
-            this.baseInvoker = Reflection.getConstructor(baseClass);
-        } catch (Exception ex) {
+        if (baseClass == null) {
             this.baseInvoker = null;
-        }
+            this.wrappedInvoker = null;
+            this.getterWithoutParams = null;
 
-        try {
-            this.elementBaseInvoker = Reflection.getConstructor(baseClass, clazz);
-        } catch (Exception ex) {
-            this.elementBaseInvoker = null;
-        }
-
-        this.wrappedInvoker = constructorInvoker;
-
-        this.getterWithoutParams = () -> {
+        } else {
             try {
-                return baseInvoker != null ? baseInvoker.invoke() : baseClass.newInstance();
+                this.baseInvoker = Reflection.getConstructor(baseClass);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                return null;
+                this.baseInvoker = null;
             }
-        };
+
+            try {
+                this.elementBaseInvoker = Reflection.getConstructor(baseClass, clazz);
+            } catch (Exception ex) {
+                this.elementBaseInvoker = null;
+            }
+
+            this.wrappedInvoker = constructorInvoker;
+
+            this.getterWithoutParams = () -> {
+                try {
+                    return baseInvoker != null ? baseInvoker.invoke() : baseClass.newInstance();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return null;
+                }
+            };
+        }
     }
 
     public Object create() {

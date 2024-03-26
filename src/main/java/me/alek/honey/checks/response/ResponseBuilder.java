@@ -28,6 +28,10 @@ public class ResponseBuilder {
         this.responseContainer = container;
     }
 
+    public ResponseContainer getContainer() {
+        return responseContainer;
+    }
+
     public ResponseBuilder(ResponseContainer container, List<ResponseContainer> subContainers) {
         this(container);
         this.responseContainer.subContainers = subContainers;

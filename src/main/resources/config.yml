@@ -318,7 +318,7 @@ netty:
     max-handle: 25.0
     ignored-packets:
       - "PacketPlayInFlying"
-      - "PacketPlayInLook"
+      - "PPacketPlayInLook"
       - "PacketPlayInPosition"
       - "PacketPlayInPositionLook"
       - "PacketPlayInSetCreativeSlot"
@@ -486,7 +486,7 @@ position:
     enabled: true
     clear-interval: true
     max-per-interval: 45
-    interval: 2000
+    interval: 1000
     vls-amount: 3
 
   g:

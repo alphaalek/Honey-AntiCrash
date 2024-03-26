@@ -267,7 +267,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                   Object packet, HoneyPlayer player, Channel channel,
                                                                                   CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type, long readStart) {
-        /* removed from packet processor - now handled in InboundPacketDecoder
+        /* removed from packet processor - now handled in me/alek/honey/netty/injector/handler/InboundPacketDecoder
 
         if (player != null) {
             if (player.decoder == null) {
