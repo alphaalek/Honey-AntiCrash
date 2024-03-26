@@ -2,6 +2,14 @@ package me.alek.honey.netty.injector.handler.async;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.ServerPacketManager;
+import me.alek.honey.netty.packet.PacketFactory;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
 import org.bukkit.Bukkit;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -63,11 +71,43 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         else
             worker = workerPool.submit(this);
 
-        if (worker.isQuarantined())
-            if (worker.relocate(this))
+        if (worker.isQuarantined()) {
+            if (worker.relocate(this)) {
                 worker = workerPool.relocateWorkerTasks(this, worker);
-            else if (player != null && System.currentTimeMillis() - lastHandledTask.get() > 100)
-                HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cDecode worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
+                return;
+            }
+            if (player != null) {
+                long time = System.currentTimeMillis() - lastHandledTask.get();
+
+                if (time > 200) {
+                    HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cAsync worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
+                }
+                if (time > 10_000) {
+                    kickPlayer();
+                }
+            }
+        }
+    }
+
+    private void kickPlayer() {
+        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
+            player.channel.close();
+            return;
+        }
+
+        ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
+        WrappedPacket<WrappedPlayOutKickDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketType.Play.Server.KICK_DISCONNECT, player);
+        kickDisconnect.getContainer().getObjects(NMS.getIChatBaseComponentClass())
+                .writeField(0, Reflection.getConstructor(Reflection.getClass("{nms}.ChatComponentText"), String.class).invoke(
+                        "Packet task took way too long to be handled. The server is completely fine though :-)"
+                ));
+
+        try {
+            packetManager.writeForcedPacket(player, kickDisconnect);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            player.channel.close();
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.alek.honey.checks.impl;
 
+import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
@@ -62,6 +63,15 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
 
+            List<JsonObject> legacyChatComponentPages = packet.getPagesAsJsonLegacy();
+            if (!legacyChatComponentPages.isEmpty()) {
+
+                for (JsonObject page : legacyChatComponentPages) {
+                    if (!page.has("text")) {
+                        return ResponseBuilder.inst().cancel().punish().build();
+                    }
+                }
+            }
 
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {

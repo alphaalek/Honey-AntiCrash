@@ -43,12 +43,21 @@ public class PacketFactory {
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player) {
-        return createNewPacket(type, player, player.channel, null);
+        return createNewPacket(type, null, player);
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, ByteBuf serializer, HoneyPlayer player) {
+        return createNewPacket(type, player, serializer, player.channel, null);
+    }
+
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player, ByteBuf serializer, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
         try {
-            Object rawPacket = createRawPacket(type);
+            Object rawPacket;
+            if (serializer == null) {
+                rawPacket = createRawPacket(type);
+            } else {
+                rawPacket = createRawPacket(type, serializer);
+            }
 
             return createWrappedPacket(type, rawPacket, player, channel, postAction);
         } catch (Exception ex) {
