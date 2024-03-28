@@ -1,18 +1,18 @@
 package me.alek.honey.storage;
 
-import me.alek.honey.storage.repository.ViolationRepository;
-import me.alek.honey.storage.repository.PlayerRepository;
+import me.alek.honey.storage.repository.ViolationRepositoryProvider;
+import me.alek.honey.storage.repository.PlayerRepositoryProvider;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class BeanRepositoryCollection implements Iterable<RepositoryComponent> {
+public class BeanRepositoryCollection implements Iterable<RepositoryComponentProvider> {
 
-    public PlayerRepository playerRepository = new PlayerRepository();
-    public ViolationRepository violationRepository = new ViolationRepository();
+    public PlayerRepositoryProvider playerRepository = new PlayerRepositoryProvider();
+    public ViolationRepositoryProvider violationRepository = new ViolationRepositoryProvider();
 
     @Override
-    public Iterator<RepositoryComponent> iterator() {
+    public Iterator<RepositoryComponentProvider> iterator() {
         return Arrays.asList(playerRepository, violationRepository).iterator();
     }
 

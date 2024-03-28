@@ -10,7 +10,6 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,7 +33,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
                 .readField(0);
     }
 
-    private ListConverter<Object, WrappedSuggestion> getSuggestionsHandle(boolean controlDeclaring) {
+    private ListConverter<Object, WrappedSuggestion> getModernSuggestionsHandle(boolean controlDeclaring) {
         return getWrappedSuggestionsObject().getSuggestions(controlDeclaring);
     }
 
@@ -63,7 +62,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
                     createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
         }
         else {
-            getSuggestionsHandle(true).removeConverted(new WrappedSuggestion(suggestion));
+            getModernSuggestionsHandle(true).removeConverted(new WrappedSuggestion(suggestion));
         }
     }
 
@@ -71,7 +70,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         if (!IS_MODERN) {
             return getContainer().getStringArrays().readField(0);
         }
-        final ListConverter<Object, WrappedSuggestion> suggestionsHandle = getSuggestionsHandle(true);
+        final ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(true);
 
         final String[] suggestionsArray = new String[suggestionsHandle.size()];
         int i = 0;
@@ -86,7 +85,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         if (!IS_MODERN) {
             return getSuggestions().length;
         }
-        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getSuggestionsHandle(false);
+        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(false);
 
         return suggestionsHandle.size();
     }

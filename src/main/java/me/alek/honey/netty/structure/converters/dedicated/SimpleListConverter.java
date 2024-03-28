@@ -59,7 +59,6 @@ public class SimpleListConverter<V, T> extends AbstractCollectionConverter<V, T>
     public T removeConverted(int index) {
         if (checkCollections()) return null;
 
-        delegatedList.remove(index);
         return converter.convertDelegate(declaringList.remove(index));
     }
 

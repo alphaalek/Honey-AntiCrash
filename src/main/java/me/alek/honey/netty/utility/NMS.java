@@ -220,6 +220,14 @@ public class NMS {
         return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestions");
     }
 
+    public static Class<Object> getSuggestionClass() {
+        return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestion");
+    }
+
+    public static Class<Object> getStringRangeClass() {
+        return getFuzzyClass("com.mojang.brigadier.context.StringRange");
+    }
+
     public static Class<Object> getMovingObjectPositionBlockClass() {
         return getFuzzyClass("{nms}.world.phys.MovingObjectPositionBlock", "{nms}.MovingObjectPositionBlock");
     }

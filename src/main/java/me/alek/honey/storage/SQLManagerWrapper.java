@@ -46,7 +46,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     }
 
     public void prepareRepositories() {
-        for (RepositoryComponent repository : repositoryCollection) {
+        for (RepositoryComponentProvider repository : repositoryCollection) {
             repository.prepare(this);
         }
     }

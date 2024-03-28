@@ -1,8 +1,11 @@
 package me.alek.honey.netty.structure.converters;
 
+import org.bukkit.Bukkit;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 public class AbstractCollectionConverter<K, V> implements CollectionConverter<K, V> {
 
@@ -37,7 +40,7 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
                 delegatedCollection.add(converter.convertDelegate(declaring));
             }
         }
-        return false;
+        return delegatedSize != declaringSize;
     }
 
     @Override
@@ -72,7 +75,35 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
 
     @Override
     public boolean removeConverted(V value) {
-        return false;
+        if (checkCollections()) return false;
+
+        declaringCollection.remove(converter.convertDeclaring(value));
+        return delegatedCollection.remove(value);
+    }
+
+    @Override
+    public boolean removeIfConverted(Predicate<V> tester) {
+        Iterator<V> iteratorConverted = iterator();
+        Iterator<K> iterator = declaringCollection.iterator();
+        boolean removed = false;
+        while (iteratorConverted.hasNext()) {
+            V converted = iteratorConverted.next();
+            K val = iterator.next();
+
+            if (tester.test(converted)) {
+                if (converted.equals(converter.convertDelegate(val))) {
+                    iterator.remove();
+                    removed = true;
+                } else {
+                    removed = declaringCollection.removeIf(k -> converter.convertDelegate(k).equals(converted));
+                }
+
+                if (removed) {
+                    iteratorConverted.remove();
+                }
+            }
+        }
+        return removed;
     }
 
     @Override

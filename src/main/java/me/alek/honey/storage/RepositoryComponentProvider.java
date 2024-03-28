@@ -1,6 +1,6 @@
 package me.alek.honey.storage;
 
-public interface RepositoryComponent {
+public interface RepositoryComponentProvider {
 
     void prepare(QueryFactory queryFactory);
 

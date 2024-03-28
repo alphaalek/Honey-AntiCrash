@@ -2,17 +2,15 @@ package me.alek.honey.storage.repository;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.storage.QueryFactory;
-import me.alek.honey.storage.RepositoryComponent;
+import me.alek.honey.storage.RepositoryComponentProvider;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
 import java.util.concurrent.CompletableFuture;
 
-public class PlayerRepository implements RepositoryComponent {
+public class PlayerRepositoryProvider implements RepositoryComponentProvider {
 
     @Override
     public void prepare(QueryFactory queryFactory) {
