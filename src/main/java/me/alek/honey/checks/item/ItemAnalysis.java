@@ -111,7 +111,7 @@ public class ItemAnalysis {
         if (flaggedCheck == null) {
             return false;
         }
-        context.addPoint("Type", flaggedCheck.name().toLowerCase());
+        context.addPoint("Type", flaggedCheck.name());
 
         HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
         return true;

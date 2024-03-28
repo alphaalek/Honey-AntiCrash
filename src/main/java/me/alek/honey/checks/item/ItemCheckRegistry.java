@@ -7,12 +7,12 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public enum ItemCheckRegistry {
-    MAX_ENCHANTMENT_LEVEL_CHECK(ItemChecks.MaxEnchantmentLevelCheck::new),
-    MAX_AMOUNT_CHECK(ItemChecks.MaxAmountCheck::new),
-    MAX_DISPLAYNAME_LENGTH_CHECK(ItemChecks.MaxDisplayNameLengthCheck::new),
-    MAX_TOTAL_LORE_LENGTH_CHECK(ItemChecks.MaxTotalLoreLengthCheck::new),
-    ILLEGAL_CHARACTER_CHECK(ItemChecks.IllegalCharacterCheck::new),
-    ILLEGAL_ENCHANTMENTS_CHECK(ItemChecks.IllegalEnchantmentsCheck::new),
+    MAX_ENCHANTMENT_LEVEL(ItemChecks.MaxEnchantmentLevelCheck::new),
+    MAX_AMOUNT(ItemChecks.MaxAmountCheck::new),
+    MAX_DISPLAYNAME_LENGTH(ItemChecks.MaxDisplayNameLengthCheck::new),
+    MAX_TOTAL_LORE_LENGTH(ItemChecks.MaxTotalLoreLengthCheck::new),
+    ILLEGAL_CHARACTER(ItemChecks.IllegalCharacterCheck::new),
+    ILLEGAL_ENCHANTMENTS(ItemChecks.IllegalEnchantmentsCheck::new),
     MAX_FIREWORK_EXPLOSIONS(ItemChecks.MaxFireworkExplosionsCheck::new, MaterialMappings.getTypeIfAny("firework-rocket")),
     MAX_BANNER_PATTERNS(ItemChecks.MaxBannerPatternsCheck::new,
             MaterialMappings.getType("standing-banner"), MaterialMappings.getType("wall-banner"), MaterialMappings.getType("banner"),
@@ -21,10 +21,10 @@ public enum ItemCheckRegistry {
             MaterialMappings.getTypeIfAny("light-gray-banner"), MaterialMappings.getTypeIfAny("gray-banner"), MaterialMappings.getTypeIfAny("pink-banner"),
             MaterialMappings.getTypeIfAny("lime-banner"), MaterialMappings.getTypeIfAny("yellow-banner"), MaterialMappings.getTypeIfAny("light-blue-banner"),
             MaterialMappings.getTypeIfAny("magenta-banner"), MaterialMappings.getTypeIfAny("orange-banner"), MaterialMappings.getTypeIfAny("white-banner")),
-    UNBREAKABLE_ITEM_CHECK(ItemChecks.UnbreakableItemCheck::new),
-    CUSTOM_POTION_EFFECTS_CHECK(ItemChecks.CustomPotionEffectsCheck::new, Material.POTION),
-    ATTRIBUTE_MODIFIERS_CHECK(ItemChecks.AttributeModifiersCheck::new),
-    MAP_RANGE_CHECK(ItemChecks.MapRangeCheck::new, MaterialMappings.getTypeIfAny("empty-map"), MaterialMappings.getTypeIfAny("filled-map")),
+    UNBREAKABLE_ITEM(ItemChecks.UnbreakableItemCheck::new),
+    CUSTOM_POTION_EFFECTS(ItemChecks.CustomPotionEffectsCheck::new, Material.POTION),
+    ATTRIBUTE_MODIFIERS(ItemChecks.AttributeModifiersCheck::new),
+    MAP_RANGE(ItemChecks.MapRangeCheck::new, MaterialMappings.getTypeIfAny("empty-map"), MaterialMappings.getTypeIfAny("filled-map")),
 
     // nbt
     MAX_NBT_LENGTH(ItemChecks.MaxNBTLengthCheck::new),

@@ -587,23 +587,23 @@ public class ConfigurationOptions {
 
     @Setting
     public static class ItemAnalysis {
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_ENCHANTMENT_LEVEL_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_ENCHANTMENT_LEVEL)
         public static int MAX_ENCHANTMENT_LEVEL;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_AMOUNT_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_AMOUNT)
         public static int MAX_AMOUNT;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_DISPLAYNAME_LENGTH_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_DISPLAYNAME_LENGTH)
         public static int MAX_DISPLAYNAME_LENGTH;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_TOTAL_LORE_LENGTH_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.MAX_TOTAL_LORE_LENGTH)
         public static int MAX_TOTAL_LORE_LENGTH;
         @ItemAnalysisSetting(ItemCheckRegistry.MAX_FIREWORK_EXPLOSIONS)
         public static int MAX_FIREWORK_EXPLOSIONS;
         @ItemAnalysisSetting(ItemCheckRegistry.MAX_BANNER_PATTERNS)
         public static int MAX_BANNER_PATTERNS;
-        @ItemAnalysisSetting(ItemCheckRegistry.CUSTOM_POTION_EFFECTS_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.CUSTOM_POTION_EFFECTS)
         public static boolean CHECK_CUSTOM_POTION_EFFECTS;
-        @ItemAnalysisSetting(ItemCheckRegistry.UNBREAKABLE_ITEM_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.UNBREAKABLE_ITEM)
         public static boolean CHECK_UNBREAKABLE_ITEMS;
-        @ItemAnalysisSetting(ItemCheckRegistry.ATTRIBUTE_MODIFIERS_CHECK)
+        @ItemAnalysisSetting(ItemCheckRegistry.ATTRIBUTE_MODIFIERS)
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
 
         public static void load() {
