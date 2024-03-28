@@ -69,7 +69,7 @@ messages:
 # packet dump
 packet-dump:
   # Should packet dump for check violations be enabled or not.
-  enabled: true
+  enabled: false
 
   # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
   # E.g. violations of position checks will still dump position packets even though you have added it below.
