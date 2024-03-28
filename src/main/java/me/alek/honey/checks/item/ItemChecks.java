@@ -400,26 +400,6 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBookTitleLengthCheck implements ItemAnalysis.ItemChecker {
-
-        private int MAX_BOOK_TITLE_LENGTH;
-
-        @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.getString("title").length() > MAX_BOOK_TITLE_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_BOOK_TITLE_LENGTH = value;
-        }
-
-        @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
-        }
-    }
-
     public static class MaxBookAuthorLengthCheck implements ItemAnalysis.ItemChecker {
 
         private int MAX_BOOK_AUHTOR_LENGTH;

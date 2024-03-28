@@ -239,9 +239,6 @@ item-analysis:
     # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages. (in 1.8 only 50 pages)
     max-book-pages: 100
 
-    # How long title may a book have. In Vanilla Minecraft it is not possible to get more than 32 characters.
-    max-book-title-length: 32
-
     # How long may the page of a book be. In Vanilla Minecraft it is not possible to get more than 256 characters.
     max-book-page-length: 256
 

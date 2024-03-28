@@ -35,7 +35,7 @@ public class LoggerService {
     private final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
     private final NotificationService notificationService = HoneyPlugin.get().getNotificationService();
 
-    private final Map<UUID, LinkedList<PacketTypeEnum>> recentPackets = new HashMap<>();
+    private final Map<UUID, Queue<PacketTypeEnum>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
     private final TempTimedQueuedTracker packetRatePerQueueExecution = new TempTimedQueuedTracker(false);
@@ -133,7 +133,7 @@ public class LoggerService {
         if (monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
-                LinkedList<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
+                Queue<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
                 PacketTypeEnum packetType = recentPackets.peek();
                 PacketTypeEnum sentPacketType = Optional.ofNullable(packet).map(PacketContainer::getType).orElse(null);
