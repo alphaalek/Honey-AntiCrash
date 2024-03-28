@@ -41,6 +41,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(ignoredPacket);
             if (packetType != null) {
                 packets.add(packetType);
+
             } else {
                 for (PacketTypeEnum type : PacketType.getTypesAvailableFor(NetProtocol.getProtocol())) {
                     if (type != null && type.toString().equalsIgnoreCase(ignoredPacket)) {
