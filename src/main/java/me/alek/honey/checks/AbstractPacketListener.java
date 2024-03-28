@@ -58,6 +58,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
                 && player != null && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
             return;
         }
+
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         callback.addAction((response) -> {
             response.builder().onViolation(onViolation -> {
@@ -73,9 +74,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
                 if (onViolation != null) onViolation.run();
             });
         });
+
         if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
+
         CheckVisitor<WP> visitor = (CheckVisitor<WP>) getCachedVisitor(visitors, this, player);
         if (visitor != null) {
             visitor.check(player, packetContainer, checkContextContainer, callback);

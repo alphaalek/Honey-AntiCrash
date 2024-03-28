@@ -1,6 +1,5 @@
 package me.alek.honey.checks.item;
 
-import jdk.vm.ci.code.site.Call;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
@@ -11,9 +10,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Field;

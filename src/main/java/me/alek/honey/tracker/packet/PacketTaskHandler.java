@@ -11,8 +11,10 @@ import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
+import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.util.Arrays;
@@ -53,7 +55,7 @@ public class PacketTaskHandler {
                     ex.printStackTrace();
                 }
             }
-        }, "Honey Packet Task Handler").start();
+        }, "honey-packet-task-handler").start();
     }
 
     public static PacketTaskFuture<?> getHandledTask() {
@@ -80,32 +82,34 @@ public class PacketTaskHandler {
         } else HoneyPlugin.get().getLoggerService().getLogger().severe("Packet data unknown.");
 
         HoneyPlugin.get().getLoggerService().getLogger().severe("");
-        HoneyPlugin.get().getLoggerService().getLogger().severe("Thread dump:");
 
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
         StackTraceElement[] elements = info.getStackTrace();
         String prevElement = null;
         int combinedTotal = 0;
+        StringBuilder builder = new StringBuilder("Thread Dump:\n\t");
         for (StackTraceElement element : elements) {
             boolean notMatch = false;
-            if (element.toString().equals(prevElement)) {
-                combinedTotal++;
+            if (!element.toString().equals(prevElement)) {
+                builder.append(element + "\n\t");
+                notMatch = true;
             }
             else {
-                HoneyPlugin.get().getLoggerService().getLogger().severe(element.toString());
-                notMatch = true;
+                combinedTotal++;
             }
             prevElement = element.toString();
 
             if (notMatch) {
                 if (combinedTotal > 0) {
-                    HoneyPlugin.get().getLoggerService().getLogger().severe("[...] x" + combinedTotal);
+                    builder.append("[...] x" + combinedTotal + "\n\t");
                 }
                 combinedTotal = 0;
             }
         }
         if (prevElement != null)
-            HoneyPlugin.get().getLoggerService().getLogger().severe(prevElement);
+            builder.append(prevElement);
+
+        HoneyPlugin.get().getLoggerService().getLogger().severe(builder.toString());
     }
 
     public static <V> void registerTask(PacketTaskFuture<V> task){

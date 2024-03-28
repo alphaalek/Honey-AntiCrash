@@ -293,7 +293,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 if (playerRate5S > RATE_ACCEL_5S
                         && tracker.hasCollected(player, Timespan.FIVE_SECOND)
-                        && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
+                        && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S
+                        /* || tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, true, true) > QUOTIENT_ACCEL_5S * 0.6 */) {
                     return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
@@ -304,7 +305,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     }).build();
                 }
 
-                if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL) {
+                if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL
+                        /* || tracker.getPlayerRateAcceleration(player, true, false) > RATE_ACCEL * 0.6 */) {
                     return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
