@@ -10,6 +10,7 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,38 +54,24 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         return set.toArray();
     }
 
-    public List<String> getControllableSuggestions() {
-        return new ArrayList<String>() {
+    public void removeSuggestion(String suggestion) {
+        if (!IS_MODERN) {
+            final List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
+            suggestions.remove(suggestion);
 
-            @Override
-            public boolean remove(Object o) {
-                if (!(o instanceof String)) return false;
-
-                if (!IS_MODERN) {
-                    final List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
-                    boolean removed = suggestions.remove(o);
-
-                    getContainer().getStringArrays().writeField(0,
-                            createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
-                    return removed;
-                }
-                else {
-                    return getSuggestionsHandle(true).removeConverted(new WrappedSuggestion((String)o));
-                }
-            }
-
-            @Override
-            public boolean contains(Object value) {
-                return Arrays.asList(getSuggestions()).contains(value);
-            }
-        };
+            getContainer().getStringArrays().writeField(0,
+                    createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
+        }
+        else {
+            getSuggestionsHandle(true).removeConverted(new WrappedSuggestion(suggestion));
+        }
     }
 
-    public String[] getSuggestions(boolean controlDeclaring) {
+    public String[] getSuggestions() {
         if (!IS_MODERN) {
             return getContainer().getStringArrays().readField(0);
         }
-        final ListConverter<Object, WrappedSuggestion> suggestionsHandle = getSuggestionsHandle(controlDeclaring);
+        final ListConverter<Object, WrappedSuggestion> suggestionsHandle = getSuggestionsHandle(true);
 
         final String[] suggestionsArray = new String[suggestionsHandle.size()];
         int i = 0;
@@ -93,10 +80,6 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         }
 
         return suggestionsArray;
-    }
-
-    public String[] getSuggestions() {
-        return getSuggestions(false);
     }
 
     public int getSuggestionsSize() {

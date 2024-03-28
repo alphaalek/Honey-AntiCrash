@@ -5,7 +5,10 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.SyncPacketAdapter;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import org.bukkit.Bukkit;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TabCompleteListener extends SyncPacketAdapter<WrappedPlayOutTabComplete> {
@@ -20,11 +23,11 @@ public class TabCompleteListener extends SyncPacketAdapter<WrappedPlayOutTabComp
     @Override
     public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
         if (shouldBlockTabCompletion(player)) {
-            final List<String> suggestions = packetContainer.getPacket().getControllableSuggestions();
-
-            if (suggestions.contains("/honey")) {
-                suggestions.remove("/honey");
-                suggestions.remove("/honey:honey");
+            String[] suggestions = packetContainer.getPacket().getSuggestions();
+            for (String suggestion : suggestions) {
+                if (suggestion.startsWith("/honey")) {
+                    packetContainer.getPacket().removeSuggestion(suggestion);
+                }
             }
         }
     }

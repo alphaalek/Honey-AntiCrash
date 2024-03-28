@@ -16,7 +16,7 @@ public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
     }
 
     public String getText() {
-        if (text == null) return (text = getModifier(String.class).readField(0));
+        if (text == null) return getHandle() != null ? (text = getModifier(String.class).readField(0)) : null;
 
         return text;
     }
