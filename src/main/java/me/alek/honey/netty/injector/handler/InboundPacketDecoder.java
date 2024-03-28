@@ -9,6 +9,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
 import org.bukkit.Bukkit;
@@ -73,7 +74,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             byteBuf.release();
 
             if (list.isEmpty()) return;
-            if (packetContainer == null) {
+            if (packetContainer == null || packetContainer.getType() == PacketType.Play.Client.TRANSACTION) {
                 ctx.fireChannelRead(list.get(0));
                 return;
             }
