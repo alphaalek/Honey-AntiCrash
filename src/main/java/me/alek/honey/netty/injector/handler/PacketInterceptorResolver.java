@@ -69,7 +69,8 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf byteBuf = createByteBufPacket(pipeline.channel(), PacketBound.SERVER, "PacketPlayInFlying", serializer -> serializer.writeBoolean(false));
+        String packetName = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17) ? "PacketPlayInFlying" : "d";
+        ByteBuf byteBuf = createByteBufPacket(pipeline.channel(), PacketBound.SERVER, packetName, serializer -> serializer.writeBoolean(false));
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
@@ -198,8 +199,8 @@ public class PacketInterceptorResolver {
             key = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("packet_handler")).readField(0);
         else
-            key = ReflectStructureCache.acquireStructure(NMS.getPacketDecoderClass())
-                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(bound.getProtocolHandlerName()).readField(0);
+            key = ReflectStructureCache.acquireStructure(bound == PacketBound.SERVER ? NMS.getPacketDecoderClass() : NMS.getPacketEncoderClass())
+                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get(bound.getProtocolHandlerName())).readField(0);
         if (key == null) {
             throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
         }
