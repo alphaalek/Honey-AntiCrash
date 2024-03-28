@@ -188,11 +188,16 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ItemStack item = container.getStorage().get(ItemStack.class, 0);
                 if (item != null) {
-                    CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
                     NBTCompound nbt = NBTFactory.fromItem(item);
-                    if (ItemAnalysis.checkItem(player, item, nbt, developmentData)) {
-                        return ResponseBuilder.inst().cancel().flag().build();
+                    CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
+                    if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
+                        return ResponseBuilder.inst().cancel().flag().onViolation(onViolation -> {
+                            if (onViolation != null) onViolation.run();
+
+                            CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+                            callback.call(developmentData);
+                        }).build();
                     }
 
                     int nbtSize;

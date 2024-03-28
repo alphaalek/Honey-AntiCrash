@@ -114,10 +114,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ItemStack item = packet.getItem();
-                if (ItemAnalysis.checkItem(player, item, container.getDevelopmentData(this))) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
+                return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
             return ResponseBuilder.SUCCESS;
         }

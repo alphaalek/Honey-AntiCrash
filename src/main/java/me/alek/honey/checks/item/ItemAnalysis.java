@@ -1,12 +1,16 @@
 package me.alek.honey.checks.item;
 
+import jdk.vm.ci.code.site.Call;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
+import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -49,6 +53,7 @@ public class ItemAnalysis {
             if (setting == null) {
                 continue;
             }
+
             ItemCheckRegistry registry = setting.value();
             try {
                 if (field.getType() == int.class) {
@@ -64,10 +69,10 @@ public class ItemAnalysis {
             }
         }
         for (ItemCheckRegistry registry : ItemCheckRegistry.values()) {
-
             if (registry.getCheck() == null || disabledChecks.contains(registry.getCheck())) {
                 continue;
             }
+
             Material[] availableMaterials = registry.getAvailableMaterials();
             String nbtTag = registry.getTag();
             if (availableMaterials.length == 0 && nbtTag.isEmpty()) {
@@ -76,7 +81,6 @@ public class ItemAnalysis {
             if (availableMaterials.length > 0) {
                 for (Material material : availableMaterials) {
                     if (material.equals(Material.AIR)) continue;
-
                     if (!directAvailableMaterialChecks.containsKey(material)) {
                         directAvailableMaterialChecks.put(material, new HashSet<>());
                     }
@@ -92,7 +96,19 @@ public class ItemAnalysis {
         }
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, CheckContextContainer.DevelopmentData context) {
+    public static ResponseContainer flagIf(HoneyPlayer player, ItemStack item, CheckContextContainer.DevelopmentData developmentData) {
+        CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
+        if (ItemAnalysis.checkItem(player, item, callback)) {
+            return ResponseBuilder.inst().cancel().flag().onViolation(onViolation -> {
+                if (onViolation != null) onViolation.run();
+
+                callback.call(developmentData);
+            }).build();
+        }
+        return ResponseBuilder.SUCCESS;
+    }
+
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction<CheckContextContainer.DevelopmentData> context) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
                 || item == null || item.getType() == Material.AIR) {
             return false;
@@ -101,7 +117,7 @@ public class ItemAnalysis {
         return checkItem(player, item, nbt, context);
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CheckContextContainer.DevelopmentData context) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction<CheckContextContainer.DevelopmentData> callback) {
         for (final String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer) || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
                 return false;
@@ -111,7 +127,7 @@ public class ItemAnalysis {
         if (flaggedCheck == null) {
             return false;
         }
-        context.addPoint("Type", flaggedCheck.name());
+        callback.addAction(context -> context.addPoint("Type", flaggedCheck.name()));
 
         HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
         return true;

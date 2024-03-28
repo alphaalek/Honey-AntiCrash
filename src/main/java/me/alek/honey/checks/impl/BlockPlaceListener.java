@@ -147,13 +147,10 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
-                final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
-                final ItemStack item = blockPlacePacket.getItem();
+                WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
+                ItemStack item = blockPlacePacket.getItem();
 
-                final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
-                if (ItemAnalysis.checkItem(player, item, developmentData)) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
+                return ItemAnalysis.flagIf(player, item, container.getDevelopmentData(this));
             }
             return ResponseBuilder.SUCCESS;
         }

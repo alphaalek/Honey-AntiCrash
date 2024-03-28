@@ -102,9 +102,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                if (ItemAnalysis.checkItem(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this))) {
-                    return ResponseBuilder.inst().cancel().flag().build();
-                }
+                return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this));
             }
             return ResponseBuilder.SUCCESS;
         }
