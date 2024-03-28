@@ -38,6 +38,9 @@ clear-old-violations-timestamp: 90000 # 1 minute and 30 seconds as default
 # Hide /honey command, so default players won't know what AntiCrash plugin is on.
 hide-command: false
 
+# The message that the player receivees if they try to execute a command created by Honey.
+hide-command-message: SPIGOT_DEFAULT
+
 # Permission that players should have, for the command not to be hided.
 hide-bypass-permission: "honey.hide.bypass"
 

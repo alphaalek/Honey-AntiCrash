@@ -456,6 +456,7 @@ public class ConfigurationOptions {
         public static String PREFIX;
         public static boolean BYPASS_PERMISSION_ENABLED;
         public static boolean HIDE_COMMAND_ENABLED;
+        public static String HIDE_COMMAND_MESSAGE;
         public static String HIDE_BYPASS_PERMISSION;
         public static String BYPASS_PERMISSION;
         public static String NOTIFY_PERMISSION;
@@ -466,6 +467,7 @@ public class ConfigurationOptions {
             PREFIX = file.getString("messages.prefix", "&6Honey &8»");
 
             HIDE_COMMAND_ENABLED = file.getBoolean("hide-command", false);
+            HIDE_COMMAND_MESSAGE = file.getString("hide-command-message", "SPIGOT_DEFAULT");
             HIDE_BYPASS_PERMISSION = file.getString("hide-bypass-permission", "honey.hide.bypass");
             BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled", false);
             BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");

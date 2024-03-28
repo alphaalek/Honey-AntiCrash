@@ -8,10 +8,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +22,6 @@ import java.util.Optional;
 public class CommandManager implements CommandExecutor {
 
     public static final String PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7";
-    private final Plugin plugin;
     private final Map<String, CommandImpl> commands = new HashMap<>();
     private final CooldownManager cooldownManager;
 
@@ -30,7 +31,6 @@ public class CommandManager implements CommandExecutor {
         }
 
         ((JavaPlugin)plugin).getCommand("honey").setExecutor(this);
-        this.plugin = plugin;
         cooldownManager = new CooldownManager();
 
         registerCommands();
@@ -66,18 +66,39 @@ public class CommandManager implements CommandExecutor {
         sender.sendMessage("§7Type §8/honey help §7for help on command usage.");
     }
 
+    private String getDefaultUnknownCommandMessage() {
+        File file = new File("spigot.yml");
+        if (!file.exists()) {
+            return null;
+        }
+
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        return yaml.getString("messages.unknown-command");
+    }
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {
             if (!commandSender.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION)) {
-                commandSender.sendMessage("Unknown command. Type \"/help\" for help.");
+
+                String message = ConfigurationOptions.General.HIDE_COMMAND_MESSAGE;
+                if (message.equalsIgnoreCase("SPIGOT_DEFAULT")) {
+                    message = getDefaultUnknownCommandMessage();
+                }
+                if (message == null) {
+                    message = "Unknown command. Type \"/help\" for help.";
+                }
+
+                commandSender.sendMessage(message);
                 return true;
             }
         }
+
         if (args.length == 0) {
             showInfo(commandSender);
             return true;
         }
+
         final String firstArgument = args[0];
         final Optional<Map.Entry<String, CommandImpl>> commandImplEntryOptional = this.commands
                 .entrySet()
@@ -96,12 +117,14 @@ public class CommandManager implements CommandExecutor {
                 commandSender.sendMessage(PREFIX + "This command can not be used by the console.");
                 return true;
             }
+
             if (commandImpl.getPermission() != null
                     && !commandImpl.getPermission().equals("")
                     && !commandSender.hasPermission(commandImpl.getPermission())) {
                 commandSender.sendMessage(PREFIX + "You do not have permission to use this command!");
                 return true;
             }
+
             if (commandSender instanceof Player) {
                 final Player player = (Player) commandSender;
                 if (this.cooldownManager.hasCooldown(player, commandImpl)) {
@@ -111,10 +134,13 @@ public class CommandManager implements CommandExecutor {
                 }
                 this.cooldownManager.setCooldown(player, commandImpl);
             }
+
             commandImpl.perform(commandSender, implArgs);
+
         } catch (CommandNotFoundException ex) {
             showInfo(commandSender);
         }
+
         return true;
     }
 }
