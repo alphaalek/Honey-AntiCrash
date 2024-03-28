@@ -43,7 +43,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 packets.add(packetType);
             } else {
                 for (PacketTypeEnum type : PacketType.getTypesAvailableFor(NetProtocol.getProtocol())) {
-                    if (type.toString().equalsIgnoreCase(ignoredPacket)) {
+                    if (type != null && type.toString().equalsIgnoreCase(ignoredPacket)) {
                         packets.add(type);
                         break;
                     }

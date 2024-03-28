@@ -12,6 +12,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.PredicateUtils;
+import org.bukkit.Bukkit;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -228,7 +229,7 @@ public interface MonitorFlag<T> {
                 }
             }
             for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT)) {
-                if (packetType.toString().equalsIgnoreCase(type)) {
+                if (packetType != null && packetType.toString().equalsIgnoreCase(type)) {
                     return 1;
                 }
             }
