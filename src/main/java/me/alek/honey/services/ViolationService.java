@@ -72,7 +72,7 @@ public class ViolationService {
         return flag(player, handle, cancellablePacketObserver, limitsKey, honeyKey, amount, null, null, null, check, setting, developmentData);
     }
 
-    public synchronized void punish(Runnable onPunish, HoneyPlayer player, String violationName, HoneyKey honeyKey) {
+    public synchronized void punish(Runnable onPunish, HoneyPlayer player, HoneyCheck check, HoneyKey honeyKey) {
         if (onPunish != null) onPunish.run();
 
         if (player.punished) return;
@@ -85,7 +85,9 @@ public class ViolationService {
         BungeeMessenger.sendPluginMessage(player.player, "kickPlayer", player.name, "Disconnected");
         Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
 
-        HoneyPlugin.get().getNotificationService().warn(player, violationName, honeyKey);
+        if (check != null && honeyKey != null) {
+            HoneyPlugin.get().getNotificationService().warn(player, check.getName(), honeyKey);
+        }
 
         player.punished = true;
     }
@@ -336,39 +338,43 @@ public class ViolationService {
         }
 
         public void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
-            if (ConfigurationOptions.PacketDump.VLS_ENABLED) {
+            if (check != null) {
+                if (ConfigurationOptions.PacketDump.VLS_ENABLED) {
 
-                PacketBundleFilter filter = check.getDumpFilter();
-                if (filter != null && filter.getAcceptedPacketTypes() != null) {
+                    PacketBundleFilter filter = check.getDumpFilter();
+                    if (filter != null && filter.getAcceptedPacketTypes() != null) {
 
-                    List<PacketContainer<?>> dumpedPackets = player.packetBundleSaver
-                            .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
+                        List<PacketContainer<?>> dumpedPackets = player.packetBundleSaver
+                                .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
 
-                    if (dumpedPackets != null) {
-                        HoneyPlugin.get().getLoggerService().dumpPackets(player, dumpedPackets);
+                        if (dumpedPackets != null) {
+                            HoneyPlugin.get().getLoggerService().dumpPackets(player, dumpedPackets);
+                        }
                     }
                 }
+
+                HoneyPlugin.get().getNotificationService().notify(
+                        player, check.getName(), honeyKey, getSetting(), this, developmentData);
+
+                new BukkitRunnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            HoneyPlugin.get().getSQLManager().postViolation(
+                                    player, check.getName() + (honeyKey == null ? "" : " (" + honeyKey.getT1() + ")"),
+                                    ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)), developmentData);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
             }
+
             if (developmentData != null) {
                 AbstractPacketListener.applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
-
-            HoneyPlugin.get().getNotificationService().notify(getPlayer(), check.getName(), honeyKey, getSetting(), this, developmentData);
-
-            new BukkitRunnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        HoneyPlugin.get().getSQLManager().postViolation(
-                                player, check.getName() + (honeyKey == null ? "" : " (" + honeyKey.getT1() + ")"),
-                                ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)), developmentData);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
         }
 
         public boolean violate(CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, Runnable onPunish, Runnable onViolation, CheckContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
@@ -386,7 +392,7 @@ public class ViolationService {
 
             if (violations.get() < getSetting().vlsAmount) return false;
 
-            INSTANCE.punish(onPunish, getPlayer(), check.getName(), honeyKey);
+            INSTANCE.punish(onPunish, player, check, honeyKey);
             return true;
         }
 
@@ -681,6 +687,10 @@ public class ViolationService {
 
         @Override
         public boolean flag(Object handle, CancellablePacketObserver cancellablePacketObserver, HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, CheckContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+            if (!currentlyCancelling && onFlag != null) {
+                onFlag.run();
+            }
+
             if (currentlyCancelling) {
                 if (System.currentTimeMillis() - intervalStart > getSetting().interval) {
                     intervalStart = System.currentTimeMillis();
@@ -688,6 +698,7 @@ public class ViolationService {
                 }
                 else cancellablePacketObserver.cancel();
             }
+
             if ((this.amount = amount) > getSetting().threshold) {
                 intervalStart = System.currentTimeMillis();
 
@@ -697,6 +708,7 @@ public class ViolationService {
                 currentlyCancelling = true;
                 return true;
             }
+
             return false;
         }
 

@@ -750,6 +750,10 @@ packet-flood:
     tab-complete:
       max-per-interval: 50
 
+    # transaction
+    transaction:
+      max-per-interval: 400
+
     # update sign
     update-sign:
       max-per-interval: 5

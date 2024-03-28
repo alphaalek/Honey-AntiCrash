@@ -3,14 +3,17 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
 import org.bukkit.Bukkit;
 
@@ -28,6 +31,8 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
+    private ViolationService.PacketIntervalThrottleHandler transactionIntervalThrottle;
+    private HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
@@ -62,6 +67,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         super.exceptionCaught(ctx, cause);
     }
 
+
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) {
@@ -74,16 +80,26 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
             if (list.isEmpty()) return;
             if (packetContainer == null || packetContainer.getType() == PacketType.Play.Client.TRANSACTION) {
-                ctx.fireChannelRead(list.get(0));
+
+                Object packet = list.get(0);
+                if (packetContainer != null && transactionIntervalThrottle != null) {
+                    transactionIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
+
+                    if (packetContainer.isCancelled()) {
+                        return;
+                    }
+                }
+
+                ctx.fireChannelRead(packet);
                 return;
             }
 
             packetContainer.getEventloopStateTimings().stopTimings();
-            if (asyncDecoder.getPlayer() != null) {
-                HoneyPlugin.get().getNettyPacketTracker().registerTime(asyncDecoder.getPlayer(), (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+            if (player != null) {
+                HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), asyncDecoder.getPlayer(), list.get(0), packetContainer.getTime(), packetContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, list.get(0), packetContainer.getTime(), packetContainer);
 
             Runnable packetExecutorTask = null;
             if (ConfigurationOptions.AsyncDecoder.ENABLED && !finalPacketContainer.isCancelled()) {
@@ -122,6 +138,12 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             return;
         }
 
+        if (player == null && asyncDecoder.getPlayer() != null) {
+            player = asyncDecoder.getPlayer();
+            transactionIntervalThrottle = new ViolationService.PacketIntervalThrottleHandler(
+                    player, ConfigurationOptions.getFloodSettings().get(PacketType.Play.Client.TRANSACTION));
+        }
+
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
@@ -134,7 +156,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (asyncDecoder.getPlayer().isOnline() && !asyncDecoder.getPlayer().punished) {
+            if (player == null || player.isOnline() && !player.punished) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

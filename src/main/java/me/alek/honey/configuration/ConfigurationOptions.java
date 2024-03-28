@@ -1255,6 +1255,20 @@ public class ConfigurationOptions {
 
             }
 
+            @Flood(PacketType.Play.Client.TAB_COMPLETE)
+            @Setting
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.tab-complete"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class TabComplete extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+            }
+
+            @Flood(PacketType.Play.Client.TRANSACTION)
+            @Setting
+            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.transaction"}, packetHandler = PacketLimitHandlerType.INTERVAL)
+            public static class Transaction extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+            }
+
             @Flood(PacketType.Play.Client.UPDATE_SIGN)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.update-sign"}, packetHandler = PacketLimitHandlerType.INTERVAL)
@@ -1273,13 +1287,6 @@ public class ConfigurationOptions {
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.use-entity"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class UseEntity extends VlSetting implements VlIntervalRequiredContentsSetting {
-
-            }
-
-            @Flood(PacketType.Play.Client.TAB_COMPLETE)
-            @Setting
-            @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.tab-complete"}, packetHandler = PacketLimitHandlerType.INTERVAL)
-            public static class TabComplete extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
