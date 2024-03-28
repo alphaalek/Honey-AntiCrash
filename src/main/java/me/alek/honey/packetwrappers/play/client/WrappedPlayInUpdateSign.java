@@ -1,6 +1,7 @@
 package me.alek.honey.packetwrappers.play.client;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -66,7 +67,15 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
             }
 
             try {
-                pages.add(gson.toJsonTree(chatBaseComponent).getAsJsonObject());
+                JsonElement json = gson.toJsonTree(chatBaseComponent);
+                if (json.isJsonObject()) {
+                    pages.add(json.getAsJsonObject());
+                }
+                else {
+                    JsonObject page = new JsonObject();
+                    page.add("text", json);
+                    pages.add(page);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
