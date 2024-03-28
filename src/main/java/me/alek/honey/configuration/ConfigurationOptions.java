@@ -20,11 +20,19 @@ import java.util.concurrent.CountDownLatch;
 public class ConfigurationOptions {
 
     private static CountDownLatch loadingLatch = new CountDownLatch(0);
+    private static volatile boolean loading;
     private static FileConfiguration file;
     private static final Map<PacketTypeEnum, VlSetting> floodSettings = new HashMap<>();
     private static final Map<Class<? extends VlSetting>, VlSetting> vlSettings = new HashMap<>();
 
     public static Map<PacketTypeEnum, VlSetting> getFloodSettings() {
+        if (loading) {
+            try {
+                loadingLatch.await();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
         return floodSettings;
     }
 
@@ -40,23 +48,23 @@ public class ConfigurationOptions {
         return fields;
     }
 
-    public static boolean isLoading() {
-        return loadingLatch.getCount() == 1;
-    }
-
     public static boolean load() {
         try {
             loadingLatch.await();
+            loading = true;
             loadingLatch = new CountDownLatch(1);
 
             floodSettings.clear();
             load(ConfigurationOptions.class);
 
         } catch (Exception ex) {
+            loadingLatch.countDown();
+            loading = false;
             return true;
 
         } finally {
             loadingLatch.countDown();
+            loading = false;
         }
         return false;
     }
@@ -184,12 +192,13 @@ public class ConfigurationOptions {
     }
 
     public static VlSetting getVlSetting(Class<? extends VlSetting> clazz) {
-        // check if the configuration options are still loading, and if it is, wait for it to be done.
-        try {
-            if (isLoading()) loadingLatch.await();
+        if (loading) {
+            try {
+                loadingLatch.await();
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         if (!vlSettings.containsKey(clazz)) {
