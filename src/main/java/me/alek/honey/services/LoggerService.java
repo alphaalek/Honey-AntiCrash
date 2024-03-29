@@ -184,10 +184,12 @@ public class LoggerService {
 
         message.append(": " + playerName + " sent " + packetContainer.getName());
         if (detailed) {
-            Map<String, Object> entries = packetContainer.getAll().readFieldEntries();
-            for (Map.Entry<String, Object> entry : Sets.newHashSet(entries.entrySet())) {
+            Map<String, Object> entries = new HashMap<>();
+            for (Map.Entry<String, Object> entry : packetContainer.getAll().readFieldEntries().entrySet()) {
                 if (entry.getValue() instanceof Object[]) {
                     entries.put(entry.getKey(), Arrays.toString((Object[]) entry.getValue()));
+                } else {
+                    entries.put(entry.getKey(), entry.getValue());
                 }
             }
             message.append(": " + entries);
