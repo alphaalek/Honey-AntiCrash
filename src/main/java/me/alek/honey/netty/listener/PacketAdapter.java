@@ -1,6 +1,5 @@
 package me.alek.honey.netty.listener;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
@@ -8,7 +7,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
-public class SyncPacketAdapter<WP extends WrappedPacket<WP>> {
+public class PacketAdapter<WP extends WrappedPacket<WP>> {
 
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
 

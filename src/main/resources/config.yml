@@ -231,7 +231,7 @@ item-analysis:
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 1250
+    max-nbt-string-length: 1250Så d
 
     # How many bytes may the NBT of a firework have. This is also for firework charges.
     max-firework-nbt-length: 2500
@@ -457,7 +457,7 @@ position:
     vls-amount: 3
 
   b:
-    enabled: true
+    enabled: false
     max: 30
     vls-amount: 5
 
@@ -465,8 +465,8 @@ position:
     enabled: true
     clear-buffer: true
     threshold: 275
-    decay: 1250
-    decay-amount: 80
+    decay: 750
+    decay-amount: 125
     vls-amount: 3
 
   d:
@@ -752,7 +752,8 @@ packet-flood:
 
     # transaction
     transaction:
-      max-per-interval: 400
+      max-per-interval: 350
+      until: 500
 
     # update sign
     update-sign:

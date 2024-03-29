@@ -76,6 +76,7 @@ public class ViolationService {
         if (onPunish != null) onPunish.run();
 
         if (player.punished) return;
+        player.punished = true;
 
         player.channel.eventLoop().execute(() -> {
             if (player.channel.isActive()) {
@@ -88,8 +89,6 @@ public class ViolationService {
         if (check != null && honeyKey != null) {
             HoneyPlugin.get().getNotificationService().warn(player, check.getName(), honeyKey);
         }
-
-        player.punished = true;
     }
 
     public static class ViolationContext {
@@ -338,6 +337,11 @@ public class ViolationService {
         }
 
         public void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+            if (developmentData != null) {
+                AbstractPacketListener.applyQuotients(player, developmentData);
+                applySettingsToDevelopmentData(developmentData);
+            }
+
             if (check != null) {
                 if (ConfigurationOptions.PacketDump.VLS_ENABLED) {
 
@@ -369,11 +373,6 @@ public class ViolationService {
                         }
                     }
                 }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
-            }
-
-            if (developmentData != null) {
-                AbstractPacketListener.applyQuotients(player, developmentData);
-                applySettingsToDevelopmentData(developmentData);
             }
         }
 
@@ -699,7 +698,7 @@ public class ViolationService {
                 else cancellablePacketObserver.cancel();
             }
 
-            if ((this.amount = amount) > getSetting().threshold) {
+            if ((this.amount = amount) > getSetting().maxPerInterval) {
                 intervalStart = System.currentTimeMillis();
 
                 if (amount > getSetting().until && !currentlyCancelling) {

@@ -150,7 +150,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     @SuppressWarnings("unchecked")
     public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
-        return getListOf(key, (Class<R>) nbtType.getClazz());
+        return (NBTList<R>) (NBTAbstractList<?>) getAbstractListOf(key, nbtType);
     }
 
     public NBTListOfCompound getListOfCompound(String key) {

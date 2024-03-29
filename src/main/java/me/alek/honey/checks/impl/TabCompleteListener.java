@@ -10,7 +10,7 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
@@ -128,7 +128,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         }
 
         public TabB() {
-            HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutTabComplete>() {
+            HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutTabComplete>() {
 
                 @Override
                 public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {

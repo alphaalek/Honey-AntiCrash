@@ -22,7 +22,8 @@ import java.nio.channels.ClosedChannelException;
 
 public class HoneyPacketHandler extends ChannelDuplexHandler implements UpdatableChannel {
 
-    private static final String VIA_VERSION_CLOSED_CHANNEL_EXCEPTION_MESSAGE = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
+
+
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
@@ -38,21 +39,6 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
         return packetSendMarker;
-    }
-
-    public static void onExceptionCaught(Throwable cause) {
-        if (HoneyPlugin.get().getLoggerService().isDebug()
-                && !(cause instanceof ClosedChannelException)
-                && /* ViaVersion */ !cause.getMessage().equals(VIA_VERSION_CLOSED_CHANNEL_EXCEPTION_MESSAGE)) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
-            cause.printStackTrace();
-        }
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-         onExceptionCaught(cause);
-         super.exceptionCaught(ctx, cause);
     }
 
     @Override

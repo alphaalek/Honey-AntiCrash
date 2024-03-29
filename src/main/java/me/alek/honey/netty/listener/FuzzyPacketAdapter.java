@@ -4,7 +4,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import org.bukkit.entity.Player;
 
-public class FuzzyPacketAdapter extends SyncPacketAdapter {
+public class FuzzyPacketAdapter extends PacketAdapter {
 
     public void onPacketReceive(Player player, PacketContainer packetContainer) {
 

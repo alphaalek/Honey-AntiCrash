@@ -7,8 +7,7 @@ import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.connection.SpigotServerInjector;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
-import me.alek.honey.netty.packet.PacketExecutors;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -25,7 +24,6 @@ public class PacketLibrary {
 
     private final PacketLibrarySettings settings;
     private final PacketProcessor packetProcessor;
-    private final Plugin plugin;
     private final SpigotPipelineInjector pipelineInjector;
     private final SpigotServerInjector serverInjector;
     private final ServerPacketManager packetManager;
@@ -46,8 +44,7 @@ public class PacketLibrary {
     private PacketLibrary(PacketLibrarySettings settings) {
         INSTANCE = this;
         this.settings = settings;
-        plugin = settings.getPlugin();
-        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), plugin);
+        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
         PacketType.load();
         PacketWrapperInvokerFactory.load();
@@ -62,9 +59,8 @@ public class PacketLibrary {
             serverInjector.inject();
         } else {
             // late bind, so we inject a bit later
-            Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, serverInjector::inject);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(settings.getPlugin(), serverInjector::inject);
         }
-
     }
 
     public SpigotServerInjector getServerInjector() {
@@ -103,6 +99,10 @@ public class PacketLibrary {
         return settings.getEncoderName();
     }
 
+    public String getDebuggerName() {
+        return settings.getDebuggerName();
+    }
+
     public PacketLibrarySettings getSettings() {
         return settings;
     }
@@ -111,11 +111,11 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListener(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void addListener(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
         packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(SyncPacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
         packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
@@ -123,15 +123,15 @@ public class PacketLibrary {
         packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
-    public void addDecodeListener(SyncPacketAdapter<?> adapter, ListenerPriority priority) {
+    public void addDecodeListener(PacketAdapter<?> adapter, ListenerPriority priority) {
         packetProcessor.addDecodeListener(adapter, priority);
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListener(SyncPacketAdapter<WP> adapter) {
+    public <WP extends WrappedPacket<WP>> void removeListener(PacketAdapter<WP> adapter) {
         removeListeners(adapter, PacketType.getTypesAvailableFor(NetProtocol.getProtocol()));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListeners(SyncPacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void removeListeners(PacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {
         packetProcessor.removeListener(adapter, packetTypes);
     }
 
@@ -145,7 +145,7 @@ public class PacketLibrary {
         removeListeners(adapter, packetTypes);
     }
 
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> adapter) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> adapter) {
         return packetProcessor.isRegistered(adapter);
     }
 

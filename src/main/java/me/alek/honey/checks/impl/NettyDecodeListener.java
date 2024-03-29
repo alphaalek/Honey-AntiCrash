@@ -225,6 +225,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
+            /*
             if (getSetting().isEnabled() && player != null) {
 
                 double ta = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, false);
@@ -241,6 +242,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 }
                 return success;
             }
+            */
             return ResponseBuilder.SUCCESS;
         }
 

@@ -3,15 +3,10 @@ package me.alek.honey.listeners;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
-import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-public class TabCompleteListener extends SyncPacketAdapter<WrappedPlayOutTabComplete> {
+public class TabCompleteListener extends PacketAdapter<WrappedPlayOutTabComplete> {
 
     private boolean shouldBlockTabCompletion(HoneyPlayer player) {
         if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {

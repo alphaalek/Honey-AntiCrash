@@ -148,23 +148,28 @@ public class WorkerPool<T> {
         Worker<T> headWorker = workers[0];
 
         boolean duplicate = false;
+        boolean moved = false;
         for (int i = 1; i < workers.length; i++) {
             Worker<T> otherWorker = workers[i];
 
-            if (headWorker == otherWorker) {
+            if (headWorker == otherWorker && moved) {
                 duplicate = true;
             }
+            moved = false;
 
             if (headWorker.isQuarantined() || duplicate ||
                     !otherWorker.isQuarantined() && headWorker.getPendingTasks().size() + 1 > otherWorker.getPendingTasks().size()) {
 
                 workers[i] = headWorker;
                 workers[i - 1] = otherWorker;
+                moved = true;
             }
         }
+
         if (workers[0].isQuarantined()) {
             return createAndPushNewTaskWorker();
         }
+
         if (duplicate) {
             Bukkit.getLogger().info("Replacing worker because of duplication");
             return createAndReplaceNewTaskWorker();

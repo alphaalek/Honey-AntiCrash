@@ -7,7 +7,7 @@ import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketExecutor;
@@ -34,7 +34,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private static class ListModifier<WP extends WrappedPacket<WP>> {
 
-        private final EnumMap<ListenerPriority, List<SyncPacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
+        private final EnumMap<ListenerPriority, List<PacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer, boolean isRead) {
@@ -58,11 +58,11 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void callPipeline(Consumer<SyncPacketAdapter<WP>> consumer) {
+        public void callPipeline(Consumer<PacketAdapter<WP>> consumer) {
             synchronized (pipeline) {
                 synchronized (priorityMap) {
                     for (ListenerPriority priority : pipeline) {
-                        for (SyncPacketAdapter<WP> listener : priorityMap.get(priority)) {
+                        for (PacketAdapter<WP> listener : priorityMap.get(priority)) {
                             consumer.accept(listener);
                         }
                     }
@@ -70,25 +70,25 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
 
-        public void addListener(SyncPacketAdapter<?> packetAdapter, ListenerPriority priority) {
+        public void addListener(PacketAdapter<?> packetAdapter, ListenerPriority priority) {
             synchronized (priorityMap) {
                 if (!priorityMap.containsKey(priority)) {
                     priorityMap.put(priority, new ArrayList<>());
                 }
-                priorityMap.get(priority).add((SyncPacketAdapter<WP>) packetAdapter);
+                priorityMap.get(priority).add((PacketAdapter<WP>) packetAdapter);
                 addToPipeline(priority);
             }
         }
 
-        public boolean removeListener(SyncPacketAdapter<?> packetAdapter) {
+        public boolean removeListener(PacketAdapter<?> packetAdapter) {
             synchronized (priorityMap) {
                 synchronized (pipeline) {
                     for (ListenerPriority priority : new ArrayList<>(pipeline)) {
-                        final List<SyncPacketAdapter<WP>> listeners = priorityMap.get(priority);
+                        final List<PacketAdapter<WP>> listeners = priorityMap.get(priority);
 
-                        Iterator<SyncPacketAdapter<WP>> listenerIterator = listeners.iterator();
+                        Iterator<PacketAdapter<WP>> listenerIterator = listeners.iterator();
                         while (listenerIterator.hasNext()) {
-                            SyncPacketAdapter<WP> listener = listenerIterator.next();
+                            PacketAdapter<WP> listener = listenerIterator.next();
                             if (listener != packetAdapter) {
                                 continue;
                             }
@@ -172,11 +172,11 @@ public class InternalPacketProcessor implements PacketProcessor {
         return null;
     }
 
-    public void addDecodeListener(SyncPacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority) {
+    public void addDecodeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority) {
         DECODE_LIST_MODIFIER.addListener(packetAdapter, priority);
     }
 
-    public synchronized void addListener(SyncPacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
+    public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum) {
                 if (!NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
@@ -188,15 +188,15 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
-    public void addListener(SyncPacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetTypes) {
+    public void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetTypes) {
         addListener(packetAdapter, priority, Arrays.asList(packetTypes));
     }
 
-    public void removeListener(SyncPacketAdapter<? extends WrappedPacket<?>> packetAdapter, PacketTypeEnum... packetTypes) {
+    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, PacketTypeEnum... packetTypes) {
         removeListener(packetAdapter, Arrays.asList(packetTypes));
     }
 
-    public void removeListener(SyncPacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketTypeEnum> packetTypes) {
+    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (!packetAdapters.has(packetType.getPacketId())) continue;
 
@@ -209,7 +209,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(SyncPacketAdapter<WP> check) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> check) {
         for (ListModifier<?> listModifier : packetAdapters) {
             if (listModifier != null && existsInListModifier(listModifier, check)) {
                 return true;
@@ -218,9 +218,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(ListModifier<WP2> listModifier, SyncPacketAdapter<WP> check) {
-        for (List<SyncPacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
-            for (SyncPacketAdapter<WP2> packetAdapter : packetAdapters) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(ListModifier<WP2> listModifier, PacketAdapter<WP> check) {
+        for (List<PacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
+            for (PacketAdapter<WP2> packetAdapter : packetAdapters) {
 
                 if (packetAdapter == check) {
                     return true;

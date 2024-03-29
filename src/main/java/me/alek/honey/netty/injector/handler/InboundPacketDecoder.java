@@ -15,7 +15,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -31,7 +30,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
-    private ViolationService.PacketIntervalThrottleHandler transactionIntervalThrottle;
+    private ViolationService.PacketIntervalThrottleHandler exemptedIntervalThrottle;
     private HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
@@ -61,13 +60,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         }
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        HoneyPacketHandler.onExceptionCaught(cause);
-        super.exceptionCaught(ctx, cause);
-    }
-
-
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) {
@@ -79,11 +71,13 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             byteBuf.release();
 
             if (list.isEmpty()) return;
-            if (packetContainer == null || packetContainer.getType() == PacketType.Play.Client.TRANSACTION) {
+            if (packetContainer == null
+                    || packetContainer.getType() == PacketType.Play.Client.TRANSACTION
+                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                 Object packet = list.get(0);
-                if (packetContainer != null && transactionIntervalThrottle != null) {
-                    transactionIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
+                if (packetContainer != null && exemptedIntervalThrottle != null) {
+                    exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
 
                     if (packetContainer.isCancelled()) {
                         return;
@@ -140,14 +134,14 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
         if (player == null && asyncDecoder.getPlayer() != null) {
             player = asyncDecoder.getPlayer();
-            transactionIntervalThrottle = new ViolationService.PacketIntervalThrottleHandler(
+            exemptedIntervalThrottle = new ViolationService.PacketIntervalThrottleHandler(
                     player, ConfigurationOptions.getFloodSettings().get(PacketType.Play.Client.TRANSACTION));
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED || asyncDecoder.getPlayer() == null) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;
         }
@@ -156,7 +150,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (player == null || player.isOnline() && !player.punished) {
+            if (player.isOnline() && !player.punished) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

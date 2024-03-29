@@ -10,7 +10,7 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -38,7 +38,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
     public PositionListener() {
-        HoneyPlugin.get().getPacketLibrary().addListener(new SyncPacketAdapter<WrappedPlayOutPosition>() {
+        HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutPosition>() {
 
             @Override
             public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
@@ -70,7 +70,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         // check if the packet has any valid location to be checked, or just origin location
         // if it does, ignore this packet and avoid adding this location to the last packet location lookup
-        if (Locations.calculate3DDistance(currentLocation, originLocation) < 10) return false;
+        if (Locations.compareLocation(currentLocation, originLocation)) return false;
         lastPacketLocation.put(player.uuid, currentLocation);
 
         // check if the player has moved by checking if the last location is equal to the current location

@@ -38,9 +38,8 @@ public class BukkitEventInternal implements Listener {
             try {
                 injector.updatePlayer(honeyPlayer);
             } catch (MissingHandlerException exception) {
-                exception.printStackTrace();
                 HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                        () -> player.kickPlayer("Broken pipe!"));
+                        () -> player.kickPlayer("Broken pipe! " + exception.getMessage()));
                 return;
             }
 

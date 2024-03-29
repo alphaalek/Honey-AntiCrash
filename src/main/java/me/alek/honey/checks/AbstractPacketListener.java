@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.utility.Array;
@@ -13,7 +13,7 @@ import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.utility.NumberConversions;
 import org.bukkit.Bukkit;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends SyncPacketAdapter<WP> implements IPacketListener, CheckVisitable {
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements IPacketListener, CheckVisitable {
 
     private final Array<CheckVisitor<?>> visitors = new Array<>();
     private boolean initializedCheckInstances;
@@ -54,11 +54,6 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
-        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                && player != null && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-            return;
-        }
-
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         callback.addAction((response) -> {
             response.builder().onViolation(onViolation -> {
@@ -93,7 +88,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static synchronized CheckVisitor<?> getCachedVisitor(Array<CheckVisitor<?>> visitors, CheckVisitable visitable, HoneyPlayer player, int registryID) {
         if (!visitable.requiresPlayer() && !visitors.has(registryID)
-                || visitable.requiresPlayer() && player != null && player.isOnline() && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
+                || visitable.requiresPlayer() && player != null && player.isOnline() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
             visitors.set(registryID, visitable.getVisitor(player));
 
             if (player != null) {

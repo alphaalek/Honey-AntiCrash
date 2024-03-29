@@ -18,7 +18,7 @@ import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.injector.handler.async.DebugCommand;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
-import me.alek.honey.netty.listener.SyncPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
@@ -253,7 +253,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private void setupPacketLibrary() {
         if (packetLibrary == null) {
-            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey_packet_handler", "honey_filter", "honey_connection", "honey_decode_prepare", "honey_encode_prepare"));
+            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey-packet-handler", "honey-filter", "honey-connection", "honey-decode-prepare", "honey-encode-prepare", "honey-debugger"));
         }
     }
 
@@ -295,12 +295,12 @@ public class HoneyPlugin implements HoneyAPI {
     public <WP extends WrappedPacket<WP>> void registerChecks() {
         for (IListener check : ListenerRegistry.getChecks()) {
 
-            if (check instanceof SyncPacketAdapter) {
+            if (check instanceof PacketAdapter) {
                 ListenerPriority priority = check.getPriority();
                 if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
-                    packetLibrary.addListeners((SyncPacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
+                    packetLibrary.addListeners((PacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
                 if (check.getCheckType() == HoneyCheckType.DECODE)
-                    packetLibrary.addDecodeListener((SyncPacketAdapter<?>) check, priority);
+                    packetLibrary.addDecodeListener((PacketAdapter<?>) check, priority);
 
                 check.load();
             }
