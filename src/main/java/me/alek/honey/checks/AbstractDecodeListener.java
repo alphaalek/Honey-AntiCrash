@@ -34,6 +34,8 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
                     defaultDevelopmentData.addValue(" ByteBuf", bytes + " bytes");
                     AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
                 }
+
+                if (onViolation != null) onViolation.run();
             });
         });
 

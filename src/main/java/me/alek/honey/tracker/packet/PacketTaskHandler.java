@@ -27,6 +27,7 @@ public class PacketTaskHandler {
     private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
+    private static volatile boolean unregistering;
     private static PacketTaskFuture<?> handledTask;
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
@@ -38,7 +39,7 @@ public class PacketTaskHandler {
                             && (System.nanoTime() - handledTask.getSubmitted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                        if (packet == null || packet.isDumped()) continue;
+                        if (packet == null || packet.isDumped() || unregistering) continue;
 
                         packet.dump();
                         if (packet.getType() != PacketType.Play.Client.FLYING
@@ -128,6 +129,7 @@ public class PacketTaskHandler {
     }
 
     public static void unregisterTask() {
+        unregistering = true;
         synchronized (ignoreDecrementLock) {
             if (handledTask != null) {
                 tracker.decrementPacketsInQueueExecution(handledTask.getPlayer().uuid);
@@ -147,6 +149,7 @@ public class PacketTaskHandler {
                 lastHandledPacket = packet;
                 handledTask = null;
             }
+            unregistering = false;
         }
     }
 }

@@ -4,7 +4,6 @@ import me.alek.honey.services.ViolationService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ResponseContainer implements Cloneable {
 
@@ -21,12 +20,16 @@ public class ResponseContainer implements Cloneable {
     public Runnable onPunish;
     public double flag = -1;
 
-    public ResponseBuilder builderCopy() {
+    public ResponseBuilder copy() {
         return new ResponseBuilder(this.clone(), new ArrayList<>(subContainers));
     }
 
-    public ResponseBuilder builderCopyWithoutPosts() {
-        ResponseBuilder builder = builderCopy();
+    public ResponseContainer copyDirectly() {
+        return copy().build();
+    }
+
+    public ResponseBuilder copyWithoutPosts() {
+        ResponseBuilder builder = copy();
         builder.getContainer().onViolation = null;
         builder.getContainer().onFlag = null;
         builder.getContainer().onPunish = null;

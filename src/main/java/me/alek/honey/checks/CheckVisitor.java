@@ -87,7 +87,9 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         continue;
                     }
 
-                    response = response.builderCopyWithoutPosts().build();
+                    if (response.onViolation == null && response.onPunish == null && response.onFlag == null) {
+                        response = response.copyWithoutPosts().build();
+                    }
                     callback.call(response);
                     response.builder().onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();

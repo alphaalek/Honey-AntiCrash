@@ -220,7 +220,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
                     (location) -> Locations.calculate3DDistance(location, packetLoc))) {
-                return ResponseBuilder.SUCCESS.builderCopy().skip(3).build();
+                return ResponseBuilder.SUCCESS.copy().skip(3).build();
             }
 
             final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
@@ -360,7 +360,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (!getSetting().isEnabled()
                     || chunk.equals(lastChunk) || chunk.equals(lastChunkCameFrom)) {
                 // the player is in the same chunk as the last position update
-                return ResponseBuilder.SUCCESS.builderCopy().skip(skip).build();
+                return ResponseBuilder.SUCCESS.copy().skip(skip).build();
             }
             // the player has moved into a new chunk, and we have to register this chunk as the current one
             lastChunkLoaded = false;
@@ -593,7 +593,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            final ResponseContainer response = ResponseBuilder.SUCCESS.builderCopy().skip(1).build();
+            final ResponseContainer response = ResponseBuilder.SUCCESS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
 
                 final double delta2D = container.getStorage().getDouble(0);
