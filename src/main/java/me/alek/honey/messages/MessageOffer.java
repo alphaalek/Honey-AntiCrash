@@ -1,4 +1,4 @@
-package me.alek.honey.services.messages;
+package me.alek.honey.messages;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.services.NotificationService;

@@ -1,4 +1,4 @@
-package me.alek.honey.services.messages;
+package me.alek.honey.messages;
 
 import java.util.function.Function;
 

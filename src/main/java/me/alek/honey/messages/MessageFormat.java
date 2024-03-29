@@ -1,4 +1,4 @@
-package me.alek.honey.services.messages;
+package me.alek.honey.messages;
 
 import org.bukkit.ChatColor;
 
@@ -11,20 +11,18 @@ public class MessageFormat {
 
     public static MessageFormat load(String message) {
         List<MessageIndex> indices = new ArrayList<>();
-
         for (Placeholders placeholder : Placeholders.values()) {
             String text = placeholder.getText();
 
             int index;
             int startIndex = 0;
-
             while ((index = message.indexOf("%" + text + "%", startIndex)) != -1) {
                 indices.add(new MessageIndex(index, index + text.length() + 1, placeholder));
                 startIndex = index + text.length();
             }
         }
-        int[] mib = new int[message.length()];
 
+        int[] mib = new int[message.length()];
         for (MessageIndex index : indices) {
             for (int betweenIndex = index.getStartIndex(); betweenIndex <= index.getEndIndex(); betweenIndex++) {
                 mib[betweenIndex] = 1;
@@ -33,11 +31,9 @@ public class MessageFormat {
 
         int startIndex = -1;
         for (int index = 0; index < mib.length; index++) {
-
             if (mib[index] == 1 && startIndex != -1) {
                 indices.add(MessageIndex.asSubstring(startIndex, index, message));
                 startIndex = -1;
-
             } else if (mib[index] == 0 && startIndex == -1) {
                 startIndex = index;
             }
