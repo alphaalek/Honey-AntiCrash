@@ -386,7 +386,7 @@ public class ItemChecks {
             if (nbt.hasKeyOfType("pages", NBTType.LIST)) {
                 return nbt.getListOf("pages", String.class).size() > MAX_BOOK_PAGES;
             }
-            return true;
+            return false;
         }
 
         @Override
