@@ -78,9 +78,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     public synchronized void registerTime(HoneyPlayer key, Double value) {
         if (value <= 0) return;
 
-        long time = System.nanoTime();
-        getTracker(key).add(value, time);
-        commonTracker.add(value, time);
+        TimedNode<Double> node = new TimedNode<>(value);
+        getTracker(key).add(node);
+        commonTracker.add(node);
     }
 
     public boolean hasCollected(HoneyPlayer player, Timespan timespan) {

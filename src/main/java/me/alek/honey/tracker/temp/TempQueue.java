@@ -2,6 +2,7 @@ package me.alek.honey.tracker.temp;
 
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
+import org.bukkit.Bukkit;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -63,22 +64,24 @@ public class TempQueue {
     }
 
     public double add(double amount) {
-        if (isFixed) return add(amount, 0);
-
-        return add(amount, System.nanoTime());
-    }
-
-    public double add(double amount, long time) {
         if (isFixed && amount > 0) {
             FIXED.add(amount);
             return FIXED.remove();
+        }
+        return add(new TimedNode<>(amount));
+    }
 
-        } else if (!isFixed) {
-            synchronized (this) {
-                if (amount > 0) TIMED.add(new TimedNode<>(amount));
+    public double add(TimedNode<Double> node) {
+        if (isFixed) {
+            return add(node.getValue());
+        }
 
-                // clearExceedingNodes(time);
+        synchronized (this) {
+            if (node.getValue() > 0) {
+                TIMED.add(node);
             }
+
+            // clearExceedingNodes(node.getInsertionInstant());
         }
         return 0;
     }
