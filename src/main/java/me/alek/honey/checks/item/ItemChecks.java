@@ -383,7 +383,10 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("pages", NBTType.LIST) && nbt.getListOf("pages", String.class).size() > MAX_BOOK_PAGES;
+            if (nbt.hasKeyOfType("pages", NBTType.LIST)) {
+                return nbt.getListOf("pages", String.class).size() > MAX_BOOK_PAGES;
+            }
+            return false;
         }
 
         @Override
