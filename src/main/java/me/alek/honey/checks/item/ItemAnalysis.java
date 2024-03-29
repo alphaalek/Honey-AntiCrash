@@ -135,6 +135,11 @@ public class ItemAnalysis {
     private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {
         final Material material = item.getType();
 
+        if (nbt != null) {
+            Bukkit.broadcastMessage("Checking item...");
+            Bukkit.broadcastMessage(nbt.toString());
+        }
+
         if (!material.equals(Material.AIR) && directAvailableMaterialChecks.containsKey(material)) {
             for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
                 ItemCheckRegistry registry = check(checker, item, nbt);

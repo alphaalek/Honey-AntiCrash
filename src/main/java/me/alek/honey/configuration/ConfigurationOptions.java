@@ -663,6 +663,8 @@ public class ConfigurationOptions {
             public static int MAX_BOOK_PAGE_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_AUTHOR_LENGTH)
             public static int MAX_BOOK_AUTHOR_LENGTH;
+            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_TITLE_LENGTH)
+            public static int MAX_BOOK_TITLE_LENGTH;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_BASES)
             public static int MAX_NBT_BASES;
             @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_NESTING)
@@ -680,6 +682,7 @@ public class ConfigurationOptions {
                 MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length", 256);
                 MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages", 50);
                 MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length", 16);
+                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length", 32);
 
                 MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases", 80);
                 MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting", 4);

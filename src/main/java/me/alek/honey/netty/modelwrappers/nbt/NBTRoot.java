@@ -74,8 +74,12 @@ public class NBTRoot extends NBTCompound {
         return acquiredSub;
     }
 
-    public <T extends NBTBase<?, ?>> List<T> getAllElementsAs(NBTType type, Class<T> clazz) {
+    public <T extends NBTBase<?, ?>> List<T> getAllElementsAs(NBTType type) {
         return (List<T>) nbtTypeLookup.computeIfAbsent(type, (nbtType) -> new ArrayList<>());
+    }
+
+    public <T> List<NBTElement<T>> getAllPrimitiveElementsAs(NBTType type) {
+        return (List<NBTElement<T>>) (List<?>) nbtTypeLookup.computeIfAbsent(type, (nbtType) -> new ArrayList<>());
     }
 
     public int getDistanceToTail(NBTBase<?, ?> element) {

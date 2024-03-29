@@ -31,21 +31,22 @@ public class ItemChecks {
         public boolean check(ItemStack item, NBTCompound nbt) {
             NBTRoot root = nbt.getRoot();
 
-            for (NBTElement<Double> doubleValue : root.getAllElementsAs(NBTType.DOUBLE, NBTElement.class)) {
+            for (NBTElement<Double> doubleValue : root.<Double>getAllPrimitiveElementsAs(NBTType.DOUBLE)) {
                 if (NumberConversions.isInvalid(doubleValue.getValue())) {
                     return true;
                 }
             }
-            for (NBTElement<Float> floatValue : root.getAllElementsAs(NBTType.FLOAT, NBTElement.class)) {
+            for (NBTElement<Float> floatValue : root.<Float>getAllPrimitiveElementsAs(NBTType.FLOAT)) {
                 if (NumberConversions.isInvalid(floatValue.getValue())) {
                     return true;
                 }
             }
-            for (NBTElement<Integer> intValue : root.getAllElementsAs(NBTType.INT, NBTElement.class)) {
+            for (NBTElement<Integer> intValue : root.<Integer>getAllPrimitiveElementsAs(NBTType.INT)) {
                 if (intValue.getValue() == Integer.MAX_VALUE || intValue.getValue() == Integer.MIN_VALUE) {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -74,14 +75,16 @@ public class ItemChecks {
                     break;
                 }
             }
+
             if (enchantments != null) {
                 for (NBTCompound enchantment : enchantments) {
-                    NBTElement<Short> level = enchantment.get("lvl").asElement(short.class);
-                    if (level.getValue() > MAX_ENCHANTMENT_LEVEL) {
+                    short level = enchantment.getShort("lvl");
+                    if (level > MAX_ENCHANTMENT_LEVEL) {
                         return true;
                     }
                 }
             }
+
             return false;
         }
 
@@ -122,10 +125,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (item.getItemMeta().getDisplayName() == null) {
-                return false;
-            }
-            return item.getItemMeta().getDisplayName().length() > MAX_DISPLAYNAME_LENGTH;
+            return item.getItemMeta().hasDisplayName() && item.getItemMeta().getDisplayName().length() > MAX_DISPLAYNAME_LENGTH;
         }
 
         @Override
@@ -145,9 +145,10 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (item.getItemMeta().getLore() == null) {
+            if (!item.getItemMeta().hasLore()) {
                 return false;
             }
+
             int counter = 0;
             for (String lore : item.getItemMeta().getLore()) {
                 counter += lore.length();
@@ -155,6 +156,7 @@ public class ItemChecks {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -173,11 +175,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)) {
-                return false;
-            }
-            NBTElement<Byte> unbreakable = nbt.get("Unbreakable").asElement(Byte.class);
-            return unbreakable.getValue() == (byte) 1;
+            return nbt.hasKeyOfType("Unbreakable", NBTType.BYTE) && nbt.getByte("Unbreakable") == (byte) 1;
         }
 
         @Override
@@ -228,16 +226,18 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (item.getItemMeta().getDisplayName() != null && checkBadCharacter(item.getItemMeta().getDisplayName())) {
+            if (item.getItemMeta().hasDisplayName() && checkBadCharacter(item.getItemMeta().getDisplayName())) {
                 return true;
             }
-            if (item.getItemMeta().getLore() != null) {
+
+            if (item.getItemMeta().hasLore()) {
                 for (String lore : item.getItemMeta().getLore()) {
                     if (checkBadCharacter(lore)) {
                         return true;
                     }
                 }
             }
+
             return false;
         }
 
@@ -291,7 +291,7 @@ public class ItemChecks {
         @Override
         @SuppressWarnings("unchecked")
         public boolean check(ItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> stringValue : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+            for (NBTElement<String> stringValue : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
                 if (stringValue.getValue().getBytes().length > MAX_NBT_STRING_LENGTH) {
                     return true;
                 }
@@ -317,7 +317,7 @@ public class ItemChecks {
         @Override
         @SuppressWarnings("unchecked")
         public boolean check(ItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> page : nbt.getRoot().getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+            for (NBTElement<String> page : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
 
                 if (page.getValue().length() > MAX_PAGE_LENGTH) {
                     return true;
@@ -383,10 +383,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (nbt.hasKeyOfType("pages", NBTType.LIST)) {
-                return nbt.getListOf("pages", String.class).size() > MAX_BOOK_PAGES;
-            }
-            return true;
+            return nbt.hasKeyOfType("pages", NBTType.LIST) && nbt.getListOf("pages", String.class).size() > MAX_BOOK_PAGES;
         }
 
         @Override
@@ -402,16 +399,36 @@ public class ItemChecks {
 
     public static class MaxBookAuthorLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BOOK_AUHTOR_LENGTH;
+        private int MAX_BOOK_AUTHOR_LENGTH;
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.getString("author").length() > MAX_BOOK_AUHTOR_LENGTH;
+            return nbt.hasKeyOfType("author", NBTType.STRING) && nbt.getString("author").length() > MAX_BOOK_AUTHOR_LENGTH;
         }
 
         @Override
         public void setValue(int value) {
-            MAX_BOOK_AUHTOR_LENGTH = value;
+            MAX_BOOK_AUTHOR_LENGTH = value;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_NBT;
+        }
+    }
+
+    public static class MaxBookTitleLengthCheck implements ItemAnalysis.ItemChecker {
+
+        private int MAX_BOOK_TITLE_LENGTH;
+
+        @Override
+        public boolean check(ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("title", NBTType.STRING) && nbt.getString("title").length() > MAX_BOOK_TITLE_LENGTH;
+        }
+
+        @Override
+        public void setValue(int value) {
+            MAX_BOOK_TITLE_LENGTH = value;
         }
 
         @Override
@@ -474,34 +491,40 @@ public class ItemChecks {
                     break;
                 }
             }
-            if (skullOwnerCompound == null || !skullOwnerCompound.hasKey("Properties"))
+            if (skullOwnerCompound == null || !skullOwnerCompound.hasKey("Properties")) {
                 return false;
+            }
 
             NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKeyOfType("textures", NBTType.LISTOFCOMOUND))
-                return true;
+            if (!propertiesCompound.hasKeyOfType("textures", NBTType.LISTOFCOMOUND)) {
+                return false;
+            }
 
             NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
             for (NBTCompound texture : textures.getValues()) {
-                if (!texture.hasKeyOfType("Value", NBTType.STRING))
-                    return true;
+                if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
+                    return false;
+                }
 
-                byte[] value = texture.getString("Value").getBytes(StandardCharsets.UTF_8);
-                String base64;
                 try {
-                    base64 = new String(Base64.decodeBase64(value));
-                } catch (IllegalArgumentException ex) {
+                    byte[] value = texture.getString("Value").getBytes(StandardCharsets.UTF_8);
+                    String base64 = new String(Base64.decodeBase64(value));
+                    final String formatted = base64.trim().replace(" ", "").replace("\"", "").toLowerCase();
+
+                    final Matcher matcher = URL_PATTERN.matcher(formatted);
+                    if (!matcher.find()) {
+                        return true;
+                    }
+                    final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
+                    if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
+                        return true;
+                    }
+
+                } catch (Exception ex) {
                     return true;
                 }
-                final String formatted = base64.trim().replace(" ", "").replace("\"", "").toLowerCase();
-                final Matcher matcher = URL_PATTERN.matcher(formatted);
-                if (!matcher.find())
-                    return true;
-
-                final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
-                if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net"))
-                    return true;
             }
+
             return false;
         }
 
@@ -543,10 +566,12 @@ public class ItemChecks {
             if (!nbt.hasKeyOfType("Fireworks", NBTType.COMPOUND)) {
                 return false;
             }
+
             NBTCompound fireworksCompound = nbt.getCompound("Fireworks");
             if (!fireworksCompound.hasKeyOfType("Explosions", NBTType.LISTOFCOMOUND)) {
                 return false;
             }
+
             return fireworksCompound.getListOfCompound("Explosions").size() > MAX_FIREWORK_EXPLOSIONS;
         }
 
@@ -567,10 +592,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(ItemStack item, NBTCompound nbt) {
-            if (!nbt.hasKeyOfType("Patterns", NBTType.LISTOFCOMOUND)) {
-                return false;
-            }
-            return nbt.getListOfCompound("Patterns").size() > MAX_BANNER_PATTENRS;
+            return nbt.hasKeyOfType("Patterns", NBTType.LISTOFCOMOUND) && nbt.getListOfCompound("Patterns").size() > MAX_BANNER_PATTENRS;
         }
 
         @Override
@@ -590,7 +612,6 @@ public class ItemChecks {
         @SuppressWarnings("unchecked")
         public boolean check(ItemStack item, NBTCompound nbt) {
             MapView mapView = Bukkit.getMap(item.getDurability());
-
             if (mapView == null) return false;
 
             MapConverter<Object, Object, WrappedRenderData> renderCache = ReflectStructureCache.acquireStructure(mapView.getClass())
@@ -600,13 +621,13 @@ public class ItemChecks {
 
             for (WrappedRenderData cache : renderCache.convertedValues()) {
                 for (MapCursor cursor : cache.getMapCursors()) {
-
                     byte rawType = cursor.getRawType();
                     if (rawType < 0 || rawType > 15) {
                         return true;
                     }
                 }
             }
+
             return false;
         }
 
@@ -633,14 +654,15 @@ public class ItemChecks {
         @Override
         @SuppressWarnings("unchecked")
         public boolean check(ItemStack item, NBTCompound nbt) {
-            NBTRoot root = nbt.getRoot();
-            for (NBTElement<String> string : root.getAllElementsAs(NBTType.STRING, NBTElement.class)) {
+            for (NBTElement<String> string : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
+                String trimmed = string.getValue().toLowerCase().replace("\\", "").trim();
                 for (String component : ILLEGAL_COMPONENT_STRINGS) {
-                    if (string.getValue().toLowerCase().replace("\\", "").trim().contains(component)) {
+                    if (trimmed.contains(component)) {
                         return true;
                     }
                 }
             }
+
             return false;
         }
 

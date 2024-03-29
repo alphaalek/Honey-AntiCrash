@@ -471,7 +471,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                                     .onViolation(onViolation -> {
                                         if (onViolation != null) onViolation.run();
 
-                                        applyCommonDevelopmentData(container.getDevelopmentData(this), timespan, trackerSize, multiplier, hsq);
+                                        applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
                                     })
                                     .build();
                         }
@@ -482,7 +482,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                                     .onViolation(onViolation -> {
                                         if (onViolation != null) onViolation.run();
 
-                                        applyCommonDevelopmentData(container.getDevelopmentData(this), timespan, trackerSize, multiplier, hsq);
+                                        applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
                                         container.getDevelopmentData(this).addPoint("t.a.",
                                                 NumberConversions.format(
                                                         tracker.getTimeToAverageWithoutQuotient(player, timespan, true) * 100, 2) + "%");
@@ -496,7 +496,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                                     .onViolation(onViolation -> {
                                         if (onViolation != null) onViolation.run();
 
-                                        applyCommonDevelopmentData(container.getDevelopmentData(this), timespan, trackerSize, multiplier, hsq);
+                                        applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
                                         container.getDevelopmentData(this).addPoint("t.t.",
                                                 NumberConversions.format(
                                                         tracker.getTimeToTotalQuotient(player, timespan, true) * 100, 2) + "%");
@@ -510,9 +510,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             return ResponseBuilder.SUCCESS;
         }
 
-        private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, Timespan timespan, int size, double multiplier, double hsq) {
-            developmentData.addPoint("Timespan", timespan);
-            developmentData.addPoint("Size", size);
+        private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, double multiplier, double hsq) {
             developmentData.addPoint("Multiplier", multiplier);
             developmentData.addPoint("h.s.q.", NumberConversions.format(hsq * 100, 2) + "%");
         }
