@@ -87,13 +87,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         continue;
                     }
 
+                    response = response.builderCopyWithoutPosts().build();
+                    callback.call(response);
                     response.builder().onViolation(onViolation -> {
+                        if (onViolation != null) onViolation.run();
+
                         developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
                         developmentData.setLine(5, check.getDescription());
-
-                        if (onViolation != null) onViolation.run();
                     });
-                    callback.call(response);
 
                     HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.violationKey, response.flag, response.onPunish, response.onViolation, response.onFlag, check, setting, developmentData);
                 }

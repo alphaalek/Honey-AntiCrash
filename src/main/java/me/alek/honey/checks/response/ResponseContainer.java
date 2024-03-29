@@ -22,7 +22,11 @@ public class ResponseContainer implements Cloneable {
     public double flag = -1;
 
     public ResponseBuilder builderCopy() {
-        ResponseBuilder builder = new ResponseBuilder(this.clone(), new ArrayList<>(subContainers));
+        return new ResponseBuilder(this.clone(), new ArrayList<>(subContainers));
+    }
+
+    public ResponseBuilder builderCopyWithoutPosts() {
+        ResponseBuilder builder = builderCopy();
         builder.getContainer().onViolation = null;
         builder.getContainer().onFlag = null;
         builder.getContainer().onPunish = null;

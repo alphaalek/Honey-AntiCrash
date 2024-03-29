@@ -65,8 +65,6 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
                     defaultDevelopmentData.addValue(" Packet", packet);
                     applyCommonDevelopmentData(defaultDevelopmentData);
                 }
-
-                if (onViolation != null) onViolation.run();
             });
         });
 

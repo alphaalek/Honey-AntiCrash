@@ -453,37 +453,68 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                double hsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND, false);
-                if (hsq > MIN_HSQ_ENTER) {
+                double preHsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND, false);
+                if (preHsq > MIN_HSQ_ENTER) {
                     int trackerSize = tracker.getTrackerSize();
                     int i = 0;
-                    long time = System.nanoTime();
                     for (Timespan timespan : Timespan.Used.USED_FOR_TRACKERS) {
-                        tracker.clearExceedingNodes(player, timespan, time);
 
                         double multiplier = (i >= timespanMultipliers.length)
-                                        ? timespanMultipliers[timespanMultipliers.length - 1]
-                                        : timespanMultipliers[i++];
+                                ? timespanMultipliers[timespanMultipliers.length - 1]
+                                : timespanMultipliers[i++];
 
-                        hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
+                        double hsq = timespan.equals(Timespan.FIVE_SECOND)
+                                ? preHsq
+                                : tracker.getHalfServerThreadQuotient(player, timespan, true);
                         if ((trackerSize > 25 && hsq > 0.4 * multiplier) || (trackerSize > 10 && hsq > 0.5 * multiplier) || hsq > 0.55 * multiplier) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(HSQKey).flag(1).build();
+                            return ResponseBuilder.inst().cancel().withViolationKey(HSQKey).flag(1)
+                                    .onViolation(onViolation -> {
+                                        if (onViolation != null) onViolation.run();
+
+                                        applyCommonDevelopmentData(container.getDevelopmentData(this), timespan, trackerSize, multiplier, hsq);
+                                    })
+                                    .build();
                         }
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan, true);
                         if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(TAKey).flag(1).build();
+                            return ResponseBuilder.inst().cancel().withViolationKey(TAKey).flag(1)
+                                    .onViolation(onViolation -> {
+                                        if (onViolation != null) onViolation.run();
+
+                                        applyCommonDevelopmentData(container.getDevelopmentData(this), timespan, trackerSize, multiplier, hsq);
+                                        container.getDevelopmentData(this).addPoint("t.a.",
+                                                NumberConversions.format(
+                                                        tracker.getTimeToAverageWithoutQuotient(player, timespan, true) * 100, 2) + "%");
+                                    })
+                                    .build();
                         }
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan, true);
                         if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(TTKey).flag(1).build();
+                            return ResponseBuilder.inst().cancel().withViolationKey(TTKey).flag(1)
+                                    .onViolation(onViolation -> {
+                                        if (onViolation != null) onViolation.run();
+
+                                        applyCommonDevelopmentData(container.getDevelopmentData(this), timespan, trackerSize, multiplier, hsq);
+                                        container.getDevelopmentData(this).addPoint("t.t.",
+                                                NumberConversions.format(
+                                                        tracker.getTimeToTotalQuotient(player, timespan, true) * 100, 2) + "%");
+                                    })
+                                    .build();
                         }
                     }
                 }
-                return success.builderCopy().build();
+                return success;
             }
             return ResponseBuilder.SUCCESS;
+        }
+
+        private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, Timespan timespan, int size, double multiplier, double hsq) {
+            developmentData.addPoint("Timespan", timespan);
+            developmentData.addPoint("Size", size);
+            developmentData.addPoint("Multiplier", multiplier);
+            developmentData.addPoint("h.s.q.", NumberConversions.format(hsq * 100, 2) + "%");
         }
 
         @Override
