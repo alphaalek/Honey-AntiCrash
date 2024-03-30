@@ -147,9 +147,13 @@ public class LoggerService {
                             + " §7Packet: " + packetType + (recentPackets.size() <= 1 ? "" : " §f(x" + recentPackets.size() + ")"));
                     recentPackets.clear();
                 }
-                if (packet != null) recentPackets.add(sentPacketType);
+
+                if (packet != null) {
+                    recentPackets.add(sentPacketType);
+                }
             }
         }
+
         monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
@@ -175,14 +179,15 @@ public class LoggerService {
         if (canIgnore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getName()))) {
             return;
         }
+
         StringBuilder message = new StringBuilder();
         message.append(packetContainer.getTime());
 
         if (comparingTime > packetContainer.getTime()) {
             message.append(" (" + (comparingTime - packetContainer.getTime()) + "ms ago)");
         }
-
         message.append(": " + playerName + " sent " + packetContainer.getName());
+
         if (detailed) {
             Map<String, Object> entries = new HashMap<>();
             for (Map.Entry<String, Object> entry : packetContainer.getAll().readFieldEntries().entrySet()) {
