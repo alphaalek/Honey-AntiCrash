@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + You are currently using the version 2.3-b2
+#   + You are currently using the version 2.3.1
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -139,6 +139,12 @@ packet-logger:
   # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false
 
+  # Should arrays be formatted. This will make the packet logger even more detailed for certain packet types.
+  format-arrays: true
+
+  # Should the packet logger be detailed, which means it shows all the properties of each packet.
+  detailed: true
+
   # Players which the packet logger should ignore.
   ignored-players:
   # - Alek05
@@ -147,9 +153,6 @@ packet-logger:
   ignored-packets:
     - "PacketPlayInFlying"
     - "PacketPlayInKeepAlive"
-
-  # Should the packet logger be detailed, which means it shows all the properties of each packet.
-  detailed: true
 
 
 # MySQL settings for storage

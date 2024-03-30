@@ -186,7 +186,7 @@ public class LoggerService {
         if (detailed) {
             Map<String, Object> entries = new HashMap<>();
             for (Map.Entry<String, Object> entry : packetContainer.getAll().readFieldEntries().entrySet()) {
-                if (entry.getValue() instanceof Object[]) {
+                if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() instanceof Object[]) {
                     entries.put(entry.getKey(), Arrays.toString((Object[]) entry.getValue()));
                 } else {
                     entries.put(entry.getKey(), entry.getValue());

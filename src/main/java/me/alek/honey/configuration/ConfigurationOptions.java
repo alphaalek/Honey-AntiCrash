@@ -569,13 +569,15 @@ public class ConfigurationOptions {
         public static boolean ENABLED;
         public static boolean DETAILED;
         public static boolean DEBUG;
+        public static boolean FORMAT_ARRAYS;
         public static List<String> IGNORED_PLAYERS;
         public static List<String> IGNORED_PACKETS;
 
         public static void load() {
             ENABLED = file.getBoolean("packet-logger.enabled", false);
-            DETAILED = file.getBoolean("packet-logger.detailed", false);
             DEBUG = file.getBoolean("packet-logger.debug-mode", false);
+            FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays", true);
+            DETAILED = file.getBoolean("packet-logger.detailed", true);
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
         }
