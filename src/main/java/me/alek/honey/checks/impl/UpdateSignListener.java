@@ -6,19 +6,14 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseBuilder;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInUpdateSign;
 import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.util.Collections;
 import java.util.List;
@@ -62,14 +57,10 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
-
-            List<JsonObject> legacyChatComponentPages = packet.getPagesAsJsonLegacy();
-            if (!legacyChatComponentPages.isEmpty()) {
-
-                for (JsonObject page : legacyChatComponentPages) {
-                    if (!page.has("text")) {
-                        return ResponseBuilder.inst().cancel().punish().build();
-                    }
+            List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
+            for (JsonObject page : legacyChatComponentPages) {
+                if (!page.has("text")) {
+                    return ResponseBuilder.inst().cancel().punish().build();
                 }
             }
 

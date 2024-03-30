@@ -463,9 +463,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                                 ? timespanMultipliers[timespanMultipliers.length - 1]
                                 : timespanMultipliers[i++];
 
-                        double hsq = timespan.equals(Timespan.FIVE_SECOND)
-                                ? preHsq
-                                : tracker.getHalfServerThreadQuotient(player, timespan, true);
+                        double hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
                         if ((trackerSize > 25 && hsq > 0.4 * multiplier) || (trackerSize > 10 && hsq > 0.5 * multiplier) || hsq > 0.55 * multiplier) {
                             return ResponseBuilder.inst().cancel().withViolationKey(HSQKey).flag(1)
                                     .onViolation(onViolation -> {

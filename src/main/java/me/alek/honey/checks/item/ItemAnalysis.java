@@ -103,6 +103,7 @@ public class ItemAnalysis {
                 callback.call(developmentData);
             }).build();
         }
+
         return ResponseBuilder.SUCCESS;
     }
 
@@ -111,6 +112,7 @@ public class ItemAnalysis {
                 || item == null || item.getType() == Material.AIR) {
             return false;
         }
+
         NBTCompound nbt = NBTFactory.fromItem(item);
         return checkItem(player, item, nbt, context);
     }
@@ -134,13 +136,13 @@ public class ItemAnalysis {
 
     private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {
         final Material material = item.getType();
-
         if (!material.equals(Material.AIR) && directAvailableMaterialChecks.containsKey(material)) {
             for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
                 ItemCheckRegistry registry = check(checker, item, nbt);
                 if (registry != null) return registry;
             }
         }
+
         if (nbt != null) {
             for (final String key : nbt.getKeys()) {
                 if (directAvailableNBTChecks.containsKey(key)) {
@@ -151,10 +153,12 @@ public class ItemAnalysis {
                 }
             }
         }
+
         for (final ItemChecker checker : globalAvailableChecks) {
             ItemCheckRegistry registry = check(checker, item, nbt);
             if (registry != null) return registry;
         }
+
         return null;
     }
 

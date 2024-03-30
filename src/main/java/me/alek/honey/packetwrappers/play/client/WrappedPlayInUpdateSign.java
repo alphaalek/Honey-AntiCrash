@@ -50,7 +50,7 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
         return (Object[]) getContainer().getObjects(iChatBaseComponentArrayClass).readField(0);
     }
 
-    public List<JsonObject> getPagesAsJsonLegacy() {
+    public List<JsonObject> getLegacyJsonPages() {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
             return new ArrayList<>();
         }

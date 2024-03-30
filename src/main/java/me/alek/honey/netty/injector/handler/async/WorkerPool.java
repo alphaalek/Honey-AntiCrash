@@ -145,18 +145,25 @@ public class WorkerPool<T> {
     }
 
     public synchronized Worker<T> getWorkerForTask() {
+        if (workers == null) {
+            return createAndPushNewTaskWorker();
+        }
+
         Worker<T> headWorker = workers[0];
+        if (headWorker == null) {
+            return createAndPushNewTaskWorker();
+        }
 
         boolean duplicate = false;
         boolean moved = false;
         for (int i = 1; i < workers.length; i++) {
             Worker<T> otherWorker = workers[i];
 
-            if (headWorker == otherWorker && moved) {
+            if (headWorker == otherWorker && !moved) {
                 duplicate = true;
             }
-            moved = false;
 
+            moved = false;
             if (headWorker.isQuarantined() || duplicate ||
                     !otherWorker.isQuarantined() && headWorker.getPendingTasks().size() + 1 > otherWorker.getPendingTasks().size()) {
 
@@ -179,6 +186,9 @@ public class WorkerPool<T> {
     }
 
     public synchronized Worker<T> createAndReplaceNewTaskWorker() {
+        if (workers.length == 0) {
+            return createAndPushNewTaskWorker();
+        }
         allWorkers.remove(workers[workers.length - 1]);
         return initNewTaskWorker(workers, workers.length -1);
     }
@@ -254,9 +264,9 @@ public class WorkerPool<T> {
     }
 
     public WorkerPool(int minimumWorkerThreads, double minimumTaskTimeForQuarantine, int minimumPendingTaskSizeForQuarantine) {
-        this.minimumWorkerThreads = minimumWorkerThreads;
-        this.minimumTaskTimeForQuarantine = minimumTaskTimeForQuarantine;
-        this.minimumPendingTaskSizeForQuarantine = minimumPendingTaskSizeForQuarantine;
+        this.minimumWorkerThreads = Math.max(1, minimumWorkerThreads);
+        this.minimumTaskTimeForQuarantine = Math.max(5, minimumTaskTimeForQuarantine);
+        this.minimumPendingTaskSizeForQuarantine = Math.max(5, minimumPendingTaskSizeForQuarantine);
 
         this.workers = new Worker[minimumWorkerThreads];
         for (int i = 0; i < minimumWorkerThreads; i++) {
@@ -267,6 +277,8 @@ public class WorkerPool<T> {
     }
 
     public void terminate() {
+        if (workers == null) return;
+
         for (Worker<T> worker : workers) {
             worker.destroy();
         }

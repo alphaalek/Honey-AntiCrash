@@ -42,12 +42,12 @@ public class InMemoryCompiler {
 
         File file = new File(javaPath + File.separator + "lib");
         if (!file.isDirectory() || !file.exists()) {
-            throw new RuntimeException("Invalid java.home path! " + javaPath + File.separator + "lib does not exist.");
+            throw new RuntimeException("Invalid java.home path! " + file.getName() + " does not exist.");
         }
 
         File[] files = file.listFiles(new PatternFilenameFilter("^tools\\.jar$"));
         if (files == null || files.length > 0) {
-            throw new RuntimeException("tools.jar exist but it wasn't found");
+            throw new RuntimeException("tools.jar exist but it wasn't used by the JVM!");
         }
 
         try {
@@ -55,7 +55,7 @@ public class InMemoryCompiler {
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0) Gecko/20100101 Firefox/10.0");
 
-            InputStream inputStream = url.openStream();
+            InputStream inputStream = connection.getInputStream();
             File outputFile = new File(file.getAbsolutePath() + File.separator + "tools.jar");
 
             FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
