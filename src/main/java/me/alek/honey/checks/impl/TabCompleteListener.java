@@ -53,7 +53,11 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
     @Override
     public void load() {
-        TabA.prohibitedCommands = ChatListener.getSatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);;
+        TabA.prohibitedCommands = ChatListener.getSatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+
+        if (TabC.labelSetting != null) {
+            TabC.labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
+        }
     }
 
     @Override
@@ -189,10 +193,26 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
     public static class TabC implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
+        private static ConfigurationOptions.VlSetting labelSetting;
+        private final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(this, "label");
+        private final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(this, "total");
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag(packet.getMessage().length()).build();
+                if (labelSetting == null) {
+                    labelSetting = getSetting().clone();
+                    labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
+
+                    player.violationContext.setSetting(ViolationService.HoneyKey.of(this), labelKey, labelSetting);
+                }
+
+                int label = packet.getMessage().indexOf(" ");
+                int total = packet.getMessage().length();
+                return ResponseBuilder.inst().add(
+                        ResponseBuilder.inst().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
+                        ResponseBuilder.inst().flag(total).withViolationKey(totalKey).build()
+                ).build();
             }
             return ResponseBuilder.SUCCESS;
         }

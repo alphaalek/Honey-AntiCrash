@@ -114,6 +114,12 @@ public class ViolationService {
             });
         }
 
+        public void setSetting(HoneyKey key, HoneyKey violationKey, ConfigurationOptions.VlSetting setting) {
+            if (packetLimiters.has(key.getRegistry().getID())) {
+                packetLimiters.get(key.getRegistry().getID()).setSetting(violationKey, setting);
+            }
+        }
+
         public Array<ViolationDistributor> getPacketlimitMap() {
             return packetLimiters;
         }
@@ -292,31 +298,48 @@ public class ViolationService {
             return packetLimitHandlerDelegateLookup;
         }
 
-        public boolean flag(HoneyKey honeyKey, Object handle, CancellablePacketObserver cancellablePacketObserver,
-                            HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
-                            CheckContextContainer.DevelopmentData developmentData) {
-            if (packetLimitHandlerDelegateLookup.isEmpty()) return false;
+        private AbstractPacketLimitHandler getHandler(HoneyKey key) {
+            if (packetLimitHandlerDelegateLookup.isEmpty() && cachedDefaultPacketLimitHandler == null) {
+                return null;
+            }
 
             AbstractPacketLimitHandler delegate = null;
-            if (honeyKey == null) {
+            if (key == null) {
                 delegate =
-                    cachedDefaultPacketLimitHandler == null
-                        ? (cachedDefaultPacketLimitHandler = getAnyPacketLimitHandler())
-                        : cachedDefaultPacketLimitHandler;
+                        cachedDefaultPacketLimitHandler == null
+                                ? (cachedDefaultPacketLimitHandler = getAnyPacketLimitHandler())
+                                : cachedDefaultPacketLimitHandler;
             }
-            if (delegate == null && honeyKey != null)
-                delegate = getPacketLimitHandler(honeyKey, false);
+            if (delegate == null && key != null)
+                delegate = getPacketLimitHandler(key, false);
 
-            if (delegate == null) return false;
+            return delegate;
+        }
 
-            return delegate.flag(handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, honeyKey);
+        public void setSetting(HoneyKey key, ConfigurationOptions.VlSetting setting) {
+            AbstractPacketLimitHandler handler = getHandler(key);
+            if (handler == null) {
+                return;
+            }
+            handler.setting = setting;
+        }
+
+        public boolean flag(HoneyKey key, Object handle, CancellablePacketObserver cancellablePacketObserver,
+                            HoneyCheck check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
+                            CheckContextContainer.DevelopmentData developmentData) {
+            AbstractPacketLimitHandler handler = getHandler(key);
+            if (handler == null) {
+                return false;
+            }
+
+            return handler.flag(handle, cancellablePacketObserver, check, amount, onPunish, onViolation, onFlag, developmentData, key);
         }
     }
 
     public static abstract class AbstractPacketLimitHandler {
 
         private final HoneyPlayer player;
-        private final ConfigurationOptions.VlSetting setting;
+        private ConfigurationOptions.VlSetting setting;
 
         private final AtomicLong lastViolationClear = new AtomicLong();
         private final AtomicInteger violations = new AtomicInteger();

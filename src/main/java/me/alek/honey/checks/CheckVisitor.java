@@ -77,10 +77,9 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 }
                 if (response.cancelled) cancellablePacketObserver.cancel();
 
-                final ViolationService.HoneyKey key = (response.limitsKey != null) ? response.limitsKey :
-                        ViolationService.HoneyKey.of(
-                                new ViolationService.HoneyKeyRegistry(check, 0));
-
+                final ViolationService.HoneyKey key = (response.limitsKey != null)
+                        ? response.limitsKey
+                        : ViolationService.HoneyKey.of(check);
                 if (response.flag != -1 && player != null) {
                     if (setting == null) {
                         if (response.terminate) terminated = true;

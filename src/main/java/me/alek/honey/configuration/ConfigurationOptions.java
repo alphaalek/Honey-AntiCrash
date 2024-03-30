@@ -841,9 +841,15 @@ public class ConfigurationOptions {
         }
 
         @Setting
+        @Keyed(keys = {"total", "label"})
         @Violation(prefixPaths = "tab-complete.c", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
         public static class TabC extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
+            public static int LABEL_THRESHOLD;
+
+            public static void load() {
+                LABEL_THRESHOLD = file.getInt("tab-complete.c.label-threshold", 64);
+            }
         }
     }
 

@@ -586,6 +586,7 @@ tab-complete:
   c:
     enabled: true
     threshold: 256
+    label-threshold: 64
     vls-amount: 3
 
 # |--- set creative slot ---|
