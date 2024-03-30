@@ -11,10 +11,8 @@ import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
-import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.util.Arrays;
@@ -27,7 +25,7 @@ public class PacketTaskHandler {
     private static final ServerThreadHandleTracker tracker = (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
-    private static PacketTaskFuture<?> handledTask;
+    private static WrappedPacketTaskFuture<?> handledTask;
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
@@ -58,7 +56,7 @@ public class PacketTaskHandler {
         }, "honey-packet-task-handler").start();
     }
 
-    public static PacketTaskFuture<?> getHandledTask() {
+    public static WrappedPacketTaskFuture<?> getHandledTask() {
         return handledTask;
     }
 
@@ -113,7 +111,7 @@ public class PacketTaskHandler {
         }
     }
 
-    public static <V> void registerTask(PacketTaskFuture<V> task){
+    public static <V> void registerTask(WrappedPacketTaskFuture<V> task){
         lastHandledPacket = null;
 
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();

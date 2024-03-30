@@ -7,13 +7,13 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.util.concurrent.FutureTask;
 
-public class PacketTaskFuture<V> extends FutureTask<V> {
+public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
     private final HoneyPlayer player;
     private final PacketContainer<? extends WrappedPacket<?>> packet;
     private final long submitted = System.nanoTime();
 
-    public PacketTaskFuture(Runnable runnable, HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
+    public WrappedPacketTaskFuture(Runnable runnable, HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
         super(runnable, null);
         this.player = player;
         this.packet = packet;

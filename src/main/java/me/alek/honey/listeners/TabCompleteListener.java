@@ -12,6 +12,7 @@ public class TabCompleteListener extends PacketAdapter<WrappedPlayOutTabComplete
         if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {
             return !player.player.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION);
         }
+
         return false;
     }
 

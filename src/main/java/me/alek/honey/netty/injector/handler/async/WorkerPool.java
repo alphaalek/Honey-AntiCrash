@@ -31,7 +31,7 @@ public class WorkerPool<T> {
     }
 
     private Worker<T>[] workers;
-    private final Set<Worker<T>> allWorkers = new HashSet<>();
+    private final List<Worker<T>> allWorkers = new ArrayList<>();
     private final int minimumWorkerThreads;
     private final int minimumPendingTaskSizeForQuarantine;
     private final double minimumTaskTimeForQuarantine;
@@ -145,41 +145,25 @@ public class WorkerPool<T> {
     }
 
     public synchronized Worker<T> getWorkerForTask() {
-        if (workers == null) {
+        if (workers == null || workers.length == 0) {
             return createAndPushNewTaskWorker();
         }
 
         Worker<T> headWorker = workers[0];
-        if (headWorker == null) {
-            return createAndPushNewTaskWorker();
-        }
-
-        boolean duplicate = false;
-        boolean moved = false;
         for (int i = 1; i < workers.length; i++) {
             Worker<T> otherWorker = workers[i];
 
-            if (headWorker == otherWorker && !moved) {
-                duplicate = true;
-            }
-
-            moved = false;
-            if (headWorker.isQuarantined() || duplicate ||
-                    !otherWorker.isQuarantined() && headWorker.getPendingTasks().size() + 1 > otherWorker.getPendingTasks().size()) {
+            if (headWorker.isQuarantined()
+                    || !otherWorker.isQuarantined()
+                            && headWorker.getPendingTasks().size() + 1 > otherWorker.getPendingTasks().size()) {
 
                 workers[i] = headWorker;
                 workers[i - 1] = otherWorker;
-                moved = true;
             }
         }
 
         if (workers[0].isQuarantined()) {
             return createAndPushNewTaskWorker();
-        }
-
-        if (duplicate) {
-            Bukkit.getLogger().info("Replacing worker because of duplication");
-            return createAndReplaceNewTaskWorker();
         }
 
         return workers[0];
@@ -216,7 +200,6 @@ public class WorkerPool<T> {
     public synchronized void garbageCollect() {
         // remove old worker threads and change to fresh ones
         List<Worker<T>> availableWorkers = Arrays.asList(workers);
-        allWorkers.addAll(availableWorkers);
         for (Worker<T> worker : allWorkers) {
             if (!availableWorkers.contains(worker)) {
                 worker.destroy();
@@ -233,7 +216,8 @@ public class WorkerPool<T> {
             Worker<T>[] newWorkers = new Worker[minimumWorkerThreads + pressuredWorkers.size()];
             System.arraycopy(pressuredWorkers.toArray(new Worker[0]), 0, newWorkers, workers.length - pressuredWorkers.size() - 1, pressuredWorkers.size());
 
-            List<Worker<T>> otherWorkers = Arrays.stream(workers).filter(PredicateUtils.not(pressuredWorkers::contains)).collect(Collectors.toList());
+            List<Worker<T>> otherWorkers = new ArrayList<>(Arrays.asList(workers));
+            otherWorkers.removeAll(pressuredWorkers);
             int i = 0;
             for (Worker<T> worker : otherWorkers) {
                 if (++i == newWorkers.length || newWorkers[i] != null) break;

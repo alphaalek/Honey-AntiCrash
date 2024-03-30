@@ -11,11 +11,10 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.*;
-import me.alek.honey.tracker.packet.PacketTaskFuture;
+import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -86,7 +85,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private static final int POSITION_DEFAULT = 17500;
 
         private final AtomicReference<HoneyPlayer> recentPacketAuthor = new AtomicReference<>();
-        private final ConcurrentLinkedQueue<PacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
+        private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
         private ConstructorInvoker<?> tickTaskConstructor;
         private final boolean pollsOneExtra;
         private long recentPollStart = -1;
@@ -185,8 +184,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             recentPollStart = System.nanoTime();
             trackCurrentPacket = -1;
 
-            PacketTaskFuture<Object> task = nettySubmitQueue.poll();
-            recentPacketAuthor.set(Optional.ofNullable(task).map(PacketTaskFuture::getPlayer).orElse(null));
+            WrappedPacketTaskFuture<Object> task = nettySubmitQueue.poll();
+            recentPacketAuthor.set(Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPlayer).orElse(null));
 
             if (task != null) {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
@@ -256,7 +255,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
             super.add(EMPTY_VALUE);
 
-            return nettySubmitQueue.add(new PacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+            return nettySubmitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
         }
     }
 
