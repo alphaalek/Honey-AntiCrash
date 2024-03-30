@@ -569,6 +569,7 @@ public class ConfigurationOptions {
         public static boolean ENABLED;
         public static boolean DETAILED;
         public static boolean DEBUG;
+        public static boolean DEBUG_PACKETS_CANCELLED;
         public static boolean FORMAT_ARRAYS;
         public static List<String> IGNORED_PLAYERS;
         public static List<String> IGNORED_PACKETS;
@@ -576,6 +577,7 @@ public class ConfigurationOptions {
         public static void load() {
             ENABLED = file.getBoolean("packet-logger.enabled", false);
             DEBUG = file.getBoolean("packet-logger.debug-mode", false);
+            DEBUG = file.getBoolean("packet-logger.debug-packets-cancelled", false);
             FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays", true);
             DETAILED = file.getBoolean("packet-logger.detailed", true);
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");

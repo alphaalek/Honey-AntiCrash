@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -78,8 +79,10 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
 
     public synchronized boolean read0(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetContainer.isCancelled()) {
-            if (player != null && HoneyPlugin.get().getLoggerService().isDebug())
+            if (player != null && ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
+            }
+
             return false;
         }
 

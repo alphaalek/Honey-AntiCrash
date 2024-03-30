@@ -139,6 +139,9 @@ packet-logger:
   # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false
 
+  # Should debug mode also cover cancelled packets.
+  debug-packets-cancelled: false
+
   # Should arrays be formatted. This will make the packet logger even more detailed for certain packet types.
   format-arrays: true
 
