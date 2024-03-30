@@ -207,7 +207,7 @@ item-analysis:
   max-displayname-length: 100
 
   # How long may the sum of all the lines in the lore of an item have.
-  max-total-lore-length: 3000
+  max-total-lore-length: 2500
 
   # How many explosions may a firework have. In Vanilla Minecraft it is not possible to get more than 17.
   max-firework-explosions: 17
