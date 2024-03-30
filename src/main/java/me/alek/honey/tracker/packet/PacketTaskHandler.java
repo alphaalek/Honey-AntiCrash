@@ -36,7 +36,9 @@ public class PacketTaskHandler {
                             && (System.nanoTime() - handledTask.getSubmitted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                        if (packet == null || packet.isDumped()) continue;
+                        if (packet == null || packet.isDumped()) {
+                            continue;
+                        }
 
                         packet.dump();
                         if (packet.getType() != PacketType.Play.Client.FLYING
@@ -140,8 +142,10 @@ public class PacketTaskHandler {
                         HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
                     }
 
-                    if (packet.getPlayer() != null) // we have to make sure it's not an unmodifiable packet
+                    // we have to make sure it's not an unmodifiable packet
+                    if (packet.getPlayer() != null) {
                         monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+                    }
                 }
                 lastHandledPacket = packet;
                 handledTask = null;
