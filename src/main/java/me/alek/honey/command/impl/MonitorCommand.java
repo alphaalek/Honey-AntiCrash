@@ -29,11 +29,12 @@ public class MonitorCommand implements CommandImpl {
             return;
         }
         Player target = Bukkit.getPlayerExact(args[0]);
-        if (target == null || !target.isOnline()) {
+        HoneyPlayer targetHoneyPlayer;
+        if (target == null || !target.isOnline() || (targetHoneyPlayer = HoneyPlayer.getPlayer(target.getUniqueId())) == null) {
             sender.sendMessage(CommandManager.PREFIX + "§cYou have to choose a valid player name.");
             return;
         }
-        HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, HoneyPlayer.getPlayer(target.getUniqueId()));
+        HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, targetHoneyPlayer);
     }
 
     @Override

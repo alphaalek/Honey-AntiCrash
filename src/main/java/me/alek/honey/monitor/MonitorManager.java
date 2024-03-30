@@ -5,9 +5,11 @@ import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.services.NotificationService;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;
@@ -86,10 +88,12 @@ public class MonitorManager {
 
     public Monitorer removeIfHasMonitor(CommandSender sender, boolean onlyStop) {
         Monitorer monitorer = removeMonitor(sender);
-        if (monitorer != null)
+        if (monitorer != null) {
             sender.sendMessage(CommandManager.PREFIX + "§7Stopping " + monitorer.getName() + ".");
-        else if (onlyStop)
+        } else if (onlyStop) {
             sender.sendMessage(CommandManager.PREFIX + "§7You do not currently monitor anything.");
+        }
+
         return monitorer;
     }
 
@@ -103,13 +107,22 @@ public class MonitorManager {
     }
 
     public void setupPlayerMonitor(CommandSender sender, HoneyPlayer player) {
-        if (removeIfHasMonitor(sender, false) == getMonitorer(player)) return;
+        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+            sender.sendMessage(NotificationService.PREFIX + "§cCan't start player monitor on " + player.name + ", because the player has bypass permission.");
+            return;
+        }
+
+        if (removeIfHasMonitor(sender, false) == getMonitorer(player)) {
+            return;
+        }
 
         setupMonitor(sender, getMonitorer(player));
     }
 
     public void setupServerMonitor(CommandSender sender) {
-        if (removeIfHasMonitor(sender, false) == SERVER_MONITOR) return;
+        if (removeIfHasMonitor(sender, false) == SERVER_MONITOR) {
+            return;
+        }
 
         setupMonitor(sender, SERVER_MONITOR);
     }
@@ -132,15 +145,21 @@ public class MonitorManager {
 
     public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer, MonitorSendAt sendAt) {
         for (Monitorer packetMonitorer : packetMonitorers) {
-            if (!(packetMonitorer instanceof IndependentMonitorer)) return;
+            if (!(packetMonitorer instanceof IndependentMonitorer)) {
+                return;
+            }
 
             @SuppressWarnings("unchecked")
             IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>> independentMonitorer =
                     (IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>>) packetMonitorer;
-            if (!independentMonitorer.getSendAt().equals(sendAt)) continue;
+            if (!independentMonitorer.getSendAt().equals(sendAt)) {
+                continue;
+            }
 
             String message = independentMonitorer.getMessage(packetContainer);
-            if (message == null) continue;
+            if (message == null) {
+                continue;
+            }
 
             for (MonitorObserver observer : monitorObservers.get(independentMonitorer)) {
                 observer.sendInfo(message);
@@ -170,13 +189,16 @@ public class MonitorManager {
             List<MonitorObserver> observers = monitorObservers.get(monitorer);
 
             for (MonitorObserver observer : Lists.newArrayList(observers)) {
-
                 if (observer.getSender().equals(sender)) {
+
                     observers.remove(observer);
-                    if (observers.isEmpty())
+                    if (observers.isEmpty()) {
                         monitorObservers.remove(monitorer);
-                    if (monitorer.getType() == MonitorType.PACKETS)
+                    }
+
+                    if (monitorer.getType() == MonitorType.PACKETS) {
                         packetMonitorers.remove(monitorer);
+                    }
                     packetsMonitored = !packetMonitorers.isEmpty();
 
                     return monitorer;

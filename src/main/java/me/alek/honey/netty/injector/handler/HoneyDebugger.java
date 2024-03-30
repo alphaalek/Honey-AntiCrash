@@ -6,6 +6,7 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlugin;
 
 import java.nio.channels.ClosedChannelException;
+import java.util.Optional;
 
 public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
@@ -17,17 +18,19 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
         onExceptionCaught(cause);
         try {
             super.exceptionCaught(ctx, cause);
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            ex.printStackTrace();
             ctx.channel().close();
         }
     }
 
     public static void onExceptionCaught(Throwable cause) {
+        String message = Optional.ofNullable(cause.getMessage()).orElse("");
         if (HoneyPlugin.get().getLoggerService().isDebug()
                 && !(cause instanceof ClosedChannelException)
                 && !(cause instanceof ReadTimeoutException)
-                && /* ViaVersion */ !cause.getMessage().equals(VIA_VERSION_CLOSED_CHANNEL)
-                && /* Netty */ !cause.getMessage().equals(NETTY_NATIVE_READ_ADDRESS)) {
+                && /* ViaVersion */ !message.equals(VIA_VERSION_CLOSED_CHANNEL)
+                && /* Netty */ !message.equals(NETTY_NATIVE_READ_ADDRESS)) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
             cause.printStackTrace();
         }

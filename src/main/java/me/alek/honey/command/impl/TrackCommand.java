@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
@@ -36,6 +37,10 @@ public class TrackCommand implements CommandImpl {
                 sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the space occupation of server thread by players...");
 
                 for (HoneyPlayer player : stTracker.getTrackersOrdered()) {
+                    if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                        sender.sendMessage("§e" + player.name + ": §cNo data because the player has bypass permission");
+                        continue;
+                    }
 
                     double fiveSeconds = stTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND, true);
                     double tenSeconds = stTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, true);
