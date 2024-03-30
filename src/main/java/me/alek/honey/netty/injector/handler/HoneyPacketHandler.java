@@ -63,15 +63,15 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
             ReflectStructure<?, ?> loginStartPacketReflectStructure = ReflectStructureCache.acquireStructure(packetContainer.getHandle().getClass());
             String name;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_18_2)) {
-                IStructureModifier<WrappedGameProfile> gameProfileIStructureModifier = loginStartPacketReflectStructure
+                IStructureModifier<WrappedGameProfile> gameProfileStructureModifier = loginStartPacketReflectStructure
                         .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
                         .withTarget(packetContainer.getHandle());
-                WrappedGameProfile gameProfile = gameProfileIStructureModifier.readField(0);
+                WrappedGameProfile gameProfile = gameProfileStructureModifier.readField(0);
                 name = gameProfile.getName();
             } else {
-                IStructureModifier<String> stringReflectStructure = loginStartPacketReflectStructure
+                IStructureModifier<String> stringStructureModifier = loginStartPacketReflectStructure
                         .asString().withTarget(packetContainer.getHandle());
-                name = stringReflectStructure.readField(0);
+                name = stringStructureModifier.readField(0);
             }
             NMS.submitChannelForName(name, ctx.channel());
         }
