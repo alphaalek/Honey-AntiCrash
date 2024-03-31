@@ -16,10 +16,11 @@ public class TempQueue {
 
     private final boolean isFixed;
     private boolean collected;
-    private Timespan timespan;
-    private AtomicLong total;
+    private final Timespan timespan;
+    private long total;
 
-    public TempQueue(boolean isFixed) {
+    public TempQueue(Timespan timespan, boolean isFixed) {
+        this.timespan = timespan;
         this.isFixed = isFixed;
     }
 
@@ -27,20 +28,19 @@ public class TempQueue {
         return timespan;
     }
 
-    public void prepareFixed(Timespan timespan, int amount, AtomicLong total, double defaultValue) {
+    public long getTotal() {
+        return total;
+    }
+
+    public void prepareFixed(Timespan timespan, int amount, double defaultValue) {
         if (!isFixed) throw new UnsupportedOperationException();
 
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
         }
-        total.addAndGet(timespan.getTimespan() * 1000L);
-    }
-
-    public void prepareTimed(Timespan timespan, AtomicLong total) {
-        if (isFixed) throw new UnsupportedOperationException();
-
-        this.timespan = timespan;
-        this.total = total;
+        synchronized (this) {
+            total += timespan.getTimespan() * 1000L;
+        }
     }
 
     public boolean isCollected() {
@@ -63,31 +63,46 @@ public class TempQueue {
         return TIMED;
     }
 
-    public double add(double amount) {
-        if (isFixed && amount > 0) {
-            FIXED.add(amount);
-            return FIXED.remove();
+    public void add(double amount) {
+        if (amount <= 0) {
+            return;
         }
-        return add(new TimedNode<>(amount));
+
+        if (isFixed) {
+            FIXED.add(amount);
+            total += (long) amount - (long) (double) FIXED.remove();
+        }
+
+        if (!isFixed) {
+            add(new TimedNode<>(amount));
+        }
     }
 
-    public double add(TimedNode<Double> node) {
+    public void add(TimedNode<Double> node) {
         if (isFixed) {
-            return add(node.getValue());
+            add(node.getValue());
         }
 
-        synchronized (this) {
-            if (node.getValue() > 0) {
-                TIMED.add(node);
+        if (!isFixed) {
+            synchronized (this) {
+                if (node.getValue() > 0) {
+                    TIMED.add(node);
+                }
+
+                total += (long) (double) node.getValue();
+
+                // clearExceedingNodes(node.getInsertionInstant());
+                if (clearNode(node.getInsertionInstant())) {
+                    TIMED.remove();
+                }
             }
-
-            // clearExceedingNodes(node.getInsertionInstant());
         }
-        return 0;
     }
 
     public synchronized void clearExceedingNodes(long time) {
-        if (isFixed) return;
+        if (isFixed) {
+            return;
+        }
 
         TimedNode<Double> peekedNode = TIMED.peek();
         if (peekedNode == null || !clearNode(peekedNode, time)) {
@@ -97,7 +112,6 @@ public class TempQueue {
 
         final Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
         while (sampleNodeIterator.hasNext()) {
-
             if (clearNode(sampleNodeIterator.next(), time)) {
                 sampleNodeIterator.remove();
                 continue;
@@ -106,18 +120,29 @@ public class TempQueue {
         }
     }
 
+    public void clearExceedingNodes() {
+        clearExceedingNodes(System.nanoTime());
+    }
+
+    private boolean clearNode(long time) {
+        return clearNode(TIMED.peek(), time);
+    }
+
     private boolean clearNode(TimedNode<Double> node, long time) {
+        if (isFixed) {
+            return false;
+        }
+
         final long diff = time - node.getInsertionInstant();
 
         if (diff > timespan.getNanoTimespan()) {
-            total.addAndGet((long) -node.getValue());
+            synchronized (this) {
+                total -= (long) (double) node.getValue();
+            }
             collected = true;
             return true;
         }
-        return false;
-    }
 
-    public void clearExceedingNodes() {
-        clearExceedingNodes(System.nanoTime());
+        return false;
     }
 }

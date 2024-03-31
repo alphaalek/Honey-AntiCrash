@@ -1,7 +1,7 @@
 package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
+import me.alek.honey.tracker.temp.impl.TempFixedQueuedTracker;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.CyclicBarrier;
@@ -13,7 +13,7 @@ public class Tickloop extends TempFixedQueuedTracker {
     private final AtomicLong expectedTick = new AtomicLong();
 
     public double evaluateTPS(Timespan timespan) {
-        return Math.min(20, 20 * 1005 * timespan.getTimespan() / timespan.getTotal(this).get());
+        return Math.min(20, (long) 20 * 1005 * timespan.getTimespan() / timespan.getTotal(this));
     }
 
     public Tickloop() {

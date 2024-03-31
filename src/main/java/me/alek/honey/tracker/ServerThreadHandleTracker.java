@@ -13,7 +13,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.utility.*;
 import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
-import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
+import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 
 import java.util.*;

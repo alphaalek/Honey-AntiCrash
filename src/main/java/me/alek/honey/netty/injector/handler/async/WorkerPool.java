@@ -25,6 +25,7 @@ public class WorkerPool<T> {
     public void sendDebug(CommandSender sender) {
         sender.sendMessage(workers.length + " available workers");
         sender.sendMessage(allWorkers.size() + " registered workers");
+        sender.sendMessage(Arrays.toString(workers));
         for (Worker<T> worker : workers) {
             sender.sendMessage("Worker: " + worker.getPendingTasks().size() + " pending, quarantined: " + worker.isQuarantined() + ", task start: " + worker.recentTaskStart() + ", active: " + worker.isActive() + ", registered: " + allWorkers.contains(worker));
         }

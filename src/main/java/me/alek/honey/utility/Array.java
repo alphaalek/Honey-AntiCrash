@@ -80,4 +80,9 @@ public class Array<T> implements Iterable<T> {
     public Iterator<T> iterator() {
         return (Iterator<T>) Arrays.asList(values).iterator();
     }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(values);
+    }
 }

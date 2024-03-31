@@ -1,15 +1,12 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.temp.TempFixedQueuedTracker;
+import me.alek.honey.tracker.temp.impl.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
-import me.alek.honey.tracker.temp.TempTimedQueuedTracker;
+import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.utility.Array;
+import org.bukkit.command.CommandSender;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.*;
 
 public enum Timespan {
     ONE_SECOND(1, false),
@@ -22,10 +19,8 @@ public enum Timespan {
 
     public static class TimespanContext {
 
-        private final TempQueue fixed = new TempQueue(true);
-        private final TempQueue timed = new TempQueue(false);
-        private final AtomicLong fixedTotal = new AtomicLong();
-        private final AtomicLong timedTotal = new AtomicLong();
+        private final TempQueue fixed;
+        private final TempQueue timed;
         private final int timespan;
         private final HoneyTracker tracker;
 
@@ -33,8 +28,10 @@ public enum Timespan {
             this.timespan = timespan.timespan;
             this.tracker = tracker;
 
-            fixed.prepareFixed(timespan, 10 * this.timespan, this.fixedTotal, 100);
-            timed.prepareTimed(timespan, this.timedTotal);
+            fixed = new TempQueue(timespan, true);
+            timed = new TempQueue(timespan, false);
+
+            fixed.prepareFixed(timespan, 10 * this.timespan, 100);
         }
 
         public HoneyTracker getTracker() {
@@ -53,13 +50,19 @@ public enum Timespan {
             else return timed;
         }
 
-        public AtomicLong getTotal(HoneyTracker tracker) {
-            if (isFixed(tracker)) return fixedTotal;
-            else return timedTotal;
+        public long getTotal(HoneyTracker tracker) {
+            if (isFixed(tracker)) return fixed.getTotal();
+            else return timed.getTotal();
         }
 
         public int getTimespan() {
             return timespan;
+        }
+
+        @Override
+        public String toString() {
+            return "Fixed{total=" + fixed.getTotal() + ",queueSize:" + fixed.getQueueSize() + "}"
+                    + ",Timed{total=" + timed.getTotal() + ",queueSize:" + timed.getQueueSize() + "}";
         }
     }
 
@@ -75,12 +78,25 @@ public enum Timespan {
 
     Timespan(int timespan, boolean used) {
         this.timespan = timespan;
-        if (used) Used.USED_FOR_TRACKERS.add(this);
+
+        if (used) {
+            Used.USED_FOR_TRACKERS.add(this);
+        }
+    }
+
+    public static void debug(CommandSender sender) {
+        for (Timespan timespan : Timespan.values()) {
+            sender.sendMessage("Timespan " + timespan);
+            sender.sendMessage("No ids: " + timespan.noIDContextMap.size());
+            sender.sendMessage("Ids: " + Arrays.stream(timespan.IDContext.toRealArray()).filter(Objects::nonNull).count());
+            sender.sendMessage("Ids: " + timespan.IDContext);
+        }
     }
 
     private synchronized TimespanContext getContext(HoneyTracker tracker) {
-        if (tracker.getID() == -1)
+        if (tracker.getID() == -1) {
             return noIDContextMap.computeIfAbsent(tracker, (d) -> new TimespanContext(this, tracker));
+        }
 
         return IDContext.get(tracker.getID(), () -> new TimespanContext(this, tracker));
     }
@@ -89,7 +105,7 @@ public enum Timespan {
         return getContext(tracker).getQueue(tracker);
     }
 
-    public AtomicLong getTotal(HoneyTracker tracker) {
+    public long getTotal(HoneyTracker tracker) {
         return getContext(tracker).getTotal(tracker);
     }
 

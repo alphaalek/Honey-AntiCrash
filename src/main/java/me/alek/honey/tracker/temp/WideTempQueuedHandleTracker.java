@@ -6,6 +6,7 @@ import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.IDRegistry;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -87,7 +88,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return getTracker(player).getQueue(timespan).isCollected();
     }
 
-    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan, long time) {
+    private double getExceedingTimedNode(AbstractTempQueuedTracker tracker, Timespan timespan, long time) {
         TimedNode<Double> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
         if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (time - node.getInsertionInstant()))))) {
@@ -96,7 +97,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return 0;
     }
 
-    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
+    private double getExceedingTimedNode(AbstractTempQueuedTracker tracker, Timespan timespan) {
         return getExceedingTimedNode(tracker, timespan, System.nanoTime());
     }
 

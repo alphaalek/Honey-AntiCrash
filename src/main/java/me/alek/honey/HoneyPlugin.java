@@ -233,6 +233,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup commands
         commandManager = new CommandManager(plugin);
         ((JavaPlugin)plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
+        ((JavaPlugin)plugin).getCommand("trackerdebug").setExecutor(new me.alek.honey.tracker.DebugCommand());
 
         // setup metrics
         new Metrics(plugin, 19028);
