@@ -20,6 +20,14 @@ public class Array<T> implements Iterable<T> {
         }
     }
 
+    private void resolveDown(int index) {
+        synchronized (this) {
+            for (int i = values.length - 1; i >= 0; i--) {
+
+            }
+        }
+    }
+
     public Object[] toRealArray() {
         return values;
     }

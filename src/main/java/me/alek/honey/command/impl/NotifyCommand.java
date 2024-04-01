@@ -5,10 +5,9 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.NotificationService;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-public class NotificationToggleCommand implements CommandImpl {
+public class NotifyCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender, String[] args) {
@@ -27,12 +26,12 @@ public class NotificationToggleCommand implements CommandImpl {
 
     @Override
     public String getName() {
-        return "notifications";
+        return "notify";
     }
 
     @Override
     public String getUsage() {
-        return "/honey notifications";
+        return "/honey notify";
     }
 
     @Override

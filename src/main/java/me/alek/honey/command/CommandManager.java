@@ -38,7 +38,7 @@ public class CommandManager implements CommandExecutor {
 
     public void registerCommands() {
         registerCommand(new HelpCommand());
-        registerCommand(new NotificationToggleCommand());
+        registerCommand(new NotifyCommand());
         registerCommand(new ReloadCommand());
         registerCommand(new PasteLogsCommand());
         registerCommand(new TrackCommand());
