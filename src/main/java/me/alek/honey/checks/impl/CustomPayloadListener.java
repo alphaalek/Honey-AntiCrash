@@ -22,6 +22,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.netty.utility.*;
 import me.alek.honey.utility.CallbackAction;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -74,8 +75,9 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
     public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
         if (packetContainer.isCancelled()) {
             ByteBuf byteBuf = container.getStorage().get(ByteBuf.class, 0);
-            if (byteBuf != null)
+            if (byteBuf != null) {
                 byteBuf.release();
+            }
         }
     }
 

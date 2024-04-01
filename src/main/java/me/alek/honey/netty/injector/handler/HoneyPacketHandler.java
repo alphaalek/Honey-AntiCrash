@@ -90,6 +90,10 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
             packetSendMarker.set(packetContainer);
         }
 
+        if (packetContainer.getType() == PacketType.Play.Client.CUSTOM_PAYLOAD) {
+            packetContainer.getDataSerializers().readField(0).retain();
+        }
+
         return true;
     }
 

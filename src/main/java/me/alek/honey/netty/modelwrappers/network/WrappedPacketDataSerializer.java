@@ -41,6 +41,10 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         this.handle = getModifier(ByteBuf.class).readField(0);
     }
 
+    public ByteBuf getBuf() {
+        return handle;
+    }
+
     public Object toNMSSerializer() {
         if (getHandle() != null) return getHandle();
 

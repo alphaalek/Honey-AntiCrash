@@ -85,4 +85,8 @@ public class ServerPacketManager {
     public OutboundPacketEncoder getEncoder(Channel channel) {
         return (OutboundPacketEncoder) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getEncoderName());
     }
+
+    public HoneyDebugger getDebugger(Channel channel) {
+        return (HoneyDebugger) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDebuggerName());
+    }
 }

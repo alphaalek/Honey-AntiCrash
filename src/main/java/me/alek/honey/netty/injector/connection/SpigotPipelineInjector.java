@@ -49,7 +49,7 @@ public class SpigotPipelineInjector {
 
             HoneyPacketHandler packetHandler = new HoneyPacketHandler();
             channel.pipeline().addBefore("packet_handler", handlerName, packetHandler);
-            channel.pipeline().addBefore("packet_handler", debuggerName, HoneyDebugger.DEBUGGER);
+            channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel, packetHandler));
         }
     }
@@ -192,11 +192,13 @@ public class SpigotPipelineInjector {
         synchronized (channel) {
             HoneyPacketHandler handler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
+            HoneyDebugger debugger = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDebugger(channel);
             if ((handler == null && !player.removedPacketHandlerFromPipeline)
-                    || filter == null) throw new MissingHandlerException("Handler: " + handler + ", Filter: " + filter + ", Removed: " + player.removedPacketHandlerFromPipeline);
+                    || filter == null || debugger == null) throw new MissingHandlerException("Handler: " + handler + ", Filter: " + filter + ", Debugger: " + debugger + ", Removed: " + player.removedPacketHandlerFromPipeline);
 
             if (handler != null) handler.setPlayer(player);
             filter.setPlayer(player);
+            debugger.setPlayer(player);
 
             if (PacketInterceptorResolver.isDecoderPositionResolved()) {
                 InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);

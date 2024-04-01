@@ -9,6 +9,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -91,10 +92,22 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             }
 
             // explicit set variable, so Proguard recognizes the method
-            Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
+            try {
+                Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
+            } catch (Exception ex) {
+                byteBuf.release();
+                ctx.channel().close();
+                if (player != null) {
+                    player.punished = true;
+                }
+                return;
+            }
             byteBuf.release();
 
-            if (list.isEmpty()) return;
+            if (list.isEmpty()) {
+                return;
+            }
+
             if (packetContainer == null
                     || packetContainer.getType() == PacketType.Play.Client.TRANSACTION
                     || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
