@@ -309,9 +309,10 @@ public class NotificationService {
         synchronized (observerMap) {
             for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
-                if (!hasNotifyPermission(observer.getKey()) || !player.isOnline() || player.punished) {
+                if (!hasNotifyPermission(observer.getKey()) || player.punished) {
                     continue;
                 }
+
                 observer.getValue().warn(player, warning, honeyKey);
             }
         }

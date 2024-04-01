@@ -61,8 +61,18 @@ public enum Timespan {
 
         @Override
         public String toString() {
-            return "Fixed{total=" + fixed.getTotal() + ",queueSize:" + fixed.getQueueSize() + "}"
-                    + ",Timed{total=" + timed.getTotal() + ",queueSize:" + timed.getQueueSize() + "}";
+            StringBuilder builder = new StringBuilder();
+            if (fixed.getTotal() != 10L * this.timespan * 100L) {
+                builder.append("Fixed{total=" + fixed.getTotal() + ",queueSize=" + fixed.getQueueSize() + "}");
+            }
+            if (timed.getQueueSize() > 0) {
+                builder.append("Timed{total=" + timed.getTotal() + ",queueSize=" + timed.getQueueSize() + "}");
+            }
+
+            if (builder.toString().isEmpty()) {
+                return "No data";
+            }
+            return builder.toString();
         }
     }
 

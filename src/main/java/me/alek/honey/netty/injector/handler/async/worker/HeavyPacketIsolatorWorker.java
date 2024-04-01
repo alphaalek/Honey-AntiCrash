@@ -15,7 +15,7 @@ public class HeavyPacketIsolatorWorker<T> implements DelegatedIsolatorWorker<T> 
     }
 
     @Override
-    public boolean isQuarantined() {
+    public boolean shouldQuarantine() {
         return worker.recentTaskStart() != 0 && System.currentTimeMillis() - worker.recentTaskStart() > workerPool.getMinimumTaskTimeForQuarantine();
     }
 

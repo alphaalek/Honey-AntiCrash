@@ -1,12 +1,14 @@
 package me.alek.honey.netty.injector.connection;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import org.bukkit.Bukkit;
 
 public class SpigotPipelineInjector {
 
@@ -19,11 +21,11 @@ public class SpigotPipelineInjector {
 
             String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
-            String debuggername = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
+            String debuggerName = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
 
             if (channel.pipeline().get(handlerName) != null
                     && channel.pipeline().get(filterName) != null
-                    && channel.pipeline().get(debuggername) != null) {
+                    && channel.pipeline().get(debuggerName) != null) {
                 return;
             }
 
@@ -35,13 +37,13 @@ public class SpigotPipelineInjector {
                 channel.pipeline().remove(filterName);
             }
 
-            if (channel.pipeline().get(debuggername) != null) {
-                channel.pipeline().remove(debuggername);
+            if (channel.pipeline().get(debuggerName) != null) {
+                channel.pipeline().remove(debuggerName);
             }
 
             HoneyPacketHandler packetHandler = new HoneyPacketHandler();
             channel.pipeline().addBefore("packet_handler", handlerName, packetHandler);
-            channel.pipeline().addBefore("packet_handler", debuggername, new HoneyDebugger());
+            channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel, packetHandler));
         }
     }
@@ -115,6 +117,11 @@ public class SpigotPipelineInjector {
                 channel.pipeline().remove(filterName);
             }
 
+            String debuggerName = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
+            if (channel.pipeline().get(debuggerName) != null) {
+                channel.pipeline().remove(debuggerName);
+            }
+
             String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
             if (channel.pipeline().get(decoderName) != null) {
                 channel.pipeline().remove(decoderName);
@@ -125,12 +132,23 @@ public class SpigotPipelineInjector {
                 channel.pipeline().remove(encoderName);
             }
 
-            String debuggerName = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
-            if (channel.pipeline().get(debuggerName) != null) {
-                channel.pipeline().remove(debuggerName);
+            channel.close();
+        }
+    }
+
+    public void decrementTaskSupplierCount(Channel channel) {
+        synchronized (channel) {
+            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+            if (channel.pipeline().get(decoderName) != null) {
+                InboundPacketDecoder decoder = (InboundPacketDecoder) channel.pipeline().get(decoderName);
+                decoder.getAsyncDecoder().farewell();
             }
 
-            channel.close();
+            String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
+            if (channel.pipeline().get(encoderName) != null) {
+                OutboundPacketEncoder encoder = (OutboundPacketEncoder) channel.pipeline().get(encoderName);
+                encoder.getAsyncDecoder().farewell();
+            }
         }
     }
 

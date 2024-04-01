@@ -46,17 +46,22 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                                    CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         int skipping = 0;
         for (HoneyCheck check : checks) {
-            if (--skipping >= 0) continue;
+            if (--skipping >= 0) {
+                continue;
+            }
 
             ConfigurationOptions.VlSetting setting = getSetting.apply(check);
+
             long registryKey = -1;
-            if (setting != null && setting.isEnabled())
+            if (setting != null && setting.isEnabled()) {
                 registryKey = HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
+            }
 
             final ResponseContainer defaultResponse = getResponse.apply(check);
 
-            if (setting != null && setting.isEnabled() && registryKey != -1)
+            if (setting != null && setting.isEnabled() && registryKey != -1) {
                 HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
+            }
 
             if (player != null && player.punished) {
                 cancellablePacketObserver.cancel();
@@ -69,20 +74,35 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             boolean terminated = false;
             CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
-                if (response == null) continue;
-                if (response.skipIndices != 0) skipping = response.skipIndices;
-                if (response.success) {
-                    if (response.terminate) terminated = true;
+                if (response == null) {
                     continue;
                 }
-                if (response.cancelled) cancellablePacketObserver.cancel();
+
+                if (response.skipIndices != 0) {
+                    skipping = response.skipIndices;
+                }
+
+                if (response.success) {
+                    if (response.terminate) {
+                        terminated = true;
+                    }
+
+                    continue;
+                }
+
+                if (response.cancelled) {
+                    cancellablePacketObserver.cancel();
+                }
 
                 final ViolationService.HoneyKey key = (response.limitsKey != null)
                         ? response.limitsKey
                         : ViolationService.HoneyKey.of(check);
                 if (response.flag != -1 && player != null) {
                     if (setting == null) {
-                        if (response.terminate) terminated = true;
+                        if (response.terminate) {
+                            terminated = true;
+                        }
+
                         continue;
                     }
 
@@ -97,29 +117,41 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         developmentData.setLine(5, check.getDescription());
                     });
 
-                    HoneyPlugin.get().getViolationService().flag(player, handle, cancellablePacketObserver, key, response.violationKey, response.flag, response.onPunish, response.onViolation, response.onFlag, check, setting, developmentData);
+                    HoneyPlugin.get().getViolationService().flag(
+                            player, handle, cancellablePacketObserver, key, response.violationKey, response.flag,
+                            response.onPunish, response.onViolation, response.onFlag, check, setting, developmentData);
                 }
-                if (response.punish && player != null)
-                    HoneyPlugin.get().getViolationService().punish(null, player, check, key);
 
-                if (response.terminate) terminated = true;
+                if (response.punish && player != null) {
+                    HoneyPlugin.get().getViolationService().punish(null, player, check, key);
+                }
+
+                if (response.terminate) {
+                    terminated = true;
+                }
             }
-            if (terminated) return;
+
+            if (terminated) {
+                return;
+            }
         }
     }
 
     private ConfigurationOptions.VlSetting getSetting(HoneyCheck check, WP packet) {
-        if (!check.isViolation()) return null;
+        if (!check.isViolation()) {
+            return null;
+        }
 
         ViolationCheck violationCheck = (ViolationCheck) check;
         if (packet != null && violationCheck.isKeyed()) {
             return ((KeyedViolationCheck<WP>)violationCheck).getSetting(packet);
         }
+
         return violationCheck.getSetting();
     }
 
     public void check(HoneyPlayer player, CancellableByteBufImpl byteBuf, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
-        handleCommonCheck(player, null, (check) -> getSetting(check, null), (check) -> {
+        handleCommonCheck(player, null, (check) -> getSetting(check, null), check -> {
             try {
                 return ((DecodeCheck)check).check(player, byteBuf.buf(), checkContextContainer);
             } catch (Exception e) {
@@ -131,14 +163,13 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
     @SuppressWarnings("unchecked")
     public void check(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) throws Exception {
-        final CancellablePacketObserver cancellablePacketObserver = new CancellablePacketImpl(packetContainer);
-        handleCommonCheck(player, packetContainer.getHandle(), (check) -> getSetting(check, packetContainer.getPacket()), (check) -> {
+        handleCommonCheck(player, packetContainer.getHandle(), (check) -> getSetting(check, packetContainer.getPacket()), check -> {
             try {
                 return ((PacketCheck<WP>)check).check(player, packetContainer.getPacket(), checkContextContainer);
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return ResponseBuilder.SUCCESS;
-        }, cancellablePacketObserver, checkContextContainer, callback);
+        }, new CancellablePacketImpl(packetContainer), checkContextContainer, callback);
     }
 }

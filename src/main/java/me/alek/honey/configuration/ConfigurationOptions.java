@@ -577,7 +577,7 @@ public class ConfigurationOptions {
         public static void load() {
             ENABLED = file.getBoolean("packet-logger.enabled", false);
             DEBUG = file.getBoolean("packet-logger.debug-mode", false);
-            DEBUG = file.getBoolean("packet-logger.debug-packets-cancelled", false);
+            DEBUG_PACKETS_CANCELLED = file.getBoolean("packet-logger.debug-packets-cancelled", false);
             FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays", true);
             DETAILED = file.getBoolean("packet-logger.detailed", true);
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");

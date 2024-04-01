@@ -2,7 +2,6 @@ package me.alek.honey.netty.injector.handler.async;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.injector.handler.async.worker.*;
-import me.alek.honey.utility.PredicateUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -24,15 +23,19 @@ public class WorkerPool<T> {
 
     public void sendDebug(CommandSender sender) {
         sender.sendMessage(workers.length + " available workers");
-        sender.sendMessage(allWorkers.size() + " registered workers");
         sender.sendMessage(Arrays.toString(workers));
+        getWorkerForTask();
         for (Worker<T> worker : workers) {
-            sender.sendMessage("Worker: " + worker.getPendingTasks().size() + " pending, quarantined: " + worker.isQuarantined() + ", task start: " + worker.recentTaskStart() + ", active: " + worker.isActive() + ", registered: " + allWorkers.contains(worker));
+            sender.sendMessage("Worker:"
+                    + "  pending: " + worker.getPendingTasks().size()
+                    + ", quarantined: " + worker.isQuarantined()
+                    + ", task start: " + worker.recentTaskStart()
+                    + ", active: " + worker.isActive()
+                    + ", count: " + worker.supplierCount());
         }
     }
 
     private Worker<T>[] workers;
-    private final List<Worker<T>> allWorkers = new ArrayList<>();
     private final int minimumWorkerThreads;
     private final int minimumPendingTaskSizeForQuarantine;
     private final double minimumTaskTimeForQuarantine;
@@ -69,8 +72,13 @@ public class WorkerPool<T> {
 
         private boolean running = true;
 
+        private final String name;
         private final List<RunnableWorker<T>> workers = initializeDelegatedWorkers();
         private RunnableWorker<T> worker = workers.get(0);
+
+        public TaskWorker(String name) {
+            this.name = name;
+        }
 
         @Override
         public void run() {
@@ -81,10 +89,6 @@ public class WorkerPool<T> {
                     ex.printStackTrace();
                 }
             }
-            synchronized (WorkerPool.this) {
-                allWorkers.remove(this);
-            }
-            running = false;
         }
 
         @Override
@@ -99,8 +103,33 @@ public class WorkerPool<T> {
         }
 
         @Override
-        public void submit(ChainedCallable<T> task) {
-            worker.submit(task);
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public void submit(TaskSupplier<T> supplier) {
+            worker.submit(supplier);
+        }
+
+        @Override
+        public void submit(ChainedCallable<T> callable) {
+            worker.submit(callable);
+        }
+
+        @Override
+        public void incrementSupplierCount() {
+            worker.incrementSupplierCount();
+        }
+
+        @Override
+        public void decrementSupplierCount() {
+            worker.decrementSupplierCount();
+        }
+
+        @Override
+        public int supplierCount() {
+            return worker.supplierCount();
         }
 
         @Override
@@ -139,28 +168,27 @@ public class WorkerPool<T> {
         }
     }
 
-    public Worker<T> submit(TaskSupplier<T> taskSupplier) {
+    public synchronized Worker<T> submit(TaskSupplier<T> supplier) {
+        Worker<T> worker = getWorkerForTaskAndSubmit();
+        worker.submit(supplier);
+
+        return worker;
+    }
+
+    public synchronized Worker<T> getWorkerForTaskAndSubmit() {
         Worker<T> worker = getWorkerForTask();
-        worker.submit(taskSupplier.getTask());
+        worker.incrementSupplierCount();
         return worker;
     }
 
     public synchronized Worker<T> getWorkerForTask() {
-        if (workers == null || workers.length == 0) {
+        if (workers.length == 0) {
             return createAndPushNewTaskWorker();
         }
 
-        Worker<T> headWorker = workers[0];
-        for (int i = 1; i < workers.length; i++) {
-            Worker<T> otherWorker = workers[i];
-
-            if (headWorker.isQuarantined()
-                    || !otherWorker.isQuarantined()
-                            && headWorker.getPendingTasks().size() + 1 > otherWorker.getPendingTasks().size()) {
-
-                workers[i] = headWorker;
-                workers[i - 1] = otherWorker;
-            }
+        for (int i = 0; i < workers.length; i++) {
+            Worker<T> worker = workers[i];
+            pushTaskWorker(worker, i + 1);
         }
 
         if (workers[0].isQuarantined()) {
@@ -170,12 +198,29 @@ public class WorkerPool<T> {
         return workers[0];
     }
 
+    public synchronized void pushTaskWorker(Worker<T> worker, int start) {
+        for (int i = start; i < workers.length; i++) {
+            Worker<T> otherWorker = workers[i];
+
+            if (worker.isQuarantined()
+                    || worker.getPendingTasks().size() > otherWorker.getPendingTasks().size()
+                    || worker.supplierCount() > otherWorker.supplierCount()) {
+
+                workers[i] = worker;
+                workers[i - 1] = otherWorker;
+                continue;
+            }
+
+            break;
+        }
+    }
+
     public synchronized Worker<T> createAndReplaceNewTaskWorker() {
         if (workers.length == 0) {
             return createAndPushNewTaskWorker();
         }
-        allWorkers.remove(workers[workers.length - 1]);
-        return initNewTaskWorker(workers, workers.length -1);
+
+        return initNewTaskWorker(workers, 0);
     }
 
     public synchronized Worker<T> createAndPushNewTaskWorker() {
@@ -189,63 +234,84 @@ public class WorkerPool<T> {
     }
 
     private synchronized Worker<T> initNewTaskWorker(Worker<T>[] newWorkers, int index) {
-        TaskWorker newWorker = new TaskWorker();
+        TaskWorker newWorker = new TaskWorker(getTaskWorkerThreadName());
         newWorkers[index] = newWorker;
-        allWorkers.add(newWorker);
 
-        new Thread(newWorker, getTaskWorkerThreadName(index + 1)).start();
+        new Thread(newWorker, newWorker.name()).start();
 
         return newWorker;
     }
 
     public synchronized void garbageCollect() {
-        // remove old worker threads and change to fresh ones
-        List<Worker<T>> availableWorkers = Arrays.asList(workers);
-        for (Worker<T> worker : allWorkers) {
-            if (!availableWorkers.contains(worker)) {
-                worker.destroy();
-                relocateWorkerTasks(worker);
-            }
-        }
-        allWorkers.removeIf(PredicateUtils.not(Worker::isActive));
-
-        // remove workers if there are too many unused
-        List<Worker<T>> pressuredWorkers = Arrays.stream(workers)
+        // remove excessive unused workers
+        List<Worker<T>> quarantinedWorkers = Arrays.stream(workers)
                 .filter(Worker::isQuarantined)
                 .collect(Collectors.toList());
-        if (workers.length - pressuredWorkers.size() > minimumWorkerThreads) {
-            Worker<T>[] newWorkers = new Worker[minimumWorkerThreads + pressuredWorkers.size()];
-            System.arraycopy(pressuredWorkers.toArray(new Worker[0]), 0, newWorkers, workers.length - pressuredWorkers.size() - 1, pressuredWorkers.size());
 
-            List<Worker<T>> otherWorkers = new ArrayList<>(Arrays.asList(workers));
-            otherWorkers.removeAll(pressuredWorkers);
-            int i = 0;
-            for (Worker<T> worker : otherWorkers) {
-                if (++i == newWorkers.length || newWorkers[i] != null) break;
-                workers[i] = worker;
+        if (workers.length - quarantinedWorkers.size() > minimumWorkerThreads) {
+            try {
+                Worker<T>[] newWorkers = new Worker[minimumWorkerThreads + quarantinedWorkers.size()];
+                Worker<T>[] quarantinedWorkersArray = quarantinedWorkers.toArray((Worker<T>[]) new Worker[0]);
+                System.arraycopy(quarantinedWorkersArray, 0, newWorkers, minimumWorkerThreads, quarantinedWorkers.size());
+
+                List<Worker<T>> otherWorkers = new ArrayList<>(Arrays.asList(workers));
+                otherWorkers.removeAll(quarantinedWorkers);
+
+                for (int i = 0; i < otherWorkers.size(); i++) {
+                    if (i == minimumWorkerThreads) {
+                        break;
+                    }
+
+                    Worker<T> worker = otherWorkers.get(i);
+                    otherWorkers.remove(worker);
+                    newWorkers[i] = worker;
+                }
+                workers = newWorkers;
+
+                // destroy remaining workers
+                for (Worker<T> worker : otherWorkers) {
+                    worker.destroy();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-            workers = newWorkers;
         }
     }
 
     public Worker<T> relocateWorkerTasks(Worker<T> from) {
+        from.decrementSupplierCount();
         return relocateWorkerTasks(from.getPendingTasks());
     }
 
     public Worker<T> relocateWorkerTasks(TaskSupplier<T> supplier, Worker<T> from) {
+        from.decrementSupplierCount();
         return relocateWorkerTasks(from.getPendingTasks(supplier));
     }
 
     private Worker<T> relocateWorkerTasks(Queue<ChainedCallable<T>> tasks) {
-        Worker<T> worker = getWorkerForTask();
+        Worker<T> worker = getWorkerForTaskAndSubmit();
         for (ChainedCallable<T> task : tasks) {
             worker.submit(task);
         }
         return worker;
     }
 
-    public String getTaskWorkerThreadName(int indexName) {
-        return "honey-packet-decoder-" + indexName;
+    public synchronized String getTaskWorkerThreadName() {
+        Set<Integer> indices = new HashSet<>();
+        for (Worker<T> worker : workers) {
+            if (worker == null || worker.name() == null) {
+                continue;
+            }
+
+            int index = Integer.parseInt(worker.name().split("-")[3]);
+            indices.add(index);
+        }
+
+        for (int i = 0; ; i++) {
+            if (!indices.contains(i)) {
+                return "honey-packet-decoder-" + i;
+            }
+        }
     }
 
     public WorkerPool(int minimumWorkerThreads, double minimumTaskTimeForQuarantine, int minimumPendingTaskSizeForQuarantine) {
@@ -265,7 +331,9 @@ public class WorkerPool<T> {
         if (workers == null) return;
 
         for (Worker<T> worker : workers) {
-            worker.destroy();
+            if (worker != null) {
+                worker.destroy();
+            }
         }
     }
 }

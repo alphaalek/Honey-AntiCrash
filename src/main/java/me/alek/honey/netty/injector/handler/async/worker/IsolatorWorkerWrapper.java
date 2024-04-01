@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
@@ -17,6 +15,7 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
     private final LinkedBlockingQueue<ChainedCallable<T>> pendingTasks = new LinkedBlockingQueue<>();
     private ChainedCallable<T> currentTask;
     private long recentTaskStart;
+    private int supplierCount;
 
     private final DelegatedIsolatorWorker<T> worker;
 
@@ -51,14 +50,39 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
     }
 
     @Override
-    public synchronized void submit(ChainedCallable<T> task) {
+    public String name() {
+        throw new UnsupportedOperationException("Can't get name from isolator worker!");
+    }
+
+    @Override
+    public synchronized void submit(TaskSupplier<T> supplier) {
+        submit(supplier.getTask());
+    }
+
+    @Override
+    public void submit(ChainedCallable<T> callable) {
         try {
-            if (!pendingTasks.offer(task, 0, TimeUnit.MILLISECONDS)) {
+            if (!pendingTasks.offer(callable, 0, TimeUnit.MILLISECONDS)) {
                 Bukkit.getLogger().info("Couldn't offer task to worker");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public synchronized void incrementSupplierCount() {
+        supplierCount++;
+    }
+
+    @Override
+    public synchronized void decrementSupplierCount() {
+        supplierCount--;
+    }
+
+    @Override
+    public int supplierCount() {
+        return supplierCount;
     }
 
     @Override
@@ -80,7 +104,7 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
 
     @Override
     public boolean isQuarantined() {
-        return worker.isQuarantined();
+        return worker.shouldQuarantine();
     }
 
     @Override

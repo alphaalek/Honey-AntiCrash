@@ -76,19 +76,21 @@ public class ViolationService {
         if (onPunish != null) onPunish.run();
 
         if (player.punished) return;
-        player.punished = true;
 
         player.channel.eventLoop().execute(() -> {
             if (player.channel.isActive()) {
                 player.channel.close();
             }
         });
+
         BungeeMessenger.sendPluginMessage(player.player, "kickPlayer", player.name, "Disconnected");
         Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
 
-        if (check != null && honeyKey != null) {
+        if (check != null) {
             HoneyPlugin.get().getNotificationService().warn(player, check.getName(), honeyKey);
         }
+
+        player.punished = true;
     }
 
     public static class ViolationContext {
@@ -230,6 +232,11 @@ public class ViolationService {
             } catch (Exception ex) {
                 throw new AssertionError();
             }
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + ",id=" + registry.getID();
         }
     }
 
@@ -412,7 +419,9 @@ public class ViolationService {
 
             doFormatStuff(check, developmentData, honeyKey);
 
-            if (violations.get() < getSetting().vlsAmount) return false;
+            if (violations.get() < getSetting().vlsAmount) {
+                return false;
+            }
 
             INSTANCE.punish(onPunish, player, check, honeyKey);
             return true;

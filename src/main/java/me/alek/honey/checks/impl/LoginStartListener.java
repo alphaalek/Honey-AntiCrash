@@ -34,7 +34,6 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
     @Override
     public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packetContainer, CheckContextContainer container) {
-
     }
 
     @Override
@@ -65,13 +64,16 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
-            if (profile == null) return ResponseBuilder.SUCCESS;
+            if (profile == null) {
+                return ResponseBuilder.SUCCESS;
+            }
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
                     return ResponseBuilder.inst().cancel().punish().build();
                 }
             }
+
             return ResponseBuilder.SUCCESS;
         }
 

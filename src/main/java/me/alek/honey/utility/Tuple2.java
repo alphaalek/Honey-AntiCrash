@@ -87,7 +87,7 @@ public class Tuple2<T1, T2> implements Iterable<Object>, Serializable, Cloneable
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return "1=" + t1 + ",2=" + t2;
     }
 

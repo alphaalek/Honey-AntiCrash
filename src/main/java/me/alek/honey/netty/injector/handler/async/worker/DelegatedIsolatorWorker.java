@@ -4,7 +4,7 @@ import me.alek.honey.netty.injector.handler.async.TaskSupplier;
 
 public interface DelegatedIsolatorWorker<T> {
 
-    boolean isQuarantined();
+    boolean shouldQuarantine();
 
     boolean relocate(TaskSupplier<T> supplier);
 

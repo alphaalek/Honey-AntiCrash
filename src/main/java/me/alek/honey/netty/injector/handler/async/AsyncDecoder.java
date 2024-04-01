@@ -20,7 +20,8 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     private HoneyPlayer player;
     private final WorkerPool<Object> workerPool;
     private ChainedCallable<Object> currentTask;
-    private Worker<Object> worker;
+    public Worker<Object> worker;
+    private boolean unregistered;
     private final AtomicLong lastHandledTask = new AtomicLong();
 
     public AsyncDecoder(HoneyPlayer player, WorkerPool<Object> workerPool) {
@@ -61,21 +62,34 @@ public class AsyncDecoder implements TaskSupplier<Object> {
 
     @Override
     public void submitTask(ChainedCallable<Object> task) {
-        currentTask = task;
+        if (unregistered) {
+            return;
+        }
 
-        if (lastHandledTask.get() == 0) lastHandledTask.set(System.currentTimeMillis());
+        if (lastHandledTask.get() == 0) {
+            lastHandledTask.set(System.currentTimeMillis());
+        }
+        currentTask = task;
         currentTask.addListener((Consumer<Object>) (d) -> lastHandledTask.set(System.currentTimeMillis()));
 
-        if (worker != null && worker.isActive())
-            worker.submit(currentTask);
-        else
+        if (worker != null && worker.isActive()) {
+            worker.submit(this);
+        }
+
+        if (worker != null && !worker.isActive()) {
+            worker = workerPool.relocateWorkerTasks(this, worker);
+        }
+
+        if (worker == null) {
             worker = workerPool.submit(this);
+        }
 
         if (worker.isQuarantined()) {
             if (worker.relocate(this)) {
                 worker = workerPool.relocateWorkerTasks(this, worker);
                 return;
             }
+
             if (player != null) {
                 long time = System.currentTimeMillis() - lastHandledTask.get();
 
@@ -87,6 +101,15 @@ public class AsyncDecoder implements TaskSupplier<Object> {
                 }
             }
         }
+    }
+
+    public synchronized void farewell() {
+        if (worker != null) {
+            unregistered = true;
+            worker.decrementSupplierCount();
+        }
+
+        worker = null;
     }
 
     private void kickPlayer() {

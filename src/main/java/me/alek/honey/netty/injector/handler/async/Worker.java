@@ -4,7 +4,17 @@ import java.util.Queue;
 
 public interface Worker<T> {
 
-    void submit(ChainedCallable<T> task);
+    String name();
+
+    void submit(TaskSupplier<T> supplier);
+
+    void submit(ChainedCallable<T> callable);
+
+    void incrementSupplierCount();
+
+    void decrementSupplierCount();
+
+    int supplierCount();
 
     Queue<ChainedCallable<T>> getPendingTasks();
 

@@ -59,6 +59,18 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return player;
     }
 
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
+
+        try {
+            super.channelInactive(ctx);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
@@ -89,7 +101,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
             list.add(byteBuf.readBytes(byteBuf.readableBytes()));
         else
             list.add(Unpooled.buffer());
-
     }
 
     public void checkRelocation() {
