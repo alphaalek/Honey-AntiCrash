@@ -20,6 +20,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -194,17 +195,22 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
     public static class TabC implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
         private static ConfigurationOptions.VlSetting labelSetting;
-        private final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(this, "label");
-        private final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(this, "total");
+        private final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(new ViolationService.HoneyKeyRegistry(this, 0), "total");
+        private final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(new ViolationService.HoneyKeyRegistry(this, 1), "label");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
+                    if (!player.violationContext.getPacketlimitMap().has(getID())) {
+                        player.violationContext.getLimits(ViolationService.HoneyKey.of(this), getSetting());
+                    }
+
                     labelSetting = getSetting().clone();
                     labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
 
                     player.violationContext.setSetting(ViolationService.HoneyKey.of(this), labelKey, labelSetting);
+                    Bukkit.broadcastMessage("Setting setting " + labelKey + " " + labelSetting);
                 }
 
                 int label = packet.getMessage().indexOf(" ");

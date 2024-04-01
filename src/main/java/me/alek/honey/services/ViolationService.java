@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,8 +171,19 @@ public class ViolationService {
         }
 
         public int getID() {
-            if (rest == 0) return check.getID();
+            if (rest == -1) {
+                return check.getID();
+            }
+
             return MAX_ID + rest;
+        }
+
+        public HoneyCheck getCheck() {
+            return check;
+        }
+
+        public int getRest() {
+            return rest;
         }
     }
 
@@ -185,7 +197,7 @@ public class ViolationService {
         }
 
         public static HoneyKey of(HoneyCheck check) {
-            return of(new HoneyKeyRegistry(check, 0), null, null);
+            return of(new HoneyKeyRegistry(check, -1), null, null);
         }
 
         public static HoneyKey of(HoneyKeyRegistry registry) {
@@ -193,7 +205,7 @@ public class ViolationService {
         }
 
         public static HoneyKey of(HoneyCheck check, Object object1) {
-            return of(new HoneyKeyRegistry(check, 0), object1, null);
+            return of(new HoneyKeyRegistry(check, -1), object1, null);
         }
 
         public static HoneyKey of(HoneyKeyRegistry registry, Object object1) {
@@ -201,7 +213,7 @@ public class ViolationService {
         }
 
         public static HoneyKey of(HoneyCheck check, Object object1, Object object2) {
-            return of(new HoneyKeyRegistry(check, 0), object1, object2);
+            return of(new HoneyKeyRegistry(check, -1), object1, object2);
         }
 
         public static HoneyKey of(HoneyKeyRegistry check, Object object1, Object object2) {
@@ -260,7 +272,9 @@ public class ViolationService {
             }
             final Map<HoneyKey, AbstractPacketLimitHandler> map = new HashMap<>();
             for (final String key : setting.keyedAnnotation.keys()) {
-                map.put(HoneyKey.of(limitsKey.getRegistry(), key), generatePacketLimitHandler(handler.getType(), player, setting));
+                HoneyKeyRegistry registry = new HoneyKeyRegistry(limitsKey.getRegistry().getCheck(), Arrays.asList(setting.keyedAnnotation.keys()).indexOf(key));
+                Bukkit.getLogger().info("Generating " + registry.getID() + " " + registry.getCheck() + " " + registry.getRest() + " " + Arrays.asList(setting.keyedAnnotation.keys()) + " " + key + " " + Arrays.asList(setting.keyedAnnotation.keys()).indexOf(key));
+                map.put(HoneyKey.of(registry, key), generatePacketLimitHandler(handler.getType(), player, setting));
             }
             return map;
         }
@@ -328,6 +342,7 @@ public class ViolationService {
             if (handler == null) {
                 return;
             }
+
             handler.setting = setting;
         }
 
