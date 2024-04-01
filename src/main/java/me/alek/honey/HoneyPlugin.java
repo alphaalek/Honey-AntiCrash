@@ -246,9 +246,6 @@ public class HoneyPlugin implements HoneyAPI {
         // setup runnables
         setupRecentPingLookupRunnable();
 
-        // startup watchdog thread
-        // QueueExecutionWatchdogThread.startWatchdog();
-
         getLoggerService().getLogger().info("Honey is now fully loaded in! Version: " + plugin.getDescription().getVersion());
     }
 
@@ -267,8 +264,6 @@ public class HoneyPlugin implements HoneyAPI {
                         recentPingLookup.put(player.uuid, HoneyPlugin.get().getNotificationService().getPing(player));
                     }
                 }
-                if (!HoneyPlugin.get().isRunning())
-                    this.cancel();
             }
         }.runTaskTimerAsynchronously(plugin, 0L, 60L);
     }
