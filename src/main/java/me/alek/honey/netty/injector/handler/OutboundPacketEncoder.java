@@ -20,15 +20,11 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Method packetEncode;
-    private static final Class<?> packetClass;
 
     static {
         try {
             packetEncode = MessageToByteEncoder.class.getDeclaredMethod("encode", ChannelHandlerContext.class, Object.class, ByteBuf.class);
             packetEncode.setAccessible(true);
-
-            packetClass = NMS.getPacketClass();
-
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Failed to setup packet encoder environment!");
@@ -88,11 +84,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
             ReferenceCountUtil.retain(msg);
         }
 
-        if (packetClass.isInstance(msg)) {
-            super.write(ctx, msg, promise);
-        } else {
-            ctx.write(msg, promise);
-        }
+        ctx.write(msg, promise);
     }
 
     public void writeForcedPacket(Object value) {
