@@ -1,6 +1,7 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
+import me.alek.honey.tracker.ServerThreadTrackLimiter;
 import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.utility.NMS;
@@ -47,10 +48,11 @@ public class HoneyPlayer {
     public TempTimedQueuedTracker timedQueuedTracker;
     public TempTimedQueuedTracker serverThreadTimedQueuedTracker;
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
+    public final ServerThreadTrackLimiter positionTrackLimiter = new ServerThreadTrackLimiter();
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
-    public ViolationService.ViolationContext violationContext;
+    public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
     public boolean punished;
-    public int registryID;
+    public int registryID = IDRegistry.PLAYERS.acquireID();
 
     public HoneyPlayer(Player player) {
         this.player = player;
@@ -58,9 +60,6 @@ public class HoneyPlayer {
         uuid = player.getUniqueId();
         name = player.getName();
         channel = NMS.getChannelIfSet(name);
-        violationContext = new ViolationService.ViolationContext(this);
-
-        registryID = IDRegistry.PLAYERS.acquireID();
     }
 
     public boolean isOnline() {

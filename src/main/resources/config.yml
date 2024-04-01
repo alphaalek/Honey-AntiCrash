@@ -69,7 +69,7 @@ messages:
   punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
 
-# packet dump
+# Packet dump
 packet-dump:
   # Should packet dump for check violations be enabled or not.
   enabled: false

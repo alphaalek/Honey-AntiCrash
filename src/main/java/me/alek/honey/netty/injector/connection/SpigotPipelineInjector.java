@@ -71,11 +71,11 @@ public class SpigotPipelineInjector {
 
             String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
             if (pipeline.get(encoderName) != null && PacketInterceptorResolver.isEncoderPositionResolved()) {
-                if (handlers.indexOf(encoderName) != handlers.indexOf(PacketInterceptorResolver.getEncoderPosition(pipeline)) - 1) {
+                if (handlers.indexOf(encoderName) != handlers.indexOf(PacketInterceptorResolver.getEncoderPosition(pipeline)) + 1) {
                     OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
 
                     pipeline.remove(encoderName);
-                    pipeline.addBefore(PacketInterceptorResolver.getDecoderPosition(pipeline), encoderName, encoder);
+                    pipeline.addAfter(PacketInterceptorResolver.getEncoderPosition(pipeline), encoderName, encoder);
                 }
             }
         }

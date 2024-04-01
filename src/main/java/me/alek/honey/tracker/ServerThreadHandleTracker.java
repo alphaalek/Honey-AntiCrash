@@ -15,11 +15,9 @@ import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
@@ -90,11 +88,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
+        private int tickloop;
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
-
-        private long totalPositionTime;
-        private long totalPositionPackets;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null
@@ -150,8 +146,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         public synchronized Object poll() {
             Object otherTask;
             if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE) {
-                if (recentPollStart != -1)
+                if (recentPollStart != -1) {
                     recentDeltaTime = getDeltaTime();
+                }
                 recentPollStart = -1;
                 return otherTask;
             }
@@ -169,20 +166,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                             || recentPacket.getType() == PacketType.Play.Client.FLYING
                             || recentPacket.getType() == PacketType.Play.Client.GROUND
                             || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
-                        totalPositionPackets++;
-                        totalPositionTime += (long) deltaTime;
 
-                        long average = totalPositionTime / totalPositionPackets;
-                        double finalTime = deltaTime;
-                        if (deltaTime > average) {
-                            finalTime = Math.min(average + Math.min(deltaTime - average, average) * Math.min((deltaTime - average) / average, 1), average * 3);
-                        }
-
-                        double scaleFactor = 0.1; // Adjust this scale factor to control degradation rate
-                        double degradationFactor = Math.exp(scaleFactor * (deltaTime - average) / average);
-                        finalTime = Math.min(average + (deltaTime - average) * degradationFactor, 6_000_000);
-
-                        Bukkit.getLogger().info("Avg " + average + ", Real " + deltaTime + ", Final " + finalTime);
+                        deltaTime = recentPacket.getPlayer().positionTrackLimiter.getTime(tickloop, deltaTime);
                     }
 
                     registerTime(recentPacket.getPlayer(), deltaTime);
@@ -215,6 +200,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 // all packets in the queue has been handled, and no packets for this tick remains to be checked
                 recentPollStart = -1;
                 nullPoll = false;
+                tickloop++;
 
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
