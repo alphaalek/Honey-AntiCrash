@@ -187,34 +187,46 @@ public class SpigotPipelineInjector {
 
     public void updatePlayer(HoneyPlayer player) throws MissingHandlerException {
         Channel channel = player.channel;
-        if (channel == null) throw new MissingHandlerException("Channel");
+        if (channel == null) {
+            throw new MissingHandlerException("Channel");
+        }
 
         synchronized (channel) {
             HoneyPacketHandler handler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             HoneyDebugger debugger = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDebugger(channel);
             if ((handler == null && !player.removedPacketHandlerFromPipeline)
-                    || filter == null || debugger == null) throw new MissingHandlerException("Handler: " + handler + ", Filter: " + filter + ", Debugger: " + debugger + ", Removed: " + player.removedPacketHandlerFromPipeline);
+                    || filter == null || debugger == null) {
+                throw new MissingHandlerException("Handler: " + handler + ", Filter: " + filter + ", Debugger: " + debugger + ", Removed: " + player.removedPacketHandlerFromPipeline);
+            }
 
-            if (handler != null) handler.setPlayer(player);
+            if (handler != null) {
+                handler.setPlayer(player);
+            }
             filter.setPlayer(player);
             debugger.setPlayer(player);
 
             if (PacketInterceptorResolver.isDecoderPositionResolved()) {
                 InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
-                if (decoder == null) throw new MissingHandlerException("Decoder");
+                if (decoder == null) {
+                    throw new MissingHandlerException("Decoder");
+                }
 
                 decoder.getAsyncDecoder().setPlayer(player);
+            } else {
+                player.updateHandlersLater = true;
             }
-            else player.updateHandlersLater = true;
 
             if (PacketInterceptorResolver.isEncoderPositionResolved()) {
                 OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
-                if (encoder == null) throw new MissingHandlerException("Encoder");
+                if (encoder == null) {
+                    throw new MissingHandlerException("Encoder");
+                }
 
                 encoder.getAsyncDecoder().setPlayer(player);
+            } else {
+                player.updateHandlersLater = true;
             }
-            else player.updateHandlersLater = true;
 
             if (handler != null) {
                 channel.pipeline().remove(handler);

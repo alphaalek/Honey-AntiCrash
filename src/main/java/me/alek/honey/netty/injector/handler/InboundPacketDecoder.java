@@ -96,7 +96,11 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
             } catch (Exception ex) {
                 byteBuf.release();
-                ctx.channel().close();
+
+                if (ctx.channel().isOpen()) {
+                    ctx.channel().close();
+                }
+
                 if (player != null) {
                     player.punished = true;
                 }
