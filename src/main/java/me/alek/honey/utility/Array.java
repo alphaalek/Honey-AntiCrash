@@ -20,11 +20,22 @@ public class Array<T> implements Iterable<T> {
         }
     }
 
-    private void resolveDown(int index) {
+    private void resolveDown() {
         synchronized (this) {
-            for (int i = values.length - 1; i >= 0; i--) {
-
+            if (values[values.length - 1] != null) {
+                return;
             }
+
+            int last = 0;
+            for (int i = values.length - 1; i >= 0; i--) {
+                if (values[i] != null) {
+                    last = i;
+                }
+            }
+
+            Object[] copy = new Object[last + 1];
+            System.arraycopy(values, 0, copy, 0, copy.length);
+            values = copy;
         }
     }
 
@@ -81,7 +92,10 @@ public class Array<T> implements Iterable<T> {
     public synchronized boolean remove(int index) {
         if (index >= values.length) return false;
 
-        return set(index, null);
+        boolean removed = set(index, null);
+        resolveDown();
+
+        return removed;
     }
 
     @Override
