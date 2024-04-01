@@ -17,6 +17,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     private static final String VIA_VERSION_CLOSED_CHANNEL = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
     private static final String NETTY_NATIVE_READ_ADDRESS = "Error while read(...): Connection reset by peer";
+    private static final String NETTY_CONNECTION_RESET = "Connection reset";
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
@@ -35,7 +36,8 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
                 && !(throwable instanceof ClosedChannelException)
                 && !(throwable instanceof ReadTimeoutException)
                 && /* ViaVersion */ !message.equals(VIA_VERSION_CLOSED_CHANNEL)
-                && /* Netty */ !message.equals(NETTY_NATIVE_READ_ADDRESS)) {
+                && /* Netty */ !message.equals(NETTY_NATIVE_READ_ADDRESS)
+                && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
             throwable.printStackTrace();
         }
