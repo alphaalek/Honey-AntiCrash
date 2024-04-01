@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector.connection;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -9,6 +10,11 @@ import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
 import org.bukkit.Bukkit;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SpigotPipelineInjector {
 
@@ -43,8 +49,35 @@ public class SpigotPipelineInjector {
 
             HoneyPacketHandler packetHandler = new HoneyPacketHandler();
             channel.pipeline().addBefore("packet_handler", handlerName, packetHandler);
-            channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
+            channel.pipeline().addBefore("packet_handler", debuggerName, HoneyDebugger.DEBUGGER);
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel, packetHandler));
+        }
+    }
+
+    public void ensureCorrectPipelineOrder(Channel channel) {
+        synchronized (channel) {
+            ChannelPipeline pipeline = channel.pipeline();
+            List<String> handlers = new ArrayList<>(pipeline.toMap().keySet());
+
+            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+            if (pipeline.get(decoderName) != null && PacketInterceptorResolver.isDecoderPositionResolved()) {
+                if (handlers.indexOf(decoderName) != handlers.indexOf(PacketInterceptorResolver.getDecoderPosition(pipeline)) - 1) {
+                    InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
+
+                    pipeline.remove(decoderName);
+                    pipeline.addBefore(PacketInterceptorResolver.getDecoderPosition(pipeline), decoderName, decoder);
+                }
+            }
+
+            String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
+            if (pipeline.get(encoderName) != null && PacketInterceptorResolver.isEncoderPositionResolved()) {
+                if (handlers.indexOf(encoderName) != handlers.indexOf(PacketInterceptorResolver.getEncoderPosition(pipeline)) - 1) {
+                    OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
+
+                    pipeline.remove(encoderName);
+                    pipeline.addBefore(PacketInterceptorResolver.getDecoderPosition(pipeline), encoderName, encoder);
+                }
+            }
         }
     }
 
@@ -65,12 +98,12 @@ public class SpigotPipelineInjector {
             channel.pipeline().addAfter(channel.pipeline().get(
                     "decompress") != null ? "decompress" : /* no network compression */ "splitter", filterName, filter);
 
+
             String[] requiredHandlers = new String[3];
             requiredHandlers[0] = filterName;
 
             String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
             String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
-
 
             if (PacketInterceptorResolver.getDecoderPosition(channel.pipeline()) != null) {
                 requiredHandlers[1] = decoderName;

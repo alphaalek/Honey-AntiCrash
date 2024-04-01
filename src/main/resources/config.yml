@@ -762,7 +762,7 @@ packet-flood:
 
     # transaction
     transaction:
-      max-per-interval: 350
+      max-per-interval: 450 # You shouldn't lower this!
       until: 500
 
     # update sign

@@ -1,5 +1,6 @@
 package me.alek.honey.netty.injector.handler;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
@@ -9,7 +10,10 @@ import org.bukkit.Bukkit;
 import java.nio.channels.ClosedChannelException;
 import java.util.Optional;
 
+@ChannelHandler.Sharable
 public class HoneyDebugger extends ChannelInboundHandlerAdapter {
+
+    public static final HoneyDebugger DEBUGGER = new HoneyDebugger();
 
     private static final String VIA_VERSION_CLOSED_CHANNEL = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
     private static final String NETTY_NATIVE_READ_ADDRESS = "Error while read(...): Connection reset by peer";

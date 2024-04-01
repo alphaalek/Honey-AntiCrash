@@ -15,6 +15,7 @@ import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 
+@ChannelHandler.Sharable
 public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();

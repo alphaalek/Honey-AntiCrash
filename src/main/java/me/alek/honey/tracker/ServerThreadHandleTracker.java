@@ -15,6 +15,7 @@ import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -82,18 +83,18 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
-        private static final int POSITION_DEFAULT = 17500;
-
-        private final AtomicReference<HoneyPlayer> recentPacketAuthor = new AtomicReference<>();
         private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
+        private PacketContainer<? extends WrappedPacket<?>> recentPacket;
         private ConstructorInvoker<?> tickTaskConstructor;
         private final boolean pollsOneExtra;
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
-        private int trackCurrentPacket;
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
+
+        private long totalPositionTime;
+        private long totalPositionPackets;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null
@@ -110,21 +111,14 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
         }
 
-        private double getEventloopTimingsIfAny(HoneyPlayer player) {
-            PacketContainer<? extends WrappedPacket<?>> packet = PacketTaskHandler.getLastHandledPacket();
-            if (packet == null || !player.equals(packet.getPlayer())) return 0;
-
-            return packet.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_HANDLE);
-        }
-
         private double getDeltaTime() {
             return System.nanoTime() - recentPollStart;
         }
 
-        private double getDeltaTimeExact(HoneyPlayer player) {
-            double eventloopTimings = getEventloopTimingsIfAny(player);
+        private double getDeltaTimeExact(PacketContainer<? extends WrappedPacket<?>> packet) {
+            double timings = packet.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_HANDLE);
 
-            return eventloopTimings != 0 ? eventloopTimings : getDeltaTime();
+            return timings != 0 ? timings : getDeltaTime();
         }
 
         private Object newTickTask(Runnable runnable) {
@@ -162,42 +156,47 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 return otherTask;
             }
             // check if this packet is not the first one handled in this tick
-            if (recentPollStart != -1 && recentPacketAuthor.get() != null) {
+            if (recentPollStart != -1 && recentPacket != null) {
 
-                // get the player who sent the previously polled packet from the queue
-                HoneyPlayer player = recentPacketAuthor.get();
-                recentPacketAuthor.set(null);
-
-                if (player != null && player.player.isOnline()) {
+                if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnline()
+                        && !(ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && recentPacket.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))) {
                     // evaluate the difference in time
-                    double deltaTime;
-                    if (trackCurrentPacket != -1) {
-                        deltaTime = trackCurrentPacket;
-                    } else {
-                        deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(player);
+                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
+
+                    // don't track position packets, because you can legitimately cause a lot of server thread performance by chunk loading in legacy versions (when chunk loading wasn't async)
+                    if (recentPacket.getType() == PacketType.Play.Client.POSITION
+                            || recentPacket.getType() == PacketType.Play.Client.POSITION_LOOK
+                            || recentPacket.getType() == PacketType.Play.Client.FLYING
+                            || recentPacket.getType() == PacketType.Play.Client.GROUND
+                            || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
+                        totalPositionPackets++;
+                        totalPositionTime += (long) deltaTime;
+
+                        long average = totalPositionTime / totalPositionPackets;
+                        double finalTime = deltaTime;
+                        if (deltaTime > average) {
+                            finalTime = Math.min(average + Math.min(deltaTime - average, average) * Math.min((deltaTime - average) / average, 1), average * 3);
+                        }
+
+                        double scaleFactor = 0.1; // Adjust this scale factor to control degradation rate
+                        double degradationFactor = Math.exp(scaleFactor * (deltaTime - average) / average);
+                        finalTime = Math.min(average + (deltaTime - average) * degradationFactor, 6_000_000);
+
+                        Bukkit.getLogger().info("Avg " + average + ", Real " + deltaTime + ", Final " + finalTime);
                     }
 
-                    registerTime(player, deltaTime);
+                    registerTime(recentPacket.getPlayer(), deltaTime);
                 }
                 recentDeltaTime = -1;
+                recentPacket = null;
             }
             recentPollStart = System.nanoTime();
-            trackCurrentPacket = -1;
 
             WrappedPacketTaskFuture<Object> task = nettySubmitQueue.poll();
-            recentPacketAuthor.set(Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPlayer).orElse(null));
+            recentPacket = Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPacket).orElse(null);
 
             if (task != null) {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
-
-                // don't track position packets, because you can legitimately cause a lot of server thread performance by chunk loading in legacy versions (when chunk loading wasn't async)
-                PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
-                if (packet != null && (
-                        packet.getType() == PacketType.Play.Client.POSITION
-                                || packet.getType() == PacketType.Play.Client.POSITION_LOOK
-                                || packet.getType() == PacketType.Play.Client.FLYING
-                                || packet.getType() == PacketType.Play.Client.GROUND))
-                    trackCurrentPacket = POSITION_DEFAULT;
             }
 
             Object tickTask = task == null ? null : newTickTask(task);

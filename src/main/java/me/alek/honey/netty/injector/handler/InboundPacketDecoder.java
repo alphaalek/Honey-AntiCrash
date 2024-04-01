@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+@ChannelHandler.Sharable
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
@@ -60,6 +61,28 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        try {
+            super.handlerAdded(ctx);
+        } catch (Exception ignored) {
+
+        }
+
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
+        try {
+            super.handlerRemoved(ctx);
+        } catch (Exception ignored) {
+
+        }
+
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+    }
+
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) {
@@ -80,6 +103,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                     exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
 
                     if (packetContainer.isCancelled()) {
+                        if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
+                            HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
+                        }
                         return;
                     }
                 }
@@ -102,16 +128,16 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             Runnable finalPacketExecutorTask = packetExecutorTask;
 
             ctx.channel().eventLoop().execute(() -> {
-                if (packetHandler.read0(finalPacketContainer)) {
-
-                    if (finalPacketExecutorTask != null) {
-                        serverThreadExecutionQueue.add(finalPacketExecutorTask);
-                        return;
-                    }
-
-                    ctx.fireChannelRead(finalPacketContainer.getHandle());
+                if (!packetHandler.read0(finalPacketContainer)) {
+                    return;
                 }
 
+                if (finalPacketExecutorTask != null) {
+                    serverThreadExecutionQueue.add(finalPacketExecutorTask);
+                    return;
+                }
+
+                ctx.fireChannelRead(finalPacketContainer.getHandle());
                 packetHandler.postRead();
             });
         } catch (Throwable ex) {
