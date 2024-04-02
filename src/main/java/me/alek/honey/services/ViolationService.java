@@ -92,14 +92,14 @@ public class ViolationService {
     public static class ViolationContext {
 
         private final HoneyPlayer player;
-        private final Array<ViolationDistributor> packetLimiters = new Array<>();
+        private final Array<ViolationDistributor> distributors = new Array<>();
 
         public ViolationContext(HoneyPlayer player) {
             this.player = player;
         }
 
         public ViolationDistributor getDistributor(HoneyKey key, ConfigurationOptions.VlSetting setting) {
-            return packetLimiters.get(key.getRegistryKey(), () -> {
+            return distributors.get(key.getRegistryKey(), () -> {
                 if (setting.keyedAnnotation != null) {
                     return new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(key, setting));
@@ -115,17 +115,17 @@ public class ViolationService {
         }
 
         public void setSetting(HoneyKey key, HoneyKey violationKey, ConfigurationOptions.VlSetting setting) {
-            if (packetLimiters.has(key.getRegistryKey())) {
-                packetLimiters.get(key.getRegistryKey()).setSetting(violationKey, setting);
+            if (distributors.has(key.getRegistryKey())) {
+                distributors.get(key.getRegistryKey()).setSetting(violationKey, setting);
             }
         }
 
-        public Array<ViolationDistributor> getPacketlimitMap() {
-            return packetLimiters;
+        public Array<ViolationDistributor> getViolationDistributors() {
+            return distributors;
         }
 
         public ViolationDistributor getHandler(HoneyKey key) {
-            return packetLimiters.get(key.getRegistryKey(), null);
+            return distributors.get(key.getRegistryKey(), null);
         }
 
         public HoneyPlayer getPlayer() {
@@ -217,7 +217,7 @@ public class ViolationService {
         }
 
         public Map<HoneyKey, AbstractPacketLimitHandler> generateMap(HoneyPlayer player) {
-            if (setting.keyedAnnotation == null || setting.keyedAnnotation.amount() > 0) {
+            if (setting.keyedAnnotation == null || setting.keyedAnnotation.amount() <= 0) {
                 return new HashMap<HoneyKey, AbstractPacketLimitHandler>(){{
                     put(HoneyKey.of(limitsKey.getRegistryKey()), generateHandler(player));
                 }};

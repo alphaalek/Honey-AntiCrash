@@ -201,7 +201,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
-                    if (!player.violationContext.getPacketlimitMap().has(getID())) {
+                    if (!player.violationContext.getViolationDistributors().has(getID())) {
                         player.violationContext.getDistributor(ViolationService.HoneyKey.of(this), getSetting());
                     }
 

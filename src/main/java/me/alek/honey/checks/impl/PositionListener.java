@@ -589,24 +589,25 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
         private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
-        private double guessedDelta2D;
-        private double guessedDeltaY;
+        private double lastDelta2D;
+        private double lastDeltaY;
 
         @Override
         public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            final ResponseContainer response = ResponseBuilder.SUCCESS.copy().skip(1).build();
+            ResponseContainer response = ResponseBuilder.SUCCESS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
+                double delta2D = container.getStorage().getDouble(0);
+                double deltaY = container.getStorage().getDouble(1);
 
-                final double delta2D = container.getStorage().getDouble(0);
-                final double deltaY = container.getStorage().getDouble(1);
-
-                if (delta2D == 0 && deltaY == 0) return response;
+                if (delta2D == 0 && deltaY == 0) {
+                    return response;
+                }
 
                 boolean hasPattern = false;
-                final ResponseBuilder builder = ResponseBuilder.inst();
+                ResponseBuilder builder = ResponseBuilder.inst();
 
                 if (delta2D > 0.05) {
-                    if (guessedDelta2D == delta2D) {
+                    if (lastDelta2D == delta2D) {
                         builder.add(
                                 ResponseBuilder.inst().flag()
                                         .withViolationKey(twoDKey)
@@ -614,18 +615,21 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         );
                         hasPattern = true;
                     }
-                    guessedDelta2D = delta2D;
+                    lastDelta2D = delta2D;
                 }
+
                 if (deltaY > 0.5) {
-                    if (guessedDeltaY == deltaY) {
-                        final Material material = player.player.getEyeLocation().getBlock().getType();
-                        if (material.name().contains("WATER") || material.name().contains("LAVA")
-                                || deltaY % 0.375 < 0.01) {
-                            List<ResponseContainer> subResponses;
-                            return response.builder()
-                                    .add((subResponses = builder.build().subContainers).isEmpty() ? null : subResponses.get(0))
-                                    .build();
+                    Material material = player.player.getEyeLocation().getBlock().getType();
+                    if (material.name().contains("WATER") || material.name().contains("LAVA") || deltaY % 0.375 < 0.01) {
+                        lastDeltaY = deltaY;
+                        if (hasPattern) {
+                            return builder.build();
+                        } else {
+                            return response;
                         }
+                    }
+
+                    if (lastDeltaY == deltaY) {
                         builder.add(
                                 ResponseBuilder.inst().flag()
                                         .withViolationKey(YKey)
@@ -633,10 +637,14 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         );
                         hasPattern = true;
                     }
-                    guessedDeltaY = deltaY;
+                    lastDeltaY = deltaY;
                 }
-                if (hasPattern) return builder.build();
+
+                if (hasPattern) {
+                    return builder.build();
+                }
             }
+
             return response;
         }
 

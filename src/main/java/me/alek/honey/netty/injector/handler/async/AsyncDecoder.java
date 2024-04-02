@@ -84,6 +84,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
             worker = workerPool.submit(this);
         }
 
+
         if (worker.isQuarantined()) {
             if (worker.relocate(this)) {
                 worker = workerPool.relocateWorkerTasks(this, worker);

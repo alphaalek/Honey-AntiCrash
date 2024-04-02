@@ -9,6 +9,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -91,7 +92,11 @@ public class HoneyPacketHandler extends ChannelDuplexHandler implements Updatabl
         }
 
         if (packetContainer.getType() == PacketType.Play.Client.CUSTOM_PAYLOAD) {
-            packetContainer.getDataSerializers().readField(0).retain();
+            WrappedPacketDataSerializer serializer = packetContainer.getDataSerializers().readField(0);
+
+            if (serializer.refCnt() > 0) {
+                serializer.retain();
+            }
         }
 
         return true;
