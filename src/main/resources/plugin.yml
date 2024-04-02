@@ -8,5 +8,4 @@ main: me.alek.honey.HoneyPluginInitializer
 commands:
   honey:
   asyncdecoderdebug:
-  trackerdebug:
 
