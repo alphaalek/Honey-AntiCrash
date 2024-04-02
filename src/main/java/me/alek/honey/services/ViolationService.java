@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
@@ -14,15 +13,11 @@ import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.utility.Array;
 import me.alek.honey.utility.BungeeMessenger;
-import me.alek.honey.utility.Tuple2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,7 +35,7 @@ public class ViolationService {
     }
 
     public ViolationDistributor getDistributor(HoneyPlayer player, HoneyKey honeyKey, ConfigurationOptions.VlSetting setting) {
-        return player.violationContext.getLimits(honeyKey, setting);
+        return player.violationContext.getDistributor(honeyKey, setting);
     }
 
     public boolean flag(HoneyPlayer player,
@@ -103,23 +98,25 @@ public class ViolationService {
             this.player = player;
         }
 
-        public ViolationDistributor getLimits(HoneyKey key, ConfigurationOptions.VlSetting setting) {
-            return packetLimiters.get(key.getRegistry().getID(), () -> {
-                final AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
-                if (packetLimitHandler == null)
-                    throw new RuntimeException("No packet limit handler could be created.");
-
-                if (setting.keyedAnnotation != null)
+        public ViolationDistributor getDistributor(HoneyKey key, ConfigurationOptions.VlSetting setting) {
+            return packetLimiters.get(key.getRegistryKey(), () -> {
+                if (setting.keyedAnnotation != null) {
                     return new ViolationDistributor(player,
-                            new KeyedViolationLookupGenerator(key, packetLimitHandler, setting));
-                else
+                            new KeyedViolationLookupGenerator(key, setting));
+                } else {
+                    final AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
+                    if (packetLimitHandler == null) {
+                        throw new RuntimeException("No packet limit handler could be created.");
+                    }
+
                     return new ViolationDistributor(player, packetLimitHandler);
+                }
             });
         }
 
         public void setSetting(HoneyKey key, HoneyKey violationKey, ConfigurationOptions.VlSetting setting) {
-            if (packetLimiters.has(key.getRegistry().getID())) {
-                packetLimiters.get(key.getRegistry().getID()).setSetting(violationKey, setting);
+            if (packetLimiters.has(key.getRegistryKey())) {
+                packetLimiters.get(key.getRegistryKey()).setSetting(violationKey, setting);
             }
         }
 
@@ -128,7 +125,7 @@ public class ViolationService {
         }
 
         public ViolationDistributor getHandler(HoneyKey key) {
-            return packetLimiters.get(key.getRegistry().getID(), null);
+            return packetLimiters.get(key.getRegistryKey(), null);
         }
 
         public HoneyPlayer getPlayer() {
@@ -159,77 +156,34 @@ public class ViolationService {
         }
     }
 
-    public static class HoneyKeyRegistry {
+    public static class HoneyKey implements Cloneable {
 
-        private static final int MAX_ID = ListenerRegistry.getMaxID();
-        private final HoneyCheck check;
-        private final int rest;
+        private final int key;
+        private final String identifier;
 
-        public HoneyKeyRegistry(HoneyCheck check, int rest) {
-            this.check = check;
-            this.rest = rest;
+        private HoneyKey(int key, String identifier) {
+            this.key = key;
+            this.identifier = identifier;
         }
 
-        public int getID() {
-            if (rest == -1) {
-                return check.getID();
-            }
-
-            return MAX_ID + rest;
+        public static HoneyKey of(int key) {
+            return new HoneyKey(key, null);
         }
 
-        public HoneyCheck getCheck() {
-            return check;
-        }
-
-        public int getRest() {
-            return rest;
-        }
-    }
-
-    public static class HoneyKey extends Tuple2<Object, Object> implements Cloneable {
-
-        private final HoneyKeyRegistry registry;
-
-        private HoneyKey(HoneyKeyRegistry registry, Object object1, Object object2) {
-            super(object1, object2);
-            this.registry = registry;
+        public static HoneyKey of(int key, String identifier) {
+            return new HoneyKey(key, identifier);
         }
 
         public static HoneyKey of(HoneyCheck check) {
-            return of(new HoneyKeyRegistry(check, -1), null, null);
+            return of(check.getID());
         }
 
-        public static HoneyKey of(HoneyKeyRegistry registry) {
-            return of(registry, null, null);
+        public int getRegistryKey() {
+            return key;
         }
 
-        public static HoneyKey of(HoneyCheck check, Object object1) {
-            return of(new HoneyKeyRegistry(check, -1), object1, null);
-        }
-
-        public static HoneyKey of(HoneyKeyRegistry registry, Object object1) {
-            return of(registry, object1, null);
-        }
-
-        public static HoneyKey of(HoneyCheck check, Object object1, Object object2) {
-            return of(new HoneyKeyRegistry(check, -1), object1, object2);
-        }
-
-        public static HoneyKey of(HoneyKeyRegistry check, Object object1, Object object2) {
-            return new HoneyKey(check, object1, object2);
-        }
-
-        public static HoneyKey of(HoneyKey key) {
-            return of(key.getRegistry(), key.getT1(), key.getT2());
-        }
-
-        public int getId() {
-            return registry.getID();
-        }
-
-        public HoneyKeyRegistry getRegistry() {
-            return registry;
+        public String getIdentifier() {
+            return identifier;
         }
 
         @Override
@@ -248,35 +202,36 @@ public class ViolationService {
 
         @Override
         public String toString() {
-            return super.toString() + ",id=" + registry.getID();
+            return "id=" + key + ",identifier=" + identifier;
         }
     }
 
     public static class KeyedViolationLookupGenerator {
 
-        private final AbstractPacketLimitHandler handler;
         private final ConfigurationOptions.VlSetting setting;
         private final HoneyKey limitsKey;
 
-        public KeyedViolationLookupGenerator(HoneyKey limitsKey, AbstractPacketLimitHandler handler, ConfigurationOptions.VlSetting setting) {
-            this.handler = handler;
+        public KeyedViolationLookupGenerator(HoneyKey limitsKey, ConfigurationOptions.VlSetting setting) {
             this.setting = setting;
             this.limitsKey = limitsKey;
         }
 
         public Map<HoneyKey, AbstractPacketLimitHandler> generateMap(HoneyPlayer player) {
-            if (setting.keyedAnnotation == null || setting.keyedAnnotation.keys().length == 0) {
+            if (setting.keyedAnnotation == null || setting.keyedAnnotation.amount() > 0) {
                 return new HashMap<HoneyKey, AbstractPacketLimitHandler>(){{
-                    put(HoneyKey.of(limitsKey.getRegistry()), handler);
+                    put(HoneyKey.of(limitsKey.getRegistryKey()), generateHandler(player));
                 }};
             }
+
             final Map<HoneyKey, AbstractPacketLimitHandler> map = new HashMap<>();
-            for (final String key : setting.keyedAnnotation.keys()) {
-                HoneyKeyRegistry registry = new HoneyKeyRegistry(limitsKey.getRegistry().getCheck(), Arrays.asList(setting.keyedAnnotation.keys()).indexOf(key));
-                Bukkit.getLogger().info("Generating " + registry.getID() + " " + registry.getCheck() + " " + registry.getRest() + " " + Arrays.asList(setting.keyedAnnotation.keys()) + " " + key + " " + Arrays.asList(setting.keyedAnnotation.keys()).indexOf(key));
-                map.put(HoneyKey.of(registry, key), generatePacketLimitHandler(handler.getType(), player, setting));
+            for (int i = 0; i < setting.keyedAnnotation.amount(); i++) {
+                map.put(HoneyKey.of(i), generateHandler(player));
             }
             return map;
+        }
+
+        private AbstractPacketLimitHandler generateHandler(HoneyPlayer player) {
+            return generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
         }
     }
 
@@ -290,7 +245,7 @@ public class ViolationService {
             this.player = player;
 
             for (Map.Entry<HoneyKey, AbstractPacketLimitHandler> entry : generator.generateMap(player).entrySet()) {
-                packetLimitHandlerDelegateLookup.set(entry.getKey().getRegistry().getID(), entry.getValue());
+                packetLimitHandlerDelegateLookup.set(entry.getKey().getRegistryKey(), entry.getValue());
             }
         }
 
@@ -302,7 +257,11 @@ public class ViolationService {
         public AbstractPacketLimitHandler getAnyPacketLimitHandler() {
             if (packetLimitHandlerDelegateLookup.isEmpty()) return null;
 
-            return packetLimitHandlerDelegateLookup.get(0);
+            return Arrays.stream(packetLimitHandlerDelegateLookup.toRealArray())
+                    .filter(Objects::nonNull)
+                    .map(o -> (AbstractPacketLimitHandler) o)
+                    .findAny()
+                    .orElse(null);
         }
 
         public HoneyPlayer getPlayer() {
@@ -310,9 +269,17 @@ public class ViolationService {
         }
 
         public AbstractPacketLimitHandler getPacketLimitHandler(HoneyKey key, boolean orJustAny) {
-            AbstractPacketLimitHandler handler = packetLimitHandlerDelegateLookup.get(key.getRegistry().getID());
+            AbstractPacketLimitHandler handler = packetLimitHandlerDelegateLookup.get(key.getRegistryKey());
 
-            return (handler != null || !orJustAny) ? handler : getAnyPacketLimitHandler();
+            if (handler != null) {
+                return handler;
+            }
+
+            if (orJustAny) {
+                return getAnyPacketLimitHandler();
+            }
+
+            return null;
         }
 
         public Array<AbstractPacketLimitHandler> getPacketLimitHandlers() {
@@ -324,17 +291,23 @@ public class ViolationService {
                 return null;
             }
 
-            AbstractPacketLimitHandler delegate = null;
             if (key == null) {
-                delegate =
-                        cachedDefaultPacketLimitHandler == null
-                                ? (cachedDefaultPacketLimitHandler = getAnyPacketLimitHandler())
-                                : cachedDefaultPacketLimitHandler;
+                return cachedDefaultPacketLimitHandler == null
+                        ? (cachedDefaultPacketLimitHandler = getAnyPacketLimitHandler())
+                        : cachedDefaultPacketLimitHandler;
             }
-            if (delegate == null && key != null)
-                delegate = getPacketLimitHandler(key, false);
 
-            return delegate;
+            return getPacketLimitHandler(key, false);
+        }
+
+        public AbstractPacketLimitHandler createHandler(HoneyKey key, ConfigurationOptions.VlSetting setting) {
+            if (packetLimitHandlerDelegateLookup.has(key.getRegistryKey())) {
+                return null;
+            }
+
+            AbstractPacketLimitHandler handler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
+            packetLimitHandlerDelegateLookup.set(key.getRegistryKey(), handler);
+            return handler;
         }
 
         public void setSetting(HoneyKey key, ConfigurationOptions.VlSetting setting) {
@@ -410,8 +383,8 @@ public class ViolationService {
                     @Override
                     public void run() {
                         try {
-                            HoneyPlugin.get().getSQLManager().postViolation(
-                                    player, check.getName() + (honeyKey == null ? "" : " (" + honeyKey.getT1() + ")"),
+                            HoneyPlugin.get().getSQLManager().postViolation(player,
+                                    check.getName() + (honeyKey != null && honeyKey.getIdentifier() != null ? " (" + honeyKey.getIdentifier() + ")" : ""),
                                     ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)), developmentData);
                         } catch (Exception ex) {
                             ex.printStackTrace();

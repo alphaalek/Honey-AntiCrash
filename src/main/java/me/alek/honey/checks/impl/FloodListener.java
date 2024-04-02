@@ -87,13 +87,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return getResponse(player);
+                return ResponseBuilder.inst().flag().build();
             }
             return ResponseBuilder.SUCCESS;
-        }
-
-        public ResponseContainer getResponse(HoneyPlayer player) {
-            return ResponseBuilder.inst().flag().build();
         }
 
         @Override
@@ -104,16 +100,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
-        private final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(this);
-
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodA.class);
-        }
-
-        @Override
-        public ResponseContainer getResponse(HoneyPlayer player) {
-            return ResponseBuilder.inst().flag().withLimitsKey(key).build();
         }
 
         @Override
@@ -161,7 +150,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
                 return ResponseBuilder.inst().flag()
-                        .withLimitsKey(ViolationService.HoneyKey.of(new ViolationService.HoneyKeyRegistry(this, packet.getType().getPacketId())))
+                        .withViolationKey(getKey(packet))
                         .build();
             }
             return ResponseBuilder.SUCCESS;
@@ -185,6 +174,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public PacketBundleFilter getDumpFilter() {
             return PacketBundleFilters.FLOOD_FILTER;
+        }
+
+        @Override
+        public ViolationService.HoneyKey getKey(WP val) {
+            return ViolationService.HoneyKey.of(val.getType().getPacketId());
         }
 
         @Override

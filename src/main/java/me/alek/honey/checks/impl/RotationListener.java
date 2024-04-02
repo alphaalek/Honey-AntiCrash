@@ -141,8 +141,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(this, "yaw");
-        private final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(this, "pitch");
+        private final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
+        private final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -188,8 +188,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(this, "yaw");
-        private final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(this, "pitch");
+        private final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
+        private final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {

@@ -13,7 +13,6 @@ public class ResponseContainer implements Cloneable {
     public boolean success;
     public boolean terminate;
     public int skipIndices;
-    public ViolationService.HoneyKey limitsKey;
     public ViolationService.HoneyKey violationKey;
     public Runnable onViolation;
     public Runnable onFlag;

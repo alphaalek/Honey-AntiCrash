@@ -218,7 +218,7 @@ public class ConfigurationOptions {
     @Target(ElementType.TYPE)
     public @interface Keyed {
 
-        String[] keys();
+        int amount();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -841,7 +841,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Keyed(keys = {"total", "label"})
+        @Keyed(amount = 2)
         @Violation(prefixPaths = "tab-complete.c", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
         public static class TabC extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
@@ -864,7 +864,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        @Keyed(keys = {"2d", "y"})
+        @Keyed(amount = 2)
         public static class PositionB extends VlSetting implements VlMaxRequiredContentsSetting {
 
         }
@@ -889,7 +889,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.f", packetHandler = PacketLimitHandlerType.INTERVAL)
-        @Keyed(keys = {"x", "y", "z"})
+        @Keyed(amount = 3)
         public static class PositionF extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
@@ -902,7 +902,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "position.h", packetHandler = PacketLimitHandlerType.INTERVAL)
-        @Keyed(keys = {"2d", "y"})
+        @Keyed(amount = 2)
         public static class PositionH extends VlSetting implements VlIntervalRequiredContentsSetting {
 
         }
@@ -941,14 +941,14 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "rotation.b", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        @Keyed(keys = {"yaw", "pitch"})
+        @Keyed(amount = 2)
         public static class RotationB extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation(prefixPaths = "rotation.c", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
-        @Keyed(keys = {"yaw", "pitch"})
+        @Keyed(amount = 2)
         public static class RotationC extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
 
         }
@@ -1061,14 +1061,14 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        @Keyed(keys = {"hsq", "ta", "tt"})
+        @Keyed(amount = 3)
         public static class NettyJ extends VlSetting implements VlTriggerThrottleRequiredContentsSetting {
 
         }
 
         @Setting
         @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        @Keyed(keys = {"ta", "tt"})
+        @Keyed(amount = 2)
         public static class NettyK extends VlSetting implements VlTriggerThrottleRequiredContentsSetting {
 
         }

@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class CheckVisitor<WP extends WrappedPacket<WP>> {
@@ -41,7 +42,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     }
 
     private void handleCommonCheck(HoneyPlayer player, Object handle,
-                                   Function<HoneyCheck, ConfigurationOptions.VlSetting> getSetting,
+                                   BiFunction<HoneyCheck, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
                                    Function<HoneyCheck, ResponseContainer> getResponse,
                                    CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         int skipping = 0;
@@ -50,7 +51,8 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                 continue;
             }
 
-            ConfigurationOptions.VlSetting setting = getSetting.apply(check);
+            ViolationService.HoneyKey key = ViolationService.HoneyKey.of(check);
+            ConfigurationOptions.VlSetting setting = getSetting.apply(check, key);
 
             long registryKey = -1;
             if (setting != null && setting.isEnabled()) {
@@ -94,9 +96,6 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                     cancellablePacketObserver.cancel();
                 }
 
-                final ViolationService.HoneyKey key = (response.limitsKey != null)
-                        ? response.limitsKey
-                        : ViolationService.HoneyKey.of(check);
                 if (response.flag != -1 && player != null) {
                     if (setting == null) {
                         if (response.terminate) {
@@ -137,21 +136,39 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
         }
     }
 
-    private ConfigurationOptions.VlSetting getSetting(HoneyCheck check, WP packet) {
+    private ConfigurationOptions.VlSetting getSetting(HoneyCheck check, ViolationService.HoneyKey key, WP packet) {
         if (!check.isViolation()) {
             return null;
         }
 
         ViolationCheck violationCheck = (ViolationCheck) check;
         if (packet != null && violationCheck.isKeyed()) {
-            return ((KeyedViolationCheck<WP>)violationCheck).getSetting(packet);
+            @SuppressWarnings("unchecked")
+            KeyedViolationCheck<WP> keyedViolationCheck = (KeyedViolationCheck<WP>) violationCheck;
+            ConfigurationOptions.VlSetting setting = keyedViolationCheck.getSetting(packet);
+            ViolationService.HoneyKey violationKey = keyedViolationCheck.getKey(packet);
+
+            ViolationService.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);
+            ViolationService.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(violationKey, false);
+
+            if (handler != null && handler.getSetting() == setting) {
+                return setting;
+            }
+
+            if (handler != null && handler.getSetting() != setting) {
+                distributor.setSetting(violationKey, setting);
+                return setting;
+            }
+
+            distributor.createHandler(violationKey, setting);
+            return setting;
         }
 
         return violationCheck.getSetting();
     }
 
     public void check(HoneyPlayer player, CancellableByteBufImpl byteBuf, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
-        handleCommonCheck(player, null, (check) -> getSetting(check, null), check -> {
+        handleCommonCheck(player, null, (check, key) -> getSetting(check, null, null), check -> {
             try {
                 return ((DecodeCheck)check).check(player, byteBuf.buf(), checkContextContainer);
             } catch (Exception e) {
@@ -163,7 +180,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
 
     @SuppressWarnings("unchecked")
     public void check(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) throws Exception {
-        handleCommonCheck(player, packetContainer.getHandle(), (check) -> getSetting(check, packetContainer.getPacket()), check -> {
+        handleCommonCheck(player, packetContainer.getHandle(), (check, key) -> getSetting(check, key, packetContainer.getPacket()), check -> {
             try {
                 return ((PacketCheck<WP>)check).check(player, packetContainer.getPacket(), checkContextContainer);
             } catch (Exception e) {

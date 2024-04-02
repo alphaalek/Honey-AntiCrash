@@ -76,11 +76,6 @@ public class ResponseBuilder {
         return this;
     }
 
-    public ResponseBuilder withLimitsKey(ViolationService.HoneyKey key) {
-        responseContainer.limitsKey = key;
-        return this;
-    }
-
     public ResponseBuilder withViolationKey(ViolationService.HoneyKey key) {
         responseContainer.violationKey = key;
         return this;

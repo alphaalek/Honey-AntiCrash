@@ -216,8 +216,8 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketTracker();
         private static final double MIN_TA_ENTER = 5;
 
-        private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this, "ta");
-        private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(this, "tt");
+        private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(0, "ta");
+        private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(1, "tt");
         private final ResponseContainer success = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(TTKey).build()

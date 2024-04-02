@@ -143,7 +143,7 @@ public class NotificationService {
         return new MessageOffer.Builder()
                 .offer(Placeholders.PLAYER, () -> player.name)
                 .offer(Placeholders.NETWORK, () -> formatNetworkStats(player))
-                .offer(Placeholders.CHECK, () -> type + (honeyKey == null || honeyKey.getT1() == null ? "" : " (" + honeyKey.getT1() + ")"))
+                .offer(Placeholders.CHECK, () -> type + (honeyKey != null && honeyKey.getIdentifier() != null ? " (" + honeyKey.getIdentifier() + ")" : ""))
                 .build();
     }
 

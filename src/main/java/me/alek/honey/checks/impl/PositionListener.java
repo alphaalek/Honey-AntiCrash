@@ -23,6 +23,7 @@ import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.utility.Locations;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -209,8 +210,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionB<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(this, "2d");
-        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(this, "y");
+        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
+        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -506,7 +507,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                         if (corr == axis.getOther(dir)) {
                             builder.add(ResponseBuilder.inst().flag().withViolationKey(
-                                    ViolationService.HoneyKey.of(this, axis.name().toLowerCase())).build());
+                                    ViolationService.HoneyKey.of(axis.ordinal(), axis.name().toLowerCase())).build());
                         }
                     }
                     final ResponseContainer response;
@@ -585,8 +586,8 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
     public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(this, "2d");
-        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(this, "y");
+        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
+        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         private double guessedDelta2D;
         private double guessedDeltaY;

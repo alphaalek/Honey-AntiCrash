@@ -439,9 +439,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
         private static final double MIN_HSQ_ENTER = 0.1;
 
-        private final ViolationService.HoneyKey HSQKey = ViolationService.HoneyKey.of(this, "hsq");
-        private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(this,"ta");
-        private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(this,"tt");
+        private final ViolationService.HoneyKey HSQKey = ViolationService.HoneyKey.of(0, "hsq");
+        private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(1,"ta");
+        private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(2,"tt");
         private final ResponseContainer success = ResponseBuilder.inst().add(
                 ResponseBuilder.inst().flag(0).withViolationKey(HSQKey).build(),
                 ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
