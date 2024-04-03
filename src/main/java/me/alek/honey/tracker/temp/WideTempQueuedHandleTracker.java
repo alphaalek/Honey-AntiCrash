@@ -3,7 +3,7 @@ package me.alek.honey.tracker.temp;
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.tracker.TimedNode;
-import me.alek.honey.IDRegistry;
+import me.alek.honey.utility.IDRegistry;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;

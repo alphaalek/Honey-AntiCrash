@@ -1,4 +1,4 @@
-package me.alek.honey;
+package me.alek.honey.utility;
 
 public class IDRegistry {
 

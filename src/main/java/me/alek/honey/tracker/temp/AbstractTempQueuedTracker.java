@@ -1,7 +1,7 @@
 package me.alek.honey.tracker.temp;
 
 import me.alek.honey.tracker.HoneyTracker;
-import me.alek.honey.IDRegistry;
+import me.alek.honey.utility.IDRegistry;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 
