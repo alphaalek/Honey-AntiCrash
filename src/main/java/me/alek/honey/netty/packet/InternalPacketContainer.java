@@ -63,7 +63,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.postAction = postAction;
         this.type = packetType;
 
-        if (type != null && type != PacketType.UNKNOWN) {
+        if (!PacketType.isUnknown(type)) {
             this.packetStructure = ReflectStructureCache.acquireStructure(type);
             this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
         }
@@ -172,6 +172,10 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter) {
+        if (packetStructure == null) {
+            return null;
+        }
+
         return packetStructure.withType(clazz, converter).withTarget(handle);
     }
 
@@ -222,6 +226,10 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public IStructureModifier<Object> getAll() {
+        if (packetStructure == null) {
+            return null;
+        }
+
         return (IStructureModifier<Object>) packetStructure.withTarget(handle);
     }
 
@@ -277,6 +285,10 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public <T> IStructureModifier<T> getObjects(Class<T> target) {
+        if (packetStructure == null) {
+            return null;
+        }
+
         return packetStructure.withType(target).withTarget(handle);
     }
 

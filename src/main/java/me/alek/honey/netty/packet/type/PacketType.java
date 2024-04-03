@@ -29,6 +29,10 @@ public enum PacketType implements PacketTypeEnum {
         return PacketBound.SERVER;
     }
 
+    public static boolean isUnknown(PacketTypeEnum packetType) {
+        return packetType == null || packetType == UNKNOWN;
+    }
+
     private static class PacketDetails {
         int packetId;
         PacketTypeEnum packetType;

@@ -95,7 +95,7 @@ public class PacketTaskHandler {
             builder.append(prevElement);
 
         if (!builder.toString().contains("PacketTaskHandler.unregisterTask")) {
-            if (packet != null) {
+            if (packet != null && !PacketType.isUnknown(packet.getType())) {
                 HoneyPlugin.get().getLoggerService().getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
 
                 Map<String, Object> fields = packet.getAll().readFieldEntries();

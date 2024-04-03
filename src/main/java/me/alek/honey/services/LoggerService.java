@@ -166,6 +166,10 @@ public class LoggerService {
     }
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
+        if (PacketType.isUnknown(packet.getType())) {
+            return;
+        }
+
         getLogger().info("Auto dump for packet sent by " + packet.getPlayer().name + ": " + packet.getName()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
@@ -187,7 +191,7 @@ public class LoggerService {
         }
         message.append(": " + playerName + " sent " + packetContainer.getName());
 
-        if (detailed) {
+        if (detailed && !PacketType.isUnknown(packetContainer.getType())) {
             Map<String, Object> entries = new HashMap<>();
             for (Map.Entry<String, Object> entry : packetContainer.getAll().readFieldEntries().entrySet()) {
                 if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() instanceof Object[]) {
