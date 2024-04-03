@@ -1,7 +1,9 @@
 package me.alek.honey.netty.injector.handler.async;
 
+import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.ChannelCloser;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -115,7 +117,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
 
     private void kickPlayer() {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
-            player.channel.close();
+            ChannelCloser.closeForcibly(player.channel);
             return;
         }
 
@@ -130,7 +132,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
             packetManager.writeForcedPacket(player, kickDisconnect);
         } catch (Exception ex) {
             ex.printStackTrace();
-            player.channel.close();
+            ChannelCloser.closeForcibly(player.channel);
         }
     }
 

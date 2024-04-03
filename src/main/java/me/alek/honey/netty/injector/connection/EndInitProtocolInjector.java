@@ -1,9 +1,6 @@
 package me.alek.honey.netty.injector.connection;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import org.bukkit.Bukkit;
@@ -17,7 +14,7 @@ public class EndInitProtocolInjector {
             channel.pipeline().addLast(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(Channel channel) {
-                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
+                    handleChannelInitialization(this, channel);
                 }
             });
         }
@@ -27,18 +24,27 @@ public class EndInitProtocolInjector {
 
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-            try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(ctx.channel());
+            handleChannelInitialization(this, ctx.channel());
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                ctx.close();
-
-                if (ctx.pipeline().context(this) != null) {
-                    ctx.pipeline().remove(this);
-                }
-            }
             super.channelRegistered(ctx);
+        }
+    }
+
+    private static void handleChannelInitialization(ChannelHandler handler, Channel channel) {
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Bukkit.getLogger().info("Error occurred when initializing channel.");
+
+            if (channel.isOpen()) {
+                channel.close();
+            }
+
+            if (channel.pipeline().context(handler) != null) {
+                channel.pipeline().remove(handler);
+            }
         }
     }
 }

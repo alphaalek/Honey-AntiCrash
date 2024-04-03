@@ -102,7 +102,7 @@ public class SpigotServerInjector {
                     continue;
                 }
 
-                if (networkManagerChannel.localAddress().equals(channel.localAddress())) {
+                if (networkManagerChannel.localAddress().equals(channel.localAddress()) && networkManagerChannel.isOpen()) {
                     networkManagerChannel.close();
                 }
             }

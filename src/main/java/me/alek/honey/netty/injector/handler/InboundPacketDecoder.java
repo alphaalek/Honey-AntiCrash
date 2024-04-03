@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.ChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
@@ -86,22 +87,20 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
     }
 
-    AtomicInteger count = new AtomicInteger();
-
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) {
                 packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
             }
 
-            // explicit set variable, so Proguard recognizes the method
             try {
+                // explicit set variable, so Proguard recognizes the method
                 Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
             } catch (Exception ex) {
                 byteBuf.release();
 
                 if (ctx.channel().isOpen()) {
-                    ctx.channel().close();
+                    ChannelCloser.closeForcibly(ctx.channel());
                 }
 
                 if (player != null) {
@@ -188,7 +187,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
+        if (player == null || !ConfigurationOptions.AsyncDecoder.ENABLED) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;
         }

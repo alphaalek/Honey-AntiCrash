@@ -23,7 +23,9 @@ public class SpigotPipelineInjector {
     public void injectChannel(Channel channel) {
         synchronized (channel) {
             if (channel.pipeline().get("splitter") == null) {
-                channel.close();
+                if (channel.isOpen()) {
+                    channel.close();
+                }
                 return;
             }
 
