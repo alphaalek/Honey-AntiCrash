@@ -169,15 +169,16 @@ public class WorkerPool<T> {
     }
 
     public synchronized Worker<T> submit(TaskSupplier<T> supplier) {
-        Worker<T> worker = getWorkerForTaskAndSubmit();
+        Worker<T> worker = getWorkerForTaskAndRegisterSupplier();
         worker.submit(supplier);
 
         return worker;
     }
 
-    public synchronized Worker<T> getWorkerForTaskAndSubmit() {
+    public synchronized Worker<T> getWorkerForTaskAndRegisterSupplier() {
         Worker<T> worker = getWorkerForTask();
         worker.incrementSupplierCount();
+
         return worker;
     }
 
@@ -186,7 +187,7 @@ public class WorkerPool<T> {
             return createAndPushNewTaskWorker();
         }
 
-        for (int i = 0; i < workers.length; i++) {
+        for (int i = 0; i < workers.length - 1; i++) {
             Worker<T> worker = workers[i];
             pushTaskWorker(worker, i + 1);
         }
@@ -201,6 +202,12 @@ public class WorkerPool<T> {
     public synchronized void pushTaskWorker(Worker<T> worker, int start) {
         for (int i = start; i < workers.length; i++) {
             Worker<T> otherWorker = workers[i];
+            /*
+            if (otherWorker == null) {
+                Bukkit.getLogger().info("Found null worker! " + i);
+                otherWorker = initNewTaskWorker(workers, i);
+            }
+            */
 
             if (worker.isQuarantined()
                     || worker.getPendingTasks().size() > otherWorker.getPendingTasks().size()
@@ -234,16 +241,20 @@ public class WorkerPool<T> {
     }
 
     private synchronized Worker<T> initNewTaskWorker(Worker<T>[] newWorkers, int index) {
-        TaskWorker newWorker = new TaskWorker(getTaskWorkerThreadName());
-        newWorkers[index] = newWorker;
+        Worker<T> worker = initNewTaskWorker();
+        newWorkers[index] = worker;
 
+        return worker;
+    }
+
+    private synchronized Worker<T> initNewTaskWorker() {
+        TaskWorker newWorker = new TaskWorker(getTaskWorkerThreadName());
         new Thread(newWorker, newWorker.name()).start();
 
         return newWorker;
     }
 
     public synchronized void garbageCollect() {
-        // remove excessive unused workers
         List<Worker<T>> quarantinedWorkers = Arrays.stream(workers)
                 .filter(Worker::isQuarantined)
                 .collect(Collectors.toList());
@@ -251,17 +262,15 @@ public class WorkerPool<T> {
         if (workers.length - quarantinedWorkers.size() > minimumWorkerThreads) {
             try {
                 Worker<T>[] newWorkers = new Worker[minimumWorkerThreads + quarantinedWorkers.size()];
-                Worker<T>[] quarantinedWorkersArray = quarantinedWorkers.toArray((Worker<T>[]) new Worker[0]);
-                System.arraycopy(quarantinedWorkersArray, 0, newWorkers, minimumWorkerThreads, quarantinedWorkers.size());
+                if (!quarantinedWorkers.isEmpty()) {
+                    Worker<T>[] quarantinedWorkersArray = quarantinedWorkers.toArray((Worker<T>[]) new Worker[0]);
+                    System.arraycopy(quarantinedWorkersArray, 0, newWorkers, minimumWorkerThreads, quarantinedWorkers.size());
+                }
 
                 List<Worker<T>> otherWorkers = new ArrayList<>(Arrays.asList(workers));
                 otherWorkers.removeAll(quarantinedWorkers);
 
-                for (int i = 0; i < otherWorkers.size(); i++) {
-                    if (i == minimumWorkerThreads) {
-                        break;
-                    }
-
+                for (int i = 0; i < minimumWorkerThreads; i++) {
                     Worker<T> worker = otherWorkers.get(i);
                     otherWorkers.remove(worker);
                     newWorkers[i] = worker;
@@ -272,10 +281,14 @@ public class WorkerPool<T> {
                 for (Worker<T> worker : otherWorkers) {
                     worker.destroy();
                 }
+                Bukkit.getLogger().info("Post GC " + Arrays.asList(newWorkers) + " " + newWorkers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
+                return;
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
+        Bukkit.getLogger().info("No GC done " + workers.length);
     }
 
     public Worker<T> relocateWorkerTasks(Worker<T> from) {
@@ -289,7 +302,7 @@ public class WorkerPool<T> {
     }
 
     private Worker<T> relocateWorkerTasks(Queue<ChainedCallable<T>> tasks) {
-        Worker<T> worker = getWorkerForTaskAndSubmit();
+        Worker<T> worker = getWorkerForTaskAndRegisterSupplier();
         for (ChainedCallable<T> task : tasks) {
             worker.submit(task);
         }
