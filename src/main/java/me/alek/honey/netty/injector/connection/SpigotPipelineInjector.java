@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class SpigotPipelineInjector {
@@ -28,6 +29,8 @@ public class SpigotPipelineInjector {
             String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
             String debuggerName = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
+            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+            String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
 
             if (channel.pipeline().get(handlerName) != null
                     && channel.pipeline().get(filterName) != null
@@ -47,10 +50,19 @@ public class SpigotPipelineInjector {
                 channel.pipeline().remove(debuggerName);
             }
 
-            HoneyPacketHandler packetHandler = new HoneyPacketHandler();
-            channel.pipeline().addBefore("packet_handler", handlerName, packetHandler);
+            if (channel.pipeline().get(decoderName) != null) {
+                channel.pipeline().remove(decoderName);
+            }
+
+            if (channel.pipeline().get(encoderName) != null) {
+                channel.pipeline().remove(encoderName);
+            }
+
+            channel.pipeline().addBefore("packet_handler", handlerName, new HoneyPacketHandler());
             channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
-            channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel, packetHandler));
+            channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
+
+            setupPreparationHandlers(channel);
         }
     }
 
@@ -81,45 +93,59 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public void relocateHandlers(Channel channel, HoneyPacketHandler packetHandler) throws MissingHandlerException {
+    public void setupPreparationHandlers(Channel channel) {
+        HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
+        setupPreparationHandlers(channel, packetHandler);
+    }
+
+    public void setupPreparationHandlers(Channel channel, HoneyPacketHandler packetHandler) {
+        String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
+        String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
+
+        AsyncDecoder asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL);
+
+        if (channel.pipeline().get(decoderName) == null && PacketInterceptorResolver.isDecoderPositionResolved()) {
+            channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), decoderName,
+                    new InboundPacketDecoder(channel, asyncDecoder, packetHandler));
+        }
+
+        if (channel.pipeline().get(encoderName) == null && PacketInterceptorResolver.isEncoderPositionResolved()) {
+            channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), encoderName,
+                    new OutboundPacketEncoder(channel, asyncDecoder, packetHandler));
+        }
+    }
+
+    public void relocateHandlers(HoneyPlayer player, Channel channel) {
         synchronized (channel) {
-            InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
-            String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
-
             if (channel.pipeline().get("decompress") != null) {
+                InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
+
                 channel.pipeline().remove(filter);
-                channel.pipeline().addAfter("decompress", filterName, filter);
+                channel.pipeline().addAfter("decompress", HoneyPlugin.get().getPacketLibrary().getFilterName(), filter);
             }
 
-            String[] requiredHandlers = new String[3];
-            requiredHandlers[0] = filterName;
-
-            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
-            String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
-
-            if (PacketInterceptorResolver.getDecoderPosition(channel.pipeline()) != null) {
-                requiredHandlers[1] = decoderName;
+            if (!PacketInterceptorResolver.isDecoderPositionResolved()) {
+                PacketInterceptorResolver.getDecoderPosition(channel.pipeline());
             }
 
-            if (PacketInterceptorResolver.getEncoderPosition(channel.pipeline()) != null) {
-                requiredHandlers[2] = encoderName;
+            if (!PacketInterceptorResolver.isEncoderPositionResolved()) {
+                PacketInterceptorResolver.getEncoderPosition(channel.pipeline());
             }
 
-            AsyncDecoder asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL);
-
-            if (channel.pipeline().get(decoderName) == null && PacketInterceptorResolver.isDecoderPositionResolved()) {
-                channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), decoderName,
-                        new InboundPacketDecoder(channel, asyncDecoder, packetHandler));
+            if (player != null) {
+                setupPreparationHandlers(channel, player.packetHandler);
+            } else {
+                setupPreparationHandlers(channel, HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel));
             }
 
-            if (channel.pipeline().get(encoderName) == null && PacketInterceptorResolver.isEncoderPositionResolved()) {
-                channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), encoderName,
-                        new OutboundPacketEncoder(channel, asyncDecoder, packetHandler));
-            }
-
-            for (String requiredHandler : requiredHandlers) {
-                if (requiredHandler != null && channel.pipeline().get(requiredHandler) == null)
-                    throw new MissingHandlerException("No \"" + requiredHandler + "\" channel handler in pipeline!");
+            if (player != null && player.updateHandlersLater &&
+                    PacketInterceptorResolver.isDecoderPositionResolved() && PacketInterceptorResolver.isEncoderPositionResolved()) {
+                try {
+                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().updatePlayer(player);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                player.updateHandlersLater = false;
             }
         }
     }
@@ -221,9 +247,10 @@ public class SpigotPipelineInjector {
             }
 
             if (handler != null) {
+                player.packetHandler = handler;
                 channel.pipeline().remove(handler);
+                player.removedPacketHandlerFromPipeline = true;
             }
-            player.removedPacketHandlerFromPipeline = true;
         }
     }
 }

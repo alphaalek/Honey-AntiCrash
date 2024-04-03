@@ -35,22 +35,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     private boolean hasBeenRelocated;
     private HoneyPlayer player;
     private final Channel channel;
-    private final HoneyPacketHandler packetHandler;
 
-    public InboundPacketFilter(Channel channel, HoneyPacketHandler packetHandler) {
+    public InboundPacketFilter(Channel channel) {
         this.channel = channel;
-        this.packetHandler = packetHandler;
-    }
-
-    public InboundPacketFilter copy() {
-        InboundPacketFilter copy = new InboundPacketFilter(channel, packetHandler);
-        copy.hasBeenRelocated = true;
-        copy.player = player;
-        return copy;
-    }
-
-    public HoneyPacketHandler getPacketHandler() {
-        return packetHandler;
     }
 
     public void setPlayer(HoneyPlayer player) {
@@ -78,16 +65,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         if (player != null) {
             checkRelocation();
 
-            if (player.updateHandlersLater &&
-                    PacketInterceptorResolver.isDecoderPositionResolved() && PacketInterceptorResolver.isEncoderPositionResolved()) {
-                try {
-                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().updatePlayer(player);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                player.updateHandlersLater = false;
-            }
-
             earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
             packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
         } else earlyPacketInitializer.remove();
@@ -107,14 +84,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     public void checkRelocation() {
         if (!hasBeenRelocated) {
-            try {
-                hasBeenRelocated = true;
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, packetHandler);
-
-            } catch (MissingHandlerException ex) {
-                hasBeenRelocated = false;
-                channel.unsafe().closeForcibly();
-            }
+            hasBeenRelocated = true;
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(player, channel);
         }
     }
 }

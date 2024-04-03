@@ -20,20 +20,7 @@ public class ServerPacketManager {
 
         OutboundPacketEncoder encoder = packetManager.getEncoder(player.channel);
         if (encoder == null) {
-            if (PacketInterceptorResolver.isEncoderPositionResolved() && packetManager.getDecoder(player.channel) != null) {
-                try {
-                    InboundPacketFilter filter  = packetManager.getFilter(player.channel);
-                    HoneyPacketHandler packetHandler = filter.getPacketHandler();
-
-                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(player.channel, packetHandler);
-                } catch (Exception ignored) {
-                    return;
-                }
-            }
-
-            if ((encoder = packetManager.getEncoder(player.channel)) == null) {
-                return;
-            }
+            return;
         }
 
         encoder.writeForcedPacket(packet.getHandle());
