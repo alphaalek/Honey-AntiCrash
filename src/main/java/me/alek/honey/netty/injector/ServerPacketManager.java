@@ -57,8 +57,8 @@ public class ServerPacketManager {
         channel.pipeline().fireChannelRead(rawPacket);
     }
 
-    public HoneyPacketHandler getHandler(Channel channel) {
-        return (HoneyPacketHandler) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getHandlerName());
+    public boolean bothPreparationHandlerExists(Channel channel) {
+        return getDecoder(channel) != null && getEncoder(channel) != null;
     }
 
     public InboundPacketFilter getFilter(Channel channel) {

@@ -9,6 +9,7 @@ import me.alek.honey.netty.injector.connection.SpigotServerInjector;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
+import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -61,6 +62,8 @@ public class PacketLibrary {
             // late bind, so we inject a bit later
             Bukkit.getScheduler().scheduleSyncDelayedTask(settings.getPlugin(), serverInjector::inject);
         }
+
+        PostActions.setup();
     }
 
     public SpigotServerInjector getServerInjector() {
@@ -77,10 +80,6 @@ public class PacketLibrary {
 
     public NetProtocol getFallbackProtocol() {
         return settings.getFallbackProtocol();
-    }
-
-    public String getHandlerName() {
-        return settings.getHandlerName();
     }
 
     public String getFilterName() {

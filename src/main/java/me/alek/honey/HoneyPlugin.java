@@ -250,7 +250,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private void setupPacketLibrary() {
         if (packetLibrary == null) {
-            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey-packet-handler", "honey-filter", "honey-connection", "honey-channel-init", "honey-decode-prepare", "honey-encode-prepare", "honey-debugger"));
+            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey-filter", "honey-connection", "honey-channel-init", "honey-decode-prepare", "honey-encode-prepare", "honey-debugger"));
         }
     }
 
@@ -371,8 +371,10 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public PacketLibrary getPacketLibrary() {
-        if (packetLibrary == null)
+        if (packetLibrary == null) {
             packetLibrary = PacketLibrary.get();
+        }
+
         return packetLibrary;
     }
 

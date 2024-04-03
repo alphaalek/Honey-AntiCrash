@@ -3,7 +3,6 @@ package me.alek.honey.checks;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -88,7 +87,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static synchronized CheckVisitor<?> getCachedVisitor(Array<CheckVisitor<?>> visitors, CheckVisitable visitable, HoneyPlayer player, int registryID) {
         if (!visitable.requiresPlayer() && !visitors.has(registryID)
-                || visitable.requiresPlayer() && player != null && player.isOnline() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
+                || visitable.requiresPlayer() && player != null && player.isOnlineDirect() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
             visitors.set(registryID, visitable.getVisitor(player));
 
             if (player != null) {

@@ -1,15 +1,19 @@
 package me.alek.honey.netty.injector.connection;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.injector.ChannelProxy;
 import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.netty.injector.PipelineProxy;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.utility.NMS;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -29,24 +33,45 @@ public class SpigotPipelineInjector {
                 return;
             }
 
-            String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
             String debuggerName = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
 
-            if (channel.pipeline().get(handlerName) != null
-                    && channel.pipeline().get(filterName) != null
+            if (channel.pipeline().get(filterName) != null
                     && channel.pipeline().get(debuggerName) != null) {
                 return;
             }
 
             ejectHandlersIfExists(channel);
 
-            channel.pipeline().addBefore("packet_handler", handlerName, new HoneyPacketHandler());
+            HoneyPacketHandler packetHandler = new HoneyPacketHandler();
+            if (!PacketInterceptorResolver.isDecoderPositionResolved() || !PacketInterceptorResolver.isEncoderPositionResolved()) {
+                channel.pipeline().addBefore("packet_handler", "pre-resolved-packet-handler", new PreResolvedPacketHandler(packetHandler));
+            }
+
             channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
 
-            setupPreparationHandlers(channel);
+            setupPreparationHandlers(channel, packetHandler);
         }
+    }
+
+    public void injectChannelProxy(Channel channel) throws MissingHandlerException {
+        Object networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(channel);
+        if (networkManager == null || !NMS.getNetworkManagerClass().isInstance(networkManager)) {
+            throw new MissingHandlerException();
+        }
+
+        IStructureModifier<Channel> channelStructureModifier = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
+                .withType(Channel.class)
+                .withTarget(networkManager);
+
+        Channel registeredChannel = channelStructureModifier.readField(0);
+        if (registeredChannel instanceof ChannelProxy) {
+            return;
+        }
+
+        ChannelProxy channelProxy = new ChannelProxy(registeredChannel);
+        channelStructureModifier.writeField(0, channelProxy);
     }
 
     public void ensureCorrectPipelineOrder(Channel channel) {
@@ -76,29 +101,24 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public void setupPreparationHandlers(Channel channel) {
-        HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
-        setupPreparationHandlers(channel, packetHandler);
-    }
-
     public void setupPreparationHandlers(Channel channel, HoneyPacketHandler packetHandler) {
         String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
         String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
 
         AsyncDecoder asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL);
 
-        if (channel.pipeline().get(decoderName) == null && PacketInterceptorResolver.isDecoderPositionResolved()) {
+        if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel) == null && PacketInterceptorResolver.isDecoderPositionResolved()) {
             channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), decoderName,
                     new InboundPacketDecoder(channel, asyncDecoder, packetHandler));
         }
 
-        if (channel.pipeline().get(encoderName) == null && PacketInterceptorResolver.isEncoderPositionResolved()) {
+        if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel) == null && PacketInterceptorResolver.isEncoderPositionResolved()) {
             channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), encoderName,
                     new OutboundPacketEncoder(channel, asyncDecoder, packetHandler));
         }
     }
 
-    public void relocateHandlers(HoneyPlayer player, Channel channel) {
+    public void relocateHandlers(HoneyPlayer player, Channel channel) throws MissingHandlerException {
         synchronized (channel) {
             if (channel.pipeline().get("decompress") != null) {
                 InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
@@ -115,10 +135,22 @@ public class SpigotPipelineInjector {
                 PacketInterceptorResolver.getEncoderPosition(channel.pipeline());
             }
 
-            if (player != null) {
-                setupPreparationHandlers(channel, player.packetHandler);
-            } else {
-                setupPreparationHandlers(channel, HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel));
+            ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
+            if (preResolvedPacketHandler != null) {
+                PreResolvedPacketHandler preResolvedPacketHandler0 = (PreResolvedPacketHandler) preResolvedPacketHandler;
+                setupPreparationHandlers(channel, preResolvedPacketHandler0.getPacketHandler());
+            }
+
+            if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
+                if (player != null && player.packetHandler != null) {
+                    setupPreparationHandlers(channel, player.packetHandler);
+                } else {
+                    setupPreparationHandlers(channel, new HoneyPacketHandler());
+                }
+
+                if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
+                    throw new MissingHandlerException();
+                }
             }
 
             if (player != null && player.updateHandlersLater &&
@@ -134,15 +166,10 @@ public class SpigotPipelineInjector {
     }
 
     public void ejectHandlersIfExists(Channel channel) {
-        String handlerName = HoneyPlugin.get().getPacketLibrary().getHandlerName();
         String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
         String debuggerName = HoneyPlugin.get().getPacketLibrary().getDebuggerName();
         String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
         String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
-
-        if (channel.pipeline().get(handlerName) != null) {
-            channel.pipeline().remove(handlerName);
-        }
 
         if (channel.pipeline().get(filterName) != null) {
             channel.pipeline().remove(filterName);
@@ -158,6 +185,10 @@ public class SpigotPipelineInjector {
 
         if (channel.pipeline().get(encoderName) != null) {
             channel.pipeline().remove(encoderName);
+        }
+
+        if (channel.pipeline().get("pre-resolved-packet-handler") != null) {
+            channel.pipeline().remove("pre-resolved-packet-handler");
         }
     }
 
@@ -179,15 +210,11 @@ public class SpigotPipelineInjector {
 
     public void decrementTaskSupplierCount(Channel channel) {
         synchronized (channel) {
-            String decoderName = HoneyPlugin.get().getPacketLibrary().getDecoderName();
-            if (channel.pipeline().get(decoderName) != null) {
-                InboundPacketDecoder decoder = (InboundPacketDecoder) channel.pipeline().get(decoderName);
+            if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel) != null) {
+                InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
                 decoder.getAsyncDecoder().farewell();
-            }
-
-            String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
-            if (channel.pipeline().get(encoderName) != null) {
-                OutboundPacketEncoder encoder = (OutboundPacketEncoder) channel.pipeline().get(encoderName);
+            } else if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel) != null) {
+                OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
                 encoder.getAsyncDecoder().farewell();
             }
         }
@@ -200,17 +227,12 @@ public class SpigotPipelineInjector {
         }
 
         synchronized (channel) {
-            HoneyPacketHandler handler = HoneyPlugin.get().getPacketLibrary().getPacketManager().getHandler(channel);
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             HoneyDebugger debugger = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDebugger(channel);
-            if ((handler == null && !player.removedPacketHandlerFromPipeline)
-                    || filter == null || debugger == null) {
-                throw new MissingHandlerException("Handler: " + handler + ", Filter: " + filter + ", Debugger: " + debugger + ", Removed: " + player.removedPacketHandlerFromPipeline);
+            if (filter == null || debugger == null) {
+                throw new MissingHandlerException("Filter: " + filter + ", Debugger: " + debugger);
             }
 
-            if (handler != null) {
-                handler.setPlayer(player);
-            }
             filter.setPlayer(player);
             debugger.setPlayer(player);
 
@@ -220,6 +242,7 @@ public class SpigotPipelineInjector {
                     throw new MissingHandlerException("Decoder");
                 }
 
+                player.packetHandler = decoder.getPacketHandler();
                 decoder.getAsyncDecoder().setPlayer(player);
             } else {
                 player.updateHandlersLater = true;
@@ -231,15 +254,25 @@ public class SpigotPipelineInjector {
                     throw new MissingHandlerException("Encoder");
                 }
 
+                player.packetHandler = encoder.getPacketHandler();
                 encoder.getAsyncDecoder().setPlayer(player);
             } else {
                 player.updateHandlersLater = true;
             }
 
-            if (handler != null) {
-                player.packetHandler = handler;
-                channel.pipeline().remove(handler);
-                player.removedPacketHandlerFromPipeline = true;
+            ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
+            if (preResolvedPacketHandler != null) {
+                PreResolvedPacketHandler preResolvedPacketHandler0 = (PreResolvedPacketHandler) preResolvedPacketHandler;
+
+                HoneyPacketHandler packetHandler = preResolvedPacketHandler0.getPacketHandler();
+                packetHandler.setPlayer(player);
+                player.packetHandler = packetHandler;
+
+                channel.pipeline().remove("pre-resolved-packet-handler");
+            }
+
+            if (preResolvedPacketHandler == null && player.packetHandler == null && player.updateHandlersLater) {
+                throw new MissingHandlerException("Pre Resolved Packet Handler");
             }
         }
     }

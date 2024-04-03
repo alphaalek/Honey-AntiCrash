@@ -2,7 +2,6 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.response.ResponseContainer;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.utility.Array;
@@ -18,7 +17,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         // cancel the decoding if the player is not even online
-        if (player != null && (!player.isOnline() || byteBuf.buf().refCnt() < 1)) {
+        if (player != null && (!player.isOnlineDirect() || byteBuf.buf().refCnt() < 1)) {
             byteBuf.cancel();
             return;
         }

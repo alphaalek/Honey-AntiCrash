@@ -18,9 +18,9 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     long getTime();
 
-    void addCallbackAction(Consumer<PacketContainer<WP>> action);
+    void addServerCallbackAction(Consumer<PacketContainer<WP>> action);
 
-    void invokeCallback();
+    void invokeServerCallback();
 
     Channel getChannel();
 

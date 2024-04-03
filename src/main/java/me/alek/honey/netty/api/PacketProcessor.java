@@ -9,14 +9,15 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface PacketProcessor {
-
-    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket);
 
     PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket);
 
     PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet);
+
+    void addPostAction(PacketTypeEnum packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback);
 
     void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf);
 

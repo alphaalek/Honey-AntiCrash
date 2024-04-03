@@ -87,12 +87,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public void addCallbackAction(Consumer<PacketContainer<WP>> action) {
+    public void addServerCallbackAction(Consumer<PacketContainer<WP>> action) {
         callbackAction.addAction(action);
     }
 
     @Override
-    public void invokeCallback() {
+    public void invokeServerCallback() {
         callbackAction.call(this);
     }
 

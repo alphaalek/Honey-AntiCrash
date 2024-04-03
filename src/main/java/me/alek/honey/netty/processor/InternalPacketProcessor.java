@@ -3,6 +3,7 @@ package me.alek.honey.netty.processor;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
@@ -17,6 +18,7 @@ import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.Array;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -266,31 +268,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                   Object packet, HoneyPlayer player, Channel channel,
-                                                                                  CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type, long readStart) {
-        /* removed from packet processor - now handled in me/alek/honey/netty/injector/handler/InboundPacketDecoder
-
-        if (player != null) {
-            if (player.decoder == null) {
-                player.decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
-                if (player.decoder == null)
-                    return new InternalPacketContainer<>(packet, player, channel, postAction, type);
-            }
-            if (player.decoder.earlyInitializedPacketQueue.isEmpty())
-                return new InternalPacketContainer<>(packet, player, channel, postAction, type);
-
-            PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket;
-            while ((earlyInitializedPacket = player.decoder.earlyInitializedPacketQueue.poll()) != null && !packet.equals(earlyInitializedPacket.getHandle())) {
-
-            }
-
-            if (earlyInitializedPacket != null && earlyInitializedPacket.getHandle().equals(packet)) {
-                earlyInitializedPacket.init(packet, postAction, type);
-
-                HoneyPlugin.get().getNettyPacketHandleTracker().registerTime(player, (double) earlyInitializedPacket.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
-                return earlyInitializedPacket;
-            }
-        }
-        */
+                                                                                  CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
         if (packetContainer != null) {
             packetContainer.init(packet, postAction, type);
 
@@ -302,12 +280,13 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, Channel channel,
                                                                      Object packet, PacketBound packetBound,
-                                                                     PacketContainer<WP> earlyInitializedPacket, long readStart) {
+                                                                     PacketContainer<WP> earlyInitializedPacket) {
         // initialize the packet container
-        final PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
-        final CallbackAction<PacketContainer<WP>> postAction = packetType.getPacketId() != -1 ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getPacketId()) : null;
-        final PacketContainer<WP> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, channel, postAction, packetType, readStart);
+        PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
+        CallbackAction<PacketContainer<WP>> postAction = packetType.getPacketId() != -1 ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getPacketId()) : null;
+
+        PacketContainer<WP> packetContainer = initializePacketContainer(
+                earlyInitializedPacket, packet, player, channel, postAction, packetType);
 
         // check if this packet type has any listeners which can handle this packet.
         // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
@@ -329,27 +308,34 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
-        callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.CLIENT);
+        callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.SERVER);
         packetContainer.getEventloopStateTimings().stopTimings();
 
         return packetContainer;
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, long readStart, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket) {
-        return handleCommon(player, channel, packet, PacketBound.CLIENT, earlyInitializedPacket, readStart);
-    }
-
-    @Override
     public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket) {
-        return read(channel, player, packet, 0L, earlyInitializedPacket);
+        return handleCommon(player, channel, packet, PacketBound.SERVER, earlyInitializedPacket);
     }
 
     @Override
     public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet) {
-        return handleCommon(player, channel, packet, PacketBound.SERVER, null, 0L);
+        return handleCommon(player, channel, packet, PacketBound.CLIENT, null);
     }
 
+    @Override
+    public synchronized void addPostAction(PacketTypeEnum packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback) {
+        if (packetType.getPacketId() == -1) {
+            return;
+        }
+
+        if (!postActions.has(packetType.getPacketId())) {
+            postActions.set(packetType.getPacketId(), new CallbackAction<>());
+        }
+
+        postActions.get(packetType.getPacketId()).addAction(callback);
+    }
 
     public PacketState getPacketState(HoneyPlayer player, Class<?> packetClass) {
         if (packetClass == null) return null;

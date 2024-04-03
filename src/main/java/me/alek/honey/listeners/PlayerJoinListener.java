@@ -16,8 +16,9 @@ public class PlayerJoinListener implements Listener {
 
     public static void onPostLoginSuccess(HoneyPlayer player) {
         for (IListener check : ListenerRegistry.getChecks()) {
-            if (check.hasInitializedCheckInstances())
+            if (check.hasInitializedCheckInstances()) {
                 check.setup(player);
+            }
         }
         HoneyPlugin.get().getNotificationService().setup(player);
 
@@ -50,11 +51,14 @@ public class PlayerJoinListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
-        if (player == null) player = HoneyPlayer.registerPlayer(event.getPlayer());
+        if (player == null) {
+            player = HoneyPlayer.registerPlayer(event.getPlayer());
+        }
 
         for (IListener check : ListenerRegistry.getChecks()) {
-            if (check.hasInitializedCheckInstances())
+            if (check.hasInitializedCheckInstances()) {
                 check.cleanup(player);
+            }
         }
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);
@@ -68,6 +72,7 @@ public class PlayerJoinListener implements Listener {
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
 
         player.leaveCallback.call(player);
+        player.online = false;
         IDRegistry.PLAYERS.remove(player.registryID);
     }
 }

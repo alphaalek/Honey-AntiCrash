@@ -9,14 +9,14 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
-import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 
 @ChannelHandler.Sharable
-public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
+public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Method packetEncode;
@@ -34,13 +34,15 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
     private final Channel channel;
-    private final MessageToByteEncoder<Object> encoder;
 
     public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.channel = channel;
         this.asyncDecoder = asyncDecoder;
         this.packetHandler = packetHandler;
-        encoder = (MessageToByteEncoder<Object>) channel.pipeline().get("encoder");
+    }
+
+    public HoneyPacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
     public AsyncDecoder getAsyncDecoder() {
@@ -55,7 +57,7 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         }
 
         asyncDecoder.encode((s) -> {
-            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnline()) {
+            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnlineDirect()) {
                 try {
                     write0(ctx, msg, new DefaultChannelPromise(ctx.channel()), true);
                 } catch (Exception ex) {
@@ -69,19 +71,24 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         });
     }
 
-    private void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) throws Exception {
-        if (ctx == null) return;
+    private <WP extends WrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) {
+        if (msg instanceof ByteBuf) {
+            ctx.write(msg, promise);
+            return;
+        }
 
-        if (asyncDecoder.getPlayer() != null) {
-            PacketContainer<? extends WrappedPacket<?>> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
-
-            if (!packetHandler.write0(packetContainer, promise)) {
-                return;
-            }
+        PacketContainer<WP> packetContainer = (PacketContainer<WP>) packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
+        if (!packetHandler.write(packetContainer)) {
+            return;
         }
 
         if (retain) {
             ReferenceCountUtil.retain(msg);
+        }
+
+        CallbackAction<PacketContainer<WP>> post = packetContainer.getPost();
+        if (post != null) {
+            promise.addListener((d) -> post.call(packetContainer));
         }
 
         ctx.write(msg, promise);
@@ -94,18 +101,14 @@ public class OutboundPacketEncoder extends MessageToByteEncoder<Object> {
         }
 
         try {
-            write0(channel.pipeline().context(this), value, new DefaultChannelPromise(channel), false);
+            ChannelHandlerContext ctx = channel.pipeline().context(this);
+            if (ctx == null) {
+                return;
+            }
+
+            write0(ctx, value, new DefaultChannelPromise(channel), false);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void encode(ChannelHandlerContext ctx, Object value, ByteBuf byteBuf) throws Exception {
-        try {
-            packetEncode.invoke(encoder, ctx, value, byteBuf);
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
         }
     }
 }

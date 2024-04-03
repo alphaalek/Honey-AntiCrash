@@ -1,7 +1,9 @@
 package me.alek.honey.netty.utility;
 
 import org.bukkit.Bukkit;
+import sun.misc.Unsafe;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -383,17 +385,45 @@ public class Reflection {
     }
 
     public static void setFinalField(Object instance, Field field, Object value) throws Exception {
+       if (Modifier.isFinal(field.getModifiers())) {
+           try {
+               setFinalFieldAccessible(field);
+           } catch (Exception ex) {
+               field.set(instance, value);
+               if (field.get(instance) == value) {
+                   return;
+               }
+
+               throw new Exception(ex);
+           }
+       }
+
+       field.set(instance, value);
+    }
+
+    public static void setFinalFieldAccessible(Field field) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         field.setAccessible(true);
+
         try {
             Field modifiersField = Field.class.getDeclaredField("modifiers");
             modifiersField.setAccessible(true);
+            int modifiers = modifiersField.getInt(field);
 
-            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-        } catch (Exception ex) {
-            // ignore Java 12+ error
+            modifiers &= ~Modifier.FINAL;
+            modifiersField.setInt(field, modifiers);
+        } catch (NoSuchFieldException e) {
+            Method getDeclaredFields0 = Class.class.getDeclaredMethod("getDeclaredFields0", boolean.class);
+            getDeclaredFields0.setAccessible(true);
+
+            Field[] fields = (Field[]) getDeclaredFields0.invoke(Field.class, false);
+            for (Field classField : fields) {
+                if ("modifiers".equals(classField.getName())) {
+                    classField.setAccessible(true);
+                    classField.set(field, field.getModifiers() & ~Modifier.FINAL);
+                    break;
+                }
+            }
         }
-
-        field.set(instance, value);
     }
 
     public static String getVersion() {

@@ -15,7 +15,6 @@ import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -164,7 +163,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // check if this packet is not the first one handled in this tick
             if (recentPollStart != -1 && recentPacket != null) {
 
-                if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnline()
+                if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineDirect()
                         && !(ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && recentPacket.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))) {
                     // evaluate the difference in time
                     double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);

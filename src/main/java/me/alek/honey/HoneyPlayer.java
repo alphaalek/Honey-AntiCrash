@@ -44,11 +44,11 @@ public class HoneyPlayer {
     public final String name;
     public final Channel channel;
 
+    public boolean online = true;
     public boolean updateHandlersLater;
-    public boolean removedPacketHandlerFromPipeline;
+    public HoneyPacketHandler packetHandler;
     public TempTimedQueuedTracker timedQueuedTracker;
     public TempTimedQueuedTracker serverThreadTimedQueuedTracker;
-    public HoneyPacketHandler packetHandler;
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
@@ -63,8 +63,12 @@ public class HoneyPlayer {
         channel = NMS.getChannelIfSet(name);
     }
 
-    public boolean isOnline() {
+    public boolean isOnlineDirect() {
         return player.isOnline();
+    }
+
+    public boolean isOnlineWeak() {
+        return online;
     }
 
     public World getWorld() {

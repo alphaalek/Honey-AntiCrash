@@ -10,13 +10,13 @@ import me.alek.honey.netty.ChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
+import me.alek.honey.utility.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @ChannelHandler.Sharable
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
@@ -44,6 +43,10 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         this.asyncDecoder = asyncDecoder;
         this.packetHandler = packetHandler;
         setupMethodInvoke(channel.pipeline());
+    }
+
+    public HoneyPacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
     public AsyncDecoder getAsyncDecoder() {
@@ -65,33 +68,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         }
     }
 
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) {
-        try {
-            super.handlerAdded(ctx);
-        } catch (Exception ignored) {
-
-        }
-
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
-        try {
-            super.handlerRemoved(ctx);
-        } catch (Exception ignored) {
-
-        }
-
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
-    }
-
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
-            if (packetContainer != null) {
-                packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
-            }
+            packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
 
             try {
                 // explicit set variable, so Proguard recognizes the method
@@ -114,12 +93,13 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            if (packetContainer == null
-                    || packetContainer.getType() == PacketType.Play.Client.TRANSACTION
+            packetContainer.getEventloopStateTimings().stopTimings();
+
+            if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
                     || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                 Object packet = list.get(0);
-                if (packetContainer != null && exemptedIntervalThrottle != null) {
+                if (exemptedIntervalThrottle != null) {
                     exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
 
                     if (packetContainer.isCancelled()) {
@@ -134,33 +114,27 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            packetContainer.getEventloopStateTimings().stopTimings();
             if (player != null) {
                 HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, list.get(0), packetContainer.getTime(), packetContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, list.get(0), packetContainer);
 
-            Runnable packetExecutorTask = null;
+            Runnable packetExecutorTask;
             if (ConfigurationOptions.AsyncDecoder.ENABLED && !finalPacketContainer.isCancelled()) {
                 packetExecutorTask = packetProcessor.getPacketExecutorTask(finalPacketContainer);
+            } else {
+                packetExecutorTask = null;
             }
-            Runnable finalPacketExecutorTask = packetExecutorTask;
 
-            ctx.channel().eventLoop().execute(() -> {
-                if (!packetHandler.read0(finalPacketContainer)) {
-                    return;
-                }
+            if (ctx.channel().eventLoop().inEventLoop()) {
+                firePacketRead(ctx, finalPacketContainer, packetExecutorTask);
+            } else {
+                ctx.channel().eventLoop().execute(() -> firePacketRead(ctx, finalPacketContainer, packetExecutorTask));
+            }
 
-                if (finalPacketExecutorTask != null) {
-                    serverThreadExecutionQueue.add(finalPacketExecutorTask);
-                    return;
-                }
-
-                ctx.fireChannelRead(finalPacketContainer.getHandle());
-                packetHandler.postRead();
-            });
         } catch (Throwable ex) {
+            ex.printStackTrace();
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {
@@ -169,9 +143,30 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         }
     }
 
+    private <WP extends WrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packetContainer, Runnable packetExecutorTask) {
+        if (!packetHandler.read(packetContainer)) {
+            return;
+        }
+
+        if (packetExecutorTask != null) {
+            serverThreadExecutionQueue.add(packetExecutorTask);
+            return;
+        }
+
+        ctx.fireChannelRead(packetContainer.getHandle());
+        HoneyPacketHandler.getPacketSendMarker().remove();
+
+        CallbackAction<PacketContainer<WP>> post = packetContainer.getPost();
+        if (post != null) {
+            post.call(packetContainer);
+        }
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
-        if (!(o instanceof ByteBuf)) return;
+        if (!(o instanceof ByteBuf)) {
+            return;
+        }
 
         ByteBuf byteBuf = (ByteBuf) o;
         if (byteBuf.readableBytes() == 0) {
@@ -196,7 +191,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (player.isOnline() && !player.punished) {
+            if (player.isOnlineDirect() && !player.punished) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

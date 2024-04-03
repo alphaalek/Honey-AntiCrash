@@ -7,7 +7,6 @@ public class PacketLibrarySettings {
 
     private NetProtocol fallbackProtocol;
     private final Plugin plugin;
-    private final String handlerName;
     private final String filterName;
     private final String connectorName;
     private final String channelInitName;
@@ -17,7 +16,6 @@ public class PacketLibrarySettings {
 
     public PacketLibrarySettings(
             Plugin plugin,
-            String handlerName,
             String filterName,
             String connectorName,
             String channelInitName,
@@ -26,17 +24,12 @@ public class PacketLibrarySettings {
             String debuggerName
     ) {
         this.plugin = plugin;
-        this.handlerName = handlerName;
         this.filterName = filterName;
         this.connectorName = connectorName;
         this.channelInitName = channelInitName;
         this.decoderName = decoderName;
         this.encoderName = encoderName;
         this.debuggerName = debuggerName;
-    }
-
-    public String getHandlerName() {
-        return handlerName;
     }
 
     public String getFilterName() {

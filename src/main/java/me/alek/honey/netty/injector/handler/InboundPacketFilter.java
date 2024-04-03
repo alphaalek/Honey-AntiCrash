@@ -8,6 +8,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.AttributeKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.ChannelCloser;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -48,6 +49,17 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return player;
     }
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        ctx.fireChannelActive();
+
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(ctx.channel());
+        } catch (MissingHandlerException ex) {
+            ctx.close();
+        }
+    }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
@@ -61,20 +73,18 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     }
 
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = null;
         if (player != null) {
             checkRelocation();
+        }
 
-            earlyPacketInitializer.set(packetContainer = new InternalPacketContainer<>(player, ctx.channel()));
-            packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
-        } else earlyPacketInitializer.remove();
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
+        earlyPacketInitializer.set(packetContainer);
+        packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
 
         CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
         packetProcessor.callDecode(player, cancellableByteBuf);
 
-        if (packetContainer != null) {
-            packetContainer.getEventloopStateTimings().stopTimings();
-        }
+        packetContainer.getEventloopStateTimings().stopTimings();
 
         if (!cancellableByteBuf.isCancelled())
             list.add(byteBuf.readBytes(byteBuf.readableBytes()));
@@ -85,7 +95,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void checkRelocation() {
         if (!hasBeenRelocated) {
             hasBeenRelocated = true;
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(player, channel);
+            try {
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(player, channel);
+            } catch (MissingHandlerException ex) {
+                hasBeenRelocated = false;
+            }
         }
     }
 }

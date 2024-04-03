@@ -18,6 +18,10 @@ public class CallbackAction<T> {
         }
     }
 
+    public synchronized void call() {
+        call(null);
+    }
+
     public boolean isEmpty() {
         return callbacks.isEmpty();
     }

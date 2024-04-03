@@ -3,9 +3,7 @@ package me.alek.honey.tracker.packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.concurrent.FutureTask;
 
@@ -35,7 +33,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
     @Override
     public synchronized void run() {
-        if (player.punished) {
+        if (!player.isOnlineWeak() || player.punished) {
             return;
         }
 
@@ -46,7 +44,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when running packet task.");
             ex.printStackTrace();
         }
-        packet.invokeCallback();
+        packet.invokeServerCallback();
 
         PacketTaskHandler.unregisterTask();
     }
