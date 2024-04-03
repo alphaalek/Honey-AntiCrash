@@ -1,8 +1,12 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.compat.SparkTPSProvider;
+import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.utility.TPSProvider;
+import org.bukkit.Bukkit;
 
 public class ServerMonitorer implements ScheduledMonitorer {
 
@@ -16,17 +20,15 @@ public class ServerMonitorer implements ScheduledMonitorer {
         return "server monitor";
     }
 
-    private String getTPS(Timespan timespan) {
-        double value = NumberConversions.format(HoneyPlugin.get().getTickloop().evaluateTPS(timespan), 1);
-        return (value < 13 ? "§c" : value < 17 ? "§e" : "§a") + value;
-    }
-
     private String getPacketTaskPercentage(Timespan timespan) {
-        return NumberConversions.format((Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / (Math.pow(10, 9) * timespan.getTimespan())) * 100), 1) + "%";
+        return NumberConversions.format(
+                (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / (PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER * timespan.getTimespan()) * 100)), 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {
-        double rate = NumberConversions.format(HoneyPlugin.get().getLoggerService().getPacketRatePerQueueExecution(timespan),1);
+        double rate = NumberConversions.format(
+                HoneyPlugin.get().getLoggerService().getPacketRatePerQueueExecution(timespan),1);
+
         return Double.isNaN(rate) ? 0 : rate;
     }
 
@@ -35,7 +37,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
         HoneyPlugin.get().getServerThreadTracker().clearExceedingNodes(false, System.currentTimeMillis());
 
         int packetRate;
-        return "§6*§8TPS: §7" + getTPS(Timespan.TEN_SECOND) + ", " + getTPS(Timespan.FIFTEEN_SECOND) + "§8, "
+        return "§6*§8TPS: §7" + TPSProvider.getTPS(Timespan.TEN_SECOND) + ", " + TPSProvider.getTPS(Timespan.FIFTEEN_SECOND) + "§8, "
                 + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLoggerService().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLoggerService().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.TEN_SECOND) + " ppqe§8, "
                 + "§8o.s.t.: §7" + getPacketTaskPercentage(Timespan.TEN_SECOND) + ", " + getPacketTaskPercentage(Timespan.FIFTEEN_SECOND);
     }

@@ -18,6 +18,7 @@ import me.alek.honey.messages.MessageOffer;
 import me.alek.honey.messages.Placeholders;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.utility.DecayingListeningCounter;
+import me.alek.honey.utility.TPSProvider;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -206,14 +207,9 @@ public class NotificationService {
         return ((ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c") + ping;
     }
 
-    public String formatTPS() {
-        int tps = (int) HoneyPlugin.get().getTickloop().evaluateTPS(Timespan.FIVE_SECOND);
-        return ((tps > 16.5) ? "§a" : (tps > 8) ? "§e" : "§c") + tps;
-    }
-
     private String formatNetworkStats(HoneyPlayer player) {
         String ping = formatPing(player);
-        String tps = formatTPS();
+        String tps = TPSProvider.getTPS(Timespan.FIVE_SECOND);
 
         return "§8(" + ping + "ms§7/" + tps + "tps§8)§7";
     }
