@@ -105,16 +105,16 @@ public class SpigotPipelineInjector {
                 requiredHandlers[2] = encoderName;
             }
 
-            AsyncDecoder asyncDecoder = null;
+            AsyncDecoder asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL);
 
             if (channel.pipeline().get(decoderName) == null && PacketInterceptorResolver.isDecoderPositionResolved()) {
                 channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), decoderName,
-                        new InboundPacketDecoder(channel, asyncDecoder = new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL), packetHandler));
+                        new InboundPacketDecoder(channel, asyncDecoder, packetHandler));
             }
 
             if (channel.pipeline().get(encoderName) == null && PacketInterceptorResolver.isEncoderPositionResolved()) {
                 channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), encoderName,
-                        new OutboundPacketEncoder(channel, (asyncDecoder != null ? asyncDecoder : new AsyncDecoder(WorkerPool.ASYNC_PACKET_DECODER_POOL)), packetHandler));
+                        new OutboundPacketEncoder(channel, asyncDecoder, packetHandler));
             }
 
             for (String requiredHandler : requiredHandlers) {
