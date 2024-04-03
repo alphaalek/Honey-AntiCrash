@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector.handler;
 
 import io.netty.buffer.*;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.AttributeKey;
@@ -21,6 +22,7 @@ import java.nio.channels.ClosedChannelException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+@ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
@@ -106,15 +108,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void checkRelocation() {
         if (!hasBeenRelocated) {
             try {
+                hasBeenRelocated = true;
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(channel, packetHandler);
 
-                hasBeenRelocated = true;
             } catch (MissingHandlerException ex) {
-                ex.printStackTrace();
-                if (player != null)
-                    Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer(ex.getMessage()));
-                else
-                    channel.close();
+                hasBeenRelocated = false;
+                channel.unsafe().closeForcibly();
             }
         }
     }

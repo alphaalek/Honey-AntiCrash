@@ -86,18 +86,10 @@ public class SpigotPipelineInjector {
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             String filterName = HoneyPlugin.get().getPacketLibrary().getFilterName();
 
-            if (filter != null) {
-                filter = filter.copy();
-                channel.pipeline().remove(filterName);
+            if (channel.pipeline().get("decompress") != null) {
+                channel.pipeline().remove(filter);
+                channel.pipeline().addAfter("decompress", filterName, filter);
             }
-
-            if (filter == null) {
-                filter = new InboundPacketFilter(channel, packetHandler);
-            }
-
-            channel.pipeline().addAfter(channel.pipeline().get(
-                    "decompress") != null ? "decompress" : /* no network compression */ "splitter", filterName, filter);
-
 
             String[] requiredHandlers = new String[3];
             requiredHandlers[0] = filterName;
