@@ -46,6 +46,6 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         }
         packet.invokeServerCallback();
 
-        PacketTaskHandler.unregisterTask();
+        PacketTaskHandler.unregisterTask(packet);
     }
 }

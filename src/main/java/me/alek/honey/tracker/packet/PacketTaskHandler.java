@@ -1,5 +1,6 @@
 package me.alek.honey.tracker.packet;
 
+import com.avaje.ebeaninternal.server.cluster.Packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -39,8 +40,8 @@ public class PacketTaskHandler {
                         if (packet == null || packet.isDumped()) {
                             continue;
                         }
-
                         packet.dump();
+
                         if (packet.getType() != PacketType.Play.Client.FLYING
                                 && packet.getType() != PacketType.Play.Client.POSITION
                                 && packet.getType() != PacketType.Play.Client.POSITION_LOOK
@@ -129,28 +130,23 @@ public class PacketTaskHandler {
         return handledTask.getPacket();
     }
 
-    public static void unregisterTask() {
+    public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
         synchronized (ignoreDecrementLock) {
-            if (handledTask != null) {
-                tracker.decrementPacketsInQueueExecution(handledTask.getPlayer().uuid);
-
-                PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                if (packet != null) {
-                    packet.getEventloopStateTimings().stopTimings();
-
-                    if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
-                            && packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
-                        HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
-                    }
-
-                    // we have to make sure it's not an unmodifiable packet
-                    if (packet.getPlayer() != null) {
-                        monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
-                    }
-                }
-                lastHandledPacket = packet;
-                handledTask = null;
-            }
+            tracker.decrementPacketsInQueueExecution(packet.getPlayer().uuid);
         }
+        packet.getEventloopStateTimings().stopTimings();
+
+        if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
+                && packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
+            HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
+        }
+
+        // we have to make sure it's not an unmodifiable packet
+        if (packet.getPlayer() != null) {
+            monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+        }
+
+        lastHandledPacket = packet;
+        handledTask = null;
     }
 }
