@@ -35,6 +35,10 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
     @Override
     public synchronized void run() {
+        if (player.punished) {
+            return;
+        }
+
         PacketTaskHandler.registerTask(this);
         try {
             super.run();
