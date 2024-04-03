@@ -17,6 +17,6 @@ public class TPSProvider {
         }
 
         value = NumberConversions.format(value);
-        return (value < 12 ? "§c" : value < 17 ? "§e" : "§a") + value;
+        return (value > 20 ? "§a*" : "") + (value < 12 ? "§c" : value < 17 ? "§e" : "§a") + Math.min(20, value);
     }
 }

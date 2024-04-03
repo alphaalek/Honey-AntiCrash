@@ -219,7 +219,9 @@ public class NotificationService {
             return "";
         }
         if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
-            return "§7flags: §e" + ((ViolationService.PacketIntervalHandler)packetLimitHandler).flaggedCopy + "§7/§e" + setting.maxPerInterval + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls, §e" + (setting.interval < 1000 ? setting.interval + "§7ms" : ((double)setting.interval)/1000 + "§7s");
+            ViolationService.PacketIntervalHandler packetIntervalHandler = (ViolationService.PacketIntervalHandler) packetLimitHandler;
+            return "§7flags: §e" + packetIntervalHandler.flaggedCopy + "§7/§e" + setting.maxPerInterval + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls, §e"
+                    + (setting.interval < 1000 ? setting.interval + "§7ms" : ((double)setting.interval)/1000 + "§7s");
         }
         else if (packetLimitHandler instanceof ViolationService.PacketIntervalThrottleHandler) {
             ViolationService.PacketIntervalThrottleHandler packetIntervalThrottleHandler = (ViolationService.PacketIntervalThrottleHandler) packetLimitHandler;
