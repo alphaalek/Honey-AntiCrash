@@ -342,32 +342,27 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         private WrappedChunkCoordIntPair lastChunkCameFrom;
         private WrappedChunkCoordIntPair lastChunk;
-        private boolean lastChunkLoaded;
-        private boolean checkedChunkLoaded;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
-            // consider if the player is moving too fast around the map, and maybe trying to crash the server by loading too many chunks
-            final WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
-            int skip = (chunk == lastChunk || chunk == lastChunkCameFrom)
-                    ? 1
-                    : (checkedChunkLoaded ? lastChunkLoaded : (lastChunkLoaded = chunk.isLoaded(player.getWorld()))) ? 1 : 0;
+            // consider if the player is moving too fast around the map and loading excessively chunks
+            WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
+            boolean equalsChunk = chunk.equals(lastChunk);
+            boolean equalsPreviousChunk = chunk.equals(lastChunkCameFrom);
 
-            if (chunk != lastChunk) {
-                checkedChunkLoaded = true;
+            int skip = equalsChunk && equalsPreviousChunk ? 1 : chunk.isLoaded(player.getWorld()) ? 1 : 0;
+
+            if (!equalsChunk) {
+                lastChunkCameFrom = lastChunk;
+                lastChunk = chunk;
             }
 
-            if (!getSetting().isEnabled()
-                    || chunk.equals(lastChunk) || chunk.equals(lastChunkCameFrom)) {
-                // the player is in the same chunk as the last position update
+            // if the setting is disabled, we weill just return SUCCESS, or
+            if (!getSetting().isEnabled() || equalsChunk && equalsPreviousChunk) {
+                // [...] the player is in the same chunk as the last position or the same chunk as the previous chunk
                 return ResponseBuilder.SUCCESS.copy().skip(skip).build();
             }
-            // the player has moved into a new chunk, and we have to register this chunk as the current one
-            lastChunkLoaded = false;
-            checkedChunkLoaded = false;
-            lastChunkCameFrom = lastChunk;
-            lastChunk = chunk;
             return ResponseBuilder.inst().flag().skip(skip).build();
         }
 

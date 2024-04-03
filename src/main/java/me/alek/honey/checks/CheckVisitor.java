@@ -47,7 +47,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                                    CancellablePacketObserver cancellablePacketObserver, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
         int skipping = 0;
         for (HoneyCheck check : checks) {
-            if (--skipping >= 0) {
+            if (skipping-- > 0) {
                 continue;
             }
 
