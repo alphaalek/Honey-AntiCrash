@@ -20,18 +20,23 @@ public class PacketFactory {
     public static Array<MethodHandle> WRAPPER_CACHE = new Array<>();
 
     public static Object createRawPacket(PacketTypeEnum type) {
-        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) throw new UnsupportedOperationException();
+        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
+            throw new UnsupportedOperationException();
+        }
 
         try {
             return type.getNmsClass().newInstance();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
         return null;
     }
 
     public static Object createRawPacket(PacketTypeEnum type, ByteBuf serializer) {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) return createRawPacket(type);
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
+            return createRawPacket(type);
+        }
 
         try {
             return type.getNmsClass().getDeclaredConstructor(NMS.getPacketDataSerializerClass())
@@ -39,6 +44,7 @@ public class PacketFactory {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
         return null;
     }
 
@@ -64,6 +70,7 @@ public class PacketFactory {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating packet for type " + type);
             ex.printStackTrace();
         }
+
         return null;
     }
 
@@ -77,7 +84,9 @@ public class PacketFactory {
 
     private static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
         MethodHandle wrapperInvoker = getWrapperInvoker(type);
-        if (wrapperInvoker == null) return null;
+        if (wrapperInvoker == null) {
+            return null;
+        }
 
         try {
             Object packet = wrapperInvoker.invokeWithArguments(new Object[]{rawPacket, packetContainer});
