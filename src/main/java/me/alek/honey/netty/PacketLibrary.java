@@ -91,6 +91,10 @@ public class PacketLibrary {
         return settings.getConnectorName();
     }
 
+    public String getChannelInitName() {
+        return settings.getChannelInitName();
+    }
+
     public String getDecoderName() {
         return settings.getDecoderName();
     }

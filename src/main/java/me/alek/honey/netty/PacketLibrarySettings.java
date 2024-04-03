@@ -10,6 +10,7 @@ public class PacketLibrarySettings {
     private final String handlerName;
     private final String filterName;
     private final String connectorName;
+    private final String channelInitName;
     private final String decoderName;
     private final String encoderName;
     private final String debuggerName;
@@ -19,6 +20,7 @@ public class PacketLibrarySettings {
             String handlerName,
             String filterName,
             String connectorName,
+            String channelInitName,
             String decoderName,
             String encoderName,
             String debuggerName
@@ -27,6 +29,7 @@ public class PacketLibrarySettings {
         this.handlerName = handlerName;
         this.filterName = filterName;
         this.connectorName = connectorName;
+        this.channelInitName = channelInitName;
         this.decoderName = decoderName;
         this.encoderName = encoderName;
         this.debuggerName = debuggerName;
@@ -42,6 +45,10 @@ public class PacketLibrarySettings {
 
     public String getConnectorName() {
         return connectorName;
+    }
+
+    public String getChannelInitName() {
+        return channelInitName;
     }
 
     public String getDecoderName(){

@@ -78,7 +78,21 @@ public class SpigotServerInjector {
     private synchronized void injectServerChannel(Channel channel) {
         ChannelPipeline pipeline = channel.pipeline();
 
-        pipeline.addFirst(new BeginInitProtocolInjector());
+        String connectorName = HoneyPlugin.get().getPacketLibrary().getConnectorName();
+        if (pipeline.get(connectorName) != null) {
+            pipeline.remove(connectorName);
+        }
+
+        String prioritizedHandler = getPrioritizedHandler(pipeline);
+        if (prioritizedHandler != null) {
+            pipeline.addAfter(prioritizedHandler, connectorName, new BeginInitProtocolInjector());
+        } else {
+            pipeline.addFirst(connectorName, new BeginInitProtocolInjector());
+        }
+
+        if (networkManagers == null) {
+            return;
+        }
 
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
@@ -93,6 +107,34 @@ public class SpigotServerInjector {
                 }
             }
         }
+    }
+
+    private String getPrioritizedHandler(ChannelPipeline pipeline) {
+        List<String> handlersOrdered = new ArrayList<>(pipeline.toMap().keySet());
+        String lastPrioritizedHandler = null;
+        int lastPrioritizedHandlerIndex = -1;
+        if (pipeline.get("SpigotNettyServerChannelHandler#0") != null) {
+            int index = handlersOrdered.indexOf(lastPrioritizedHandler);
+            if (index > lastPrioritizedHandlerIndex) {
+                lastPrioritizedHandlerIndex = index;
+                lastPrioritizedHandler = "SpigotNettyServerChannelHandler0";
+            }
+        }
+        if (pipeline.get("floodgate-init") != null) {
+            int index = handlersOrdered.indexOf(lastPrioritizedHandler);
+            if (index > lastPrioritizedHandlerIndex) {
+                lastPrioritizedHandlerIndex = index;
+                lastPrioritizedHandler = "floodgate-init";
+            }
+        }
+        if (pipeline.get("MinecraftPipeline#0") != null) {
+            int index = handlersOrdered.indexOf(lastPrioritizedHandler);
+            if (index > lastPrioritizedHandlerIndex) {
+                lastPrioritizedHandler = "MinecraftPipeline#0";
+            }
+        }
+
+        return lastPrioritizedHandler;
     }
 
     public Object getNetworkManagerFor(Channel channel) {

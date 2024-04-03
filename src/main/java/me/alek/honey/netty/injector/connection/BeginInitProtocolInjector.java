@@ -46,14 +46,14 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
             CHECKED_NETTY_VERSION = true;
         }
 
-        String connectorName = HoneyPlugin.get().getPacketLibrary().getConnectorName();
+        String channelInitName = HoneyPlugin.get().getPacketLibrary().getChannelInitName();
 
         //Depends on netty version, if we cannot resolve that we just check server version.
         if ((NETTY_VERSION != null && NETTY_VERSION.isNewerThan(MODERN_NETTY_VERSION))
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
-            channel.pipeline().addLast(connectorName, new EndInitProtocolInjector.Initializer_v1_12());
+            channel.pipeline().addLast(channelInitName, new EndInitProtocolInjector.Initializer_v1_12());
         } else {
-            channel.pipeline().addFirst(connectorName, new EndInitProtocolInjector.Initializer_v1_8());
+            channel.pipeline().addFirst(channelInitName, new EndInitProtocolInjector.Initializer_v1_8());
         }
 
         super.channelRead(ctx, msg);
