@@ -203,7 +203,7 @@ public class NotificationService {
     }
 
     public String formatPing(HoneyPlayer player) {
-        int ping = getPing(player);
+        int ping = Math.max(0, getPing(player));
         return ((ping < 150) ? "§a" : (ping < 500) ? "§e" : "§c") + ping;
     }
 
