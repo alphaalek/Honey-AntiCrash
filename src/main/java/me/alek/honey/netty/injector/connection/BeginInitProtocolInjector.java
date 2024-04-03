@@ -53,7 +53,7 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
             channel.pipeline().addLast(channelInitName, new EndInitProtocolInjector.Initializer_v1_12());
         } else {
-            channel.pipeline().addFirst(channelInitName, new EndInitProtocolInjector.Initializer_v1_8());
+            channel.pipeline().addLast(channelInitName, new EndInitProtocolInjector.Initializer_v1_8());
         }
 
         super.channelRead(ctx, msg);

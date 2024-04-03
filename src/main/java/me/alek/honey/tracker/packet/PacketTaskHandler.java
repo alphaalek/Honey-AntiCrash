@@ -134,6 +134,7 @@ public class PacketTaskHandler {
         synchronized (ignoreDecrementLock) {
             tracker.decrementPacketsInQueueExecution(packet.getPlayer().uuid);
         }
+
         packet.getEventloopStateTimings().stopTimings();
 
         if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED

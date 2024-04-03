@@ -113,24 +113,36 @@ public class SpigotServerInjector {
         List<String> handlersOrdered = new ArrayList<>(pipeline.toMap().keySet());
         String lastPrioritizedHandler = null;
         int lastPrioritizedHandlerIndex = -1;
+
         if (pipeline.get("SpigotNettyServerChannelHandler#0") != null) {
-            int index = handlersOrdered.indexOf(lastPrioritizedHandler);
+            int index = handlersOrdered.indexOf("SpigotNettyServerChannelHandler#0");
             if (index > lastPrioritizedHandlerIndex) {
                 lastPrioritizedHandlerIndex = index;
                 lastPrioritizedHandler = "SpigotNettyServerChannelHandler0";
             }
         }
+
         if (pipeline.get("floodgate-init") != null) {
-            int index = handlersOrdered.indexOf(lastPrioritizedHandler);
+            int index = handlersOrdered.indexOf("floodgate-init");
             if (index > lastPrioritizedHandlerIndex) {
                 lastPrioritizedHandlerIndex = index;
                 lastPrioritizedHandler = "floodgate-init";
             }
         }
+
         if (pipeline.get("MinecraftPipeline#0") != null) {
-            int index = handlersOrdered.indexOf(lastPrioritizedHandler);
+            int index = handlersOrdered.indexOf("MinecraftPipeline#0");
             if (index > lastPrioritizedHandlerIndex) {
                 lastPrioritizedHandler = "MinecraftPipeline#0";
+            }
+        }
+
+        for (String handler : handlersOrdered) {
+            if (handler.startsWith("pe-connection-handler")) {
+                int index = handlersOrdered.indexOf(handler);
+                if (index > lastPrioritizedHandlerIndex) {
+                    lastPrioritizedHandler = handler;
+                }
             }
         }
 
