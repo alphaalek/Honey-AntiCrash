@@ -282,13 +282,11 @@ public class WorkerPool<T> {
                     worker.destroy();
                 }
                 Bukkit.getLogger().info("Post GC " + Arrays.asList(newWorkers) + " " + newWorkers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
-                return;
 
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-        Bukkit.getLogger().info("No GC done " + workers.length);
     }
 
     public Worker<T> relocateWorkerTasks(Worker<T> from) {

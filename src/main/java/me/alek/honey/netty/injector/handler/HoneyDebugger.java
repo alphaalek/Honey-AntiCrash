@@ -7,13 +7,13 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.ChannelCloser;
 
-import java.nio.channels.ClosedChannelException;
+import java.io.IOException;
 import java.util.Optional;
 
 public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     private static final String VIA_VERSION_CLOSED_CHANNEL = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
-    private static final String NETTY_NATIVE_READ_ADDRESS = "Error while read(...): Connection reset by peer";
+    private static final String NETTY_NATIVE_READ_RESET = "Error while read(...): Connection reset by peer";
     private static final String NETTY_NATIVE_WRITE_RESET = "Error while write(...): Connection reset by peer";
     private static final String NETTY_NATIVE_WRITE_BROKEN_PIPE = "Error while write(...): Broken pipe";
     private static final String NETTY_CONNECTION_RESET = "Connection reset";
@@ -52,10 +52,10 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
     public static void onExceptionCaught(Throwable throwable) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
         if (HoneyPlugin.get().getLoggerService().isDebug()
-                && !(throwable instanceof ClosedChannelException)
                 && !(throwable instanceof ReadTimeoutException)
+                && !(throwable instanceof IOException)
                 && /* ViaVersion */ !message.equals(VIA_VERSION_CLOSED_CHANNEL)
-                && /* Netty */ !message.equals(NETTY_NATIVE_READ_ADDRESS)
+                && /* Netty */ !message.equals(NETTY_NATIVE_READ_RESET)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_BROKEN_PIPE)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
                 && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {

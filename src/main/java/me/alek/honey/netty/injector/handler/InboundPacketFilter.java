@@ -53,12 +53,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void channelActive(ChannelHandlerContext ctx) {
         ctx.fireChannelActive();
 
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(ctx.channel());
         } catch (MissingHandlerException ex) {
             ctx.close();
         }
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
     }
 
     @Override

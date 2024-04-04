@@ -162,6 +162,8 @@ public class SpigotPipelineInjector {
                 }
                 player.updateHandlersLater = false;
             }
+
+            Bukkit.broadcastMessage("Post relocation " + channel.pipeline().toMap());
         }
     }
 
