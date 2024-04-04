@@ -1,6 +1,6 @@
 package me.alek.honey.netty.utility;
 
-public interface IReflectMember<T> {
+public interface IReflectionMember<T> {
 
     Class<T> getType();
 

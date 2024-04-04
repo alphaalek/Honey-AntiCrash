@@ -1,13 +1,11 @@
 package me.alek.honey.netty.injector.handler;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 

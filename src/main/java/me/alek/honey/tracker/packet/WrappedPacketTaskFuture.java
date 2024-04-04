@@ -6,15 +6,18 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
-    private static final ReflectStructure<Callable<?>, Callable<?>> callableStructureModifier = ReflectStructureCache.acquireStructure(FutureTask.class)
-            .withWeakType(Callable.class);
     private final HoneyPlayer player;
     private final PacketContainer<? extends WrappedPacket<?>> packet;
     private final long submitted = System.nanoTime();
@@ -40,7 +43,8 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
     @Override
     public synchronized void run() {
         if (!player.isOnlineWeak() || player.punished) {
-            setEmptyCallable();
+            super.set(null);
+            return;
         }
 
         PacketTaskHandler.registerTask(this);
@@ -53,9 +57,5 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         packet.invokeServerCallback();
 
         PacketTaskHandler.unregisterTask(packet);
-    }
-
-    private void setEmptyCallable() {
-        callableStructureModifier.withTarget(this).writeField(0, (Callable<?>) () -> null);
     }
 }

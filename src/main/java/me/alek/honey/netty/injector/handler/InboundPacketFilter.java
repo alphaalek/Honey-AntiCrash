@@ -28,6 +28,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     }
 
     private boolean hasBeenRelocated;
+    private boolean hasCalledChannelInactive;
     private HoneyPlayer player;
     private final Channel channel;
 
@@ -56,7 +57,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
+    public synchronized void channelInactive(ChannelHandlerContext ctx) {
+        if (hasCalledChannelInactive) return;
+
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
 
         try {
@@ -64,6 +67,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
+        hasCalledChannelInactive = true;
     }
 
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {

@@ -6,7 +6,7 @@ import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.utility.ChannelCloser;
+import me.alek.honey.netty.utility.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
@@ -78,7 +78,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 byteBuf.release();
 
                 if (ctx.channel().isOpen()) {
-                    ChannelCloser.closeForcibly(ctx.channel());
+                    UnsafeChannelCloser.closeForcibly(ctx.channel());
                 }
 
                 if (player != null) {

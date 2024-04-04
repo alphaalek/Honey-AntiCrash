@@ -1,6 +1,5 @@
 package me.alek.honey.tracker.packet;
 
-import com.avaje.ebeaninternal.server.cluster.Packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;

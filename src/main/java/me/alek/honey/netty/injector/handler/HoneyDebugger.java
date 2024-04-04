@@ -5,7 +5,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.utility.ChannelCloser;
+import me.alek.honey.netty.utility.UnsafeChannelCloser;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -45,7 +45,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
             if (player != null) {
                 player.punished = true;
             }
-            ChannelCloser.closeForcibly(ctx.channel());
+            UnsafeChannelCloser.closeForcibly(ctx.channel());
         }
     }
 

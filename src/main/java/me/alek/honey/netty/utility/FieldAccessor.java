@@ -1,12 +1,8 @@
 package me.alek.honey.netty.utility;
 
-import me.alek.honey.netty.structure.ReflectStructure;
-import org.bukkit.Bukkit;
-
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
-public class FieldAccessor<T> implements IReflectMember<T> {
+public class FieldAccessor<T> implements IReflectionMember<T> {
 
     private final Field field;
 
@@ -14,7 +10,6 @@ public class FieldAccessor<T> implements IReflectMember<T> {
         try {
             field.setAccessible(true);
         } catch (Exception ex) {
-
         }
         this.field = field;
     }
@@ -47,8 +42,8 @@ public class FieldAccessor<T> implements IReflectMember<T> {
             field.set(object, value);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection error (field set): " + field.getName() + " " + value.getClass().getSimpleName()
-                    + " " + object.getClass().getSimpleName() + " " + ex.getMessage());
+            throw new RuntimeException("Reflection error (field set): name: " + field.getName() + " value: " + value.getClass().getSimpleName()
+                    + " instance: " + object.getClass().getSimpleName() + " message: " + ex.getMessage());
         }
     }
 

@@ -2,7 +2,7 @@ package me.alek.honey.netty.utility;
 
 import java.lang.reflect.Method;
 
-public class MethodInvoker<T> implements IReflectMember<T> {
+public class MethodInvoker<T> implements IReflectionMember<T> {
 
     private final Method method;
 
