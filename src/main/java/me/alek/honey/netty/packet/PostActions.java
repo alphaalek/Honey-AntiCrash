@@ -10,6 +10,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
+import org.bukkit.Bukkit;
 
 public class PostActions {
 
@@ -43,12 +44,10 @@ public class PostActions {
         });
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, (packet) -> {
-            if (packet.getType() == PacketType.Play.Client.CUSTOM_PAYLOAD) {
-                WrappedPacketDataSerializer serializer = packet.getDataSerializers().readField(0);
+            WrappedPacketDataSerializer serializer = packet.getDataSerializers().readField(0);
 
-                if (serializer.refCnt() > 0) {
-                    serializer.retain();
-                }
+            if (serializer.refCnt() > 0) {
+                serializer.retain();
             }
         });
     }

@@ -157,10 +157,6 @@ public class PacketLibrary {
         return isRegistered(adapter);
     }
 
-    public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {
-        packetProcessor.setPostAction(packetType, postAction);
-    }
-
     public boolean isEnabled() {
         return enabled;
     }

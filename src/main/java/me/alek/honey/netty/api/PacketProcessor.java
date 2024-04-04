@@ -38,7 +38,5 @@ public interface PacketProcessor {
     <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> packetAdapter);
 
     void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead);
-
-    void setPostAction(PacketTypeEnum packetType, Runnable postAction);
 }
 

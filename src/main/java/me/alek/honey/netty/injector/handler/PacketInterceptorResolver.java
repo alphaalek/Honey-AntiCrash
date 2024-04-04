@@ -92,8 +92,7 @@ public class PacketInterceptorResolver {
                     else
                         ctx.fireChannelRead(o);
 
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                } catch (Exception ignored) {
                 }
             }
 
@@ -135,7 +134,7 @@ public class PacketInterceptorResolver {
         List<String> handlers = setupInterceptorEnv(pipeline, false, handler -> handler instanceof ChannelOutboundHandler,
                 handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
             @Override
-            public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) throws Exception {
+            public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) {
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
                 if (o instanceof ByteBuf) {
                     position.set(prev.get() != null ? prev.get() : name);
@@ -147,8 +146,7 @@ public class PacketInterceptorResolver {
                     ChannelHandler intercepted = ctx.pipeline().get(name);
                     ((ChannelOutboundHandler)intercepted).write(ctx, packet.getHandle(), promise);
 
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                } catch (Exception ignored) {
                 }
             }
         });

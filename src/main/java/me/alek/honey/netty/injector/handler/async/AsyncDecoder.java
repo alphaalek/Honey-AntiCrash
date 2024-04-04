@@ -1,9 +1,8 @@
 package me.alek.honey.netty.injector.handler.async;
 
-import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.ChannelCloser;
+import me.alek.honey.netty.utility.ChannelCloser;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -12,7 +11,6 @@ import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.netty.utility.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
-import org.bukkit.Bukkit;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;

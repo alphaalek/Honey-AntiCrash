@@ -6,7 +6,7 @@ import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.ChannelCloser;
+import me.alek.honey.netty.utility.ChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
@@ -17,7 +17,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -156,9 +155,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         ctx.fireChannelRead(packetContainer.getHandle());
         HoneyPacketHandler.getPacketSendMarker().remove();
 
-        CallbackAction<PacketContainer<WP>> post = packetContainer.getPost();
-        if (post != null) {
-            post.call(packetContainer);
+        CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
+        if (postAction != null) {
+            postAction.call(packetContainer);
         }
     }
 

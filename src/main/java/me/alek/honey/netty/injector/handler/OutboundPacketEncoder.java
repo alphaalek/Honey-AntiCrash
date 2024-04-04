@@ -59,7 +59,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
         asyncDecoder.encode((s) -> {
             if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnlineDirect()) {
                 try {
-                    write0(ctx, msg, new DefaultChannelPromise(ctx.channel()), true);
+                    write0(ctx, msg, promise, true);
                 } catch (Exception ex) {
                     try {
                         super.exceptionCaught(ctx, ex);
@@ -86,12 +86,12 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             ReferenceCountUtil.retain(msg);
         }
 
-        CallbackAction<PacketContainer<WP>> post = packetContainer.getPost();
-        if (post != null) {
-            promise.addListener((d) -> post.call(packetContainer));
-        }
-
         ctx.write(msg, promise);
+
+        CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
+        if (postAction != null) {
+            postAction.call(packetContainer);
+        }
     }
 
     public void writeForcedPacket(Object value) {

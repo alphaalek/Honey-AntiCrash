@@ -1,4 +1,4 @@
-package me.alek.honey.netty;
+package me.alek.honey.netty.utility;
 
 import io.netty.channel.Channel;
 

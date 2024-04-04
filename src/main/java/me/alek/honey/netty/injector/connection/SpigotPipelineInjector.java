@@ -162,8 +162,6 @@ public class SpigotPipelineInjector {
                 }
                 player.updateHandlersLater = false;
             }
-
-            Bukkit.broadcastMessage("Post relocation " + channel.pipeline().toMap());
         }
     }
 
@@ -225,14 +223,14 @@ public class SpigotPipelineInjector {
     public void updatePlayer(HoneyPlayer player) throws MissingHandlerException {
         Channel channel = player.channel;
         if (channel == null) {
-            throw new MissingHandlerException("Channel");
+            throw new MissingHandlerException();
         }
 
         synchronized (channel) {
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             HoneyDebugger debugger = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDebugger(channel);
             if (filter == null || debugger == null) {
-                throw new MissingHandlerException("Filter: " + filter + ", Debugger: " + debugger);
+                throw new MissingHandlerException();
             }
 
             filter.setPlayer(player);
@@ -241,7 +239,7 @@ public class SpigotPipelineInjector {
             if (PacketInterceptorResolver.isDecoderPositionResolved()) {
                 InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
                 if (decoder == null) {
-                    throw new MissingHandlerException("Decoder");
+                    throw new MissingHandlerException();
                 }
 
                 player.packetHandler = decoder.getPacketHandler();
@@ -253,7 +251,7 @@ public class SpigotPipelineInjector {
             if (PacketInterceptorResolver.isEncoderPositionResolved()) {
                 OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
                 if (encoder == null) {
-                    throw new MissingHandlerException("Encoder");
+                    throw new MissingHandlerException();
                 }
 
                 player.packetHandler = encoder.getPacketHandler();
@@ -274,7 +272,7 @@ public class SpigotPipelineInjector {
             }
 
             if (preResolvedPacketHandler == null && player.packetHandler == null && player.updateHandlersLater) {
-                throw new MissingHandlerException("Pre Resolved Packet Handler");
+                throw new MissingHandlerException();
             }
         }
     }

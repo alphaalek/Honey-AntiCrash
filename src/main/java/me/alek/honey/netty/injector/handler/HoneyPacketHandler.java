@@ -1,5 +1,6 @@
 package me.alek.honey.netty.injector.handler;
 
+import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -27,12 +28,19 @@ public class HoneyPacketHandler {
         return packetSendMarker;
     }
 
-    public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+    private boolean isCancelled(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetContainer.isCancelled()) {
             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + Optional.ofNullable(packetContainer.getPlayer()).map(player -> player.name).orElse(null));
             }
 
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+        if (isCancelled(packetContainer)) {
             return false;
         }
 
@@ -44,14 +52,6 @@ public class HoneyPacketHandler {
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        if (packetContainer.isCancelled()) {
-            if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + Optional.ofNullable(packetContainer.getPlayer()).map(player -> player.name).orElse(null));
-            }
-
-            return false;
-        }
-
-        return true;
+        return !isCancelled(packetContainer);
     }
 }

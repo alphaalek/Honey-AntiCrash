@@ -1,5 +1,6 @@
 package me.alek.honey.netty.injector.handler;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,6 +34,11 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     private <WP extends WrappedPacket<WP>> void sendThroughPipeline(Channel channel, Object msg, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
+        if (msg instanceof ByteBuf) {
+            sending.run();
+            return;
+        }
+
         PacketContainer<WP> packetContainer = initPacketContainer(channel, msg);
         if (!handling.apply(packetContainer)) {
             return;
@@ -40,9 +46,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
         sending.run();
 
-        CallbackAction<PacketContainer<WP>> post = packetContainer.getPost();
-        if (post != null) {
-            post.call(packetContainer);
+        CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
+        if (postAction != null) {
+            postAction.call(packetContainer);
         }
     }
 

@@ -5,7 +5,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.ChannelCloser;
+import me.alek.honey.netty.utility.ChannelCloser;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -59,7 +59,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_BROKEN_PIPE)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
                 && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Exception was caught in a channel handler:");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("DEBUG: Exception was caught in a channel handler:");
             throwable.printStackTrace();
         }
     }

@@ -360,7 +360,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             // if the setting is disabled, we will just return SUCCESS
             // or if the player is in the same chunk as the last position or the same chunk as the previous chunk
-            if (!getSetting().isEnabled() || equalsChunk && equalsPreviousChunk) {
+            if (!getSetting().isEnabled() || equalsChunk || equalsPreviousChunk) {
                 return ResponseBuilder.SUCCESS.copy().skip(skip).build();
             }
             return ResponseBuilder.inst().flag().skip(skip).build();

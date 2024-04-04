@@ -3,22 +3,18 @@ package me.alek.honey.netty.processor;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.packet.PostActions;
+import me.alek.honey.netty.packet.*;
 import me.alek.honey.utility.CallbackAction;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.listener.PacketAdapter;
-import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.utility.NMS;
 import me.alek.honey.netty.utility.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.utility.Array;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -253,13 +249,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         DECODE_LIST_MODIFIER.callDecode(player, byteBuf);
     }
 
-    @Override
-    public void setPostAction(PacketTypeEnum packetType, Runnable postAction) {
-        if (packetType.getPacketId() == -1) return;
-
-        postActions.get(packetType.getPacketId(), () -> new CallbackAction<>());
-    }
-
     private void registerToBundle(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetType.getBound() == PacketBound.CLIENT && player != null && packetContainer.getPlayer() != null) {
             player.packetBundleSaver.add(packetContainer);
@@ -334,7 +323,8 @@ public class InternalPacketProcessor implements PacketProcessor {
             postActions.set(packetType.getPacketId(), new CallbackAction<>());
         }
 
-        postActions.get(packetType.getPacketId()).addAction(callback);
+        CallbackAction<PacketContainer<? extends WrappedPacket<?>>> action = postActions.get(packetType.getPacketId());
+        action.addAction(callback);
     }
 
     public PacketState getPacketState(HoneyPlayer player, Class<?> packetClass) {
