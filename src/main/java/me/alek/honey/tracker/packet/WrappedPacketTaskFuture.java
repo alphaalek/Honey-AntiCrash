@@ -51,7 +51,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         try {
             super.run();
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when running packet task.");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when running packet tick task.");
             ex.printStackTrace();
         }
         packet.invokeServerCallback();

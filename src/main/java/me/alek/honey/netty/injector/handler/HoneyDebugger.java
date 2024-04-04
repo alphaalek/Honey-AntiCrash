@@ -52,13 +52,13 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
     public static void onExceptionCaught(Throwable throwable) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
         if (HoneyPlugin.get().getLoggerService().isDebug()
-                && !(throwable instanceof ReadTimeoutException)
-                && !(throwable instanceof IOException)
-                && /* ViaVersion */ !message.equals(VIA_VERSION_CLOSED_CHANNEL)
+                && /* Java */ !(throwable instanceof ReadTimeoutException)
+                && /* Java */ !(throwable instanceof IOException)
                 && /* Netty */ !message.equals(NETTY_NATIVE_READ_RESET)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_BROKEN_PIPE)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
-                && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {
+                && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)
+                && /* ViaVersion */ !message.equals(VIA_VERSION_CLOSED_CHANNEL)) {
             HoneyPlugin.get().getLoggerService().getLogger().severe("DEBUG: Exception was caught in a channel handler:");
             throwable.printStackTrace();
         }
