@@ -6,6 +6,7 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.utility.UnsafeChannelCloser;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.util.Optional;
