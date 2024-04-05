@@ -46,7 +46,6 @@ public class ItemAnalysis {
         ignoredPlayers = ConfigurationOptions.ItemAnalysis.General.IGNORED_PLAYERS;
 
         for (Field field : ConfigurationOptions.getItemAnalysisFields()) {
-
             ConfigurationOptions.ItemAnalysisSetting setting = field.getAnnotation(ConfigurationOptions.ItemAnalysisSetting.class);
             if (setting == null) {
                 continue;
@@ -78,7 +77,9 @@ public class ItemAnalysis {
             }
             if (availableMaterials.length > 0) {
                 for (Material material : availableMaterials) {
-                    if (material.equals(Material.AIR)) continue;
+                    if (material.equals(Material.AIR)) {
+                        continue;
+                    }
                     if (!directAvailableMaterialChecks.containsKey(material)) {
                         directAvailableMaterialChecks.put(material, new HashSet<>());
                     }

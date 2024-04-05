@@ -6,6 +6,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -81,6 +82,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
+        private final double MAX_POSITION_TACKING = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
         private Class<?> tickTaskClass;
@@ -194,7 +196,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                         positionPacketsAmount++;
                         positionPacketsTime += (long) deltaTime;
 
-                        deltaTime = Math.min(deltaTime, 1.8d * positionPacketsTime / positionPacketsAmount);
+                        deltaTime = Math.min(deltaTime, Math.min(MAX_POSITION_TACKING, 1.75d * positionPacketsTime / positionPacketsAmount));
                     }
 
                     registerTime(recentPacket.getPlayer(), deltaTime);
