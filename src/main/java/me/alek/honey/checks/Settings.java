@@ -2,7 +2,7 @@ package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.utility.Array;
+import me.alek.honey.util.Array;
 
 public class Settings {
 

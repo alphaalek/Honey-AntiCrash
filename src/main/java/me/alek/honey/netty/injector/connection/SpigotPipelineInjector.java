@@ -3,24 +3,18 @@ package me.alek.honey.netty.injector.connection;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.injector.ChannelProxy;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.injector.PipelineProxy;
 import me.alek.honey.netty.injector.handler.*;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.netty.injector.handler.async.WorkerPool;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.util.NMS;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class SpigotPipelineInjector {
 
@@ -43,15 +37,15 @@ public class SpigotPipelineInjector {
 
             ejectHandlersIfExists(channel);
 
-            HoneyPacketHandler packetHandler = new HoneyPacketHandler();
-            if (!PacketInterceptorResolver.isDecoderPositionResolved() || !PacketInterceptorResolver.isEncoderPositionResolved()) {
-                channel.pipeline().addBefore("packet_handler", "pre-resolved-packet-handler", new PreResolvedPacketHandler(packetHandler));
-            }
-
             channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
 
-            setupPreparationHandlers(channel, packetHandler);
+            HoneyPacketHandler packetHandler = new HoneyPacketHandler();
+            if (!PacketInterceptorResolver.isDecoderPositionResolved() || !PacketInterceptorResolver.isEncoderPositionResolved()) {
+                channel.pipeline().addBefore("packet_handler", "pre-resolved-packet-handler", new PreResolvedPacketHandler(packetHandler));
+            } else {
+                setupPreparationHandlers(channel, packetHandler);
+            }
         }
     }
 
@@ -162,6 +156,8 @@ public class SpigotPipelineInjector {
                 }
                 player.updateHandlersLater = false;
             }
+
+            ensureCorrectPipelineOrder(channel);
         }
     }
 
@@ -198,8 +194,6 @@ public class SpigotPipelineInjector {
             return;
         }
         synchronized (channel) {
-            HoneyPlugin.get().getPacketLibrary().getServerInjector().removeNetworkManager(channel.pipeline().get("packet_handler"));
-
             ejectHandlersIfExists(channel);
 
             if (channel.isOpen()) {
@@ -218,6 +212,29 @@ public class SpigotPipelineInjector {
                 encoder.getAsyncDecoder().farewell();
             }
         }
+    }
+
+    public HoneyPacketHandler getPacketHandler(Channel channel) throws MissingHandlerException {
+        ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
+        if (preResolvedPacketHandler != null) {
+            PreResolvedPacketHandler preResolvedPacketHandler0 = (PreResolvedPacketHandler) preResolvedPacketHandler;
+            return preResolvedPacketHandler0.getPacketHandler();
+        }
+
+        if (PacketInterceptorResolver.isDecoderPositionResolved()) {
+            InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
+            if (decoder != null) {
+                return decoder.getPacketHandler();
+            }
+        }
+        if (PacketInterceptorResolver.isEncoderPositionResolved()) {
+            OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
+            if (encoder != null) {
+                return encoder.getPacketHandler();
+            }
+        }
+
+        throw new MissingHandlerException();
     }
 
     public void updatePlayer(HoneyPlayer player) throws MissingHandlerException {

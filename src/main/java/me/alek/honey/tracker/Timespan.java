@@ -3,7 +3,7 @@ package me.alek.honey.tracker;
 import me.alek.honey.tracker.temp.impl.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
-import me.alek.honey.utility.Array;
+import me.alek.honey.util.Array;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;

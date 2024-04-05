@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.util.NMS;
 
 import java.util.Collection;
 import java.util.Map;

@@ -5,8 +5,8 @@ import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.NMS;
 
 public class WrappedPlayInUseItem extends WrappedAbstractBlockInteraction<WrappedPlayInUseItem> {
 

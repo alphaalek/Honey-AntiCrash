@@ -9,7 +9,7 @@ import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.util.NumberConversions;
 import org.bukkit.command.CommandSender;
 
 import java.text.DecimalFormat;

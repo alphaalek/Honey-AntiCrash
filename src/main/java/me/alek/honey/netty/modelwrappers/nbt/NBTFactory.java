@@ -1,7 +1,7 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.utility.*;
+import me.alek.honey.netty.util.*;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;

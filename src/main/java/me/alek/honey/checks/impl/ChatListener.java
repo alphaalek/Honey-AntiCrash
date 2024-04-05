@@ -15,10 +15,10 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 

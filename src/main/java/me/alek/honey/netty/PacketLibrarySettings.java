@@ -1,6 +1,6 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NetProtocol;
 import org.bukkit.plugin.Plugin;
 
 public class PacketLibrarySettings {

@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packet.type;
 
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.Reflection;
 
 public enum PacketBound {
     SERVER,

@@ -6,6 +6,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -13,13 +14,23 @@ public class HoneyPacketHandler {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private volatile HoneyPlayer player;
+    private String playerName;
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
+        this.playerName = player.name;
     }
 
     public HoneyPlayer getPlayer() {
         return player;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

@@ -16,7 +16,7 @@ import me.alek.honey.packetwrappers.status.client.WrappedStatusInPing;
 import me.alek.honey.packetwrappers.status.client.WrappedStatusInStart;
 import me.alek.honey.packetwrappers.status.server.WrappedStatusOutPong;
 import me.alek.honey.packetwrappers.status.server.WrappedStatusOutServerInfo;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.lang.annotation.ElementType;

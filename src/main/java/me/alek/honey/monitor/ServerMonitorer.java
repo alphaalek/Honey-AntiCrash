@@ -3,8 +3,8 @@ package me.alek.honey.monitor;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.utility.NumberConversions;
-import me.alek.honey.utility.TPSProvider;
+import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.TPSProvider;
 
 public class ServerMonitorer implements ScheduledMonitorer {
 

@@ -3,9 +3,9 @@ package me.alek.honey.netty.modelwrappers.nbt;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
-import me.alek.honey.netty.utility.ConstructorInvoker;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.ConstructorInvoker;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.Reflection;
 
 import java.util.HashMap;
 import java.util.List;

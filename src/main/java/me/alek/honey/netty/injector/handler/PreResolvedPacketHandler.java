@@ -10,7 +10,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.CallbackAction;
 
 import java.util.function.Function;
 

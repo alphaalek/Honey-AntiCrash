@@ -20,9 +20,8 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import me.alek.honey.netty.utility.*;
-import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.util.*;
+import me.alek.honey.util.CallbackAction;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

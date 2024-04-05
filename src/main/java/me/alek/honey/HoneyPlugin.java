@@ -22,9 +22,9 @@ import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.utility.FieldAccessor;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.FieldAccessor;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
@@ -55,7 +55,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 public class HoneyPlugin implements HoneyAPI {

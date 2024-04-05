@@ -14,8 +14,7 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.tracker.Timespan;
-import me.alek.honey.utility.DecayingListeningCounter;
+import me.alek.honey.util.DecayingListeningCounter;
 
 import java.util.*;
 import java.util.function.Supplier;

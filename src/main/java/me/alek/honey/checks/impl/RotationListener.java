@@ -15,8 +15,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.utility.CallbackAction;
-import me.alek.honey.utility.Locations;
+import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Locations;
 import org.bukkit.Location;
 
 import java.util.*;

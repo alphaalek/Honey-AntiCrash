@@ -6,10 +6,9 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.utility.ConstructorInvoker;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.Reflection;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.util.ConstructorInvoker;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.Reflection;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;

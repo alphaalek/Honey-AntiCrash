@@ -8,8 +8,8 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.NMS;
 
 import java.util.*;
 import java.util.stream.Collectors;

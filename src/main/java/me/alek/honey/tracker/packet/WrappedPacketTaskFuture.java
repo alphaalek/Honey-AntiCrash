@@ -2,18 +2,9 @@ package me.alek.honey.tracker.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.FieldAccessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 public class WrappedPacketTaskFuture<V> extends FutureTask<V> {

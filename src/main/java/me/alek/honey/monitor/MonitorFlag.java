@@ -9,10 +9,9 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.utility.PredicateUtils;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.PredicateUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

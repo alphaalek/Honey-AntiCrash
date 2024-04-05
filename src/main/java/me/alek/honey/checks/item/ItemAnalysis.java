@@ -9,8 +9,7 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.CallbackAction;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

@@ -14,10 +14,9 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;

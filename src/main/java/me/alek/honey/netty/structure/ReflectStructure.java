@@ -5,9 +5,9 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
-import me.alek.honey.netty.utility.FieldAccessor;
-import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.IReflectionMember;
+import me.alek.honey.netty.util.FieldAccessor;
+import me.alek.honey.netty.util.MethodInvoker;
+import me.alek.honey.netty.util.IReflectionMember;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

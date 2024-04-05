@@ -1,8 +1,8 @@
 package me.alek.honey.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 

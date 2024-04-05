@@ -4,7 +4,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NetProtocol;
 
 public class PacketBundleFilterFactory {
 

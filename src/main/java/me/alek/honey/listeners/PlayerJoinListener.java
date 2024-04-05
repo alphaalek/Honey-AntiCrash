@@ -2,7 +2,7 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.utility.IDRegistry;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.services.NotificationService;

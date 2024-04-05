@@ -4,8 +4,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
-import me.alek.honey.utility.Array;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.Array;
+import me.alek.honey.util.CallbackAction;
 
 public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable {
 

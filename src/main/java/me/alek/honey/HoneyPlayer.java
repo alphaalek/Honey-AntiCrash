@@ -2,12 +2,12 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
-import me.alek.honey.netty.utility.NMS;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
-import me.alek.honey.utility.IDRegistry;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

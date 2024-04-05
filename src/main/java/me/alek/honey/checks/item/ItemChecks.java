@@ -10,7 +10,7 @@ import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.util.NumberConversions;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;

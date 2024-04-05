@@ -5,9 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.MethodInvoker;
-import me.alek.honey.netty.utility.NetProtocol;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.MethodInvoker;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.util.ArrayList;

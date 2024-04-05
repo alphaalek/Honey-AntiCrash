@@ -10,16 +10,14 @@ import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.*;
+import me.alek.honey.netty.util.*;
 import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
@@ -85,6 +83,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
+        private Class<?> tickTaskClass;
         private ConstructorInvoker<?> tickTaskConstructor;
         private final boolean pollsOneExtra;
         private long recentPollStart = -1;
@@ -96,9 +95,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private long positionPacketsTime;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
-            EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null
-                    : (tickTaskConstructor = Reflection.getConstructor(NMS.getTickTaskClass(), int.class, Runnable.class))
-                    .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
+            EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null :
+                    (tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class))
+                            .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
 
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
                 tickTaskConstructor = null;
@@ -126,7 +125,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         }
 
         private Object newTickTask(Runnable runnable) {
-            if (tickTaskConstructor == null) return runnable;
+            if (tickTaskConstructor == null) {
+                return runnable;
+            }
 
             return tickTaskConstructor.invoke(Integer.MAX_VALUE - 3, runnable);
         }
@@ -158,6 +159,22 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                     recentDeltaTime = getDeltaTime();
                 }
                 recentPollStart = -1;
+
+                if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14_4) && !(otherTask instanceof FutureTask)) {
+                    if (otherTask instanceof Callable) {
+                        otherTask = new FutureTask<>((Callable<?>) otherTask);
+                    } else {
+                        Runnable otherTaskRunnable = (Runnable) otherTask;
+                        otherTask = new FutureTask<>((Callable<? extends Object>) () -> {
+                            otherTaskRunnable.run();
+                            return null;
+                        });
+                    }
+                }
+                else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4) && !tickTaskClass.isInstance(otherTask)) {
+                    otherTask = newTickTask((Runnable) otherTask);
+                }
+
                 return otherTask;
             }
             // check if this packet is not the first one handled in this tick
@@ -223,31 +240,38 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         @Override
         public synchronized boolean add(Object value) {
             // why add something to an execution queue, without it being a runnable?
-            if (!(value instanceof Runnable)) return false;
+            if (!(value instanceof Runnable)) {
+                return false;
+            }
 
             // only register tracking for tasks added by netty threads (packet handling)
-            if (!Thread.currentThread().getName().startsWith("Netty")) return super.add(value);
+            if (!Thread.currentThread().getName().startsWith("Netty")) {
+                return super.add(value);
+            }
 
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
-            if (packet == null || packet.isHandledByServer() || packet.getPlayer() == null) {
+            if (packet == null || packet.isHandledByServer() || packet.getPlayer() == null
+                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
             packet.setHandledByServer();
 
             // add it two times if it's empty, so we always have one extra element
             // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
-            if (super.isEmpty() && pollsOneExtra) super.add(EMPTY_VALUE);
+            if (super.isEmpty() && pollsOneExtra) {
+                super.add(EMPTY_VALUE);
+            }
 
-            if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))
-                return super.add(value);
+            super.add(EMPTY_VALUE);
 
             UUID uuid = packet.getPlayer().uuid;
             synchronized (PacketTaskHandler.ignoreDecrementLock) {
                 if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
-                } else ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+                } else {
+                    ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+                }
             }
-            super.add(EMPTY_VALUE);
 
             return nettySubmitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
         }
@@ -256,8 +280,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     public void decrementPacketsInQueueExecution(UUID uuid) {
         synchronized (PacketTaskHandler.ignoreDecrementLock) {
             int ignoredDecrement = ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0);
-            if (ignoredDecrement > 0)
+            if (ignoredDecrement > 0) {
                 ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredDecrement - 1);
+            }
 
             packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) - (ignoredDecrement == 0 ? 1 : 0));
         }

@@ -7,18 +7,20 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.utility.DecayingWindowCounter;
-import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.util.DecayingWindowCounter;
+import me.alek.honey.util.NumberConversions;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,7 +60,29 @@ public class LoggerService {
             }
 
             // log the packet
-            if (enabled) logPacket(packetContainer, player.name);
+            if (enabled) {
+                String playerName = player != null ? player.name : null;
+
+                if (packetContainer.getState() != PacketState.PLAY) {
+                    if (!ConfigurationOptions.PacketLogger.EARLY) {
+                        return;
+                    }
+
+                    if (playerName == null) {
+                        try {
+                            HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(packetContainer.getChannel());
+                            playerName = packetHandler.getPlayerName();
+                        } catch (Exception ignored) {
+                        }
+                    }
+
+                    if (playerName == null && packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
+                        playerName = PostActions.getNameFromLoginStart(packetContainer);
+                    }
+                }
+
+                logPacket(packetContainer, playerName != null ? playerName : "Unknown");
+            }
         }
     };
 
@@ -75,7 +99,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT));
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.CLIENT));
         }
     }
 

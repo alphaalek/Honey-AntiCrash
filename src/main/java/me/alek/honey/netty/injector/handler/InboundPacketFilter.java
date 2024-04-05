@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 
@@ -58,16 +59,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public synchronized void channelInactive(ChannelHandlerContext ctx) {
-        if (hasCalledChannelInactive) return;
+        ctx.fireChannelInactive();
 
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
-
-        try {
-            super.channelInactive(ctx);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if (!hasCalledChannelInactive) {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
         }
-
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
         hasCalledChannelInactive = true;
     }
@@ -86,10 +82,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
         packetContainer.getEventloopStateTimings().stopTimings();
 
-        if (!cancellableByteBuf.isCancelled())
+        if (!cancellableByteBuf.isCancelled()) {
             list.add(byteBuf.readBytes(byteBuf.readableBytes()));
-        else
+        } else {
             list.add(Unpooled.buffer());
+        }
     }
 
     public void checkRelocation() {

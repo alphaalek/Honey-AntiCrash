@@ -7,8 +7,7 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.utility.NMS;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.util.NMS;
 
 import java.util.*;
 

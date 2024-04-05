@@ -1,9 +1,9 @@
 package me.alek.honey.netty.modelwrappers.suggestion;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.utility.ConstructorInvoker;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.ConstructorInvoker;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.Reflection;
 
 public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
 

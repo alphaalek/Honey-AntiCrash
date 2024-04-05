@@ -4,17 +4,17 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.*;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.*;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.utility.Array;
+import me.alek.honey.util.Array;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -240,7 +240,9 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
         int id = packetContainer.getType().getPacketId();
-        if (id == -1 || !packetAdapters.has(id)) return;
+        if (id == -1 || !packetAdapters.has(id)) {
+            return;
+        }
 
         packetAdapters.get(packetContainer.getType().getPacketId()).callPacket(player, packetContainer, isRead);
     }

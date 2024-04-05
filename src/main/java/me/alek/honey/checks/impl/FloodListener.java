@@ -18,9 +18,9 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.CallbackAction;
 
 import java.util.*;
 import java.util.function.Supplier;

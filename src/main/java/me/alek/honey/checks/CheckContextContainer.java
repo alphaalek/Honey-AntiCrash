@@ -1,9 +1,8 @@
 package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyCheck;
-import me.alek.honey.utility.Array;
-import me.alek.honey.utility.NumberConversions;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.Array;
+import me.alek.honey.util.NumberConversions;
 import org.bukkit.Location;
 
 import java.util.*;

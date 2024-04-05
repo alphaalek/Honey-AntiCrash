@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.util.NumberConversions;
 
 public class PacketEventloopStateTimings {
 

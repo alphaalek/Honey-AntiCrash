@@ -7,9 +7,9 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.utility.Array;
-import me.alek.honey.utility.CallbackAction;
-import me.alek.honey.utility.NumberConversions;
+import me.alek.honey.util.Array;
+import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.NumberConversions;
 import org.bukkit.Bukkit;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements IPacketListener, CheckVisitable {

@@ -14,8 +14,8 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.util.CallbackAction;
 
 import java.net.InetSocketAddress;
 import java.util.Collections;

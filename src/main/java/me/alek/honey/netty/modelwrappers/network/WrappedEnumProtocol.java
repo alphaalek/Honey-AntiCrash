@@ -2,8 +2,8 @@ package me.alek.honey.netty.modelwrappers.network;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.NetProtocol;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 

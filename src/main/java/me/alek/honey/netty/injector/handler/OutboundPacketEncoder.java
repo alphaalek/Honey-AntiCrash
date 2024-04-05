@@ -10,8 +10,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.CallbackAction;
 
 import java.lang.reflect.Method;
 
@@ -77,6 +76,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             return;
         }
 
+        @SuppressWarnings("unchecked")
         PacketContainer<WP> packetContainer = (PacketContainer<WP>) packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
         if (!packetHandler.write(packetContainer)) {
             return;

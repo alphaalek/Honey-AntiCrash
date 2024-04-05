@@ -2,7 +2,7 @@ package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.utility.CallbackAction;
+import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -15,8 +15,8 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.netty.utility.NMS;
-import me.alek.honey.netty.utility.Reflection;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 

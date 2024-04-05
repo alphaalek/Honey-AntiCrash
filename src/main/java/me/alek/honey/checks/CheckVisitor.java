@@ -12,8 +12,7 @@ import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.utility.CallbackAction;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.CallbackAction;
 
 import java.util.ArrayList;
 import java.util.List;
