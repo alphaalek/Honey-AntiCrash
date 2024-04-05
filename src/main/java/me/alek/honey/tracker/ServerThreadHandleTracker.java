@@ -83,6 +83,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
         private final double MAX_POSITION_TACKING = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private final double MAX_POSITION_AVERAGE_TACKING = 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
         private Class<?> tickTaskClass;
@@ -182,7 +183,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // check if this packet is not the first one handled in this tick
             if (recentPollStart != -1 && recentPacket != null) {
 
-                if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineDirect()
+                if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineWeak()
                         && !(ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && recentPacket.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))) {
                     // evaluate the difference in time
                     double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
@@ -194,7 +195,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                             || recentPacket.getType() == PacketType.Play.Client.GROUND
                             || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
                         positionPacketsAmount++;
-                        positionPacketsTime += (long) deltaTime;
+                        positionPacketsTime += (long) Math.min(MAX_POSITION_AVERAGE_TACKING, deltaTime);
 
                         deltaTime = Math.min(deltaTime, Math.min(MAX_POSITION_TACKING, 1.75d * positionPacketsTime / positionPacketsAmount));
                     }

@@ -41,24 +41,29 @@ public class PacketInterceptorResolver {
     }
 
     public static String getDecoderPosition(ChannelPipeline pipeline) {
-        if (decoderPosition == null)
+        if (decoderPosition == null) {
             decoderPosition = setupInterceptors(pipeline, false);
+        }
+
         return decoderPosition;
     }
 
     public static String getEncoderPosition(ChannelPipeline pipeline) {
-        if (encoderPosition == null)
+        if (encoderPosition == null) {
             encoderPosition = setupInterceptors(pipeline, true);
+        }
+
         return encoderPosition;
     }
 
     public static String setupInterceptors(ChannelPipeline pipeline, boolean isEncoder) {
         AtomicReference<String> position = new AtomicReference<>();
         List<String> handlers;
-        if (isEncoder)
+        if (isEncoder) {
             handlers = setupEncoderPosition(pipeline, position);
-        else
+        } else {
             handlers = setupDecoderInterceptors(pipeline, position);
+        }
 
         for (String handler : handlers) {
             pipeline.remove(handler);
