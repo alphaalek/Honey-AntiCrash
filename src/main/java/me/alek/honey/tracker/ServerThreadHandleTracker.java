@@ -163,47 +163,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 }
                 recentPollStart = -1;
 
-                if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14_4) && !(otherTask instanceof FutureTask)) {
-                    if (otherTask instanceof Callable) {
-                        otherTask = new FutureTask<>((Callable<?>) otherTask);
-                    } else {
-                        Runnable otherTaskRunnable = (Runnable) otherTask;
-                        otherTask = new FutureTask<>((Callable<? extends Object>) () -> {
-                            otherTaskRunnable.run();
-                            return null;
-                        });
-                    }
-                }
-                else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4) && !tickTaskClass.isInstance(otherTask)) {
-                    otherTask = newTickTask((Runnable) otherTask);
-                }
-
-                return otherTask;
+                return getOtherTask(otherTask);
             }
             // check if this packet is not the first one handled in this tick
             if (recentPollStart != -1 && recentPacket != null) {
-
-                if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineWeak()
-                        && !(ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && recentPacket.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))) {
-                    // evaluate the difference in time
-                    double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
-
-                    // don't track position packets, because you can legitimately cause a lot of server thread performance by chunk loading in legacy versions (when chunk loading wasn't async)
-                    if (recentPacket.getType() == PacketType.Play.Client.POSITION
-                            || recentPacket.getType() == PacketType.Play.Client.POSITION_LOOK
-                            || recentPacket.getType() == PacketType.Play.Client.FLYING
-                            || recentPacket.getType() == PacketType.Play.Client.GROUND
-                            || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
-                        positionPacketsAmount++;
-                        positionPacketsTime += (long) Math.min(MAX_POSITION_AVERAGE_TACKING, deltaTime);
-
-                        deltaTime = Math.min(deltaTime, Math.min(MAX_POSITION_TACKING, 1.75d * positionPacketsTime / positionPacketsAmount));
-                    }
-
-                    registerTime(recentPacket.getPlayer(), deltaTime);
-                }
-                recentDeltaTime = -1;
-                recentPacket = null;
+                handleTimings();
             }
             recentPollStart = System.nanoTime();
 
@@ -217,25 +181,14 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             Object tickTask = task == null ? null : newTickTask(task);
 
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
-            // make sure that the tickloop is being completed by polling one extra time
+            // make sure that the tick loop is being completed by polling one extra time
             if (!nullPoll && !pollsOneExtra && super.peek() == null) {
                 nullPoll = true;
                 poll();
             }
 
             if (task == null) {
-                packetsInQueueExecution.clear();
-                nettySubmitQueue.clear();
-
-                // all packets in the queue has been handled, and no packets for this tick remains to be checked
-                recentPollStart = -1;
-                nullPoll = false;
-
-                HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
-
-                if (Thread.interrupted()) {
-                    HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
-                }
+                tickLoopExecutionDone();
             }
             return tickTask;
         }
@@ -277,6 +230,68 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
 
             return nettySubmitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+        }
+
+        private Runnable getOtherTask(Object otherTask) {
+            if (!(otherTask instanceof Runnable)) {
+                return null;
+            }
+
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14_4) && !(otherTask instanceof FutureTask)) {
+                if (otherTask instanceof Callable) {
+                    otherTask = new FutureTask<>((Callable<?>) otherTask);
+                } else {
+                    Runnable otherTaskRunnable = (Runnable) otherTask;
+                    otherTask = new FutureTask<>((Callable<? extends Object>) () -> {
+                        otherTaskRunnable.run();
+                        return null;
+                    });
+                }
+            }
+            else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4) && !tickTaskClass.isInstance(otherTask)) {
+                otherTask = newTickTask((Runnable) otherTask);
+            }
+
+            return (Runnable) otherTask;
+        }
+
+        private void handleTimings() {
+            if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineWeak()
+                    && !(ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && recentPacket.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))) {
+                // evaluate the difference in time
+                double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
+
+                // don't track position packets, because you can legitimately cause a lot of server thread performance by chunk loading in legacy versions (when chunk loading wasn't async)
+                if (recentPacket.getType() == PacketType.Play.Client.POSITION
+                        || recentPacket.getType() == PacketType.Play.Client.POSITION_LOOK
+                        || recentPacket.getType() == PacketType.Play.Client.FLYING
+                        || recentPacket.getType() == PacketType.Play.Client.GROUND
+                        || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
+                    positionPacketsAmount++;
+                    positionPacketsTime += (long) Math.min(MAX_POSITION_AVERAGE_TACKING, deltaTime);
+
+                    deltaTime = Math.min(deltaTime, Math.min(MAX_POSITION_TACKING, 1.75d * positionPacketsTime / positionPacketsAmount));
+                }
+
+                registerTime(recentPacket.getPlayer(), deltaTime);
+            }
+            recentDeltaTime = -1;
+            recentPacket = null;
+        }
+
+        private void tickLoopExecutionDone() {
+            packetsInQueueExecution.clear();
+            nettySubmitQueue.clear();
+
+            // all packets in the queue has been handled, and no packets for this tick remains to be checked
+            recentPollStart = -1;
+            nullPoll = false;
+
+            HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
+
+            if (Thread.interrupted()) {
+                HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
+            }
         }
     }
 
