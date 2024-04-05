@@ -257,8 +257,8 @@ public class HoneyPlugin implements HoneyAPI {
         new BukkitRunnable() {
             @Override
             public void run() {
-                for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
-                    synchronized (recentPingLookup) {
+                synchronized (recentPingLookup) {
+                    for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
                         recentPingLookup.put(player.uuid, HoneyPlugin.get().getNotificationService().getPing(player));
                     }
                 }

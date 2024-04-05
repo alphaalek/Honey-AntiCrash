@@ -194,7 +194,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                         positionPacketsAmount++;
                         positionPacketsTime += (long) deltaTime;
 
-                        deltaTime = Math.min(deltaTime, 2.25d * positionPacketsTime / positionPacketsAmount);
+                        deltaTime = Math.min(deltaTime, 1.8d * positionPacketsTime / positionPacketsAmount);
                     }
 
                     registerTime(recentPacket.getPlayer(), deltaTime);

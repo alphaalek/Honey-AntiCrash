@@ -24,13 +24,13 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private static final Class<?> PACKET_CLASS = NMS.getPacketClass();
 
-    private final ListModifier<?> DECODE_LIST_MODIFIER = new ListModifier<>();
+    private final ListenerPipeline<?> DECODE_LIST_MODIFIER = new ListenerPipeline<>();
     private final ConcurrentHashMap<Object, PacketState> lookupPacketStates = new ConcurrentHashMap<>();
-    private final Array<ListModifier<? extends WrappedPacket<?>>> packetAdapters = new Array<>();
+    private final Array<ListenerPipeline<? extends WrappedPacket<?>>> packetAdapters = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
     private final Array<CallbackAction<PacketContainer<? extends WrappedPacket<?>>>> postActions = new Array<>();
 
-    private static class ListModifier<WP extends WrappedPacket<WP>> {
+    private static class ListenerPipeline<WP extends WrappedPacket<WP>> {
 
         private final EnumMap<ListenerPriority, List<PacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
@@ -181,7 +181,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                     continue;
                 }
             }
-            packetAdapters.get(packetType.getPacketId(), ListModifier::new)
+            packetAdapters.get(packetType.getPacketId(), ListenerPipeline::new)
                     .addListener(packetAdapter, priority);
         }
     }
@@ -208,7 +208,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> check) {
-        for (ListModifier<?> listModifier : packetAdapters) {
+        for (ListenerPipeline<?> listModifier : packetAdapters) {
             if (listModifier != null && existsInListModifier(listModifier, check)) {
                 return true;
             }
@@ -216,7 +216,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(ListModifier<WP2> listModifier, PacketAdapter<WP> check) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(ListenerPipeline<WP2> listModifier, PacketAdapter<WP> check) {
         for (List<PacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
             for (PacketAdapter<WP2> packetAdapter : packetAdapters) {
 

@@ -27,10 +27,10 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     public SimpleMapConverter<K, V, T> apply(Map<K, V> map) {
         if (controlDeclaring) {
             declaringMap = map;
-        }
-        else {
+        } else {
             declaringMap = new HashMap<>();
         }
+
         synchronized (declaringMap) {
             for (Map.Entry<K, V> entry : map.entrySet()) {
                 if (!controlDeclaring) {
@@ -39,6 +39,7 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
                 delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
             }
         }
+
         return this;
     }
 
@@ -51,16 +52,17 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         if (declaringMap == null) {
             return true;
         }
+
         int delegatedSize = delegatedMap.size();
         int declaringSize = declaringMap.size();
 
         if (delegatedSize != declaringSize) {
-
             delegatedMap.clear();
             for (K declaringKey : declaringMap.keySet()) {
                 delegatedMap.put(declaringKey, converter.convertDelegate(declaringMap.get(declaringKey)));
             }
         }
+
         return false;
     }
 
@@ -126,6 +128,11 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         checkMap();
 
         return delegatedMap.get(key);
+    }
+
+    @Override
+    public Object getRaw(K key) {
+        return declaringMap.get(key);
     }
 
     @Override

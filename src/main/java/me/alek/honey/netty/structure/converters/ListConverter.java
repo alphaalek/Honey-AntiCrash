@@ -10,6 +10,8 @@ public interface ListConverter<V, T> extends CollectionConverter<V, T>, JavaConv
 
     T getConverted(int index);
 
+    T getRaw(int index);
+
     List<T> getDelegatedList();
 
     JavaConverter<V, T> getHandle();

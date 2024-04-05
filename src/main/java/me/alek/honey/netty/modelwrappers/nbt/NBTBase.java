@@ -77,6 +77,14 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public void setRoot(NBTRoot root) {
         this.root = root;
+
+        if (root != null) {
+            for (NBTType nbtType : NBTType.values()) {
+                for (NBTBase<?, ?> nbtBase : root.getAllElementsAs(nbtType)) {
+                    this.root.subscribe(nbtBase.getOwner(), nbtBase);
+                }
+            }
+        }
     }
 
     public NBTBase<?, ?> getOwner() {

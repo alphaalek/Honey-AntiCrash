@@ -24,5 +24,7 @@ public interface MapConverter<K, V, T> extends JavaConverter<Map<K, V>, MapConve
 
     T getConverted(K key);
 
+    Object getRaw(K key);
+
     JavaConverter<V, T> getHandle();
 }

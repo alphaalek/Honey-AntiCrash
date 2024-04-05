@@ -262,12 +262,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
 
-        private static final double IGNORE_RATE_5S = /* 7.5 */ 12.5 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_5S = /* 85*/ 100 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_10S = /* 62.5 */ 80 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double RATE_ACCEL_5S = /* 32.5 */ 40 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private static final double QUOTIENT_ACCEL_5S = /* 12.5 */ 30;
-        private static final double RATE_ACCEL = /*115 */ 250 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double IGNORE_RATE_5S = /* 7.5 */ 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_5S = /* 85*/ 250 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_10S = /* 62.5 */ 200 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double RATE_ACCEL_5S = /* 32.5 */ 125 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private static final double QUOTIENT_ACCEL_5S = /* 12.5 */ 85;
+        private static final double RATE_ACCEL = /*115 */ 350 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -292,8 +292,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 if (playerRate5S > RATE_ACCEL_5S
                         && tracker.hasCollected(player, Timespan.FIVE_SECOND)
-                        && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S
-                        /* || tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, true, true) > QUOTIENT_ACCEL_5S * 0.6 */) {
+                        && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
                     return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
@@ -304,8 +303,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     }).build();
                 }
 
-                if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL
-                        /* || tracker.getPlayerRateAcceleration(player, true, false) > RATE_ACCEL * 0.6 */) {
+                if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL) {
                     return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 

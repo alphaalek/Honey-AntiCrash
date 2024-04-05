@@ -55,7 +55,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             return;
         }
 
-        asyncDecoder.encode((s) -> {
+        asyncDecoder.prependDecode((s) -> {
             if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnlineDirect()) {
                 try {
                     write0(ctx, msg, promise, true);
@@ -63,7 +63,6 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
                     try {
                         super.exceptionCaught(ctx, ex);
                     } catch (Exception ignored) {
-
                     }
                 }
             }

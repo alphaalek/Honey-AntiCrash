@@ -316,13 +316,15 @@ public class ReflectStructure<T, C> {
             if (!hasField(index)) {
                 return null;
             }
+
             if (converter == null) { // what should it apply to?
                 return readField(index);
             }
+
             final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (accessor != null) {
-
                 T originalValue = accessor.get(handle);
+
                 if (converter instanceof MapConverter && originalValue instanceof Map) {
                     MapConverter<K, V, R> mapConverter = (MapConverter<K, V, R>) converter;
                     mapConverter.apply((Map<K, V>) originalValue);
@@ -331,6 +333,7 @@ public class ReflectStructure<T, C> {
                         return null;
                     }
                 }
+
                 if (converter instanceof ListConverter && originalValue instanceof List) {
                     ListConverter<V, R> listConverter = (ListConverter<V, R>) converter;
                     listConverter.apply((List<V>) originalValue);
@@ -339,6 +342,7 @@ public class ReflectStructure<T, C> {
                         return null;
                     }
                 }
+
                 if (converter instanceof SetConverter && originalValue instanceof Set) {
                     SetConverter<V, R> setConverter = (SetConverter<V, R>) converter;
                     setConverter.apply((Set<V>) originalValue);
@@ -347,8 +351,10 @@ public class ReflectStructure<T, C> {
                         return null;
                     }
                 }
+
                 return converter.convertDelegate(originalValue);
             }
+
             return null;
         }
 

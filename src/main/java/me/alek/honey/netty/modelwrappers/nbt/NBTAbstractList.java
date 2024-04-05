@@ -143,8 +143,8 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     }
 
     private void setInherited(T value) {
-        value.setRoot(getRoot());
         value.setOwner(this);
+        value.setRoot(getRoot());
     }
 
     private void deleteInherited(T value) {

@@ -82,6 +82,11 @@ public class SimpleListConverter<V, T> extends AbstractCollectionConverter<V, T>
         return delegatedList.get(index);
     }
 
+    @Override
+    public T getRaw(int index) {
+        return delegatedList.get(index);
+    }
+
 
     public List<T> getDelegatedList() {
         checkCollections();

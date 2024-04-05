@@ -72,6 +72,10 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         return getValue().getConverted(key);
     }
 
+    public Object getRaw(String key) {
+        return getValue().getRaw(key);
+    }
+
     public boolean hasKey(String key) {
         return getValue().containsKey(key);
     }
@@ -162,7 +166,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getSpecific(String key) {
+    public <T> T getUnspecific(String key) {
         if (hasKey(key)) {
             try {
                 return (T) get(key).getValue();
@@ -182,43 +186,43 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     public byte getByte(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public short getShort(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public int getInt(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public long getLong(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public float getFloat(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public double getDouble(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public byte[] getByteArray(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public String getString(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public int[] getIntArray(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     public long[] getLongArray(String key) {
-        return getSpecific(key);
+        return getUnspecific(key);
     }
 
     private void setInherited(NBTBase<?, ?> value) {

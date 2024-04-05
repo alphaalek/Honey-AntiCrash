@@ -2,11 +2,9 @@ package me.alek.honey.checks.item;
 
 import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
-import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
-import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
-import me.alek.honey.netty.modelwrappers.nbt.NBTType;
+import me.alek.honey.netty.modelwrappers.nbt.*;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;

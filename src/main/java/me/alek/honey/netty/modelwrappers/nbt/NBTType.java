@@ -151,12 +151,14 @@ public enum NBTType {
         if (targetType != null) {
             return targetType;
         }
+
         for (Class<?> interfaceClass : clazz.getInterfaces()) {
             NBTType interfaceTargetType = typeLookup.get(interfaceClass);
             if (interfaceTargetType != null) {
                 return interfaceTargetType;
             }
         }
+
         return UNKNOWN;
     }
 
