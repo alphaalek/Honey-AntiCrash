@@ -169,7 +169,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (recentPollStart != -1 && recentPacket != null) {
                 handleTimings();
             }
-            recentPollStart = System.nanoTime();
 
             WrappedPacketTaskFuture<Object> task = nettySubmitQueue.poll();
             recentPacket = Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPacket).orElse(null);
@@ -178,19 +177,20 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
             }
 
-            Object tickTask = task == null ? null : newTickTask(task);
-
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tick loop is being completed by polling one extra time
             if (!nullPoll && !pollsOneExtra && super.peek() == null) {
                 nullPoll = true;
+                recentPollStart = System.nanoTime();
                 poll();
             }
 
             if (task == null) {
                 tickLoopExecutionDone();
             }
-            return tickTask;
+
+            recentPollStart = System.nanoTime();
+            return task == null ? null : newTickTask(task);
         }
 
         @Override
@@ -283,7 +283,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             packetsInQueueExecution.clear();
             nettySubmitQueue.clear();
 
-            // all packets in the queue has been handled, and no packets for this tick remains to be checked
             recentPollStart = -1;
             nullPoll = false;
 
