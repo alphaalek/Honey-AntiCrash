@@ -93,13 +93,13 @@ public class NBTFactory {
             return NBTType.UNKNOWN;
         }
 
-        final IStructureModifier<Byte> byteModifier = ReflectStructureCache.acquireStructure(NMS.getNBTBaseClass())
+        final IStructureModifier<Byte> byteModifier = ReflectStructureCache.acquireStructure(NMS.getNBTTagListClass())
                 .withType(byte.class)
                 .withTarget(handle);
 
-        final byte type = byteModifier.readField(0);
-        if (type != 0) {
-            return NBTType.getFromTypeId(type);
+        final byte typeId = byteModifier.readField(0);
+        if (typeId != 0) {
+            return NBTType.getFromTypeId(typeId);
         }
 
         final IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = getDirectNBTStructure(handle)
@@ -147,6 +147,7 @@ public class NBTFactory {
         final NBTType type = NBTType.getFromTypeId(typeId);
 
         if (type == NBTType.LIST && !ignoreNestedLists) {
+
             switch (getListType(handle, owner)) {
                 case COMPOUND:
                     return NBTType.LISTOFCOMOUND;

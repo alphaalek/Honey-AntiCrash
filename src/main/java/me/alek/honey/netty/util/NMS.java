@@ -184,6 +184,10 @@ public class NMS {
         return getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
     }
 
+    public static Class<Object> getNBTTagListClass() {
+        return getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
+    }
+
     public static Class<Object> getNBTBaseClass() {
         return getFuzzyClass("{nms}.NBTBase", "{nms}.nbt.NBTBase");
     }
