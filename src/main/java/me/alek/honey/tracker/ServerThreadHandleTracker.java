@@ -6,16 +6,20 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.*;
+import me.alek.honey.postpone.PostponeCheck;
+import me.alek.honey.postpone.PostponeHandler;
+import me.alek.honey.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.util.Array;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -83,7 +87,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
 
         private final double MAX_POSITION_TACKING = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private final double MAX_POSITION_AVERAGE_TACKING = 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
+        private final double MAX_POSITION_TRACKING_AVERAGE_ENTRY = 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
         private Class<?> tickTaskClass;
@@ -96,6 +100,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private final Object EMPTY_TICK_TASK;
         private int positionPacketsAmount;
         private long positionPacketsTime;
+        private int tickloop;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null :
@@ -135,6 +140,10 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             return tickTaskConstructor.invoke(Integer.MAX_VALUE - 3, runnable);
         }
 
+        private Object getEmptyTask() {
+            return newTickTask(new FutureTask<>(() -> null));
+        }
+
         @Override
         public Object peek() {
             // if we have any packets ready to be run, we will return an empty value to mark we're ready
@@ -165,7 +174,8 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
                 return getOtherTask(otherTask);
             }
-            // check if this packet is not the first one handled in this tick
+
+            // check if this packet task should be tracked
             if (recentPollStart != -1 && recentPacket != null) {
                 handleTimings();
             }
@@ -178,7 +188,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
 
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
-            // make sure that the tick loop is being completed by polling one extra time
+            // make sure that the tick loop tracking is being completed by polling one extra time
             if (!nullPoll && !pollsOneExtra && super.peek() == null) {
                 nullPoll = true;
                 recentPollStart = System.nanoTime();
@@ -187,6 +197,10 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
             if (task == null) {
                 tickLoopExecutionDone();
+            } else if (shouldPostponeTask(task)) {
+                Bukkit.getLogger().info("postponing " + task.getPlayer().name + " " + tickloop + " " + task.getPacket().getTime());
+                recentPollStart = -1;
+                return getEmptyTask();
             }
 
             recentPollStart = System.nanoTime();
@@ -198,6 +212,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             // why add something to an execution queue, without it being a runnable?
             if (!(value instanceof Runnable)) {
                 return false;
+            }
+
+            if (value instanceof WrappedPacketTaskFuture) {
+                super.add(EMPTY_VALUE);
+                return nettySubmitQueue.add((WrappedPacketTaskFuture<Object>) value);
             }
 
             // only register tracking for tasks added by netty threads (packet handling)
@@ -230,6 +249,29 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
 
             return nettySubmitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+        }
+
+        private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
+            PostponeHandler postponeHandler = task.getPlayer().postponeHandler;
+            if (postponeHandler.isPostponing()) {
+                postponeHandler.addPostponedPacket(task);
+                return true;
+            }
+
+            Array<Object> pipelineData = new Array<>();
+            for (PostponeCheck check : postponeHandler.getPostponeChecks()) {
+                try {
+                    if (check.test(task.getPacket(), task.getPlayer(), pipelineData)) {
+                        postponeHandler.setPostponing();
+                        postponeHandler.addPostponedPacket(task);
+                        return true;
+                    }
+                } catch (PostponeTerminationException exception) {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         private Runnable getOtherTask(Object otherTask) {
@@ -268,9 +310,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                         || recentPacket.getType() == PacketType.Play.Client.GROUND
                         || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
                     positionPacketsAmount++;
-                    positionPacketsTime += (long) Math.min(MAX_POSITION_AVERAGE_TACKING, deltaTime);
+                    positionPacketsTime += (long) Math.min(MAX_POSITION_TRACKING_AVERAGE_ENTRY, deltaTime);
 
-                    deltaTime = Math.min(deltaTime, Math.min(MAX_POSITION_TACKING, 1.75d * positionPacketsTime / positionPacketsAmount));
+                    deltaTime = Math.min(deltaTime, Math.min(MAX_POSITION_TACKING, 5d * positionPacketsTime / positionPacketsAmount));
                 }
 
                 registerTime(recentPacket.getPlayer(), deltaTime);
@@ -291,6 +333,9 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (Thread.interrupted()) {
                 HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
             }
+
+            PostponeHandler.retryPostponedPackets(this);
+            tickloop++;
         }
     }
 

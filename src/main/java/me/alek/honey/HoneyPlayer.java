@@ -2,6 +2,7 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
+import me.alek.honey.postpone.PostponeHandler;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.util.NMS;
@@ -49,9 +50,10 @@ public class HoneyPlayer {
     public HoneyPacketHandler packetHandler;
     public TempTimedQueuedTracker timedQueuedTracker;
     public TempTimedQueuedTracker serverThreadTimedQueuedTracker;
-    public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
+    public final PostponeHandler postponeHandler = new PostponeHandler();
+    public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
     public boolean punished;
     public int registryID = IDRegistry.PLAYERS.acquireID();
 
