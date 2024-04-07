@@ -19,6 +19,6 @@ public class PostponeRateAccelQuotientCheck implements PostponeCheck {
 
         return playerRate5S > RATE_ACCEL_5S
                 && getTracker().hasCollected(player, Timespan.FIVE_SECOND)
-                && getTracker().getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S;
+                && getTracker().getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, false) > QUOTIENT_ACCEL_5S;
     }
 }

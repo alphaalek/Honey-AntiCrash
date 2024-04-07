@@ -8,7 +8,7 @@ import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
 
-public class PostponeIgnoreTerminator implements PostponeCheck {
+public class PostponeRateIgnoreTerminator implements PostponeCheck {
 
     private static final double IGNORE_RATE_5S = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
 

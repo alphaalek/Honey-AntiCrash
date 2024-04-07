@@ -12,7 +12,6 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
-import me.alek.honey.tickloop.TickloopHandler;
 import me.alek.honey.tickloop.postpone.PostponeHandler;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
@@ -32,6 +31,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private PacketQueueWrapper executionQueue;
     public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
+    private int tickLoop;
 
     public ServerThreadHandleTracker() {
         reload();
@@ -89,7 +89,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         private final double MAX_POSITION_TACKING = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final double MAX_POSITION_TRACKING_AVERAGE_ENTRY = 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-        private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> nettySubmitQueue = new ConcurrentLinkedQueue<>();
+        private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> submitQueue = new ConcurrentLinkedQueue<>();
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
         private Class<?> tickTaskClass;
         private ConstructorInvoker<?> tickTaskConstructor;
@@ -101,7 +101,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private final Object EMPTY_TICK_TASK;
         private int positionPacketsAmount;
         private long positionPacketsTime;
-        private int tickloop;
 
         public PacketQueueWrapper(final Queue<Object> delegate) {
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null :
@@ -181,7 +180,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 handleTimings();
             }
 
-            WrappedPacketTaskFuture<Object> task = nettySubmitQueue.poll();
+            WrappedPacketTaskFuture<Object> task = submitQueue.poll();
             recentPacket = Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPacket).orElse(null);
 
             if (task != null) {
@@ -204,7 +203,6 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                     task.setPostponed();
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), false);
                 }
-                Bukkit.getLogger().info("postponing " + task.getPlayer().name + " " + tickloop + " " + task.getPacket().getTime());
                 recentPollStart = -1;
                 return getEmptyTask();
             }
@@ -222,7 +220,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
             if (value instanceof WrappedPacketTaskFuture) {
                 super.add(EMPTY_VALUE);
-                return nettySubmitQueue.add((WrappedPacketTaskFuture<Object>) value);
+                return submitQueue.add((WrappedPacketTaskFuture<Object>) value);
             }
 
             // only register tracking for tasks added by netty threads (packet handling)
@@ -254,7 +252,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 }
             }
 
-            return nettySubmitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
@@ -329,7 +327,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         private void tickLoopExecutionDone() {
             packetsInQueueExecution.clear();
-            nettySubmitQueue.clear();
+            submitQueue.clear();
 
             recentPollStart = -1;
             nullPoll = false;
@@ -341,7 +339,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             }
 
             PostponeHandler.retryPostponedPackets(this);
-            tickloop++;
+            tickLoop++;
         }
     }
 
@@ -362,6 +360,10 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         packetsInQueueExecution.remove(uuid);
         ignoredPacketsDecrementInQueueExecution.remove(uuid);
         super.remove(player);
+    }
+
+    public int getCurrentTickLoop() {
+        return tickLoop;
     }
 
     public int getPacketsInQueueExecution(UUID uuid) {

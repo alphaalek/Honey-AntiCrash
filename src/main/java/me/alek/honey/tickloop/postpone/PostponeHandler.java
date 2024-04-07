@@ -32,10 +32,10 @@ public class PostponeHandler {
 
     public PostponeHandler() {
         addPostponeCheck(new PostponeMaxQueueSizeCheck());
-        addPostponeCheck(new PostponeMaxPerTickCheck());
 
-        addPostponeCheck(new PostponeIgnoreTerminator());
+        addPostponeCheck(new PostponeRateIgnoreTerminator()); /* terminator */
         addPostponeCheck(new PostponeRateCheck());
+        addPostponeCheck(new PostponeMaxPerTickCheck());
         addPostponeCheck(new PostponeRateAccelCheck());
         addPostponeCheck(new PostponeRateAccelQuotientCheck());
     }
@@ -65,5 +65,9 @@ public class PostponeHandler {
                 postponedPackets.remove();
             }
         }
+    }
+
+    public int getPostponedPacketsSize() {
+        return postponedPackets.size();
     }
 }

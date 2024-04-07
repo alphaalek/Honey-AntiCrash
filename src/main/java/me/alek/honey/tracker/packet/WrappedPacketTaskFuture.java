@@ -41,7 +41,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
     }
 
     @Override
-    public synchronized void run() {
+    public void run() {
         if (!player.isOnlineWeak() || player.punished) {
             super.set(null);
             return;

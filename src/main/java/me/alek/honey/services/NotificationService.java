@@ -270,7 +270,7 @@ public class NotificationService {
 
         StringBuilder messageBuilder = new StringBuilder("§cInbound packet filter: ");
         if (postponedSize >= /* 10 */ 1) {
-            messageBuilder.append("Postponing... (" + postponedSize + ") ");
+            messageBuilder.append("Postponing... (" + postponedSize + ") (current: " + player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize() + ")");
         }
         if (cancelledSize >= 10) {
             messageBuilder.append("Cancelling... (" + cancelledSize + ")");
