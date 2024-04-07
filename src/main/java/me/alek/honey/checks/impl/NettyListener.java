@@ -58,11 +58,11 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
     @Override
     public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
         CheckVisitor<WP> visitor = new CheckVisitor<>(player);
-        visitor.visit(new NettyA<>());
-        visitor.visit(new NettyC<>());
+        // visitor.visit(new NettyA<>());
+        // visitor.visit(new NettyC<>());
         visitor.visit(new NettyH<>());
         visitor.visit(new NettyI<>());
-        visitor.visit(new NettyJ<>());
+        // visitor.visit(new NettyJ<>());
         return visitor;
     }
 
@@ -82,15 +82,19 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
-                    && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType()))
-                return ResponseBuilder.inst().flag(1).build();
+            if (getSetting().isEnabled()) {
+                if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
+                        && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
+                    return ResponseBuilder.inst().flag(1).build();
+                }
 
-            WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
-            if (task != null && task.getPlayer().equals(player)
-                    && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
-                    && !tracker.ignoredPacketsInQueueExecutionSaver.contains(task.getPacket().getType()))
-                return ResponseBuilder.inst().flag(1).build();
+                WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
+                if (task != null && task.getPlayer().equals(player)
+                        && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
+                        && !tracker.ignoredPacketsInQueueExecutionSaver.contains(task.getPacket().getType())) {
+                    return ResponseBuilder.inst().flag(1).build();
+                }
+            }
 
             return ResponseBuilder.SUCCESS;
         }

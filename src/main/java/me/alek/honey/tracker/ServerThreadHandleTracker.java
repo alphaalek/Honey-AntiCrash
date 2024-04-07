@@ -11,9 +11,10 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.*;
-import me.alek.honey.postpone.PostponeCheck;
-import me.alek.honey.postpone.PostponeHandler;
-import me.alek.honey.postpone.PostponeTerminationException;
+import me.alek.honey.tickloop.postpone.PostponeCheck;
+import me.alek.honey.tickloop.TickloopHandler;
+import me.alek.honey.tickloop.postpone.PostponeHandler;
+import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
@@ -198,6 +199,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (task == null) {
                 tickLoopExecutionDone();
             } else if (shouldPostponeTask(task)) {
+
+                if (!task.isPostponed()) {
+                    task.setPostponed();
+                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), false);
+                }
                 Bukkit.getLogger().info("postponing " + task.getPlayer().name + " " + tickloop + " " + task.getPacket().getTime());
                 recentPollStart = -1;
                 return getEmptyTask();
@@ -252,7 +258,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
-            PostponeHandler postponeHandler = task.getPlayer().postponeHandler;
+            PostponeHandler postponeHandler = task.getPlayer().tickloopHandler.getPostponeHandler();
             if (postponeHandler.isPostponing()) {
                 postponeHandler.addPostponedPacket(task);
                 return true;

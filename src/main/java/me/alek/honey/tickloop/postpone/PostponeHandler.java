@@ -1,7 +1,6 @@
-package me.alek.honey.postpone;
+package me.alek.honey.tickloop.postpone;
 
-import me.alek.honey.postpone.checkimpl.PostponeIgnoreTerminator;
-import me.alek.honey.postpone.checkimpl.PostponeRateCheck;
+import me.alek.honey.tickloop.postpone.checkimpl.*;
 import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
 
 import java.util.LinkedList;
@@ -22,7 +21,7 @@ public class PostponeHandler {
                 }
 
                 queue.add(packetTask);
-                packetTask.getPlayer().postponeHandler.postponing = false;
+                packetTask.getPlayer().tickloopHandler.getPostponeHandler().postponing = false;
             }
         }
     }
@@ -32,8 +31,13 @@ public class PostponeHandler {
     private final Queue<PostponeCheck> postponeChecks = new LinkedList<>();
 
     public PostponeHandler() {
+        addPostponeCheck(new PostponeMaxQueueSizeCheck());
+        addPostponeCheck(new PostponeMaxPerTickCheck());
+
         addPostponeCheck(new PostponeIgnoreTerminator());
         addPostponeCheck(new PostponeRateCheck());
+        addPostponeCheck(new PostponeRateAccelCheck());
+        addPostponeCheck(new PostponeRateAccelQuotientCheck());
     }
 
     public void addPostponeCheck(PostponeCheck check) {

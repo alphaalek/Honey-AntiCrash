@@ -1,4 +1,4 @@
-package me.alek.honey.postpone;
+package me.alek.honey.tickloop.postpone;
 
 public class PostponeTerminationException extends Exception {
 }

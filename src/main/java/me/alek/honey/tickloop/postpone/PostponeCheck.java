@@ -1,4 +1,4 @@
-package me.alek.honey.postpone;
+package me.alek.honey.tickloop.postpone;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;

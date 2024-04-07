@@ -21,7 +21,7 @@ public class CancellableByteBufImpl implements CancellablePacketObserver {
         if (cancelled) return;
         cancelled = true;
         if (player != null && player.isOnlineDirect())
-            HoneyPlugin.get().getNotificationService().showCancellingPackets(player);
+            HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true);
 
         byteBuf.readBytes(byteBuf.readableBytes()).release();
     }

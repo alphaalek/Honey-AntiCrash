@@ -208,8 +208,6 @@ public class LoggerService {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(packetContainer.getTime());
-
         if (comparingTime > packetContainer.getTime()) {
             message.append(" (" + (comparingTime - packetContainer.getTime()) + "ms ago)");
         }

@@ -35,7 +35,8 @@ public class NotificationService {
 
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
-    private final Map<UUID, DecayingListeningCounter> recentlyCancelledPacketsMap = new HashMap<>();
+    private final Map<UUID, DecayingListeningCounter> cancelledPackets = new HashMap<>();
+    private final Map<UUID, DecayingListeningCounter> postponedPackets = new HashMap<>();
 
     public static String PREFIX;
     private MessageFormat violationFormat;
@@ -158,7 +159,7 @@ public class NotificationService {
         }
 
         if (observer instanceof Player) {
-            recentlyCancelledPacketsMap.remove(((Player)observer).getUniqueId());
+            cancelledPackets.remove(((Player)observer).getUniqueId());
         }
     }
 
@@ -244,17 +245,38 @@ public class NotificationService {
         return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
     }
 
-    public void showCancellingPackets(HoneyPlayer player) {
-        if (player == null) return;
+    public void showPacketFilterActionBar(HoneyPlayer player, boolean incrementCancelled) {
+        if (player == null) {
+            return;
+        }
 
-        DecayingListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.uuid,
+        DecayingListeningCounter cancelled = cancelledPackets.computeIfAbsent(player.uuid,
                 (d) -> new DecayingListeningCounter(() -> (long) 3000));
-        counter.count();
+        DecayingListeningCounter postponed = postponedPackets.computeIfAbsent(player.uuid,
+                (d) -> new DecayingListeningCounter(() -> (long) 3000));
 
-        int size = counter.size();
-        if (size < 20) return;
+        if (incrementCancelled) {
+            cancelled.count();
+        } else {
+            postponed.count();
+        }
 
-        sendActionBar(player, "§cCancelling inbound packets... [" + size + "]");
+        int postponedSize = postponed.size();
+        int cancelledSize = cancelled.size();
+
+        if (postponedSize < /* 10 */ 1 && cancelledSize < 10) {
+            return;
+        }
+
+        StringBuilder messageBuilder = new StringBuilder("§cInbound packet filter: ");
+        if (postponedSize >= /* 10 */ 1) {
+            messageBuilder.append("Postponing... (" + postponedSize + ") ");
+        }
+        if (cancelledSize >= 10) {
+            messageBuilder.append("Cancelling... (" + cancelledSize + ")");
+        }
+
+        sendActionBar(player, messageBuilder.toString());
     }
 
     public void sendActionBar(HoneyPlayer player, String text) {

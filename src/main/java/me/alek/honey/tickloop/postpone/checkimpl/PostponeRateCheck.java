@@ -1,11 +1,11 @@
-package me.alek.honey.postpone.checkimpl;
+package me.alek.honey.tickloop.postpone.checkimpl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.postpone.PostponeCheck;
-import me.alek.honey.postpone.PostponeTerminationException;
+import me.alek.honey.tickloop.postpone.PostponeCheck;
+import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
 import org.bukkit.Bukkit;
@@ -17,14 +17,7 @@ public class PostponeRateCheck implements PostponeCheck {
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
-        double playerRate5S = getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true);
-
-        Bukkit.getLogger().info("Rate " + playerRate5S * PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER);
-        if (playerRate5S > RATE_5S
-                || getTracker().getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S) {
-            return true;
-        }
-
-        return false;
+        return (double) pipelineData.addAndGet(getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true)) > RATE_5S
+                || getTracker().getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S;
     }
 }

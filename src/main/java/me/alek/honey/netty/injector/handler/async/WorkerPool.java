@@ -259,16 +259,18 @@ public class WorkerPool<T> {
                 .filter(Worker::isQuarantined)
                 .collect(Collectors.toList());
 
+        List<Worker<T>> otherWorkers = new ArrayList<>(Arrays.asList(workers));
+        otherWorkers.removeAll(quarantinedWorkers);
+
         if (workers.length - quarantinedWorkers.size() > minimumWorkerThreads) {
             try {
+                @SuppressWarnings("unchecked")
                 Worker<T>[] newWorkers = new Worker[minimumWorkerThreads + quarantinedWorkers.size()];
                 if (!quarantinedWorkers.isEmpty()) {
+                    @SuppressWarnings("unchecked")
                     Worker<T>[] quarantinedWorkersArray = quarantinedWorkers.toArray((Worker<T>[]) new Worker[0]);
                     System.arraycopy(quarantinedWorkersArray, 0, newWorkers, minimumWorkerThreads, quarantinedWorkers.size());
                 }
-
-                List<Worker<T>> otherWorkers = new ArrayList<>(Arrays.asList(workers));
-                otherWorkers.removeAll(quarantinedWorkers);
 
                 for (int i = 0; i < minimumWorkerThreads; i++) {
                     Worker<T> worker = otherWorkers.get(i);
@@ -284,6 +286,7 @@ public class WorkerPool<T> {
                 Bukkit.getLogger().info("Post GC " + Arrays.asList(newWorkers) + " " + newWorkers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
 
             } catch (Exception ex) {
+                Bukkit.getLogger().info("GC error: " + Arrays.asList(workers) + " " + workers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
                 ex.printStackTrace();
             }
         }
