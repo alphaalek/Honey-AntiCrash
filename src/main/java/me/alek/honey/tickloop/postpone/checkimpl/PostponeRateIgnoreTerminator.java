@@ -17,7 +17,7 @@ public class PostponeRateIgnoreTerminator implements PostponeCheck {
         double playerRate5S = getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, false);
 
         if (playerRate5S < IGNORE_RATE_5S) {
-            throw new PostponeTerminationException();
+            throw PostponeTerminationException.TERMINATOR;
         }
 
         return false;

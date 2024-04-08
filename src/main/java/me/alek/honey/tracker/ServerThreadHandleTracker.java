@@ -198,11 +198,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             if (task == null) {
                 tickLoopExecutionDone();
             } else if (shouldPostponeTask(task)) {
-
                 if (!task.isPostponed()) {
                     task.setPostponed();
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), false);
                 }
+
                 recentPollStart = -1;
                 return getEmptyTask();
             }
