@@ -41,6 +41,9 @@ public class NotificationService {
     public static String PREFIX;
     private MessageFormat violationFormat;
     private MessageFormat punishFormat;
+    private String packetFilterPre;
+    private MessageFormat packetFilterCancelFormat;
+    private MessageFormat packetFilterPostponeFormat;
 
     public NotificationService() {
         subscribe(Bukkit.getConsoleSender());
@@ -77,8 +80,13 @@ public class NotificationService {
 
     public void reload() {
         PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX);
+
         violationFormat = MessageFormat.load(ConfigurationOptions.Messages.VIOLATION_MESSAGE);
         punishFormat = MessageFormat.load(ConfigurationOptions.Messages.PUNISH_MESSAGE);
+
+        packetFilterPre = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.Messages.PACKET_FILTER_PRE);
+        packetFilterCancelFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_CANCEL);
+        packetFilterPostponeFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_POSTPONE);
     }
 
     public String getPrefix() {
@@ -264,16 +272,24 @@ public class NotificationService {
         int postponedSize = postponed.size();
         int cancelledSize = cancelled.size();
 
-        if (postponedSize < /* 10 */ 1 && cancelledSize < 10) {
+        if (postponedSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE
+                && cancelledSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
             return;
         }
 
-        StringBuilder messageBuilder = new StringBuilder("§cInbound packet filter: ");
-        if (postponedSize >= /* 10 */ 1) {
-            messageBuilder.append("Postponing... (" + postponedSize + ") (current: " + player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize() + ")");
+        StringBuilder messageBuilder = new StringBuilder(packetFilterPre);
+        if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE) {
+            messageBuilder.append(packetFilterPostponeFormat.getMessage(
+                    new MessageOffer.Builder()
+                            .offer(Placeholders.AMOUNT, () -> postponedSize + "")
+                            .offer(Placeholders.CURRENT_AMOUNT, () -> player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize() + "")
+                            .build()));
         }
-        if (cancelledSize >= 10) {
-            messageBuilder.append("Cancelling... (" + cancelledSize + ")");
+        if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
+            messageBuilder.append(packetFilterCancelFormat.getMessage(
+                    new MessageOffer.Builder()
+                            .offer(Placeholders.AMOUNT, () -> cancelledSize + "")
+                            .build()));
         }
 
         sendActionBar(player, messageBuilder.toString());

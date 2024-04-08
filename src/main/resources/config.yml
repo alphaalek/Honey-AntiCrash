@@ -68,6 +68,42 @@ messages:
   # Punish
   punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
+  # Inbound packet filter action bar for cancelled and postponed packets.
+  inbound-packet-filter:
+    # Should the action bar be shown or not.
+    enabled: true
+
+    # If more than this amount of packets have been cancelled in the last 3 seconds, the action bar will be shown for cancelling.
+    min-cancelled: 10
+
+    # If more than this amount of packets have been postponed in the last 3 seconds, the action bar will be shown for postponing.
+    min-postponed: 30
+
+    # Strings to be shown.
+    pre: "&cPacket filter:"
+    cancel: "Cancelling... (%amount%)"
+    postpone: "Postponing... (%amount%) (current: %current_amount%)"
+
+
+# Tick loop packet task postpone modifications
+postpone:
+
+  enabled:
+
+  rate-ignore-terminator:
+
+  max-per-tick:
+
+  max-queue-size:
+
+  max-queue-size-ignored:
+
+  max-rate:
+
+  max-rate-accel:
+
+  max-rate-accel-quotient:
+
 
 # Packet dump
 packet-dump:
@@ -324,25 +360,12 @@ commands:
 
 # |--- netty ---|
 netty:
-  a:
-    enabled: true
-    max-packets: 10
-    max-handle: 25.0
-    ignored-packets:
-      - "PacketPlayInFlying"
-      - "PPacketPlayInLook"
-      - "PacketPlayInPosition"
-      - "PacketPlayInPositionLook"
-      - "PacketPlayInSetCreativeSlot"
-      - "PacketPlayInWindowClick"
+  # a: (moved to execution check)
 
   b:
     enabled: true
 
-  c:
-    enabled: true
-    throttle-after: 500
-    vls-amount: 5
+  # c: (moved to execution check)
 
   d:
     enabled: true
@@ -383,10 +406,7 @@ netty:
     decay-amount: 500
     vls-amount: 5
 
-  j:
-    enabled: true
-    throttle-after: 500
-    vls-amount: 4
+  # j: (moved to execution check)
 
   k:
     enabled: true

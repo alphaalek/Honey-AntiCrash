@@ -523,9 +523,23 @@ public class ConfigurationOptions {
         public static String VIOLATION_MESSAGE;
         public static String PUNISH_MESSAGE;
 
+        public static String PACKET_FILTER_PRE;
+        public static String PACKET_FILTER_CANCEL;
+        public static String PACKET_FILTER_POSTPONE;
+        public static boolean PACKET_FILTER_ENABLED;
+        public static int PACKET_FILTER_MIN_CANCEL;
+        public static int PACKET_FILTER_MIN_POSTPONE;
+
         public static void load() {
             VIOLATION_MESSAGE = file.getString("messages.violation");
             PUNISH_MESSAGE = file.getString("messages.punish");
+
+            PACKET_FILTER_PRE = file.getString("messages.inbound-packet-filter.pre", "&cPacket filter:");
+            PACKET_FILTER_CANCEL = file.getString("messages.inbound-packet-filter.cancel", "Cancelling... (%amount%)");
+            PACKET_FILTER_POSTPONE = file.getString("messages.inbound-packet-filter.pre", "Postponing... (%amount%) (current: %current_amount%)");
+            PACKET_FILTER_ENABLED = file.getBoolean("messages.inbound-packet-filter.enabled", true);
+            PACKET_FILTER_MIN_CANCEL = file.getInt("messages.inbound-packet-filter.min-cancelled", 10);
+            PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.inbound-packet-filter.min-postponed", 30);
         }
     }
 
