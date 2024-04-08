@@ -254,7 +254,7 @@ public class NotificationService {
     }
 
     public void showPacketFilterActionBar(HoneyPlayer player, boolean incrementCancelled) {
-        if (player == null) {
+        if (!ConfigurationOptions.Messages.PACKET_FILTER_ENABLED || player == null) {
             return;
         }
 
