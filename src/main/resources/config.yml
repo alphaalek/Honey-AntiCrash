@@ -91,11 +91,13 @@ postpone:
   enabled:
 
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
-  # Set to -1 to disable.
+  # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
+  # (Set to -1 to disable.)
 
-  # Max queue size
-  max-queue-size:
+  # Max execution queue size.
+  max-queue-size: 15
 
+  # Ignored packets for check max-queue-size
   max-queue-size-ignored:
     - "PacketPlayInFlying"
     - "PPacketPlayInLook"
@@ -105,15 +107,21 @@ postpone:
     - "PacketPlayInWindowClick"
 
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
-  rate-ignore-terminator:
+  rate-ignore-terminator: 10.0
 
-  max-per-tick:
+  # Max packet task handle time per tick.
+  max-per-tick: 50.0
 
-  max-rate:
+  # Max packet task handle rate per second in an interval of 5 and 10 seconds.
+  max-rate-5s: 90.0
+  max-rate-10s: 75.0
 
-  max-rate-accel:
+  # Max packet task rate accel (the previous second).
+  max-rate-accel: 150.0
 
-  max-rate-accel-quotient:
+  # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
+  max-rate-accel-quotient: 12.5
+  min-rate-accel-for-quotient: 32.5
 
 
 # Packet dump
