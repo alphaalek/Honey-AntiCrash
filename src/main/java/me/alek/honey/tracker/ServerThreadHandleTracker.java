@@ -19,6 +19,7 @@ import me.alek.honey.tracker.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 
 import java.util.*;
@@ -30,7 +31,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private PacketQueueWrapper executionQueue;
-    public Set<PacketTypeEnum> ignoredPacketsInQueueExecutionSaver;
+    public IDRegistry ignoredPacketsInQueueExecutionSaver;
     private int tickLoop;
 
     public ServerThreadHandleTracker() {
@@ -55,7 +56,11 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 }
             }
         }
-        ignoredPacketsInQueueExecutionSaver = packets;
+
+        ignoredPacketsInQueueExecutionSaver = new IDRegistry();
+        for (PacketTypeEnum packetType : packets) {
+            ignoredPacketsInQueueExecutionSaver.addID(packetType.getPacketId());
+        }
     }
 
     private void tryInject() {
@@ -245,7 +250,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
             UUID uuid = packet.getPlayer().uuid;
             synchronized (PacketTaskHandler.ignoreDecrementLock) {
-                if (!ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
+                if (!ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
                 } else {
                     ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);

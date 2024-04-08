@@ -84,14 +84,14 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
-                        && !tracker.ignoredPacketsInQueueExecutionSaver.contains(packet.getType())) {
+                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
                     return ResponseBuilder.inst().flag(1).build();
                 }
 
                 WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
                 if (task != null && task.getPlayer().equals(player)
                         && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
-                        && !tracker.ignoredPacketsInQueueExecutionSaver.contains(task.getPacket().getType())) {
+                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(task.getPacket().getType().getPacketId())) {
                     return ResponseBuilder.inst().flag(1).build();
                 }
             }

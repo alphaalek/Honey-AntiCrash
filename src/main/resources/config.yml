@@ -87,16 +87,27 @@ messages:
 
 # Tick loop packet task postpone modifications
 postpone:
-
+  # Should packet postponing be enabled.
   enabled:
 
-  rate-ignore-terminator:
+  # The following values are execution checks, checked before a packet task is sent to the server to be executed.
+  # Set to -1 to disable.
 
-  max-per-tick:
-
+  # Max queue size
   max-queue-size:
 
   max-queue-size-ignored:
+    - "PacketPlayInFlying"
+    - "PPacketPlayInLook"
+    - "PacketPlayInPosition"
+    - "PacketPlayInPositionLook"
+    - "PacketPlayInSetCreativeSlot"
+    - "PacketPlayInWindowClick"
+
+  # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
+  rate-ignore-terminator:
+
+  max-per-tick:
 
   max-rate:
 
