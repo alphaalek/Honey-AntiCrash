@@ -209,7 +209,7 @@ public class LoggerService {
 
         StringBuilder message = new StringBuilder();
         if (comparingTime > packetContainer.getTime()) {
-            message.append(" (" + (comparingTime - packetContainer.getTime()) + "ms ago)");
+            message.append("(" + (comparingTime - packetContainer.getTime()) + "ms ago)");
         }
         message.append(": " + playerName + " sent " + packetContainer.getName());
 
