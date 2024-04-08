@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
@@ -14,6 +15,7 @@ public class HoneyPacketHandler {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private volatile HoneyPlayer player;
+    private PacketState protocolState = PacketState.UNKNOWN;
     private String playerName;
 
     public void setPlayer(HoneyPlayer player) {
@@ -31,6 +33,14 @@ public class HoneyPacketHandler {
 
     public String getPlayerName() {
         return playerName;
+    }
+
+    public PacketState getProtocolState() {
+        return protocolState;
+    }
+
+    public void setProtocolState(PacketState state) {
+        this.protocolState = state;
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

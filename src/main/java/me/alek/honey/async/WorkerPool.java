@@ -1,7 +1,7 @@
-package me.alek.honey.netty.injector.handler.async;
+package me.alek.honey.async;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.injector.handler.async.worker.*;
+import me.alek.honey.async.worker.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 

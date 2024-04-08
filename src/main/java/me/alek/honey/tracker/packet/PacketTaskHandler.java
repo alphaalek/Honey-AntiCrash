@@ -10,12 +10,15 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.services.LoggerService;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class PacketTaskHandler {
@@ -67,9 +70,10 @@ public class PacketTaskHandler {
         return lastHandledPacket;
     }
 
-    public static void dumpThread(HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
+    private static String getThreadDump() {
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
         StackTraceElement[] elements = info.getStackTrace();
+
         String prevElement = null;
         int combinedTotal = 0;
         StringBuilder builder = new StringBuilder("Thread Dump:\n\t");
@@ -91,26 +95,31 @@ public class PacketTaskHandler {
                 combinedTotal = 0;
             }
         }
-        if (prevElement != null)
+
+        if (prevElement != null) {
             builder.append(prevElement);
+        }
 
-        if (!builder.toString().contains("PacketTaskHandler.unregisterTask")) {
+        return builder.toString();
+    }
+
+    public static void dumpThread(HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
+        String dump = getThreadDump();
+        LoggerService loggerService = HoneyPlugin.get().getLoggerService();
+
+        if (!dump.contains("PacketTaskHandler.unregisterTask")) {
             if (packet != null && !PacketType.isUnknown(packet.getType())) {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
-
-                Map<String, Object> fields = packet.getAll().readFieldEntries();
-                fields.replaceAll((k, v) -> (v instanceof Object[]) ? Arrays.toString((Object[]) v) : v);
-                HoneyPlugin.get().getLoggerService().getLogger().severe("Properties: " + fields);
-
+                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
+                loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().getPacketEntries(packet));
             } else {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("Packet data unknown.");
+                loggerService.getLogger().severe("Packet data unknown.");
             }
+            loggerService.getLogger().severe("");
+            loggerService.getLogger().severe("Auto thread dump for packet sent by " + player.name + ":");
+            loggerService.getLogger().severe(dump);
 
-            HoneyPlugin.get().getLoggerService().getLogger().severe("");
             HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX
                     + " §cThe server seems to be frozen after a packet was sent by " + player.name + ". See the log for thread dump and more info."));
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Auto thread dump for packet sent by " + player.name + ":");
-            HoneyPlugin.get().getLoggerService().getLogger().severe(builder.toString());
         }
     }
 
@@ -141,7 +150,7 @@ public class PacketTaskHandler {
             HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
         }
 
-        // we have to make sure it's not an unmodifiable packet
+        // we have to make sure it's not an unmodifiable packet (made for some packet types in higher versions where packet mapping is not yet made)
         if (packet.getPlayer() != null) {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }

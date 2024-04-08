@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler.async;
+package me.alek.honey.async;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;

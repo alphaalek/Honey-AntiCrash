@@ -1,8 +1,8 @@
-package me.alek.honey.netty.injector.handler.async.worker;
+package me.alek.honey.async.worker;
 
-import me.alek.honey.netty.injector.handler.async.TaskSupplier;
-import me.alek.honey.netty.injector.handler.async.Worker;
-import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import me.alek.honey.async.TaskSupplier;
+import me.alek.honey.async.Worker;
+import me.alek.honey.async.WorkerPool;
 
 public class HeavyPacketIsolatorWorker<T> implements DelegatedIsolatorWorker<T> {
 

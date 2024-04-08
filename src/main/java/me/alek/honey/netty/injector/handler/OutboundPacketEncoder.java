@@ -8,9 +8,12 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
+import me.alek.honey.async.AsyncDecoder;
+import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 
@@ -55,10 +58,23 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             return;
         }
 
+        if (packetHandler.getProtocolState() == PacketState.LOGIN
+                && msg.getClass().equals(PacketType.Login.Server.SET_COMPRESSION.getNmsClass())) {
+            write0(ctx, msg, promise, false);
+            return;
+        }
+
         asyncDecoder.prependDecode((s) -> {
-            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnlineDirect()) {
+            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnlineWeak()) {
                 try {
-                    write0(ctx, msg, new DefaultChannelPromise(promise.channel()), true);
+                    ChannelPromise asyncPromise;
+                    if (!promise.isDone()) {
+                        asyncPromise = promise;
+                    } else {
+                        asyncPromise = new DefaultChannelPromise(promise.channel());
+                    }
+                    
+                    write0(ctx, msg, asyncPromise, true);
                 } catch (Exception ex) {
                     try {
                         super.exceptionCaught(ctx, ex);
