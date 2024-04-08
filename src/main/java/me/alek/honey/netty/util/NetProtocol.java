@@ -39,21 +39,27 @@ public enum NetProtocol {
     private static NetProtocol acquireProtocol() {
         for (NetProtocol version : PROTOCOLS) {
             final String name = version.name().replace("v", "").substring(1).replace("_", ".");
-            if (Bukkit.getVersion().contains(name))
+            if (Bukkit.getVersion().contains(name)) {
                 return version;
+            }
         }
+
         NetProtocol fallbackVersion = HoneyPlugin.get().getPacketLibrary().getFallbackProtocol();
-        if (fallbackVersion != null)
+        if (fallbackVersion != null) {
             return fallbackVersion;
+        }
 
         return UNKNOWN;
     }
 
     public static NetProtocol getProtocol() {
-        if (PROTOCOL_CACHE == null) PROTOCOL_CACHE = acquireProtocol();
+        if (PROTOCOL_CACHE == null) {
+            PROTOCOL_CACHE = acquireProtocol();
+        }
 
-        if (PROTOCOL_CACHE == NetProtocol.UNKNOWN)
+        if (PROTOCOL_CACHE == NetProtocol.UNKNOWN) {
             throw new RuntimeException("Could not get server version!");
+        }
 
         return PROTOCOL_CACHE;
     }
@@ -75,7 +81,8 @@ public enum NetProtocol {
     }
 
     public boolean isBetween(NetProtocol target1, NetProtocol target2) {
-        return (isOlderThanOrEqual(target1) && isNewerThanOrEqual(target2)) || (isOlderThanOrEqual(target2) && isNewerThanOrEqual(target1));
+        return (isOlderThanOrEqual(target1) && isNewerThanOrEqual(target2))
+                || (isOlderThanOrEqual(target2) && isNewerThanOrEqual(target1));
     }
 
     public boolean isEqual(NetProtocol target) {
@@ -87,8 +94,9 @@ public enum NetProtocol {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() - 1];
-        if (protocol.getProtocolVersion() == getProtocolVersion())
+        if (protocol.getProtocolVersion() == getProtocolVersion()) {
             return protocol.getBefore();
+        }
 
         return protocol;
     }
@@ -98,8 +106,9 @@ public enum NetProtocol {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() + 1];
-        if (protocol.getProtocolVersion() == getProtocolVersion())
+        if (protocol.getProtocolVersion() == getProtocolVersion()) {
             return protocol.getAfter();
+        }
 
         return protocol;
     }
