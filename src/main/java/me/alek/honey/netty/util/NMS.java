@@ -188,6 +188,10 @@ public class NMS {
         return getFuzzyClass("{nms}.NBTBase", "{nms}.nbt.NBTBase");
     }
 
+    public static Class<Object> getNBTTagListClass() {
+        return getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
+    }
+
     public static Class<Object> getPacketDataSerializerClass() {
         return getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
     }

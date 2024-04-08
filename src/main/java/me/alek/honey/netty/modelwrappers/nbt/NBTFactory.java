@@ -93,7 +93,7 @@ public class NBTFactory {
             return NBTType.UNKNOWN;
         }
 
-        final IStructureModifier<Byte> byteModifier = ReflectStructureCache.acquireStructure(NMS.getNBTBaseClass())
+        final IStructureModifier<Byte> byteModifier = ReflectStructureCache.acquireStructure(NMS.getNBTTagListClass())
                 .withType(byte.class)
                 .withTarget(handle);
 
