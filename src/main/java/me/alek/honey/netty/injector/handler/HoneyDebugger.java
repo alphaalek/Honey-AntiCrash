@@ -34,22 +34,20 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        onExceptionCaught(cause);
+        onExceptionCaught(cause, !ctx.channel().isOpen());
         try {
             super.exceptionCaught(ctx, cause);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        if (ctx.channel().isOpen()) {
-            if (player != null) {
-                player.punished = true;
-            }
-            UnsafeChannelCloser.closeForcibly(ctx.channel());
+        if (player != null) {
+            player.punished = true;
         }
+        UnsafeChannelCloser.closeForcibly(ctx.channel());
     }
 
-    public static void onExceptionCaught(Throwable throwable) {
+    public static void onExceptionCaught(Throwable throwable, boolean channelClosed) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
         if (HoneyPlugin.get().getLoggerService().isDebug()
                 && /* Java */ !(throwable instanceof ReadTimeoutException)
@@ -59,7 +57,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
                 && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)
                 && /* ViaVersion */ !message.equals(VIA_VERSION_CLOSED_CHANNEL)) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("DEBUG: Exception was caught in a channel handler:");
+            HoneyPlugin.get().getLoggerService().getLogger().severe("DEBUG: Exception was caught in a channel handler:" + (channelClosed ? " (Closed Channel)" : ""));
             throwable.printStackTrace();
         }
     }

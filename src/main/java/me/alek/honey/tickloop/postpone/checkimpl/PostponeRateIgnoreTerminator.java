@@ -13,8 +13,11 @@ public class PostponeRateIgnoreTerminator implements PostponeCheck {
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
-        double playerRate5S = getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, false);
+        if (ConfigurationOptions.Postpone.RATE_IGNORE_TERMINATOR == -1) {
+            return false;
+        }
 
+        double playerRate5S = getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, false);
         if (playerRate5S < millisToNanos(ConfigurationOptions.Postpone.RATE_IGNORE_TERMINATOR)) {
             throw PostponeTerminationException.TERMINATOR;
         }

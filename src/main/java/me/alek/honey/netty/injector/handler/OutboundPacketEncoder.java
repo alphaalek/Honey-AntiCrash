@@ -55,8 +55,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
-            write0(ctx, msg, promise, false);
+        if (!ctx.channel().isOpen()) {
             return;
         }
 
@@ -64,7 +63,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             player = asyncDecoder.getPlayer();
         }
 
-        if (player == null) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
             write0(ctx, msg, promise, false);
             return;
         }

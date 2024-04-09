@@ -13,6 +13,7 @@ public class PostponeRateAccelCheck implements PostponeCheck {
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
-        return getTracker().getPlayerRateAcceleration(player, false, true) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_ACCEL);
+        return ConfigurationOptions.Postpone.MAX_RATE_ACCEL != -1
+                && getTracker().getPlayerRateAcceleration(player, false, true) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_ACCEL);
     }
 }

@@ -16,6 +16,10 @@ public class PostponeMaxPerTickCheck implements PostponeCheck {
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
+        if (ConfigurationOptions.Postpone.MAX_PER_TICK == -1) {
+            return false;
+        }
+
         double playerRate5S = (double) pipelineData.get(0);
         double diff = playerRate5S - previousRate;
         previousRate = playerRate5S;

@@ -161,7 +161,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
-        if (!(o instanceof ByteBuf)) {
+        if (!ctx.channel().isOpen() || !(o instanceof ByteBuf)) {
             return;
         }
 

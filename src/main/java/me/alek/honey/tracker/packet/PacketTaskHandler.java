@@ -17,9 +17,7 @@ import org.bukkit.ChatColor;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PacketTaskHandler {
 
@@ -70,36 +68,59 @@ public class PacketTaskHandler {
         return lastHandledPacket;
     }
 
+    private static Object[] reverse(Object[] array) {
+        Object[] newArray = new Object[array.length];
+        int j = 0;
+        for (int i = newArray.length - 1; i >= 0; i--) {
+            newArray[j++] = array[i];
+        }
+        return newArray;
+    }
+
+    private static <T> T[] castArray(Object[] array, T[] in) {
+        for (int i = 0; i < array.length; i++) {
+            in[i] = (T) array[i];
+        }
+        return in;
+    }
+
     private static String getThreadDump() {
-        ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), 50);
+        ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), Integer.MAX_VALUE);
         StackTraceElement[] elements = info.getStackTrace();
 
         String prevElement = null;
-        int combinedTotal = 0;
-        StringBuilder builder = new StringBuilder("Thread Dump:\n\t");
-        for (StackTraceElement element : elements) {
+        int combined = 0;
+        List<String> strings = new ArrayList<>();
+        for (StackTraceElement element : castArray(reverse(elements), new StackTraceElement[elements.length])) {
             boolean notMatch = false;
             if (!element.toString().equals(prevElement)) {
-                builder.append(element + "\n\t");
+                strings.add(element + "\n\t");
                 notMatch = true;
             }
-            else {
-                combinedTotal++;
-            }
+            else combined++;
+
             prevElement = element.toString();
 
             if (notMatch) {
-                if (combinedTotal > 0) {
-                    builder.append("[...] x" + combinedTotal + "\n\t");
-                }
-                combinedTotal = 0;
+                if (combined > 0) strings.add("[...] x" + combined + "\n\t");
+
+                combined = 0;
             }
         }
 
         if (prevElement != null) {
-            builder.append(prevElement);
+            strings.add(prevElement);
         }
 
+        while (strings.size() > 50) {
+            strings.remove(strings.size() - 1);
+        }
+        Collections.reverse(strings);
+
+        StringBuilder builder = new StringBuilder("Thread Dump:\n\t");
+        for (String str : strings) {
+            builder.append(str);
+        }
         return builder.toString();
     }
 

@@ -15,7 +15,16 @@ public class PostponeRateCheck implements PostponeCheck {
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
-        return (double) pipelineData.addAndGet(getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true)) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_5S)
-                || getTracker().getPlayerRate(player, Timespan.TEN_SECOND, true) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_10S);
+        if (ConfigurationOptions.Postpone.MAX_RATE_5S != -1
+                && (double) pipelineData.addAndGet(getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true)) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_5S)) {
+            return true;
+        }
+
+        if (ConfigurationOptions.Postpone.MAX_RATE_10S != -1
+                && getTracker().getPlayerRate(player, Timespan.TEN_SECOND, true) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_10S)) {
+            return true;
+        }
+
+        return false;
     }
 }

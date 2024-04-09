@@ -18,6 +18,10 @@ public class PostponeMaxQueueSizeCheck implements PostponeCheck {
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
+        if (ConfigurationOptions.Postpone.MAX_QUEUE_SIZE == -1) {
+            return false;
+        }
+
         if (!getTracker().ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
             packetsInExecutionQueue.add(packet);
         }

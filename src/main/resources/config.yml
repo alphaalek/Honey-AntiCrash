@@ -111,10 +111,11 @@ postpone:
   # Ignored packets for check max-queue-size
   max-queue-size-ignored:
     - "PacketPlayInFlying"
-    - "PPacketPlayInLook"
+    - "PacketPlayInLook"
     - "PacketPlayInPosition"
     - "PacketPlayInPositionLook"
     - "PacketPlayInSetCreativeSlot"
+    - "PacketPlayInTransaction"
     - "PacketPlayInWindowClick"
 
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
