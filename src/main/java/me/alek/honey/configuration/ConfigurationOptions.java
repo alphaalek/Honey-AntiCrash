@@ -530,16 +530,24 @@ public class ConfigurationOptions {
         public static int PACKET_FILTER_MIN_CANCEL;
         public static int PACKET_FILTER_MIN_POSTPONE;
 
+        public static String QUARANTINED_ASYNC_WORKER;
+        public static boolean QUARANTINED_ASYNC_WORKER_ENABLED;
+        public static int QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED;
+
         public static void load() {
             VIOLATION_MESSAGE = file.getString("messages.violation");
             PUNISH_MESSAGE = file.getString("messages.punish");
 
-            PACKET_FILTER_PRE = file.getString("messages.inbound-packet-filter.pre", "&cPacket filter:");
-            PACKET_FILTER_CANCEL = file.getString("messages.inbound-packet-filter.cancel", "Cancelling... (%amount%)");
-            PACKET_FILTER_POSTPONE = file.getString("messages.inbound-packet-filter.pre", "Postponing... (%amount%) (current: %current_amount%)");
-            PACKET_FILTER_ENABLED = file.getBoolean("messages.inbound-packet-filter.enabled", true);
-            PACKET_FILTER_MIN_CANCEL = file.getInt("messages.inbound-packet-filter.min-cancelled", 10);
-            PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.inbound-packet-filter.min-postponed", 30);
+            PACKET_FILTER_PRE = file.getString("messages.packet-filter-action-bar.pre", "&cPacket filter:");
+            PACKET_FILTER_CANCEL = file.getString("messages.packet-filter-action-bar.cancel", "Cancelling... (%amount%)");
+            PACKET_FILTER_POSTPONE = file.getString("messages.packet-filter-action-bar.pre", "Postponing... (%amount%) (current: %current_amount%)");
+            PACKET_FILTER_ENABLED = file.getBoolean("messages.packet-filter-action-bar.enabled", true);
+            PACKET_FILTER_MIN_CANCEL = file.getInt("messages.packet-filter-action-bar.min-cancelled", 10);
+            PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.packet-filter-action-bar.min-postponed", 30);
+
+            QUARANTINED_ASYNC_WORKER = file.getString("messages.quarantined-async-worker-action-bar.message", "&cAsync worker moved to quarantine... (%time%ms)");
+            QUARANTINED_ASYNC_WORKER_ENABLED = file.getBoolean("messages.quarantined-async-worker-action-bar.enabled", true);
+            QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED = file.getInt("messages.quarantined-async-worker-action-bar.min-quarantined", 100);
         }
     }
 
@@ -1020,11 +1028,13 @@ public class ConfigurationOptions {
             public static int MAX_PACKETS;
             public static double MAX_HANDLE;
 
+            /*
             public static void load() {
                 IGNORED_PACKETS = file.getStringList("netty.a.ignored-packets");
                 MAX_PACKETS = file.getInt("netty.a.max-packets", 10);
                 MAX_HANDLE = file.getDouble("netty.a.max-handle", 25.0);
             }
+            */
         }
 
         @Setting
@@ -1035,7 +1045,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        public static class NettyC extends VlSetting {
+        public static class NettyC extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
 
         }
 
@@ -1078,7 +1088,7 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
         @Keyed(amount = 3)
-        public static class NettyJ extends VlSetting implements VlTriggerThrottleRequiredContentsSetting {
+        public static class NettyJ extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
 
         }
 

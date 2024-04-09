@@ -69,7 +69,7 @@ messages:
   punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
   # Inbound packet filter action bar for cancelled and postponed packets.
-  inbound-packet-filter:
+  packet-filter-action-bar:
     # Should the action bar be shown or not.
     enabled: true
 
@@ -83,6 +83,17 @@ messages:
     pre: "&cPacket filter:"
     cancel: "Cancelling... (%amount%)"
     postpone: "Postponing... (%amount%) (current: %current_amount%)"
+
+  # Quarantined async worker action bar.
+  quarantined-async-worker-action-bar:
+    # Should the action bar be shown or not.
+    enabled: true
+
+    # If the player's async worker has been quarantined for longer time than this (in millis), the action bar will be shown for quarantined.
+    min-quarantined: 100
+
+    # The action bar message
+    message: "&cAsync worker moved to quarantine... (%time%ms)"
 
 
 # Tick loop packet task postpone modifications
@@ -121,7 +132,7 @@ postpone:
 
   # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
   max-rate-accel-quotient: 12.5
-  min-rate-accel-for-quotient: 32.5
+  min-rate-5s-for-quotient: 32.5
 
 
 # Packet dump

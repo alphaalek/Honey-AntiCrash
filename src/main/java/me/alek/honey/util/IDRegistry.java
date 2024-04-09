@@ -2,6 +2,7 @@ package me.alek.honey.util;
 
 public class IDRegistry {
 
+    /* pre-made ID registries */
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
     public static final IDRegistry PLAYERS = new IDRegistry(1);
 

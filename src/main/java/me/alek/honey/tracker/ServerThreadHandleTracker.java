@@ -378,6 +378,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
     @Override
     public List<HoneyPlayer> getTrackersOrdered() {
         List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
+        trackersList.removeIf(player -> getPlayerRate(player, Timespan.FIVE_SECOND, false) == 0);
         trackersList.sort(new Comparator<HoneyPlayer>() {
 
             @Override

@@ -188,7 +188,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (player.isOnlineDirect() && !player.punished) {
+            if (player.isOnlineWeak() && !player.punished) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

@@ -95,7 +95,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
                 long time = System.currentTimeMillis() - lastHandledTask.get();
 
                 if (time > 200) {
-                    HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cAsync worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
+                    HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());
                 }
                 if (time > 10_000) {
                     kickPlayer();

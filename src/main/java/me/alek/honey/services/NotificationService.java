@@ -44,6 +44,7 @@ public class NotificationService {
     private String packetFilterPre;
     private MessageFormat packetFilterCancelFormat;
     private MessageFormat packetFilterPostponeFormat;
+    private MessageFormat quarantinedAsyncWorkerFormat;
 
     public NotificationService() {
         subscribe(Bukkit.getConsoleSender());
@@ -87,6 +88,8 @@ public class NotificationService {
         packetFilterPre = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.Messages.PACKET_FILTER_PRE);
         packetFilterCancelFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_CANCEL);
         packetFilterPostponeFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_POSTPONE);
+
+        quarantinedAsyncWorkerFormat = MessageFormat.load(ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER);
     }
 
     public String getPrefix() {
@@ -281,18 +284,32 @@ public class NotificationService {
         if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE) {
             messageBuilder.append(packetFilterPostponeFormat.getMessage(
                     new MessageOffer.Builder()
-                            .offer(Placeholders.AMOUNT, () -> postponedSize + "")
-                            .offer(Placeholders.CURRENT_AMOUNT, () -> player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize() + "")
+                            .offer(Placeholders.AMOUNT, () -> postponedSize)
+                            .offer(Placeholders.CURRENT_AMOUNT, () -> player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize())
                             .build()));
         }
         if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
             messageBuilder.append(packetFilterCancelFormat.getMessage(
                     new MessageOffer.Builder()
-                            .offer(Placeholders.AMOUNT, () -> cancelledSize + "")
+                            .offer(Placeholders.AMOUNT, () -> cancelledSize)
                             .build()));
         }
 
         sendActionBar(player, messageBuilder.toString());
+    }
+
+    public void showQuarantinedAsyncWorker(HoneyPlayer player, long time) {
+        if (player == null || !ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER_ENABLED) {
+            return;
+        }
+
+        String message = quarantinedAsyncWorkerFormat.getMessage(
+                new MessageOffer.Builder()
+                        .offer(Placeholders.TIME, () -> time)
+                        .build()
+        );
+
+        sendActionBar(player, message);
     }
 
     public void sendActionBar(HoneyPlayer player, String text) {

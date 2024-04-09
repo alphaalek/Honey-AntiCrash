@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
@@ -36,6 +37,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
     private final Channel channel;
+    private HoneyPlayer player;
 
     public OutboundPacketEncoder(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.channel = channel;
@@ -58,20 +60,23 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             return;
         }
 
-        if (packetHandler.getProtocolState() == PacketState.LOGIN
-                && msg.getClass().equals(PacketType.Login.Server.SET_COMPRESSION.getNmsClass())) {
+        if (player == null && asyncDecoder.getPlayer() != null) {
+            player = asyncDecoder.getPlayer();
+        }
+
+        if (player == null) {
             write0(ctx, msg, promise, false);
             return;
         }
 
         asyncDecoder.prependDecode((s) -> {
-            if (asyncDecoder.getPlayer() == null || asyncDecoder.getPlayer().isOnlineWeak()) {
+            if (player.isOnlineWeak() && !player.punished) {
                 try {
                     ChannelPromise asyncPromise;
                     if (!promise.isDone()) {
                         asyncPromise = promise;
                     } else {
-                        asyncPromise = new DefaultChannelPromise(promise.channel());
+                        asyncPromise = new DefaultChannelPromise(ctx.channel());
                     }
                     
                     write0(ctx, msg, asyncPromise, true);
@@ -87,7 +92,11 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
 
     private <WP extends WrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) {
         if (msg instanceof ByteBuf) {
-            ctx.write(msg, promise);
+            if (promise != null) {
+                ctx.write(msg, promise);
+            } else {
+                ctx.write(msg);
+            }
             return;
         }
 
@@ -101,7 +110,11 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             ReferenceCountUtil.retain(msg);
         }
 
-        ctx.write(msg, promise);
+        if (promise != null) {
+            ctx.write(msg, promise);
+        } else {
+            ctx.write(msg);
+        }
 
         CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
         if (postAction != null) {
@@ -121,7 +134,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
                 return;
             }
 
-            write0(ctx, value, new DefaultChannelPromise(channel), false);
+            write0(ctx, value, null, false);
         } catch (Exception e) {
             e.printStackTrace();
         }

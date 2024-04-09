@@ -12,6 +12,9 @@ public enum Placeholders {
     // for inbound packet filter
     AMOUNT("amount"),
     CURRENT_AMOUNT("current_amount"),
+
+    // for quarantined async worker
+    TIME("amount"),
     ;
 
     private final String placeholder;

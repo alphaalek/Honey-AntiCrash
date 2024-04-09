@@ -459,7 +459,6 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     int trackerSize = tracker.getTrackerSize();
                     int i = 0;
                     for (Timespan timespan : Timespan.Used.USED_FOR_TRACKERS) {
-
                         double multiplier = (i >= timespanMultipliers.length)
                                 ? timespanMultipliers[timespanMultipliers.length - 1]
                                 : timespanMultipliers[i++];
