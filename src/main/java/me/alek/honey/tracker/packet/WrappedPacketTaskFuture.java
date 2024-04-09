@@ -11,6 +11,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
     private final HoneyPlayer player;
     private final PacketContainer<? extends WrappedPacket<?>> packet;
+    private boolean postponed;
     private final long submitted = System.nanoTime();
 
     public WrappedPacketTaskFuture(Runnable runnable, HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
@@ -31,8 +32,16 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         return submitted;
     }
 
+    public boolean isPostponed() {
+        return postponed;
+    }
+
+    public void setPostponed() {
+        postponed = true;
+    }
+
     @Override
-    public synchronized void run() {
+    public void run() {
         if (!player.isOnlineWeak() || player.punished) {
             super.set(null);
             return;

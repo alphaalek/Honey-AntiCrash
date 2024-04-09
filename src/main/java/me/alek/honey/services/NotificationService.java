@@ -35,11 +35,16 @@ public class NotificationService {
 
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
-    private final Map<UUID, DecayingListeningCounter> recentlyCancelledPacketsMap = new HashMap<>();
+    private final Map<UUID, DecayingListeningCounter> cancelledPackets = new HashMap<>();
+    private final Map<UUID, DecayingListeningCounter> postponedPackets = new HashMap<>();
 
     public static String PREFIX;
     private MessageFormat violationFormat;
     private MessageFormat punishFormat;
+    private String packetFilterPre;
+    private MessageFormat packetFilterCancelFormat;
+    private MessageFormat packetFilterPostponeFormat;
+    private MessageFormat quarantinedAsyncWorkerFormat;
 
     public NotificationService() {
         subscribe(Bukkit.getConsoleSender());
@@ -76,8 +81,15 @@ public class NotificationService {
 
     public void reload() {
         PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX);
+
         violationFormat = MessageFormat.load(ConfigurationOptions.Messages.VIOLATION_MESSAGE);
         punishFormat = MessageFormat.load(ConfigurationOptions.Messages.PUNISH_MESSAGE);
+
+        packetFilterPre = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.Messages.PACKET_FILTER_PRE);
+        packetFilterCancelFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_CANCEL);
+        packetFilterPostponeFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_POSTPONE);
+
+        quarantinedAsyncWorkerFormat = MessageFormat.load(ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER);
     }
 
     public String getPrefix() {
@@ -158,7 +170,7 @@ public class NotificationService {
         }
 
         if (observer instanceof Player) {
-            recentlyCancelledPacketsMap.remove(((Player)observer).getUniqueId());
+            cancelledPackets.remove(((Player)observer).getUniqueId());
         }
     }
 
@@ -244,24 +256,67 @@ public class NotificationService {
         return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
     }
 
-    public void showCancellingPackets(HoneyPlayer player) {
-        if (player == null) return;
+    public void showPacketFilterActionBar(HoneyPlayer player, boolean incrementCancelled) {
+        if (!ConfigurationOptions.Messages.PACKET_FILTER_ENABLED || player == null) {
+            return;
+        }
 
-        DecayingListeningCounter counter = recentlyCancelledPacketsMap.computeIfAbsent(player.uuid,
+        DecayingListeningCounter cancelled = cancelledPackets.computeIfAbsent(player.uuid,
                 (d) -> new DecayingListeningCounter(() -> (long) 3000));
-        counter.count();
+        DecayingListeningCounter postponed = postponedPackets.computeIfAbsent(player.uuid,
+                (d) -> new DecayingListeningCounter(() -> (long) 3000));
 
-        int size = counter.size();
-        if (size < 20) return;
+        if (incrementCancelled) {
+            cancelled.count();
+        } else {
+            postponed.count();
+        }
 
-        sendActionBar(player, "§cCancelling inbound packets... [" + size + "]");
+        int postponedSize = postponed.size();
+        int cancelledSize = cancelled.size();
+
+        if (postponedSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE
+                && cancelledSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
+            return;
+        }
+
+        StringBuilder messageBuilder = new StringBuilder(packetFilterPre);
+        if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE) {
+            messageBuilder.append(packetFilterPostponeFormat.getMessage(
+                    new MessageOffer.Builder()
+                            .offer(Placeholders.AMOUNT, () -> postponedSize)
+                            .offer(Placeholders.CURRENT_AMOUNT, () -> player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize())
+                            .build()));
+        }
+        if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
+            messageBuilder.append(packetFilterCancelFormat.getMessage(
+                    new MessageOffer.Builder()
+                            .offer(Placeholders.AMOUNT, () -> cancelledSize)
+                            .build()));
+        }
+
+        sendActionBar(player, messageBuilder.toString());
+    }
+
+    public void showQuarantinedAsyncWorker(HoneyPlayer player, long time) {
+        if (player == null || !ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER_ENABLED) {
+            return;
+        }
+
+        String message = quarantinedAsyncWorkerFormat.getMessage(
+                new MessageOffer.Builder()
+                        .offer(Placeholders.TIME, () -> time)
+                        .build()
+        );
+
+        sendActionBar(player, message);
     }
 
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
             return;
-        } else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) return;
+        }
 
         WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();

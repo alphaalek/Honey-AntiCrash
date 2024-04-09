@@ -523,9 +523,69 @@ public class ConfigurationOptions {
         public static String VIOLATION_MESSAGE;
         public static String PUNISH_MESSAGE;
 
+        public static String PACKET_FILTER_PRE;
+        public static String PACKET_FILTER_CANCEL;
+        public static String PACKET_FILTER_POSTPONE;
+        public static boolean PACKET_FILTER_ENABLED;
+        public static int PACKET_FILTER_MIN_CANCEL;
+        public static int PACKET_FILTER_MIN_POSTPONE;
+
+        public static String QUARANTINED_ASYNC_WORKER;
+        public static boolean QUARANTINED_ASYNC_WORKER_ENABLED;
+        public static int QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED;
+
         public static void load() {
             VIOLATION_MESSAGE = file.getString("messages.violation");
             PUNISH_MESSAGE = file.getString("messages.punish");
+
+            PACKET_FILTER_PRE = file.getString("messages.packet-filter-action-bar.pre", "&cPacket filter:");
+            PACKET_FILTER_CANCEL = file.getString("messages.packet-filter-action-bar.cancel", "Cancelling... (%amount%)");
+            PACKET_FILTER_POSTPONE = file.getString("messages.packet-filter-action-bar.pre", "Postponing... (%amount%) (current: %current_amount%)");
+            PACKET_FILTER_ENABLED = file.getBoolean("messages.packet-filter-action-bar.enabled", true);
+            PACKET_FILTER_MIN_CANCEL = file.getInt("messages.packet-filter-action-bar.min-cancelled", 10);
+            PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.packet-filter-action-bar.min-postponed", 30);
+
+            QUARANTINED_ASYNC_WORKER = file.getString("messages.quarantined-async-worker-action-bar.message", "&cAsync worker moved to quarantine... (%time%ms)");
+            QUARANTINED_ASYNC_WORKER_ENABLED = file.getBoolean("messages.quarantined-async-worker-action-bar.enabled", true);
+            QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED = file.getInt("messages.quarantined-async-worker-action-bar.min-quarantined", 100);
+        }
+    }
+
+    @Setting
+    public static class Postpone {
+
+        public static boolean ENABLED;
+        public static int MAX_QUEUE_SIZE;
+        public static List<String> MAX_QUEUE_SIZE_IGNORED;
+        public static double RATE_IGNORE_TERMINATOR;
+        public static double MAX_PER_TICK;
+        public static double MAX_RATE_5S;
+        public static double MAX_RATE_10S;
+        public static double MAX_RATE_ACCEL;
+        public static double MAX_RATE_ACCEL_QUOTIENT;
+        public static double MIN_RATE_5S_FOR_QUOTIENT;
+
+        public static void load() {
+            ENABLED = file.getBoolean("postpone.enabled", true);
+            MAX_QUEUE_SIZE = file.getInt("postpone.max-queue-size", 15);
+            if (file.get("postpone.max-queue-size-ignored") == null) {
+                MAX_QUEUE_SIZE_IGNORED = Arrays.asList(
+                        "PacketPlayInFlying",
+                        "PacketPlayInLook",
+                        "PacketPlayInPosition",
+                        "PacketPlayInPositionLook",
+                        "PacketPlayInSetCreativeSlot",
+                        "PacketPlayInWindowClick");
+            } else {
+                MAX_QUEUE_SIZE_IGNORED = file.getStringList("max-queue-size-ignored");
+            }
+            RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator", 10d);
+            MAX_PER_TICK = file.getDouble("postpone.max-per-tick", 50d);
+            MAX_RATE_5S = file.getDouble("postpone.max-rate-5s", 90d);
+            MAX_RATE_10S = file.getDouble("postpone.max-rate-10s", 75d);
+            MAX_RATE_ACCEL = file.getDouble("postpone.max-rate-accel", 150d);
+            MAX_RATE_ACCEL_QUOTIENT = file.getDouble("postpone.max-rate-accel-quotient", 12.5d);
+            MIN_RATE_5S_FOR_QUOTIENT = file.getDouble("postpone.min-rate-5s-for-quotient", 32.5d);
         }
     }
 
@@ -537,7 +597,7 @@ public class ConfigurationOptions {
         public static int PORT;
         public static String USERNAME;
         public static String PASSWORD;
-        public static String DATBASE;
+        public static String DATABASE;
 
         public static void load() {
             ENABLED = file.getBoolean("mysql.enabled");
@@ -545,7 +605,7 @@ public class ConfigurationOptions {
             PORT = file.getInt("mysql.port");
             USERNAME = file.getString("mysql.username");
             PASSWORD = file.getString("mysql.password");
-            DATBASE = file.getString("mysql.name");
+            DATABASE = file.getString("mysql.name");
         }
     }
 
@@ -1006,11 +1066,13 @@ public class ConfigurationOptions {
             public static int MAX_PACKETS;
             public static double MAX_HANDLE;
 
+            /*
             public static void load() {
                 IGNORED_PACKETS = file.getStringList("netty.a.ignored-packets");
                 MAX_PACKETS = file.getInt("netty.a.max-packets", 10);
                 MAX_HANDLE = file.getDouble("netty.a.max-handle", 25.0);
             }
+            */
         }
 
         @Setting
@@ -1021,7 +1083,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        public static class NettyC extends VlSetting {
+        public static class NettyC extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
 
         }
 
@@ -1064,7 +1126,7 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
         @Keyed(amount = 3)
-        public static class NettyJ extends VlSetting implements VlTriggerThrottleRequiredContentsSetting {
+        public static class NettyJ extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
 
         }
 

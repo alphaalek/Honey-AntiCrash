@@ -62,6 +62,11 @@ public class Array<T> implements Iterable<T> {
         values[index] = val;
     }
 
+    public T addAndGet(T val) {
+        add(val);
+        return val;
+    }
+
     public boolean has(int index) {
         if (index >= values.length) return false; // avoid resolving
 

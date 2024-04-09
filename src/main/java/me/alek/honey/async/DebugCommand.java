@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler.async;
+package me.alek.honey.async;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

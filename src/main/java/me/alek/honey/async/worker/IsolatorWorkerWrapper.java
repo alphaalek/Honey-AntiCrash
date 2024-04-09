@@ -1,7 +1,7 @@
-package me.alek.honey.netty.injector.handler.async.worker;
+package me.alek.honey.async.worker;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.injector.handler.async.*;
+import me.alek.honey.async.*;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;

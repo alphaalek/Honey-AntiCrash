@@ -2,6 +2,7 @@ package me.alek.honey.util;
 
 public class IDRegistry {
 
+    /* pre-made ID registries */
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
     public static final IDRegistry PLAYERS = new IDRegistry(1);
 
@@ -34,6 +35,15 @@ public class IDRegistry {
         }
     }
 
+    public synchronized void addID(int id) {
+        if (id >= ids.length) {
+            int[] newIds = new int[id + 1];
+            System.arraycopy(ids, 0, newIds, 0, ids.length);
+            ids = newIds;
+        }
+        ids[id] = id;
+    }
+
     public synchronized void remove(int id) {
         ids[id] = -1;
         int maxId = 0;
@@ -47,7 +57,11 @@ public class IDRegistry {
         }
     }
 
-    public synchronized int size() {
+    public boolean hasID(int id) {
+        return ids.length > id && ids[id] != -1;
+    }
+
+    public int size() {
         return ids.length;
     }
 }

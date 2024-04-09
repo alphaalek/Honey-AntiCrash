@@ -48,8 +48,8 @@ public class MessageOffer {
             return this;
         }
 
-        public Builder offer(Placeholders placeholder, Supplier<String> value) {
-            return offer(placeholder.getText(), value);
+        public Builder offer(Placeholders placeholder, Supplier<Object> value) {
+            return offer(placeholder.getText(), () -> value.get().toString());
         }
 
         public MessageOffer build() {

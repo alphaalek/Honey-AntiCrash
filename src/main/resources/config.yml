@@ -68,6 +68,72 @@ messages:
   # Punish
   punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
+  # Inbound packet filter action bar for cancelled and postponed packets.
+  packet-filter-action-bar:
+    # Should the action bar be shown or not.
+    enabled: true
+
+    # If more than this amount of packets have been cancelled in the last 3 seconds, the action bar will be shown for cancelling.
+    min-cancelled: 10
+
+    # If more than this amount of packets have been postponed in the last 3 seconds, the action bar will be shown for postponing.
+    min-postponed: 30
+
+    # Strings to be shown.
+    pre: "&cPacket filter:"
+    cancel: "Cancelling... (%amount%)"
+    postpone: "Postponing... (%amount%) (current: %current_amount%)"
+
+  # Quarantined async worker action bar.
+  quarantined-async-worker-action-bar:
+    # Should the action bar be shown or not.
+    enabled: true
+
+    # If the player's async worker has been quarantined for longer time than this (in millis), the action bar will be shown for quarantined.
+    min-quarantined: 100
+
+    # The action bar message
+    message: "&cAsync worker moved to quarantine... (%time%ms)"
+
+
+# Tick loop packet task postpone modifications
+postpone:
+  # Should packet postponing be enabled.
+  enabled:
+
+  # The following values are execution checks, checked before a packet task is sent to the server to be executed.
+  # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
+  # (Set to -1 to disable.)
+
+  # Max execution queue size.
+  max-queue-size: 15
+
+  # Ignored packets for check max-queue-size
+  max-queue-size-ignored:
+    - "PacketPlayInFlying"
+    - "PPacketPlayInLook"
+    - "PacketPlayInPosition"
+    - "PacketPlayInPositionLook"
+    - "PacketPlayInSetCreativeSlot"
+    - "PacketPlayInWindowClick"
+
+  # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
+  rate-ignore-terminator: 10.0
+
+  # Max packet task handle time per tick.
+  max-per-tick: 50.0
+
+  # Max packet task handle rate per second in an interval of 5 and 10 seconds.
+  max-rate-5s: 90.0
+  max-rate-10s: 75.0
+
+  # Max packet task rate accel (the previous second).
+  max-rate-accel: 150.0
+
+  # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
+  max-rate-accel-quotient: 12.5
+  min-rate-5s-for-quotient: 32.5
+
 
 # Packet dump
 packet-dump:
@@ -324,25 +390,12 @@ commands:
 
 # |--- netty ---|
 netty:
-  a:
-    enabled: true
-    max-packets: 10
-    max-handle: 25.0
-    ignored-packets:
-      - "PacketPlayInFlying"
-      - "PPacketPlayInLook"
-      - "PacketPlayInPosition"
-      - "PacketPlayInPositionLook"
-      - "PacketPlayInSetCreativeSlot"
-      - "PacketPlayInWindowClick"
+  # a: (moved to execution check)
 
   b:
     enabled: true
 
-  c:
-    enabled: true
-    throttle-after: 500
-    vls-amount: 5
+  # c: (moved to execution check)
 
   d:
     enabled: true
@@ -383,10 +436,7 @@ netty:
     decay-amount: 500
     vls-amount: 5
 
-  j:
-    enabled: true
-    throttle-after: 500
-    vls-amount: 4
+  # j: (moved to execution check)
 
   k:
     enabled: true

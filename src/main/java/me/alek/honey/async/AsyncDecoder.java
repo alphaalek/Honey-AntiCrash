@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler.async;
+package me.alek.honey.async;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -93,9 +93,8 @@ public class AsyncDecoder implements TaskSupplier<Object> {
 
             if (player != null) {
                 long time = System.currentTimeMillis() - lastHandledTask.get();
-
                 if (time > 200) {
-                    HoneyPlugin.get().getNotificationService().sendActionBar(player, "§cAsync worker moved to quarantine... (" + (System.currentTimeMillis() - lastHandledTask.get()) + "ms)");
+                    HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());
                 }
                 if (time > 10_000) {
                     kickPlayer();

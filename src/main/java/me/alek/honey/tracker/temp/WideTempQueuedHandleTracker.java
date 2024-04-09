@@ -121,7 +121,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         double accel = getPlayerRateAcceleration(player, average, update);
 
         double deltaTotal = getPlayerTotal(player, timespan, update) - accel;
-        if (deltaTotal == 0) return 0;
+        if (deltaTotal == 0) {
+            return 0;
+        }
         double delta = timespan.getTimespan() - 1;
 
         return accel / (deltaTotal / delta);
@@ -207,6 +209,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     @Override
     public List<HoneyPlayer> getTrackersOrdered() {
         List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
+        trackersList.removeIf(player -> getPlayerTotal(player, Timespan.FIVE_SECOND, false) == 0);
         trackersList.sort(new Comparator<HoneyPlayer>() {
             @Override
             public int compare(HoneyPlayer o1, HoneyPlayer o2) {

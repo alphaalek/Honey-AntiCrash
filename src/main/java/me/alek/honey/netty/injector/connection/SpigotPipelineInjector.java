@@ -7,8 +7,8 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.injector.ChannelProxy;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.*;
-import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
-import me.alek.honey.netty.injector.handler.async.WorkerPool;
+import me.alek.honey.async.AsyncDecoder;
+import me.alek.honey.async.WorkerPool;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import org.bukkit.Bukkit;
@@ -240,14 +240,14 @@ public class SpigotPipelineInjector {
     public void updatePlayer(HoneyPlayer player) throws MissingHandlerException {
         Channel channel = player.channel;
         if (channel == null) {
-            throw new MissingHandlerException();
+            throw new MissingHandlerException("Channel");
         }
 
         synchronized (channel) {
             InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
             HoneyDebugger debugger = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDebugger(channel);
             if (filter == null || debugger == null) {
-                throw new MissingHandlerException();
+                throw new MissingHandlerException(filter + ", " + debugger);
             }
 
             filter.setPlayer(player);
@@ -256,7 +256,7 @@ public class SpigotPipelineInjector {
             if (PacketInterceptorResolver.isDecoderPositionResolved()) {
                 InboundPacketDecoder decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
                 if (decoder == null) {
-                    throw new MissingHandlerException();
+                    throw new MissingHandlerException("Decoder");
                 }
 
                 player.packetHandler = decoder.getPacketHandler();
@@ -268,7 +268,7 @@ public class SpigotPipelineInjector {
             if (PacketInterceptorResolver.isEncoderPositionResolved()) {
                 OutboundPacketEncoder encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
                 if (encoder == null) {
-                    throw new MissingHandlerException();
+                    throw new MissingHandlerException("Encoder");
                 }
 
                 player.packetHandler = encoder.getPacketHandler();
@@ -286,10 +286,6 @@ public class SpigotPipelineInjector {
                 player.packetHandler = packetHandler;
 
                 channel.pipeline().remove("pre-resolved-packet-handler");
-            }
-
-            if (preResolvedPacketHandler == null && player.packetHandler == null && player.updateHandlersLater) {
-                throw new MissingHandlerException();
             }
         }
     }

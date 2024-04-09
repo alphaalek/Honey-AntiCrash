@@ -1,11 +1,15 @@
 package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -24,22 +28,55 @@ public class PostActions {
         }
         isSetup = true;
 
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, (packet) -> {
-            HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation();
+        PacketLibrary packetLibrary = HoneyPlugin.get().getPacketLibrary();
+        PacketProcessor packetProcessor = packetLibrary.getPacketProcessor();
+
+        packetProcessor.addPostAction(PacketType.Handshake.Client.SET_PROTOCOL, packet -> {
+            try {
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.HANDSHAKE);
+            } catch (MissingHandlerException ex) {
+                packet.getChannel().close();
+            }
         });
 
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Login.Client.LOGIN_START, (packet) -> {
+        packetProcessor.addPostAction(PacketType.Status.Client.STATUS_REQUEST, packet -> {
+            try {
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.STATUS);
+            } catch (MissingHandlerException ex) {
+                packet.getChannel().close();
+            }
+        });
+
+        packetProcessor.addPostAction(PacketType.Login.Client.LOGIN_START, packet -> {
             String name = getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) packet);
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {
                 HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(packet.getChannel());
                 packetHandler.setPlayerName(name);
-            } catch (Exception ignored) {
+            } catch (MissingHandlerException ignored) {
+            }
+
+            try {
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.LOGIN);
+            } catch (MissingHandlerException ex) {
+                packet.getChannel().close();
             }
         });
 
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, (packet) -> {
+        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
+            HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation();
+        });
+
+        packetProcessor.addPostAction(PacketType.Play.Server.LOGIN, packet -> {
+            try {
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.PLAY);
+            } catch (MissingHandlerException ex) {
+                packet.getChannel().close();
+            }
+        });
+
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
             WrappedPacketDataSerializer serializer = packet.getDataSerializers().readField(0);
 
             if (serializer.refCnt() > 0) {

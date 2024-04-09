@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler.async;
+package me.alek.honey.async;
 
 public interface RunnableWorker<T> extends Worker<T> {
 

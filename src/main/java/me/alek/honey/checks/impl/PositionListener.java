@@ -350,7 +350,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             boolean equalsChunk = chunk.equals(lastChunk);
             boolean equalsPreviousChunk = chunk.equals(lastChunkCameFrom);
 
-            int skip = equalsChunk && equalsPreviousChunk ? 1 : chunk.isLoaded(player.getWorld()) ? 1 : 0;
+            int skip = equalsChunk || equalsPreviousChunk ? 1 : chunk.isLoaded(player.getWorld()) ? 1 : 0;
 
             if (!equalsChunk) {
                 lastChunkCameFrom = lastChunk;
@@ -359,6 +359,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
             // if the setting is disabled, we will just return SUCCESS
             // or if the player is in the same chunk as the last position or the same chunk as the previous chunk
+            // the skip is for letting the next check in the check pipeline (Position.E), either flag or not flag
             if (!getSetting().isEnabled() || equalsChunk || equalsPreviousChunk) {
                 return ResponseBuilder.SUCCESS.copy().skip(skip).build();
             }

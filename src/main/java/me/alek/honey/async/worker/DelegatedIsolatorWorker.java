@@ -1,6 +1,6 @@
-package me.alek.honey.netty.injector.handler.async.worker;
+package me.alek.honey.async.worker;
 
-import me.alek.honey.netty.injector.handler.async.TaskSupplier;
+import me.alek.honey.async.TaskSupplier;
 
 public interface DelegatedIsolatorWorker<T> {
 

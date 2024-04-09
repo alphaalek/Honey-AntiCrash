@@ -208,26 +208,28 @@ public class LoggerService {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(packetContainer.getTime());
-
         if (comparingTime > packetContainer.getTime()) {
-            message.append(" (" + (comparingTime - packetContainer.getTime()) + "ms ago)");
+            message.append("(" + (comparingTime - packetContainer.getTime()) + "ms ago)");
         }
         message.append(": " + playerName + " sent " + packetContainer.getName());
 
         if (detailed && !PacketType.isUnknown(packetContainer.getType())) {
-            Map<String, Object> entries = new HashMap<>();
-            for (Map.Entry<String, Object> entry : packetContainer.getAll().readFieldEntries().entrySet()) {
-                if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() instanceof Object[]) {
-                    entries.put(entry.getKey(), Arrays.toString((Object[]) entry.getValue()));
-                } else {
-                    entries.put(entry.getKey(), entry.getValue());
-                }
-            }
-            message.append(": " + entries);
+            message.append(": " + getPacketEntries(packetContainer));
         }
 
         getLogger().info(message.toString());
+    }
+
+    public Map<String, Object> getPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
+        Map<String, Object> entries = new HashMap<>();
+        for (Map.Entry<String, Object> entry : packet.getAll().readFieldEntries().entrySet()) {
+            if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() instanceof Object[]) {
+                entries.put(entry.getKey(), Arrays.toString((Object[]) entry.getValue()));
+            } else {
+                entries.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return entries;
     }
 
     public boolean isEnabled() {

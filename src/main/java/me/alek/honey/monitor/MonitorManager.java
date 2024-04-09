@@ -144,6 +144,10 @@ public class MonitorManager {
     }
 
     public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer, MonitorSendAt sendAt) {
+        if (packetMonitorers.isEmpty()) {
+            return;
+        }
+
         for (Monitorer packetMonitorer : packetMonitorers) {
             if (!(packetMonitorer instanceof IndependentMonitorer)) {
                 return;

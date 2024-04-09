@@ -9,7 +9,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.injector.handler.async.AsyncDecoder;
+import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -17,7 +17,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -189,7 +188,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         byteBuf.release();
 
         asyncDecoder.decode((s) -> {
-            if (player.isOnlineDirect() && !player.punished) {
+            if (player.isOnlineWeak() && !player.punished) {
                 invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
             }
         });

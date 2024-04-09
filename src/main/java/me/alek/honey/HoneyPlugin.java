@@ -16,7 +16,7 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.injector.handler.async.*;
+import me.alek.honey.async.*;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -77,6 +77,7 @@ public class HoneyPlugin implements HoneyAPI {
     private boolean isRunning;
     private PacketLibrary packetLibrary;
     private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
+    private final Object recentPingLookupLock = new Object();
     private Thread serverThread;
 
     private final Plugin plugin;
@@ -257,7 +258,7 @@ public class HoneyPlugin implements HoneyAPI {
         new BukkitRunnable() {
             @Override
             public void run() {
-                synchronized (recentPingLookup) {
+                synchronized (recentPingLookupLock) {
                     for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
                         recentPingLookup.put(player.uuid, HoneyPlugin.get().getNotificationService().getPing(player));
                     }
@@ -446,13 +447,13 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public int getRecentPing(HoneyPlayer player) {
-        synchronized (recentPingLookup) {
+        synchronized (recentPingLookupLock) {
             return recentPingLookup.computeIfAbsent(player.uuid, (d) -> notificationService.getPing(player));
         }
     }
 
     public void removeRecentPingLookup(HoneyPlayer player) {
-        synchronized (recentPingLookup) {
+        synchronized (recentPingLookupLock) {
             recentPingLookup.remove(player.uuid);
         }
     }

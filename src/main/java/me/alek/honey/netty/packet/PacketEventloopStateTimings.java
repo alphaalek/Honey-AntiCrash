@@ -16,7 +16,9 @@ public class PacketEventloopStateTimings {
     }
 
     public synchronized void startTimings(EventloopState state, long time) {
-        if (currentState != EventloopState.NO_STATE) stopTimings();
+        if (currentState != EventloopState.NO_STATE) {
+            stopTimings();
+        }
 
         currentStateStart = time;
         currentState = state;
@@ -27,7 +29,9 @@ public class PacketEventloopStateTimings {
     }
 
     public synchronized void stopTimings(long time) {
-        if (currentState == EventloopState.NO_STATE) return;
+        if (currentState == EventloopState.NO_STATE) {
+            return;
+        }
 
         long deltaTime = time - currentStateStart;
         times[currentState.ordinal()] = getTimeFor(currentState) + deltaTime;
