@@ -275,6 +275,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
             for (PostponeCheck check : postponeHandler.getPostponeChecks()) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData)) {
+                        Bukkit.getLogger().info("Postponing " + check);
                         postponeHandler.setPostponing();
                         postponeHandler.addPostponedPacket(task);
                         return true;

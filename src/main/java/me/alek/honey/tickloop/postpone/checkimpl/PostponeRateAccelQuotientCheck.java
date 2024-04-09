@@ -15,8 +15,8 @@ public class PostponeRateAccelQuotientCheck implements PostponeCheck {
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
         double playerRate5S = (double) pipelineData.get(0);
 
-        return playerRate5S > ConfigurationOptions.Postpone.MIN_RATE_5S_FOR_QUOTIENT
+        return playerRate5S > millisToNanos(ConfigurationOptions.Postpone.MIN_RATE_5S_FOR_QUOTIENT)
                 && getTracker().hasCollected(player, Timespan.FIVE_SECOND)
-                && getTracker().getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, false) > ConfigurationOptions.Postpone.MAX_RATE_ACCEL_QUOTIENT;
+                && getTracker().getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, false) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_ACCEL_QUOTIENT);
     }
 }

@@ -99,7 +99,7 @@ messages:
 # Tick loop packet task postpone modifications
 postpone:
   # Should packet postponing be enabled.
-  enabled:
+  enabled: true
 
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
@@ -390,12 +390,14 @@ commands:
 
 # |--- netty ---|
 netty:
-  # a: (moved to execution check)
+  a:
+    enabled: false # moved to execution postpone check
 
   b:
     enabled: true
 
-  # c: (moved to execution check)
+  c:
+    enabled: false # moved to execution postpone check
 
   d:
     enabled: true
@@ -436,7 +438,8 @@ netty:
     decay-amount: 500
     vls-amount: 5
 
-  # j: (moved to execution check)
+  j:
+    enabled: false # moved to execution postpone check
 
   k:
     enabled: true

@@ -26,6 +26,6 @@ public class PostponeMaxPerTickCheck implements PostponeCheck {
 
         tickTotal += diff;
 
-        return tickTotal > ConfigurationOptions.Postpone.MAX_PER_TICK;
+        return tickTotal > millisToNanos(ConfigurationOptions.Postpone.MAX_PER_TICK);
     }
 }

@@ -282,14 +282,14 @@ public class NotificationService {
 
         StringBuilder messageBuilder = new StringBuilder(packetFilterPre);
         if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE) {
-            messageBuilder.append(packetFilterPostponeFormat.getMessage(
+            messageBuilder.append(" ").append(packetFilterPostponeFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> postponedSize)
                             .offer(Placeholders.CURRENT_AMOUNT, () -> player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize())
                             .build()));
         }
         if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
-            messageBuilder.append(packetFilterCancelFormat.getMessage(
+            messageBuilder.append(" ").append(packetFilterCancelFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> cancelledSize)
                             .build()));

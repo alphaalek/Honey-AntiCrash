@@ -49,6 +49,7 @@ public class ConfigurationOptions {
     }
 
     public static boolean load() {
+        Bukkit.getLogger().info("Loading configuration...");
         try {
             loadingLatch.await();
             loading = true;
@@ -58,6 +59,7 @@ public class ConfigurationOptions {
             load(ConfigurationOptions.class);
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             loadingLatch.countDown();
             loading = false;
             return true;
@@ -131,6 +133,7 @@ public class ConfigurationOptions {
         for (String prefixPath : prefixPaths) {
             // check if this memory section exists, if it does not then disable the plugin
             if (file.get(prefixPath) == null) {
+                Bukkit.getLogger().severe("Config setting misconfiguration (" + clazz + "), missing: " + prefixPath);
                 throw new RuntimeException();
             }
             Iterator<VlSettingImplType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();
@@ -149,6 +152,7 @@ public class ConfigurationOptions {
         }
         // check if there is anymore required values left which have not been removed (because they were present)
         if (!requiredVlSettingImplTypes.isEmpty()) {
+            Bukkit.getLogger().severe("Config setting misconfiguration (" + clazz + "), missing: " + requiredVlSettingImplTypes);
             throw new RuntimeException();
         }
 
@@ -540,7 +544,7 @@ public class ConfigurationOptions {
 
             PACKET_FILTER_PRE = file.getString("messages.packet-filter-action-bar.pre", "&cPacket filter:");
             PACKET_FILTER_CANCEL = file.getString("messages.packet-filter-action-bar.cancel", "Cancelling... (%amount%)");
-            PACKET_FILTER_POSTPONE = file.getString("messages.packet-filter-action-bar.pre", "Postponing... (%amount%) (current: %current_amount%)");
+            PACKET_FILTER_POSTPONE = file.getString("messages.packet-filter-action-bar.postpone", "Postponing... (%amount%) (current: %current_amount%)");
             PACKET_FILTER_ENABLED = file.getBoolean("messages.packet-filter-action-bar.enabled", true);
             PACKET_FILTER_MIN_CANCEL = file.getInt("messages.packet-filter-action-bar.min-cancelled", 10);
             PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.packet-filter-action-bar.min-postponed", 30);
