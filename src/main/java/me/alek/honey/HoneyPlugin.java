@@ -1,6 +1,5 @@
 package me.alek.honey;
 
-import com.avaje.ebean.EbeanServer;
 import me.alek.honey.checks.HoneyCheckType;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.IPacketListener;
@@ -38,33 +37,25 @@ import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.RegistryMarkableHandleTracker;
-import me.alek.honey.tracker.ServerThreadHandleTracker;
+import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tracker.Tickloop;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -247,7 +238,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         // setup trackers
         packetNettyTracker = new WideTempQueuedHandleTracker();
-        serverThreadTracker = new ServerThreadHandleTracker();
+        serverThreadTracker = new ExecutionQueueWrapper();
         checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
         // setup checks
@@ -371,7 +362,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         monitorManager.reload();
 
-        ((ServerThreadHandleTracker) serverThreadTracker).reload();
+        ((ExecutionQueueWrapper) serverThreadTracker).reload();
 
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();

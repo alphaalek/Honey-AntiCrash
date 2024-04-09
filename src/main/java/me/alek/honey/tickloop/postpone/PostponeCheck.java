@@ -3,17 +3,15 @@ package me.alek.honey.tickloop.postpone;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.tracker.ServerThreadHandleTracker;
+import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 
 public interface PostponeCheck {
 
-    default ServerThreadHandleTracker getTracker() {
-        return (ServerThreadHandleTracker) HoneyPlugin.get().getServerThreadTracker();
+    default ExecutionQueueWrapper getTracker() {
+        return (ExecutionQueueWrapper) HoneyPlugin.get().getServerThreadTracker();
     }
 
     default double millisToNanos(double millis) {

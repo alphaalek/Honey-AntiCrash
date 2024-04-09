@@ -24,7 +24,7 @@ public class PostponeMaxPerTickCheck implements PostponeCheck {
         double diff = playerRate5S - previousRate;
         previousRate = playerRate5S;
 
-        if (previousTickLoop != (previousTickLoop = getTracker().getCurrentTickLoop())) {
+        if (previousTickLoop != (previousTickLoop = getTracker().getCurrentTick())) {
             tickTotal = 0;
         }
         tickTotal += diff;

@@ -15,7 +15,7 @@ import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tracker.ServerThreadHandleTracker;
+import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.CallbackAction;
 
 import java.lang.invoke.MethodHandle;
@@ -29,7 +29,7 @@ import java.util.Queue;
 public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final Queue<Object> serverThreadExecutionQueue = ((ServerThreadHandleTracker)HoneyPlugin.get().getServerThreadTracker()).getExecutionQueue();
+    private static final Queue<Object> serverThreadExecutionQueue = ((ExecutionQueueWrapper)HoneyPlugin.get().getServerThreadTracker()).getExecutionQueue();
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;

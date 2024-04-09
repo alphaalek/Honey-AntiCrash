@@ -559,6 +559,8 @@ public class ConfigurationOptions {
     public static class Postpone {
 
         public static boolean ENABLED;
+        public static int MAX_POSTPONED_PACKETS;
+        public static int MAX_POSTPONED_TICKS;
         public static int MAX_QUEUE_SIZE;
         public static List<String> MAX_QUEUE_SIZE_IGNORED;
         public static double RATE_IGNORE_TERMINATOR;
@@ -571,6 +573,8 @@ public class ConfigurationOptions {
 
         public static void load() {
             ENABLED = file.getBoolean("postpone.enabled", true);
+            MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets", 50);
+            MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-ticks", 15);
             MAX_QUEUE_SIZE = file.getInt("postpone.max-queue-size", 15);
             if (file.get("postpone.max-queue-size-ignored") == null) {
                 MAX_QUEUE_SIZE_IGNORED = Arrays.asList(

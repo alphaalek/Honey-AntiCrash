@@ -1,4 +1,4 @@
-package me.alek.honey.tracker;
+package me.alek.honey.tickloop;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -14,8 +14,9 @@ import me.alek.honey.netty.util.*;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeHandler;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
-import me.alek.honey.tracker.packet.WrappedPacketTaskFuture;
-import me.alek.honey.tracker.packet.PacketTaskHandler;
+import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
+import me.alek.honey.tickloop.packet.PacketTaskHandler;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
@@ -25,16 +26,16 @@ import org.bukkit.Bukkit;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
+public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
     private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
-    private PacketQueueWrapper executionQueue;
+    private DelegatedWrapper executionQueue;
     public IDRegistry ignoredPacketsInQueueExecutionSaver;
     private int tickLoop;
 
-    public ServerThreadHandleTracker() {
+    public ExecutionQueueWrapper() {
         reload();
         tryInject();
     }
@@ -70,7 +71,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
         FieldAccessor<Queue<?>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
 
-        PacketQueueWrapper queueWrapper = executionQueue = new PacketQueueWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
+        DelegatedWrapper queueWrapper = executionQueue = new DelegatedWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
         try {
             Reflection.setFinalField(minecraftServer, queueAccessor, queueWrapper);
         } catch (Exception ex) {
@@ -90,7 +91,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 
-    private final class PacketQueueWrapper extends ConcurrentLinkedQueue<Object> {
+    private final class DelegatedWrapper extends ConcurrentLinkedQueue<Object> {
 
         private final double MAX_POSITION_TACKING = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final double MAX_POSITION_TRACKING_AVERAGE_ENTRY = 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
@@ -107,7 +108,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         private int positionPacketsAmount;
         private long positionPacketsTime;
 
-        public PacketQueueWrapper(final Queue<Object> delegate) {
+        public DelegatedWrapper(final Queue<Object> delegate) {
             EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null :
                     (tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class))
                             .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
@@ -257,7 +258,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
                 }
             }
 
-            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet));
+            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet, tickLoop));
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
@@ -372,7 +373,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         super.remove(player);
     }
 
-    public int getCurrentTickLoop() {
+    public int getCurrentTick() {
         return tickLoop;
     }
 
