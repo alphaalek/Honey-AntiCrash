@@ -1,6 +1,7 @@
 package me.alek.honey.tickloop.postpone.checkimpl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
@@ -8,8 +9,6 @@ import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.util.Array;
 
 public class PostponeMaxPerTickCheck implements PostponeCheck {
-
-    private static final int MAX_TICK_TIME = 50;
 
     private double tickTotal;
     private int previousTickLoop;
@@ -27,6 +26,6 @@ public class PostponeMaxPerTickCheck implements PostponeCheck {
 
         tickTotal += diff;
 
-        return tickTotal > MAX_TICK_TIME;
+        return tickTotal > ConfigurationOptions.Postpone.MAX_PER_TICK;
     }
 }

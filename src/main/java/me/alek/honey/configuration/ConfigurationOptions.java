@@ -552,6 +552,44 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class Postpone {
+
+        public static boolean ENABLED;
+        public static int MAX_QUEUE_SIZE;
+        public static List<String> MAX_QUEUE_SIZE_IGNORED;
+        public static double RATE_IGNORE_TERMINATOR;
+        public static double MAX_PER_TICK;
+        public static double MAX_RATE_5S;
+        public static double MAX_RATE_10S;
+        public static double MAX_RATE_ACCEL;
+        public static double MAX_RATE_ACCEL_QUOTIENT;
+        public static double MIN_RATE_5S_FOR_QUOTIENT;
+
+        public static void load() {
+            ENABLED = file.getBoolean("postpone.enabled", true);
+            MAX_QUEUE_SIZE = file.getInt("postpone.max-queue-size", 15);
+            if (file.get("postpone.max-queue-size-ignored") == null) {
+                MAX_QUEUE_SIZE_IGNORED = Arrays.asList(
+                        "PacketPlayInFlying",
+                        "PacketPlayInLook",
+                        "PacketPlayInPosition",
+                        "PacketPlayInPositionLook",
+                        "PacketPlayInSetCreativeSlot",
+                        "PacketPlayInWindowClick");
+            } else {
+                MAX_QUEUE_SIZE_IGNORED = file.getStringList("max-queue-size-ignored");
+            }
+            RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator", 10d);
+            MAX_PER_TICK = file.getDouble("postpone.max-per-tick", 50d);
+            MAX_RATE_5S = file.getDouble("postpone.max-rate-5s", 90d);
+            MAX_RATE_10S = file.getDouble("postpone.max-rate-10s", 75d);
+            MAX_RATE_ACCEL = file.getDouble("postpone.max-rate-accel", 150d);
+            MAX_RATE_ACCEL_QUOTIENT = file.getDouble("postpone.max-rate-accel-quotient", 12.5d);
+            MIN_RATE_5S_FOR_QUOTIENT = file.getDouble("postpone.min-rate-5s-for-quotient", 32.5d);
+        }
+    }
+
+    @Setting
     public static class SQL {
 
         public static boolean ENABLED;

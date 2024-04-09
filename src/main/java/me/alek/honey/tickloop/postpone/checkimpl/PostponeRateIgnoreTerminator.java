@@ -1,6 +1,7 @@
 package me.alek.honey.tickloop.postpone.checkimpl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
@@ -10,13 +11,11 @@ import me.alek.honey.util.Array;
 
 public class PostponeRateIgnoreTerminator implements PostponeCheck {
 
-    private static final double IGNORE_RATE_5S = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
         double playerRate5S = getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, false);
 
-        if (playerRate5S < IGNORE_RATE_5S) {
+        if (playerRate5S < ConfigurationOptions.Postpone.RATE_IGNORE_TERMINATOR) {
             throw PostponeTerminationException.TERMINATOR;
         }
 

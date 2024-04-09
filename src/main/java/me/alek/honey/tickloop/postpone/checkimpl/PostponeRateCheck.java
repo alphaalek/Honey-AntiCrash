@@ -1,6 +1,7 @@
 package me.alek.honey.tickloop.postpone.checkimpl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -12,12 +13,9 @@ import org.bukkit.Bukkit;
 
 public class PostponeRateCheck implements PostponeCheck {
 
-    private static final double RATE_5S = 90 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-    private static final double RATE_10S = 75 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
-
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
-        return (double) pipelineData.addAndGet(getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true)) > RATE_5S
-                || getTracker().getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S;
+        return (double) pipelineData.addAndGet(getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true)) > ConfigurationOptions.Postpone.MAX_RATE_5S
+                || getTracker().getPlayerRate(player, Timespan.TEN_SECOND, true) > ConfigurationOptions.Postpone.MAX_RATE_10S;
     }
 }

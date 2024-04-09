@@ -1,6 +1,7 @@
 package me.alek.honey.tickloop.postpone.checkimpl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
@@ -13,7 +14,6 @@ import java.util.Queue;
 
 public class PostponeMaxQueueSizeCheck implements PostponeCheck {
 
-    private static final int MAX_PACKETS = 12;
     private final Queue<PacketContainer<? extends WrappedPacket<?>>> packetsInExecutionQueue = new LinkedList<>();
 
     @Override
@@ -38,7 +38,7 @@ public class PostponeMaxQueueSizeCheck implements PostponeCheck {
 
             packetsInExecutionQueue.removeIf(PacketContainer::isHandledByServer);
 
-            return packetsInExecutionQueue.size() > MAX_PACKETS;
+            return packetsInExecutionQueue.size() > ConfigurationOptions.Postpone.MAX_QUEUE_SIZE;
         }
     }
 }

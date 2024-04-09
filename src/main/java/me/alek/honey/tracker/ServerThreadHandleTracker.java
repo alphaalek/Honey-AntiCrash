@@ -41,7 +41,7 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
 
     public void reload() {
         Set<PacketTypeEnum> packets = new HashSet<>();
-        for (String ignoredPacket : ConfigurationOptions.Netty.NettyA.IGNORED_PACKETS) {
+        for (String ignoredPacket : ConfigurationOptions.Postpone.MAX_QUEUE_SIZE_IGNORED) {
 
             PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(ignoredPacket);
             if (packetType != null) {
@@ -261,6 +261,10 @@ public class ServerThreadHandleTracker extends WideTempQueuedHandleTracker {
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
+            if (!ConfigurationOptions.Postpone.ENABLED) {
+                return false;
+            }
+
             PostponeHandler postponeHandler = task.getPlayer().tickloopHandler.getPostponeHandler();
             if (postponeHandler.isPostponing()) {
                 postponeHandler.addPostponedPacket(task);
