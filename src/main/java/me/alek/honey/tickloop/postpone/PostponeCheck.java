@@ -6,6 +6,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.ServerThreadHandleTracker;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 
@@ -16,7 +17,7 @@ public interface PostponeCheck {
     }
 
     default double millisToNanos(double millis) {
-        return PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER * millis;
+        return Timespan.MILLIS_TO_NANO_MULTIPLIER * millis;
     }
 
     boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException;

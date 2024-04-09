@@ -114,8 +114,6 @@ public class PacketTaskHandler {
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");
             }
-            loggerService.getLogger().severe("");
-            loggerService.getLogger().severe("Auto thread dump for packet sent by " + player.name + ":");
             loggerService.getLogger().severe(dump);
 
             HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX

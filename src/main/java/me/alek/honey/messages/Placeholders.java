@@ -14,7 +14,7 @@ public enum Placeholders {
     CURRENT_AMOUNT("current_amount"),
 
     // for quarantined async worker
-    TIME("amount"),
+    TIME("time"),
     ;
 
     private final String placeholder;
