@@ -93,7 +93,6 @@ public class AsyncDecoder implements TaskSupplier<Object> {
 
             if (player != null) {
                 long time = System.currentTimeMillis() - lastHandledTask.get();
-
                 if (time > 200) {
                     HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());
                 }
