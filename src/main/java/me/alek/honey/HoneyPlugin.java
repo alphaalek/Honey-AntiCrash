@@ -1,5 +1,6 @@
 package me.alek.honey;
 
+import com.avaje.ebean.EbeanServer;
 import me.alek.honey.checks.HoneyCheckType;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.IPacketListener;
@@ -30,6 +31,7 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.session.FakePlugin;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.storage.BeanRepositoryCollection;
@@ -40,22 +42,29 @@ import me.alek.honey.tracker.ServerThreadHandleTracker;
 import me.alek.honey.tracker.Tickloop;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.Server;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.*;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -93,6 +102,7 @@ public class HoneyPlugin implements HoneyAPI {
         try {
             Session.requestSession();
         } catch (Exception ex) {
+            registerFailedHoneyLoadEvent();
             throw new RuntimeException("Failed to load Honey", ex.getCause());
         }
 
@@ -110,6 +120,21 @@ public class HoneyPlugin implements HoneyAPI {
                 ex.printStackTrace();
             }
         }
+    }
+
+    private void registerFailedHoneyLoadEvent() {
+        HandlerList handlerList = PlayerJoinEvent.getHandlerList();
+        Plugin fakePlugin = new FakePlugin();
+        handlerList.register(new RegisteredListener(new Listener() {}, (listener, event) -> {
+            if (!(event instanceof PlayerJoinEvent)) {
+                return;
+            }
+
+            Player player = ((PlayerJoinEvent)event).getPlayer();
+            if (player.isOp()) {
+                player.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
+            }
+        }, EventPriority.LOWEST, fakePlugin, true));
     }
 
     private static class InvalidLicenseException extends RuntimeException {
