@@ -125,7 +125,11 @@ public class TempQueue {
     }
 
     private boolean clearNode(long time) {
-        return clearNode(TIMED.peek(), time);
+        TimedNode<Double> oldestNode = TIMED.peek();
+        if (oldestNode != null) {
+            return clearNode(oldestNode, time);
+        }
+        return false;
     }
 
     private boolean clearNode(TimedNode<Double> node, long time) {
