@@ -27,7 +27,6 @@ public class PostponeMaxPerTickCheck implements PostponeCheck {
         if (previousTickLoop != (previousTickLoop = getTracker().getCurrentTickLoop())) {
             tickTotal = 0;
         }
-
         tickTotal += diff;
 
         return tickTotal > millisToNanos(ConfigurationOptions.Postpone.MAX_PER_TICK);
