@@ -597,7 +597,7 @@ public class ConfigurationOptions {
         public static int PORT;
         public static String USERNAME;
         public static String PASSWORD;
-        public static String DATBASE;
+        public static String DATABASE;
 
         public static void load() {
             ENABLED = file.getBoolean("mysql.enabled");
@@ -605,7 +605,7 @@ public class ConfigurationOptions {
             PORT = file.getInt("mysql.port");
             USERNAME = file.getString("mysql.username");
             PASSWORD = file.getString("mysql.password");
-            DATBASE = file.getString("mysql.name");
+            DATABASE = file.getString("mysql.name");
         }
     }
 
