@@ -276,6 +276,11 @@ public class NotificationService {
             }
         }
 
+        if (!increment) {
+            cancelled.collect();
+            postponed.collect();
+        }
+
         int postponedSize = postponed.size();
         int cancelledSize = cancelled.size();
 
