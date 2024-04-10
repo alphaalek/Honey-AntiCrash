@@ -51,7 +51,6 @@ public class TrackCommand implements CommandImpl {
                 }
                 sender.sendMessage("§f");
                 sender.sendMessage("§7Average: " + format(stTracker.getAverage(Timespan.FIVE_SECOND)) + " §8(5s) §7" + "§7" + format(stTracker.getAverage(Timespan.TEN_SECOND)) + " §8(10s) §7" + format(stTracker.getAverage(Timespan.FIFTEEN_SECOND)) + " §8(15s) §7" + format(stTracker.getAverage(Timespan.HALF_MINUTE)) + " §8(30s)");
-                sender.sendMessage("§f");
                 sender.sendMessage(" §8What is this showing?");
                 sender.sendMessage(" §7Type §e/honey stq§7 to see more information.");
 
