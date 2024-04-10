@@ -221,8 +221,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
             }
 
-            Bukkit.getLogger().info("Current tick: " + getCurrentTick() + " " + doneTicks + " " + (task != null ? task.getPacket() : null));
-
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tick loop tracking is being completed by polling one extra time
             if (!nullPoll && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14) && super.peek() == null) {
@@ -391,7 +389,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             PostponeHandler.retryPostponedPackets(this);
-            Bukkit.getLogger().info("Done: tick: " + currentTick);
             doneTicks = currentTick;
         }
     }
