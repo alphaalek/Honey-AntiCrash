@@ -75,6 +75,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 // explicit set variable, so Proguard recognizes the method
                 Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
             } catch (Exception ex) {
+                ex.printStackTrace();
                 byteBuf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());

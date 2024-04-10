@@ -211,7 +211,6 @@ monitor:
 
 # packet logger
 packet-logger:
-
   # Should the packet logger be enabled or not.
   enabled: false
 
