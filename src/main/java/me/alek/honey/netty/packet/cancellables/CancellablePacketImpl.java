@@ -14,7 +14,7 @@ public class CancellablePacketImpl implements CancellablePacketObserver {
 
     @Override
     public void cancel() {
-        HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetContainer.getPlayer(), true);
+        HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetContainer.getPlayer(), true, true);
         packetContainer.cancel();
     }
 

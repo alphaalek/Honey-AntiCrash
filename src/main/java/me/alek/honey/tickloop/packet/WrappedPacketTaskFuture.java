@@ -11,9 +11,9 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
     private final HoneyPlayer player;
     private final PacketContainer<? extends WrappedPacket<?>> packet;
+    private final int tickAdded;
     private boolean postponed;
-    private int tickAdded;
-    private final long submitted = System.nanoTime();
+    private long started;
 
     public WrappedPacketTaskFuture(Runnable runnable, HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         super(runnable, null);
@@ -30,8 +30,8 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         return packet;
     }
 
-    public long getSubmitted() {
-        return submitted;
+    public long getStarted() {
+        return started;
     }
 
     public boolean isPostponed() {
@@ -53,6 +53,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
             return;
         }
 
+        started = System.nanoTime();
         PacketTaskHandler.registerTask(this);
         try {
             super.run();

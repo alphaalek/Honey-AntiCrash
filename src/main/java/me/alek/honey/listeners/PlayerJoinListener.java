@@ -2,6 +2,7 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
@@ -74,5 +75,7 @@ public class PlayerJoinListener implements Listener {
         player.leaveCallback.call(player);
         player.online = false;
         IDRegistry.PLAYERS.remove(player.registryID);
+
+        player.tickloopHandler.getPostponeHandler().unregister();
     }
 }

@@ -151,7 +151,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         }
 
         ctx.fireChannelRead(packetContainer.getHandle());
-        HoneyPacketHandler.getPacketSendMarker().remove();
 
         CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
         if (postAction != null) {

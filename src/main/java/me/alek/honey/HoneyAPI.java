@@ -9,6 +9,7 @@ import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tracker.*;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
@@ -38,7 +39,7 @@ public interface HoneyAPI {
 
     WideTempQueuedHandleTracker getNettyPacketTracker();
 
-    WideTempQueuedHandleTracker getServerThreadTracker();
+    ExecutionQueueWrapper getServerThreadTracker();
 
     MarkableHandleTracker<Double, String> getCheckHandleTracker();
 

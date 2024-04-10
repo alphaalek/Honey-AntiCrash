@@ -6,13 +6,13 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
-import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.CallbackAction;
 
 public class PostponeRateAccelCheck implements PostponeCheck {
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
+    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction<Boolean> postponed) throws PostponeTerminationException {
         return ConfigurationOptions.Postpone.MAX_RATE_ACCEL != -1
                 && getTracker().getPlayerRateAcceleration(player, false, true) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_ACCEL);
     }

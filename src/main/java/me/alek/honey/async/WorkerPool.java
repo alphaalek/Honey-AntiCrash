@@ -52,12 +52,12 @@ public class WorkerPool<T> {
         return minimumWorkerThreads;
     }
 
-    private List<RunnableWorker<T>> initializeDelegatedWorkers() {
-        List<RunnableWorker<T>> workers = new ArrayList<>();
+    private List<Worker<T>> initializeDelegatedWorkers() {
+        List<Worker<T>> workers = new ArrayList<>();
         for (Class<DelegatedIsolatorWorker<?>> workerClass : WORKERS_CLASSES) {
             try {
                 @SuppressWarnings("unchecked")
-                RunnableWorker<T> workerWrapper = IsolatorWorkerWrapper.class.getDeclaredConstructor(WorkerPool.class, Class.class)
+                Worker<T> workerWrapper = IsolatorWorkerWrapper.class.getDeclaredConstructor(WorkerPool.class, Class.class)
                         .newInstance(this, workerClass);
 
                 workers.add(workerWrapper);
@@ -68,13 +68,13 @@ public class WorkerPool<T> {
         return workers;
     }
 
-    public class TaskWorker implements Worker<T>, Runnable {
+    public class TaskWorker implements Worker<T> {
 
         private boolean running = true;
 
         private final String name;
-        private final List<RunnableWorker<T>> workers = initializeDelegatedWorkers();
-        private RunnableWorker<T> worker = workers.get(0);
+        private final List<Worker<T>> workers = initializeDelegatedWorkers();
+        private Worker<T> worker = workers.get(0);
 
         public TaskWorker(String name) {
             this.name = name;
@@ -93,7 +93,7 @@ public class WorkerPool<T> {
 
         @Override
         public boolean relocate(TaskSupplier<T> supplier) {
-            for (RunnableWorker<T> worker : workers) {
+            for (Worker<T> worker : workers) {
                 if (worker.relocate(supplier)) {
                     this.worker = worker;
                     return true;

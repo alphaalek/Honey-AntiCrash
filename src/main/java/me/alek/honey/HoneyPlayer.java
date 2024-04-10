@@ -44,8 +44,10 @@ public class HoneyPlayer {
     public final UUID uuid;
     public final String name;
     public final Channel channel;
+    public final int registryID = IDRegistry.PLAYERS.acquireID();
 
     public boolean online = true;
+    public boolean punished;
     public boolean updateHandlersLater;
     public HoneyPacketHandler packetHandler;
     public TempTimedQueuedTracker timedQueuedTracker;
@@ -54,8 +56,6 @@ public class HoneyPlayer {
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
     public final TickloopHandler tickloopHandler = new TickloopHandler();
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
-    public boolean punished;
-    public int registryID = IDRegistry.PLAYERS.acquireID();
 
     public HoneyPlayer(Player player) {
         this.player = player;
@@ -63,6 +63,11 @@ public class HoneyPlayer {
         uuid = player.getUniqueId();
         name = player.getName();
         channel = NMS.getChannelIfSet(name);
+    }
+
+    public void setPacketHandler(HoneyPacketHandler handler) {
+        handler.setPlayer(this);
+        this.packetHandler = handler;
     }
 
     public boolean isOnlineDirect() {

@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.lang.management.ManagementFactory;
@@ -22,7 +23,7 @@ public class PacketTaskHandler {
 
     public static final double TO_MILLIS_MULTIPLIER = PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
     public static final Object ignoreDecrementLock = new Object();
-    private static final ExecutionQueueWrapper tracker = (ExecutionQueueWrapper) HoneyPlugin.get().getServerThreadTracker();
+    private static final ExecutionQueueWrapper tracker = HoneyPlugin.get().getServerThreadTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     private static WrappedPacketTaskFuture<?> handledTask;
@@ -33,7 +34,7 @@ public class PacketTaskHandler {
             while (HoneyPlugin.get().isRunning()) {
                 synchronized (ignoreDecrementLock) {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                            && (System.nanoTime() - handledTask.getSubmitted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                            && (System.nanoTime() - handledTask.getStarted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) {

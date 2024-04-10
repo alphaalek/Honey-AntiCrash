@@ -2,7 +2,7 @@ package me.alek.honey.async;
 
 import java.util.Queue;
 
-public interface Worker<T> {
+public interface Worker<T> extends Runnable {
 
     String name();
 

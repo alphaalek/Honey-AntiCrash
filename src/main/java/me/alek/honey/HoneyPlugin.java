@@ -68,7 +68,7 @@ public class HoneyPlugin implements HoneyAPI {
     private CommandManager commandManager;
     private SQLManagerWrapper sqlManager;
     private Configuration configuration;
-    private WideTempQueuedHandleTracker serverThreadTracker;
+    private ExecutionQueueWrapper serverThreadTracker;
     private WideTempQueuedHandleTracker packetNettyTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
     private Tickloop tickloop;
@@ -418,7 +418,7 @@ public class HoneyPlugin implements HoneyAPI {
         return packetNettyTracker;
     }
 
-    public WideTempQueuedHandleTracker getServerThreadTracker() {
+    public ExecutionQueueWrapper getServerThreadTracker() {
         return serverThreadTracker;
     }
 

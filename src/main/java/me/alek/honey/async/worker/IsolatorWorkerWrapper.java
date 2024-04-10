@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
+public class IsolatorWorkerWrapper<T> implements Worker<T> {
 
     private final LinkedBlockingQueue<ChainedCallable<T>> pendingTasks = new LinkedBlockingQueue<>();
     private ChainedCallable<T> currentTask;
@@ -30,8 +30,13 @@ public class IsolatorWorkerWrapper<T> implements RunnableWorker<T> {
     }
 
     @Override
-    public void run() throws Exception {
-        currentTask = pendingTasks.take();
+    public void run() {
+        try {
+            currentTask = pendingTasks.take();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return;
+        }
         recentTaskStart = System.currentTimeMillis();
         worker.preCall();
         try {

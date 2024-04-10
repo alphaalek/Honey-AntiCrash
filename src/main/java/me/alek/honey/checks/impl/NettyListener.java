@@ -90,7 +90,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
                 if (task != null && task.getPlayer().equals(player)
-                        && (System.nanoTime() - task.getSubmitted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
+                        && (System.nanoTime() - task.getStarted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
                         && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(task.getPacket().getType().getPacketId())) {
                     return ResponseBuilder.inst().flag(1).build();
                 }

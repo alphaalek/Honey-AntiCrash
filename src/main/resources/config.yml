@@ -76,10 +76,10 @@ messages:
     enabled: true
 
     # If more than this amount of packets have been cancelled in the last 3 seconds, the action bar will be shown for cancelling.
-    min-cancelled: 10
+    min-cancelled: 5
 
     # If more than this amount of packets have been postponed in the last 3 seconds, the action bar will be shown for postponing.
-    min-postponed: 30
+    min-postponed: 75
 
     # Strings to be shown.
     pre: "&cPacket filter:"
@@ -104,10 +104,13 @@ postpone:
   enabled: true
 
   # Max postponed packets. If the amount of currently postponed packets exceeds this amount, the oldest ones will be cancelled.
-  max-postponed-packets: 50
+  max-postponed-packets: 150
 
   # Max postponed packet ticks. If the amount of ticks a packet has been postponed exceeds this amount, it will be cancelled.
-  max-postponed-ticks: 15
+  max-postponed-ticks: 100
+
+  # Max postponed packets retry amount.
+  max-retry: 30
 
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.

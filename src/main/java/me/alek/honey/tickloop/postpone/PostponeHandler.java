@@ -2,40 +2,51 @@ package me.alek.honey.tickloop.postpone;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.tickloop.postpone.checkimpl.*;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
+import me.alek.honey.tickloop.postpone.checkimpl.*;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class PostponeHandler {
 
-    private static final Queue<PostponeHandler> postponedHandlers = new LinkedList<>();
-    private static final ExecutionQueueWrapper tickloopAccessor = (ExecutionQueueWrapper) HoneyPlugin.get().getServerThreadTracker();
+    private static final Queue<PostponeHandler> currentlyPostponedHandlers = new LinkedList<>();
+    private static final Queue<PostponeHandler> postponedHandlersOrder = new LinkedList<>();
+    private static final Queue<PostponeHandler> nextPostponedHandlersOrder = new LinkedList<>();
+    private static final ExecutionQueueWrapper tickLoopAccessor = (ExecutionQueueWrapper) HoneyPlugin.get().getServerThreadTracker();
 
     public static void retryPostponedPackets(Queue<Object> queue) {
-        synchronized (postponedHandlers) {
+        synchronized (postponedHandlersOrder) {
             PostponeHandler handler;
-            while ((handler = postponedHandlers.poll()) != null) {
-                WrappedPacketTaskFuture<?> packetTask = handler.postponedPackets.poll();
-                if (packetTask == null) {
-                    continue;
+            while ((handler = postponedHandlersOrder.poll()) != null) {
+                if (handler.postponingRegistered) {
+                    handler.retry(queue);
                 }
+            }
 
-                queue.add(packetTask);
-                packetTask.getPlayer().tickloopHandler.getPostponeHandler().postponing = false;
+            synchronized (currentlyPostponedHandlers) {
+                for (PostponeHandler postponedHandler : currentlyPostponedHandlers) {
+                    postponedHandler.retryAmount = 0;
+                }
+            }
+
+            PostponeHandler nextHandler;
+            while ((nextHandler = nextPostponedHandlersOrder.poll()) != null) {
+                postponedHandlersOrder.add(nextHandler);
             }
         }
     }
 
     private final Queue<WrappedPacketTaskFuture<?>> postponedPackets = new LinkedList<>();
-    private boolean postponing;
     private final Queue<PostponeCheck> postponeChecks = new LinkedList<>();
+    private boolean postponing;
+    private int retryAmount;
+    private boolean postponingRegistered;
 
     public PostponeHandler() {
         addPostponeCheck(new PostponeMaxQueueSizeCheck());
-
         addPostponeCheck(new PostponeRateIgnoreTerminator()); /* terminator */
         addPostponeCheck(new PostponeRateCheck());
         addPostponeCheck(new PostponeMaxPerTickCheck());
@@ -59,9 +70,46 @@ public class PostponeHandler {
         this.postponing = true;
     }
 
+    public void retry(Queue<Object> queue) {
+        if (++retryAmount > ConfigurationOptions.Postpone.MAX_RETRY_AMOUNT) {
+            nextPostponedHandlersOrder.add(this);
+            return;
+        }
+
+        WrappedPacketTaskFuture<?> packetTask = postponedPackets.poll();
+        if (packetTask == null) {
+            currentlyPostponedHandlers.remove(this);
+            return;
+        }
+
+        if (packetTask.getPlayer().punished || !packetTask.getPlayer().isOnlineWeak()) {
+            currentlyPostponedHandlers.remove(this);
+            return;
+        }
+
+        queue.add(packetTask);
+        postponing = false;
+
+        if (postponedPackets.isEmpty()) {
+            postponingRegistered = false;
+            synchronized (currentlyPostponedHandlers) {
+                currentlyPostponedHandlers.remove(this);
+            }
+        }
+
+        HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), false, false);
+    }
+
     public void addPostponedPacket(WrappedPacketTaskFuture<?> packetTask) {
-        synchronized (postponedHandlers) {
-            postponedHandlers.add(this);
+        if (!postponingRegistered) {
+            postponingRegistered = true;
+            synchronized (currentlyPostponedHandlers) {
+                currentlyPostponedHandlers.add(this);
+            }
+        }
+
+        synchronized (postponedHandlersOrder) {
+            postponedHandlersOrder.add(this);
             postponedPackets.add(packetTask);
 
             if (postponedPackets.size() > ConfigurationOptions.Postpone.MAX_POSTPONED_PACKETS) {
@@ -74,17 +122,34 @@ public class PostponeHandler {
                     return;
                 }
 
-                int currentTick = tickloopAccessor.getCurrentTick();
-                if (currentTick - oldestPacketTask.getTickAdded() > ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
-                    postponedPackets.remove();
+                int currentTick = tickLoopAccessor.getCurrentTick();
+                if (currentTick - oldestPacketTask.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
+                    return;
                 }
+
+                HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
+                postponedPackets.remove();
 
                 if (postponedPackets.size() == 1) {
                     return;
                 }
 
-                postponedPackets.removeIf(packet -> currentTick - packet.getTickAdded() > ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS);
+                WrappedPacketTaskFuture<?> postponedPacket;
+                while ((postponedPacket = postponedPackets.peek()) != null) {
+                    if (currentTick - postponedPacket.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
+                        break;
+                    }
+                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
+                    postponedPackets.remove();
+                }
             }
+        }
+    }
+
+    public void unregister() {
+        postponingRegistered = false;
+        synchronized (currentlyPostponedHandlers) {
+            currentlyPostponedHandlers.remove(this);
         }
     }
 

@@ -259,7 +259,7 @@ public class SpigotPipelineInjector {
                     throw new MissingHandlerException("Decoder");
                 }
 
-                player.packetHandler = decoder.getPacketHandler();
+                player.setPacketHandler(decoder.getPacketHandler());
                 decoder.getAsyncDecoder().setPlayer(player);
             } else {
                 player.updateHandlersLater = true;
@@ -271,7 +271,7 @@ public class SpigotPipelineInjector {
                     throw new MissingHandlerException("Encoder");
                 }
 
-                player.packetHandler = encoder.getPacketHandler();
+                player.setPacketHandler(encoder.getPacketHandler());
                 encoder.getAsyncDecoder().setPlayer(player);
             } else {
                 player.updateHandlersLater = true;

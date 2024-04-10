@@ -8,11 +8,12 @@ import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.CallbackAction;
 
 public class PostponeRateIgnoreTerminator implements PostponeCheck {
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData) throws PostponeTerminationException {
+    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction<Boolean> postponed) throws PostponeTerminationException {
         if (ConfigurationOptions.Postpone.RATE_IGNORE_TERMINATOR == -1) {
             return false;
         }

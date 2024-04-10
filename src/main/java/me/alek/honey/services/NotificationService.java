@@ -256,7 +256,7 @@ public class NotificationService {
         return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
     }
 
-    public void showPacketFilterActionBar(HoneyPlayer player, boolean incrementCancelled) {
+    public void showPacketFilterActionBar(HoneyPlayer player, boolean increment, boolean incrementCancelled) {
         if (!ConfigurationOptions.Messages.PACKET_FILTER_ENABLED || player == null) {
             return;
         }
@@ -266,10 +266,12 @@ public class NotificationService {
         DecayingListeningCounter postponed = postponedPackets.computeIfAbsent(player.uuid,
                 (d) -> new DecayingListeningCounter(() -> (long) 3000));
 
-        if (incrementCancelled) {
-            cancelled.count();
-        } else {
-            postponed.count();
+        if (increment) {
+            if (incrementCancelled) {
+                cancelled.count();
+            } else {
+                postponed.count();
+            }
         }
 
         int postponedSize = postponed.size();

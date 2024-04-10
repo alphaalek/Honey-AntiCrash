@@ -20,6 +20,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 
@@ -37,7 +38,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
     public ExecutionQueueWrapper() {
         reload();
-        tryInject();
+        injectIfNot();
     }
 
     public void reload() {
@@ -64,12 +65,15 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         }
     }
 
-    private void tryInject() {
+    public void injectIfNot() {
         Class<?> queueHolderClass = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)
                 ? NMS.getMinecraftServerClass() : NMS.getIAsyncTaskHandlerClass();
         Object minecraftServer = NMS.getMinecraftServer();
 
         FieldAccessor<Queue<?>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
+        if (queueAccessor.get(minecraftServer) instanceof DelegatedWrapper) {
+            return;
+        }
 
         DelegatedWrapper queueWrapper = executionQueue = new DelegatedWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
         try {
@@ -206,14 +210,19 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             } else if (shouldPostponeTask(task)) {
                 if (!task.isPostponed()) {
                     task.setPostponed();
-                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), false);
+                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), true, false);
                 }
 
                 recentPollStart = -1;
                 return getEmptyTask();
             }
 
+            if (recentPacket != null) {
+                recentPacket.setHandledByServer();
+            }
+
             recentPollStart = System.nanoTime();
+
             return task == null ? null : newTickTask(task);
         }
 
@@ -225,6 +234,10 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             if (value instanceof WrappedPacketTaskFuture) {
+                if (super.isEmpty() && pollsOneExtra) {
+                    super.add(EMPTY_VALUE);
+                }
+
                 super.add(EMPTY_VALUE);
                 return submitQueue.add((WrappedPacketTaskFuture<Object>) value);
             }
@@ -239,7 +252,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                     || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
-            packet.setHandledByServer();
 
             // add it two times if it's empty, so we always have one extra element
             // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
@@ -273,19 +285,22 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             Array<Object> pipelineData = new Array<>();
+            CallbackAction<Boolean> postponed = new CallbackAction<>();
             for (PostponeCheck check : postponeHandler.getPostponeChecks()) {
                 try {
-                    if (check.test(task.getPacket(), task.getPlayer(), pipelineData)) {
+                    if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
                         Bukkit.getLogger().info("Postponing " + check);
                         postponeHandler.setPostponing();
                         postponeHandler.addPostponedPacket(task);
+                        postponed.call(true);
                         return true;
                     }
                 } catch (PostponeTerminationException exception) {
-                    return false;
+                    break;
                 }
             }
 
+            postponed.call(false);
             return false;
         }
 
