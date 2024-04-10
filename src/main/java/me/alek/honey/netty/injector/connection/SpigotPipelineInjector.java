@@ -287,8 +287,6 @@ public class SpigotPipelineInjector {
 
                 channel.pipeline().remove("pre-resolved-packet-handler");
             }
-
-            Bukkit.getLogger().info("Updated player " + channel.pipeline().toMap());
         }
     }
 }
