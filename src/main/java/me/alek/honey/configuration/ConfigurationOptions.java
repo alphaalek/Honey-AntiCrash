@@ -565,7 +565,8 @@ public class ConfigurationOptions {
         public static int MAX_QUEUE_SIZE;
         public static List<String> MAX_QUEUE_SIZE_IGNORED;
         public static double RATE_IGNORE_TERMINATOR;
-        public static double MAX_PER_TICK;
+        public static double MAX_PER_X_TICK;
+        public static double MAX_PER_X_AMOUNT;
         public static double MAX_RATE_5S;
         public static double MAX_RATE_10S;
         public static double MAX_RATE_ACCEL;
@@ -590,7 +591,8 @@ public class ConfigurationOptions {
                 MAX_QUEUE_SIZE_IGNORED = file.getStringList("max-queue-size-ignored");
             }
             RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator", 10d);
-            MAX_PER_TICK = file.getDouble("postpone.max-per-tick", 50d);
+            MAX_PER_X_TICK = file.getDouble("postpone.max-per-x-tick", 75d);
+            MAX_PER_X_AMOUNT = file.getDouble("postpone.max-per-x-amount", 5);
             MAX_RATE_5S = file.getDouble("postpone.max-rate-5s", 90d);
             MAX_RATE_10S = file.getDouble("postpone.max-rate-10s", 75d);
             MAX_RATE_ACCEL = file.getDouble("postpone.max-rate-accel", 150d);

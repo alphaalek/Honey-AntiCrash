@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 
 public class TempQueue {
 
@@ -17,16 +19,16 @@ public class TempQueue {
 
     private final boolean isFixed;
     private boolean collected;
-    private final Timespan timespan;
+    private final Predicate<Long> exceeds;
     private long total;
 
     public TempQueue(Timespan timespan, boolean isFixed) {
-        this.timespan = timespan;
-        this.isFixed = isFixed;
+        this(diff -> diff > timespan.getNanoTimespan(), isFixed);
     }
 
-    public Timespan getTimespan() {
-        return timespan;
+    public TempQueue(Predicate<Long> exceeds, boolean isFixed) {
+        this.exceeds = exceeds;
+        this.isFixed = isFixed;
     }
 
     public long getTotal() {
@@ -140,7 +142,7 @@ public class TempQueue {
 
         final long diff = time - node.getInsertionInstant();
 
-        if (diff > timespan.getNanoTimespan()) {
+        if (exceeds.test(diff)) {
             synchronized (this) {
                 total -= (long) (double) node.getValue();
             }

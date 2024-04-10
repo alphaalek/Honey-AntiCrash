@@ -118,7 +118,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
             return 0;
         }
 
-        if (update && System.nanoTime() < node.getInsertionInstant() + timespan.getNanoTimespan()) {
+        if (update && System.nanoTime() > node.getInsertionInstant() + timespan.getNanoTimespan()) {
             return 0;
         }
 

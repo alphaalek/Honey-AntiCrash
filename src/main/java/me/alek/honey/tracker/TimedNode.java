@@ -2,9 +2,14 @@ package me.alek.honey.tracker;
 
 public class TimedNode<T> {
 
-    public TimedNode(T value, long identifier) {
+    public TimedNode(T value, long identifier, long insertionInstant) {
         this.value = value;
         this.identifier = identifier;
+        this.insertionInstant = insertionInstant;
+    }
+
+    public TimedNode(T value, long identifier) {
+        this(value, identifier, System.nanoTime());
     }
 
     public TimedNode(T value) {
@@ -13,7 +18,7 @@ public class TimedNode<T> {
 
     private final T value;
     private final long identifier;
-    private final long insertionInstant = System.nanoTime();
+    private final long insertionInstant;
 
     public T getValue() {
         return value;
