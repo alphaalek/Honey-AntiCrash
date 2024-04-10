@@ -128,6 +128,7 @@ postpone:
     - "PacketPlayInSetCreativeSlot"
     - "PacketPlayInTransaction"
     - "PacketPlayInWindowClick"
+    - "GROUND"
 
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
   rate-ignore-terminator: 10.0

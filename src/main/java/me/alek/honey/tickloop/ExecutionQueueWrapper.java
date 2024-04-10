@@ -3,12 +3,14 @@ package me.alek.honey.tickloop;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
@@ -24,8 +26,11 @@ import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
@@ -34,7 +39,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private DelegatedWrapper executionQueue;
     public IDRegistry ignoredPacketsInQueueExecutionSaver;
-    private int tickLoop;
+    private int doneTicks;
 
     public ExecutionQueueWrapper() {
         reload();
@@ -97,13 +102,26 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
     private final class DelegatedWrapper extends ConcurrentLinkedQueue<Object> {
 
+        private final IStructureModifier<Integer> tickStructureModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
+                .asInt().withTarget(NMS.getMinecraftServer());
+        private final int finalFields = (int) tickStructureModifier.getAccessors()
+                .stream()
+                .filter(field -> Modifier.isFinal(field.getField().getModifiers()))
+                .count();
+        private final Supplier<Integer> tickAccessor = () -> {
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+                return tickStructureModifier.readField("ticks", 0);
+            } else {
+                return tickStructureModifier.readField(finalFields + 1);
+            }
+        };
+
         private final double MAX_POSITION_TACKING = 10 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final double MAX_POSITION_TRACKING_AVERAGE_ENTRY = 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private final ConcurrentLinkedQueue<WrappedPacketTaskFuture<Object>> submitQueue = new ConcurrentLinkedQueue<>();
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
         private Class<?> tickTaskClass;
         private ConstructorInvoker<?> tickTaskConstructor;
-        private final boolean pollsOneExtra;
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
         private boolean nullPoll;
@@ -113,7 +131,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         private long positionPacketsTime;
 
         public DelegatedWrapper(final Queue<Object> delegate) {
-            EMPTY_TICK_TASK = (pollsOneExtra = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) ? null :
+            EMPTY_TICK_TASK = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14) ? null :
                     (tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class))
                             .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
 
@@ -142,16 +160,20 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             return timings != 0 ? timings : getDeltaTime();
         }
 
-        private Object newTickTask(Runnable runnable) {
+        private Object newTickTask(Runnable runnable, int currentTick) {
             if (tickTaskConstructor == null) {
                 return runnable;
             }
 
-            return tickTaskConstructor.invoke(Integer.MAX_VALUE - 3, runnable);
+            return tickTaskConstructor.invoke(currentTick, runnable);
+        }
+
+        private int getCurrentTick() {
+            return tickAccessor.get();
         }
 
         private Object getEmptyTask() {
-            return newTickTask(new FutureTask<>(() -> null));
+            return newTickTask(new FutureTask<>(() -> null), getCurrentTick());
         }
 
         @Override
@@ -168,7 +190,9 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         @Override
         public Object remove() {
             Object poll;
-            if ((poll = poll()) != null) return poll;
+            if ((poll = poll()) != null) {
+                return poll;
+            }
 
             return EMPTY_TICK_TASK;
         }
@@ -197,17 +221,20 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
             }
 
+            Bukkit.getLogger().info("Current tick: " + getCurrentTick() + " " + doneTicks + " " + (task != null ? task.getPacket() : null));
+
             // if the queue has exactly the same amount of elements as the delegated queue, we have to
             // make sure that the tick loop tracking is being completed by polling one extra time
-            if (!nullPoll && !pollsOneExtra && super.peek() == null) {
+            if (!nullPoll && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14) && super.peek() == null) {
                 nullPoll = true;
                 recentPollStart = System.nanoTime();
                 poll();
             }
 
-            if (task == null) {
-                tickLoopExecutionDone();
-            } else if (shouldPostponeTask(task)) {
+            int currentTick;
+            if (task == null && doneTicks != (currentTick = getCurrentTick())) {
+                tickLoopExecutionDone(currentTick);
+            } else if (task != null && shouldPostponeTask(task)) {
                 if (!task.isPostponed()) {
                     task.setPostponed();
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), true, false);
@@ -223,7 +250,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             recentPollStart = System.nanoTime();
 
-            return task == null ? null : newTickTask(task);
+            return task == null ? null : newTickTask(task, ExecutionQueueWrapper.this.getCurrentTick());
         }
 
         @Override
@@ -234,7 +261,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             if (value instanceof WrappedPacketTaskFuture) {
-                if (super.isEmpty() && pollsOneExtra) {
+                if (super.isEmpty()) {
                     super.add(EMPTY_VALUE);
                 }
 
@@ -253,9 +280,8 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 return super.add(value);
             }
 
-            // add it two times if it's empty, so we always have one extra element
-            // this is because in versions below 1.14, it polls until it reaches null, which means one extra time
-            if (super.isEmpty() && pollsOneExtra) {
+            // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
+            if (super.isEmpty()) {
                 super.add(EMPTY_VALUE);
             }
 
@@ -270,7 +296,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 }
             }
 
-            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet, tickLoop));
+            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet, ExecutionQueueWrapper.this.getCurrentTick()));
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
@@ -289,6 +315,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             for (PostponeCheck check : postponeHandler.getPostponeChecks()) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
+                        Bukkit.getLogger().info("postpone " + check + " " + task.getPacket() + " " + Thread.currentThread());
                         postponeHandler.setPostponing();
                         postponeHandler.addPostponedPacket(task);
                         postponed.call(true);
@@ -320,7 +347,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 }
             }
             else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4) && !tickTaskClass.isInstance(otherTask)) {
-                otherTask = newTickTask((Runnable) otherTask);
+                otherTask = newTickTask((Runnable) otherTask, getCurrentTick());
             }
 
             return (Runnable) otherTask;
@@ -350,7 +377,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             recentPacket = null;
         }
 
-        private void tickLoopExecutionDone() {
+        private void tickLoopExecutionDone(int currentTick) {
             packetsInQueueExecution.clear();
             submitQueue.clear();
 
@@ -364,7 +391,8 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             PostponeHandler.retryPostponedPackets(this);
-            tickLoop++;
+            Bukkit.getLogger().info("Done: tick: " + currentTick);
+            doneTicks = currentTick;
         }
     }
 
@@ -388,7 +416,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
     }
 
     public int getCurrentTick() {
-        return tickLoop;
+        return doneTicks + 1;
     }
 
     public int getPacketsInQueueExecution(UUID uuid) {
