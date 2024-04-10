@@ -274,9 +274,7 @@ public class NotificationService {
                 cancelled.collect();
                 postponed.count();
             }
-        }
-
-        if (!increment) {
+        } else {
             cancelled.collect();
             postponed.collect();
         }
