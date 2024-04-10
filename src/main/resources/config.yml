@@ -75,10 +75,10 @@ messages:
     # Should the action bar be shown or not.
     enabled: true
 
-    # If more than this amount of packets have been cancelled in the last 3 seconds, the action bar will be shown for cancelling.
+    # If more than this amount of packets have been cancelled in the last 5 seconds, the action bar will be shown for cancelling.
     min-cancelled: 5
 
-    # If more than this amount of packets have been postponed in the last 3 seconds, the action bar will be shown for postponing.
+    # If more than this amount of packets have been postponed in the last 5 seconds, the action bar will be shown for postponing.
     min-postponed: 75
 
     # Strings to be shown.

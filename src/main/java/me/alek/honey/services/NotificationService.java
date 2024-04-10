@@ -262,9 +262,9 @@ public class NotificationService {
         }
 
         DecayingListeningCounter cancelled = cancelledPackets.computeIfAbsent(player.uuid,
-                (d) -> new DecayingListeningCounter(() -> (long) 3000));
+                (d) -> new DecayingListeningCounter(() -> (long) 5000));
         DecayingListeningCounter postponed = postponedPackets.computeIfAbsent(player.uuid,
-                (d) -> new DecayingListeningCounter(() -> (long) 3000));
+                (d) -> new DecayingListeningCounter(() -> (long) 5000));
 
         if (increment) {
             if (incrementCancelled) {
