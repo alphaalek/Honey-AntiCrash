@@ -124,7 +124,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         private ConstructorInvoker<?> tickTaskConstructor;
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
-        private boolean nullPoll;
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
         private int positionPacketsAmount;
@@ -219,14 +218,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             if (task != null) {
                 HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
-            }
-
-            // if the queue has exactly the same amount of elements as the delegated queue, we have to
-            // make sure that the tick loop tracking is being completed by polling one extra time
-            if (!nullPoll && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14) && super.peek() == null) {
-                nullPoll = true;
-                recentPollStart = System.nanoTime();
-                poll();
             }
 
             int currentTick;
@@ -380,7 +371,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             submitQueue.clear();
 
             recentPollStart = -1;
-            nullPoll = false;
 
             HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
