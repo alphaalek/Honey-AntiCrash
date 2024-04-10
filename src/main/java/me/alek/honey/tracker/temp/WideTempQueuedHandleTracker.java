@@ -105,6 +105,34 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return getExceedingTimedNode(getTracker(player), timespan);
     }
 
+    private double getEndedNode(HoneyPlayer player, Timespan timespan, boolean update, boolean last) {
+        Deque<TimedNode<Double>> queue = getTracker(player).getQueue(timespan).asTimedQueue();
+        TimedNode<Double> node;
+        if (last) {
+            node = queue.peekLast();
+        } else {
+            node = queue.peekFirst();
+        }
+
+        if (node == null) {
+            return 0;
+        }
+
+        if (update && System.nanoTime() < node.getInsertionInstant() + timespan.getNanoTimespan()) {
+            return 0;
+        }
+
+        return node.getValue();
+    }
+
+    public double getRecentNode(HoneyPlayer player, Timespan timespan, boolean update) {
+        return getEndedNode(player, timespan, update, false);
+    }
+
+    public double getOldestNode(HoneyPlayer player, Timespan timespan, boolean update) {
+        return getEndedNode(player, timespan, update, true);
+    }
+
     public double getHalfServerThreadQuotient(HoneyPlayer player, Timespan timespan, boolean update) {
         return getPlayerTotal(player, timespan, update) / timespan.getNanoTimespan() * 2;
     }

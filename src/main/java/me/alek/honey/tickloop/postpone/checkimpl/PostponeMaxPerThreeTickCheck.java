@@ -3,16 +3,19 @@ package me.alek.honey.tickloop.postpone.checkimpl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketEventloopStateTimings;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
-public class PostponeMaxPerTickCheck implements PostponeCheck {
+public class PostponeMaxPerThreeTickCheck implements PostponeCheck {
 
     private double tickTotal;
-    private int previousTickLoop;
+    private int previousTickUpdate;
     private double previousRate;
 
     @Override
@@ -21,15 +24,17 @@ public class PostponeMaxPerTickCheck implements PostponeCheck {
             return false;
         }
 
-        double playerRate5S = (double) pipelineData.get(0);
-        double diff = playerRate5S - previousRate;
-        previousRate = playerRate5S;
+        double playerRate1S = getTracker().getPlayerTotal(player, Timespan.ONE_SECOND, false);
+        double diff = playerRate1S - previousRate;
+        previousRate = playerRate1S;
 
-        if (previousTickLoop != (previousTickLoop = getTracker().getCurrentTick())) {
+        if (getTracker().getCurrentTick() >= previousTickUpdate + 3) {
+            previousTickUpdate = getTracker().getCurrentTick();
             tickTotal = 0;
         }
-        tickTotal += diff;
+        tickTotal += Math.max(0, diff);
 
+        Bukkit.getLogger().info("Tick total " + PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER * tickTotal);
         return tickTotal > millisToNanos(ConfigurationOptions.Postpone.MAX_PER_TICK);
     }
 }

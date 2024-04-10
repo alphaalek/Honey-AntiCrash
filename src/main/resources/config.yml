@@ -132,15 +132,16 @@ postpone:
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
   rate-ignore-terminator: 10.0
 
-  # Max packet task handle time per tick.
-  max-per-tick: 50.0
+  # Max packet task handle time per x ticks.
+  max-per-x-tick: 50.0
+  max-per-x-amount: 3
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.
-  max-rate-5s: 90.0
-  max-rate-10s: 75.0
+  max-rate-5s: 150.0
+  max-rate-10s: 125.0
 
   # Max packet task rate accel (the previous second).
-  max-rate-accel: 150.0
+  max-rate-accel: 200.0
 
   # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
   max-rate-accel-quotient: 12.5

@@ -4,6 +4,7 @@ import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 import org.bukkit.Bukkit;
 
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -12,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TempQueue {
 
     private final Queue<Double> FIXED = new LinkedList<>();
-    private final Queue<TimedNode<Double>> TIMED = new LinkedList<>();
+    private final Deque<TimedNode<Double>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
     private boolean collected;
@@ -57,7 +58,7 @@ public class TempQueue {
         return FIXED;
     }
 
-    public Queue<TimedNode<Double>> asTimedQueue() {
+    public Deque<TimedNode<Double>> asTimedQueue() {
         if (isFixed) throw new UnsupportedOperationException();
 
         return TIMED;

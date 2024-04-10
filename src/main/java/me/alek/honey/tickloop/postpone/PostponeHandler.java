@@ -5,7 +5,6 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.postpone.checkimpl.*;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -49,9 +48,9 @@ public class PostponeHandler {
         addPostponeCheck(new PostponeMaxQueueSizeCheck());
         addPostponeCheck(new PostponeRateIgnoreTerminator()); /* terminator */
         addPostponeCheck(new PostponeRateCheck());
-        addPostponeCheck(new PostponeMaxPerTickCheck());
         addPostponeCheck(new PostponeRateAccelCheck());
         addPostponeCheck(new PostponeRateAccelQuotientCheck());
+        addPostponeCheck(new PostponeMaxPerThreeTickCheck());
     }
 
     public void addPostponeCheck(PostponeCheck check) {
