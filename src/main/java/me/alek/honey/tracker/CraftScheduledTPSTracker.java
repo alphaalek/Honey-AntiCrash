@@ -7,7 +7,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Tickloop extends TempFixedQueuedTracker {
+public class CraftScheduledTPSTracker extends TempFixedQueuedTracker {
 
     private final CyclicBarrier barrier = new CyclicBarrier(2);
     private final AtomicLong expectedTick = new AtomicLong();
@@ -16,7 +16,7 @@ public class Tickloop extends TempFixedQueuedTracker {
         return Math.min(20, (long) 20 * 1005 * timespan.getTimespan() / timespan.getTotal(this));
     }
 
-    public Tickloop() {
+    public CraftScheduledTPSTracker() {
         super(false);
         new BukkitRunnable() {
             @Override

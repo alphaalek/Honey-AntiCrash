@@ -43,7 +43,7 @@ public interface HoneyAPI {
 
     MarkableHandleTracker<Double, String> getCheckHandleTracker();
 
-    Tickloop getTickloop();
+    CraftScheduledTPSTracker getTPSTracker();
 
     MonitorManager getMonitorManager();
 

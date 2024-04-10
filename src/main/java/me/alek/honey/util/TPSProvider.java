@@ -13,7 +13,7 @@ public class TPSProvider {
         }
 
         if (value == -1) {
-            value = HoneyPlugin.get().getTickloop().evaluateTPS(timespan);
+            value = HoneyPlugin.get().getTPSTracker().evaluateTPS(timespan);
         }
 
         value = NumberConversions.format(value);

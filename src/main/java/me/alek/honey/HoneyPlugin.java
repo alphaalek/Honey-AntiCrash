@@ -38,7 +38,7 @@ import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.RegistryMarkableHandleTracker;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
-import me.alek.honey.tracker.Tickloop;
+import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -71,7 +71,7 @@ public class HoneyPlugin implements HoneyAPI {
     private ExecutionQueueWrapper serverThreadTracker;
     private WideTempQueuedHandleTracker packetNettyTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
-    private Tickloop tickloop;
+    private CraftScheduledTPSTracker tickloop;
     private MonitorManager monitorManager;
     private boolean isLoaded;
     private boolean isRunning;
@@ -222,7 +222,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         // setup tickloop
-        tickloop = new Tickloop();
+        tickloop = new CraftScheduledTPSTracker();
 
         // setup monitoring
         this.monitorManager = new MonitorManager();
@@ -426,7 +426,7 @@ public class HoneyPlugin implements HoneyAPI {
         return checkHandleTracker;
     }
 
-    public Tickloop getTickloop() {
+    public CraftScheduledTPSTracker getTPSTracker() {
         return tickloop;
     }
 
