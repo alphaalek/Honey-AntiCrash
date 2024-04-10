@@ -38,21 +38,23 @@ clear-old-violations-timestamp: 90000 # 1 minute and 30 seconds as default
 # Hide /honey command, so default players won't know what AntiCrash plugin is on.
 hide-command: false
 
-# The message that the player receivees if they try to execute a command created by Honey.
+# The message that the player receives if they try to execute a command created by Honey,
+# when hide-command is enabled, and you do not have bypass permission.
 hide-command-message: SPIGOT_DEFAULT
 
-# Permission that players should have, for the command not to be hided.
+# Permission that players should have to bypass hidden Honey commands.
 hide-bypass-permission: "honey.hide.bypass"
 
-# Permission that ignores packet checks. You have to enable it first.
+# Permission that ignore ALL Honey features.
+# I only recommend to use this, if you are 100% sure, that the player's with the permission will never try to exploit your server.
 bypass-permission-enabled: false
 bypass-permission: "honey.bypass"
 
-# Permission which gets notifications by violated players. Can be toggled on/off by /honey notifications.
+# Permission which can get notifications by violated players. Can be toggled on/off by /honey notifications.
 notify-permission: "honey.notify"
 
-# Pastebin developer key. This is used to paste data of violations of players.
-# You can see here how you get this key: https://pastebin.com/doc_api
+# Pastebin developer key. This is used to paste violations of players.
+# You can see here how to get a key: https://pastebin.com/doc_api
 # OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
 pastebin-developer-key: ""
 
@@ -73,11 +75,11 @@ messages:
     # Should the action bar be shown or not.
     enabled: true
 
-    # If more than this amount of packets have been cancelled in the last 3 seconds, the action bar will be shown for cancelling.
-    min-cancelled: 10
+    # If more than this amount of packets have been cancelled in the last 5 seconds, the action bar will be shown for cancelling.
+    min-cancelled: 5
 
-    # If more than this amount of packets have been postponed in the last 3 seconds, the action bar will be shown for postponing.
-    min-postponed: 30
+    # If more than this amount of packets have been postponed in the last 5 seconds, the action bar will be shown for postponing.
+    min-postponed: 75
 
     # Strings to be shown.
     pre: "&cPacket filter:"
@@ -92,7 +94,7 @@ messages:
     # If the player's async worker has been quarantined for longer time than this (in millis), the action bar will be shown for quarantined.
     min-quarantined: 100
 
-    # The action bar message
+    # The action bar message.
     message: "&cAsync worker moved to quarantine... (%time%ms)"
 
 
@@ -102,10 +104,13 @@ postpone:
   enabled: true
 
   # Max postponed packets. If the amount of currently postponed packets exceeds this amount, the oldest ones will be cancelled.
-  max-postponed-packets: 50
+  max-postponed-packets: 150
 
   # Max postponed packet ticks. If the amount of ticks a packet has been postponed exceeds this amount, it will be cancelled.
-  max-postponed-ticks: 15
+  max-postponed-ticks: 100
+
+  # Max postponed packets retry amount.
+  max-retry: 30
 
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
@@ -127,15 +132,16 @@ postpone:
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
   rate-ignore-terminator: 10.0
 
-  # Max packet task handle time per tick.
-  max-per-tick: 50.0
+  # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
+  max-per-x-tick: 75.0
+  max-per-x-amount: 5
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.
-  max-rate-5s: 90.0
-  max-rate-10s: 75.0
+  max-rate-5s: 150.0
+  max-rate-10s: 125.0
 
   # Max packet task rate accel (the previous second).
-  max-rate-accel: 150.0
+  max-rate-accel: 200.0
 
   # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
   max-rate-accel-quotient: 12.5
