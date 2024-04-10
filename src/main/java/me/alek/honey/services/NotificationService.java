@@ -268,8 +268,10 @@ public class NotificationService {
 
         if (increment) {
             if (incrementCancelled) {
+                postponed.collect();
                 cancelled.count();
             } else {
+                cancelled.collect();
                 postponed.count();
             }
         }

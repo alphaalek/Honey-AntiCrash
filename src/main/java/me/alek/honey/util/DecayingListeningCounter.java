@@ -26,7 +26,7 @@ public class DecayingListeningCounter {
         this(collectInterval, null, null);
     }
 
-    private void collect(long time) {
+    public void collect(long time) {
         synchronized (data) {
             final Iterator<Long> sampleNodeIterator = data.iterator();
             while (sampleNodeIterator.hasNext()) {
@@ -39,6 +39,10 @@ public class DecayingListeningCounter {
                 return;
             }
         }
+    }
+
+    public void collect() {
+        collect(System.currentTimeMillis());
     }
 
     public void count() {

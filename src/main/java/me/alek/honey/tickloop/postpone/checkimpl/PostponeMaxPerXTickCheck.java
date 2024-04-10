@@ -12,7 +12,7 @@ import me.alek.honey.tracker.temp.TempQueue;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
-public class PostponeMaxPerThreeTickCheck implements PostponeCheck {
+public class PostponeMaxPerXTickCheck implements PostponeCheck {
 
     private final TempQueue tickTracker = new TempQueue(diff -> diff >= ConfigurationOptions.Postpone.MAX_PER_X_AMOUNT, false);
 

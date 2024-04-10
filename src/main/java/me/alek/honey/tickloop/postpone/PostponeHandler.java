@@ -50,7 +50,7 @@ public class PostponeHandler {
         addPostponeCheck(new PostponeRateCheck());
         addPostponeCheck(new PostponeRateAccelCheck());
         addPostponeCheck(new PostponeRateAccelQuotientCheck());
-        addPostponeCheck(new PostponeMaxPerThreeTickCheck());
+        addPostponeCheck(new PostponeMaxPerXTickCheck());
     }
 
     public void addPostponeCheck(PostponeCheck check) {
