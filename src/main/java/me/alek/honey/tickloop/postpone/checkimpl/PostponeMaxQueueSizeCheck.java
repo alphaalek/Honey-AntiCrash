@@ -3,6 +3,7 @@ package me.alek.honey.tickloop.postpone.checkimpl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
@@ -23,7 +24,7 @@ public class PostponeMaxQueueSizeCheck implements PostponeCheck {
             return false;
         }
 
-        if (!getTracker().ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
+        if (!PacketType.isUnknown(packet.getType()) && !getTracker().ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
             postponed.addAction(isPostponed -> {
                 if (!isPostponed) {
                     packetsInExecutionQueue.add(packet);

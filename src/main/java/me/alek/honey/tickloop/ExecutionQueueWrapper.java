@@ -263,7 +263,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             UUID uuid = packet.getPlayer().uuid;
             synchronized (PacketTaskHandler.ignoreDecrementLock) {
-                if (!ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
+                if (!PacketType.isUnknown(packet.getType()) && !ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
                     packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
                 } else {
                     ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
