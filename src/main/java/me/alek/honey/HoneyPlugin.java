@@ -1,7 +1,6 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.checks.HoneyCheckType;
@@ -19,7 +18,6 @@ import me.alek.honey.metrics.Metrics;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.async.*;
 import me.alek.honey.netty.listener.PacketAdapter;
@@ -45,14 +43,12 @@ import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
-import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.spigotmc.CustomTimingsHandler;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;

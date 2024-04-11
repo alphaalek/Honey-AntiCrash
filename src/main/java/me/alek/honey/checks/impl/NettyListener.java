@@ -12,7 +12,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PacketEventloopStateTimings;
+import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
@@ -324,7 +324,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
 
         private double toMillis(double amount) {
-            return amount * PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
+            return amount * PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
         }
 
         @Override

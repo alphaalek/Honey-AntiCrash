@@ -1,7 +1,7 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.packet.PacketEventloopStateTimings;
+import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.NumberConversions;
 import me.alek.honey.util.TPSProvider;
@@ -20,7 +20,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
     private String getPacketTaskPercentage(Timespan timespan) {
         return NumberConversions.format(
-                (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / (PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER * timespan.getTimespan()) * 100)), 1) + "%";
+                (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / (PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER * timespan.getTimespan()) * 100)), 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {

@@ -25,7 +25,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocal<>();
 
     public static PacketContainer<? extends WrappedPacket<?>> getEarlyInitializedPacket() {
-        return earlyPacketInitializer.get();
+        PacketContainer<? extends WrappedPacket<?>> packet = earlyPacketInitializer.get();
+        earlyPacketInitializer.remove();
+        return packet;
     }
 
     private boolean hasBeenRelocated;

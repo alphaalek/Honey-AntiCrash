@@ -2,7 +2,7 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.util.NumberConversions;
 
-public class PacketEventloopStateTimings {
+public class PacketEventLoopStateTimings {
 
     private static final int LENGTH = EventloopState.values().length;
     private final long[] times = new long[LENGTH];

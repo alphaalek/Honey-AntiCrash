@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.packet.PacketEventloopStateTimings;
+import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
@@ -79,7 +79,7 @@ public class TrackCommand implements CommandImpl {
     }
 
     private String format(double nanos) {
-        return NumberConversions.format(nanos * PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER, 2) + "ms";
+        return NumberConversions.format(nanos * PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER, 2) + "ms";
     }
 
     @Override

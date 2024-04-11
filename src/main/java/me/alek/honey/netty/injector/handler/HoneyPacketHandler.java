@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector.handler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -59,7 +60,7 @@ public class HoneyPacketHandler {
     }
 
     public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        // Bukkit.getLogger().info("Read " + packetContainer.getHandle());
+        Bukkit.getLogger().info("Read " + packetContainer.getHandle() + " " + Optional.ofNullable(packetContainer.getAll()).map(IStructureModifier::readFieldEntries).orElse(null));
 
         if (isCancelled(packetContainer)) {
             return false;
@@ -73,7 +74,8 @@ public class HoneyPacketHandler {
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        // Bukkit.getLogger().info("Write " + packetContainer.getHandle());
+        Bukkit.getLogger().info("Write " + packetContainer.getHandle() + " " + Optional.ofNullable(packetContainer.getAll()).map(IStructureModifier::readFieldEntries).orElse(null));
+
         return !isCancelled(packetContainer);
     }
 }

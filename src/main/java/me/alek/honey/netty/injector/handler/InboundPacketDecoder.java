@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -17,6 +18,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -69,7 +71,9 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
-            packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+            if (packetContainer != null) {
+                packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+            }
 
             try {
                 // explicit set variable, so Proguard recognizes the method
@@ -91,29 +95,31 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            packetContainer.getEventloopStateTimings().stopTimings();
+            if (packetContainer != null) {
+                packetContainer.getEventloopStateTimings().stopTimings();
 
-            if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
-                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
+                        || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
-                Object packet = list.get(0);
-                if (exemptedIntervalThrottle != null) {
-                    exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
+                    Object packet = list.get(0);
+                    if (exemptedIntervalThrottle != null) {
+                        exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
 
-                    if (packetContainer.isCancelled()) {
-                        if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-                            HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
+                        if (packetContainer.isCancelled()) {
+                            if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
+                                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
+                            }
+                            return;
                         }
-                        return;
                     }
+
+                    ctx.fireChannelRead(packet);
+                    return;
                 }
 
-                ctx.fireChannelRead(packet);
-                return;
-            }
-
-            if (player != null) {
-                HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+                if (player != null) {
+                    HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+                }
             }
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, list.get(0), packetContainer);
@@ -162,6 +168,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
         if (!ctx.channel().isOpen() || !(o instanceof ByteBuf)) {
+            Bukkit.broadcastMessage("READ OTHER??? " + o);
             return;
         }
 
@@ -178,14 +185,14 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
-        List<Object> nonRecycledList = new ArrayList<>();
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
-            invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
-            return;
-        }
-
         ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
         byteBuf.release();
+
+        List<Object> nonRecycledList = new ArrayList<>();
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
+            invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
+            return;
+        }
 
         asyncDecoder.decode((s) -> {
             if (player.isOnlineWeak() && !player.punished) {

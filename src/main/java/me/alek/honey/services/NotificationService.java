@@ -29,6 +29,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.management.NotificationListener;
 import java.util.*;
 
 public class NotificationService {
@@ -319,10 +320,8 @@ public class NotificationService {
         sendActionBar(player, message);
     }
 
-    private static final IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
-            .withType(NMS.getIChatBaseComponentClass())
-            .withTarget(null);
-    private static final Class<Object> IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
+    private static IStructureModifier<Object> chatSerializer;
+    private static Class<Object> IchatBaseComponentClass;
 
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
@@ -335,7 +334,15 @@ public class NotificationService {
 
         packetContainer.getBytes().writeField(0, (byte) 2);
 
+        if (chatSerializer == null) {
+            chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
+                    .withType(NMS.getIChatBaseComponentClass())
+                    .withTarget(null);
+        }
         Object chatComponent = chatSerializer.invokeMethod(0, "{\"text\":\"" + text + "\"}");
+        if (IchatBaseComponentClass == null) {
+            IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
+        }
         packetContainer.getObjects(IchatBaseComponentClass).writeField(0, chatComponent);
 
         try {

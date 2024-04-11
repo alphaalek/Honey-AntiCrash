@@ -18,6 +18,7 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -25,8 +26,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
-
-    private static final Class<Object> packetDataSerializerClass = Reflection.getFuzzyObjectClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
 
     private PacketTypeEnum type;
     private Object handle;
@@ -39,7 +38,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private boolean dumped;
     private boolean handledByServer;
     private final long time = System.currentTimeMillis();
-    private final PacketEventloopStateTimings eventloopStateTracker = new PacketEventloopStateTimings();
+    private final PacketEventLoopStateTimings eventLoopStateTracker = new PacketEventLoopStateTimings();
     private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
@@ -63,10 +62,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.postAction = postAction;
         this.type = packetType;
 
-        if (!PacketType.isUnknown(type)) {
+        if (!PacketType.isUnknown(type) && type.getNmsClass().equals(rawPacket.getClass())) {
+            Bukkit.getLogger().info("Structure " + type + " " + type.getNmsClass() + " " + rawPacket.getClass() + " " + PacketType.isUnknown(type));
             this.packetStructure = ReflectStructureCache.acquireStructure(type);
             this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
         }
+        Bukkit.getLogger().info("Get all " + packetStructure + " " + getAll());
     }
 
     @Override
@@ -77,8 +78,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public PacketEventloopStateTimings getEventloopStateTimings() {
-        return eventloopStateTracker;
+    public PacketEventLoopStateTimings getEventloopStateTimings() {
+        return eventLoopStateTracker;
     }
 
     @Override
@@ -107,7 +108,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public PacketState getState() {
-        if (type == null) return PacketState.UNKNOWN;
+        if (type == null) {
+            return PacketState.UNKNOWN;
+        }
 
         return type.getState();
     }
@@ -275,7 +278,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public IStructureModifier<WrappedPacketDataSerializer> getDataSerializers() {
-        return getModifier(packetDataSerializerClass, Converters.getPacketDataSerializerConverter());
+        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter());
     }
 
     @Override

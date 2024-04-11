@@ -65,7 +65,6 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             player = asyncDecoder.getPlayer();
         }
 
-
         if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
             write0(ctx, msg, promise, false);
             return;
