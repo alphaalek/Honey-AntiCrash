@@ -149,7 +149,7 @@ public class PostponeHandler {
 
     private void debugPacketCancelled(WrappedPacketTaskFuture<?> postponedPacket) {
         if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-            HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: " + postponedPacket.getPacket().getType() + ", " + postponedPacket.getPlayer().packetHandler.getProtocolState() + "," + postponedPacket.getPacket().getType().getBound() + ": " + postponedPacket.getPlayer().name);
+            HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: " + postponedPacket.getPacket().getType() + ", " + postponedPacket.getPlayer().packetHandler.getProtocolState() + ", " + postponedPacket.getPacket().getType().getBound() + ", " + postponedPacket.getPlayer().name);
         }
     }
 

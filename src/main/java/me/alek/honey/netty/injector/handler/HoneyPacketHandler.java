@@ -50,7 +50,7 @@ public class HoneyPacketHandler {
     private boolean isCancelled(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (packetContainer.isCancelled()) {
             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED && packetContainer.getPlayer() != null) {
-                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + protocolState + "," + packetContainer.getType().getBound() + ": " + packetContainer.getPlayer().name);
+                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + protocolState + ", " + packetContainer.getType().getBound() + ", " + packetContainer.getPlayer().name);
             }
 
             return true;

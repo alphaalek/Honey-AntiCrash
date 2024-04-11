@@ -319,6 +319,11 @@ public class NotificationService {
         sendActionBar(player, message);
     }
 
+    private static final IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
+            .withType(NMS.getIChatBaseComponentClass())
+            .withTarget(null);
+    private static final Class<Object> IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
+
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
@@ -330,11 +335,8 @@ public class NotificationService {
 
         packetContainer.getBytes().writeField(0, (byte) 2);
 
-        IStructureModifier<Object> chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
-                .withType(NMS.getIChatBaseComponentClass())
-                .withTarget(null);
         Object chatComponent = chatSerializer.invokeMethod(0, "{\"text\":\"" + text + "\"}");
-        packetContainer.getObjects(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
+        packetContainer.getObjects(IchatBaseComponentClass).writeField(0, chatComponent);
 
         try {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);
