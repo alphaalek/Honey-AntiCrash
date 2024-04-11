@@ -155,12 +155,7 @@ public class Reflection {
     }
 
     public static <T> ConstructorInvoker<T> getConstructor(Class<?> target, Class<?>... parameters) {
-        try {
-            return (ConstructorInvoker<T>) new ConstructorInvoker<>(target, parameters);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Reflection error (constructor): " + target.getName() + ", " + Arrays.toString(parameters));
-        }
+        return (ConstructorInvoker<T>) new ConstructorInvoker<>(target, parameters);
     }
 
     public static MethodInvoker<Object> getMethod(Method method) {
