@@ -23,6 +23,7 @@ public class PacketTaskHandler {
 
     public static final double TO_MILLIS_MULTIPLIER = PacketEventloopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
     public static final Object ignoreDecrementLock = new Object();
+    private static final Object handleTaskLock = new Object();
     private static final ExecutionQueueWrapper tracker = HoneyPlugin.get().getServerThreadTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
@@ -32,7 +33,7 @@ public class PacketTaskHandler {
     static {
         new Thread(() -> {
             while (HoneyPlugin.get().isRunning()) {
-                synchronized (ignoreDecrementLock) {
+                synchronized (handleTaskLock) {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
                             && (System.nanoTime() - handledTask.getStarted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
@@ -61,11 +62,15 @@ public class PacketTaskHandler {
     }
 
     public static WrappedPacketTaskFuture<?> getHandledTask() {
-        return handledTask;
+        synchronized (handleTaskLock) {
+            return handledTask;
+        }
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getLastHandledPacket() {
-        return lastHandledPacket;
+        synchronized (handleTaskLock) {
+            return lastHandledPacket;
+        }
     }
 
     private static Object[] reverse(Object[] array) {
@@ -143,16 +148,19 @@ public class PacketTaskHandler {
     }
 
     public static <V> void registerTask(WrappedPacketTaskFuture<V> task){
-        lastHandledPacket = null;
-
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 
-        handledTask = task;
+        synchronized (handleTaskLock) {
+            lastHandledPacket = null;
+            handledTask = task;
+        }
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        if (handledTask == null) return null;
+        if (handledTask == null) {
+            return null;
+        }
 
         return handledTask.getPacket();
     }
@@ -174,7 +182,9 @@ public class PacketTaskHandler {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }
 
-        lastHandledPacket = packet;
-        handledTask = null;
+        synchronized (handleTaskLock) {
+            lastHandledPacket = packet;
+            handledTask = null;
+        }
     }
 }

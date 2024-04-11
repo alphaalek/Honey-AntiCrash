@@ -70,6 +70,9 @@ messages:
   # Punish
   punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
+  # Enable feature information for base command.
+  base-command-feature-infos: true
+
   # Inbound packet filter action bar for cancelled and postponed packets.
   packet-filter-action-bar:
     # Should the action bar be shown or not.

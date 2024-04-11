@@ -216,7 +216,7 @@ public class ConfigurationOptions {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    private @interface Setting {}
+    public @interface Setting {}
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
@@ -227,7 +227,7 @@ public class ConfigurationOptions {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    private @interface Violation {
+    public @interface Violation {
         String[] prefixPaths();
 
         PacketLimitHandlerType packetHandler();
@@ -524,6 +524,7 @@ public class ConfigurationOptions {
     @Setting
     public static class Messages {
 
+        public static boolean BASE_COMMAND_FEATURE_INFOS;
         public static String VIOLATION_MESSAGE;
         public static String PUNISH_MESSAGE;
 
@@ -539,8 +540,9 @@ public class ConfigurationOptions {
         public static int QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED;
 
         public static void load() {
-            VIOLATION_MESSAGE = file.getString("messages.violation");
-            PUNISH_MESSAGE = file.getString("messages.punish");
+            BASE_COMMAND_FEATURE_INFOS = file.getBoolean("messages.base-command-feature-infos", true);
+            VIOLATION_MESSAGE = file.getString("messages.violation", "%prefix% &7%player% %network%&7 failed &e%check% &8&o(hover)&7. %context%");
+            PUNISH_MESSAGE = file.getString("messages.punish", "%prefix% &7%player% was kicked for &e%check%&7.");
 
             PACKET_FILTER_PRE = file.getString("messages.packet-filter-action-bar.pre", "&cPacket filter:");
             PACKET_FILTER_CANCEL = file.getString("messages.packet-filter-action-bar.cancel", "Cancelling... (%amount%)");
@@ -1070,17 +1072,15 @@ public class ConfigurationOptions {
     @Setting
     public static class Netty {
 
-        @Setting
+        /* @Setting */
         @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.CHIPSTATE_THROTTLE)
         public static class NettyA extends VlSetting {
 
-            public static List<String> IGNORED_PACKETS;
             public static int MAX_PACKETS;
             public static double MAX_HANDLE;
 
             /*
             public static void load() {
-                IGNORED_PACKETS = file.getStringList("netty.a.ignored-packets");
                 MAX_PACKETS = file.getInt("netty.a.max-packets", 10);
                 MAX_HANDLE = file.getDouble("netty.a.max-handle", 25.0);
             }
@@ -1093,7 +1093,7 @@ public class ConfigurationOptions {
 
         }
 
-        @Setting
+        /* @Setting */
         @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
         public static class NettyC extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
 
@@ -1135,7 +1135,7 @@ public class ConfigurationOptions {
 
         }
 
-        @Setting
+        /* @Setting */
         @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
         @Keyed(amount = 3)
         public static class NettyJ extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {

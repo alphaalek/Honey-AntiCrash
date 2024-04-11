@@ -63,6 +63,44 @@ public class CommandManager implements CommandExecutor {
         sender.sendMessage("§8* §7" + HoneyPlugin.get().getPlugin().getDescription().getDescription());
         sender.sendMessage("§8* §7Discord: §8https://discord.gg/veAtFHG65u");
         sender.sendMessage("");
+
+        if (ConfigurationOptions.Messages.BASE_COMMAND_FEATURE_INFOS) {
+            StringBuilder enabledFeatures = new StringBuilder();
+            if (!ConfigurationOptions.Postpone.ENABLED) {
+                enabledFeatures.append("Postpone, ");
+            }
+            if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED) {
+                enabledFeatures.append("(Enabled) Bypass Permission, ");
+            }
+            if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
+                enabledFeatures.append("Async Decoder, ");
+            }
+            if (!ConfigurationOptions.ItemAnalysis.General.ENABLED) {
+                enabledFeatures.append("Item Analysis, ");
+            }
+
+            int disabledNettyChecks = 0;
+            for (Class<?> clazz : ConfigurationOptions.Netty.class.getDeclaredClasses()) {
+                if (ConfigurationOptions.VlSetting.class.isAssignableFrom(clazz) && clazz.isAnnotationPresent(ConfigurationOptions.Setting.class)) {
+
+                    @SuppressWarnings("unchecked")
+                    Class<? extends ConfigurationOptions.VlSetting> vlSettingClass = (Class<? extends ConfigurationOptions.VlSetting>) clazz;
+                    ConfigurationOptions.VlSetting setting = ConfigurationOptions.getVlSetting(vlSettingClass);
+                    if (setting != null && !setting.isEnabled()) {
+                        disabledNettyChecks++;
+                    }
+                }
+            }
+            if (disabledNettyChecks > 0) {
+                enabledFeatures.append(disabledNettyChecks + " Netty Checks, ");
+            }
+
+            if (enabledFeatures.length() > 0) {
+                sender.sendMessage("§8* §7Disabled features: §8" + enabledFeatures.substring(0, enabledFeatures.length() - 2));
+                sender.sendMessage("");
+            }
+        }
+
         sender.sendMessage("§7Type §8/honey help §7for help on command usage.");
     }
 
