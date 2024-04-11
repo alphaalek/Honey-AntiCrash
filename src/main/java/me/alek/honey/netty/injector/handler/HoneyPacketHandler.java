@@ -60,8 +60,6 @@ public class HoneyPacketHandler {
     }
 
     public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        Bukkit.getLogger().info("Read " + packetContainer.getHandle() + " " + Optional.ofNullable(packetContainer.getAll()).map(IStructureModifier::readFieldEntries).orElse(null));
-
         if (isCancelled(packetContainer)) {
             return false;
         }
@@ -74,8 +72,6 @@ public class HoneyPacketHandler {
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        Bukkit.getLogger().info("Write " + packetContainer.getHandle() + " " + Optional.ofNullable(packetContainer.getAll()).map(IStructureModifier::readFieldEntries).orElse(null));
-
         return !isCancelled(packetContainer);
     }
 }

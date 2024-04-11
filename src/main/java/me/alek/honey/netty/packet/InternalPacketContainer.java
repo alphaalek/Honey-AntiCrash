@@ -63,11 +63,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.type = packetType;
 
         if (!PacketType.isUnknown(type) && type.getNmsClass().equals(rawPacket.getClass())) {
-            Bukkit.getLogger().info("Structure " + type + " " + type.getNmsClass() + " " + rawPacket.getClass() + " " + PacketType.isUnknown(type));
             this.packetStructure = ReflectStructureCache.acquireStructure(type);
             this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
         }
-        Bukkit.getLogger().info("Get all " + packetStructure + " " + getAll());
     }
 
     @Override
