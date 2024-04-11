@@ -5,7 +5,6 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.postpone.checkimpl.*;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -15,7 +14,7 @@ public class PostponeHandler {
     private static final Queue<PostponeHandler> currentlyPostponedHandlers = new LinkedList<>();
     private static final Queue<PostponeHandler> postponedHandlersOrder = new LinkedList<>();
     private static final Queue<PostponeHandler> nextPostponedHandlersOrder = new LinkedList<>();
-    private static final ExecutionQueueWrapper tickLoopAccessor = (ExecutionQueueWrapper) HoneyPlugin.get().getServerThreadTracker();
+    private static final ExecutionQueueWrapper tickLoopAccessor = HoneyPlugin.get().getServerThreadTracker();
 
     public static void retryPostponedPackets(Queue<Object> queue) {
         synchronized (postponedHandlersOrder) {
