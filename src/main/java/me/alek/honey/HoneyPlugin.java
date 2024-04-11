@@ -22,9 +22,8 @@ import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.util.FieldAccessor;
-import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
@@ -41,6 +40,7 @@ import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -93,7 +93,7 @@ public class HoneyPlugin implements HoneyAPI {
         try {
             Session.requestSession();
         } catch (Exception ex) {
-            registerFailedHoneyLoadEvent();
+            registerFailedHoneyLoadEvents();
             throw new RuntimeException("Failed to load Honey", ex.getCause());
         }
 
@@ -113,7 +113,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
     }
 
-    private void registerFailedHoneyLoadEvent() {
+    private void registerFailedHoneyLoadEvents() {
         HandlerList handlerList = PlayerJoinEvent.getHandlerList();
         Plugin fakePlugin = new FakePlugin();
         handlerList.register(new RegisteredListener(new Listener() {}, (listener, event) -> {
@@ -126,6 +126,27 @@ public class HoneyPlugin implements HoneyAPI {
                 player.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
             }
         }, EventPriority.LOWEST, fakePlugin, true));
+
+        CommandMap commandMap = ReflectStructureCache.acquireStructure(NMS.getCraftServerClass())
+                .withType(CommandMap.class).withTarget(Bukkit.getServer())
+                .readField(0);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Command> knownCommands = ReflectStructureCache.acquireStructure(SimpleCommandMap.class)
+                .withType(Map.class).withTarget(commandMap)
+                .readField(0);
+
+        ConstructorInvoker<PluginCommand> pluginCommandConstructorInvoker = Reflection.getConstructor(PluginCommand.class, String.class, Plugin.class);
+        PluginCommand command = pluginCommandConstructorInvoker.invoke("honey", fakePlugin);
+        command.setExecutor(new CommandExecutor() {
+            @Override
+            public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+                commandSender.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
+                return true;
+            }
+        });
+
+        knownCommands.put("honey", command);
     }
 
     private static class InvalidLicenseException extends RuntimeException {

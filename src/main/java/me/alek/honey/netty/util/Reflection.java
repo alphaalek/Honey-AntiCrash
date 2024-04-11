@@ -154,10 +154,11 @@ public class Reflection {
         return output.toString();
     }
 
-    public static ConstructorInvoker<Object> getConstructor(Class<?> target, Class<?>... parameters) {
+    public static <T> ConstructorInvoker<T> getConstructor(Class<?> target, Class<?>... parameters) {
         try {
-            return (ConstructorInvoker<Object>) new ConstructorInvoker<>(target.getConstructor(parameters));
+            return (ConstructorInvoker<T>) new ConstructorInvoker<>(target, parameters);
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Reflection error (constructor): " + target.getName() + ", " + Arrays.toString(parameters));
         }
     }
