@@ -59,6 +59,8 @@ public class HoneyPacketHandler {
     }
 
     public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
+        // Bukkit.getLogger().info("Read " + packetContainer.getHandle());
+
         if (isCancelled(packetContainer)) {
             return false;
         }
@@ -71,6 +73,7 @@ public class HoneyPacketHandler {
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
+        // Bukkit.getLogger().info("Write " + packetContainer.getHandle());
         return !isCancelled(packetContainer);
     }
 }

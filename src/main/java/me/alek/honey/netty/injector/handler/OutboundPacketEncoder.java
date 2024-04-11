@@ -12,6 +12,7 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
@@ -22,6 +23,7 @@ import java.lang.reflect.Method;
 public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
+    private static final Class<?> packetClass = NMS.getPacketClass();
     private static final Method packetEncode;
 
     static {
@@ -63,6 +65,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
             player = asyncDecoder.getPlayer();
         }
 
+
         if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
             write0(ctx, msg, promise, false);
             return;
@@ -77,7 +80,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
                     } else {
                         asyncPromise = new DefaultChannelPromise(ctx.channel());
                     }
-                    
+
                     write0(ctx, msg, asyncPromise, true);
                 } catch (Exception ex) {
                     try {
@@ -90,7 +93,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
     }
 
     private <WP extends WrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) {
-        if (msg instanceof ByteBuf) {
+        if (!packetClass.isAssignableFrom(msg.getClass())) {
             if (promise != null) {
                 ctx.write(msg, promise);
             } else {
@@ -102,6 +105,7 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
         @SuppressWarnings("unchecked")
         PacketContainer<WP> packetContainer = (PacketContainer<WP>) packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
         if (!packetHandler.write(packetContainer)) {
+            Bukkit.getLogger().info("Packet cancelled");
             return;
         }
 

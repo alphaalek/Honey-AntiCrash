@@ -179,7 +179,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
-        if (player == null || !ConfigurationOptions.AsyncDecoder.ENABLED) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;
         }

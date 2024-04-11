@@ -121,7 +121,7 @@ public class PostponeHandler {
                     return;
                 }
 
-                int currentTick = tickLoopAccessor.getCurrentTick();
+                int currentTick = tickLoopAccessor.getCurrentExecutionTick();
                 if (currentTick - oldestPacketTask.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
                     return;
                 }
@@ -129,7 +129,7 @@ public class PostponeHandler {
                 HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                 postponedPackets.remove();
 
-                if (postponedPackets.size() == 1) {
+                if (postponedPackets.isEmpty()) {
                     return;
                 }
 

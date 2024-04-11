@@ -39,7 +39,9 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
     private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private DelegatedWrapper executionQueue;
     public IDRegistry ignoredPacketsInQueueExecutionSaver;
+    private boolean executing;
     private int doneTicks;
+    private int doneExecutionTicks;
 
     public ExecutionQueueWrapper() {
         reload();
@@ -198,6 +200,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
         @Override
         public synchronized Object poll() {
+            executing = true;
             Object otherTask;
             if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE) {
                 if (recentPollStart != -1) {
@@ -239,7 +242,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             recentPollStart = System.nanoTime();
 
-            return task == null ? null : newTickTask(task, ExecutionQueueWrapper.this.getCurrentTick());
+            return task == null ? null : newTickTask(task, doneTicks);
         }
 
         @Override
@@ -285,7 +288,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 }
             }
 
-            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet, ExecutionQueueWrapper.this.getCurrentTick()));
+            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet, ExecutionQueueWrapper.this.getCurrentExecutionTick()));
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
@@ -380,6 +383,8 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             PostponeHandler.retryPostponedPackets(this);
             doneTicks = currentTick;
+            doneExecutionTicks++;
+            executing = false;
         }
     }
 
@@ -402,8 +407,8 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         super.remove(player);
     }
 
-    public int getCurrentTick() {
-        return doneTicks + 1;
+    public int getCurrentExecutionTick() {
+        return doneExecutionTicks + (executing ? 1 : 0);
     }
 
     public int getPacketsInQueueExecution(UUID uuid) {
