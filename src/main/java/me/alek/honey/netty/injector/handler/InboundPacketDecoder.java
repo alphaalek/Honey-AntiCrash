@@ -183,14 +183,14 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
-        ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
-        byteBuf.release();
-
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
-            invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
+            invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;
         }
+
+        ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
+        byteBuf.release();
 
         asyncDecoder.decode((s) -> {
             if (player.isOnlineWeak() && !player.punished) {
