@@ -129,7 +129,6 @@ public class PostponeHandler {
 
                 HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                 postponedPackets.remove();
-                Bukkit.getLogger().info("Remove " + currentTick + " " + oldestPostponedPacket.getTickAdded());
                 debugPacketCancelled(oldestPostponedPacket);
 
                 if (postponedPackets.isEmpty()) {
@@ -141,7 +140,6 @@ public class PostponeHandler {
                     if (currentTick - postponedPacket.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
                         break;
                     }
-                    Bukkit.getLogger().info("Remove " + currentTick + " " + postponedPacket.getTickAdded());
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                     debugPacketCancelled(postponedPacket);
 

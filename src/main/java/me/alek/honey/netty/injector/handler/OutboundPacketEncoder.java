@@ -105,7 +105,6 @@ public class OutboundPacketEncoder extends ChannelOutboundHandlerAdapter {
         @SuppressWarnings("unchecked")
         PacketContainer<WP> packetContainer = (PacketContainer<WP>) packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
         if (!packetHandler.write(packetContainer)) {
-            Bukkit.getLogger().info("Packet cancelled");
             return;
         }
 

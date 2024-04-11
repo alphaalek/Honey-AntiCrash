@@ -307,7 +307,9 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             for (PostponeCheck check : postponeHandler.getPostponeChecks()) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
-                        Bukkit.getLogger().info("postpone " + check + " " + task.getPacket() + " " + Thread.currentThread());
+                        if (ConfigurationOptions.PacketLogger.DEBUG) {
+                            Bukkit.getLogger().info("DEBUG: postpone " + check + " " + task.getPacket());
+                        }
                         postponeHandler.setPostponing();
                         postponeHandler.addPostponedPacket(task);
                         postponed.call(true);
