@@ -13,6 +13,10 @@ public class CallbackAction<T> {
     }
 
     public synchronized void call(T val) {
+        if (callbacks.isEmpty()) {
+            return;
+        }
+
         for (Consumer<T> callback : callbacks) {
             callback.accept(val);
         }

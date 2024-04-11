@@ -45,7 +45,6 @@ public class PostponeHandler {
     private boolean postponingRegistered;
 
     public PostponeHandler() {
-        addPostponeCheck(new PostponeMaxQueueSizeCheck());
         addPostponeCheck(new PostponeRateIgnoreTerminator()); /* terminator */
         addPostponeCheck(new PostponeRateCheck());
         addPostponeCheck(new PostponeRateAccelCheck());

@@ -119,9 +119,6 @@ postpone:
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
   # (Set to -1 to disable.)
 
-  # Max execution queue size.
-  max-queue-size: 15
-
   # Ignored packets for check max-queue-size
   max-queue-size-ignored:
     - "PacketPlayInFlying"
