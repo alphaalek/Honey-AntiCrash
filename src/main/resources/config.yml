@@ -73,7 +73,7 @@ messages:
   # Inbound packet filter action bar for cancelled and postponed packets.
   packet-filter-action-bar:
     # Should the action bar be shown or not.
-    enabled: true
+    enabled: false
 
     # If more than this amount of packets have been cancelled in the last 5 seconds, the action bar will be shown for cancelling.
     min-cancelled: 5
@@ -89,7 +89,7 @@ messages:
   # Quarantined async worker action bar.
   quarantined-async-worker-action-bar:
     # Should the action bar be shown or not.
-    enabled: true
+    enabled: false
 
     # If the player's async worker has been quarantined for longer time than this (in millis), the action bar will be shown for quarantined.
     min-quarantined: 100
@@ -135,7 +135,7 @@ postpone:
 
   # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
   max-per-x-tick: 75.0
-  max-per-x-amount: 5
+  max-per-x-amount: 3
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.
   max-rate-5s: 150.0

@@ -130,6 +130,7 @@ public class PostponeHandler {
                 HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                 postponedPackets.remove();
                 Bukkit.getLogger().info("Remove " + currentTick + " " + oldestPostponedPacket.getTickAdded());
+                debugPacketCancelled(oldestPostponedPacket);
 
                 if (postponedPackets.isEmpty()) {
                     return;
@@ -142,9 +143,17 @@ public class PostponeHandler {
                     }
                     Bukkit.getLogger().info("Remove " + currentTick + " " + postponedPacket.getTickAdded());
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
+                    debugPacketCancelled(postponedPacket);
+
                     postponedPackets.remove();
                 }
             }
+        }
+    }
+
+    private void debugPacketCancelled(WrappedPacketTaskFuture<?> postponedPacket) {
+        if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
+            HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: " + postponedPacket.getPacket().getType() + ", " + postponedPacket.getPlayer().packetHandler.getProtocolState() + "," + postponedPacket.getPacket().getType().getBound() + ": " + postponedPacket.getPlayer().name);
         }
     }
 
