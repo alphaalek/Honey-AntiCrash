@@ -43,14 +43,14 @@ public class PostponeMaxQueueSizeCheck implements PostponeCheck {
 
         if (oldestQueueExecutionPacket.isHandledByServer()) {
             packetsInExecutionQueue.remove();
-        }
 
-        PacketContainer<? extends WrappedPacket<?>> executionPacket;
-        while ((executionPacket = packetsInExecutionQueue.peek()) != null) {
-            if (!executionPacket.isHandledByServer()) {
-                break;
+            PacketContainer<? extends WrappedPacket<?>> executionPacket;
+            while ((executionPacket = packetsInExecutionQueue.peek()) != null) {
+                if (!executionPacket.isHandledByServer()) {
+                    break;
+                }
+                packetsInExecutionQueue.remove();
             }
-            packetsInExecutionQueue.remove();
         }
 
         return packetsInExecutionQueue.size() > ConfigurationOptions.Postpone.MAX_QUEUE_SIZE;

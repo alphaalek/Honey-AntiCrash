@@ -346,8 +346,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         }
 
         private void handleTimings() {
-            if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineWeak()
-                    && !(ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && recentPacket.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION))) {
+            if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineWeak()) {
                 // evaluate the difference in time
                 double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
 

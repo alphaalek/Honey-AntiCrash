@@ -5,6 +5,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.postpone.checkimpl.*;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -116,18 +117,19 @@ public class PostponeHandler {
             }
 
             if (postponedPackets.size() != 1) {
-                WrappedPacketTaskFuture<?> oldestPacketTask = postponedPackets.peek();
-                if (oldestPacketTask == null) {
+                WrappedPacketTaskFuture<?> oldestPostponedPacket = postponedPackets.peek();
+                if (oldestPostponedPacket == null) {
                     return;
                 }
 
                 int currentTick = tickLoopAccessor.getCurrentExecutionTick();
-                if (currentTick - oldestPacketTask.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
+                if (currentTick - oldestPostponedPacket.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
                     return;
                 }
 
                 HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                 postponedPackets.remove();
+                Bukkit.getLogger().info("Remove " + currentTick + " " + oldestPostponedPacket.getTickAdded());
 
                 if (postponedPackets.isEmpty()) {
                     return;
@@ -138,6 +140,7 @@ public class PostponeHandler {
                     if (currentTick - postponedPacket.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
                         break;
                     }
+                    Bukkit.getLogger().info("Remove " + currentTick + " " + postponedPacket.getTickAdded());
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                     postponedPackets.remove();
                 }

@@ -575,8 +575,8 @@ public class ConfigurationOptions {
 
         public static void load() {
             ENABLED = file.getBoolean("postpone.enabled", true);
-            MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets", 50);
-            MAX_POSTPONED_TICKS = file.getInt("postpone.max-postponed-ticks", 15);
+            MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets", 150);
+            MAX_POSTPONED_TICKS = file.getInt("postpone.max-postponed-execution-ticks", 100);
             MAX_QUEUE_SIZE = file.getInt("postpone.max-queue-size", 15);
             MAX_RETRY_AMOUNT = file.getInt("postpone.max-retry", 30);
             if (file.get("postpone.max-queue-size-ignored") == null) {
