@@ -38,6 +38,10 @@ public class NMS {
         lookupChannels.put(name, channel);
     }
 
+    public static Channel getChannelFromPlayer(Player player) {
+        return getChannelFromNetworkManager(getNetworkManager(player));
+    }
+
     public static Channel getChannelFromNetworkManager(Object networkManager) {
         return channel.get(networkManager);
     }

@@ -1,5 +1,9 @@
 package me.alek.honey;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.checks.HoneyCheckType;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.IPacketListener;
@@ -15,6 +19,7 @@ import me.alek.honey.metrics.Metrics;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.async.*;
 import me.alek.honey.netty.listener.PacketAdapter;
@@ -47,6 +52,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.spigotmc.CustomTimingsHandler;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
@@ -125,28 +131,32 @@ public class HoneyPlugin implements HoneyAPI {
             if (player.isOp()) {
                 player.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
             }
-        }, EventPriority.LOWEST, fakePlugin, true));
 
-        CommandMap commandMap = ReflectStructureCache.acquireStructure(NMS.getCraftServerClass())
-                .withType(CommandMap.class).withTarget(Bukkit.getServer())
-                .readField(0);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Command> knownCommands = ReflectStructureCache.acquireStructure(SimpleCommandMap.class)
-                .withType(Map.class).withTarget(commandMap)
-                .readField(0);
-
-        ConstructorInvoker<PluginCommand> pluginCommandConstructorInvoker = Reflection.getConstructor(PluginCommand.class, String.class, Plugin.class);
-        PluginCommand command = pluginCommandConstructorInvoker.invoke("honey", fakePlugin);
-        command.setExecutor(new CommandExecutor() {
-            @Override
-            public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
-                commandSender.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
-                return true;
+            Channel channel = NMS.getChannelFromPlayer(player);
+            if (channel == null) {
+                return;
             }
-        });
 
-        knownCommands.put("honey", command);
+            channel.pipeline().addBefore("packet_handler", "honey-failed-load", new ChannelInboundHandlerAdapter() {
+
+                @Override
+                public void channelRead(ChannelHandlerContext ctx, Object msg) {
+                    if (player.isOp() && msg.getClass().getSimpleName().equals("PacketPlayInChat")) {
+                        String message = ReflectStructureCache.acquireStructure(msg.getClass())
+                                .withType(String.class).withTarget(msg)
+                                .readField(0);
+
+                        if (message.startsWith("/honey")) {
+                            player.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
+                            return;
+                        }
+                    }
+
+                    ctx.fireChannelRead(msg);
+                }
+            });
+
+        }, EventPriority.LOWEST, fakePlugin, true));
     }
 
     private static class InvalidLicenseException extends RuntimeException {
