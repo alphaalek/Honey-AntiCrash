@@ -5,12 +5,12 @@ import me.alek.honey.util.IDRegistry;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 
-public abstract class AbstractTempQueuedTracker implements HoneyTracker {
+public class TempQueuedTracker implements HoneyTracker {
 
     protected final TempQueue[] tickDurationQueues = new TempQueue[Timespan.values().length];
     private final int id;
 
-    public AbstractTempQueuedTracker(boolean hasId) {
+    public TempQueuedTracker(boolean hasId) {
         if (hasId) id = IDRegistry.TRACKER_CONTEXT.acquireID();
         else id = -1;
 

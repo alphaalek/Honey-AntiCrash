@@ -22,7 +22,9 @@ public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<D
 
         TimedNode<T> node;
         tracking.add(node = new TimedNode<>(key, this.key++));
-        if (this.key == Long.MAX_VALUE) this.key = 0;
+        if (this.key == Long.MAX_VALUE) {
+            this.key = 0;
+        }
 
         return node.getID();
     }
@@ -30,8 +32,9 @@ public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<D
     @Override
     public synchronized void registerTimeStop(T key, long registryKey) {
         List<TimedNode<T>> tracking = getRegistryTracking(key);
-
-        if (tracking.isEmpty()) return;
+        if (tracking.isEmpty()) {
+            return;
+        }
 
         TimedNode<T> trackedNode = null;
         for (int i = 0; i < tracking.size() && trackedNode == null; i++) {
@@ -41,13 +44,13 @@ public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<D
                 tracking.remove(node);
             }
         }
-        if (trackedNode == null) return;
+        if (trackedNode == null) {
+            return;
+        }
 
         long deltaHandleTime = System.nanoTime() - trackedNode.getInsertionInstant();
-
         checkHandleIndexMap.put(key, checkHandleIndexMap.getOrDefault(key, 0) + 1);
         checkHandleTimeMap.put(key, checkHandleTimeMap.getOrDefault(key, 0L) + deltaHandleTime);
-
         totalIndex++;
         totalTime += deltaHandleTime;
         if (totalTime > Long.MAX_VALUE - FROM_LONG_MAX_BEFORE_RESET) {

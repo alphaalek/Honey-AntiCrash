@@ -2,24 +2,23 @@ package me.alek.honey.tracker.temp;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.tracker.TimedNode;
-import me.alek.honey.util.IDRegistry;
 import me.alek.honey.tracker.TimedHandleTracker;
+import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
+import me.alek.honey.util.IDRegistry;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, HoneyPlayer> {
 
-    private final Map<UUID, TempTimedQueuedTracker> trackerMap = new HashMap<>();
-    private final TempTimedQueuedTracker commonTracker = new TempTimedQueuedTracker(false);
+    private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
+    private final TempQueuedTracker commonTracker = new TempQueuedTracker(false);
 
     @Override
     public synchronized void remove(HoneyPlayer key) {
         if (trackerMap.containsKey(key.uuid)) {
-            TempTimedQueuedTracker tracker = getTracker(key);
+            TempQueuedTracker tracker = getTracker(key);
             for (Timespan timespan : Timespan.values()) {
                 timespan.clearContext(tracker);
             }
@@ -28,21 +27,23 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
             trackerMap.remove(key.uuid);
         }
         for (UUID uuid : Sets.newHashSet(trackerMap.keySet())) {
-            if (HoneyPlayer.getPlayer(uuid) == null) trackerMap.remove(uuid);
+            if (HoneyPlayer.getPlayer(uuid) == null) {
+                trackerMap.remove(uuid);
+            }
         }
     }
 
-    public TempTimedQueuedTracker getPropertyTracker(HoneyPlayer player) {
+    public TempQueuedTracker getPropertyTracker(HoneyPlayer player) {
         return player.timedQueuedTracker;
     }
 
-    public void setPropertyTracker(HoneyPlayer player, TempTimedQueuedTracker tracker) {
+    public void setPropertyTracker(HoneyPlayer player, TempQueuedTracker tracker) {
         player.timedQueuedTracker = tracker;
     }
 
-    public synchronized TempTimedQueuedTracker getTracker(HoneyPlayer player) {
+    public synchronized TempQueuedTracker getTracker(HoneyPlayer player) {
         if (getPropertyTracker(player) == null) {
-            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempTimedQueuedTracker(true)));
+            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempQueuedTracker(true)));
         }
         return getPropertyTracker(player);
     }
@@ -69,7 +70,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         commonTracker.clearExceedingNodes(timespan, time);
 
         if (alsoPlayers) {
-            for (TempTimedQueuedTracker tracker : trackerMap.values()) {
+            for (TempQueuedTracker tracker : trackerMap.values()) {
                 tracker.clearExceedingNodes(timespan, time);
             }
         }
@@ -88,7 +89,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return getTracker(player).getQueue(timespan).isCollected();
     }
 
-    private double getExceedingTimedNode(AbstractTempQueuedTracker tracker, Timespan timespan, long time) {
+    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan, long time) {
         TimedNode<Double> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
         if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (time - node.getInsertionInstant()))))) {
@@ -97,7 +98,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         return 0;
     }
 
-    private double getExceedingTimedNode(AbstractTempQueuedTracker tracker, Timespan timespan) {
+    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
         return getExceedingTimedNode(tracker, timespan, System.nanoTime());
     }
 
@@ -159,7 +160,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
 
     public double getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
         long time = 0;
-        TempTimedQueuedTracker tracker = getTracker(player);
+        TempQueuedTracker tracker = getTracker(player);
         if (update) {
             tracker.clearExceedingNodes(timespan, time = System.nanoTime());
         }
@@ -207,16 +208,22 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double getAverageWithout(Timespan timespan, double playerTotal, boolean update) {
-        if (getTrackerSize() == 1) return playerTotal;
+        if (getTrackerSize() == 1) {
+            return playerTotal;
+        }
 
         return (getTotal(timespan, update) - playerTotal) / (getTrackerSize() - 1);
     }
 
     public double getTotal(Timespan timespan, boolean update) {
-        if (update) commonTracker.clearExceedingNodes(timespan, System.nanoTime());
+        if (update) {
+            commonTracker.clearExceedingNodes(timespan, System.nanoTime());
+        }
 
         double total = commonTracker.getTotal(timespan);
-        if (update) total -= getExceedingTimedNode(commonTracker, timespan);
+        if (update) {
+            total -= getExceedingTimedNode(commonTracker, timespan);
+        }
 
         return total;
     }

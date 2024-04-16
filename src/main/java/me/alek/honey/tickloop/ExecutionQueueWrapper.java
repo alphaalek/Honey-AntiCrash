@@ -11,15 +11,15 @@ import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.*;
+import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.tickloop.packet.PacketTaskHandler;
+import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeHandler;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
-import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
-import me.alek.honey.tickloop.packet.PacketTaskHandler;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
@@ -93,11 +93,11 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         return executionQueue;
     }
 
-    public TempTimedQueuedTracker getPropertyTracker(HoneyPlayer player) {
+    public TempQueuedTracker getPropertyTracker(HoneyPlayer player) {
         return player.serverThreadTimedQueuedTracker;
     }
 
-    public void setPropertyTracker(HoneyPlayer player, TempTimedQueuedTracker tracker) {
+    public void setPropertyTracker(HoneyPlayer player, TempQueuedTracker tracker) {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 

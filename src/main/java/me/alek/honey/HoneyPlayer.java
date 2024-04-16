@@ -2,12 +2,12 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
-import me.alek.honey.tickloop.TickloopHandler;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
+import me.alek.honey.tickloop.TickloopHandler;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
+import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -50,8 +50,8 @@ public class HoneyPlayer {
     public boolean punished;
     public boolean updateHandlersLater;
     public HoneyPacketHandler packetHandler;
-    public TempTimedQueuedTracker timedQueuedTracker;
-    public TempTimedQueuedTracker serverThreadTimedQueuedTracker;
+    public TempQueuedTracker timedQueuedTracker;
+    public TempQueuedTracker serverThreadTimedQueuedTracker;
     public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
     public final TickloopHandler tickloopHandler = new TickloopHandler();
