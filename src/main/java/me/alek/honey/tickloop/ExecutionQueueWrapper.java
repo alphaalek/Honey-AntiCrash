@@ -30,7 +30,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
@@ -45,7 +44,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
     public ExecutionQueueWrapper() {
         reload();
-        injectIfNot();
+        inject();
     }
 
     public void reload() {
@@ -72,7 +71,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         }
     }
 
-    public void injectIfNot() {
+    public void inject() {
         Class<?> queueHolderClass = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)
                 ? NMS.getMinecraftServerClass() : NMS.getIAsyncTaskHandlerClass();
         Object minecraftServer = NMS.getMinecraftServer();

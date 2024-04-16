@@ -9,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 import javax.tools.*;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
@@ -42,17 +43,18 @@ public class InMemoryCompiler {
 
         File file = new File(javaPath + File.separator + "lib");
         if (!file.isDirectory() || !file.exists()) {
-            throw new RuntimeException("Invalid java.home path! " + file.getName() + " does not exist.");
+            throw new RuntimeException("Invalid java home path! " + file.getName() + " does not exist.");
         }
 
         File[] files = file.listFiles(new PatternFilenameFilter("^tools\\.jar$"));
-        if (files == null || files.length > 0) {
+        if (files != null && files.length > 0) {
             throw new RuntimeException("tools.jar exist but it wasn't used by the JVM!");
         }
 
+        HttpsURLConnection connection = null;
         try {
             URL url = new URL("https://api.honey-license.workers.dev/javax-tools/download");
-            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+            connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0) Gecko/20100101 Firefox/10.0");
 
             InputStream inputStream = connection.getInputStream();
@@ -71,6 +73,27 @@ public class InMemoryCompiler {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+
+            StringBuilder error = new StringBuilder();
+            if (connection != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                try {
+                    while (reader.ready()) {
+                        error.append(reader.readLine());
+                    }
+                } catch (IOException ex2) {
+                    ex2.printStackTrace();
+                    Bukkit.getLogger().severe("Failed to read error stream.");
+                }
+
+                try {
+                    reader.close();
+                } catch (IOException ex2) {
+                    ex2.printStackTrace();
+                    Bukkit.getLogger().severe("Failed to close error stream reader.");
+                }
+            }
+            Bukkit.getLogger().severe("Failed to connect to license servers: " + error);
         }
 
         return null;
@@ -82,14 +105,19 @@ public class InMemoryCompiler {
 
     public InMemoryCompiler(final List<IMCSourceCode> classSourceCodes) {
         instanceUsed = this;
+
+        boolean modifiedRemotely = false;
         try {
             Class<?> inMemoryCompilerClass = Class.forName(InMemoryCompiler.class.getName());
             Class<?> IMCSourceCodeClass = Class.forName(InMemoryCompiler.IMCSourceCode.class.getName());
 
-            if (!InMemoryCompiler.class.equals(inMemoryCompilerClass) || !InMemoryCompiler.IMCSourceCode.class.equals(IMCSourceCodeClass))
-                throw new RuntimeException("Compiler classes has been modified remotely!");
-
-        } catch (Exception ex) {
+            if (!InMemoryCompiler.class.equals(inMemoryCompilerClass) || !InMemoryCompiler.IMCSourceCode.class.equals(IMCSourceCodeClass)) {
+                modifiedRemotely = true;
+            }
+        } catch (Exception ignored) {
+        }
+        if (modifiedRemotely) {
+            throw new RuntimeException("Compiler classes has been modified remotely!");
         }
 
         final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -152,6 +180,7 @@ public class InMemoryCompiler {
                         ex.printStackTrace();
                         continue;
                     }
+
                     final SimpleJavaFileObject sjfo = new StringJavaClass(classSourceCode.fullClassName, sourceCode);
                     files.add(sjfo);
                 } catch (Exception e) {
@@ -159,9 +188,9 @@ public class InMemoryCompiler {
                 }
             }
 
-            final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-
             if (!files.isEmpty()) {
+                final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+
                 final JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, files);
                 return new CompilerFeedback(task.call(), diagnostics);
             }

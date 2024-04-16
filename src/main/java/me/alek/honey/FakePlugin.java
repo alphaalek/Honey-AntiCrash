@@ -1,4 +1,4 @@
-package me.alek.honey.session;
+package me.alek.honey;
 
 import com.avaje.ebean.EbeanServer;
 import org.bukkit.Server;

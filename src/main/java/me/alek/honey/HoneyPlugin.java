@@ -32,7 +32,6 @@ import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.session.FakePlugin;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.storage.BeanRepositoryCollection;
@@ -263,9 +262,9 @@ public class HoneyPlugin implements HoneyAPI {
         // setup sql handler
         sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
 
-        // setup trackers
-        packetNettyTracker = new WideTempQueuedHandleTracker();
+        // setup tracking
         serverThreadTracker = new ExecutionQueueWrapper();
+        packetNettyTracker = new WideTempQueuedHandleTracker();
         checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
         // setup checks

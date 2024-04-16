@@ -507,7 +507,10 @@ public class ItemChecks {
                 try {
                     byte[] value = texture.getString("Value").getBytes(StandardCharsets.UTF_8);
                     String base64 = new String(Base64.decodeBase64(value));
-                    final String formatted = base64.trim().replace(" ", "").replace("\"", "").toLowerCase();
+                    final String formatted = base64.trim()
+                            .replace(" ", "")
+                            .replace("\"", "")
+                            .toLowerCase();
 
                     final Matcher matcher = URL_PATTERN.matcher(formatted);
                     if (!matcher.find()) {

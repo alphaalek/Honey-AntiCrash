@@ -72,22 +72,6 @@ public class PacketTaskHandler {
         }
     }
 
-    private static Object[] reverse(Object[] array) {
-        Object[] newArray = new Object[array.length];
-        int j = 0;
-        for (int i = newArray.length - 1; i >= 0; i--) {
-            newArray[j++] = array[i];
-        }
-        return newArray;
-    }
-
-    private static <T> T[] castArray(Object[] array, T[] in) {
-        for (int i = 0; i < array.length; i++) {
-            in[i] = (T) array[i];
-        }
-        return in;
-    }
-
     private static String getThreadDump() {
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), Integer.MAX_VALUE);
         StackTraceElement[] elements = info.getStackTrace();
@@ -95,7 +79,7 @@ public class PacketTaskHandler {
         String prevElement = null;
         int combined = 0;
         List<String> strings = new ArrayList<>();
-        for (StackTraceElement element : castArray(reverse(elements), new StackTraceElement[elements.length])) {
+        for (StackTraceElement element : elements) {
             boolean notMatch = false;
             if (!element.toString().equals(prevElement)) {
                 strings.add(element + "\n\t");
@@ -112,14 +96,13 @@ public class PacketTaskHandler {
             }
         }
 
-        if (prevElement != null) {
+        if (prevElement != null && combined > 0) {
             strings.add(prevElement);
         }
 
         while (strings.size() > 50) {
             strings.remove(strings.size() - 1);
         }
-        Collections.reverse(strings);
 
         StringBuilder builder = new StringBuilder("Thread Dump:\n\t");
         for (String str : strings) {
@@ -146,6 +129,14 @@ public class PacketTaskHandler {
         }
     }
 
+    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
+        if (handledTask == null) {
+            return null;
+        }
+
+        return handledTask.getPacket();
+    }
+
     public static <V> void registerTask(WrappedPacketTaskFuture<V> task){
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
@@ -154,14 +145,6 @@ public class PacketTaskHandler {
             lastHandledPacket = null;
             handledTask = task;
         }
-    }
-
-    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        if (handledTask == null) {
-            return null;
-        }
-
-        return handledTask.getPacket();
     }
 
     public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {

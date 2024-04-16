@@ -272,9 +272,11 @@ public class WorkerPool<T> {
                     System.arraycopy(quarantinedWorkersArray, 0, newWorkers, minimumWorkerThreads, quarantinedWorkers.size());
                 }
 
-                for (int i = 0; i < minimumWorkerThreads; i++) {
-                    Worker<T> worker = otherWorkers.get(i);
-                    otherWorkers.remove(worker);
+                Iterator<Worker<T>> otherWorkerIterator = otherWorkers.iterator();
+                int i = 0;
+                while (i < minimumWorkerThreads && otherWorkerIterator.hasNext()) {
+                    Worker<T> worker = otherWorkerIterator.next();
+                    otherWorkerIterator.remove();
                     newWorkers[i] = worker;
                 }
                 workers = newWorkers;

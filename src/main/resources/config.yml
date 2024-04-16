@@ -319,7 +319,7 @@ item-analysis:
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 1250Så d
+    max-nbt-string-length: 1250
 
     # How many bytes may the NBT of a firework have. This is also for firework charges.
     max-firework-nbt-length: 2500
