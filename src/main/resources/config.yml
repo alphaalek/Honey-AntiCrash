@@ -110,6 +110,7 @@ postpone:
   max-postponed-packets: 150
 
   # Max execution ticks for postponed packets. If the amount of execution ticks a packet has been postponed exceeds this amount, it will be cancelled.
+  # Note! Ticks and execution ticks are not the same in 1.14+ and will therefore be handled differently.
   max-postponed-execution-ticks: 100
 
   # Max postponed packets retry amount.
@@ -167,14 +168,15 @@ packet-dump:
     # Should packet dump for heavy handled packets be enabled.
     enabled: true
 
-    # Min main thread handle time for packet to be dumped in log.
+    # Min main thread handle time (in millis) for packet to be dumped in log.
     min-server-handle: 25
 
   server-thread-dump:
     # Should server thread dump for heavy handled packets be enabled.
     enabled: true
 
-    # Min main thread handle time for thread to be dumped in log.
+    # Min main thread handle time (in millis) for thread to be dumped in log.
+    # Setting a value below 50 millis doesn't work very well, and it is also not recommended.
     min-server-handle: 750
 
 
