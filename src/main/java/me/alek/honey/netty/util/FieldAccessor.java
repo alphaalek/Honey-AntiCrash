@@ -37,6 +37,11 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
         return field.getName();
     }
 
+    @Override
+    public MemberType getMemberType() {
+        return MemberType.FIELD;
+    }
+
     public void set(Object object, T value) {
         try {
             field.set(object, value);

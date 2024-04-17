@@ -3,9 +3,12 @@ package me.alek.honey.netty.injector.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.injector.handler.codec.HoneyPacketDecoder;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -15,7 +18,6 @@ import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.CallbackAction;
 
 import java.lang.invoke.MethodHandle;
@@ -77,7 +79,15 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!USE_DEFAULT_DECODER) {
-                    packet = HoneyPacketDecoder.decodePacket(packetHandler.getProtocol(), byteBuf);
+                    WrappedEnumProtocol protocol = packetHandler.getProtocol();
+                    if (protocol == null) {
+                        packetHandler.updateProtocol(ctx.channel());
+                        protocol = packetHandler.getProtocol();
+                        if (protocol == null) {
+                            throw new DecoderException("Couldn't get protocol from channel attributes.");
+                        }
+                    }
+                    packet = HoneyPacketDecoder.decodePacket(protocol, byteBuf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});

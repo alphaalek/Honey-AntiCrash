@@ -1,0 +1,13 @@
+package me.alek.honey.netty.injector.handler.codec.impl;
+
+import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.injector.handler.codec.Codec;
+import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+
+public class PacketPlayInWindowClick_WithoutNBT implements Codec  {
+
+    @Override
+    public void apply(IStructureModifier<Object> structure, WrappedPacketDataSerializer serializer) {
+
+    }
+}

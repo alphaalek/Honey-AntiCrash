@@ -4,9 +4,11 @@ import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.ConstructorInvoker;
+import me.alek.honey.netty.util.ItemReflection;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
 import org.bukkit.inventory.ItemStack;
@@ -51,6 +53,10 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         return toNMSSerializer(handle);
     }
 
+    public WrappedBlockPosition readBlockPosition() {
+        return WrappedBlockPosition.fromLong(readLong());
+    }
+
     public int readVarInt() {
         byte b0;
         int i = 0;
@@ -79,6 +85,23 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
 
     public ItemStack readItemStack() {
         return getModifier(NMS.getItemStackClass(), Converters.getItemStackConverter()).invokeMethod(0);
+    }
+
+    public ItemStack readItemStackWithoutNBT() {
+        short itemId = readShort();
+        if (itemId < 0) {
+            return null;
+        }
+
+        Object item = ItemReflection.getItemFromId(itemId);
+        if (item == null) {
+            return null;
+        }
+
+        byte amount = readByte();
+        short damage = readShort();
+
+        return Converters.getItemStackConverter().convertDelegate(ItemReflection.createItemStackLegacy(item, amount, damage));
     }
 
     public UUID readUUID() {

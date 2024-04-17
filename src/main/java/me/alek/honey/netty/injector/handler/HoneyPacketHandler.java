@@ -11,19 +11,16 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 
 public class HoneyPacketHandler {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private volatile HoneyPlayer player;
-    private PacketState protocolState;
+    private PacketState protocolState = PacketState.UNKNOWN;
     private WrappedEnumProtocol protocol;
     private String playerName;
-
-    public HoneyPacketHandler(Channel channel) {
-        updateProtocol(channel, PacketState.HANDSHAKE);
-    }
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
@@ -50,10 +47,15 @@ public class HoneyPacketHandler {
         return protocol;
     }
 
-    public void updateProtocol(Channel channel, PacketState state) {
-        this.protocolState = state;
+    public void updateProtocol(Channel channel) {
         AttributeKey<?> protocolAttributeKey = WrappedEnumProtocol.getProtocolAttributeKey(channel, PacketBound.SERVER);
+        Bukkit.getLogger().info("Updating protocol! " + protocolAttributeKey + " " + protocolState + " " + channel.pipeline().get("packet_handler"));
         protocol = new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get());
+    }
+
+    public void setProtocolState(Channel channel, PacketState state) {
+        this.protocolState = state;
+        updateProtocol(channel);
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

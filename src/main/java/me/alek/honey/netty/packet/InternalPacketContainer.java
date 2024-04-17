@@ -63,7 +63,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.type = packetType;
 
         if (!PacketType.isUnknown(type) && type.getNmsClass().equals(rawPacket.getClass())) {
-            this.packetStructure = ReflectStructureCache.acquireStructure(type);
+            this.packetStructure = ReflectStructureCache.acquireStructure(type).disableStaticFields();
             this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
         }
     }

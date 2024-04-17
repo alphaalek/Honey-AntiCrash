@@ -6,11 +6,13 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.util.FieldAccessor;
+import me.alek.honey.netty.util.MemberType;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.IReflectionMember;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -29,6 +31,7 @@ public class ReflectStructure<T, C> {
 
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final Class<?> handle;
+    private boolean withStaticFields = true;
     private JavaConverter<T, C> converter;
     private Map<Integer, FieldAccessor<?>> DEFAULT_ACCESSORS;
     private Map<Integer, MethodInvoker<?>> DEFAULT_INVOKERS;
@@ -65,6 +68,11 @@ public class ReflectStructure<T, C> {
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
     }
 
+    public ReflectStructure<T, C> disableStaticFields() {
+        this.withStaticFields = false;
+        return this;
+    }
+
     private void setDefault(
             Map<Integer, ? extends IReflectionMember<?>> defaults,
             boolean isFields
@@ -86,8 +94,13 @@ public class ReflectStructure<T, C> {
     ) {
         Object[] handles = (isFields) ? clazz.getDeclaredFields() : clazz.getDeclaredMethods();
         for (Object handle : handles) {
-            IReflectionMember<?> toucher = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
-            defaults.put(index.getAndIncrement(), castReflectToucher(toucher));
+            IReflectionMember<?> member = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
+
+            if (!withStaticFields && member.getMemberType().equals(MemberType.FIELD) && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers())) {
+                continue;
+            }
+
+            defaults.put(index.getAndIncrement(), castReflectToucher(member));
         }
         return defaults;
     }

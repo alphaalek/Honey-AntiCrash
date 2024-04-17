@@ -41,4 +41,9 @@ public class MethodInvoker<T> implements IReflectionMember<T> {
     public String getName() {
         return method.getName();
     }
+
+    @Override
+    public MemberType getMemberType() {
+        return MemberType.METHOD;
+    }
 }

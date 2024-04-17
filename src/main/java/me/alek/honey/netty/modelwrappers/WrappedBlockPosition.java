@@ -1,6 +1,7 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.util.MathHelper;
 import me.alek.honey.util.NumberConversions;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -13,6 +14,21 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     public static final WrappedBlockPosition ORIGIN = new WrappedBlockPosition(0, 0, 0);
     public static final WrappedBlockPosition DEFAULT = new WrappedBlockPosition(-1, -1, -1);
+
+    private static final int c = 1 + MathHelper.c(MathHelper.b(30000000));
+    private static final int d = c;
+
+    private static final int e = 64 - c - d;
+
+    private static final int f = d;
+
+    private static final int g = f + e;
+
+    private static final long h = (1L << c) - 1L;
+
+    private static final long i = (1L << e) - 1L;
+
+    private static final long j = (1L << d) - 1L;
 
     private final int x;
     private final int y;
@@ -40,6 +56,13 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     public WrappedBlockPosition(Location location) {
         this(location.getX(), location.getY(), location.getZ());
+    }
+
+    public static WrappedBlockPosition fromLong(long val) {
+        int x = (int)(val << 64 - g - c >> 64 - c);
+        int y = (int)(val << 64 - f - e >> 64 - e);
+        int z = (int)(val << 64 - d >> 64 - d);
+        return new WrappedBlockPosition(x, y, z);
     }
 
     public int getX() {

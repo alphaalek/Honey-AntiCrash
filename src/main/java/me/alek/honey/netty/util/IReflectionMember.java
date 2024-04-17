@@ -5,4 +5,6 @@ public interface IReflectionMember<T> {
     Class<T> getType();
 
     String getName();
+
+    MemberType getMemberType();
 }
