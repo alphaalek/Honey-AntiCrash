@@ -23,9 +23,10 @@ import java.util.UUID;
 
 public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketDataSerializer> {
 
+    private static final ConstructorInvoker<?> packetDataSerializerConstructor = Reflection.getConstructor(NMS.getPacketDataSerializerClass(), ByteBuf.class);
+
     public static Object toNMSSerializer(ByteBuf bytebuf) {
-        ConstructorInvoker<Object> invoker = Reflection.getConstructor(NMS.getPacketDataSerializerClass(), ByteBuf.class);
-        return invoker.invoke(bytebuf);
+        return packetDataSerializerConstructor.invoke(bytebuf);
     }
 
     private final ByteBuf handle;

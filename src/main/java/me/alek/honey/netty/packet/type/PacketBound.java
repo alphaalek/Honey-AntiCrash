@@ -8,11 +8,13 @@ public enum PacketBound {
 
     CLIENT;
 
+    private final Enum<?> nmsEnum = Reflection.getEnumAtIndex(NMS.getEnumProtocolDirectionClass(), ordinal());
+
     public String getProtocolHandlerName() {
         return this == SERVER ? "decoder" : "encoder";
     }
 
     public Enum<?> getNMSWrapperType() {
-        return Reflection.getEnumAtIndex(NMS.getEnumProtocolDirectionClass(), ordinal());
+        return nmsEnum;
     }
 }

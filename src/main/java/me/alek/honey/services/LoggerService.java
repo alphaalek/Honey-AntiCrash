@@ -15,10 +15,10 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.DecayingWindowCounter;
 import me.alek.honey.util.NumberConversions;
 
@@ -39,7 +39,7 @@ public class LoggerService {
     private final Map<UUID, Queue<PacketTypeEnum>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
-    private final TempTimedQueuedTracker packetRatePerQueueExecution = new TempTimedQueuedTracker(false);
+    private final TempQueuedTracker packetRatePerQueueExecution = new TempQueuedTracker(false, false);
     private final AtomicInteger currentQueueExecutionPacket = new AtomicInteger(0);
 
 

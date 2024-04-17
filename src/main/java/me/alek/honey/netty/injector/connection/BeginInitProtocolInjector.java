@@ -13,8 +13,8 @@ import java.util.Map;
 
 public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
 
-    public static boolean CHECKED_NETTY_VERSION;
-    public static LibVersion NETTY_VERSION;
+    public static volatile boolean CHECKED_NETTY_VERSION;
+    public static volatile LibVersion NETTY_VERSION;
     public static final LibVersion MODERN_NETTY_VERSION = new LibVersion(4, 1, 24);
 
     private static LibVersion resolveNettyVersion() {
@@ -47,7 +47,7 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
 
         String channelInitName = HoneyPlugin.get().getPacketLibrary().getChannelInitName();
 
-        //Depends on netty version, if we cannot resolve that we just check server version.
+        // Depends on netty version, if we can't resolve that, we just check server version.
         if ((NETTY_VERSION != null && NETTY_VERSION.isNewerThan(MODERN_NETTY_VERSION))
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
             channel.pipeline().addLast(channelInitName, new EndInitProtocolInjector.Initializer_v1_12());

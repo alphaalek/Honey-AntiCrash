@@ -1,8 +1,7 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.temp.impl.TempFixedQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueue;
-import me.alek.honey.tracker.temp.impl.TempTimedQueuedTracker;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.Array;
 import org.bukkit.command.CommandSender;
 
@@ -39,10 +38,12 @@ public enum Timespan {
         }
 
         public boolean isFixed(HoneyTracker tracker) {
-            if (tracker instanceof TempFixedQueuedTracker) return true;
-            if (tracker instanceof TempTimedQueuedTracker) return false;
+            if (!(tracker instanceof TempQueuedTracker)) {
+                throw new UnsupportedOperationException();
+            }
 
-            throw new UnsupportedOperationException();
+            TempQueuedTracker tempQueuedTracker = (TempQueuedTracker) tracker;
+            return tempQueuedTracker.isFixed();
         }
 
         public TempQueue getQueue(HoneyTracker tracker) {

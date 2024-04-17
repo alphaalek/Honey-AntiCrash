@@ -196,13 +196,7 @@ public class PacketInterceptorResolver {
     }
 
     private static ByteBuf createByteBufPacket(Channel channel, PacketBound bound, String name, Consumer<ByteBuf> write) {
-        AttributeKey<Object> key;
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2))
-            key = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
-                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("packet_handler")).readField(0);
-        else
-            key = ReflectStructureCache.acquireStructure(bound == PacketBound.SERVER ? NMS.getPacketDecoderClass() : NMS.getPacketEncoderClass())
-                    .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get(bound.getProtocolHandlerName())).readField(0);
+        AttributeKey<?> key = WrappedEnumProtocol.getProtocolAttributeKey(channel, bound);
         if (key == null) {
             throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
         }

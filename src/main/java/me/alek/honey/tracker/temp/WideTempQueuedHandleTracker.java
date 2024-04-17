@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, HoneyPlayer> {
 
     private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
-    private final TempQueuedTracker commonTracker = new TempQueuedTracker(false);
+    private final TempQueuedTracker commonTracker = new TempQueuedTracker(false, false);
 
     @Override
     public synchronized void remove(HoneyPlayer key) {
@@ -43,7 +43,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
 
     public synchronized TempQueuedTracker getTracker(HoneyPlayer player) {
         if (getPropertyTracker(player) == null) {
-            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempQueuedTracker(true)));
+            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempQueuedTracker(true, false)));
         }
         return getPropertyTracker(player);
     }

@@ -1,13 +1,13 @@
 package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.tracker.temp.impl.TempFixedQueuedTracker;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CraftScheduledTPSTracker extends TempFixedQueuedTracker {
+public class CraftScheduledTPSTracker extends TempQueuedTracker {
 
     private final CyclicBarrier barrier = new CyclicBarrier(2);
     private final AtomicLong expectedTick = new AtomicLong();
@@ -17,7 +17,7 @@ public class CraftScheduledTPSTracker extends TempFixedQueuedTracker {
     }
 
     public CraftScheduledTPSTracker() {
-        super(false);
+        super(false, true);
         new BukkitRunnable() {
             @Override
             public void run() {

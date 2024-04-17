@@ -92,10 +92,10 @@ messages:
   # Quarantined async worker action bar.
   quarantined-async-worker-action-bar:
     # Should the action bar be shown or not.
-    enabled: false
+    enabled: true
 
     # If the player's async worker has been quarantined for longer time than this (in millis), the action bar will be shown for quarantined.
-    min-quarantined: 150
+    min-quarantined: 250
 
     # The action bar message.
     message: "&cAsync worker moved to quarantine... (%time%ms)"

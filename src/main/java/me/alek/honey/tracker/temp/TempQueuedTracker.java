@@ -9,12 +9,18 @@ public class TempQueuedTracker implements HoneyTracker {
 
     protected final TempQueue[] tickDurationQueues = new TempQueue[Timespan.values().length];
     private final int id;
+    private final boolean fixed;
 
-    public TempQueuedTracker(boolean hasId) {
+    public TempQueuedTracker(boolean hasId, boolean fixed) {
         if (hasId) id = IDRegistry.TRACKER_CONTEXT.acquireID();
         else id = -1;
 
+        this.fixed = fixed;
         setup();
+    }
+
+    public boolean isFixed() {
+        return this.fixed;
     }
 
     public int getID() {

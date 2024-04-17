@@ -33,7 +33,7 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketType.Handshake.Client.SET_PROTOCOL, packet -> {
             try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.HANDSHAKE);
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).updateProtocol(packet.getChannel(), PacketState.HANDSHAKE);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }
@@ -41,7 +41,7 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketType.Status.Client.STATUS_REQUEST, packet -> {
             try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.STATUS);
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).updateProtocol(packet.getChannel(), PacketState.STATUS);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }
@@ -58,7 +58,7 @@ public class PostActions {
             }
 
             try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.LOGIN);
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).updateProtocol(packet.getChannel(), PacketState.LOGIN);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }
@@ -70,7 +70,7 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketType.Play.Server.LOGIN, packet -> {
             try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.PLAY);
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).updateProtocol(packet.getChannel(), PacketState.PLAY);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }

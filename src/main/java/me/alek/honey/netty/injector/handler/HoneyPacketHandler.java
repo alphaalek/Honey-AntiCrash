@@ -1,23 +1,29 @@
 package me.alek.honey.netty.injector.handler;
 
+import io.netty.channel.Channel;
+import io.netty.util.AttributeKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
-import java.util.Optional;
 
 public class HoneyPacketHandler {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private volatile HoneyPlayer player;
-    private PacketState protocolState = PacketState.UNKNOWN;
+    private PacketState protocolState;
+    private WrappedEnumProtocol protocol;
     private String playerName;
+
+    public HoneyPacketHandler(Channel channel) {
+        updateProtocol(channel, PacketState.HANDSHAKE);
+    }
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
@@ -40,8 +46,14 @@ public class HoneyPacketHandler {
         return protocolState;
     }
 
-    public void setProtocolState(PacketState state) {
+    public WrappedEnumProtocol getProtocol() {
+        return protocol;
+    }
+
+    public void updateProtocol(Channel channel, PacketState state) {
         this.protocolState = state;
+        AttributeKey<?> protocolAttributeKey = WrappedEnumProtocol.getProtocolAttributeKey(channel, PacketBound.SERVER);
+        protocol = new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get());
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

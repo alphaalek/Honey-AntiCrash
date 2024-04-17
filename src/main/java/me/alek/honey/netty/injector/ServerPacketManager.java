@@ -1,7 +1,6 @@
 package me.alek.honey.netty.injector;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.handler.*;
@@ -65,8 +64,8 @@ public class ServerPacketManager {
         return (InboundPacketFilter) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getFilterName());
     }
 
-    public InboundPacketDecoder getDecoder(Channel channel) {
-        return (InboundPacketDecoder) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
+    public HoneyPacketDecodePreparation getDecoder(Channel channel) {
+        return (HoneyPacketDecodePreparation) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
     }
 
     public OutboundPacketEncoder getEncoder(Channel channel) {

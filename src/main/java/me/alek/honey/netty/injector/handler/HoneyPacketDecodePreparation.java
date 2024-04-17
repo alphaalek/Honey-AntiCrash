@@ -6,7 +6,6 @@ import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -18,7 +17,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -28,10 +26,11 @@ import java.util.List;
 import java.util.Queue;
 
 @ChannelHandler.Sharable
-public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
+public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final Queue<Object> serverThreadExecutionQueue = ((ExecutionQueueWrapper)HoneyPlugin.get().getServerThreadTracker()).getExecutionQueue();
+    private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getServerThreadTracker().getExecutionQueue();
+    private static final boolean USE_DEFAULT_DECODER = false;
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
@@ -40,7 +39,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public InboundPacketDecoder(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
+    public HoneyPacketDecodePreparation(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.asyncDecoder = asyncDecoder;
         this.packetHandler = packetHandler;
         setupMethodInvoke(channel.pipeline());
@@ -75,10 +74,21 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
             }
 
+            Object packet;
             try {
-                // explicit set variable, so Proguard recognizes the method
-                Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
+                if (!USE_DEFAULT_DECODER) {
+                    packet = HoneyPacketDecoder.decodePacket(packetHandler.getProtocol(), byteBuf);
+                } else {
+                    // explicit set variable, so Proguard recognizes the method
+                    Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
+
+                    if (list.isEmpty()) {
+                        return;
+                    }
+                    packet = list.get(0);
+                }
             } catch (Exception ex) {
+                ex.printStackTrace();
                 byteBuf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
@@ -90,7 +100,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
             }
             byteBuf.release();
 
-            if (list.isEmpty()) {
+            if (packet == null) {
                 return;
             }
 
@@ -100,7 +110,6 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
-                    Object packet = list.get(0);
                     if (exemptedIntervalThrottle != null) {
                         exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(packetContainer), null, 1, null, null, null, null, null);
 
@@ -121,7 +130,7 @@ public class InboundPacketDecoder extends ChannelInboundHandlerAdapter {
                 }
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, list.get(0), packetContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packet, packetContainer);
 
             Runnable packetExecutorTask;
             if (ConfigurationOptions.AsyncDecoder.ENABLED && !finalPacketContainer.isCancelled()) {
