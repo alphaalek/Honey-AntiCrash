@@ -16,7 +16,6 @@ public class PacketPlayInBlockPlace_WithoutNBT implements Codec {
         structure.writeField(4, serializer.readUnsignedByte() / 16.0F);
         structure.writeField(5, serializer.readUnsignedByte() / 16.0F);
 
-
         Bukkit.getLogger().info(structure.readFieldEntries() + "");
     }
 }

@@ -1,7 +1,10 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.util.ConstructorInvoker;
 import me.alek.honey.netty.util.MathHelper;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.util.NumberConversions;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,6 +15,7 @@ import java.util.Objects;
 
 public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> implements Cloneable, Serializable {
 
+    private static final ConstructorInvoker<?> nmsConstructorInvoker = Reflection.getConstructor(NMS.getBlockPositionClass(), int.class, int.class, int.class);
     public static final WrappedBlockPosition ORIGIN = new WrappedBlockPosition(0, 0, 0);
     public static final WrappedBlockPosition DEFAULT = new WrappedBlockPosition(-1, -1, -1);
 
@@ -44,7 +48,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public WrappedBlockPosition(int x, int y, int z) {
-        super(null);
+        super(nmsConstructorInvoker.invoke(x, y, z));
         this.x = x;
         this.y = y;
         this.z = z;

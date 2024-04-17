@@ -9,6 +9,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.injector.handler.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -79,6 +80,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!USE_DEFAULT_DECODER) {
+                    PacketState state = packetHandler.getProtocolState();
+                    if (state == null || state == PacketState.UNKNOWN) {
+                        packetHandler.setProtocolState(ctx.channel(), state);
+                        state = packetHandler.getProtocolState();
+                    }
+
                     WrappedEnumProtocol protocol = packetHandler.getProtocol();
                     if (protocol == null) {
                         packetHandler.updateProtocol(ctx.channel());
@@ -87,7 +94,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                             throw new DecoderException("Couldn't get protocol from channel attributes.");
                         }
                     }
-                    packet = HoneyPacketDecoder.decodePacket(protocol, byteBuf);
+
+                    packet = HoneyPacketDecoder.decodePacket(state, protocol, byteBuf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});

@@ -6,6 +6,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.MethodInvoker;
@@ -17,13 +18,20 @@ import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.EnumMap;
 
 public class HoneyPacketDecoder {
 
     private static final Class<?> packetDataSerializerClass = NMS.getPacketDataSerializerClass();
-    private static final Array<MethodHandle> legacySerializerApplicationLookup = new Array<>();
+    private static final EnumMap<PacketState, Array<MethodHandle>> legacySerializerApplicationLookup = new EnumMap<>(PacketState.class);
 
-    public static Object decodePacket(WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
+    static {
+        for (PacketState state : PacketState.values()) {
+            legacySerializerApplicationLookup.put(state, new Array<>());
+        }
+    }
+
+    public static Object decodePacket(PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
 
         int packetId = dataSerializer.readVarInt();
@@ -44,25 +52,28 @@ public class HoneyPacketDecoder {
             /* legacy server version (-1.17) */
 
             // we will now check if the packet has an ItemStack property, because then we will disable NBT
-            if (packet.getClass().isInstance(PacketType.Play.Client.BLOCK_PLACE.getNmsClass())
+            if (packet.getClass().equals(PacketType.Play.Client.BLOCK_PLACE.getNmsClass())
                     && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-                DisabledNBTCodec.BLOCK_PLACE.apply(ReflectStructureCache.acquireStructure(packet.getClass()).withTarget(packet), dataSerializer);
+                DisabledNBTCodec.BLOCK_PLACE.apply(
+                        ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
             }
-            else if (packet.getClass().isInstance(PacketType.Play.Client.WINDOW_CLICK.getNmsClass())) {
-                DisabledNBTCodec.WINDOW_CLICK.apply(ReflectStructureCache.acquireStructure(packet.getClass()).withTarget(packet), dataSerializer);
+            else if (packet.getClass().equals(PacketType.Play.Client.WINDOW_CLICK.getNmsClass())) {
+                DisabledNBTCodec.WINDOW_CLICK.apply(
+                        ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
             }
-            else if (packet.getClass().isInstance(PacketType.Play.Client.SET_CREATIVE_SLOT.getNmsClass())) {
-                DisabledNBTCodec.SET_CREATIVE_SLOT.apply(ReflectStructureCache.acquireStructure(packet.getClass()).withTarget(packet), dataSerializer);
+            else if (packet.getClass().equals(PacketType.Play.Client.SET_CREATIVE_SLOT.getNmsClass())) {
+                DisabledNBTCodec.SET_CREATIVE_SLOT.apply(
+                        ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
             }
             else {
                 // otherwise apply the default implementation for the serializer
-                MethodHandle applicationMethod = legacySerializerApplicationLookup.get(packetId, () -> {
+                MethodHandle applicationMethod = legacySerializerApplicationLookup.get(state).get(packetId, () -> {
                     MethodInvoker<?> invoker = Reflection.getMethod(packet.getClass(), 1, packetDataSerializerClass);
                     try {
                         return MethodHandles.lookup().unreflect(invoker.getMethod());
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
-                        Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet ID " + packetId);
+                        Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet " + packetId + " " + packet);
                         return null;
                     }
                 });
@@ -70,7 +81,7 @@ public class HoneyPacketDecoder {
                     applicationMethod.invoke(packet, dataSerializer.getHandle());
                 } catch (Throwable ex) {
                     ex.printStackTrace();
-                    throw new DecoderException("Failed to apply serializer for packet ID " + packetId);
+                    throw new DecoderException("Failed to apply serializer for packet " + packetId + " " + packet);
                 }
             }
         }

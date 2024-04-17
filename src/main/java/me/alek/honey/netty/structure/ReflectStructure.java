@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 
 public class ReflectStructure<T, C> {
 
-    private static final Map<Class<?>, Class<?>> WRAPPER_CLASSSES = new HashMap<Class<?>, Class<?>>(){{
+    private static final Map<Class<?>, Class<?>> WRAPPER_CLASSES = new HashMap<Class<?>, Class<?>>(){{
         put(int.class, Integer.class);
         put(double.class, Double.class);
         put(float.class, Float.class);
@@ -70,7 +70,13 @@ public class ReflectStructure<T, C> {
 
     public ReflectStructure<T, C> disableStaticFields() {
         this.withStaticFields = false;
+        DEFAULT_ACCESSORS.values().removeIf(this::disallowedField);
+        ACQUIRED_ACCESSORS.values().removeIf(this::disallowedField);
         return this;
+    }
+
+    private boolean disallowedField(IReflectionMember<?> member) {
+        return !withStaticFields && member.getMemberType().equals(MemberType.FIELD) && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers());
     }
 
     private void setDefault(
@@ -96,7 +102,7 @@ public class ReflectStructure<T, C> {
         for (Object handle : handles) {
             IReflectionMember<?> member = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
 
-            if (!withStaticFields && member.getMemberType().equals(MemberType.FIELD) && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers())) {
+            if (disallowedField(member)) {
                 continue;
             }
 
@@ -455,7 +461,7 @@ public class ReflectStructure<T, C> {
         }
 
         private Object[] getWrapperClasses(Class<?>[] classes) {
-            return Arrays.stream(classes).map(clazz -> WRAPPER_CLASSSES.getOrDefault(clazz, clazz)).toArray();
+            return Arrays.stream(classes).map(clazz -> WRAPPER_CLASSES.getOrDefault(clazz, clazz)).toArray();
         }
 
         @Override
