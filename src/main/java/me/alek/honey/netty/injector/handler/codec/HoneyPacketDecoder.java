@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector.handler.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
@@ -15,6 +16,7 @@ import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.util.Array;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -31,7 +33,7 @@ public class HoneyPacketDecoder {
         }
     }
 
-    public static Object decodePacket(PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
+    public static Object decodePacket(HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
         int start = dataSerializer.readerIndex();
 
@@ -64,9 +66,9 @@ public class HoneyPacketDecoder {
                 DisabledNBTCodec.WINDOW_CLICK.apply(
                         ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
             }
-            else if (packet.getClass().equals(PacketType.Play.Client.SET_CREATIVE_SLOT.getNmsClass())) {
-                DisabledNBTCodec.SET_CREATIVE_SLOT.apply(
-                        ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
+            else if (packet.getClass().equals(PacketType.Play.Client.SET_CREATIVE_SLOT.getNmsClass())
+                    && player != null && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
+                return null;
             }
             else {
                 // otherwise apply the default implementation for the serializer

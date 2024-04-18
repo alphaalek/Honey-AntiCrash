@@ -1,12 +1,10 @@
 package me.alek.honey.netty.injector.handler.codec;
 
 import me.alek.honey.netty.injector.handler.codec.impl.PacketPlayInBlockPlace_WithoutNBT;
-import me.alek.honey.netty.injector.handler.codec.impl.PacketPlayInSetCreativeSlot_WithoutNBT;
 import me.alek.honey.netty.injector.handler.codec.impl.PacketPlayInWindowClick_WithoutNBT;
 
 public class DisabledNBTCodec {
 
     public static Codec BLOCK_PLACE = new PacketPlayInBlockPlace_WithoutNBT();
-    public static Codec SET_CREATIVE_SLOT = new PacketPlayInSetCreativeSlot_WithoutNBT();
     public static Codec WINDOW_CLICK = new PacketPlayInWindowClick_WithoutNBT();
 }

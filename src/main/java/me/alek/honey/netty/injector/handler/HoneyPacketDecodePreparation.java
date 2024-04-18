@@ -89,7 +89,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                         }
                     }
 
-                    packet = HoneyPacketDecoder.decodePacket(packetHandler.getProtocolState(), protocol, byteBuf);
+                    packet = HoneyPacketDecoder.decodePacket(player, packetHandler.getProtocolState(), protocol, byteBuf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
