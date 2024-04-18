@@ -174,6 +174,13 @@ public class PacketExecutors {
             }
         }
 
+        private boolean isValidAuthor(NBTCompound nbt, HoneyPlayer player) {
+            String author;
+            return nbt != null
+                    && nbt.hasKeyOfType("author", NBTType.STRING)
+                    && (author = nbt.getString("author")) != null && author.equals(player.name);
+        }
+
         private boolean isValidBookTag(NBTCompound nbt) {
             String title;
             String author;
@@ -182,12 +189,6 @@ public class PacketExecutors {
                     && (title = nbt.getString("title")) != null && title.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH
                     && nbt.hasKeyOfType("author", NBTType.STRING)
                     && (author = nbt.getString("author")) != null && author.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
-        }
-
-        private boolean isValidAuthor(NBTCompound nbt, HoneyPlayer player) {
-            String author;
-            return nbt.hasKeyOfType("author", NBTType.STRING)
-                    && (author = nbt.getString("author")) != null && author.equals(player.name);
         }
 
         private boolean isValidQuillTag(NBTCompound nbt) {

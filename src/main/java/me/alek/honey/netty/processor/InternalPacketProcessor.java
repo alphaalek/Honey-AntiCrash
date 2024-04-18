@@ -149,16 +149,22 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
-        int id = packetContainer.getType().getPacketId();
-        if (id == -1 || !packetExecutors.has(id)) return null;
+        if (PacketType.isUnknown(packetContainer.getType())) {
+            return null;
+        }
 
-        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(id);
-        if (executors.isEmpty()) return null;
+        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(packetContainer.getType().getPacketId());
+        if (executors.isEmpty()) {
+            return null;
+        }
 
         for (PacketExecutor<? extends WrappedPacket<?>> executor : executors) {
-            if (((PacketExecutor<WP>)executor).accepts(packetContainer)) {
+            @SuppressWarnings("unchecked")
+            PacketExecutor<WP> castedExecutor = (PacketExecutor<WP>) executor;
+
+            if (castedExecutor.accepts(packetContainer)) {
                 double start = System.nanoTime();
-                Runnable runnable = ((PacketExecutor<WP>)executor).getTask(packetContainer);
+                Runnable runnable = castedExecutor.getTask(packetContainer);
                 double end = System.nanoTime();
 
                 if (runnable != null) {
