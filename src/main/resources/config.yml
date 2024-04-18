@@ -278,6 +278,7 @@ item-analysis:
 
     # What strategy should be used when an illegal item is found. You can choose between the following:
 
+    # - nothing: Nothing will be confiscated.
     # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.
     # - average: The item will be confiscated. It will be removed from existence and can't be obtained again.
     # - strict: The whole inventory will be removed. I do not recommend to use this.

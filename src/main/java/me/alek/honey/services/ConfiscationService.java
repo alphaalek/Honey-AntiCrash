@@ -31,6 +31,8 @@ public class ConfiscationService {
     public void confiscate(HoneyPlayer player, ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
         switch (confiscationStrategy) {
 
+            case NOTHING:
+                break;
             case LENIENT:
                 confiscateLenient(item, nbt, check);
                 break;
