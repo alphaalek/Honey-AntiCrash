@@ -250,6 +250,10 @@ public class NMS {
         return getFuzzyClass("{nms}.IChatBaseComponent$ChatSerializer");
     }
 
+    public static Class<Object> getInventoryClickTypeClass() {
+        return getFuzzyClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType", "{nms}.world.inventory.ClickType");
+    }
+
     public static boolean isFakeChannel(Channel channel) {
         if (channel == null) {
             return true;
