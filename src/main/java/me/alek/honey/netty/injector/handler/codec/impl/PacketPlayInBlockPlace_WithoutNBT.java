@@ -3,7 +3,6 @@ package me.alek.honey.netty.injector.handler.codec.impl;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.injector.handler.codec.Codec;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import org.bukkit.Bukkit;
 
 public class PacketPlayInBlockPlace_WithoutNBT implements Codec {
 
@@ -15,7 +14,6 @@ public class PacketPlayInBlockPlace_WithoutNBT implements Codec {
         structure.writeField(3, serializer.readUnsignedByte() / 16.0F);
         structure.writeField(4, serializer.readUnsignedByte() / 16.0F);
         structure.writeField(5, serializer.readUnsignedByte() / 16.0F);
-
-        Bukkit.getLogger().info(structure.readFieldEntries() + "");
+        structure.writeField(6, System.currentTimeMillis());
     }
 }

@@ -13,6 +13,7 @@ import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import org.bukkit.Material;
@@ -52,7 +53,7 @@ public class PacketExecutors {
             WrappedPacketDataSerializer serializer = new WrappedPacketDataSerializer(packetContainer.getPacket().getDataSerializer().getHandle());
             ItemStack item = null;
             try {
-                item = serializer.readItemStack();
+                item = Converters.getItemStackConverter().convertDelegate(serializer.readItemStack());
             } catch (Exception ex) {
 
             }

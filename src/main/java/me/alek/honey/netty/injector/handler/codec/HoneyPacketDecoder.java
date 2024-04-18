@@ -33,6 +33,7 @@ public class HoneyPacketDecoder {
 
     public static Object decodePacket(PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
+        int start = dataSerializer.readerIndex();
 
         int packetId = dataSerializer.readVarInt();
         if (packetId < 0) {
@@ -48,9 +49,11 @@ public class HoneyPacketDecoder {
             throw new DecoderException("Failed to create packet with ID " + packetId);
         }
 
-        if (byteBuf.isReadable() ) {
-            /* legacy server version (-1.17) */
+        if (PacketType.getPacketType(packet.getClass()).getState() != state) {
+            return null;
+        }
 
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
             // we will now check if the packet has an ItemStack property, because then we will disable NBT
             if (packet.getClass().equals(PacketType.Play.Client.BLOCK_PLACE.getNmsClass())
                     && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
@@ -73,7 +76,7 @@ public class HoneyPacketDecoder {
                         return MethodHandles.lookup().unreflect(invoker.getMethod());
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
-                        Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet " + packetId + " " + packet);
+                        Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet " + packetId + ", " + packet + ", " + state);
                         return null;
                     }
                 });
@@ -81,8 +84,13 @@ public class HoneyPacketDecoder {
                     applicationMethod.invoke(packet, dataSerializer.getHandle());
                 } catch (Throwable ex) {
                     ex.printStackTrace();
-                    throw new DecoderException("Failed to apply serializer for packet " + packetId + " " + packet);
+                    Bukkit.getLogger().info(legacySerializerApplicationLookup.get(state) + "");
+                    throw new DecoderException("Failed to apply serializer for packet " + packetId + ", " + packet + ", " + state);
                 }
+            }
+
+            if (dataSerializer.isReadable()) {
+                throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " while decoding packet " + packetId + ", " + packet + ", " + state);
             }
         }
 

@@ -2,6 +2,7 @@ package me.alek.honey.netty.util;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -15,7 +16,12 @@ public class ItemReflection {
 
     private static final MethodInvoker<?> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
-    private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethodFromReturnType(NMS.getItemClass(), 0, NMS.getItemClass(), int.class);
+    private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), (method) -> {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
+            return method.getName().equals("getById");
+        }
+        return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
+    });
 
     public static Class<?> getNMSItemStackClass() {
         return itemStackClass;
@@ -68,7 +74,7 @@ public class ItemReflection {
     }
 
     public static Object getItemFromId(int id) {
-        return itemGetByIdInvoker.invoke(id);
+        return itemGetByIdInvoker.invoke(null, id);
     }
 
     public static Object createItemStackLegacy(Object item, byte amount, short damage) {

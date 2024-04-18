@@ -8,6 +8,7 @@ public class PacketPlayInSetCreativeSlot_WithoutNBT implements Codec {
 
     @Override
     public void apply(IStructureModifier<Object> structure, WrappedPacketDataSerializer serializer) {
-
+        structure.writeField(0, serializer.readShort());
+        structure.writeField(1, serializer.readItemStackWithoutNBT());
     }
 }

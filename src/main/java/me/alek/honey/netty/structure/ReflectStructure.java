@@ -9,6 +9,7 @@ import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.MemberType;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.IReflectionMember;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -31,6 +32,7 @@ public class ReflectStructure<T, C> {
 
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final Class<?> handle;
+    private final Class<?> type;
     private boolean withStaticFields = true;
     private JavaConverter<T, C> converter;
     private Map<Integer, FieldAccessor<?>> DEFAULT_ACCESSORS;
@@ -40,6 +42,7 @@ public class ReflectStructure<T, C> {
 
     public ReflectStructure(Class<?> delegate) {
         this.handle = delegate;
+        this.type = null;
         initDefaults();
         initAcquired(null);
     }
@@ -50,6 +53,7 @@ public class ReflectStructure<T, C> {
             JavaConverter<T, C> converter
     ) {
         this.handle = delegate;
+        this.type = type;
         this.converter = converter;
 
         initDefaults();
@@ -70,8 +74,20 @@ public class ReflectStructure<T, C> {
 
     public ReflectStructure<T, C> disableStaticFields() {
         this.withStaticFields = false;
+
+        int defaultSize = DEFAULT_ACCESSORS.size();
+        int acquiredSize = ACQUIRED_ACCESSORS.size();
         DEFAULT_ACCESSORS.values().removeIf(this::disallowedField);
         ACQUIRED_ACCESSORS.values().removeIf(this::disallowedField);
+
+        if (defaultSize != DEFAULT_ACCESSORS.size()) {
+            DEFAULT_ACCESSORS = new HashMap<>();
+            setDefault(DEFAULT_ACCESSORS, true);
+        }
+        if (acquiredSize != ACQUIRED_ACCESSORS.size()) {
+            ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
+        }
+
         return this;
     }
 
@@ -106,7 +122,7 @@ public class ReflectStructure<T, C> {
                 continue;
             }
 
-            defaults.put(index.getAndIncrement(), castReflectToucher(member));
+            defaults.put(index.getAndIncrement(), castReflectionMember(member));
         }
         return defaults;
     }
@@ -127,18 +143,20 @@ public class ReflectStructure<T, C> {
             Map<Integer, ? extends IReflectionMember<?>> defaultMap
     ) {
         int index = 0;
-        for (IReflectionMember<?> reflectToucher : defaultMap.values()) {
-            if (targetType != null && !targetType.isAssignableFrom(reflectToucher.getType())) {
+        for (IReflectionMember<?> member : defaultMap.values()) {
+            if (disallowedField(member) ||
+                    targetType != null && !targetType.isAssignableFrom(member.getType())) {
                 continue;
             }
-            acquiredMap.put(index, castReflectToucher(reflectToucher));
+
+            acquiredMap.put(index, castReflectionMember(member));
             index++;
         }
         return acquiredMap;
     }
 
     @SuppressWarnings("unchecked")
-    private <R extends IReflectionMember<?>> R castReflectToucher(IReflectionMember<?> reflectToucher) {
+    private <R extends IReflectionMember<?>> R castReflectionMember(IReflectionMember<?> reflectToucher) {
         return (R) reflectToucher;
     }
 

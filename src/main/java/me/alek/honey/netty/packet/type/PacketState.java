@@ -3,11 +3,13 @@ package me.alek.honey.netty.packet.type;
 public enum PacketState {
     HANDSHAKE,
 
-    LOGIN,
+    PLAY,
 
     STATUS,
 
-    PLAY,
+    LOGIN,
+
+    CONFIGURATION,
 
     UNKNOWN
 }

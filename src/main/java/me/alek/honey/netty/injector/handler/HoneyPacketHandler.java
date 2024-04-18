@@ -18,7 +18,7 @@ public class HoneyPacketHandler {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private volatile HoneyPlayer player;
-    private PacketState protocolState = PacketState.UNKNOWN;
+    private PacketState protocolState = PacketState.HANDSHAKE;
     private WrappedEnumProtocol protocol;
     private String playerName;
 
@@ -49,7 +49,6 @@ public class HoneyPacketHandler {
 
     public void updateProtocol(Channel channel) {
         AttributeKey<?> protocolAttributeKey = WrappedEnumProtocol.getProtocolAttributeKey(channel, PacketBound.SERVER);
-        Bukkit.getLogger().info("Updating protocol! " + protocolAttributeKey + " " + protocolState + " " + channel.pipeline().get("packet_handler"));
         protocol = new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get());
     }
 

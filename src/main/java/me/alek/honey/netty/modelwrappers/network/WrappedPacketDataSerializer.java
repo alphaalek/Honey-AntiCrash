@@ -11,6 +11,7 @@ import me.alek.honey.netty.util.ConstructorInvoker;
 import me.alek.honey.netty.util.ItemReflection;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -83,11 +84,11 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         return i;
     }
 
-    public ItemStack readItemStack() {
-        return getModifier(NMS.getItemStackClass(), Converters.getItemStackConverter()).invokeMethod(0);
+    public Object readItemStack() {
+        return getModifier(NMS.getItemStackClass()).invokeMethod(0);
     }
 
-    public ItemStack readItemStackWithoutNBT() {
+    public Object readItemStackWithoutNBT() {
         short itemId = readShort();
         if (itemId < 0) {
             return null;
@@ -101,7 +102,9 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         byte amount = readByte();
         short damage = readShort();
 
-        return Converters.getItemStackConverter().convertDelegate(ItemReflection.createItemStackLegacy(item, amount, damage));
+        getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
+
+        return ItemReflection.createItemStackLegacy(item, amount, damage);
     }
 
     public UUID readUUID() {

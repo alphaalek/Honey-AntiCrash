@@ -2,6 +2,8 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.checks.IListener;
@@ -62,6 +64,10 @@ public class PlayerJoinListener implements Listener {
             if (check.hasInitializedCheckInstances()) {
                 check.cleanup(player);
             }
+        }
+
+        if (player.packetHandler != null) {
+            player.packetHandler.setProtocolState(player.channel, PacketState.HANDSHAKE);
         }
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);

@@ -80,12 +80,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!USE_DEFAULT_DECODER) {
-                    PacketState state = packetHandler.getProtocolState();
-                    if (state == null || state == PacketState.UNKNOWN) {
-                        packetHandler.setProtocolState(ctx.channel(), state);
-                        state = packetHandler.getProtocolState();
-                    }
-
                     WrappedEnumProtocol protocol = packetHandler.getProtocol();
                     if (protocol == null) {
                         packetHandler.updateProtocol(ctx.channel());
@@ -95,7 +89,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                         }
                     }
 
-                    packet = HoneyPacketDecoder.decodePacket(state, protocol, byteBuf);
+                    packet = HoneyPacketDecoder.decodePacket(packetHandler.getProtocolState(), protocol, byteBuf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});

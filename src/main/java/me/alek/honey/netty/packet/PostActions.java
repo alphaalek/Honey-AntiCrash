@@ -8,12 +8,14 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
@@ -33,7 +35,11 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketType.Handshake.Client.SET_PROTOCOL, packet -> {
             try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), PacketState.HANDSHAKE);
+                JavaConverter<Enum<?>, WrappedEnumProtocol> converter = (JavaConverter<Enum<?>, WrappedEnumProtocol>) (JavaConverter<?, ?>) Converters.getEnumProtocolConverter();
+                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter).readField(0);
+                PacketState packetState = PacketState.values()[((Enum<?>)protocol.getHandle()).ordinal()];
+
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), packetState);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }

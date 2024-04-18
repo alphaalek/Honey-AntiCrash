@@ -6,6 +6,7 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -160,6 +161,18 @@ public class Reflection {
 
     public static MethodInvoker<Object> getMethod(Method method) {
         return new MethodInvoker<>(method);
+    }
+
+    public static MethodInvoker<Object> getMethod(Class<?> target, Predicate<Method> methodPredicate) {
+        for (Method method : target.getDeclaredMethods()) {
+            if (methodPredicate.test(method)) {
+                return new MethodInvoker<>(method);
+            }
+        }
+        if (target.getSuperclass() != null) {
+            return getMethod(target, methodPredicate);
+        }
+        throw new RuntimeException("Reflection error (method predicate): " + target.getName());
     }
 
     public static MethodInvoker<Object> getMethod(String target, String name, Class<?>... parameters) {
