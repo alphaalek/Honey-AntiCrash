@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
@@ -67,11 +68,15 @@ public class PacketExecutors {
 
             switch (packetContainer.getPacket().getChannel()) {
                 case "MC|BEdit":
-                    if (!isValidQuillTag(nbt)) break;
+                    if (!isValidQuillTag(nbt)) {
+                        break;
+                    }
 
                     return () -> handleMCBEdit(packetContainer, nbt);
                 case "MC|BSign":
-                    if (!isValidBookTag(nbt)) break;
+                    if (!isValidBookTag(nbt) || !isValidAuthor(nbt, packetContainer.getPlayer())) {
+                        break;
+                    }
 
                     NBTList<String> pages = nbt.getListOf("pages", NBTType.STRING);
                     if (pages == null) {
@@ -177,6 +182,12 @@ public class PacketExecutors {
                     && (title = nbt.getString("title")) != null && title.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH
                     && nbt.hasKeyOfType("author", NBTType.STRING)
                     && (author = nbt.getString("author")) != null && author.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
+        }
+
+        private boolean isValidAuthor(NBTCompound nbt, HoneyPlayer player) {
+            String author;
+            return nbt.hasKeyOfType("author", NBTType.STRING)
+                    && (author = nbt.getString("author")) != null && author.equals(player.name);
         }
 
         private boolean isValidQuillTag(NBTCompound nbt) {
