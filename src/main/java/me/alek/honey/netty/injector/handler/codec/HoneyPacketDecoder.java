@@ -92,7 +92,7 @@ public class HoneyPacketDecoder {
             }
 
             if (dataSerializer.isReadable()) {
-                throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " while decoding packet " + packetId + ", " + packet + ", " + state);
+                throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state);
             }
         }
 
