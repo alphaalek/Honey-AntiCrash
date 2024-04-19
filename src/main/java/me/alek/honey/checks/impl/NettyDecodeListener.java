@@ -73,7 +73,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().flag(size).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -109,7 +109,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().flag(container.getStorage().getInt(1)).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -145,7 +145,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -181,7 +181,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -242,7 +242,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 return success;
             }
             */
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -311,7 +311,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                     return ResponseBuilder.inst().cancel().flag(getSetting().maxPerInterval).build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -373,7 +373,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                     return ResponseBuilder.inst().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

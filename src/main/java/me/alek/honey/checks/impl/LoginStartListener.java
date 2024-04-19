@@ -65,7 +65,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
             if (profile == null) {
-                return ResponseBuilder.SUCCESS;
+                return ResponseBuilder.PASS;
             }
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
@@ -74,7 +74,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
                 }
             }
 
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -112,7 +112,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
                     return ResponseBuilder.inst().cancel().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

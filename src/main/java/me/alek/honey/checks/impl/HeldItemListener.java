@@ -67,7 +67,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -104,7 +104,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
                 return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this));
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

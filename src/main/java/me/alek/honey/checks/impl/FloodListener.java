@@ -8,19 +8,27 @@ import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -63,6 +71,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         CheckVisitor<WP> visitor = new CheckVisitor<>(player);
         visitor.visit(new FloodA<>());
         visitor.visit(new FloodB<>());
+        visitor.visit(new FloodC<>());
         visitor.visit(new FloodD<>());
         return visitor;
     }
@@ -89,7 +98,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().flag().build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -144,6 +153,60 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         }
     }
 
+    public static class FloodC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final IDRegistry packetTypes = new IDRegistry();
+
+        static {
+            for (PacketTypeEnum packetType : PacketType.getTypesAvailable()) {
+                if (!ReflectStructureCache.acquireStructure(packetType.getNmsClass()).withType(NMS.getItemStackClass())
+                        .getAccessors().isEmpty()) {
+                    packetTypes.addID(packetType.getPacketId());
+                }
+            }
+        }
+
+        @Override
+        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+            if (getSetting().isEnabled() && !PacketType.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getPacketId())) {
+
+                for (ItemStack item : packet.getContainer().getItems().readFieldValues()) {
+                    NBTCompound nbt = NBTFactory.fromItem(item, false, true);
+                    if (nbt != null && !nbt.isEmpty()) {
+                        int elements = nbt.getRoot().getTotalElements();
+                        return ResponseBuilder.inst().flag(elements).build();
+                    }
+                }
+            }
+            return ResponseBuilder.PASS;
+        }
+
+        @Override
+        public int getID() {
+            return 62;
+        }
+
+        @Override
+        public String getName() {
+            return "Flood.C";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Packet flood for nbt bases";
+        }
+
+        @Override
+        public PacketBundleFilter getDumpFilter() {
+            return PacketBundleFilters.FLOOD_FILTER;
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodC.class);
+        }
+    }
+
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP> {
 
         @Override
@@ -153,7 +216,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         .withViolationKey(getKey(packet))
                         .build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

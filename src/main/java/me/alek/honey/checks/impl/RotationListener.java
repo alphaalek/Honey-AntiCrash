@@ -110,7 +110,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                     return ResponseBuilder.inst().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -149,7 +149,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             if (packet.getYaw() == 0 || PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
-                return ResponseBuilder.SUCCESS.copy().terminate().build();
+                return ResponseBuilder.PASS.copy().terminate().build();
             }
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().add(
@@ -157,7 +157,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                         container.getStorage().get(ResponseBuilder.class, 1).withViolationKey(pitchKey).build()
                 ).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -202,7 +202,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                     ).build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

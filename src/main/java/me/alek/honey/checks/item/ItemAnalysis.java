@@ -10,7 +10,6 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -105,7 +104,7 @@ public class ItemAnalysis {
             }).build();
         }
 
-        return ResponseBuilder.SUCCESS;
+        return ResponseBuilder.PASS;
     }
 
     public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction<CheckContextContainer.DevelopmentData> context) {
@@ -114,7 +113,7 @@ public class ItemAnalysis {
             return false;
         }
 
-        NBTCompound nbt = NBTFactory.fromItem(item);
+        NBTCompound nbt = NBTFactory.fromItem(item, false, false);
         return checkItem(player, item, nbt, context);
     }
 

@@ -364,7 +364,9 @@ public class ReflectStructure<T, C> {
 
                 if (converter instanceof MapConverter && originalValue instanceof Map) {
                     MapConverter<K, V, R> mapConverter = (MapConverter<K, V, R>) converter;
-                    mapConverter.apply((Map<K, V>) originalValue);
+                    Map<K, V> declaring = new HashMap<>((Map<K, V>) originalValue);
+                    accessor.set(handle, (T) declaring);
+                    mapConverter.apply(declaring);
 
                     if (mapConverter.isInvalid()) {
                         return null;
@@ -373,7 +375,9 @@ public class ReflectStructure<T, C> {
 
                 if (converter instanceof ListConverter && originalValue instanceof List) {
                     ListConverter<V, R> listConverter = (ListConverter<V, R>) converter;
-                    listConverter.apply((List<V>) originalValue);
+                    List<V> declaring = new ArrayList<>((List<V>) originalValue);
+                    accessor.set(handle, (T) declaring);
+                    listConverter.apply(declaring);
 
                     if (listConverter.isInvalid()) {
                         return null;
@@ -382,7 +386,9 @@ public class ReflectStructure<T, C> {
 
                 if (converter instanceof SetConverter && originalValue instanceof Set) {
                     SetConverter<V, R> setConverter = (SetConverter<V, R>) converter;
-                    setConverter.apply((Set<V>) originalValue);
+                    Set<V> declaring = new HashSet<>((Set<V>) originalValue);
+                    accessor.set(handle, (T) declaring);
+                    setConverter.apply(declaring);
 
                     if (setConverter.isInvalid()) {
                         return null;

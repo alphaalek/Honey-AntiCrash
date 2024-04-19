@@ -7,8 +7,8 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 
 public class NBTListOfList extends NBTAbstractList<NBTAbstractList<?>> {
 
-    public NBTListOfList(Object base, NBTRoot root, NBTBase<?, ?> owner) {
-        super(base, NBTType.LIST, root, owner);
+    public NBTListOfList(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        super(base, NBTType.LIST, root, owner, forceCreation);
     }
 
     public NBTListOfList() {

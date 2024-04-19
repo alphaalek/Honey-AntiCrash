@@ -70,7 +70,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         if (blockPosition.distance(originLocation) < 10
                 && Locations.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
@@ -101,7 +101,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                     })
                     .build();
         }
-        return ResponseBuilder.SUCCESS;
+        return ResponseBuilder.PASS;
     }
 
     public static class BlockInteractA<WP extends WrappedAbstractBlockInteraction<WP>> implements ViolationCheck, PacketCheck<WP> {
@@ -111,11 +111,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null) return ResponseBuilder.SUCCESS;
+                if (blockPosition == null) return ResponseBuilder.PASS;
 
                 return checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -152,7 +152,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
                 return ItemAnalysis.flagIf(player, item, container.getDevelopmentData(this));
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -190,7 +190,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
                 final ItemStack item = blockPlacePacket.getItem();
                 if (item == null)
-                    return ResponseBuilder.SUCCESS;
+                    return ResponseBuilder.PASS;
 
                 final Material material = item.getType();
 
@@ -199,7 +199,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -264,7 +264,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

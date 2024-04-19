@@ -4,14 +4,13 @@ import me.alek.honey.services.ViolationService;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class ResponseBuilder {
 
-    public static ResponseContainer SUCCESS = ResponseBuilder
+    public static ResponseContainer PASS = ResponseBuilder
             .inst()
-            .success()
+            .pass()
             .build();
 
     public static ResponseBuilder inst() {
@@ -42,7 +41,7 @@ public class ResponseBuilder {
         return this;
     }
 
-    public ResponseBuilder success() {
+    public ResponseBuilder pass() {
         responseContainer.success = true;
         return this;
     }

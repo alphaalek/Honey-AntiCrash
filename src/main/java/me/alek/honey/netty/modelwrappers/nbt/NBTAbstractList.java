@@ -1,5 +1,6 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
@@ -19,8 +20,8 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     private ListConverter<Object, T> delegate;
     private final NBTType typeOf;
 
-    public NBTAbstractList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner) {
-        super(base, root, owner);
+    public NBTAbstractList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        super(base, root, owner, forceCreation);
         this.typeOf = typeOf;
     }
 
@@ -37,7 +38,7 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     @Override
     public ApplicableConverter<List<Object>, ListConverter<Object, T>> getConverter() {
         if (delegate == null) {
-            delegate = Converters.getNBTListConverter(this);
+            delegate = Converters.getNBTListConverter(getRoot(), this, forceCreation);
         }
         return delegate;
     }
@@ -148,7 +149,7 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     }
 
     private void deleteInherited(T value) {
-        value.setRoot(null);
+        value.setRoot(new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES));
         value.setOwner(null);
     }
 }

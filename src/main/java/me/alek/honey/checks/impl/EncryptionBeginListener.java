@@ -70,7 +70,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
                     return ResponseBuilder.inst().cancel().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

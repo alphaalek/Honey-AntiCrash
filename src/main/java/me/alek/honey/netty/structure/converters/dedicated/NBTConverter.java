@@ -2,18 +2,20 @@ package me.alek.honey.netty.structure.converters.dedicated;
 
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.structure.converters.JavaConverter;
+import org.bukkit.Bukkit;
 
 public class NBTConverter implements JavaConverter<Object, NBTBase<?, ?>> {
 
-    private NBTBase<?, ?> owner;
+    private final NBTRoot root;
+    private final NBTBase<?, ?> owner;
+    private final boolean forceCreation;
 
-    public NBTConverter(NBTBase<?, ?> owner) {
+    public NBTConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        this.root = root;
         this.owner = owner;
-    }
-
-    public void setOwner(NBTBase<?, ?> owner) {
-        this.owner = owner;
+        this.forceCreation = forceCreation;
     }
 
     @Override
@@ -21,7 +23,7 @@ public class NBTConverter implements JavaConverter<Object, NBTBase<?, ?>> {
         if (delegate == null) {
             return null;
         }
-        return NBTFactory.fromDelegate(delegate, owner);
+        return NBTFactory.fromDelegate(delegate, root, owner, forceCreation);
     }
 
     @Override

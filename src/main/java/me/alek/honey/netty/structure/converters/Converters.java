@@ -3,6 +3,7 @@ package me.alek.honey.netty.structure.converters;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
+import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
@@ -32,15 +33,10 @@ public class Converters {
     private static final Map<Class<?>, ListConverter<?, ?>> LIST_CONVERTER_CACHE = new HashMap<>();
     private static final Map<Class<?>, SetConverter<?, ?>> SET_CONVERTER_CACHE = new HashMap<>();
     private static final Map<Class<?>, MapConverter<?, ?, ?>> MAP_CONVERTER_CACHE = new HashMap<>();
-    private static final Map<NBTBase<?, ?>, NBTConverter> NBT_CONVERTER_CACHE = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     private static <R, V> JavaConverter<R, V> getConverter(Class<?> clazz, Function<? super Class<?>, ? extends JavaConverter<?, ?>> orElse) {
         return (JavaConverter<R, V>) CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
-    }
-
-    private static NBTConverter getNBTConverter(NBTBase<?, ?> owner, Function<? super NBTBase<?, ?>, ? extends NBTConverter> orElse) {
-        return NBT_CONVERTER_CACHE.computeIfAbsent(owner, orElse);
     }
 
     @SuppressWarnings("unchecked")
@@ -235,17 +231,17 @@ public class Converters {
     }
 
     // nbt
-    public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter(NBTBase<?, ?> owner) {
-        return getNBTConverter(owner, (nbtRoot) -> new NBTConverter(owner));
+    public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        return new NBTConverter(root, owner, forceCreation);
     }
 
-    public static MapConverter<String, Object, NBTBase<?, ?>> getNBTCompoundConverter(NBTBase<?, ?> owner) {
-        return getMapConverterWithoutCache(getNBTBaseConverter(owner), true);
+    public static MapConverter<String, Object, NBTBase<?, ?>> getNBTCompoundConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        return getMapConverterWithoutCache(getNBTBaseConverter(root, owner, forceCreation), true);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> ListConverter<Object, T> getNBTListConverter(NBTBase<?, ?> owner) {
-        return (ListConverter<Object, T>) getListConverterWithoutCache(getNBTBaseConverter(owner), true);
+    public static <T> ListConverter<Object, T> getNBTListConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        return (ListConverter<Object, T>) getListConverterWithoutCache(getNBTBaseConverter(root, owner, forceCreation), true);
     }
 
     // lists

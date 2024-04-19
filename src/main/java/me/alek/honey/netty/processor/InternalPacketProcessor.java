@@ -149,7 +149,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
-        if (PacketType.isUnknown(packetContainer.getType())) {
+        if (PacketType.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getPacketId())) {
             return null;
         }
 

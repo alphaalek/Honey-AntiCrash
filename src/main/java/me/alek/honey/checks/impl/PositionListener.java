@@ -167,7 +167,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND))
-                return ResponseBuilder.SUCCESS;
+                return ResponseBuilder.PASS;
 
             if (getSetting().isEnabled()) {
 
@@ -220,7 +220,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
                     (location) -> Locations.calculate3DDistance(location, packetLoc))) {
-                return ResponseBuilder.SUCCESS.copy().skip(3).build();
+                return ResponseBuilder.PASS.copy().skip(3).build();
             }
 
             final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
@@ -252,7 +252,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -292,23 +292,23 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
                 if (player.player.getVelocity().getY() < -1.5)
-                    return ResponseBuilder.SUCCESS;
+                    return ResponseBuilder.PASS;
 
                 final Location priorLocation = container.getStorage().getLocation(0);
                 // return if it's the first location being sent
-                if (priorLocation == null) return ResponseBuilder.SUCCESS;
+                if (priorLocation == null) return ResponseBuilder.PASS;
 
                 // ignores packets close to the recent flag
                 if (lastFlaggedLocation != null) {
                     if (Locations.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1)
-                        return ResponseBuilder.SUCCESS;
+                        return ResponseBuilder.PASS;
                 }
                 lastFlaggedLocation = packet.getLocation();
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
                 return ResponseBuilder.inst().flag(Math.min(10, priorDistance)).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -361,7 +361,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             // or if the player is in the same chunk as the last position or the same chunk as the previous chunk
             // the skip is for letting the next check in the check pipeline (Position.E), either flag or not flag
             if (!getSetting().isEnabled() || equalsChunk || equalsPreviousChunk) {
-                return ResponseBuilder.SUCCESS.copy().skip(skip).build();
+                return ResponseBuilder.PASS.copy().skip(skip).build();
             }
             return ResponseBuilder.inst().flag().skip(skip).build();
         }
@@ -399,7 +399,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
                 return ResponseBuilder.inst().cancel().flag().build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -483,7 +483,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().getLocation(0);
-                if (priorLocation == null) return ResponseBuilder.SUCCESS;
+                if (priorLocation == null) return ResponseBuilder.PASS;
 
                 final Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
                 final Direction[] priorVelocity = lastDirectionFlow;
@@ -510,7 +510,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         return response;
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -550,7 +550,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     return ResponseBuilder.inst().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -589,7 +589,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            ResponseContainer response = ResponseBuilder.SUCCESS.copy().skip(1).build();
+            ResponseContainer response = ResponseBuilder.PASS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
                 double delta2D = container.getStorage().getDouble(0);
                 double deltaY = container.getStorage().getDouble(1);
@@ -677,7 +677,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 return ResponseBuilder.inst().flag().build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -742,7 +742,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }).build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

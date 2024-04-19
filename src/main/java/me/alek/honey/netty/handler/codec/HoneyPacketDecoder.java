@@ -75,8 +75,8 @@ public class HoneyPacketDecoder {
                     MethodInvoker<?> invoker = Reflection.getMethod(packet.getClass(), 1, packetDataSerializerClass);
                     try {
                         return MethodHandles.lookup().unreflect(invoker.getMethod());
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    } catch (IllegalAccessException ex) {
+                        ex.printStackTrace();
                         Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet " + packetId + ", " + packet + ", " + state);
                         return null;
                     }
@@ -84,8 +84,6 @@ public class HoneyPacketDecoder {
                 try {
                     applicationMethod.invoke(packet, dataSerializer.getHandle());
                 } catch (Throwable ex) {
-                    ex.printStackTrace();
-                    Bukkit.getLogger().info(legacySerializerApplicationLookup.get(state) + "");
                     throw new DecoderException("Failed to apply serializer for packet " + packetId + ", " + packet + ", " + state);
                 }
             }

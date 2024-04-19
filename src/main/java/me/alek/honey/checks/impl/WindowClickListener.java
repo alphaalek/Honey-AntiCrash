@@ -78,7 +78,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -115,7 +115,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -154,7 +154,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -194,7 +194,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                     return ResponseBuilder.inst().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

@@ -63,7 +63,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -108,7 +108,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -145,7 +145,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

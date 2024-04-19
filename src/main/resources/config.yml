@@ -59,6 +59,18 @@ notify-permission: "honey.notify"
 pastebin-developer-key: ""
 
 
+# Decoder
+decoder:
+  # Should honey decoder be enabled.
+  use-default: false
+
+  # Should nbt for PacketPlayInBlockPlace & PacketPlayInWindowClick be disabled in versions < 1.17.
+  disable-nbt: true
+
+  # Should PacketPlayInSetCreativeSlot packets be decoded if the player is not in creative mode.
+  disable-creative-slot-for-non-creative: true
+
+
 # Formatting for messages sent by Honey
 messages:
   # Prefix for command usage
@@ -269,7 +281,7 @@ mysql:
 # +------------------------------------------------------+ #
 ############################################################
 
-# item analysis
+# item analysis (only works if NBT is enabled or the player is in creative mode)
 item-analysis:
 
   general:
@@ -281,7 +293,7 @@ item-analysis:
     # - nothing: Nothing will be confiscated.
     # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.
     # - average: The item will be confiscated. It will be removed from existence and can't be obtained again.
-    # - strict: The whole inventory will be removed. I do not recommend to use this.
+    # - strict:  The whole inventory will be removed. I do not recommend to use this.
     confiscation-strategy: "average"
 
     # Player's which the item-analysis should ignore.
@@ -720,6 +732,13 @@ packet-flood:
     max-per-interval: 285
     interval: 700
     vls-amount: 4
+
+  # nbt (only works if NBT is enabled)
+  c:
+    enabled: true
+    max-per-interval: 2048
+    interval: 800
+    vls-amount: 3
 
   # specific
   d:

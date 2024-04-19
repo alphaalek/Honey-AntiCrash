@@ -11,7 +11,7 @@ public class ConstructorInvoker<T> {
         try {
             return clazz.getDeclaredConstructor(params);
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection error (constructor): " + clazz.getName() + " " + Arrays.toString(params) + " " + ex.getMessage());
+            throw new RuntimeException("Reflection error (constructor): name: " + clazz.getName() + ", params: " + Arrays.toString(params) + ", message: " + ex.getMessage());
         }
     }
 
@@ -28,7 +28,8 @@ public class ConstructorInvoker<T> {
         try {
             return constructor.newInstance(parameters);
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection error (constructor invoke): " + constructor + " " + Arrays.toString(parameters) + " " + ex.getMessage());
+            ex.printStackTrace();
+            throw new RuntimeException("Reflection error (constructor invoke): constructor: " + constructor + ", params: " + Arrays.toString(parameters) + ", message: " + ex.getMessage());
         }
     }
 

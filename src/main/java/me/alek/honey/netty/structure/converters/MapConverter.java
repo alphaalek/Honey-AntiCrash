@@ -8,6 +8,8 @@ public interface MapConverter<K, V, T> extends JavaConverter<Map<K, V>, MapConve
 
     boolean containsKey(K key);
 
+    boolean isEmpty();
+
     Set<K> keySet();
 
     void clear();

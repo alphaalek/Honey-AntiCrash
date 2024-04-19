@@ -96,7 +96,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 }
             }
 
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -214,7 +214,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                             return ResponseBuilder.inst().cancel().flag().build();
                         }
                     }
-                    return ResponseBuilder.SUCCESS;
+                    return ResponseBuilder.PASS;
                 }
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
@@ -228,7 +228,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     }
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -279,7 +279,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 double playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, false);
                 if (playerRate5S < IGNORE_RATE_5S || (playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true)) < IGNORE_RATE_5S) {
-                    return ResponseBuilder.SUCCESS;
+                    return ResponseBuilder.PASS;
                 }
 
                 if (playerRate5S > RATE_5S
@@ -320,7 +320,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 return ResponseBuilder.inst().flag(0).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         private double toMillis(double amount) {
@@ -368,7 +368,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         })
                         .build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -505,7 +505,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 }
                 return success;
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, double multiplier, double hsq) {

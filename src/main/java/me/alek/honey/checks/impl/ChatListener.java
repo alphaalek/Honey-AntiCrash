@@ -79,7 +79,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                     }
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -128,7 +128,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -215,7 +215,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
-                return ResponseBuilder.SUCCESS;
+                return ResponseBuilder.PASS;
             }
             for (String prohibitedCommand : prohibitedCommands) {
 
@@ -230,7 +230,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

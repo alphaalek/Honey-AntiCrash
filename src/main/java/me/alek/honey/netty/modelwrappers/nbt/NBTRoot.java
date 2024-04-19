@@ -1,12 +1,8 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class NBTRoot extends NBTCompound {
+public class NBTRoot {
 
     private Map<NBTBase<?, ?>, List<NBTBase<?, ?>>> ownerMap;
     private Map<NBTBase<?, ?>, Integer> distanceToTailMap;
@@ -17,8 +13,24 @@ public class NBTRoot extends NBTCompound {
     private final int maximumElementsWithin;
 
     public NBTRoot(int maximumElementsWithin) {
-        super(null, null, null);
         this.maximumElementsWithin = maximumElementsWithin;
+    }
+
+    public void unsubscribe(NBTBase<?, ?> sub) {
+        if (sub.getOwner() != null && ownerMap.get(sub.getOwner()) != null) {
+            ownerMap.get(sub.getOwner()).remove(sub);
+            if (ownerMap.get(sub.getOwner()).isEmpty()) {
+                distanceToTailMap.put(sub.getOwner(), 0);
+            }
+        }
+
+        if (sub.getType() != null && nbtTypeLookup.get(sub.getType()) != null) {
+            nbtTypeLookup.get(sub.getType()).remove(sub);
+        }
+
+        totalElements--;
+        // TODO: auto-generate max distance to tail instead of using an int, because we don't know which path it chose originally,
+        //  so we can't update without iterating over all elements within the root once again
     }
 
     public void subscribe(NBTBase<?, ?> owner, NBTBase<?, ?> sub) {
@@ -89,7 +101,7 @@ public class NBTRoot extends NBTCompound {
     public int getDistanceToRoot(NBTBase<?, ?> element) {
         NBTBase<?, ?> owner = element;
         int counter = 0;
-        while (!(owner instanceof NBTRoot)) {
+        while (owner != owner.getOwner()) {
             counter++;
             owner = owner.getOwner();
         }

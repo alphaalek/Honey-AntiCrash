@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.handler.*;
+import me.alek.honey.netty.handler.HoneyPacketDecodePreparation;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 public class ServerPacketManager {

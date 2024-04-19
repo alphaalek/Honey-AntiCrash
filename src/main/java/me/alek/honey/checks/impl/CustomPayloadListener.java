@@ -112,7 +112,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     return ResponseBuilder.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -148,11 +148,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class,0);
                 if (serializer == null) {
-                    return ResponseBuilder.SUCCESS;
+                    return ResponseBuilder.PASS;
                 }
                 return ResponseBuilder.inst().flag(serializer.readableBytes()).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -190,7 +190,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 ItemStack item = container.getStorage().get(ItemStack.class, 0);
                 if (item != null) {
 
-                    NBTCompound nbt = NBTFactory.fromItem(item);
+                    NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
                         return ResponseBuilder.inst().cancel().flag().onViolation(onViolation -> {
@@ -213,7 +213,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     }
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -253,15 +253,15 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 if (!channel.isEmpty()) {
                     if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
-                        return ResponseBuilder.SUCCESS;
+                        return ResponseBuilder.PASS;
                     }
                     if (itemInHand.getType() == MaterialMappings.getType("writable-book") || itemInHand.getType() == Material.WRITTEN_BOOK) {
-                        return ResponseBuilder.SUCCESS;
+                        return ResponseBuilder.PASS;
                     }
                 }
                 return ResponseBuilder.inst().cancel().flag().build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -309,7 +309,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

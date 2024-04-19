@@ -15,8 +15,8 @@ public class NBTElement<T> extends NBTBase<T, T> {
 
     private final static Map<NBTType, NBTWriter<?>> WRITERS = new ConcurrentHashMap<>();
 
-    public NBTElement(Object base, NBTRoot root, NBTBase<?, ?> owner) {
-        super(base, root, owner);
+    public NBTElement(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        super(base, root, owner, forceCreation);
     }
 
     public NBTElement(NBTType type) {

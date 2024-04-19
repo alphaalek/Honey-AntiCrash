@@ -2,6 +2,7 @@ package me.alek.honey.netty.structure.converters.dedicated;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
+import org.bukkit.Bukkit;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -83,6 +84,13 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         checkMap();
 
         return delegatedMap.containsKey(key);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        checkMap();
+
+        return delegatedMap.isEmpty();
     }
 
     public T removeConverted(K key) {

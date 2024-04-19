@@ -92,7 +92,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                             .build();
                 }
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -162,7 +162,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 // and therefore will block this packet. I do this by just flagging with 0.
                 return ResponseBuilder.inst().flag(0).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override
@@ -218,7 +218,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                         ResponseBuilder.inst().flag(total).withViolationKey(totalKey).build()
                 ).build();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

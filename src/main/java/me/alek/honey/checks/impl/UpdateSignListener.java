@@ -76,7 +76,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
                 }
             }
 
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }
 
         @Override

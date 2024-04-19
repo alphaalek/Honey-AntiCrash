@@ -173,7 +173,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }, byteBuf, checkContextContainer, callback);
     }
 
@@ -185,7 +185,7 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return ResponseBuilder.SUCCESS;
+            return ResponseBuilder.PASS;
         }, new CancellablePacketImpl(packetContainer), checkContextContainer, callback);
     }
 }

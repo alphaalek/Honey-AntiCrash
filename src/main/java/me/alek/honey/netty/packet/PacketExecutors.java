@@ -64,7 +64,7 @@ public class PacketExecutors {
                 return null;
             }
 
-            NBTCompound nbt = NBTFactory.fromItem(item);
+            NBTCompound nbt = NBTFactory.fromItem(item, false, false);
 
             switch (packetContainer.getPacket().getChannel()) {
                 case "MC|BEdit":
@@ -159,7 +159,7 @@ public class PacketExecutors {
                 playerItem.setType(type);
             }
 
-            NBTCompound editedNBT = NBTFactory.fromItem(playerItem, true);
+            NBTCompound editedNBT = NBTFactory.fromItem(playerItem, true, false);
             nbtConsumer.accept(nbt, editedNBT);
 
             return playerItem;

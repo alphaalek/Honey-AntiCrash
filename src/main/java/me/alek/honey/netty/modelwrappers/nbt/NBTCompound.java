@@ -1,5 +1,6 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
@@ -19,8 +20,8 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     private MapConverter<String, Object, NBTBase<?, ?>> delegate;
 
-    public NBTCompound(Object rawNms, NBTRoot root, NBTBase<?, ?> owner) {
-        super(rawNms, root, owner);
+    public NBTCompound(Object rawNms, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        super(rawNms, root, owner, forceCreation);
     }
 
     public NBTCompound() {
@@ -34,7 +35,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getConverter() {
         if (delegate == null) {
-            delegate = Converters.getNBTCompoundConverter(this);
+            delegate = Converters.getNBTCompoundConverter(getRoot(), this, forceCreation);
         }
         return delegate;
     }
@@ -58,6 +59,10 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
             }
         }
         getValue().clear();
+    }
+
+    public boolean isEmpty() {
+        return getValue().isEmpty();
     }
 
     public Set<String> getKeys() {
@@ -132,13 +137,13 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
             return null;
         }
         if (nbtType == NBTType.COMPOUND) {
-            return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner());
+            return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner(), forceCreation);
         }
         else if (nbtType == NBTType.LIST) {
-            return (NBTAbstractList<R>) new NBTListOfList(base.getHandle(), root, base.getOwner());
+            return (NBTAbstractList<R>) new NBTListOfList(base.getHandle(), root, base.getOwner(), forceCreation);
         }
         else {
-            return (NBTAbstractList<R>) new NBTList<>(base.getHandle(), nbtType, root, base.getOwner());
+            return (NBTAbstractList<R>) new NBTList<>(base.getHandle(), nbtType, root, base.getOwner(), forceCreation);
         }
     }
 
@@ -231,7 +236,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     private void deleteInherited(NBTBase<?, ?> value) {
-        value.setRoot(null);
+        value.setRoot(new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES));
         value.setOwner(null);
     }
 }

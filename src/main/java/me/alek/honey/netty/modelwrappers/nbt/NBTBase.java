@@ -4,9 +4,11 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutput;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -14,6 +16,7 @@ import java.util.function.Function;
 public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> implements Cloneable, Serializable {
 
     private final Object handle;
+    protected final boolean forceCreation;
     protected IStructureModifier<V> valueStructureModifier;
 
     private NBTRoot root;
@@ -21,11 +24,12 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     private NBTType type;
     private V value;
 
-    public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner) {
+    public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         super(base);
         this.handle = base;
         this.root = root;
         this.owner = owner;
+        this.forceCreation = forceCreation;
 
         if (getRoot().getTotalElements() > getRoot().getMaximumElementsWithin()) {
             return;
@@ -38,10 +42,14 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
             getRoot().subscribe(getOwner(), this);
         }
+
+        if (forceCreation) {
+            getValue();
+        }
     }
 
     public NBTBase(Object base) {
-        this(base, new NBTRoot(Integer.MAX_VALUE), null);
+        this(base, new NBTRoot(Integer.MAX_VALUE), null, true);
     }
 
     public abstract ApplicableConverter<T, V> getConverter();
@@ -67,20 +75,22 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public NBTRoot getRoot() {
-        if (root == null) {
-            if (this instanceof NBTRoot) {
-                root = (NBTRoot) this;
-            }
-        }
         return root;
     }
 
     public void setRoot(NBTRoot root) {
-        this.root = root;
-
-        if (root != null) {
+        if (this.root != null) {
             for (NBTType nbtType : NBTType.values()) {
-                for (NBTBase<?, ?> nbtBase : root.getAllElementsAs(nbtType)) {
+                for (NBTBase<?, ?> nbtBase : new ArrayList<NBTBase<?, ?>>(root.getAllElementsAs(nbtType))) {
+                    this.root.unsubscribe(nbtBase);
+                }
+            }
+        }
+
+        this.root = root;
+        if (this.root != null) {
+            for (NBTType nbtType : NBTType.values()) {
+                for (NBTBase<?, ?> nbtBase : new ArrayList<NBTBase<?, ?>>(this.root.getAllElementsAs(nbtType))) {
                     this.root.subscribe(nbtBase.getOwner(), nbtBase);
                 }
             }
@@ -89,7 +99,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public NBTBase<?, ?> getOwner() {
         if (owner == null) {
-            owner = getRoot();
+            owner = this;
         }
         return owner;
     }
@@ -128,7 +138,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public NBTType getType() {
         if (type == null) {
-            this.type = NBTFactory.getType(handle, false, root);
+            this.type = NBTFactory.getType(handle, false, getRoot(), getOwner(), forceCreation);
         }
         return type;
     }
@@ -212,6 +222,6 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     @Override
     public NBTBase<T, V> clone() {
-        return NBTFactory.copyBase(this, getOwner());
+        return NBTFactory.copyBase(this, getRoot(), getOwner());
     }
 }

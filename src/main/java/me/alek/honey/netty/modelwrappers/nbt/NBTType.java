@@ -6,9 +6,7 @@ import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.util.ConstructorInvoker;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
-import org.bukkit.Bukkit;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +24,15 @@ public enum NBTType {
     STRING(8, getNBTClass("NBTTagString"), String.class),
     @SuppressWarnings("unchecked")
     LIST(9, getNBTClass("NBTTagList"),
-            new ConstructorInvoker<>(castNBTBase(NBTList.class), Object.class, NBTType.class, NBTRoot.class, NBTBase.class), List.class, byte.class),
+            new ConstructorInvoker<>(getNBTBaseClass(NBTList.class), Object.class, NBTType.class, NBTRoot.class, NBTBase.class, boolean.class), List.class, byte.class),
     COMPOUND(10, getNBTClass("NBTTagCompound"),
-            new ConstructorInvoker<>(castNBTBase(NBTCompound.class), Object.class, NBTRoot.class, NBTBase.class), Map.class),
+            new ConstructorInvoker<>(getNBTBaseClass(NBTCompound.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), Map.class, boolean.class),
     INTARRAY(11, getNBTClass("NBTTagIntArray"), int[].class),
     LONGARRAY(12, NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2) ? getNBTClass("NBTTagLongArray") : null, long[].class),
     LISTOFCOMOUND(-1, getNBTClass("NBTTagList"),
-            new ConstructorInvoker<>(castNBTBase(NBTListOfCompound.class), Object.class, NBTRoot.class, NBTBase.class), List.class, byte.class),
+            new ConstructorInvoker<>(getNBTBaseClass(NBTListOfCompound.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), List.class, byte.class),
     LISTOFLIST(-1, getNBTClass("NBTTagList"),
-            new ConstructorInvoker<>(castNBTBase(NBTListOfList.class), Object.class, NBTRoot.class, NBTBase.class), List.class, byte.class),
+            new ConstructorInvoker<>(getNBTBaseClass(NBTListOfList.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), List.class, byte.class),
     UNKNOWN(-1, null, null);
 
     private final int typeId;
@@ -65,7 +63,7 @@ public enum NBTType {
     }
 
     @SuppressWarnings("unchecked")
-    public static Class<? extends NBTBase<?, ?>> castNBTBase(Class<?> clazz) {
+    public static Class<? extends NBTBase<?, ?>> getNBTBaseClass(Class<?> clazz) {
         try {
             if (NBTBase.class.isAssignableFrom(clazz)) {
                 return (Class<? extends NBTBase<?, ?>>) clazz.asSubclass(NBTBase.class);
@@ -77,7 +75,7 @@ public enum NBTType {
 
     @SuppressWarnings("unchecked")
     NBTType(int typeId, Class<?> baseClass, Class<?> clazz) {
-        this(typeId, baseClass, new ConstructorInvoker<>(castNBTBase(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class), clazz);
+        this(typeId, baseClass, new ConstructorInvoker<>(getNBTBaseClass(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), clazz);
     }
 
     NBTType(int typeId, Class<?> baseClass, ConstructorInvoker<? extends NBTBase<?, ?>> constructorInvoker, Class<?> clazz, Class<?>... params) {
