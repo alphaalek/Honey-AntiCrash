@@ -59,12 +59,12 @@ notify-permission: "honey.notify"
 pastebin-developer-key: ""
 
 
-# Decoder
+# Own decoder settings
 decoder:
   # Should honey decoder be enabled.
   use-default: false
 
-  # Should nbt for PacketPlayInBlockPlace & PacketPlayInWindowClick be disabled in versions < 1.17.
+  # Should nbt decode for PacketPlayInBlockPlace (versions < 1.9) & PacketPlayInWindowClick (versions < 1.17) be disabled
   disable-nbt: true
 
   # Should PacketPlayInSetCreativeSlot packets be decoded if the player is not in creative mode.

@@ -2,7 +2,9 @@ package me.alek.honey.netty.handler.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -51,22 +53,25 @@ public class HoneyPacketDecoder {
         }
 
         if (PacketType.getPacketType(packet.getClass()).getState() != state) {
+            Bukkit.broadcastMessage("NOT MATCH " + packet + " " + state);
             return null;
         }
 
+        // check if the protocol version is before 1.17, because then the packet data serializer should be applied in a method instead of the constructor
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
             // we will now check if the packet has an ItemStack property, because then we will disable NBT
             if (packet.getClass().equals(PacketType.Play.Client.BLOCK_PLACE.getNmsClass())
-                    && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+                    && ConfigurationOptions.Decoder.DISABLE_NBT && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 DisabledNBTCodec.BLOCK_PLACE.apply(
                         ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
             }
-            else if (packet.getClass().equals(PacketType.Play.Client.WINDOW_CLICK.getNmsClass())) {
+            else if (packet.getClass().equals(PacketType.Play.Client.WINDOW_CLICK.getNmsClass())
+                    && ConfigurationOptions.Decoder.DISABLE_NBT) {
                 DisabledNBTCodec.WINDOW_CLICK.apply(
                         ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
             }
             else if (packet.getClass().equals(PacketType.Play.Client.SET_CREATIVE_SLOT.getNmsClass())
-                    && player != null && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
+                    && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE && player != null && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
                 return null;
             }
             else {

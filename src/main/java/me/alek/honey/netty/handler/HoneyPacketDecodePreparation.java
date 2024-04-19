@@ -35,7 +35,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getServerThreadTracker().getExecutionQueue();
-    private static final boolean USE_DEFAULT_DECODER = false;
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
@@ -81,7 +80,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
             Object packet;
             try {
-                if (!USE_DEFAULT_DECODER) {
+                if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
                     WrappedEnumProtocol protocol = packetHandler.getProtocol();
                     if (protocol == null) {
                         packetHandler.updateProtocol(ctx.channel());
