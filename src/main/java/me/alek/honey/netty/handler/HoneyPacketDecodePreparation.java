@@ -120,6 +120,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             if (packetContainer != null) {
                 packetContainer.getEventloopStateTimings().stopTimings();
 
+                if (player != null) {
+                    HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+                }
+
                 if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
@@ -136,10 +140,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
                     ctx.fireChannelRead(packet);
                     return;
-                }
-
-                if (player != null) {
-                    HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
                 }
             }
 
