@@ -1,7 +1,7 @@
-package me.alek.honey.netty.injector.handler.codec.impl;
+package me.alek.honey.netty.handler.codec.impl;
 
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.injector.handler.codec.Codec;
+import me.alek.honey.netty.handler.codec.Codec;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;

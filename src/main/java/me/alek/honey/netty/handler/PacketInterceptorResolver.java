@@ -1,20 +1,18 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.AttributeKey;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.wrappers.WrappedChannelInboundHandler;
-import me.alek.honey.netty.injector.handler.wrappers.WrappedChannelOutboundHandler;
+import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
+import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 

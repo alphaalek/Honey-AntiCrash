@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.listeners.PlayerJoinListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.injector.connection.SpigotPipelineInjector;
+import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.util.NMS;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler.wrappers;
+package me.alek.honey.netty.handler.wrappers;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandler;

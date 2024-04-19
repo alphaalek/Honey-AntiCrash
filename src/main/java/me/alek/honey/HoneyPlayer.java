@@ -1,7 +1,7 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
-import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.services.ViolationService;

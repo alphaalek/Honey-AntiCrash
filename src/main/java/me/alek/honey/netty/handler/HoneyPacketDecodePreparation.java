@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -7,9 +7,8 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.injector.handler.codec.HoneyPacketDecoder;
+import me.alek.honey.netty.handler.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;

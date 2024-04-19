@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -253,6 +253,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             if (value instanceof WrappedPacketTaskFuture) {
                 if (super.isEmpty()) {
+                    // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
                     super.add(EMPTY_VALUE);
                 }
 
@@ -271,8 +272,8 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 return super.add(value);
             }
 
-            // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
             if (super.isEmpty()) {
+                // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
                 super.add(EMPTY_VALUE);
             }
 

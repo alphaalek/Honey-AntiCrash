@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.buffer.*;
 import io.netty.channel.Channel;
@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 

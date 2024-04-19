@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.connection;
+package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
@@ -6,7 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.injector.ChannelProxy;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.injector.handler.*;
+import me.alek.honey.netty.handler.*;
 import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.netty.structure.ReflectStructureCache;

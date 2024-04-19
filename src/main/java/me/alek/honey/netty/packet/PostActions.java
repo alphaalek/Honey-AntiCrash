@@ -6,7 +6,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;

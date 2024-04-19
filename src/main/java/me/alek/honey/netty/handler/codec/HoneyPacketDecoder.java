@@ -1,9 +1,8 @@
-package me.alek.honey.netty.injector.handler.codec;
+package me.alek.honey.netty.handler.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketBound;

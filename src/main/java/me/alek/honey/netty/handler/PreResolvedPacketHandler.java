@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

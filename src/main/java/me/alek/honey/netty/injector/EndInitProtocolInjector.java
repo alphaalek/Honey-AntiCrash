@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.connection;
+package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;

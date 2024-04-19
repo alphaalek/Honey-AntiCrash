@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
@@ -11,7 +11,6 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 
 public class HoneyPacketHandler {

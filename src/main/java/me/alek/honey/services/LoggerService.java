@@ -7,7 +7,7 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.injector.handler.HoneyPacketHandler;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PostActions;

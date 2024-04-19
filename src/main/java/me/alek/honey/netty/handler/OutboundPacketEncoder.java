@@ -1,4 +1,4 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -10,12 +10,9 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.async.AsyncDecoder;
-import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 

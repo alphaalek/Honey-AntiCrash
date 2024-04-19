@@ -50,25 +50,19 @@ public class MathHelper {
     public static int clamp(int paramInt1, int paramInt2, int paramInt3) {
         if (paramInt1 < paramInt2)
             return paramInt2;
-        if (paramInt1 > paramInt3)
-            return paramInt3;
-        return paramInt1;
+        return Math.min(paramInt1, paramInt3);
     }
 
     public static float a(float paramFloat1, float paramFloat2, float paramFloat3) {
         if (paramFloat1 < paramFloat2)
             return paramFloat2;
-        if (paramFloat1 > paramFloat3)
-            return paramFloat3;
-        return paramFloat1;
+        return Math.min(paramFloat1, paramFloat3);
     }
 
     public static double a(double paramDouble1, double paramDouble2, double paramDouble3) {
         if (paramDouble1 < paramDouble2)
             return paramDouble2;
-        if (paramDouble1 > paramDouble3)
-            return paramDouble3;
-        return paramDouble1;
+        return Math.min(paramDouble1, paramDouble3);
     }
 
     public static double b(double paramDouble1, double paramDouble2, double paramDouble3) {
@@ -84,7 +78,7 @@ public class MathHelper {
             paramDouble1 = -paramDouble1;
         if (paramDouble2 < 0.0D)
             paramDouble2 = -paramDouble2;
-        return (paramDouble1 > paramDouble2) ? paramDouble1 : paramDouble2;
+        return Math.max(paramDouble1, paramDouble2);
     }
 
     public static int nextInt(Random paramRandom, int paramInt1, int paramInt2) {
@@ -109,7 +103,7 @@ public class MathHelper {
         long l = 0L;
         for (long l1 : paramArrayOflong)
             l += l1;
-        return l / paramArrayOflong.length;
+        return (double) l / paramArrayOflong.length;
     }
 
     public static float g(float paramFloat) {
@@ -210,13 +204,13 @@ public class MathHelper {
         double d1 = paramDouble2 * paramDouble2 + paramDouble1 * paramDouble1;
         if (Double.isNaN(d1))
             return Double.NaN;
-        boolean bool1 = (paramDouble1 < 0.0D) ? true : false;
+        boolean bool1 = paramDouble1 < 0.0D;
         if (bool1)
             paramDouble1 = -paramDouble1;
-        boolean bool2 = (paramDouble2 < 0.0D) ? true : false;
+        boolean bool2 = paramDouble2 < 0.0D;
         if (bool2)
             paramDouble2 = -paramDouble2;
-        boolean bool3 = (paramDouble1 > paramDouble2) ? true : false;
+        boolean bool3 = paramDouble1 > paramDouble2;
         if (bool3) {
             double d = paramDouble2;
             paramDouble2 = paramDouble1;

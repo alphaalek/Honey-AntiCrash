@@ -1,7 +1,6 @@
-package me.alek.honey.netty.injector.handler;
+package me.alek.honey.netty.handler;
 
 import me.alek.honey.HoneyPlayer;
-import org.bukkit.entity.Player;
 
 public interface UpdatableChannel {
 
