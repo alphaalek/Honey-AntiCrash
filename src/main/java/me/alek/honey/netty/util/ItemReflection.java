@@ -11,8 +11,8 @@ import java.util.Arrays;
 public class ItemReflection {
 
     private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
-    private static final ConstructorInvoker<?> itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getItemClass(), int.class, int.class);
     private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
+    private static ConstructorInvoker<?> itemStackConstructor;
 
     private static final MethodInvoker<?> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
@@ -22,6 +22,14 @@ public class ItemReflection {
         }
         return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
     });
+
+    static {
+        try {
+            itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getItemClass(), int.class, int.class);
+        } catch (Exception ex) {
+            itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getIMaterialClass(), int.class);
+        }
+    }
 
     public static Class<?> getNMSItemStackClass() {
         return itemStackClass;
@@ -79,6 +87,10 @@ public class ItemReflection {
 
     public static Object createItemStackLegacy(Object item, byte amount, short damage) {
         return itemStackConstructor.invoke(item, amount, damage);
+    }
+
+    public static Object createItemStackModern(Object item, byte amount) {
+        return itemStackConstructor.invoke(item, amount);
     }
 
     public static boolean isNMSItem(Object item) {

@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowClick> {
 
-    private final boolean modern = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17);
+    private static final boolean modern = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17_1);
     private Class<Enum<?>> enumConstClass;
 
     public WrappedPlayInWindowClick(Object rawPacket, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
@@ -20,43 +20,23 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
     }
 
     public int getWindowId() {
-        return getContainer().getInts().readField(modern ? 1 : 0);
+        return getContainer().getInts().readField(0);
     }
 
-    public void setWindowId(int windowId) {
-        getContainer().getInts().writeField(modern ? 1 : 0, windowId);
+    public int getStateId() {
+        return !modern ? 0 : getContainer().getInts().readField(1);
     }
 
     public int getWindowSlot() {
-        return getContainer().getInts().readField(modern ? 3 : 1);
-    }
-
-    public void setWindowSlot(int slot) {
-        getContainer().getInts().writeField(modern ? 3 : 1, slot);
+        return getContainer().getInts().readField(modern ? 2 : 1);
     }
 
     public int getWindowButton() {
-        return getContainer().getInts().readField(modern ? 4 : 2);
-    }
-
-    public void setWindowButton(int windowButton) {
-        getContainer().getInts().writeField(modern ? 4 : 2, windowButton);
+        return getContainer().getInts().readField(modern ? 3 : 2);
     }
 
     public int getActionNumber() {
-        if (modern) {
-            return getContainer().getInts().readField(2);
-        }
-        return getContainer().getShorts().readField(0);
-    }
-
-    public void setActionNumber(int actionNumber) {
-        if (modern) {
-            getContainer().getInts().writeField(2, actionNumber);
-        }
-        else {
-            getContainer().getShorts().writeField(0, (short) actionNumber);
-        }
+        return modern ? 0 : getContainer().getShorts().readField(0);
     }
 
     public int getMode() {
@@ -67,19 +47,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
         return enumConst.ordinal();
     }
 
-    public void setMode(int mode) {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            getContainer().getInts().writeField(3, mode);
-        }
-        Enum<?> enumConst = Reflection.getEnumAtIndex(enumConstClass, mode);
-        getContainer().getObjects(enumConstClass).writeField(0, enumConst);
-    }
-
     public ItemStack getItem() {
         return getContainer().getItems().readField(0);
-    }
-
-    public void setClickedItemStack(ItemStack stack) {
-        setClickedItemStack(stack);
     }
 }

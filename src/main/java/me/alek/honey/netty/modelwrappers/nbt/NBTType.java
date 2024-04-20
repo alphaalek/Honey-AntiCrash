@@ -102,8 +102,12 @@ public enum NBTType {
                     System.arraycopy(params, 0, constructorParams, 1, params.length);
 
                     this.elementBaseInvoker = Reflection.getConstructor(baseClass, constructorParams);
-                } catch (Throwable ex) {
-                    this.elementBaseInvoker = null;
+                } catch (Throwable ignored) {
+                }
+            } else {
+                try {
+                    this.elementBaseInvoker = Reflection.getConstructor(baseClass, clazz);
+                } catch (Exception ignored) {
                 }
             }
 

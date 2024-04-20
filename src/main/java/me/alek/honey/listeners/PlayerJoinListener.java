@@ -3,6 +3,11 @@ package me.alek.honey.listeners;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
+import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.modelwrappers.nbt.NBTType;
+import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import me.alek.honey.util.IDRegistry;
@@ -13,8 +18,10 @@ import me.alek.honey.storage.SQLManagerWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class PlayerJoinListener implements Listener {
@@ -51,6 +58,24 @@ public class PlayerJoinListener implements Listener {
                 }
             }
         }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
+    }
+
+    @EventHandler
+    public void onClick(PlayerInteractEvent event) {
+        ItemStack item = event.getPlayer().getItemInHand();
+        NBTCompound nbt = NBTFactory.fromItem(item, false, true);
+        event.getPlayer().sendMessage("Nbt: " + nbt);
+
+        if (nbt.hasKey("Enchantments")) {
+            NBTListOfCompound enchantments = new NBTListOfCompound();
+            NBTCompound enchantment = new NBTCompound();
+            enchantment.put("id", new NBTElement<>(NBTType.STRING, "minecraft"));
+            enchantment.put("lvl", new NBTElement<>(NBTType.SHORT, (short) 1));
+            enchantments.add(enchantment);
+            nbt.put("Enchantments", enchantments);
+
+            event.getPlayer().sendMessage("After: " + nbt);
+        }
     }
 
     @EventHandler

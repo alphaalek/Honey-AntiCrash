@@ -176,6 +176,10 @@ public class NMS {
         return getFuzzyClass("{nms}.Item", "{nms}.world.item.Item");
     }
 
+    public static Class<Object> getIMaterialClass() {
+        return getFuzzyClass("{nms}.world.level.IMaterial");
+    }
+
     public static Class<Object> getEntityUseActionClass() {
         return getFuzzyClass("{nms}.PacketPlayInUseEntity$EnumEntityUseAction", "{nms}.network.protocol.game.PacketPlayInUseEntity$EnumEntityUseAction");
     }
