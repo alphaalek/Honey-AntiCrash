@@ -277,7 +277,11 @@ public class WorkerPool<T> {
                 while (i < minimumWorkerThreads && otherWorkerIterator.hasNext()) {
                     Worker<T> worker = otherWorkerIterator.next();
                     otherWorkerIterator.remove();
-                    newWorkers[i] = worker;
+                    newWorkers[i++] = worker;
+                }
+                if (Arrays.stream(newWorkers).anyMatch(Objects::isNull)) {
+                    Bukkit.getLogger().info("Null worker, aborting GC " + Arrays.asList(newWorkers) + " " + newWorkers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
+                    return;
                 }
                 workers = newWorkers;
 

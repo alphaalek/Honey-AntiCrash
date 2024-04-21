@@ -36,7 +36,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
     }
 
     public int getActionNumber() {
-        return modern ? 0 : getContainer().getShorts().readField(0);
+        return getContainer().getShorts().getAccessors().isEmpty() ? 0 : getContainer().getShorts().readField(0);
     }
 
     public int getMode() {
