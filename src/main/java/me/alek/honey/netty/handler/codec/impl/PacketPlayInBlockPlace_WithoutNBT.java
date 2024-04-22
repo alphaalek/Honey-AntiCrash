@@ -9,7 +9,7 @@ public class PacketPlayInBlockPlace_WithoutNBT implements Codec {
 
     @Override
     public void apply(IStructureModifier<Object> structure, WrappedPacketDataSerializer serializer) {
-        structure.writeField(0, serializer.readBlockPosition().getHandle());
+        structure.writeField(0, serializer.readBlockPosition());
         structure.writeField(1, serializer.readUnsignedByte());
         structure.writeField(2, serializer.readItemStackWithoutNBT());
         structure.writeField(3, serializer.readUnsignedByte() / 16.0F);

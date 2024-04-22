@@ -51,8 +51,8 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         return toNMSSerializer(handle);
     }
 
-    public WrappedBlockPosition readBlockPosition() {
-        return WrappedBlockPosition.fromLong(readLong());
+    public Object readBlockPosition() {
+        return WrappedBlockPosition.fromLong(readLong()).getHandle();
     }
 
     public int readVarInt() {
