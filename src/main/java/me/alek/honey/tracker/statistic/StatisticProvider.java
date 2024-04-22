@@ -96,7 +96,7 @@ public class StatisticProvider implements Statistic<Double> {
         return statisticInSecondsIndices;
     }
 
-    private class StatisticWindow {
+    public class StatisticWindow {
 
         private final int statisticInSeconds;
         private final int statisticWindowIndex;
