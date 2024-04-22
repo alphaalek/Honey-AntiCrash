@@ -10,6 +10,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -129,6 +130,9 @@ public class ItemAnalysis {
             return false;
         }
         callback.addAction(context -> context.addPoint("Type", flaggedCheck.name()));
+        if (ConfigurationOptions.PacketLogger.DEBUG) {
+            Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flaggedCheck.name());
+        }
 
         HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
         return true;

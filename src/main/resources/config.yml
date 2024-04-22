@@ -147,7 +147,7 @@ postpone:
   rate-ignore-terminator: 10.0
 
   # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
-  max-per-x-tick: 75.0
+  max-per-x-tick: 100.0
   max-per-x-amount: 3
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.

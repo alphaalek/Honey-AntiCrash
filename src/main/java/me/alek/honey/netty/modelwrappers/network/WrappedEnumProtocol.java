@@ -2,6 +2,7 @@ package me.alek.honey.netty.modelwrappers.network;
 
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -20,6 +21,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get(bound.getProtocolHandlerName())).readField(0);
     }
 
+    private final IStructureModifier<Object> packetModifier = getModifier(NMS.getPacketClass());
 
     public WrappedEnumProtocol(Object handle) {
         super(handle);
@@ -48,6 +50,6 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     }
 
     private Object invoke(Object... params) throws Exception {
-        return getModifier(NMS.getPacketClass()).invokeMethodWithException(0, params);
+        return packetModifier.invokeMethodWithException(0, params);
     }
 }
