@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class PacketExecutors {
 
@@ -96,8 +97,8 @@ public class PacketExecutors {
         }
 
         private void handleMCBEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt) {
-            ItemStack editedItem = handlePrerequisites(packetContainer, nbt, MaterialMappings.getTypeIfAny("writable-book"), (packetNBT, editedNBT) -> {
-                editedNBT.put("pages", packetNBT.get("pages"));
+            ItemStack editedItem = handlePrerequisites(packetContainer, MaterialMappings.getTypeIfAny("writable-book"), editedNBT -> {
+                editedNBT.put("pages", nbt.get("pages"));
             });
 
             if (editedItem == null) {
@@ -108,9 +109,9 @@ public class PacketExecutors {
         }
 
         private void handleMCBSign(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt, NBTList<String> pages) {
-            ItemStack editedItem = handlePrerequisites(packetContainer, nbt, Material.WRITTEN_BOOK, (packetNBT, editedNBT) -> {
-                editedNBT.put("author", packetNBT.get("author"));
-                editedNBT.put("title", packetNBT.get("title"));
+            ItemStack editedItem = handlePrerequisites(packetContainer, Material.WRITTEN_BOOK, editedNBT -> {
+                editedNBT.put("author", nbt.get("author"));
+                editedNBT.put("title", nbt.get("title"));
                 editedNBT.put("pages", pages);
             });
 
@@ -148,7 +149,7 @@ public class PacketExecutors {
         }
 
         private ItemStack handlePrerequisites(PacketContainer<WrappedPlayInCustomPayload> packetContainer,
-                                              NBTCompound nbt, Material type, BiConsumer<NBTCompound, NBTCompound> nbtConsumer) {
+                                              Material type, Consumer<NBTCompound> nbtConsumer) {
 
             ItemStack playerItem = getItemInMainHand(packetContainer.getPlayer().player);
             if (playerItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
@@ -160,7 +161,7 @@ public class PacketExecutors {
             }
 
             NBTCompound editedNBT = NBTFactory.fromItem(playerItem, true, false);
-            nbtConsumer.accept(nbt, editedNBT);
+            nbtConsumer.accept(editedNBT);
 
             return playerItem;
         }
