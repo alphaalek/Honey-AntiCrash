@@ -64,10 +64,6 @@ public class PostponeHandler {
         return postponing;
     }
 
-    public void setPostponing() {
-        this.postponing = true;
-    }
-
     public void retry(Queue<Object> queue) {
         if (++retryAmount > ConfigurationOptions.Postpone.MAX_RETRY_AMOUNT) {
             nextPostponedHandlersOrder.add(this);
@@ -99,6 +95,7 @@ public class PostponeHandler {
     }
 
     public void addPostponedPacket(WrappedPacketTaskFuture<?> packetTask) {
+        postponing = true;
         if (!postponingRegistered) {
             postponingRegistered = true;
             synchronized (currentlyPostponedHandlers) {
@@ -125,9 +122,9 @@ public class PostponeHandler {
                     return;
                 }
 
-                HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                 postponedPackets.remove();
                 debugPacketCancelled(oldestPostponedPacket);
+                HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
 
                 if (postponedPackets.isEmpty()) {
                     return;
@@ -138,10 +135,10 @@ public class PostponeHandler {
                     if (currentTick - postponedPacket.getTickAdded() <= ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS) {
                         break;
                     }
-                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
-                    debugPacketCancelled(postponedPacket);
 
+                    debugPacketCancelled(postponedPacket);
                     postponedPackets.remove();
+                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(packetTask.getPlayer(), true, true);
                 }
             }
         }

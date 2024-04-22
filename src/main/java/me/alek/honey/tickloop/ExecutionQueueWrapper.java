@@ -246,7 +246,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
         @Override
         public synchronized boolean add(Object value) {
-            // why add something to an execution queue, without it being a runnable?
+            // why add something to an execution queue, if it's not a runnable?
             if (!(value instanceof Runnable)) {
                 return false;
             }
@@ -310,7 +310,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                         if (ConfigurationOptions.PacketLogger.DEBUG) {
                             Bukkit.getLogger().info("DEBUG: postpone " + check + " " + task.getPacket());
                         }
-                        postponeHandler.setPostponing();
                         postponeHandler.addPostponedPacket(task);
                         postponed.call(true);
                         return true;

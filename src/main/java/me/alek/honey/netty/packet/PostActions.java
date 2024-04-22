@@ -45,14 +45,6 @@ public class PostActions {
             }
         });
 
-        packetProcessor.addPostAction(PacketType.Status.Client.STATUS_REQUEST, packet -> {
-            try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), PacketState.STATUS);
-            } catch (MissingHandlerException ex) {
-                packet.getChannel().close();
-            }
-        });
-
         packetProcessor.addPostAction(PacketType.Login.Client.LOGIN_START, packet -> {
             String name = getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) packet);
             NMS.submitChannelForName(name, packet.getChannel());
@@ -62,19 +54,11 @@ public class PostActions {
                 packetHandler.setPlayerName(name);
             } catch (MissingHandlerException ignored) {
             }
-
-            try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), PacketState.LOGIN);
-            } catch (MissingHandlerException ex) {
-                packet.getChannel().close();
-            }
         });
 
         packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation();
-        });
 
-        packetProcessor.addPostAction(PacketType.Play.Server.LOGIN, packet -> {
             try {
                 packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), PacketState.PLAY);
             } catch (MissingHandlerException ex) {
