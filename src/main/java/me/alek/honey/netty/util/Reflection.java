@@ -3,9 +3,9 @@ package me.alek.honey.netty.util;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.Collator;
+import java.util.*;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -163,8 +163,21 @@ public class Reflection {
         return new MethodInvoker<>(method);
     }
 
+    public static MethodInvoker<Object> getMethod(String target, String name, Class<?>... parameters) {
+        return getMethod(getClass(target), name, parameters);
+    }
+
+    public static Method[] getDeclaredMethods(Class<?> clazz) {
+        return Arrays.stream(clazz.getDeclaredMethods()).sorted(new Comparator<Method>() {
+            @Override
+            public int compare(Method o1, Method o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        }).toArray(Method[]::new);
+    }
+
     public static MethodInvoker<Object> getMethod(Class<?> target, Predicate<Method> methodPredicate) {
-        for (Method method : target.getDeclaredMethods()) {
+        for (Method method : getDeclaredMethods(target)) {
             if (methodPredicate.test(method)) {
                 return new MethodInvoker<>(method);
             }
@@ -175,14 +188,10 @@ public class Reflection {
         throw new RuntimeException("Reflection error (method predicate): " + target.getName());
     }
 
-    public static MethodInvoker<Object> getMethod(String target, String name, Class<?>... parameters) {
-        return getMethod(getClass(target), name, parameters);
-    }
-
     public static MethodInvoker<Object> getMethod(Class<?> target, int index, Class<?>... parameters) {
         int currentIndex = 0;
 
-        for (Method method : target.getDeclaredMethods()) {
+        for (Method method : getDeclaredMethods(target)) {
             if (Arrays.equals(method.getParameterTypes(), parameters)) {
 
                 if (currentIndex++ == index) {
@@ -197,7 +206,7 @@ public class Reflection {
     }
 
     public static MethodInvoker<Object> getMethod(Class<?> target, String name, Class<?>... parameters) {
-        for (Method method : target.getDeclaredMethods()) {
+        for (Method method : getDeclaredMethods(target)) {
             if (!method.getName().equals(name) || !Arrays.equals(method.getParameterTypes(), parameters)) {
                 continue;
             }
@@ -211,8 +220,7 @@ public class Reflection {
 
     public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
         int currentIndex = 0;
-        for (Method method : target.getDeclaredMethods()) {
-
+        for (Method method : getDeclaredMethods(target)) {
             if (method.getReturnType() == returnType) {
                 if (currentIndex == index) {
                     return new MethodInvoker<>(method);
@@ -227,8 +235,7 @@ public class Reflection {
     }
 
     public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, String name, Class<?> returnType) {
-        for (Method method : target.getDeclaredMethods()) {
-
+        for (Method method : getDeclaredMethods(target)) {
             if (!(method.getReturnType().equals(returnType) && name.equals(method.getName()))) {
                 continue;
             }
@@ -242,8 +249,7 @@ public class Reflection {
 
     public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType, Class<?>... parameters) {
         int currentIndex = 0;
-        for (Method method : target.getDeclaredMethods()) {
-
+        for (Method method : getDeclaredMethods(target)) {
             if (method.getReturnType() == returnType && Arrays.equals(method.getParameterTypes(), parameters)) {
                 if (currentIndex == index) {
                     return new MethodInvoker<>(method);

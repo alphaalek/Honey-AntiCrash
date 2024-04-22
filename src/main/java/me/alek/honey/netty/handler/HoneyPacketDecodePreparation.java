@@ -12,6 +12,7 @@ import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.handler.PacketInterceptorResolver;
 import me.alek.honey.netty.handler.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -22,6 +23,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -83,11 +85,13 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
                     WrappedEnumProtocol protocol = packetHandler.getProtocol();
                     if (protocol == null) {
-                        packetHandler.updateProtocol(ctx.channel());
+                        packetHandler.updateProtocol();
                         protocol = packetHandler.getProtocol();
                         if (protocol == null) {
                             throw new DecoderException("Couldn't get protocol from channel attributes.");
                         }
+
+                        packetHandler.setProtocolState(PacketState.values()[((Enum<?>)protocol.getHandle()).ordinal()]);
                     }
 
                     packet = HoneyPacketDecoder.decodePacket(player, packetHandler.getProtocolState(), protocol, byteBuf);

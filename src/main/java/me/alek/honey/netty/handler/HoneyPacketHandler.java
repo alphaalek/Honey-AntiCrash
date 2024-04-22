@@ -16,10 +16,15 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 public class HoneyPacketHandler {
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
+    private final Channel channel;
     private volatile HoneyPlayer player;
     private PacketState protocolState = PacketState.HANDSHAKE;
     private WrappedEnumProtocol protocol;
     private String playerName;
+
+    public HoneyPacketHandler(Channel channel) {
+        this.channel = channel;
+    }
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
@@ -46,14 +51,14 @@ public class HoneyPacketHandler {
         return protocol;
     }
 
-    public void updateProtocol(Channel channel) {
+    public void updateProtocol() {
         AttributeKey<?> protocolAttributeKey = WrappedEnumProtocol.getProtocolAttributeKey(channel, PacketBound.SERVER);
         protocol = new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get());
     }
 
-    public void setProtocolState(Channel channel, PacketState state) {
+    public void setProtocolState(PacketState state) {
         this.protocolState = state;
-        updateProtocol(channel);
+        updateProtocol();
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

@@ -19,6 +19,9 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
+import org.bukkit.Bukkit;
+
+import java.util.function.Consumer;
 
 public class PostActions {
 
@@ -39,7 +42,7 @@ public class PostActions {
                 WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter).readField(0);
                 PacketState packetState = PacketState.values()[((Enum<?>)protocol.getHandle()).ordinal()];
 
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), packetState);
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packetState);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }
@@ -56,15 +59,18 @@ public class PostActions {
             }
         });
 
-        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
-            HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation();
-
+        Consumer<PacketContainer<?>> setPacketState = packet -> {
             try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packet.getChannel(), PacketState.PLAY);
+                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.PLAY);
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
             }
+        };
+        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
+            HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation();
+            setPacketState.accept(packet);
         });
+        packetProcessor.addPostAction(PacketType.Play.Server.LOGIN, setPacketState);
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
             WrappedPacketDataSerializer serializer = packet.getDataSerializers().readField(0);

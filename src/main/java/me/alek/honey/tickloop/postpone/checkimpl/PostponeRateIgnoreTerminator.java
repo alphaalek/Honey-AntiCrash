@@ -21,7 +21,6 @@ public class PostponeRateIgnoreTerminator implements PostponeCheck {
         }
 
         double playerRate5S = getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, false);
-        Bukkit.getLogger().info("Rate: " + getTracker().getPlayerRateAcceleration(player, false, true) * PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER);
         if (playerRate5S < millisToNanos(ConfigurationOptions.Postpone.RATE_IGNORE_TERMINATOR)) {
             throw PostponeTerminationException.TERMINATOR;
         }

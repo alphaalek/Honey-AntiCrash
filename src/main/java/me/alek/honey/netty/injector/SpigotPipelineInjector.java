@@ -38,7 +38,7 @@ public class SpigotPipelineInjector {
             channel.pipeline().addBefore("packet_handler", debuggerName, new HoneyDebugger());
             channel.pipeline().addAfter("splitter", filterName, new InboundPacketFilter(channel));
 
-            HoneyPacketHandler packetHandler = new HoneyPacketHandler();
+            HoneyPacketHandler packetHandler = new HoneyPacketHandler(channel);
             if (!PacketInterceptorResolver.isDecoderPositionResolved() || !PacketInterceptorResolver.isEncoderPositionResolved()) {
                 channel.pipeline().addBefore("packet_handler", "pre-resolved-packet-handler", new PreResolvedPacketHandler(packetHandler));
             } else {
@@ -137,7 +137,7 @@ public class SpigotPipelineInjector {
                 if (player != null && player.packetHandler != null) {
                     setupPreparationHandlers(channel, player.packetHandler);
                 } else {
-                    setupPreparationHandlers(channel, new HoneyPacketHandler());
+                    setupPreparationHandlers(channel, new HoneyPacketHandler(channel));
                 }
 
                 if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {

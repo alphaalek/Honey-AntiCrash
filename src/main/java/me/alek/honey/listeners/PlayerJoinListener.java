@@ -61,24 +61,6 @@ public class PlayerJoinListener implements Listener {
     }
 
     @EventHandler
-    public void onClick(PlayerInteractEvent event) {
-        ItemStack item = event.getPlayer().getItemInHand();
-        NBTCompound nbt = NBTFactory.fromItem(item, false, true);
-        event.getPlayer().sendMessage("Nbt: " + nbt);
-
-        if (nbt.hasKey("Enchantments")) {
-            NBTListOfCompound enchantments = new NBTListOfCompound();
-            NBTCompound enchantment = new NBTCompound();
-            enchantment.put("id", new NBTElement<>(NBTType.STRING, "minecraft"));
-            enchantment.put("lvl", new NBTElement<>(NBTType.SHORT, (short) 1));
-            enchantments.add(enchantment);
-            nbt.put("Enchantments", enchantments);
-
-            event.getPlayer().sendMessage("After: " + nbt);
-        }
-    }
-
-    @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
         if (player == null) {
@@ -92,7 +74,7 @@ public class PlayerJoinListener implements Listener {
         }
 
         if (player.packetHandler != null) {
-            player.packetHandler.setProtocolState(player.channel, PacketState.HANDSHAKE);
+            player.packetHandler.setProtocolState(PacketState.HANDSHAKE);
         }
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);

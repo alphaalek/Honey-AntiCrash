@@ -5,10 +5,7 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
-import me.alek.honey.netty.util.FieldAccessor;
-import me.alek.honey.netty.util.MemberType;
-import me.alek.honey.netty.util.MethodInvoker;
-import me.alek.honey.netty.util.IReflectionMember;
+import me.alek.honey.netty.util.*;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
@@ -114,7 +111,7 @@ public class ReflectStructure<T, C> {
             Class<?> clazz,
             boolean isFields
     ) {
-        Object[] handles = (isFields) ? clazz.getDeclaredFields() : clazz.getDeclaredMethods();
+        Object[] handles = (isFields) ? clazz.getDeclaredFields() : Reflection.getDeclaredMethods(clazz);
         for (Object handle : handles) {
             IReflectionMember<?> member = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
 

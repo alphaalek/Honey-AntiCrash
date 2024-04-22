@@ -53,7 +53,6 @@ public class HoneyPacketDecoder {
         }
 
         if (PacketType.getPacketType(packet.getClass()).getState() != state) {
-            Bukkit.broadcastMessage("NOT MATCH " + packet + " " + state);
             return null;
         }
 
@@ -77,7 +76,7 @@ public class HoneyPacketDecoder {
             else {
                 // otherwise apply the default implementation for the serializer
                 MethodHandle applicationMethod = legacySerializerApplicationLookup.get(state).get(packetId, () -> {
-                    MethodInvoker<?> invoker = Reflection.getMethod(packet.getClass(), 1, packetDataSerializerClass);
+                    MethodInvoker<?> invoker = Reflection.getMethod(packet.getClass(), 0, packetDataSerializerClass);
                     try {
                         return MethodHandles.lookup().unreflect(invoker.getMethod());
                     } catch (IllegalAccessException ex) {
@@ -89,6 +88,7 @@ public class HoneyPacketDecoder {
                 try {
                     applicationMethod.invoke(packet, dataSerializer.getHandle());
                 } catch (Throwable ex) {
+                    ex.printStackTrace();
                     throw new DecoderException("Failed to apply serializer for packet " + packetId + ", " + packet + ", " + state);
                 }
             }
