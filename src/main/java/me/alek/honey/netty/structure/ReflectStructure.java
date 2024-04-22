@@ -88,6 +88,10 @@ public class ReflectStructure<T, C> {
         return this;
     }
 
+    public boolean isStaticFieldsAllowed() {
+        return withStaticFields;
+    }
+
     private boolean disallowedField(IReflectionMember<?> member) {
         return !withStaticFields && member.getMemberType().equals(MemberType.FIELD) && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers());
     }
