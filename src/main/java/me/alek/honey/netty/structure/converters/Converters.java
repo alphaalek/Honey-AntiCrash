@@ -141,26 +141,6 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, Chunk> getChunkConverter() {
-        return getConverter(Chunk.class, (clazz) -> new JavaConverter<Object, Chunk>() {
-            @Override
-            public Chunk convertDelegate(Object delegate, Object... params) {
-                IStructureModifier<Chunk> chunkModifier = ReflectStructureCache.acquireStructure(delegate.getClass())
-                        .withType(Chunk.class)
-                        .withTarget(delegate);
-                return chunkModifier.readField("bukkitChunk", 0);
-            }
-
-            @Override
-            public Object convertDeclaring(Chunk object) {
-                IStructureModifier<Object> craftChunkModifier = ReflectStructureCache.acquireStructure(NMS.getCraftChunkClass())
-                        .withType(NMS.getChunkClass())
-                        .withTarget(object);
-                return craftChunkModifier.invokeMethod("getHandle");
-            }
-        });
-    }
-
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
         return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
     }

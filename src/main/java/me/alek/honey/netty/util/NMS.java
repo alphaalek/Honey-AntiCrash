@@ -96,166 +96,191 @@ public class NMS {
         return Reflection.getFuzzyObjectClass(params);
     }
 
+    private static Class<Object> gameProfileClass;
     public static Class<Object> getGameProfileClass() {
-        return getFuzzyClass("com.mojang.authlib.GameProfile");
+        return gameProfileClass != null ? gameProfileClass : (gameProfileClass = getFuzzyClass("com.mojang.authlib.GameProfile"));
     }
 
+    private static Class<Object> entityPlayerClass;
     public static Class<Object> getEntityPlayerClass() {
-        return getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer");
+        return entityPlayerClass != null ? entityPlayerClass : (entityPlayerClass = getFuzzyClass("{nms}.EntityPlayer", "{nms}.server.level.EntityPlayer"));
     }
 
+    private static Class<Object> entityClass;
     public static Class<Object> getEntityClass() {
-        return getFuzzyClass("{nms}.Entity", "{nms}.world.entity.Entity");
+        return entityClass != null ? entityClass : (entityClass = getFuzzyClass("{nms}.Entity", "{nms}.world.entity.Entity"));
     }
 
+    private static Class<Object> playerConnectionClass;
     public static Class<Object> getPlayerConnectionClass() {
-        return getFuzzyClass("{nms}.PlayerConnection", "{nms}.server.network.PlayerConnection");
+        return playerConnectionClass != null ? playerConnectionClass : (playerConnectionClass = getFuzzyClass("{nms}.PlayerConnection", "{nms}.server.network.PlayerConnection"));
     }
 
+    private static Class<Object> networkManagerClass;
     public static Class<Object> getNetworkManagerClass() {
-        return getFuzzyClass("{nms}.NetworkManager", "{nms}.network.NetworkManager");
+        return networkManagerClass != null ? networkManagerClass : (networkManagerClass = getFuzzyClass("{nms}.NetworkManager", "{nms}.network.NetworkManager"));
     }
 
+    private static Class<Object> minecraftServerClass;
     public static Class<Object> getMinecraftServerClass() {
-        return getFuzzyClass("{nms}.MinecraftServer", "{nms}.server.MinecraftServer");
+        return minecraftServerClass != null ? minecraftServerClass : (minecraftServerClass = getFuzzyClass("{nms}.MinecraftServer", "{nms}.server.MinecraftServer"));
     }
 
+    private static Class<Object> craftServerClass;
     public static Class<Object> getCraftServerClass() {
-        return getFuzzyClass("{obc}.CraftServer");
+        return craftServerClass != null ? craftServerClass : (craftServerClass = getFuzzyClass("{obc}.CraftServer"));
     }
 
+    private static Class<Object> IAsyncTaskHandlerClass;
     public static Class<Object> getIAsyncTaskHandlerClass() {
-        return getFuzzyClass("{nms}.IAsyncTaskHandler", "{nms}.util.thread.IAsyncTaskHandler");
+        return IAsyncTaskHandlerClass != null ? IAsyncTaskHandlerClass : (IAsyncTaskHandlerClass =getFuzzyClass("{nms}.IAsyncTaskHandler", "{nms}.util.thread.IAsyncTaskHandler"));
     }
 
+    private static Class<Object> serverConnectionClass;
     public static Class<Object> getServerConnectionClass() {
-        return getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection");
+        return serverConnectionClass != null ? serverConnectionClass : (serverConnectionClass = getFuzzyClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection"));
     }
 
+    private static Class<Object> craftPlayerClass;
     public static Class<Object> getCraftPlayerClass() {
-        return getFuzzyClass("{obc}.entity.CraftPlayer");
+        return craftPlayerClass != null ? craftPlayerClass : (craftPlayerClass = getFuzzyClass("{obc}.entity.CraftPlayer"));
     }
 
+    private static Class<Object> craftEntityClass;
     public static Class<Object> getCraftEntityClass() {
-        return getFuzzyClass("{obc}.entity.CraftEntity");
+        return craftEntityClass != null ? craftEntityClass : (craftEntityClass = getFuzzyClass("{obc}.entity.CraftEntity"));
     }
 
-    public static Class<Object> getCraftWorldClass() {
-        return getFuzzyClass("{obc}.CraftWorld");
-    }
-
-    public static Class<Object> getCraftChunkClass() {
-        return getFuzzyClass("{obc}.CraftChunk");
-    }
-
-    public static Class<Object> getChunkClass() {
-        return getFuzzyClass("{nms}.Chunk");
-    }
-
+    private static Class<Object> chunkCoordIntPairClass;
     public static Class<Object> getChunkCoordIntPairClass() {
-        return getFuzzyClass("{nms}.ChunkCoordIntPair");
+        return chunkCoordIntPairClass != null ? chunkCoordIntPairClass : (chunkCoordIntPairClass = getFuzzyClass("{nms}.ChunkCoordIntPair"));
     }
 
+    private static Class<Object> worldServerClass;
     public static Class<Object> getWorldServerClass() {
-        return getFuzzyClass("{nms}.server.level.WorldServer", "{nms}.WorldServer");
+        return worldServerClass != null ? worldServerClass : (worldServerClass = getFuzzyClass("{nms}.server.level.WorldServer", "{nms}.WorldServer"));
     }
 
+    private static Class<Object> baseBlockPositionClass;
     public static Class<Object> getBaseBlockPositionClass() {
-        return getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition");
+        return baseBlockPositionClass != null ? baseBlockPositionClass : (baseBlockPositionClass = getFuzzyClass("{nms}.BaseBlockPosition", "{nms}.core.BaseBlockPosition"));
     }
 
+    private static Class<Object> blockPositionClass;
     public static Class<Object> getBlockPositionClass() {
-        return getFuzzyClass("{nms}.BlockPosition", "{nms}.core.BlockPosition");
+        return blockPositionClass != null ? blockPositionClass : (blockPositionClass = getFuzzyClass("{nms}.BlockPosition", "{nms}.core.BlockPosition"));
     }
 
+    private static Class<Object> itemStackClass;
     public static Class<Object> getItemStackClass() {
-        return getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
+        return itemStackClass != null ? itemStackClass : (itemStackClass = getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack"));
     }
 
+    private static Class<Object> itemClass;
     public static Class<Object> getItemClass() {
-        return getFuzzyClass("{nms}.Item", "{nms}.world.item.Item");
+        return itemClass != null ? itemClass : (itemClass = getFuzzyClass("{nms}.Item", "{nms}.world.item.Item"));
     }
 
+    private static Class<Object> IMaterialClass;
     public static Class<Object> getIMaterialClass() {
-        return getFuzzyClass("{nms}.world.level.IMaterial");
+        return IMaterialClass != null ? IMaterialClass : (IMaterialClass = getFuzzyClass("{nms}.world.level.IMaterial"));
     }
 
+    private static Class<Object> entityUseActionClass;
     public static Class<Object> getEntityUseActionClass() {
-        return getFuzzyClass("{nms}.PacketPlayInUseEntity$EnumEntityUseAction", "{nms}.network.protocol.game.PacketPlayInUseEntity$EnumEntityUseAction");
+        return entityUseActionClass != null ? entityUseActionClass : (entityUseActionClass = getFuzzyClass("{nms}.PacketPlayInUseEntity$EnumEntityUseAction", "{nms}.network.protocol.game.PacketPlayInUseEntity$EnumEntityUseAction"));
     }
 
+    private static Class<Object> vec3DClass;
     public static Class<Object> getVec3DClass() {
-        return getFuzzyClass("{nms}.Vec3D", "{nms}.world.phys.Vec3D");
+        return vec3DClass != null ? vec3DClass : (vec3DClass = getFuzzyClass("{nms}.Vec3D", "{nms}.world.phys.Vec3D"));
     }
 
+    private static Class<Object> tickTaskClass;
     public static Class<Object> getTickTaskClass() {
-        return getFuzzyClass("{nms}.TickTask", "{nms}.server.TickTask");
+        return tickTaskClass != null ? tickTaskClass : (tickTaskClass = getFuzzyClass("{nms}.TickTask", "{nms}.server.TickTask"));
     }
 
+    private static Class<Object> nbtTagCompoundClass;
     public static Class<Object> getNBTTagCompoundClass() {
-        return getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound");
+        return nbtTagCompoundClass != null ? nbtTagCompoundClass : (nbtTagCompoundClass = getFuzzyClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound"));
     }
 
+    private static Class<Object> nbtBaseClass;
     public static Class<Object> getNBTBaseClass() {
-        return getFuzzyClass("{nms}.NBTBase", "{nms}.nbt.NBTBase");
+        return nbtBaseClass != null ? nbtBaseClass : (nbtBaseClass = getFuzzyClass("{nms}.NBTBase", "{nms}.nbt.NBTBase"));
     }
 
+    private static Class<Object> nbtTagListClass;
     public static Class<Object> getNBTTagListClass() {
-        return getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList");
+        return nbtTagListClass != null ? nbtTagListClass : (nbtTagListClass = getFuzzyClass("{nms}.NBTTagList", "{nms}.nbt.NBTTagList"));
     }
 
+    private static Class<Object> packetDataSerializerClass;
     public static Class<Object> getPacketDataSerializerClass() {
-        return getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
+        return packetDataSerializerClass != null ? packetDataSerializerClass : (packetDataSerializerClass = getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer"));
     }
 
+    private static Class<Object> packetDecoderClass;
     public static Class<Object> getPacketDecoderClass() {
-        return getFuzzyClass("{nms}.PacketDecoder", "{nms}.network.PacketDecoder");
+        return packetDecoderClass != null ? packetDecoderClass : (packetDecoderClass = getFuzzyClass("{nms}.PacketDecoder", "{nms}.network.PacketDecoder"));
     }
 
+    private static Class<Object> packetEncoderClass;
     public static Class<Object> getPacketEncoderClass() {
-        return getFuzzyClass("{nms}.PacketEncoder", "{nms}.network.PacketEncoder");
+        return packetEncoderClass != null ? packetEncoderClass : (packetEncoderClass = getFuzzyClass("{nms}.PacketEncoder", "{nms}.network.PacketEncoder"));
     }
 
+    private static Class<Enum<?>> enumProtocolDirectionClass;
     @SuppressWarnings("unchecked")
     public static Class<Enum<?>> getEnumProtocolDirectionClass() {
-        return (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocolDirection", "{nms}.network.protocol.EnumProtocolDirection");
+        return enumProtocolDirectionClass != null ? enumProtocolDirectionClass : (enumProtocolDirectionClass = (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocolDirection", "{nms}.network.protocol.EnumProtocolDirection"));
     }
 
+    private static Class<Enum<?>> enumProtocolClass;
     @SuppressWarnings("unchecked")
     public static Class<Enum<?>> getEnumProtocolClass() {
-        return (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol");
+        return enumProtocolClass != null ? enumProtocolClass : (enumProtocolClass = (Class<Enum<?>>) Reflection.getFuzzyClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol"));
     }
 
+    private static Class<Object> packetClass;
     public static Class<Object> getPacketClass() {
-        return getFuzzyClass("{nms}.Packet", "{nms}.network.protocol.Packet");
+        return packetClass != null ? packetClass : (packetClass = getFuzzyClass("{nms}.Packet", "{nms}.network.protocol.Packet"));
     }
 
+    private static Class<Object> suggestionsClass;
     public static Class<Object> getSuggestionsClass() {
-        return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestions");
+        return suggestionsClass != null ? suggestionsClass : (suggestionsClass = getFuzzyClass("com.mojang.brigadier.suggestion.Suggestions"));
     }
 
+    private static Class<Object> suggestionClass;
     public static Class<Object> getSuggestionClass() {
-        return getFuzzyClass("com.mojang.brigadier.suggestion.Suggestion");
+        return suggestionClass != null ? suggestionClass : (suggestionClass = getFuzzyClass("com.mojang.brigadier.suggestion.Suggestion"));
     }
 
+    private static Class<Object> stringRangeClass;
     public static Class<Object> getStringRangeClass() {
-        return getFuzzyClass("com.mojang.brigadier.context.StringRange");
+        return stringRangeClass != null ? stringRangeClass : (stringRangeClass = getFuzzyClass("com.mojang.brigadier.context.StringRange"));
     }
 
+    private static Class<Object> movingObjectPositionBlockClass;
     public static Class<Object> getMovingObjectPositionBlockClass() {
-        return getFuzzyClass("{nms}.world.phys.MovingObjectPositionBlock", "{nms}.MovingObjectPositionBlock");
+        return movingObjectPositionBlockClass != null ? movingObjectPositionBlockClass : (movingObjectPositionBlockClass = getFuzzyClass("{nms}.world.phys.MovingObjectPositionBlock", "{nms}.MovingObjectPositionBlock"));
     }
 
+    private static Class<Object> IChatBaseComponentClass;
     public static Class<Object> getIChatBaseComponentClass() {
-        return getFuzzyClass("{nms}.IChatBaseComponent");
+        return IChatBaseComponentClass != null ? IChatBaseComponentClass : (IChatBaseComponentClass = getFuzzyClass("{nms}.IChatBaseComponent", "{nms}.network.chat.IChatBaseComponent"));
     }
 
+    private static Class<Object> chatSerializerClass;
     public static Class<Object> getChatSerializerClass() {
-        return getFuzzyClass("{nms}.IChatBaseComponent$ChatSerializer");
+        return chatSerializerClass != null ? chatSerializerClass : (chatSerializerClass = getFuzzyClass("{nms}.IChatBaseComponent$ChatSerializer"));
     }
 
+    private static Class<Object> inventoryClickTypeClass;
     public static Class<Object> getInventoryClickTypeClass() {
-        return getFuzzyClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType", "{nms}.world.inventory.ClickType");
+        return inventoryClickTypeClass != null ? inventoryClickTypeClass : (inventoryClickTypeClass = getFuzzyClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType", "{nms}.world.inventory.ClickType"));
     }
 
     public static boolean isFakeChannel(Channel channel) {
