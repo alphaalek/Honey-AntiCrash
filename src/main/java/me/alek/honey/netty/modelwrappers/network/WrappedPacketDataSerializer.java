@@ -7,10 +7,7 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.util.ConstructorInvoker;
-import me.alek.honey.netty.util.ItemReflection;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.netty.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
@@ -100,11 +97,16 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         }
 
         byte amount = readByte();
-        short damage = readShort();
+        short damage = -1;
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
+            damage = readShort();
+        }
 
-        getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
+        Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
+        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
+        ItemReflection.setItemTag(itemStack, nbt);
 
-        return ItemReflection.createItemStackLegacy(item, amount, damage);
+        return itemStack;
     }
 
     public UUID readUUID() {

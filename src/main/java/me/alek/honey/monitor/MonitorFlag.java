@@ -1,5 +1,6 @@
 package me.alek.honey.monitor;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
@@ -323,7 +324,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, List<String> data) {
-            data.add(input.getAll().readFieldEntries().toString());
+            data.add(HoneyPlugin.get().getLoggerService().getPacketEntries(input).toString());
         }
     }
 

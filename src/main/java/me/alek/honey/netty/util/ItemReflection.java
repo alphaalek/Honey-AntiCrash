@@ -22,6 +22,7 @@ public class ItemReflection {
         }
         return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
     });
+    private static final MethodInvoker<?> setTagInvoker = Reflection.getMethod(itemStackClass, 0, NMS.getNBTTagCompoundClass());
 
     static {
         try {
@@ -85,6 +86,14 @@ public class ItemReflection {
         return itemGetByIdInvoker.invoke(null, id);
     }
 
+    public static Object createItemStack(Object item, byte amount, short damage) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
+            return createItemStackLegacy(item, amount, damage);
+        } else {
+            return createItemStackModern(item, amount);
+        }
+    }
+
     public static Object createItemStackLegacy(Object item, byte amount, short damage) {
         return itemStackConstructor.invoke(item, amount, damage);
     }
@@ -97,4 +106,7 @@ public class ItemReflection {
         return itemStackClass.isInstance(item);
     }
 
+    public static void setItemTag(Object item, Object tag) {
+        setTagInvoker.invoke(item, tag);
+    }
 }

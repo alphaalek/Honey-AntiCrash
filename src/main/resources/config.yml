@@ -281,7 +281,7 @@ mysql:
 # +------------------------------------------------------+ #
 ############################################################
 
-# item analysis (only works if NBT is enabled or the player is in creative mode)
+# item analysis
 item-analysis:
 
   general:
@@ -733,7 +733,7 @@ packet-flood:
     interval: 700
     vls-amount: 4
 
-  # nbt (only works if NBT is enabled)
+  # nbt
   c:
     enabled: true
     max-per-interval: 2048
