@@ -17,12 +17,10 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class PacketExecutors {
@@ -196,10 +194,10 @@ public class PacketExecutors {
         private boolean isValidQuillTag(NBTCompound nbt) {
             return nbt != null
                     && nbt.hasKeyOfType("pages", NBTType.LIST)
-                    && !isPageTooLong(nbt);
+                    && !isAnyPageTooLong(nbt);
         }
 
-        private boolean isPageTooLong(NBTCompound nbt) {
+        private boolean isAnyPageTooLong(NBTCompound nbt) {
             for (NBTElement<String> page : nbt.<String>getListOf("pages", NBTType.STRING)) {
                 if (page == null
                         || page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {

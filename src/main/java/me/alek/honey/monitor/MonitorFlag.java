@@ -27,6 +27,7 @@ public interface MonitorFlag<T> {
         IGNORE("ignore", "--ignore [packet type]", false, IgnoreTypeFlag::new),
         IGNORE_POSITION("ignore-position", "--ignore-position", false, IgnorePositionFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
+        DETAILED("detailed", "--detailed", false, DetailedFlag::new),
         HONEY_DECODE("min-honey-decode", "--min-honey-decode [number (as decimal)]", false, HoneyDecodeTimingsFlag::new),
         SERVER_DECODE("min-server-decode", "--min-server-decode [number (as decimal)]", false, ServerDecodeTimingsFlag::new),
         HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal)]", true, HoneyHandleTimingsFlag::new),
@@ -309,6 +310,20 @@ public interface MonitorFlag<T> {
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
             return input.isCancelled();
+        }
+    }
+
+    @FlagAnnotation(Flag.DETAILED)
+    class DetailedFlag implements NoArgumentMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+
+        @Override
+        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+            return true;
+        }
+
+        @Override
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, List<String> data) {
+            data.add(input.getAll().readFieldEntries().toString());
         }
     }
 
