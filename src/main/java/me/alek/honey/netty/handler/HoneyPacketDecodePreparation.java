@@ -105,7 +105,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     packet = list.get(0);
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
                 byteBuf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());

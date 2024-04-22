@@ -65,18 +65,21 @@ public class CommandManager implements CommandExecutor {
         sender.sendMessage("");
 
         if (ConfigurationOptions.Messages.BASE_COMMAND_FEATURE_INFOS) {
-            StringBuilder enabledFeatures = new StringBuilder();
+            StringBuilder disabledFeatures = new StringBuilder();
             if (!ConfigurationOptions.Postpone.ENABLED) {
-                enabledFeatures.append("Postpone, ");
+                disabledFeatures.append("Postpone, ");
             }
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED) {
-                enabledFeatures.append("(Enabled) Bypass Permission, ");
+                disabledFeatures.append("No Bypass Permission, ");
             }
             if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
-                enabledFeatures.append("Async Decoder, ");
+                disabledFeatures.append("Async Decoder, ");
             }
             if (!ConfigurationOptions.ItemAnalysis.General.ENABLED) {
-                enabledFeatures.append("Item Analysis, ");
+                disabledFeatures.append("Item Analysis, ");
+            }
+            if (ConfigurationOptions.Decoder.USE_DEFAULT) {
+                disabledFeatures.append("Honey Decoder, ");
             }
 
             int disabledNettyChecks = 0;
@@ -92,11 +95,11 @@ public class CommandManager implements CommandExecutor {
                 }
             }
             if (disabledNettyChecks > 0) {
-                enabledFeatures.append(disabledNettyChecks + " Netty Checks, ");
+                disabledFeatures.append(disabledNettyChecks + " Netty Checks, ");
             }
 
-            if (enabledFeatures.length() > 0) {
-                sender.sendMessage("§8* §7Disabled features: §8" + enabledFeatures.substring(0, enabledFeatures.length() - 2));
+            if (disabledFeatures.length() > 0) {
+                sender.sendMessage("§8* §7Disabled features: §8" + disabledFeatures.substring(0, disabledFeatures.length() - 2));
                 sender.sendMessage("");
             }
         }
