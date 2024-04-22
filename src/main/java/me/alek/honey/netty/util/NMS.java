@@ -283,6 +283,11 @@ public class NMS {
         return inventoryClickTypeClass != null ? inventoryClickTypeClass : (inventoryClickTypeClass = getFuzzyClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType", "{nms}.world.inventory.ClickType"));
     }
 
+    private static Class<Object> clientIntentClass;
+    public static Class<Object> getClientIntentClass() {
+        return clientIntentClass != null ? clientIntentClass : (clientIntentClass = getFuzzyClass("{nms}.network.protocol.handshake.ClientIntent"));
+    }
+
     public static boolean isFakeChannel(Channel channel) {
         if (channel == null) {
             return true;

@@ -76,6 +76,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
+            Bukkit.getLogger().info("Decode " + ctx.channel().pipeline().toMap());
+
             if (packetContainer != null) {
                 packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
             }

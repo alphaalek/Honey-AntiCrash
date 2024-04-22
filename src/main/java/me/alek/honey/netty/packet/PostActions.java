@@ -39,8 +39,16 @@ public class PostActions {
         packetProcessor.addPostAction(PacketType.Handshake.Client.SET_PROTOCOL, packet -> {
             try {
                 JavaConverter<Enum<?>, WrappedEnumProtocol> converter = (JavaConverter<Enum<?>, WrappedEnumProtocol>) (JavaConverter<?, ?>) Converters.getEnumProtocolConverter();
-                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter).readField(0);
-                PacketState packetState = PacketState.values()[((Enum<?>)protocol.getHandle()).ordinal()];
+                int packetStateOrdinal;
+                if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
+                    WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter).readField(0);
+                    packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
+                } else {
+                    Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
+                    int clientIntentOrdinal = ((Enum<?>)clientIntent).ordinal();
+                    packetStateOrdinal = clientIntentOrdinal == 0 ? 2 : /* intent ordinal = 1 */ 3;
+                }
+                PacketState packetState = PacketState.values()[packetStateOrdinal];
 
                 packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packetState);
             } catch (MissingHandlerException ex) {
