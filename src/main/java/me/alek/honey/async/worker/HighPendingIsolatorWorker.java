@@ -24,7 +24,9 @@ public class HighPendingIsolatorWorker<T> implements DelegatedIsolatorWorker<T> 
     }
 
     private TaskSupplier<T> getHighestPendingSupplier() {
-        if (worker.getPendingTasks().isEmpty()) return null;
+        if (worker.getPendingTasks().isEmpty()) {
+            return null;
+        }
 
         Map<TaskSupplier<T>, Integer> taskOriginMap = new HashMap<>();
         for (ChainedCallable<T> task : worker.getPendingTasks()) {
@@ -48,7 +50,9 @@ public class HighPendingIsolatorWorker<T> implements DelegatedIsolatorWorker<T> 
     @Override
     public boolean relocate(TaskSupplier<T> supplier) {
         TaskSupplier<T> highestSupplier = getHighestPendingSupplier();
-        if (highestSupplier == null) return false;
+        if (highestSupplier == null) {
+            return false;
+        }
 
         return !highestSupplier.equals(supplier);
     }
