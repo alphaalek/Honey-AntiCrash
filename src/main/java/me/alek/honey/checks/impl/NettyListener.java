@@ -47,7 +47,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT);
+        return () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.SERVER);
     }
 
     @Override
@@ -183,8 +183,8 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 final List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
                 BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
-                        structure.withType(clazz).getAccessors().stream().anyMatch(accessor -> !Modifier.isStatic(accessor.getField().getModifiers()));
-                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.CLIENT)) {
+                        !structure.withType(clazz).disableStaticFields().getAccessors().isEmpty();
+                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 
                     if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {

@@ -25,6 +25,7 @@ public interface MonitorFlag<T> {
     enum Flag {
         PLAYER("player", "--player [player name]", false, PlayerFlag::new),
         TYPE("type", "--type [packet type]", false, EqualTypeFlag::new),
+        STATE("state", "--state [packet state]", false, StateFlag::new),
         IGNORE("ignore", "--ignore [packet type]", false, IgnoreTypeFlag::new),
         IGNORE_POSITION("ignore-position", "--ignore-position", false, IgnorePositionFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
@@ -229,11 +230,12 @@ public interface MonitorFlag<T> {
                     return 1;
                 }
             }
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT)) {
+            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER)) {
                 if (packetType != null && packetType.toString().equalsIgnoreCase(type)) {
                     return 1;
                 }
             }
+
             throw new WrongMonitorFlagSyntaxException(flag);
         }
 
@@ -305,6 +307,37 @@ public interface MonitorFlag<T> {
         }
     }
 
+    @FlagAnnotation(Flag.STATE)
+    class StateFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+
+        private PacketState state;
+
+        @Override
+        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+            Flag.checkSyntax(args, readIndex, this, 1);
+
+            String specified = args[readIndex];
+            for (PacketState state : PacketState.values()) {
+                if (state.name().equalsIgnoreCase(specified)) {
+                    this.state = state;
+                    return 1;
+                }
+            }
+
+            throw new WrongMonitorFlagSyntaxException(this);
+        }
+
+        @Override
+        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+            return input.getState().equals(state);
+        }
+
+        @Override
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, List<String> data) {
+            data.add(input.getState().name());
+        }
+    }
+
     @FlagAnnotation(Flag.CANCELLED)
     class CancelledFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>>, NoArgumentMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
 
@@ -324,7 +357,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, List<String> data) {
-            data.add(HoneyPlugin.get().getLoggerService().getPacketEntries(input).toString());
+            data.add(HoneyPlugin.get().getLoggerService().formatPacketEntries(input));
         }
     }
 

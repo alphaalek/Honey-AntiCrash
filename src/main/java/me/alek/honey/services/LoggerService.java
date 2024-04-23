@@ -36,7 +36,6 @@ public class LoggerService {
     private List<String> ignoredPackets;
     private final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
     private final NotificationService notificationService = HoneyPlugin.get().getNotificationService();
-
     private final Map<UUID, Queue<PacketTypeEnum>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
@@ -48,41 +47,43 @@ public class LoggerService {
 
         @Override
         @SuppressWarnings("unchecked")
-        public void onPacketReceive(HoneyPlayer player, PacketContainer packetContainer) {
+        public void onPacketReceive(HoneyPlayer player, PacketContainer packet) {
             if (monitorManager.hasMonitorers()) {
                 // notify monitor observers
-                logToMonitors(player, packetContainer);
+                logToMonitors(player, packet);
 
-                long time = System.currentTimeMillis();
-                // register to packet rate
-                packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
-                        .count(time);
-                totalPacketRate.count(time);
+                if (player != null) {
+                    long time = System.currentTimeMillis();
+                    // register to packet rate
+                    packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
+                            .count(time);
+                    totalPacketRate.count(time);
+                }
             }
 
             // log the packet
             if (enabled) {
                 String playerName = player != null ? player.name : null;
 
-                if (packetContainer.getState() != PacketState.PLAY) {
+                if (packet.getState() != PacketState.PLAY) {
                     if (!ConfigurationOptions.PacketLogger.EARLY) {
                         return;
                     }
 
                     if (playerName == null) {
                         try {
-                            HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(packetContainer.getChannel());
+                            HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(packet.getChannel());
                             playerName = packetHandler.getPlayerName();
                         } catch (Exception ignored) {
                         }
                     }
 
-                    if (playerName == null && packetContainer.getType() == PacketType.Login.Client.LOGIN_START) {
-                        playerName = PostActions.getNameFromLoginStart(packetContainer);
+                    if (playerName == null && packet.getType() == PacketType.Login.Client.LOGIN_START) {
+                        playerName = PostActions.getNameFromLoginStart(packet);
                     }
                 }
 
-                logPacket(packetContainer, playerName != null ? playerName : "Unknown");
+                logPacket(packet, playerName != null ? playerName : "Unknown");
             }
         }
     };
@@ -100,7 +101,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.CLIENT));
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER));
         }
     }
 
@@ -154,7 +155,7 @@ public class LoggerService {
     }
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
-        if (monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
+        if (player != null && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
                 Queue<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
@@ -216,7 +217,7 @@ public class LoggerService {
         message.append(playerName + " sent " + packetContainer.getName());
 
         if (detailed && !PacketType.isUnknown(packetContainer.getType())) {
-            message.append(": " + getPacketEntries(packetContainer));
+            message.append(": " + formatPacketEntries(packetContainer));
         }
 
         getLogger().info(message.toString());
@@ -225,13 +226,45 @@ public class LoggerService {
     public Map<String, Object> getPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
         Map<String, Object> entries = new HashMap<>();
         for (Map.Entry<String, Object> entry : packet.getAll().readFieldEntries().entrySet()) {
-            if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() instanceof Object[]) {
-                entries.put(entry.getKey(), Arrays.toString((Object[]) entry.getValue()));
+            if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() != null && entry.getValue().getClass().isArray()) {
+                entries.put(entry.getKey(), formatArray(entry.getValue()));
             } else {
                 entries.put(entry.getKey(), entry.getValue());
             }
         }
+
         return entries;
+    }
+
+    public String formatPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
+        Map<String, Object> entries = getPacketEntries(packet);
+        if (entries.isEmpty()) {
+            return "<empty>";
+        }
+        return entries.toString();
+    }
+
+    private String formatArray(Object val) {
+        if (val instanceof Object[]) {
+            return Arrays.toString((Object[]) val);
+        } else if (val instanceof int[]) {
+            return Arrays.toString((int[]) val);
+        } else if (val instanceof byte[]) {
+            return Arrays.toString((byte[]) val);
+        } else if (val instanceof char[]) {
+            return Arrays.toString((char[]) val);
+        } else if (val instanceof long[]) {
+            return Arrays.toString((long[]) val);
+        } else if (val instanceof float[]) {
+            return Arrays.toString((float[]) val);
+        } else if (val instanceof short[]) {
+            return Arrays.toString((short[]) val);
+        } else if (val instanceof double[]) {
+            return Arrays.toString((double[]) val);
+        } else if (val instanceof boolean[]) {
+            return Arrays.toString((boolean[]) val);
+        }
+        return val.toString();
     }
 
     public boolean isEnabled() {

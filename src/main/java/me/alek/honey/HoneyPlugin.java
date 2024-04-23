@@ -334,10 +334,12 @@ public class HoneyPlugin implements HoneyAPI {
 
             if (check instanceof PacketAdapter) {
                 ListenerPriority priority = check.getPriority();
-                if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener)
-                    packetLibrary.addListeners((PacketAdapter<WP>) check, priority, ((IPacketListener)check).getPacketTypes());
-                if (check.getCheckType() == HoneyCheckType.DECODE)
+                if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener) {
+                    packetLibrary.addListeners((PacketAdapter<WP>) check, priority, ((IPacketListener) check).getPacketTypes());
+                }
+                if (check.getCheckType() == HoneyCheckType.DECODE) {
                     packetLibrary.addDecodeListener((PacketAdapter<?>) check, priority);
+                }
 
                 check.load();
             }

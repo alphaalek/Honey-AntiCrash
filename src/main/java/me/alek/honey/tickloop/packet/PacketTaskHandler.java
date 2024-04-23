@@ -121,7 +121,7 @@ public class PacketTaskHandler {
             if (packet != null && !PacketType.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
                 loggerService.getLogger().severe("Sent by: " + name);
-                loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().getPacketEntries(packet));
+                loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");
             }

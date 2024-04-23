@@ -73,9 +73,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String toString() {
-        if (type == null) return "Unmodifiable Packet";
+        if (type == null) {
+            return "Unknown Packet";
+        }
 
-        return "Packet:{Type:" + type + ",Player:{" + Optional.ofNullable(player).map(p -> p.name).orElse("None") + "}}";
+        return "Packet:{Type:" + type + ",Player:" + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown") + "}";
     }
 
     @Override

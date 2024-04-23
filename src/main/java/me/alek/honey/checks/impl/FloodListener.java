@@ -82,7 +82,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             Set<PacketTypeEnum> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
             List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.CLIENT)) {
+            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.SERVER)) {
                 if (floodSettings.contains(packetType)) {
                     packetTypes.add(packetType);
                 }
