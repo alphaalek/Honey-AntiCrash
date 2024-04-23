@@ -56,7 +56,7 @@ public class ProtocolSwapHandler {
             } else {
                 Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
                 int clientIntentOrdinal = ((Enum<?>)clientIntent).ordinal();
-                packetStateOrdinal = clientIntentOrdinal == 0 ? 2 : /* intent ordinal = 1 */ 3;
+                packetStateOrdinal = clientIntentOrdinal == 0 ? /* STATUS */ 2 : /* LOGIN */ 3;
             }
             PacketState packetState = PacketState.values()[packetStateOrdinal];
             setProtocolState(packet.getChannel(), packetState, PacketBound.SERVER);
