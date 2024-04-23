@@ -190,7 +190,7 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Client implements RangedPacketTypeEnum {
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
             ENCRYPTION_RESPONSE(ENCRYPTION_RESPONSE_CLASS, idRegistry.acquireID()),
             LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
@@ -254,7 +254,7 @@ public enum PacketType implements PacketTypeEnum {
             DISCONNECT(DISCONNECT_CLASS, idRegistry.acquireID()),
             ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, idRegistry.acquireID()),
             LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, idRegistry.acquireID()),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquireID());
 
             private final Class<?> nmsPacket;
@@ -415,6 +415,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> POSITION_CLASS;
         private static Class<?> POSITION_LOOK_CLASS;
         private static Class<?> PICK_ITEM_CLASS;
+        private static Class<?> PONG_CLASS;
         private static Class<?> RECIPE_DISPLAYED_CLASS;
         private static Class<?> RECIPE_SETTINGS_CLASS;
         private static Class<?> RESOURCE_PACK_STATUS_CLASS;
@@ -477,6 +478,7 @@ public enum PacketType implements PacketTypeEnum {
                 POSITION_LOOK_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 LOOK_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
+                PONG_CLASS = Reflection.getClass("{play}.ServerboundPongPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CONFIGURATION_ACKNOWLEDGED_CLASS = Reflection.getClass("{play}.ServerboundConfigurationAcknowledgedPacket");
@@ -518,6 +520,7 @@ public enum PacketType implements PacketTypeEnum {
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
             LOOK(LOOK_CLASS, idRegistry.acquireID()),
             PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
+            PONG(PONG_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
             POSITION(POSITION_CLASS, idRegistry.acquireID()),
             POSITION_LOOK(POSITION_LOOK_CLASS, idRegistry.acquireID()),
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
@@ -637,19 +640,27 @@ public enum PacketType implements PacketTypeEnum {
         private static final Class<?> WINDOW_ITEMS_CLASS = Reflection.getClass("{play}.PacketPlayOutWindowItems");
         private static final Class<?> WORLD_EVENT_CLASS = Reflection.getClass("{play}.PacketPlayOutWorldEvent");
         private static final Class<?> WORLD_PARTICLES_CLASS = Reflection.getClass("{play}.PacketPlayOutWorldParticles");
+        private static Class<?> ADD_VIBRATION_SIGNAL_CLASS;
         private static Class<?> ADVANCEMENTS_SERVER_CLASS;
         private static Class<?> AUTO_RECIPE_SERVER_CLASS;
         private static Class<?> BED_CLASS;
         private static Class<?> BLOCK_BREAK_CLASS;
+        private static Class<?> BLOCK_CHANGED_ACK_CLASS;
         private static Class<?> BOSS_CLASS;
+        private static Class<?> CHAT_PREVIEW_CLASS;
         private static Class<?> CHAT_SERVER_CLASS;
+        private static Class<?> CLEAR_TITLES_CLASS;
         private static Class<?> COMBAT_EVENT_CLASS;
         private static Class<?> COMMANDS_CLASS;
+        private static Class<?> CUSTOM_CHAT_COMPLETIONS_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> ENTITY_LOOK_CLASS;
         private static Class<?> ENTITY_SOUND_CLASS;
+        private static Class<?> INITIALIZE_BORDER_CLASS;
         private static Class<?> KEEP_ALIVE_SERVER_CLASS;
         private static Class<?> KICK_DISCONNECT_CLASS;
+        private static Class<?> LEVEL_CHUNK_DATA_CLASS;
+        private static Class<?> LEVEL_CHUNK_WITH_LIGHT_CLASS;
         private static Class<?> LIGHT_UPDATE_CLASS;
         private static Class<?> LOOK_AT_CLASS;
         private static Class<?> MAP_CHUNK_CLASS;
@@ -660,17 +671,34 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> OPEN_BOOK_CLASS;
         private static Class<?> OPEN_WINDOW_HORSE_CLASS;
         private static Class<?> OPEN_WINDOW_MERCHANT_CLASS;
+        private static Class<?> PING_CLASS;
+        private static Class<?> PLAYER_COMBAT_END_CLASS;
+        private static Class<?> PLAYER_COMBAT_ENTER_CLASS;
+        private static Class<?> PLAYER_COMBAT_KILL_CLASS;
         private static Class<?> RECIPE_UPDATE_CLASS;
         private static Class<?> RECIPES_CLASS;
         private static Class<?> REL_ENTITY_MOVE_LOOK_CLASS;
         private static Class<?> REL_ENTITY_MOVE_CLASS;
         private static Class<?> RESOURCE_PACK_SEND_CLASS;
         private static Class<?> SELECT_ADVANCEMENT_TAB_CLASS;
+        private static Class<?> SERVER_DATA_CLASS;
+        private static Class<?> SET_ACTION_BAR_TEXT_CLASS;
+        private static Class<?> SET_BORDER_CENTER_CLASS;
+        private static Class<?> SET_BORDER_LERP_SIZE_CLASS;
+        private static Class<?> SET_BORDER_WARNING_DELAY_CLASS;
+        private static Class<?> SET_BORDER_WARNING_DISTANCE_CLASS;
+        private static Class<?> SET_BORDER_SIZE_CLASS;
+        private static Class<?> SET_COMPRESSION_CLASS;
+        private static Class<?> SET_COOLDOWN_CLASS;
+        private static Class<?> SET_DISPLAY_CHAT_PREVIEW_CLASS;
+        private static Class<?> SET_SUBTITLE_TEXT_CLASS;
+        private static Class<?> SET_SIMULATION_DISTANCE_CLASS;
+        private static Class<?> SET_TITLE_TEXT_CLASS;
+        private static Class<?> SET_TITLES_ANIMATION_CLASS;
         private static Class<?> SPAWN_ENTITY_LIVING_CLASS;
         private static Class<?> SPAWN_ENTITY_PAINTING_CLASS;
         private static Class<?> SPAWN_ENTITY_WEATHER_CLASS;
-        private static Class<?> SET_COMPRESSION_CLASS;
-        private static Class<?> SET_COOLDOWN_CLASS;
+        private static Class<?> SYSTEM_CHAT_CLASS;
         private static Class<?> START_CONFIGURATION_CLASS;
         private static Class<?> STOP_SOUND_CLASS;
         private static Class<?> TAGS_CLASS;
@@ -754,10 +782,48 @@ public enum PacketType implements PacketTypeEnum {
                 BLOCK_BREAK_CLASS = Reflection.getClass("{play}.PacketPlayOutBlockBreak");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_17)) {
+                CLEAR_TITLES_CLASS = Reflection.getClass("{play}.ClientboundClearTitlesPacket");
                 ENTITY_LOOK_CLASS = Reflection.getClass( "{play}.PacketPlayOutEntity$PacketPlayOutEntityLook");
+                INITIALIZE_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
+                PLAYER_COMBAT_END_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatEndPacket");
+                PLAYER_COMBAT_ENTER_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatEnterPacket");
+                PLAYER_COMBAT_KILL_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatKillPacket");
                 REL_ENTITY_MOVE_CLASS = Reflection.getClass( "{play}.PacketPlayOutEntity$PacketPlayOutRelEntityMove");
                 REL_ENTITY_MOVE_LOOK_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
+                SET_ACTION_BAR_TEXT_CLASS = Reflection.getClass("{play}.ClientboundSetActionBarTextPacket");
+                SET_BORDER_CENTER_CLASS = Reflection.getClass("{play}.ClientboundSetBorderCenterPacket");
+                SET_BORDER_LERP_SIZE_CLASS = Reflection.getClass("{play}.ClientboundSetBorderLerpSizePacket");
+                SET_BORDER_SIZE_CLASS = Reflection.getClass("{play}.ClientboundSetBorderSizePacket");
+                SET_BORDER_WARNING_DELAY_CLASS = Reflection.getClass("{play}.ClientboundSetBorderWarningDelayPacket");
+                SET_BORDER_WARNING_DISTANCE_CLASS = Reflection.getClass("{play}.ClientboundSetBorderWarningDistancePacket");
+                SET_SUBTITLE_TEXT_CLASS = Reflection.getClass("{play}.ClientboundSetSubtitleTextPacket");
+                SET_TITLE_TEXT_CLASS = Reflection.getClass("{play}.ClientboundSetTitleTextPacket");
+                SET_TITLES_ANIMATION_CLASS = Reflection.getClass("{play}.ClientboundSetTitlesAnimationPacket");
                 WORLD_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
+                if (protocolVersion.isOlderThan(NetProtocol.v1_19)) {
+                    ADD_VIBRATION_SIGNAL_CLASS = Reflection.getClass("{play}.ClientboundAddVibrationSignalPacket");
+                }
+                if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
+                    PING_CLASS = Reflection.getClass("{play}.ClientboundPingPacket");
+                }
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_18)) {
+                LEVEL_CHUNK_DATA_CLASS = Reflection.getClass("{play}.ClientboundLevelChunkPacketData");
+                LEVEL_CHUNK_WITH_LIGHT_CLASS = Reflection.getClass("{play}.ClientboundLevelChunkWithLightPacket");
+                SET_SIMULATION_DISTANCE_CLASS = Reflection.getClass("{play}.ClientboundSetSimulationDistancePacket");
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19)) {
+                BLOCK_CHANGED_ACK_CLASS = Reflection.getClass("{play}.ClientboundBlockChangedAckPacket");
+                CHAT_SERVER_CLASS = Reflection.getClass("{play}.ClientboundPlayerChatPacket");
+                SERVER_DATA_CLASS = Reflection.getClass("{play}.ClientboundServerDataPacket");
+                SYSTEM_CHAT_CLASS = Reflection.getClass("{play}.ClientboundSystemChatPacket");
+                if (protocolVersion.isOlderThan(NetProtocol.v1_19_3)) {
+                    CHAT_PREVIEW_CLASS = Reflection.getClass("{play}.ClientboundChatPreviewPacket");
+                    SET_DISPLAY_CHAT_PREVIEW_CLASS = Reflection.getClass("{play}.ClientboundSetDisplayChatPreviewPacket");
+                }
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_1)) {
+                CUSTOM_CHAT_COMPLETIONS_CLASS = Reflection.getClass("{play}.ClientboundCustomChatCompletionsPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 START_CONFIGURATION_CLASS = Reflection.getClass("{play}.ClientboundStartConfigurationPacket");
@@ -774,6 +840,7 @@ public enum PacketType implements PacketTypeEnum {
         public enum Server implements RangedPacketTypeEnum {
 
             ABILITIES(ABILITIES_SERVER_CLASS, idRegistry.acquireID()),
+            ADD_VIBRATION_SIGNAL(ADD_VIBRATION_SIGNAL_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_18_2)),
             ADVANCEMENTS(ADVANCEMENTS_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
             ANIMATION(ANIMATION_CLASS, idRegistry.acquireID()),
             ATTACH_ENTITY(ATTACH_ENTITY_CLASS, idRegistry.acquireID()),
@@ -783,13 +850,17 @@ public enum PacketType implements PacketTypeEnum {
             BLOCK_BREAK(BLOCK_BREAK_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_14, NetProtocol.v1_18_2)),
             BLOCK_BREAK_ANIMATION(BLOCK_BREAK_ANIMATION_CLASS, idRegistry.acquireID()),
             BLOCK_CHANGE(BLOCK_CHANGE_CLASS, idRegistry.acquireID()),
+            BLOCK_CHANGED_ACK(BLOCK_CHANGED_ACK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
             BOSS(BOSS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
             CAMERA(CAMERA_CLASS, idRegistry.acquireID()),
             CHAT(CHAT_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_18_2)),
+            CHAT_PREVIEW(CHAT_PREVIEW_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
+            CLEAR_TITLES(CLEAR_TITLES_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
             CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, idRegistry.acquireID()),
             COLLECT(COLLECT_CLASS, idRegistry.acquireID()),
             COMBAT_EVENT(COMBAT_EVENT_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
             COMMANDS(COMMANDS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
+            CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_1)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
             ENTITY(ENTITY_CLASS, idRegistry.acquireID()),
             ENTITY_DESTROY(ENTITY_DESTROY_CLASS, idRegistry.acquireID()),
@@ -808,8 +879,11 @@ public enum PacketType implements PacketTypeEnum {
             EXPLOSION(EXPLOSION_CLASS, idRegistry.acquireID()),
             GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, idRegistry.acquireID()),
             HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, idRegistry.acquireID()),
+            INITIALIZE_BORDER(INITIALIZE_BORDER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
             KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
             KICK_DISCONNECT(KICK_DISCONNECT_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            LEVEL_CHUNK_DATA(LEVEL_CHUNK_DATA_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_18)),
+            LEVEL_CHUNK_WITH_LIGHT(LEVEL_CHUNK_WITH_LIGHT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_18)),
             LIGHT_UPDATE(LIGHT_UPDATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
             LOGIN(LOGIN_CLASS, idRegistry.acquireID()),
             LOOK_AT(LOOK_AT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
@@ -826,6 +900,10 @@ public enum PacketType implements PacketTypeEnum {
             OPEN_WINDOW(OPEN_WINDOW_CLASS, idRegistry.acquireID()),
             OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
+            PING(PING_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            PLAYER_COMBAT_ENTER(PLAYER_COMBAT_ENTER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            PLAYER_COMBAT_KILL(PLAYER_COMBAT_KILL_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_INFO(PLAYER_INFO_CLASS, idRegistry.acquireID()),
             PLAYERLIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, idRegistry.acquireID()),
             POSITION(POSITION_SERVER_CLASS, idRegistry.acquireID()),
@@ -839,9 +917,21 @@ public enum PacketType implements PacketTypeEnum {
             SCOREBOARD_SCORE(SCOREBOARD_SCORE_CLASS, idRegistry.acquireID()),
             SCOREBOARD_TEAM(SCOREBOARD_TEAM_CLASS, idRegistry.acquireID()),
             SELECT_ADVANCEMENT_TAB(SELECT_ADVANCEMENT_TAB_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
+            SERVER_DATA(SERVER_DATA_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
             SERVER_DIFFICULTY(SERVER_DIFFICULTY_CLASS, idRegistry.acquireID()),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_8_8)),
+            SET_ACTIONBAR_TEXT(SET_ACTION_BAR_TEXT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_CENTER(SET_BORDER_CENTER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_LERP_SIZE(SET_BORDER_LERP_SIZE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_SIZE(SET_BORDER_SIZE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_WARNING_DELAY(SET_BORDER_WARNING_DELAY_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_WARNING_DISTANCE(SET_BORDER_WARNING_DISTANCE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_SIMULATION_DISTANCE(SET_SIMULATION_DISTANCE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_18)),
+            SET_SUBTITLE_TEXT(SET_SUBTITLE_TEXT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
             SET_COOLDOWN(SET_COOLDOWN_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
+            SET_DISPLAY_CHAT_PREVIEW(SET_DISPLAY_CHAT_PREVIEW_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
+            SET_TITLE_TEXT(SET_TITLE_TEXT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_TITLES_ANIMATION(SET_TITLES_ANIMATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
             SET_SLOT(SET_SLOT_CLASS, idRegistry.acquireID()),
             SPAWN_ENTITY(SPAWN_ENTITY_CLASS, idRegistry.acquireID()),
             SPAWN_ENTITY_EXPERIENCE_ORB(SPAWN_ENTITY_EXPERIENCE_ORB_CLASS, idRegistry.acquireID()),
@@ -849,11 +939,12 @@ public enum PacketType implements PacketTypeEnum {
             SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_18_2)),
             SPAWN_ENTITY_WEATHER(SPAWN_ENTITY_WEATHER_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_15_2)),
             SPAWN_POSITION(SPAWN_POSITION_CLASS, idRegistry.acquireID()),
+            SYSTEM_CHAT(SYSTEM_CHAT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
             START_CONFIGURATION(START_CONFIGURATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
             STATISTIC(STATISTIC_CLASS, idRegistry.acquireID()),
             STOP_SOUND(STOP_SOUND_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
             TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, idRegistry.acquireID()),
-            TAGS(TAGS_CLASS, idRegistry.acquireID(), NetProtocolRange.betweenBefore(NetProtocol.v1_13, NetProtocol.v1_20_2)),
+            TAGS(TAGS_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, idRegistry.acquireID()),
             TITLE(TITLE_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
             TRANSACTION(TRANSACTION_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
