@@ -56,8 +56,6 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        Bukkit.getLogger().info("Packet " + msg + " " + WrappedEnumProtocol.getEnumProtocolDelegate(ctx.channel(), PacketBound.SERVER));
-
         sendThroughPipeline(ctx.channel(), msg, packetHandler::read, () -> ctx.fireChannelRead(msg));
     }
 

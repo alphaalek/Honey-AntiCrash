@@ -50,12 +50,6 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
         UnsafeChannelCloser.closeForcibly(ctx.channel());
     }
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        Bukkit.getLogger().info("Read " + msg + " " + WrappedEnumProtocol.getEnumProtocolDelegate(ctx.channel(), PacketBound.SERVER));
-        ctx.fireChannelRead(msg);
-    }
-
     public static void onExceptionCaught(Throwable throwable, boolean channelClosed) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
         if (HoneyPlugin.get().getLoggerService().isDebug()

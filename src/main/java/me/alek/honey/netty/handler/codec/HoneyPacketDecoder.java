@@ -36,7 +36,7 @@ public class HoneyPacketDecoder {
         }
     }
 
-    public static Object decodePacket(Channel channel, HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
+    public static Object decodePacket(HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
         int start = dataSerializer.readerIndex();
 
@@ -53,8 +53,6 @@ public class HoneyPacketDecoder {
         if (packet == null) {
             throw new DecoderException("Bad packet ID " + packetId);
         }
-
-        Bukkit.getLogger().info("Decoded " + packet + "  " + state + " " + packetId);
 
         PacketTypeEnum type = PacketType.getPacketType(packet.getClass());
         if (!PacketType.isUnknown(type) && type.getState() != state) {
