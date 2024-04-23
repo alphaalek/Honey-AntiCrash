@@ -29,7 +29,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import javax.management.NotificationListener;
 import java.util.*;
 
 public class NotificationService {
@@ -329,7 +328,7 @@ public class NotificationService {
             return;
         }
 
-        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.CHAT, player);
+        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.PLAYER_CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
         packetContainer.getBytes().writeField(0, (byte) 2);
