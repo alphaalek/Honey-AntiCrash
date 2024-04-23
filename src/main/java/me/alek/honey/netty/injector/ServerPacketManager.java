@@ -18,7 +18,7 @@ public class ServerPacketManager {
 
         ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
 
-        OutboundPacketEncoder encoder = packetManager.getEncoder(player.channel);
+        HoneyPacketEncodePreparation encoder = packetManager.getEncoder(player.channel);
         if (encoder == null) {
             return;
         }
@@ -69,8 +69,8 @@ public class ServerPacketManager {
         return (HoneyPacketDecodePreparation) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDecoderName());
     }
 
-    public OutboundPacketEncoder getEncoder(Channel channel) {
-        return (OutboundPacketEncoder) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getEncoderName());
+    public HoneyPacketEncodePreparation getEncoder(Channel channel) {
+        return (HoneyPacketEncodePreparation) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getEncoderName());
     }
 
     public HoneyDebugger getDebugger(Channel channel) {

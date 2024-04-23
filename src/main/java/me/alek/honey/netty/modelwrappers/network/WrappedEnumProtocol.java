@@ -11,6 +11,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
+import org.bukkit.Bukkit;
 import org.w3c.dom.Attr;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
@@ -35,17 +36,16 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
     public static Object getEnumProtocolDelegate(Channel channel, PacketBound bound) {
         Object protocol = getEnumProtocol(channel, bound).getHandle();
-        if (protocol.getClass().equals(NMS.getEnumProtocolClass())) {
-            return protocol;
-        }
 
         IStructureModifier<Enum<?>> structure = ReflectStructureCache.acquireStructure(protocol.getClass())
                 .withType(NMS.getEnumProtocolClass())
+                .disableStaticFields()
                 .withTarget(protocol);
         if (!structure.getAccessors().isEmpty()) {
             return structure.readField(0);
         }
-        throw new DecoderException("Couldn't get protocol due to invalid enum protocol from channel attribute.");
+
+        return protocol;
     }
 
     public static int getEnumProtocolDelegateOrdinal(Channel channel, PacketBound bound) {

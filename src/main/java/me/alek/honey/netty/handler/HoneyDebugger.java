@@ -5,6 +5,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import org.bukkit.Bukkit;
 
@@ -50,7 +52,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        Bukkit.getLogger().info("Read " + msg);
+        Bukkit.getLogger().info("Read " + msg + " " + WrappedEnumProtocol.getEnumProtocolDelegate(ctx.channel(), PacketBound.SERVER));
         ctx.fireChannelRead(msg);
     }
 

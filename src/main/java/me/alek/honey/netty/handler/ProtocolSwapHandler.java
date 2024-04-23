@@ -5,6 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -15,24 +16,37 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 
 public class ProtocolSwapHandler {
 
-    public static void handleProtocolSwap(PacketContainer<? extends WrappedPacket<?>> packet) {
+    private PacketState updateAfterEventloop;
+    private PacketBound updateDirection;
+
+    public void swapProtocolIfNeeded(PacketContainer<? extends WrappedPacket<?>> packet) {
+        if (updateAfterEventloop != null && updateDirection != null) {
+            setProtocolState(packet.getChannel(), updateAfterEventloop, updateDirection);
+            updateAfterEventloop = null;
+            updateDirection = null;
+        }
+
         if (packet.getType() == PacketType.Login.Server.LOGIN_SUCCESS) {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
-                setProtocolState(packet.getChannel(), PacketState.PLAY);
+                updateAfterEventloop = PacketState.PLAY;
+                updateDirection = PacketBound.CLIENT;
             } else {
-                setProtocolState(packet.getChannel(), PacketState.CONFIGURATION);
+                updateAfterEventloop = PacketState.CONFIGURATION;
+                updateDirection = PacketBound.CLIENT;
             }
         } else if (packet.getType() == PacketType.Play.Server.LOGIN) {
-            setProtocolState(packet.getChannel(), PacketState.PLAY);
+            setProtocolState(packet.getChannel(), PacketState.PLAY, null);
         } else if (packet.getType() == PacketType.Play.Server.START_CONFIGURATION) {
-            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION);
+            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
         } else if (packet.getType() == PacketType.Login.Client.LOGIN_ACKNOWLEDGED) {
-            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION);
+            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
         } else if (packet.getType() == PacketType.Play.Client.CONFIGURATION_ACKNOWLEDGED) {
-            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION);
-        } else if (packet.getType() == PacketType.Configuration.Client.FINISH_CONFIGURATION
-                || packet.getType() == PacketType.Configuration.Server.FINISH_CONFIGURATION) {
-            setProtocolState(packet.getChannel(), PacketState.PLAY);
+            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
+        } else if (packet.getType() == PacketType.Configuration.Client.FINISH_CONFIGURATION) {
+            setProtocolState(packet.getChannel(), PacketState.PLAY, PacketBound.SERVER);
+        } else if (packet.getType() == PacketType.Configuration.Server.FINISH_CONFIGURATION) {
+            updateAfterEventloop = PacketState.PLAY;
+            updateDirection = PacketBound.CLIENT;
         } else if (packet.getType() == PacketType.Handshake.Client.SET_PROTOCOL) {
             JavaConverter<Enum<?>, WrappedEnumProtocol> converter = Converters.getEnumProtocolConverter();
             int packetStateOrdinal;
@@ -45,13 +59,13 @@ public class ProtocolSwapHandler {
                 packetStateOrdinal = clientIntentOrdinal == 0 ? 2 : /* intent ordinal = 1 */ 3;
             }
             PacketState packetState = PacketState.values()[packetStateOrdinal];
-            setProtocolState(packet.getChannel(), packetState);
+            setProtocolState(packet.getChannel(), packetState, PacketBound.SERVER);
         }
     }
 
-    private static void setProtocolState(Channel channel, PacketState state) {
+    private void setProtocolState(Channel channel, PacketState state, PacketBound bound) {
         try {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).setProtocolState(state);
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).setProtocolState(bound, state);
         } catch (MissingHandlerException ex) {
             channel.close();
         }

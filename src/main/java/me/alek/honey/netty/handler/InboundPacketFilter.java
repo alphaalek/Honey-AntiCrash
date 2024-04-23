@@ -13,6 +13,7 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
@@ -57,12 +58,17 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
             ctx.close();
         }
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(ctx.channel()).updateProtocol(PacketBound.SERVER);
+        } catch (MissingHandlerException ex) {
+            ctx.close();
+        }
     }
 
 
     @Override
     public synchronized void channelInactive(ChannelHandlerContext ctx) {
-        Bukkit.getLogger().info("Inactive!");
         ctx.fireChannelInactive();
 
         if (!hasCalledChannelInactive) {
@@ -82,7 +88,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
 
         CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
-        packetProcessor.callDecode(player, cancellableByteBuf);
+        //packetProcessor.callDecode(player, cancellableByteBuf);
 
         packetContainer.getEventloopStateTimings().stopTimings();
 

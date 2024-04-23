@@ -116,8 +116,11 @@ public class PacketTaskHandler {
         LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
         if (!dump.contains("PacketTaskHandler")) {
+            String name = player != null ? player.name : "Unknown";
+
             if (packet != null && !PacketType.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
+                loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().getPacketEntries(packet));
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");
@@ -125,7 +128,7 @@ public class PacketTaskHandler {
             loggerService.getLogger().severe(dump);
 
             HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX
-                    + " §cThe server seems to be frozen after a packet was sent by " + player.name + ". See the log for thread dump and more info."));
+                    + " §cThe server seems to be frozen after a packet was sent by " + name + ". See the log for thread dump and more info."));
         }
     }
 

@@ -11,6 +11,7 @@ import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
@@ -45,24 +46,24 @@ public class HoneyPacketDecoder {
         }
         Object packet;
         try {
-            Bukkit.getLogger().info("Pre create: " + packetId + " " + protocol.getHandle() + " " + WrappedEnumProtocol.getEnumProtocolDelegate(channel, PacketBound.SERVER));
-
             packet = protocol.createPacket(PacketBound.SERVER, packetId, dataSerializer);
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw new DecoderException("Failed to create packet with ID " + packetId + ", " + state);
         }
         if (packet == null) {
             throw new DecoderException("Bad packet ID " + packetId);
         }
 
-        if (PacketType.getPacketType(packet.getClass()).getState() != state) {
+        Bukkit.getLogger().info("Decoded " + packet + "  " + state + " " + packetId);
+
+        PacketTypeEnum type = PacketType.getPacketType(packet.getClass());
+        if (!PacketType.isUnknown(type) && type.getState() != state) {
             return null;
         }
 
         // check if the protocol version is before 1.17, because then the packet data serializer should be applied in a method instead of the constructor
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            // we will now check if the packet has an ItemStack property, because then we will disable NBT
+            // we will now check if the packet has an ItemStack property, because then we will disable meta apply for nbt decoding
             if (packet.getClass().equals(PacketType.Play.Client.BLOCK_PLACE.getNmsClass())
                     && ConfigurationOptions.Decoder.DISABLE_NBT && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 DisabledNBTCodec.BLOCK_PLACE.apply(
@@ -101,7 +102,6 @@ public class HoneyPacketDecoder {
                 throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state);
             }
         }
-        Bukkit.broadcastMessage("Packet " + packet + " " + WrappedEnumProtocol.getEnumProtocolDelegate(channel, PacketBound.SERVER));
 
         return packet;
     }

@@ -86,8 +86,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    packetHandler.updateProtocol();
-                    packet = HoneyPacketDecoder.decodePacket(ctx.channel(), player, packetHandler.getProtocolState(), packetHandler.getProtocol(), byteBuf);
+                    packet = HoneyPacketDecoder.decodePacket(ctx.channel(), player, packetHandler.getProtocolState(PacketBound.SERVER), packetHandler.getProtocol(PacketBound.SERVER), byteBuf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
@@ -97,7 +96,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     }
                     packet = list.get(0);
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 ex.printStackTrace();
                 byteBuf.release();
 
@@ -108,6 +107,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
                 return;
             }
+
             byteBuf.release();
 
             if (packet == null) {
@@ -141,11 +141,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             }
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packet, packetContainer);
-
-            Object netHandler = ctx.channel().pipeline().get("packet_handler");
-            Object packetListener = ReflectStructureCache.acquireStructure(netHandler.getClass())
-                            .withType(NMS.getPacketListenerClass()).withTarget(netHandler).readField(1);
-            Bukkit.getLogger().info("Decode " + finalPacketContainer.getType() + " " + packetHandler.getProtocolState() + " " + packetListener + " " + netHandler);
 
             Runnable packetExecutorTask;
             if (!finalPacketContainer.isCancelled()) {
