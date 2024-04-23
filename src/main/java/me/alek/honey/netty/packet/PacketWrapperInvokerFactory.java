@@ -46,7 +46,10 @@ public class PacketWrapperInvokerFactory {
 
         private Map<K, V> streamMap(Map<K, V> map, Iterable<K> iterable, Function<K, V> function) {
             for (K key : iterable) {
-                map.put(key, function.apply(key));
+                V applied = function.apply(key);
+                if (applied != null) {
+                    map.put(key, applied);
+                }
             }
             return map;
         }
@@ -72,19 +75,19 @@ public class PacketWrapperInvokerFactory {
         }
 
         PLAY = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.PLAY), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().info("NULL: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         HANDSHAKE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.HANDSHAKE), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().info("NULL: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         LOGIN = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.LOGIN), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().info("NULL: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         STATUS = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.STATUS), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().info("NULL: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
     }
@@ -103,10 +106,11 @@ public class PacketWrapperInvokerFactory {
     private static MethodHandle getCachedInvoker(PacketTypeEnum packetType, String name) {
         NAMES_FROM_TYPE.put(packetType, name);
         NAMES_TO_TYPE.put(name, packetType);
-        if (INVOKERS.get(name) != null)
+        if (INVOKERS.get(name) != null) {
             return INVOKERS.get(name);
+        }
 
-        throw new RuntimeException("No packet wrapper for " + name);
+        return null;
     }
 
     public static MethodHandle createWrapperInvoker(PacketTypeEnum packetType) {
@@ -155,7 +159,9 @@ public class PacketWrapperInvokerFactory {
 
     private static MethodHandle createWrapperInvoker(Class<?> nmsClass, Map<PacketTypeEnum, MethodHandle> map) {
         final PacketTypeEnum packetType = PacketType.getPacketType(nmsClass);
-        if (packetType == PacketType.UNKNOWN || map == null) return null;
+        if (packetType == PacketType.UNKNOWN || map == null) {
+            return null;
+        }
 
         return map.get(packetType);
     }

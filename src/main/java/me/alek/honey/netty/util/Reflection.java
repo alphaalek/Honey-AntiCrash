@@ -19,34 +19,34 @@ public class Reflection {
         String OBC = Bukkit.getServer().getClass().getPackage().getName();
         String NMS;
 
+        String protocolPackage;
         boolean newProtocol = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17);
         if (newProtocol) {
-            PROTOCOL_STATES = new HashMap<String, String>(){{
-                put("PacketHandshaking", "handshake");
-                put("PacketStatus", "status");
-                put("PacketPlay", "game");
-                put("Clientbound", "game");
-                put("PacketLogin", "login");
-            }};
             NMS = "net.minecraft";
+            protocolPackage = NMS + ".network.protocol";
+        } else {
+            NMS = protocolPackage = OBC.replace("org.bukkit.craftbukkit", "net.minecraft.server");
         }
-        else {
-            NMS = OBC.replace("org.bukkit.craftbukkit", "net.minecraft.server");
-            PROTOCOL_STATES = null;
-        }
-        USE_NEW_NMS_PROTOCOL = newProtocol;
+        HANDSHAKE     = protocolPackage + (newProtocol ? "." + "handshake"     : "");
+        PLAY          = protocolPackage + (newProtocol ? "." + "game"          : "");
+        STATUS        = protocolPackage + (newProtocol ? "." + "status"        : "");
+        LOGIN         = protocolPackage + (newProtocol ? "." + "login"         : "");
+        CONFIGURATION = protocolPackage + (newProtocol ? "." + "configuration" : "");
 
         OBC_PREFIX = OBC;
         NMS_PREFIX = NMS;
     }
 
-    private static final boolean USE_NEW_NMS_PROTOCOL;
     private static final String OBC_PREFIX;
+    private static final String HANDSHAKE;
+    private static final String PLAY;
+    private static final String STATUS;
+    private static final String LOGIN;
+    private static final String CONFIGURATION;
     private static final String NMS_PREFIX;
     private static final String VERSION = OBC_PREFIX.replace(
             "org.bukkit.craftbukkit", "").replace(".", "");
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
-    private static final HashMap<String, String> PROTOCOL_STATES;
 
     public static Class<?> getSubClass(Class<?> superClass, String name) {
         if (superClass == null) {
@@ -118,38 +118,40 @@ public class Reflection {
         StringBuffer output = new StringBuffer();
         Matcher matcher = MATCH_VARIABLE.matcher(name);
         while (matcher.find()) {
-            String variable = matcher.group(1);
-
-            String replacement = "";
-            if ("nms".equalsIgnoreCase(variable)) {
-                if (USE_NEW_NMS_PROTOCOL) {
-                    for (Map.Entry<String, String> stateEntry : PROTOCOL_STATES.entrySet()) {
-
-                        if (name.contains(stateEntry.getKey())) {
-                            replacement = NMS_PREFIX + ".network.protocol." + stateEntry.getValue();
-                            break;
-                        }
-                    }
-                }
-                if (replacement.equals("")) {
+            String variable = matcher.group(1).toLowerCase();
+            String replacement;
+            switch (variable) {
+                case "nms":
                     replacement = NMS_PREFIX;
-                }
+                    break;
+                case "obc":
+                    replacement = OBC_PREFIX;
+                    break;
+                case "handshake":
+                    replacement = HANDSHAKE;
+                    break;
+                case "play":
+                    replacement = PLAY;
+                    break;
+                case "status":
+                    replacement = STATUS;
+                    break;
+                case "login":
+                    replacement = LOGIN;
+                    break;
+                case "configuration":
+                    replacement = CONFIGURATION;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid placeholder: " + variable);
             }
-            else if ("obc".equalsIgnoreCase(variable)) {
-                replacement = OBC_PREFIX;
-            }
-            else if ("version".equalsIgnoreCase(variable)) {
-                replacement = VERSION;
-            }
-            else {
-                throw new IllegalArgumentException("Ugyldig placeholder: "
-                        + variable);
-            }
+
             if (!replacement.isEmpty() && matcher.end() < name.length()
-                    && name.charAt(matcher.end()) != '.')
+                    && name.charAt(matcher.end()) != '.') {
                 replacement += ".";
-            matcher.appendReplacement(output,
-                    Matcher.quoteReplacement(replacement));
+            }
+
+            matcher.appendReplacement(output, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(output);
         return output.toString();

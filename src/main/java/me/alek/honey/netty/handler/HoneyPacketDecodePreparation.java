@@ -12,7 +12,10 @@ import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.handler.PacketInterceptorResolver;
 import me.alek.honey.netty.handler.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -76,8 +79,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
-            Bukkit.getLogger().info("Decode " + ctx.channel().pipeline().toMap());
-
             if (packetContainer != null) {
                 packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
             }
@@ -85,18 +86,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    WrappedEnumProtocol protocol = packetHandler.getProtocol();
-                    if (protocol == null) {
-                        packetHandler.updateProtocol();
-                        protocol = packetHandler.getProtocol();
-                        if (protocol == null) {
-                            throw new DecoderException("Couldn't get protocol from channel attributes.");
-                        }
-
-                        packetHandler.setProtocolState(PacketState.values()[((Enum<?>)protocol.getHandle()).ordinal()]);
-                    }
-
-                    packet = HoneyPacketDecoder.decodePacket(player, packetHandler.getProtocolState(), protocol, byteBuf);
+                    packetHandler.updateProtocol();
+                    packet = HoneyPacketDecoder.decodePacket(ctx.channel(), player, packetHandler.getProtocolState(), packetHandler.getProtocol(), byteBuf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
@@ -107,6 +98,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     packet = list.get(0);
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
                 byteBuf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
@@ -150,8 +142,13 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packet, packetContainer);
 
+            Object netHandler = ctx.channel().pipeline().get("packet_handler");
+            Object packetListener = ReflectStructureCache.acquireStructure(netHandler.getClass())
+                            .withType(NMS.getPacketListenerClass()).withTarget(netHandler).readField(1);
+            Bukkit.getLogger().info("Decode " + finalPacketContainer.getType() + " " + packetHandler.getProtocolState() + " " + packetListener + " " + netHandler);
+
             Runnable packetExecutorTask;
-            if (ConfigurationOptions.AsyncDecoder.ENABLED && !finalPacketContainer.isCancelled()) {
+            if (!finalPacketContainer.isCancelled()) {
                 packetExecutorTask = packetProcessor.getPacketExecutorTask(finalPacketContainer);
             } else {
                 packetExecutorTask = null;

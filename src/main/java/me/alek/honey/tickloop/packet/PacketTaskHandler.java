@@ -148,8 +148,10 @@ public class PacketTaskHandler {
     }
 
     public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
-        synchronized (ignoreDecrementLock) {
-            tracker.decrementPacketsInQueueExecution(packet.getPlayer().uuid);
+        if (packet.getPlayer() != null) {
+            synchronized (ignoreDecrementLock) {
+                tracker.decrementPacketsInQueueExecution(packet.getPlayer().uuid);
+            }
         }
 
         packet.getEventloopStateTimings().stopTimings();

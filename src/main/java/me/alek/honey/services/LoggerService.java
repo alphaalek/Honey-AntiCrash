@@ -21,6 +21,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.DecayingWindowCounter;
 import me.alek.honey.util.NumberConversions;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -194,7 +195,8 @@ public class LoggerService {
             return;
         }
 
-        getLogger().info("Auto dump for packet sent by " + packet.getPlayer().name + ": " + packet.getName()
+        String name = packet.getPlayer() != null ? packet.getPlayer().name : "Unknown";
+        getLogger().info("Auto dump for packet sent by " + name + ": " + packet.getName()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
 

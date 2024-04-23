@@ -248,6 +248,11 @@ public class NMS {
         return packetClass != null ? packetClass : (packetClass = getFuzzyClass("{nms}.Packet", "{nms}.network.protocol.Packet"));
     }
 
+    private static Class<Object> packetListenerClass;
+    public static Class<Object> getPacketListenerClass() {
+        return packetListenerClass != null ? packetListenerClass : (packetListenerClass = getFuzzyClass("{nms}.PacketListener", "{nms}.network.PacketListener"));
+    }
+
     private static Class<Object> suggestionsClass;
     public static Class<Object> getSuggestionsClass() {
         return suggestionsClass != null ? suggestionsClass : (suggestionsClass = getFuzzyClass("com.mojang.brigadier.suggestion.Suggestions"));

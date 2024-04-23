@@ -9,21 +9,19 @@ import java.util.concurrent.FutureTask;
 
 public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
-    private final HoneyPlayer player;
     private final PacketContainer<? extends WrappedPacket<?>> packet;
     private final int tickAdded;
     private boolean postponed;
     private long started;
 
-    public WrappedPacketTaskFuture(Runnable runnable, HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
+    public WrappedPacketTaskFuture(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         super(runnable, null);
-        this.player = player;
         this.packet = packet;
         this.tickAdded = tickAdded;
     }
 
     public HoneyPlayer getPlayer() {
-        return player;
+        return packet.getPlayer();
     }
 
     public PacketContainer<? extends WrappedPacket<?>> getPacket() {
@@ -48,7 +46,7 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
 
     @Override
     public void run() {
-        if (!player.isOnlineWeak() || player.punished) {
+        if (getPlayer() != null && (!getPlayer().isOnlineWeak() || getPlayer().punished)) {
             super.set(null);
             return;
         }

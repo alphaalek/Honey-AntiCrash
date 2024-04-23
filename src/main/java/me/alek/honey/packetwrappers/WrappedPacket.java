@@ -8,7 +8,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-public abstract class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WrappedPacket<WP>> {
+public class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WrappedPacket<WP>> {
 
     private final PacketContainer<WP> packetContainer;
 

@@ -85,7 +85,7 @@ public class PacketFactory {
     private static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
         MethodHandle wrapperInvoker = getWrapperInvoker(type);
         if (wrapperInvoker == null) {
-            return null;
+            return new WrappedPacket<>(rawPacket, (PacketContainer<WP>) packetContainer);
         }
 
         try {

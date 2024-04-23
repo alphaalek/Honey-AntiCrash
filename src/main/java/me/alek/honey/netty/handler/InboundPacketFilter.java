@@ -59,8 +59,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
     }
 
+
     @Override
     public synchronized void channelInactive(ChannelHandlerContext ctx) {
+        Bukkit.getLogger().info("Inactive!");
         ctx.fireChannelInactive();
 
         if (!hasCalledChannelInactive) {

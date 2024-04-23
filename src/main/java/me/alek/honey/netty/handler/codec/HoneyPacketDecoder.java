@@ -1,8 +1,9 @@
 package me.alek.honey.netty.handler.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderException;
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
+import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
@@ -34,7 +35,7 @@ public class HoneyPacketDecoder {
         }
     }
 
-    public static Object decodePacket(HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
+    public static Object decodePacket(Channel channel, HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
         int start = dataSerializer.readerIndex();
 
@@ -44,12 +45,15 @@ public class HoneyPacketDecoder {
         }
         Object packet;
         try {
+            Bukkit.getLogger().info("Pre create: " + packetId + " " + protocol.getHandle() + " " + WrappedEnumProtocol.getEnumProtocolDelegate(channel, PacketBound.SERVER));
+
             packet = protocol.createPacket(PacketBound.SERVER, packetId, dataSerializer);
-            if (packet == null) {
-                throw new DecoderException("Bad packet ID " + packetId);
-            }
         } catch (Exception ex) {
-            throw new DecoderException("Failed to create packet with ID " + packetId);
+            ex.printStackTrace();
+            throw new DecoderException("Failed to create packet with ID " + packetId + ", " + state);
+        }
+        if (packet == null) {
+            throw new DecoderException("Bad packet ID " + packetId);
         }
 
         if (PacketType.getPacketType(packet.getClass()).getState() != state) {
@@ -97,6 +101,7 @@ public class HoneyPacketDecoder {
                 throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state);
             }
         }
+        Bukkit.broadcastMessage("Packet " + packet + " " + WrappedEnumProtocol.getEnumProtocolDelegate(channel, PacketBound.SERVER));
 
         return packet;
     }

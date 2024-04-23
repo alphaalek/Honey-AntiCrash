@@ -1,16 +1,27 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.DecoderException;
 import io.netty.util.AttributeKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
+
+import java.util.Map;
+import java.util.Optional;
 
 
 public class HoneyPacketHandler {
@@ -24,6 +35,7 @@ public class HoneyPacketHandler {
 
     public HoneyPacketHandler(Channel channel) {
         this.channel = channel;
+        updateProtocol();
     }
 
     public void setPlayer(HoneyPlayer player) {
@@ -52,8 +64,22 @@ public class HoneyPacketHandler {
     }
 
     public void updateProtocol() {
-        AttributeKey<?> protocolAttributeKey = WrappedEnumProtocol.getProtocolAttributeKey(channel, PacketBound.SERVER);
-        protocol = new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get());
+        if (WrappedEnumProtocol.getEnumProtocolDelegateOrdinal(channel, PacketBound.SERVER) != this.protocolState.ordinal()
+                && channel.pipeline().get("pre-resolved-packet-handler") == null) {
+            Object protocol = NMS.getEnumProtocolClass().getEnumConstants()[this.protocolState.ordinal()];
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+                Map<Object, Object> delegatedDirectionPacketFlowMap = ReflectStructureCache.acquireStructure(protocol.getClass())
+                        .<Map<Object, Object>>withWeakType(Map.class).withTarget(protocol).readField(0);
+                protocol = delegatedDirectionPacketFlowMap.get(PacketBound.SERVER.getNMSWrapperType());
+            }
+            this.protocol = new WrappedEnumProtocol(protocol);
+        } else {
+            this.protocol = WrappedEnumProtocol.getEnumProtocol(channel, PacketBound.SERVER);
+        }
+
+        if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
+            channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, PacketBound.SERVER)).set(this.protocol);
+        }
     }
 
     public void setProtocolState(PacketState state) {
@@ -81,14 +107,14 @@ public class HoneyPacketHandler {
             return false;
         }
 
-        if (player != null && packetContainer.getPlayer() != null && packetContainer.getType() != PacketType.Play.Client.KEEP_ALIVE) {
-            packetSendMarker.set(packetContainer);
-        }
+        ProtocolSwapHandler.handleProtocolSwap(packetContainer);
+        packetSendMarker.set(packetContainer);
 
         return true;
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
+        Bukkit.getLogger().info("Write " + packetContainer.getType());
         return !isCancelled(packetContainer);
     }
 }

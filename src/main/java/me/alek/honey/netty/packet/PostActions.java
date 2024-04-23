@@ -5,23 +5,17 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
-import org.bukkit.Bukkit;
-
-import java.util.function.Consumer;
 
 public class PostActions {
 
@@ -36,26 +30,6 @@ public class PostActions {
         PacketLibrary packetLibrary = HoneyPlugin.get().getPacketLibrary();
         PacketProcessor packetProcessor = packetLibrary.getPacketProcessor();
 
-        packetProcessor.addPostAction(PacketType.Handshake.Client.SET_PROTOCOL, packet -> {
-            try {
-                JavaConverter<Enum<?>, WrappedEnumProtocol> converter = (JavaConverter<Enum<?>, WrappedEnumProtocol>) (JavaConverter<?, ?>) Converters.getEnumProtocolConverter();
-                int packetStateOrdinal;
-                if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                    WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter).readField(0);
-                    packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
-                } else {
-                    Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
-                    int clientIntentOrdinal = ((Enum<?>)clientIntent).ordinal();
-                    packetStateOrdinal = clientIntentOrdinal == 0 ? 2 : /* intent ordinal = 1 */ 3;
-                }
-                PacketState packetState = PacketState.values()[packetStateOrdinal];
-
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(packetState);
-            } catch (MissingHandlerException ex) {
-                packet.getChannel().close();
-            }
-        });
-
         packetProcessor.addPostAction(PacketType.Login.Client.LOGIN_START, packet -> {
             String name = getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) packet);
             NMS.submitChannelForName(name, packet.getChannel());
@@ -67,18 +41,7 @@ public class PostActions {
             }
         });
 
-        Consumer<PacketContainer<?>> setPacketState = packet -> {
-            try {
-                packetLibrary.getPipelineInjector().getPacketHandler(packet.getChannel()).setProtocolState(PacketState.PLAY);
-            } catch (MissingHandlerException ex) {
-                packet.getChannel().close();
-            }
-        };
-        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
-            HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation();
-            setPacketState.accept(packet);
-        });
-        packetProcessor.addPostAction(PacketType.Play.Server.LOGIN, setPacketState);
+        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation());
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
             WrappedPacketDataSerializer serializer = packet.getDataSerializers().readField(0);

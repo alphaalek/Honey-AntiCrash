@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.AttributeKey;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
@@ -15,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -199,7 +201,7 @@ public class PacketInterceptorResolver {
             throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
         }
 
-        WrappedEnumProtocol protocol = Converters.getEnumProtocolConverter().convertDelegate(channel.attr(key).get());
+        WrappedEnumProtocol protocol = WrappedEnumProtocol.getEnumProtocol(channel, bound);
 
         ByteBuf serializer = Unpooled.buffer();
         serializer.writeBytes(new byte[64]);

@@ -15,6 +15,7 @@ import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -333,41 +334,5 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         CallbackAction<PacketContainer<? extends WrappedPacket<?>>> action = postActions.get(packetType.getPacketId());
         action.addAction(callback);
-    }
-
-    public PacketState getPacketState(HoneyPlayer player, Class<?> packetClass) {
-        if (packetClass == null) return null;
-        if (player != null) return PacketState.PLAY;
-
-        PacketState packetState;
-        if (!lookupPacketStates.containsKey(packetClass)) {
-            String packetName = packetClass.getSimpleName();
-
-            if (packetName.startsWith("PacketHandshaking")) {
-                packetState = PacketState.HANDSHAKE;
-            }
-            else if (packetName.startsWith("PacketLogin")) {
-                packetState = PacketState.LOGIN;
-            }
-            else if (packetName.startsWith("PacketStatus")) {
-                packetState = PacketState.STATUS;
-            }
-            else if (packetName.startsWith("PacketPlay") || packetName.startsWith("Clientbound") || packetName.startsWith("Serverbound")) {
-                packetState = PacketState.PLAY;
-            }
-            else {
-                if (PACKET_CLASS.isAssignableFrom(packetClass.getSuperclass())) {
-                    return getPacketState(null, packetClass.getSuperclass());
-                }
-                packetState = PacketState.UNKNOWN;
-            }
-
-            lookupPacketStates.put(packetClass, packetState);
-        }
-        else {
-            packetState = lookupPacketStates.get(packetClass);
-        }
-
-        return packetState;
     }
 }

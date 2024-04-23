@@ -6,6 +6,7 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -45,6 +46,12 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
             player.punished = true;
         }
         UnsafeChannelCloser.closeForcibly(ctx.channel());
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        Bukkit.getLogger().info("Read " + msg);
+        ctx.fireChannelRead(msg);
     }
 
     public static void onExceptionCaught(Throwable throwable, boolean channelClosed) {

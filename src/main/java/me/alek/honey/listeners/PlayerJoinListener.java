@@ -73,10 +73,6 @@ public class PlayerJoinListener implements Listener {
             }
         }
 
-        if (player.packetHandler != null) {
-            player.packetHandler.setProtocolState(PacketState.HANDSHAKE);
-        }
-
         HoneyPlugin.get().getLoggerService().removePacketData(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
 

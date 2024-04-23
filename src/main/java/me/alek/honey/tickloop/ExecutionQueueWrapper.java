@@ -267,8 +267,8 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
-            if (packet == null || packet.isHandledByServer() || packet.getPlayer() == null
-                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+            if (packet == null || packet.isHandledByServer() ||
+                    packet.getPlayer() != null && ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
 
@@ -279,20 +279,22 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
             super.add(EMPTY_VALUE);
 
-            UUID uuid = packet.getPlayer().uuid;
-            synchronized (PacketTaskHandler.ignoreDecrementLock) {
-                if (!PacketType.isUnknown(packet.getType()) && !ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
-                    packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
-                } else {
-                    ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+            if (packet.getPlayer() != null) {
+                UUID uuid = packet.getPlayer().uuid;
+                synchronized (PacketTaskHandler.ignoreDecrementLock) {
+                    if (!PacketType.isUnknown(packet.getType()) && !ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
+                        packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
+                    } else {
+                        ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
+                    }
                 }
             }
 
-            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet.getPlayer(), packet, ExecutionQueueWrapper.this.getCurrentExecutionTick()));
+            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet, ExecutionQueueWrapper.this.getCurrentExecutionTick()));
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
-            if (!ConfigurationOptions.Postpone.ENABLED) {
+            if (!ConfigurationOptions.Postpone.ENABLED || task.getPlayer() == null) {
                 return false;
             }
 

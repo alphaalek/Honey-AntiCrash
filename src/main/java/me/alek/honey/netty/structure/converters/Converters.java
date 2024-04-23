@@ -153,7 +153,7 @@ public class Converters {
         return getConverter(WrappedPacketDataSerializer.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacketDataSerializer.class));
     }
 
-    public static JavaConverter<Object, WrappedEnumProtocol> getEnumProtocolConverter() {
+    public static JavaConverter<Enum<?>, WrappedEnumProtocol> getEnumProtocolConverter() {
         return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class));
     }
 
