@@ -34,16 +34,16 @@ public class ProtocolSwapHandler {
                 updateAfterEventloop = PacketState.CONFIGURATION;
                 updateDirection = PacketBound.CLIENT;
             }
+        } else if (packet.getType() == PacketType.Configuration.Server.FINISH_CONFIGURATION
+                || packet.getType() == PacketType.Play.Server.START_CONFIGURATION) {
+            updateAfterEventloop = PacketState.PLAY;
+            updateDirection = PacketBound.CLIENT;
         } else if (packet.getType() == PacketType.Login.Client.LOGIN_ACKNOWLEDGED) {
             setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
         } else if (packet.getType() == PacketType.Play.Client.CONFIGURATION_ACKNOWLEDGED) {
             setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
         } else if (packet.getType() == PacketType.Configuration.Client.FINISH_CONFIGURATION) {
             setProtocolState(packet.getChannel(), PacketState.PLAY, PacketBound.SERVER);
-        } else if (packet.getType() == PacketType.Configuration.Server.FINISH_CONFIGURATION
-                || packet.getType() == PacketType.Play.Server.START_CONFIGURATION) {
-            updateAfterEventloop = PacketState.PLAY;
-            updateDirection = PacketBound.CLIENT;
         } else if (packet.getType() == PacketType.Play.Server.LOGIN) {
             setProtocolState(packet.getChannel(), PacketState.PLAY, null);
         } else if (packet.getType() == PacketType.Handshake.Client.SET_PROTOCOL) {

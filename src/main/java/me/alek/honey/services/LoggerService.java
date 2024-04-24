@@ -224,6 +224,10 @@ public class LoggerService {
     }
 
     public Map<String, Object> getPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
+        if (PacketType.isUnknown(packet.getType())) {
+            return new HashMap<>();
+        }
+
         Map<String, Object> entries = new HashMap<>();
         for (Map.Entry<String, Object> entry : packet.getAll().readFieldEntries().entrySet()) {
             if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() != null && entry.getValue().getClass().isArray()) {
