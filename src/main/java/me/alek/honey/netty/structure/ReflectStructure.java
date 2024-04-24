@@ -69,7 +69,7 @@ public class ReflectStructure<T, C> {
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
     }
 
-    public ReflectStructure<T, C> disableStaticFields() {
+    public synchronized ReflectStructure<T, C> disableStaticFields() {
         this.withStaticFields = false;
 
         int defaultSize = DEFAULT_ACCESSORS.size();
@@ -109,7 +109,7 @@ public class ReflectStructure<T, C> {
         }
     }
 
-    private Map<Integer, ? extends IReflectionMember<?>> setDefaultSpecific(
+    private synchronized Map<Integer, ? extends IReflectionMember<?>> setDefaultSpecific(
             AtomicInteger index,
             Map<Integer, ? extends IReflectionMember<?>> defaults,
             Class<?> clazz,
