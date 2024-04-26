@@ -5,13 +5,18 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.MonitorFlagParser;
+import me.alek.honey.monitor.Monitorer;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.util.Array;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class PacketMonitorCommand implements CommandImpl {
 
@@ -19,7 +24,8 @@ public class PacketMonitorCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
 
         try {
-            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = MonitorFlagParser.getMonitorFlags(args);
+            Array<Object> parsed = MonitorFlagParser.getMonitorFlags(args);
+            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = parsed.stream().filter(p -> p instanceof MonitorFlag<?>).map(p -> (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) p).collect(Collectors.toList());
 
             if (flags.isEmpty()) {
                 sender.sendMessage(CommandManager.PREFIX + " §7You have to choose at least one flag for the packet monitor. Remember you can use the same flag multiple times.");
@@ -34,7 +40,7 @@ public class PacketMonitorCommand implements CommandImpl {
             HoneyPlugin.get().getMonitorManager().setupPacketMonitor(sender, flags);
             sender.sendMessage(CommandManager.PREFIX + " §7Using the following flags: ");
             for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
-                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown"));
+                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown") + " " + flag.getSpecified());
             }
 
         } catch (WrongMonitorFlagSyntaxException ex) {

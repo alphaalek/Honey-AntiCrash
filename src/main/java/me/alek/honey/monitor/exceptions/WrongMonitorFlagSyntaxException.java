@@ -1,5 +1,6 @@
 package me.alek.honey.monitor.exceptions;
 
+import me.alek.honey.monitor.LogicalOperator;
 import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.MonitorFlagParser;
 
@@ -27,6 +28,21 @@ public class WrongMonitorFlagSyntaxException extends Exception {
             @Override
             public String getMessage() {
                 return "Couldn't find any flag with that name";
+            }
+        };
+    }
+
+    public static WrongMonitorFlagSyntaxException wrongOperatorUsage(LogicalOperator operator, String message) {
+        return new WrongMonitorFlagSyntaxException(null) {
+
+            @Override
+            public String getFlag() {
+                return operator.name();
+            }
+
+            @Override
+            public String getMessage() {
+                return message;
             }
         };
     }

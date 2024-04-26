@@ -9,25 +9,25 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.util.PredicateUtils;
+import me.alek.honey.util.Array;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.*;
-import java.util.function.BiPredicate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface MonitorFlag<T> {
 
     enum Flag {
         PLAYER("player", "--player [player name]", false, PlayerFlag::new),
-        TYPE("type", "--type [packet type]", false, EqualTypeFlag::new),
+        TYPE("type", "--type [packet type]", false, TypeFlag::new),
         STATE("state", "--state [packet state]", false, StateFlag::new),
-        IGNORE("ignore", "--ignore [packet type]", false, IgnoreTypeFlag::new),
-        IGNORE_POSITION("ignore-position", "--ignore-position", false, IgnorePositionFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
         DETAILED("detailed", "--detailed", false, DetailedFlag::new),
         HONEY_DECODE("min-honey-decode", "--min-honey-decode [number (as decimal)]", false, HoneyDecodeTimingsFlag::new),
@@ -82,8 +82,8 @@ public interface MonitorFlag<T> {
             return flagsLookup.get(name);
         }
 
-        public static void checkSyntax(String[] args, int readIndex, MonitorFlag<?> flag, int takes) throws WrongMonitorFlagSyntaxException {
-            if (readIndex - 1 + takes >= args.length) {
+        public static void checkSyntax(Array<String> args, int readIndex, MonitorFlag<?> flag, int takes) throws WrongMonitorFlagSyntaxException {
+            if (readIndex - 1 + takes >= args.size()) {
                 throw new WrongMonitorFlagSyntaxException(flag);
             }
         }
@@ -92,7 +92,7 @@ public interface MonitorFlag<T> {
     interface NoArgumentMonitorFlag<F> extends MonitorFlag<F> {
 
         @Override
-        default int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        default int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return 0;
         }
     }
@@ -103,7 +103,7 @@ public interface MonitorFlag<T> {
         default void append(F input, List<String> data) {}
     }
 
-    int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException;
+    int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException;
 
     boolean test(T input);
 
@@ -111,6 +111,10 @@ public interface MonitorFlag<T> {
 
     default String getWrongSyntaxMessage() {
         return "You have to choose an argument";
+    }
+
+    default String getSpecified() {
+        return "";
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -132,11 +136,16 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return "<double> " + value;
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             Flag.checkSyntax(args, readIndex, flag, 1);
 
             try {
-                this.value = Double.parseDouble(args[readIndex]);
+                this.value = Double.parseDouble(MonitorFlagParser.getFromArgs(args, readIndex));
             } catch (NumberFormatException ex) {
                 throw new WrongMonitorFlagSyntaxException(flag);
             }
@@ -160,10 +169,15 @@ public interface MonitorFlag<T> {
         private String playerName;
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return "<player name>: " + playerName;
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             Flag.checkSyntax(args, readIndex, this, 1);
 
-            this.playerName = args[readIndex];
+            this.playerName = MonitorFlagParser.getFromArgs(args, readIndex);
             return 1;
         }
 
@@ -173,103 +187,47 @@ public interface MonitorFlag<T> {
         }
     }
 
-    class TypeFlag implements NoAppendingMonitorFlag<PacketTypeEnum> {
+    @FlagAnnotation(Flag.TYPE)
+    class TypeFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
 
-        private String type;
-        private final BiPredicate<String, String> typeFlagComparator;
-        private final MonitorFlag<?> flag;
+        private PacketTypeEnum type;
+        private String specified;
 
-        public TypeFlag(MonitorFlag<?> flag, BiPredicate<String, String> predicate) {
-            this.flag = flag;
-            this.typeFlagComparator = predicate;
+        @Override
+        public String getSpecified() {
+            return "<packet type>: " + type;
         }
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            Flag.checkSyntax(args, readIndex, flag, 1);
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
+            Flag.checkSyntax(args, readIndex, this, 1);
 
-            this.type = args[readIndex];
+            this.specified = MonitorFlagParser.getFromArgs(args, readIndex);
             {
-                PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(type);
+                PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(specified);
                 if (packetType != null) {
-                    this.type = packetType.toString();
+                    this.type = packetType;
                     return 1;
                 }
             }
             for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER)) {
-                if (packetType != null && packetType.toString().equalsIgnoreCase(type)) {
+                if (packetType != null && packetType.toString().equalsIgnoreCase(specified)) {
+                    this.type = packetType;
                     return 1;
                 }
             }
 
-            throw new WrongMonitorFlagSyntaxException(flag);
-        }
-
-        @Override
-        public boolean test(PacketTypeEnum input) {
-            return typeFlagComparator.test(type, input.toString());
-        }
-
-        @Override
-        public String getWrongSyntaxMessage() {
-            return "Couldn't find any packet type matching \"" + Optional.ofNullable(type).orElse("") + "\"";
-        }
-    }
-
-    @FlagAnnotation(Flag.TYPE)
-    class EqualTypeFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
-
-        private final MonitorFlag<PacketTypeEnum> typeFlag = new TypeFlag(this, PredicateUtils.STRING_EQUAL_COMPARATOR);
-
-        @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return typeFlag.check(args, readIndex);
+            throw new WrongMonitorFlagSyntaxException(this);
         }
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return typeFlag.test(input.getType());
+            return input.getType().equals(this.type);
         }
 
         @Override
         public String getWrongSyntaxMessage() {
-            return typeFlag.getWrongSyntaxMessage();
-        }
-    }
-
-    @FlagAnnotation(Flag.IGNORE)
-    class IgnoreTypeFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
-
-        private final MonitorFlag<PacketTypeEnum> typeFlag = new TypeFlag(this, PredicateUtils.STRING_NOT_EQUAL_COMPARATOR);
-
-        @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return typeFlag.check(args, readIndex);
-        }
-
-        @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return typeFlag.test(input.getType());
-        }
-
-        @Override
-        public String getWrongSyntaxMessage() {
-            return typeFlag.getWrongSyntaxMessage();
-        }
-    }
-
-    @FlagAnnotation(Flag.IGNORE_POSITION)
-    class IgnorePositionFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>>, NoArgumentMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
-
-        private static final PacketTypeEnum[] POSITION_PACKETS = Arrays.asList(
-                PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.LOOK, PacketType.Play.Client.GROUND, PacketType.Play.Client.FLYING).toArray(new PacketTypeEnum[0]);
-
-        @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            for (PacketTypeEnum packetType : POSITION_PACKETS) {
-                if (input.getType().equals(packetType)) return false;
-            }
-            return true;
+            return "Couldn't find any packet type matching \"" + Optional.ofNullable(specified).orElse("") + "\"";
         }
     }
 
@@ -279,10 +237,15 @@ public interface MonitorFlag<T> {
         private PacketState state;
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return "<packet state> " + state;
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             Flag.checkSyntax(args, readIndex, this, 1);
 
-            String specified = args[readIndex];
+            String specified = MonitorFlagParser.getFromArgs(args, readIndex);
             for (PacketState state : PacketState.values()) {
                 if (state != PacketState.UNKNOWN && state.name().equalsIgnoreCase(specified)) {
                     this.state = state;
@@ -332,7 +295,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
@@ -391,7 +359,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
@@ -412,7 +385,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
@@ -433,7 +411,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
@@ -454,7 +437,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
@@ -475,7 +463,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
@@ -496,7 +489,12 @@ public interface MonitorFlag<T> {
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
         @Override
-        public int check(String[] args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        public String getSpecified() {
+            return numberArgumentFlag.getSpecified();
+        }
+
+        @Override
+        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
             return numberArgumentFlag.check(args, readIndex);
         }
 
