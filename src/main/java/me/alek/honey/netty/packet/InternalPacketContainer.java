@@ -192,7 +192,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
         try {
             return Optional.ofNullable(player).map(player -> player.name)
-                    .orElse(HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayerName());
+                    .orElse(Optional.ofNullable(
+                            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayerName())
+                            .orElse("Unknown"));
         } catch (MissingHandlerException ex) {
             return "Unknown";
         }

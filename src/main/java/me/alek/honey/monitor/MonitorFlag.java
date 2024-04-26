@@ -318,7 +318,7 @@ public interface MonitorFlag<T> {
 
             String specified = args[readIndex];
             for (PacketState state : PacketState.values()) {
-                if (state.name().equalsIgnoreCase(specified)) {
+                if (state != PacketState.UNKNOWN && state.name().equalsIgnoreCase(specified)) {
                     this.state = state;
                     return 1;
                 }
@@ -329,7 +329,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return input.getState().equals(state);
+            return state == PacketState.ANY || input.getState().equals(state);
         }
 
         @Override
