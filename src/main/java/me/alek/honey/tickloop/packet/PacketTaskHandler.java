@@ -47,7 +47,7 @@ public class PacketTaskHandler {
                                 && packet.getType() != PacketType.Play.Client.POSITION_LOOK
                                 && packet.getType() != PacketType.Play.Client.GROUND
                                 && packet.getType() != PacketType.Play.Client.VEHICLE_MOVE) {
-                            dumpThread(packet.getPlayer(), packet);
+                            dumpThread(packet);
                         }
                     }
                 }
@@ -111,12 +111,12 @@ public class PacketTaskHandler {
         return builder.toString();
     }
 
-    public static void dumpThread(HoneyPlayer player, PacketContainer<? extends WrappedPacket<?>> packet) {
+    public static void dumpThread(PacketContainer<? extends WrappedPacket<?>> packet) {
         String dump = getThreadDump();
         LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
         if (!dump.contains("PacketTaskHandler")) {
-            String name = player != null ? player.name : "Unknown";
+            String name = packet != null ? packet.getPlayerName() : "Unknown";
 
             if (packet != null && !PacketType.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());

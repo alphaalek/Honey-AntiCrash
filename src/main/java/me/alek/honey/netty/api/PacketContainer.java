@@ -34,6 +34,8 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     HoneyPlayer getPlayer();
 
+    String getPlayerName();
+
     Object getHandle();
 
     String getName();

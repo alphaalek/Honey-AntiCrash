@@ -63,27 +63,13 @@ public class LoggerService {
 
             // log the packet
             if (enabled) {
-                String playerName = player != null ? player.name : null;
-
                 if (packet.getState() != PacketState.PLAY) {
                     if (!ConfigurationOptions.PacketLogger.EARLY) {
                         return;
                     }
-
-                    if (playerName == null) {
-                        try {
-                            HoneyPacketHandler packetHandler = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(packet.getChannel());
-                            playerName = packetHandler.getPlayerName();
-                        } catch (Exception ignored) {
-                        }
-                    }
-
-                    if (playerName == null && packet.getType() == PacketType.Login.Client.LOGIN_START) {
-                        playerName = PostActions.getNameFromLoginStart(packet);
-                    }
                 }
 
-                logPacket(packet, playerName != null ? playerName : "Unknown");
+                logPacket(packet, packet.getPlayerName());
             }
         }
     };
@@ -196,8 +182,7 @@ public class LoggerService {
             return;
         }
 
-        String name = packet.getPlayer() != null ? packet.getPlayer().name : "Unknown";
-        getLogger().info("Auto dump for packet sent by " + name + ": " + packet.getName()
+        getLogger().info("Auto dump for packet sent by " + packet.getPlayerName() + ": " + packet.getName()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
     }
 

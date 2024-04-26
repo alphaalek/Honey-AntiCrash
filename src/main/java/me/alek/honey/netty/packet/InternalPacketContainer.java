@@ -2,6 +2,9 @@ package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
@@ -77,7 +80,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
             return "Unknown Packet";
         }
 
-        return "Packet:{Type:" + type + ",Player:" + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown") + "}";
+        return "Packet:{Type:" + type + ",Player:" + getPlayerName() + "}";
     }
 
     @Override
@@ -171,6 +174,28 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public HoneyPlayer getPlayer() {
         return player;
+    }
+
+    @Override
+    public String getPlayerName() {
+        if (type == PacketType.Login.Client.LOGIN_START) {
+            String name = PostActions.getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) this);
+
+            try {
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).setPlayerName(name);
+            } catch (MissingHandlerException ignored) {
+
+            }
+
+            return name;
+        }
+
+        try {
+            return Optional.ofNullable(player).map(player -> player.name)
+                    .orElse(HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayerName());
+        } catch (MissingHandlerException ex) {
+            return "Unknown";
+        }
     }
 
     public <T> IStructureModifier<T> getModifier(Class<T> clazz) {
