@@ -87,40 +87,6 @@ public interface MonitorFlag<T> {
                 throw new WrongMonitorFlagSyntaxException(flag);
             }
         }
-
-        public static Flag getFlag(MonitorFlag<?> flag) {
-            try {
-                @SuppressWarnings("unchecked")
-                Class<? extends MonitorFlag<?>> clazz = (Class<? extends MonitorFlag<?>>) flag.getClass();
-
-                return clazz.getAnnotation(FlagAnnotation.class).value();
-            } catch (Exception ex) {
-                return null;
-            }
-        }
-
-        public static List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
-            if (args.length == 0) return new ArrayList<>();
-
-            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = new ArrayList<>();
-            int readIndex = 0;
-
-            while (readIndex < args.length) {
-                String argument = args[readIndex++];
-                if (argument.startsWith("--")) {
-
-                    MonitorFlag.Flag flagType = MonitorFlag.Flag.getFlagByName(argument.toLowerCase().substring(2));
-                    if (flagType == null) continue;
-
-                    @SuppressWarnings("unchecked")
-                    MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag =
-                            (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) flagType.createNew();
-                    readIndex += flag.check(args, readIndex);
-                    flags.add(flag);
-                }
-            }
-            return flags;
-        }
     }
 
     interface NoArgumentMonitorFlag<F> extends MonitorFlag<F> {

@@ -1,6 +1,7 @@
 package me.alek.honey.monitor.exceptions;
 
 import me.alek.honey.monitor.MonitorFlag;
+import me.alek.honey.monitor.MonitorFlagParser;
 
 import java.util.Optional;
 
@@ -11,8 +12,23 @@ public class WrongMonitorFlagSyntaxException extends Exception {
 
     public WrongMonitorFlagSyntaxException(MonitorFlag<?> flag) {
         this.name = Optional.ofNullable(
-                MonitorFlag.Flag.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown");
+                MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown");
         this.flag = flag;
+    }
+
+    public static WrongMonitorFlagSyntaxException wrongFlag(String flag) {
+        return new WrongMonitorFlagSyntaxException(null) {
+
+            @Override
+            public String getFlag() {
+                return flag;
+            }
+
+            @Override
+            public String getMessage() {
+                return "Couldn't find any flag with that name";
+            }
+        };
     }
 
     public String getFlag() {

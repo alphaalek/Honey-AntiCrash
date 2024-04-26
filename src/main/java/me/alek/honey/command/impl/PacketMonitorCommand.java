@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.monitor.MonitorFlag;
+import me.alek.honey.monitor.MonitorFlagParser;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -18,7 +19,7 @@ public class PacketMonitorCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
 
         try {
-            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = MonitorFlag.Flag.getMonitorFlags(args);
+            List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags = MonitorFlagParser.getMonitorFlags(args);
 
             if (flags.isEmpty()) {
                 sender.sendMessage(CommandManager.PREFIX + " §7You have to choose at least one flag for the packet monitor. Remember you can use the same flag multiple times.");
@@ -33,7 +34,7 @@ public class PacketMonitorCommand implements CommandImpl {
             HoneyPlugin.get().getMonitorManager().setupPacketMonitor(sender, flags);
             sender.sendMessage(CommandManager.PREFIX + " §7Using the following flags: ");
             for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
-                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlag.Flag.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown"));
+                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown"));
             }
 
         } catch (WrongMonitorFlagSyntaxException ex) {

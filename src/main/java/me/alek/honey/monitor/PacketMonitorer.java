@@ -18,9 +18,13 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
         boolean hasToBeAfterServerHandle = false;
         for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
             hasToBeAfterServerHandle = Optional.ofNullable(
-                    MonitorFlag.Flag.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
-            if (hasToBeAfterServerHandle) break;
+                    MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
+
+            if (hasToBeAfterServerHandle) {
+                break;
+            }
         }
+
         sendAt = hasToBeAfterServerHandle ? MonitorSendAt.AFTER_SERVER_HANDLE : MonitorSendAt.AFTER_HONEY_HANDLE;
     }
 
@@ -43,6 +47,7 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
             }
             flag.append(input, data);
         }
+
         StringBuilder dataMessage = new StringBuilder();
         for (String d : data) {
             dataMessage.append("§8, §7").append(d);
