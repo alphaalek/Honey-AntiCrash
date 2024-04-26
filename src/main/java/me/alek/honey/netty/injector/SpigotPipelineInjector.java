@@ -10,6 +10,7 @@ import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -280,8 +281,7 @@ public class SpigotPipelineInjector {
                 PreResolvedPacketHandler preResolvedPacketHandler0 = (PreResolvedPacketHandler) preResolvedPacketHandler;
 
                 HoneyPacketHandler packetHandler = preResolvedPacketHandler0.getPacketHandler();
-                packetHandler.setPlayer(player);
-                player.packetHandler = packetHandler;
+                player.setPacketHandler(packetHandler);
 
                 channel.pipeline().remove("pre-resolved-packet-handler");
             }

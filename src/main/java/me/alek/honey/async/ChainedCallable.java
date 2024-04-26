@@ -23,11 +23,6 @@ public class ChainedCallable<T> implements Callable<T> {
         return this;
     }
 
-    public ChainedCallable<T> addListener(Function<T, T> listener) {
-        this.listeners.add((s) -> new ChainedCallable<>(from, () -> s).addListener(listener));
-        return this;
-    }
-
     public TaskSupplier<T> getFrom() {
         return from;
     }

@@ -61,13 +61,13 @@ pastebin-developer-key: ""
 
 # Own decoder settings
 decoder:
-  # Should honey decoder be enabled.
+  # Should the default decoder be enabled.
   use-default: false
 
   # Should nbt decode for PacketPlayInBlockPlace (versions < 1.9) & PacketPlayInWindowClick (versions < 1.17) be disabled
   disable-nbt: true
 
-  # Should PacketPlayInSetCreativeSlot packets be decoded if the player is not in creative mode.
+  # Should PacketPlayInSetCreativeSlot packets not be decoded if the player is not in creative mode.
   disable-creative-slot-for-non-creative: true
 
 
