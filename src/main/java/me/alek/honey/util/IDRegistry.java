@@ -23,7 +23,6 @@ public class IDRegistry {
     }
 
     public static IDRegistry from(int... ids) {
-        Bukkit.broadcastMessage("creating registry from " + Arrays.toString(ids));
         int max = 0;
         List<Integer> idsList = new ArrayList<>();
         for (int i : ids) {
@@ -31,14 +30,10 @@ public class IDRegistry {
             if (i > max) max = i;
         }
 
-        Bukkit.broadcastMessage("registry " + idsList + " " + max);
-
         IDRegistry registry = new IDRegistry();
         for (int i = 0; i <= max; i++) {
             registry.acquireID();
         }
-
-        Bukkit.broadcastMessage("registry " + Arrays.toString(registry.ids));
 
         for (int i = 0; i < max; i++) {
             if (!idsList.contains(i)) {
@@ -46,7 +41,6 @@ public class IDRegistry {
             }
         }
 
-        Bukkit.broadcastMessage("registry " + Arrays.toString(registry.ids));
         return registry;
     }
 

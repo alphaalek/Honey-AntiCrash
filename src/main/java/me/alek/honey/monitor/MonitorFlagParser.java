@@ -117,8 +117,6 @@ public class MonitorFlagParser {
             i++;
         }
 
-        Bukkit.broadcastMessage(parsed.as(Parsed::get) + " " + operator + " " + start + " " + end + " " + i + " " + index);
-
         try {
             int unexpectedIndex = -1;
             if (start.size() > end.size()) {
