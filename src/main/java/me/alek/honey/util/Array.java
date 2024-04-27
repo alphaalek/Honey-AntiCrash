@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -18,6 +19,20 @@ public class Array<T> implements Iterable<T> {
         Array<T> array = new Array<>();
         array.data = data;
         return array;
+    }
+
+    public static <T> Array<T> from(T data) {
+        Array<T> array = new Array<>();
+        array.set(0, data);
+        return array;
+    }
+
+    public static <T, R> Array<T> from(Array<R> array, Function<R, Array<T>> mapper) {
+        Array<T> newArray = new Array<>();
+        for (R val : array) {
+            newArray.addAll(mapper.apply(val));
+        }
+        return newArray;
     }
 
     public static <T> Array<T> empty() {
@@ -34,6 +49,14 @@ public class Array<T> implements Iterable<T> {
     }
 
     public <R> Array<R> as(Function<? super T, ? extends R> mapper) {
+        return Array.from(
+                with(Objects::nonNull)
+                        .stream()
+                        .map(mapper)
+                        .toArray(Object[]::new));
+    }
+
+    public <R> Array<R> asFlat(Function<? super T, ? extends Array<R>> mapper) {
         return Array.from(
                 with(Objects::nonNull)
                         .stream()
@@ -88,6 +111,10 @@ public class Array<T> implements Iterable<T> {
         return data;
     }
 
+    public T[] toRealArray(IntFunction<T[]> func) {
+        return Arrays.stream(data).toArray(func);
+    }
+
     public T get(int index) {
         return get(index, null);
     }
@@ -130,6 +157,16 @@ public class Array<T> implements Iterable<T> {
         int index = size();
         resolve(index);
         data[index] = val;
+    }
+
+    public void addAll(T... values) {
+        addAll(Arrays.asList(values));
+    }
+
+    public void addAll(Iterable<T> iterable) {
+        for (T val : iterable) {
+            add(val);
+        }
     }
 
     public T addAndGet(T val) {

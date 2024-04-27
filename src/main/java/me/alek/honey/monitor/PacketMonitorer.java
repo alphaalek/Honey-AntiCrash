@@ -2,6 +2,7 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,14 +10,14 @@ import java.util.Optional;
 
 public class PacketMonitorer<WP extends WrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<? extends WrappedPacket<WP>>> {
 
-    private final List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags;
+    private final Flags.RuntimeFlags flags;
     private final MonitorSendAt sendAt;
 
-    public PacketMonitorer(List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags) {
+    public PacketMonitorer(Flags.RuntimeFlags flags) {
         this.flags = flags;
 
         boolean hasToBeAfterServerHandle = false;
-        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
+        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags.getFlags()) {
             hasToBeAfterServerHandle = Optional.ofNullable(
                     MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
 
@@ -41,11 +42,9 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
     @Override
     public String getMessage(PacketContainer<? extends WrappedPacket<WP>> input) {
         List<String> data = new ArrayList<>();
-        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
-            if (!flag.test(input)) {
-                return null;
-            }
-            flag.append(input, data);
+        if (!flags.process(input, data)) {
+            Bukkit.broadcastMessage("Aborting");
+            return null;
         }
 
         StringBuilder dataMessage = new StringBuilder();

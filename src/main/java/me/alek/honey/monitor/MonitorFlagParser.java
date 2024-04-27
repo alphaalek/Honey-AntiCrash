@@ -4,9 +4,11 @@ import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MonitorFlagParser {
@@ -72,7 +74,7 @@ public class MonitorFlagParser {
                 public String raw() throws WrongMonitorFlagSyntaxException {
                     return "--" + Optional.ofNullable(getFlag(flag))
                             .map(MonitorFlag.Flag::getName)
-                            .orElseThrow(() -> new WrongMonitorFlagSyntaxException(flag));
+                            .orElseThrow(() -> WrongMonitorFlagSyntaxException.wrongFlagUsage(flag));
                 }
 
                 @Override
@@ -95,6 +97,13 @@ public class MonitorFlagParser {
         if (index == parsed.size() - 1 && operator != LogicalOperator.PARANTHESIS_END) {
             wrongSyntaxMessage.set("Using operator without flag.");
             return false;
+        }
+        if (operator != LogicalOperator.PARANTHESIS_END && operator != LogicalOperator.PARANTHESIS_START) {
+            Object next = parsed.get(index + 1).get();
+            if (!(next instanceof MonitorFlag || next.equals(LogicalOperator.PARANTHESIS_START))) {
+                wrongSyntaxMessage.set("Using operator without flag.");
+                return false;
+            }
         }
 
         Array<Parsed> check;
@@ -145,7 +154,7 @@ public class MonitorFlagParser {
         return builder.length() > 5 ? builder.substring(0, 5) + "..." : builder.toString();
     }
 
-    public static Array<Object> getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
+    private static Array<Parsed> getMonitorFlagsAndOperators(String[] args) throws WrongMonitorFlagSyntaxException {
         if (args.length == 0) {
             return Array.empty();
         }
@@ -189,7 +198,72 @@ public class MonitorFlagParser {
 
         ensureCorrectParanthesesPostParsing(parsed);
 
-        return parsed.as(Parsed::get);
+        Bukkit.broadcastMessage("Parsed " + parsed);
+
+        return parsed;
+    }
+
+    public static Flags.RuntimeFlags getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
+        Array<Object> elements = getMonitorFlagsAndOperators(args).as(Parsed::get);
+
+        Bukkit.broadcastMessage("Outer elements " + elements);
+
+        return new Flags.RuntimeFlags(getFlagsWithin(elements, new Flags.Conditions()));
+    }
+
+    private static Array<Flags.Chipstate> getFlagsWithin(Array<Object> elements, Flags.Conditions conditions) {
+        Array<Flags.Chipstate> flags = new Array<>();
+
+        Bukkit.broadcastMessage("Getting within");
+        int chipstateIndex = 0;
+        for (int i = 0; i < elements.size(); i++) {
+            Object elem = elements.get(i);
+            Bukkit.broadcastMessage("Pre " + elem);
+            if (elem instanceof MonitorFlag || elem instanceof Flags.Chipstate) {
+                chipstateIndex++;
+                Flags.Runtime runtime = new Flags.Runtime((MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) elem);
+                flags.add(runtime);
+            }
+            if (elem.equals(LogicalOperator.NOT)) {
+                conditions.addCondition(new Flags.Condition(new IDRegistry(chipstateIndex), flags, LogicalOperator.NOT));
+            }
+            else if (elem.equals(LogicalOperator.AND)) {
+                conditions.addCondition(new Flags.Condition(new IDRegistry(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.AND));
+            }
+            else if (elem.equals(LogicalOperator.OR)) {
+                conditions.addCondition(new Flags.Condition(new IDRegistry(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.OR));
+            }
+            else if (elem.equals(LogicalOperator.PARANTHESIS_START) && i != 0) {
+                Array<Object> in = getElementsInParanthesis(elements.from(i));
+                i += in.size();
+
+                Flags.Conditions newChipstateConditions = new Flags.Conditions();
+                flags.add(new Flags.Own(getFlagsWithin(in, newChipstateConditions), newChipstateConditions));
+            }
+            else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
+                return flags;
+            }
+
+            Bukkit.broadcastMessage("After " + i + " " + elem + " " + flags);
+        }
+
+        Bukkit.broadcastMessage("Done, returning " + flags);
+
+        return flags;
+    }
+
+    private static Array<Object> getElementsInParanthesis(Array<Object> elements) {
+        Array<Object> within = new Array<>();
+        for (int i = 0; i < elements.size(); i++) {
+            Object elem = elements.get(i);
+            within.add(elem);
+
+            if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
+                return within;
+            }
+        }
+
+        return within;
     }
 
     public static String getFromArgs(Array<String> args, int index) {

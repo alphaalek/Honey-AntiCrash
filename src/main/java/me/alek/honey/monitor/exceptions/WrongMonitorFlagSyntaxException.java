@@ -3,25 +3,33 @@ package me.alek.honey.monitor.exceptions;
 import me.alek.honey.monitor.LogicalOperator;
 import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.MonitorFlagParser;
+import me.alek.honey.monitor.Monitorer;
 
 import java.util.Optional;
 
-public class WrongMonitorFlagSyntaxException extends Exception {
+public abstract class WrongMonitorFlagSyntaxException extends Exception {
 
-    private final String name;
-    private final MonitorFlag<?> flag;
+    public static WrongMonitorFlagSyntaxException wrongFlagUsage(MonitorFlag<?> flag) {
+        return new WrongMonitorFlagSyntaxException() {
 
-    public WrongMonitorFlagSyntaxException(MonitorFlag<?> flag) {
-        this.name = Optional.ofNullable(
-                MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown");
-        this.flag = flag;
+            @Override
+            public String getType() {
+                return "monitor flag " + Optional.ofNullable(
+                        MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown");
+            }
+
+            @Override
+            public String getMessage() {
+                return flag.getWrongSyntaxMessage();
+            }
+        };
     }
 
     public static WrongMonitorFlagSyntaxException wrongFlag(String flag) {
-        return new WrongMonitorFlagSyntaxException(null) {
+        return new WrongMonitorFlagSyntaxException() {
 
             @Override
-            public String getFlag() {
+            public String getType() {
                 return flag;
             }
 
@@ -33,11 +41,11 @@ public class WrongMonitorFlagSyntaxException extends Exception {
     }
 
     public static WrongMonitorFlagSyntaxException wrongOperatorUsage(LogicalOperator operator, String message) {
-        return new WrongMonitorFlagSyntaxException(null) {
+        return new WrongMonitorFlagSyntaxException() {
 
             @Override
-            public String getFlag() {
-                return operator.name();
+            public String getType() {
+                return "logical operator " + operator.name();
             }
 
             @Override
@@ -47,11 +55,7 @@ public class WrongMonitorFlagSyntaxException extends Exception {
         };
     }
 
-    public String getFlag() {
-        return name;
-    }
+    public abstract String getType();
 
-    public String getMessage() {
-        return flag.getWrongSyntaxMessage();
-    }
+    public abstract String getMessage();
 }

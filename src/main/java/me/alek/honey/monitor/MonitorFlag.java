@@ -13,13 +13,11 @@ import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.IDRegistry;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 public interface MonitorFlag<T> {
@@ -30,10 +28,10 @@ public interface MonitorFlag<T> {
         STATE("state", "--state [packet state]", false, StateFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
         DETAILED("detailed", "--detailed", false, DetailedFlag::new),
-        HONEY_DECODE("min-honey-decode", "--min-honey-decode [number (as decimal)]", false, HoneyDecodeTimingsFlag::new),
-        SERVER_DECODE("min-server-decode", "--min-server-decode [number (as decimal)]", false, ServerDecodeTimingsFlag::new),
-        HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal)]", true, HoneyHandleTimingsFlag::new),
-        SERVER_HANDLE("min-server-handle", "--min-server-handle [number (as decimal)]", true, ServerHandleTimingsFlag::new),
+        HONEY_DECODE("min-honey-decode", "--min-honey-decode [number (as decimal) (in millis)]", false, HoneyDecodeTimingsFlag::new),
+        SERVER_DECODE("min-server-decode", "--min-server-decode [number (as decimal) (in millis)]", false, ServerDecodeTimingsFlag::new),
+        HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal) (in millis)]", true, HoneyHandleTimingsFlag::new),
+        SERVER_HANDLE("min-server-handle", "--min-server-handle [number (as decimal) (in millis)]", true, ServerHandleTimingsFlag::new),
         NTQ_OAWO("min-ntq-oawo", "--min-ntq-oawo [number (as percentage)]", true, NTQOfAverageWithoutFlag::new),
         NTQ_OT("min-ntq-ot", "--min-ntq-ot [number (as percentage)]", true, NTQOfTotalFlag::new),
         STQ_OAWO("min-stq-oawo", "--min-stq-oawo [number (as percentage)]", true, STQOfAverageWithoutFlag::new),
@@ -84,7 +82,7 @@ public interface MonitorFlag<T> {
 
         public static void checkSyntax(Array<String> args, int readIndex, MonitorFlag<?> flag, int takes) throws WrongMonitorFlagSyntaxException {
             if (readIndex - 1 + takes >= args.size()) {
-                throw new WrongMonitorFlagSyntaxException(flag);
+                throw WrongMonitorFlagSyntaxException.wrongFlagUsage(flag);
             }
         }
     }
@@ -147,7 +145,7 @@ public interface MonitorFlag<T> {
             try {
                 this.value = Double.parseDouble(MonitorFlagParser.getFromArgs(args, readIndex));
             } catch (NumberFormatException ex) {
-                throw new WrongMonitorFlagSyntaxException(flag);
+                throw WrongMonitorFlagSyntaxException.wrongFlagUsage(this);
             }
             return 1;
         }
@@ -170,7 +168,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public String getSpecified() {
-            return "<player name>: " + playerName;
+            return "<player name> " + playerName;
         }
 
         @Override
@@ -195,7 +193,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public String getSpecified() {
-            return "<packet type>: " + type;
+            return "<packet type> " + type;
         }
 
         @Override
@@ -217,7 +215,7 @@ public interface MonitorFlag<T> {
                 }
             }
 
-            throw new WrongMonitorFlagSyntaxException(this);
+            throw WrongMonitorFlagSyntaxException.wrongFlagUsage(this);
         }
 
         @Override
@@ -253,7 +251,7 @@ public interface MonitorFlag<T> {
                 }
             }
 
-            throw new WrongMonitorFlagSyntaxException(this);
+            throw WrongMonitorFlagSyntaxException.wrongFlagUsage(this);
         }
 
         @Override

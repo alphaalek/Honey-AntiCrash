@@ -1,5 +1,11 @@
 package me.alek.honey.util;
 
+import org.bukkit.Bukkit;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class IDRegistry {
 
     /* pre-made ID registries */
@@ -12,6 +18,32 @@ public class IDRegistry {
         for (int i = 0; i < preMadeIDs; i++) {
             acquireID();
         }
+    }
+
+    public IDRegistry(int... preMadeIDs) {
+        Bukkit.broadcastMessage("creating registry from " + Arrays.toString(preMadeIDs));
+        int max = 0;
+        List<Integer> ids = new ArrayList<>();
+        for (int i : preMadeIDs) {
+            ids.add(i);
+            if (i > max) max = i;
+        }
+
+        Bukkit.broadcastMessage("registry " + ids + " " + max);
+
+        for (int i = 0; i <= max; i++) {
+            acquireID();
+        }
+
+        Bukkit.broadcastMessage("registry " + Arrays.toString(this.ids));
+
+        for (int i = 0; i < max; i++) {
+            if (!ids.contains(i)) {
+                remove(i);
+            }
+        }
+
+        Bukkit.broadcastMessage("registry " + Arrays.toString(this.ids));
     }
 
     public IDRegistry() {
@@ -59,6 +91,10 @@ public class IDRegistry {
 
     public boolean hasID(int id) {
         return ids.length > id && ids[id] != -1;
+    }
+
+    public int[] getIDs() {
+        return ids;
     }
 
     public int size() {
