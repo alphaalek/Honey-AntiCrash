@@ -39,6 +39,10 @@ public class Array<T> implements Iterable<T> {
         return new Array<>();
     }
 
+    public Array<T> copy() {
+        return Array.from(data);
+    }
+
     public Array<T> with(Predicate<? super T> filter) {
         return Array.from(
                 stream().filter(filter).toArray(Object[]::new));
@@ -151,6 +155,13 @@ public class Array<T> implements Iterable<T> {
     public synchronized void insert(int at, T val) {
         move(at, 1);
         data[at] = val;
+    }
+
+    public synchronized void replace(int at, Iterable<T> values) {
+        int i = 0;
+        for (T val : values) {
+            set(at + i++, val);
+        }
     }
 
     public synchronized void add(T val) {

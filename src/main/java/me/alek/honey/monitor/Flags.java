@@ -3,14 +3,10 @@ package me.alek.honey.monitor;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class Flags {
 
@@ -21,11 +17,6 @@ public class Flags {
 
         public RuntimeFlags(Array<Chipstate> flags) {
             this.flags = flags;
-
-            IDRegistry registry = new IDRegistry();
-            for (Chipstate flag : flags) {
-                flag.assignId(registry.acquireID());
-            }
         }
 
         public Array<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> getFlags() {
@@ -33,7 +24,7 @@ public class Flags {
         }
 
         public boolean isEmpty() {
-            return flags.isEmpty();
+            return getFlags().isEmpty();
         }
 
         @Override
@@ -41,16 +32,11 @@ public class Flags {
             return flags.iterator();
         }
 
-        public synchronized boolean process(PacketContainer<? extends WrappedPacket<?>> input, List<String> data) {
-            Array<Processable> triggered = new Array<>();
+        public synchronized boolean process(PacketContainer<? extends WrappedPacket<?>> input, List<AppendedData> data) {
             processId++;
-
-            Bukkit.broadcastMessage("Processing flags");
-
             for (Chipstate flag : flags) {
-
                 if (!flag.isProcessed(processId)) {
-                    flag.process(processId, input, triggered, data);
+                    flag.process(processId, input, data);
                 }
 
                 try {
@@ -61,6 +47,7 @@ public class Flags {
                     return false;
                 }
             }
+
             return true;
         }
     }
@@ -75,38 +62,28 @@ public class Flags {
 
         boolean getOutput(int id) throws GetOutputWithoutProcessException;
 
-        void process(int id, PacketContainer<? extends WrappedPacket<?>> input, Array<Processable> triggered, List<String> data);
+        void process(int id, PacketContainer<? extends WrappedPacket<?>> input, List<AppendedData> data);
+
+        void toggle(int id) throws GetOutputWithoutProcessException;
     }
 
-    static class Own implements Chipstate {
+    static class Env implements Chipstate {
 
         private final Conditions conditions;
         private final Array<Chipstate> flags;
 
         private int lastProcessedID;
+        private boolean appending;
         private boolean output;
 
-        public Own(Array<Chipstate> flags, Conditions conditions) {
+        public Env(Array<Chipstate> flags, Conditions conditions) {
             this.flags = flags;
             this.conditions = conditions;
-        }
-
-        public Own(Array<Chipstate> flags) {
-            this(flags, new Conditions());
-        }
-
-        @Override
-        public void assignId(int id) {
         }
 
         @Override
         public Array<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> getFlags() {
             return Array.from(flags, Chipstate::getFlags);
-        }
-
-        @Override
-        public Array<Chipstate> getChipstates() {
-            return flags;
         }
 
         @Override
@@ -120,33 +97,50 @@ public class Flags {
         }
 
         @Override
-        public void process(int id, PacketContainer<? extends WrappedPacket<?>> input, Array<Processable> triggered, List<String> data) {
+        public void process(int id, PacketContainer<? extends WrappedPacket<?>> input, List<AppendedData> data) {
             lastProcessedID = id;
             for (Chipstate flag : flags) {
-
-                Bukkit.broadcastMessage("Processing chipstate from own " + flag);
-
-                flag.process(id, input, triggered, data);
-
-                try {
-                    this.output = flag.getOutput(id);
-                    Bukkit.broadcastMessage("Processed from own " + output + " " + flag);
-                } catch (GetOutputWithoutProcessException ex) {
-                    return;
-                }
+                flag.process(id, input, data);
             }
 
-            conditions.test(id, input);
+            if (conditions.shouldAddANDCondition()) {
+                conditions.addCondition(new Condition(IDRegistry.create(flags.size()), flags, LogicalOperator.AND));
+            }
+
+            this.output = conditions.test(id);
+            if (this.output) {
+                acceptAppend();
+            }
+        }
+
+        @Override
+        public void toggle(int id) throws GetOutputWithoutProcessException {
+            if (!isProcessed(id)) {
+                throw new GetOutputWithoutProcessException();
+            }
+
+            output = !output;
+        }
+
+        @Override
+        public boolean shouldAppend() {
+            return appending;
+        }
+
+        @Override
+        public void acceptAppend() {
+            appending = true;
+
+            for (Chipstate flag : flags) {
+                flag.acceptAppend();
+            }
         }
     }
 
-    public interface Chipstate extends Processable {
-
-        void assignId(int id);
+    public interface Chipstate extends Processable, Appendable {
 
         Array<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> getFlags();
 
-        Array<Chipstate> getChipstates();
     }
 
     public static class Condition {
@@ -155,15 +149,21 @@ public class Flags {
         private final LogicalOperator delegatedOperator;
         private final Array<Chipstate> flags;
 
+        private int lastCheckedID;
+        private boolean lastCheck;
+
         public Condition(IDRegistry triggerPositions, Array<Chipstate> flags, LogicalOperator delegatedOperator) {
             this.triggerPositions = triggerPositions;
             this.flags = flags;
             this.delegatedOperator = delegatedOperator;
         }
 
-        public boolean test(int id, PacketContainer<? extends WrappedPacket<?>> input) {
-            Bukkit.broadcastMessage("Checking condition " + input);
+        public boolean test(int id) {
+            if (lastCheckedID == id) {
+                return lastCheck;
+            }
 
+            lastCheckedID = id;
             Array<Boolean> triggers = new Array<>();
             for (int i = 0; i < triggerPositions.size(); i++) {
                 if (triggerPositions.hasID(i)) {
@@ -171,19 +171,22 @@ public class Flags {
 
                     try {
                         triggers.add(processable.getOutput(id));
+
+                        if (delegatedOperator.equals(LogicalOperator.NOT)) {
+                            processable.toggle(id);
+                        }
+
                     } catch (Processable.GetOutputWithoutProcessException ex) {
-                        return false;
+                        return lastCheck = false;
                     }
                 }
             }
 
-            Bukkit.broadcastMessage(triggers + " " + delegatedOperator + " " + Arrays.toString(triggerPositions.getIDs()));
-
             if (triggers.isEmpty()) {
-                return true;
+                return lastCheck = true;
             }
 
-            return checkOperator(triggers);
+            return lastCheck = checkOperator(triggers);
         }
 
         private boolean checkOperator(Array<Boolean> triggers) {
@@ -199,10 +202,17 @@ public class Flags {
                     }
                     return true;
                 case NOT:
-                    return !triggers.get(0);
+                    for (boolean trigger : triggers) {
+                        if (trigger) return false;
+                    }
+                    return true;
                 default:
                     return true;
             }
+        }
+
+        public LogicalOperator getOperator() {
+            return delegatedOperator;
         }
     }
 
@@ -212,13 +222,31 @@ public class Flags {
 
         public void addCondition(Condition condition) {
             triggers.add(condition);
+
+            triggers.sort(new Comparator<Condition>() {
+                @Override
+                public int compare(Condition o1, Condition o2) {
+                    boolean o1Not = o1.getOperator().equals(LogicalOperator.NOT);
+                    boolean o2Not = o2.getOperator().equals(LogicalOperator.NOT);
+
+                    if (o1Not && !o2Not) {
+                        return -1;
+                    } else if (!o1Not && o2Not) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+            });
         }
 
-        public boolean test(int id, PacketContainer<? extends WrappedPacket<?>> input) {
-            Bukkit.broadcastMessage("Checking conditions " + triggers);
+        public boolean shouldAddANDCondition() {
+            return triggers.isEmpty() || triggers.size() == 1 && triggers.get(0).getOperator().equals(LogicalOperator.NOT);
+        }
 
+        public boolean test(int id) {
             for (Condition condition : triggers) {
-                if (!condition.test(id, input)) {
+                if (!condition.test(id)) {
                     return false;
                 }
             }
@@ -227,35 +255,61 @@ public class Flags {
         }
     }
 
+    public interface Appendable {
+
+        boolean shouldAppend();
+
+        void acceptAppend();
+
+    }
+
+    public static class AppendedData {
+
+        static AppendedData from(String data, Appendable appendable) {
+            return new AppendedData(data, appendable);
+        }
+
+        private final String data;
+        private final Appendable appendable;
+
+        public AppendedData(String data, Appendable appendable) {
+            this.data = data;
+            this.appendable = appendable;
+        }
+
+        public String getData() {
+            return data;
+        }
+
+        public boolean shouldAppend() {
+            return appendable.shouldAppend();
+        }
+    }
+
     public static class Runtime implements Chipstate {
 
         private final MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag;
-        private int flagId;
 
         private boolean output;
+        private boolean appending;
         private int lastProcessId;
 
         public Runtime(MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag) {
             this.flag = flag;
         }
 
-        public void assignId(int id) {
-            this.flagId = id;
-        }
-
         public MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> getFlag() {
             return flag;
         }
 
-        public void process(int id, PacketContainer<? extends WrappedPacket<?>> input, Array<Processable> triggered, List<String> data) {
+        public void process(int id, PacketContainer<? extends WrappedPacket<?>> input, List<AppendedData> data) {
             if (isProcessed(id)) {
                 return;
             }
 
-            triggered.set(flagId, this);
             lastProcessId = id;
-
             this.output = flag.test(input);
+            flag.append(input, this, data);
         }
 
         @Override
@@ -272,13 +326,27 @@ public class Flags {
         }
 
         @Override
+        public void toggle(int id) throws GetOutputWithoutProcessException {
+            if (!isProcessed(id)) {
+                throw new GetOutputWithoutProcessException();
+            }
+
+            output = !output;
+        }
+
+        @Override
         public Array<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> getFlags() {
             return Array.from(flag);
         }
 
         @Override
-        public Array<Chipstate> getChipstates() {
-            return (Array<Chipstate>) (Array<?>) getFlags();
+        public boolean shouldAppend() {
+            return appending;
+        }
+
+        @Override
+        public void acceptAppend() {
+            appending = true;
         }
     }
 }

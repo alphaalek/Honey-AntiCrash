@@ -39,11 +39,11 @@ public class PacketMonitorCommand implements CommandImpl {
             sender.sendMessage(CommandManager.PREFIX + " §7Using the following flags: ");
             for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags.getFlags()) {
                 String specified = flag.getSpecified();
-                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown") + " " + (specified.isEmpty() ? "" : ":" + specified));
+                sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown") + (specified.isEmpty() ? "" : ": " + specified));
             }
 
         } catch (WrongMonitorFlagSyntaxException ex) {
-            sender.sendMessage(CommandManager.PREFIX + " §cWrong syntax of monitor flag \"" + ex.getType() + "\": " + ex.getMessage());
+            sender.sendMessage(CommandManager.PREFIX + " §cWrong syntax of \"" + ex.getType() + "\": " + ex.getMessage());
         }
     }
 

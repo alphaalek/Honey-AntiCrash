@@ -10,40 +10,44 @@ public class IDRegistry {
 
     /* pre-made ID registries */
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
-    public static final IDRegistry PLAYERS = new IDRegistry(1);
+    public static final IDRegistry PLAYERS = IDRegistry.create(1);
 
     private int[] ids = new int[0];
 
-    public IDRegistry(int preMadeIDs) {
-        for (int i = 0; i < preMadeIDs; i++) {
-            acquireID();
+    public static IDRegistry create(int ids) {
+        IDRegistry registry = new IDRegistry();
+        for (int i = 0; i < ids; i++) {
+            registry.acquireID();
         }
+        return registry;
     }
 
-    public IDRegistry(int... preMadeIDs) {
-        Bukkit.broadcastMessage("creating registry from " + Arrays.toString(preMadeIDs));
+    public static IDRegistry from(int... ids) {
+        Bukkit.broadcastMessage("creating registry from " + Arrays.toString(ids));
         int max = 0;
-        List<Integer> ids = new ArrayList<>();
-        for (int i : preMadeIDs) {
-            ids.add(i);
+        List<Integer> idsList = new ArrayList<>();
+        for (int i : ids) {
+            idsList.add(i);
             if (i > max) max = i;
         }
 
-        Bukkit.broadcastMessage("registry " + ids + " " + max);
+        Bukkit.broadcastMessage("registry " + idsList + " " + max);
 
+        IDRegistry registry = new IDRegistry();
         for (int i = 0; i <= max; i++) {
-            acquireID();
+            registry.acquireID();
         }
 
-        Bukkit.broadcastMessage("registry " + Arrays.toString(this.ids));
+        Bukkit.broadcastMessage("registry " + Arrays.toString(registry.ids));
 
         for (int i = 0; i < max; i++) {
-            if (!ids.contains(i)) {
-                remove(i);
+            if (!idsList.contains(i)) {
+                registry.remove(i);
             }
         }
 
-        Bukkit.broadcastMessage("registry " + Arrays.toString(this.ids));
+        Bukkit.broadcastMessage("registry " + Arrays.toString(registry.ids));
+        return registry;
     }
 
     public IDRegistry() {

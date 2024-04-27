@@ -41,15 +41,16 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
 
     @Override
     public String getMessage(PacketContainer<? extends WrappedPacket<WP>> input) {
-        List<String> data = new ArrayList<>();
+        List<Flags.AppendedData> data = new ArrayList<>();
         if (!flags.process(input, data)) {
-            Bukkit.broadcastMessage("Aborting");
             return null;
         }
 
         StringBuilder dataMessage = new StringBuilder();
-        for (String d : data) {
-            dataMessage.append("§8, §7").append(d);
+        for (Flags.AppendedData d : data) {
+            if (d.shouldAppend()) {
+                dataMessage.append("§8, §7").append(d.getData());
+            }
         }
         return "§8[§6§l!§8] §e" + input.getPlayerName() + " §7" + input.getType() + dataMessage;
     }
