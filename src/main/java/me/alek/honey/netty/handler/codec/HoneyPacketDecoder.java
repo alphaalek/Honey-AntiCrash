@@ -101,7 +101,8 @@ public class HoneyPacketDecoder {
 
             if (dataSerializer.isReadable()) {
                 int end = dataSerializer.readerIndex();
-                throw new DecoderException("Found " + (end + dataSerializer.readableBytes()) + "/" + end + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state);
+                int remaining = dataSerializer.readableBytes();
+                throw new DecoderException("Found " + remaining + " (" + (end + dataSerializer.readableBytes()) + "/" + end + ") extra bytes while decoding packet " + packetId + ", " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet).readFieldEntries());
             }
         }
 
