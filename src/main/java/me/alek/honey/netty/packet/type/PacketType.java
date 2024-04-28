@@ -136,7 +136,7 @@ public enum PacketType implements PacketTypeEnum {
     }
 
     public static List<PacketTypeEnum> getTypesAvailable() {
-        return getTypesAvailableFor(NetProtocol.getProtocol());
+        return getTypesAvailableFor(protocolVersion);
     }
 
     public static Map<Class<?>, PacketTypeEnum> getRegisteredPackets() {
@@ -149,8 +149,28 @@ public enum PacketType implements PacketTypeEnum {
 
     public static class Common {
 
-        public enum Client implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
+        private static Class<?> CLIENT_INFORMATION_CLASS;
+        private static Class<?> CUSTOM_PAYLOAD_CLIENT_CLASS;
+        private static Class<?> KEEP_ALIVE_CLIENT_CLASS;
+        private static Class<?> PONG_CLASS;
+        private static Class<?> RESOURCE_PACK_CLIENT_CLASS;
 
+        static {
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+                CLIENT_INFORMATION_CLASS = Reflection.getClass("{common}.ServerboundClientInformationPacket");
+                CUSTOM_PAYLOAD_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundCustomPayloadPacket");
+                KEEP_ALIVE_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundKeepAlivePacket");
+                PONG_CLASS = Reflection.getClass("{common}.ServerboundPongPacket");
+                RESOURCE_PACK_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
+            }
+        }
+
+        public enum Client implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
+            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            PONG(PONG_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             ;
 
             private final Class<?> nmsClass;
@@ -191,19 +211,42 @@ public enum PacketType implements PacketTypeEnum {
             }
         }
 
-        private static Class<?> CUSTOM_PAYLOAD_CLASS;
+        private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> DISCONNECT_CLASS;
+        private static Class<?> KEEP_ALIVE_SERVER_CLASS;
+        private static Class<?> PING_CLASS;
+        private static Class<?> RESOURCE_PACK_SERVER_CLASS;
+        private static Class<?> RESOURCE_PACK_POP_CLASS;
+        private static Class<?> RESOURCE_PACK_PUSH_CLASS;
+        private static Class<?> UPDATE_TAGS_CLASS;
 
         static {
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-                CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
+            if (protocolVersion.isEqual(NetProtocol.v1_20_2)) {
+                RESOURCE_PACK_SERVER_CLASS = Reflection.getClass("{common}.ClientboundResourcePacketPacket");
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+                CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
                 DISCONNECT_CLASS = Reflection.getClass("{common}.ClientboundDisconnectPacket");
+                KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{common}.ClientboundKeepAlivePacket");
+                PING_CLASS = Reflection.getClass("{common}.ClientboundPingPacket");
+                UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
+                RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePacketPopPacket");
+                RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePacketPushPacket");
             }
         }
 
         public enum Server implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             DISCONNECT(DISCONNECT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            PING(PING_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_20_2, NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION))
+            ;
 
             private final Class<?> nmsClass;
             private final int packetId;
@@ -1208,7 +1251,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> FINISH_CONFIGURATION_CLIENT_CLASS;
 
         static {
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 FINISH_CONFIGURATION_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundFinishConfigurationPacket");
             }
         }
@@ -1258,7 +1301,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> UPDATE_ENABLED_FEATURES_CLASS;
 
         static {
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 FINISH_CONFIGURATION_SERVER_CLASS = Reflection.getClass("{configuration}.ClientboundFinishConfigurationPacket");
                 REGISTRY_DATA_CLASS = Reflection.getClass("{configuration}.ClientboundRegistryDataPacket");
                 UPDATE_ENABLED_FEATURES_CLASS = Reflection.getClass("{configuration}.ClientboundUpdateEnabledFeaturesPacket");
