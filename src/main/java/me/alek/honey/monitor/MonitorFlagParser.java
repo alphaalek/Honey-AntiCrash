@@ -5,7 +5,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -118,14 +117,11 @@ public class MonitorFlagParser {
         }
 
         try {
-            int unexpectedIndex = -1;
             if (start.size() > end.size()) {
-                unexpectedIndex = start.get(0);
-                wrongSyntaxMessage.set("Unexpected paranthesis at index " + unexpectedIndex + ", at \"" + getContextString(parsed, start.get(0)) + "\".");
+                wrongSyntaxMessage.set("Unexpected paranthesis at index " + start.get(0) + ", at \"" + getContextString(parsed, start.get(0)) + "\".");
             }
             if (start.size() < end.size()) {
-                unexpectedIndex = end.getLast();
-                wrongSyntaxMessage.set("Unexpected paranthesis at index " + unexpectedIndex + ", at \"" + getContextString(parsed, end.getLast()) + "\".");
+                wrongSyntaxMessage.set("Unexpected paranthesis at index " + end.getLast() + ", at \"" + getContextString(parsed, end.getLast()) + "\".");
             }
         } catch (WrongMonitorFlagSyntaxException ex) {
             wrongSyntaxMessage.set(ex.getMessage());
