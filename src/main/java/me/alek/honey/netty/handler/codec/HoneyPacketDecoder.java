@@ -39,6 +39,9 @@ public class HoneyPacketDecoder {
     public static Object decodePacket(HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
         int start = dataSerializer.readerIndex();
+        if (start != 0) {
+            return null;
+        }
 
         int packetId = dataSerializer.readVarInt();
         if (packetId < 0) {
@@ -97,7 +100,7 @@ public class HoneyPacketDecoder {
             }
 
             if (dataSerializer.isReadable()) {
-                throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state);
+                throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet).readFieldEntries());
             }
         }
 

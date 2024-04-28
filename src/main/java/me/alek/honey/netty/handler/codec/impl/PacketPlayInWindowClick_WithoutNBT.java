@@ -5,7 +5,6 @@ import me.alek.honey.netty.handler.codec.Codec;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
 
 public class PacketPlayInWindowClick_WithoutNBT implements Codec  {
 
@@ -20,6 +19,6 @@ public class PacketPlayInWindowClick_WithoutNBT implements Codec  {
         } else {
             structure.writeField(5, NMS.getInventoryClickTypeClass().getEnumConstants()[serializer.readVarInt()]);
         }
-        structure.writeField(4, serializer.readItemStackWithoutNBT());
+        structure.writeField(4, serializer.readItemStackWithoutMeta());
     }
 }
