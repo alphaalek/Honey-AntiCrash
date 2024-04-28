@@ -88,7 +88,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
 
         CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
-        //packetProcessor.callDecode(player, cancellableByteBuf);
+        packetProcessor.callDecode(player, cancellableByteBuf);
 
         packetContainer.getEventloopStateTimings().stopTimings();
 
