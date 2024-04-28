@@ -100,7 +100,9 @@ public class HoneyPacketDecoder {
             }
 
             if (dataSerializer.isReadable()) {
-                throw new DecoderException("Found " + dataSerializer.readableBytes() + "/" + (dataSerializer.readerIndex() + dataSerializer.readableBytes() - start) + " extra bytes while decoding packet " + packetId + ", " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet).readFieldEntries());
+                int end = dataSerializer.readerIndex();
+                int remaining = dataSerializer.readableBytes();
+                throw new DecoderException("Found " + remaining + " (" + (end + dataSerializer.readableBytes()) + "/" + end + ") extra bytes while decoding packet " + packetId + ", " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet).readFieldEntries());
             }
         }
 
