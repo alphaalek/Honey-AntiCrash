@@ -92,7 +92,8 @@ public class HoneyPacketDecoder {
                     }
                 });
                 try {
-                    applicationMethod.invoke(packet, dataSerializer.getHandle());
+                    // explicit set variable, so Proguard recognizes the method
+                    Object empty = applicationMethod.invokeWithArguments(new Object[]{packet, dataSerializer.getHandle()});
                 } catch (Throwable ex) {
                     ex.printStackTrace();
                     throw new DecoderException("Failed to apply serializer for packet " + packetId + ", " + packet + ", " + state);

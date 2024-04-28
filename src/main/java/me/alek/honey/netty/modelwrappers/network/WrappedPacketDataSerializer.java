@@ -94,14 +94,13 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
             damage = readShort();
         }
 
+        Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
         Object item = ItemReflection.getItemFromId(itemId);
         if (item == null) {
             return null;
         }
 
         Object itemStack = ItemReflection.createItemStack(item, amount, damage);
-
-        Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
         ItemReflection.setItemTag(itemStack, nbt);
 
         return itemStack;

@@ -78,6 +78,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         hasCalledChannelInactive = true;
     }
 
+    @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         if (player != null) {
             checkRelocation();
