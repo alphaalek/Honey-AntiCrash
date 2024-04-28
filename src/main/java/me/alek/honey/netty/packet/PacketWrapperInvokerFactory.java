@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.CommonPacketStateTypeEnum;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -113,11 +114,8 @@ public class PacketWrapperInvokerFactory {
         return null;
     }
 
-    public static MethodHandle createWrapperInvoker(PacketTypeEnum packetType) {
-        return createWrapperInvoker(packetType.getState(), packetType.getNmsClass());
-    }
-
-    public static MethodHandle createWrapperInvoker(PacketState state, Class<?> nmsClass) {
+    public static MethodHandle createWrapperInvoker(PacketTypeEnum packetType, Class<?> nmsClass) {
+        PacketState state = !packetType.isCommonState() ? packetType.getState() : ((CommonPacketStateTypeEnum)packetType).getCommonStates().get(0);
         switch (state) {
             case PLAY:
                 return createPlayWrapperInvoker(nmsClass);

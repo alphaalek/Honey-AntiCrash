@@ -29,10 +29,6 @@ public class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<W
         return packetContainer;
     }
 
-    public PacketState getState() {
-        return packetContainer.getState();
-    }
-
     public PacketTypeEnum getType() {
         return packetContainer.getType();
     }

@@ -63,10 +63,8 @@ public class LoggerService {
 
             // log the packet
             if (enabled) {
-                if (packet.getState() != PacketState.PLAY) {
-                    if (!ConfigurationOptions.PacketLogger.EARLY) {
-                        return;
-                    }
+                if (!packet.getCommonStates().contains(PacketState.PLAY) && !ConfigurationOptions.PacketLogger.EARLY) {
+                    return;
                 }
 
                 logPacket(packet, packet.getPlayerName());

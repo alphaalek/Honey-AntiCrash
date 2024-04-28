@@ -283,7 +283,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             return packetContainer;
         }
 
-        if (packetContainer.getState() == PacketState.PLAY && packetContainer.getPlayer() == null) {
+        if (packetContainer.getCommonStates().contains(PacketState.PLAY) && packetContainer.getPlayer() == null) {
             return packetContainer;
         }
 

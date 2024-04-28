@@ -8,10 +8,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
@@ -58,7 +55,7 @@ public class HoneyPacketDecoder {
         }
 
         PacketTypeEnum type = PacketType.getPacketType(packet.getClass());
-        if (!PacketType.isUnknown(type) && type.getState() != state) {
+        if (!PacketType.isUnknown(type) && !(type.getState() == state || type.isCommonState() && ((CommonPacketStateTypeEnum)type).getCommonStates().contains(state))) {
             return null;
         }
 

@@ -4,16 +4,15 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
+import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
-import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -113,12 +112,33 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
+    public Array<PacketState> getCommonStates() {
+        if (!type.isCommonState()) {
+            return Array.from(getState());
+        }
+        return ((CommonPacketStateTypeEnum)type).getCommonStates();
+    }
+
+    @Override
     public PacketState getState() {
         if (type == null) {
             return PacketState.UNKNOWN;
         }
 
         return type.getState();
+    }
+
+    @Override
+    public PacketState getProtocolState(PacketBound bound) {
+        if (player != null) {
+            return player.packetHandler.getProtocolState(bound);
+        }
+
+        try {
+            return HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getProtocolState(bound);
+        } catch (MissingHandlerException ex) {
+            return PacketState.UNKNOWN;
+        }
     }
 
     @Override

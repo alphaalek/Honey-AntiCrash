@@ -3,9 +3,11 @@ package me.alek.honey.netty.api;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
 import java.util.function.Consumer;
@@ -26,7 +28,11 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketTypeEnum getType();
 
+    Array<PacketState> getCommonStates();
+
     PacketState getState();
+
+    PacketState getProtocolState(PacketBound bound);
 
     WP getPacket();
 

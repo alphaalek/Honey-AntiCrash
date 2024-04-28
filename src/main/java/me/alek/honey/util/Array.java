@@ -1,7 +1,5 @@
 package me.alek.honey.util;
 
-import org.bukkit.Bukkit;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,6 +23,10 @@ public class Array<T> implements Iterable<T> {
         Array<T> array = new Array<>();
         array.set(0, data);
         return array;
+    }
+
+    public static <T> Array<T> fromData(T... data) {
+        return from(data);
     }
 
     public static <T, R> Array<T> from(Array<R> array, Function<R, Array<T>> mapper) {
@@ -219,6 +221,24 @@ public class Array<T> implements Iterable<T> {
         resolveDown();
 
         return removed;
+    }
+
+    public boolean contains(T val) {
+        if (isEmpty()) {
+            return false;
+        }
+
+        if (size() == 1) {
+            return Objects.equals(val, get(0));
+        }
+
+        for (T elem : this) {
+            if (Objects.equals(val, elem)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public synchronized boolean removeLast() {

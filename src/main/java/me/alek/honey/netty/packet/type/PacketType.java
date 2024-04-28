@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet.type;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.NetProtocolRange;
 import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.*;
@@ -35,7 +36,14 @@ public enum PacketType implements PacketTypeEnum {
     }
 
     private static void registerPacketDetails(PacketTypeEnum type) {
-        packetFromStateLookup.get(type.getState()).add(type);
+        if (type.isCommonState()) {
+            Array<PacketState> commonStates = ((CommonPacketStateTypeEnum)type).getCommonStates();
+            for (PacketState state : commonStates) {
+                packetFromStateLookup.get(state).add(type);
+            }
+        } else {
+            packetFromStateLookup.get(type.getState()).add(type);
+        }
 
         if (type instanceof RangedPacketTypeEnum) {
             if (!NetProtocol.matchProtocol((RangedPacketTypeEnum) type)) {
@@ -53,6 +61,12 @@ public enum PacketType implements PacketTypeEnum {
     public static void load() {
         for (PacketState state : PacketState.values()) {
             packetFromStateLookup.put(state, new ArrayList<>());
+        }
+        for (Common.Client commonClient : Common.Client.values()) {
+            registerPacketDetails(commonClient);
+        }
+        for (Common.Server commonServer : Common.Server.values()) {
+            registerPacketDetails(commonServer);
         }
         for (Handshake.Client handshakeClient : Handshake.Client.values()) {
             registerPacketDetails(handshakeClient);
@@ -131,6 +145,103 @@ public enum PacketType implements PacketTypeEnum {
 
     public static PacketTypeEnum getPacketType(Class<?> clazz) {
         return registeredPackets.getOrDefault(clazz, UNKNOWN);
+    }
+
+    public static class Common {
+
+        public enum Client implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
+
+            ;
+
+            private final Class<?> nmsClass;
+            private final int packetId;
+            private final NetProtocolRange range;
+            private final Array<PacketState> states;
+
+            Client(Class<?> nmsClass, int packetId, NetProtocolRange range, Array<PacketState> states) {
+                this.nmsClass = nmsClass;
+                this.packetId = packetId;
+                this.range = range;
+                this.states = states;
+            }
+
+            @Override
+            public Class<?> getNmsClass() {
+                return nmsClass;
+            }
+
+            @Override
+            public int getPacketId() {
+                return packetId;
+            }
+
+            @Override
+            public PacketBound getBound() {
+                return PacketBound.SERVER;
+            }
+
+            @Override
+            public NetProtocolRange getRange() {
+                return range;
+            }
+
+            @Override
+            public Array<PacketState> getCommonStates() {
+                return states;
+            }
+        }
+
+        private static Class<?> CUSTOM_PAYLOAD_CLASS;
+        private static Class<?> DISCONNECT_CLASS;
+
+        static {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+                CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
+                DISCONNECT_CLASS = Reflection.getClass("{common}.ClientboundDisconnectPacket");
+            }
+        }
+
+        public enum Server implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+
+            private final Class<?> nmsClass;
+            private final int packetId;
+            private final NetProtocolRange range;
+            private final Array<PacketState> states;
+
+            Server(Class<?> nmsClass, int packetId, NetProtocolRange range, Array<PacketState> states) {
+                this.nmsClass = nmsClass;
+                this.packetId = packetId;
+                this.range = range;
+                this.states = states;
+            }
+
+            @Override
+            public Class<?> getNmsClass() {
+                return nmsClass;
+            }
+
+            @Override
+            public int getPacketId() {
+                return packetId;
+            }
+
+            @Override
+            public PacketBound getBound() {
+                return PacketBound.CLIENT;
+            }
+
+            @Override
+            public NetProtocolRange getRange() {
+                return range;
+            }
+
+            @Override
+            public Array<PacketState> getCommonStates() {
+                return states;
+            }
+        }
     }
 
     public static class Handshake {

@@ -102,7 +102,7 @@ public class PacketFactory {
         return WRAPPER_CACHE.get(type.getPacketId(), () -> {
             Class<?> nmsClass = type.getNmsClass();
 
-            return PacketWrapperInvokerFactory.createWrapperInvoker(type.getState(), nmsClass);
+            return PacketWrapperInvokerFactory.createWrapperInvoker(type, nmsClass);
         });
     }
 }

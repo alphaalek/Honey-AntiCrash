@@ -8,6 +8,7 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
@@ -119,7 +120,7 @@ public class PacketTaskHandler {
             String name = packet != null ? packet.getPlayerName() : "Unknown";
 
             if (packet != null && !PacketType.isUnknown(packet.getType())) {
-                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getState());
+                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getProtocolState(PacketBound.SERVER));
                 loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
             } else {

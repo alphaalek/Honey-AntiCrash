@@ -260,12 +260,12 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return state == PacketState.ANY || input.getState().equals(state);
+            return state == PacketState.ANY || (input.getCommonStates().contains(state));
         }
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from(input.getState().name(), appendable));
+            data.add(Flags.AppendedData.from(input.getProtocolState(PacketBound.SERVER).name(), appendable));
         }
     }
 

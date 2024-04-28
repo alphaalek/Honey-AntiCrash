@@ -10,4 +10,8 @@ public interface PacketTypeEnum {
 
     PacketBound getBound();
 
+    default boolean isCommonState() {
+        return false;
+    }
+
 }
