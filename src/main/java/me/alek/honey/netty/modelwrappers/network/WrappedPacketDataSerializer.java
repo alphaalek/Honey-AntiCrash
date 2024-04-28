@@ -6,10 +6,8 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.*;
 import org.bukkit.Bukkit;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,10 +83,15 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
         return getModifier(NMS.getItemStackClass()).invokeMethod(0);
     }
 
-    public Object readItemStackWithoutNBT() {
+    public Object readItemStackWithoutMeta() {
         short itemId = readShort();
         if (itemId < 0) {
             return null;
+        }
+        byte amount = readByte();
+        short damage = -1;
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
+            damage = readShort();
         }
 
         Object item = ItemReflection.getItemFromId(itemId);
@@ -96,14 +99,9 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
             return null;
         }
 
-        byte amount = readByte();
-        short damage = -1;
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            damage = readShort();
-        }
+        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
 
         Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
-        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
         ItemReflection.setItemTag(itemStack, nbt);
 
         return itemStack;
