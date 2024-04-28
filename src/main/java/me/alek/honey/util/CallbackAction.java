@@ -12,6 +12,10 @@ public class CallbackAction<T> {
         callbacks.add(callback);
     }
 
+    public synchronized void addAction(CallbackAction<T> callback) {
+        callbacks.add(callback::call);
+    }
+
     public synchronized void call(T val) {
         if (callbacks.isEmpty()) {
             return;

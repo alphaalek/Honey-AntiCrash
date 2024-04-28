@@ -1,17 +1,47 @@
 package me.alek.honey.util;
 
+import org.bukkit.Bukkit;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class IDRegistry {
 
     /* pre-made ID registries */
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
-    public static final IDRegistry PLAYERS = new IDRegistry(1);
+    public static final IDRegistry PLAYERS = IDRegistry.create(1);
 
     private int[] ids = new int[0];
 
-    public IDRegistry(int preMadeIDs) {
-        for (int i = 0; i < preMadeIDs; i++) {
-            acquireID();
+    public static IDRegistry create(int ids) {
+        IDRegistry registry = new IDRegistry();
+        for (int i = 0; i < ids; i++) {
+            registry.acquireID();
         }
+        return registry;
+    }
+
+    public static IDRegistry from(int... ids) {
+        int max = 0;
+        List<Integer> idsList = new ArrayList<>();
+        for (int i : ids) {
+            idsList.add(i);
+            if (i > max) max = i;
+        }
+
+        IDRegistry registry = new IDRegistry();
+        for (int i = 0; i <= max; i++) {
+            registry.acquireID();
+        }
+
+        for (int i = 0; i < max; i++) {
+            if (!idsList.contains(i)) {
+                registry.remove(i);
+            }
+        }
+
+        return registry;
     }
 
     public IDRegistry() {
@@ -59,6 +89,10 @@ public class IDRegistry {
 
     public boolean hasID(int id) {
         return ids.length > id && ids[id] != -1;
+    }
+
+    public int[] getIDs() {
+        return ids;
     }
 
     public int size() {

@@ -97,7 +97,7 @@ public class MonitorManager {
         return monitorer;
     }
 
-    public void setupPacketMonitor(CommandSender sender, List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags) {
+    public void setupPacketMonitor(CommandSender sender, Flags.RuntimeFlags flags) {
         removeIfHasMonitor(sender, false);
 
         Monitorer monitorer = new PacketMonitorer<>(flags);

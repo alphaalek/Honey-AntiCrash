@@ -2,6 +2,7 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,18 +10,22 @@ import java.util.Optional;
 
 public class PacketMonitorer<WP extends WrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<? extends WrappedPacket<WP>>> {
 
-    private final List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags;
+    private final Flags.RuntimeFlags flags;
     private final MonitorSendAt sendAt;
 
-    public PacketMonitorer(List<MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>> flags) {
+    public PacketMonitorer(Flags.RuntimeFlags flags) {
         this.flags = flags;
 
         boolean hasToBeAfterServerHandle = false;
-        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
+        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags.getFlags()) {
             hasToBeAfterServerHandle = Optional.ofNullable(
-                    MonitorFlag.Flag.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
-            if (hasToBeAfterServerHandle) break;
+                    MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
+
+            if (hasToBeAfterServerHandle) {
+                break;
+            }
         }
+
         sendAt = hasToBeAfterServerHandle ? MonitorSendAt.AFTER_SERVER_HANDLE : MonitorSendAt.AFTER_HONEY_HANDLE;
     }
 
@@ -36,19 +41,18 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
 
     @Override
     public String getMessage(PacketContainer<? extends WrappedPacket<WP>> input) {
-        List<String> data = new ArrayList<>();
-        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags) {
-            if (!flag.test(input)) {
-                return null;
-            }
-            flag.append(input, data);
+        List<Flags.AppendedData> data = new ArrayList<>();
+        if (!flags.process(input, data)) {
+            return null;
         }
+
         StringBuilder dataMessage = new StringBuilder();
-        for (String d : data) {
-            dataMessage.append("§8, §7").append(d);
+        for (Flags.AppendedData d : data) {
+            if (d.shouldAppend()) {
+                dataMessage.append("§8, §7").append(d.getData());
+            }
         }
-        String name = input.getPlayer() != null ? input.getPlayer().name : "Unknown";
-        return "§8[§6§l!§8] §e" + name + " §7" + input.getType() + dataMessage;
+        return "§8[§6§l!§8] §e" + input.getPlayerName() + " §7" + input.getType() + dataMessage;
     }
 
     @Override

@@ -128,7 +128,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
                         if (packetContainer.isCancelled()) {
                             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-                                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayer().name);
+                                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayerName());
                             }
                             return;
                         }
