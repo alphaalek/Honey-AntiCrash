@@ -166,7 +166,7 @@ public class PacketTaskHandler {
         }
 
         // we have to make sure it's not an unmodifiable packet (made for some packet types in higher versions where packet mapping is not yet made)
-        if (packet.getPlayer() != null) {
+        if (!PacketType.isUnknown(packet.getType())) {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }
 
