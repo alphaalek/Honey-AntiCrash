@@ -35,10 +35,6 @@ public class HoneyPacketDecoder {
 
     public static Object decodePacket(HoneyPlayer player, PacketState state, WrappedEnumProtocol protocol, ByteBuf byteBuf) throws DecoderException {
         WrappedPacketDataSerializer dataSerializer = new WrappedPacketDataSerializer(byteBuf);
-        int start = dataSerializer.readerIndex();
-        if (start != 0) {
-            return null;
-        }
 
         int packetId = dataSerializer.readVarInt();
         if (packetId < 0) {
@@ -55,7 +51,7 @@ public class HoneyPacketDecoder {
         }
 
         PacketTypeEnum type = PacketType.getPacketType(packet.getClass());
-        if (!PacketType.isUnknown(type) && !(type.getState() == state || type.isCommonState() && ((CommonPacketStateTypeEnum)type).getCommonStates().contains(state))) {
+        if (!PacketType.isUnknown(type) && !PacketType.getCommonStates(type).contains(state)) {
             return null;
         }
 

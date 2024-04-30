@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 
 public interface PacketProcessor {
 
-    PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket);
 
-    PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet);
 
     void addPostAction(PacketTypeEnum packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback);
 

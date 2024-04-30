@@ -113,10 +113,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public Array<PacketState> getCommonStates() {
-        if (!type.isCommonState()) {
-            return Array.from(getState());
-        }
-        return ((CommonPacketStateTypeEnum)type).getCommonStates();
+        return PacketType.getCommonStates(type);
     }
 
     @Override

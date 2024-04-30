@@ -35,6 +35,13 @@ public enum PacketType implements PacketTypeEnum {
         return packetType == null || packetType == UNKNOWN;
     }
 
+    public static Array<PacketState> getCommonStates(PacketTypeEnum type) {
+        if (!type.isCommonState()) {
+            return Array.from(type.getState());
+        }
+        return ((CommonPacketStateTypeEnum)type).getCommonStates();
+    }
+
     private static void registerPacketDetails(PacketTypeEnum type) {
         if (type.isCommonState()) {
             Array<PacketState> commonStates = ((CommonPacketStateTypeEnum)type).getCommonStates();
@@ -222,7 +229,7 @@ public enum PacketType implements PacketTypeEnum {
 
         static {
             if (protocolVersion.isEqual(NetProtocol.v1_20_2)) {
-                RESOURCE_PACK_SERVER_CLASS = Reflection.getClass("{common}.ClientboundResourcePacketPacket");
+                RESOURCE_PACK_SERVER_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
@@ -232,8 +239,8 @@ public enum PacketType implements PacketTypeEnum {
                 UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
-                RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePacketPopPacket");
-                RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePacketPushPacket");
+                RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
+                RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
             }
         }
 
@@ -327,7 +334,7 @@ public enum PacketType implements PacketTypeEnum {
 
     public static class Login {
 
-        private static final Class<?> ENCRYPTION_RESPONSE_CLASS = Reflection.getClass("{login}.PacketLoginInEncryptionBegin");
+        private static final Class<?> ENCRYPTION_BEGIN_CLASS = Reflection.getClass("{login}.PacketLoginInEncryptionBegin");
         private static final Class<?> LOGIN_START_CLASS = Reflection.getClass("{login}.PacketLoginInStart");
         private static Class<?> CUSTOM_PAYLOAD_CLIENT_CLASS;
         private static Class<?> CUSTOM_QUERY_ANSWER_CLASS;
@@ -346,7 +353,7 @@ public enum PacketType implements PacketTypeEnum {
         public enum Client implements RangedPacketTypeEnum {
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            ENCRYPTION_RESPONSE(ENCRYPTION_RESPONSE_CLASS, idRegistry.acquireID()),
+            ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, idRegistry.acquireID()),
             LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
             LOGIN_START(LOGIN_START_CLASS, idRegistry.acquireID());
 

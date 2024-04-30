@@ -304,12 +304,12 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<? extends WrappedPacket<?>> earlyInitializedPacket) {
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
         return handleCommon(player, channel, packet, PacketBound.SERVER, earlyInitializedPacket);
     }
 
     @Override
-    public PacketContainer<? extends WrappedPacket<?>> write(Channel channel, HoneyPlayer player, Object packet) {
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet) {
         return handleCommon(player, channel, packet, PacketBound.CLIENT, null);
     }
 

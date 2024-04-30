@@ -16,6 +16,7 @@ import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
@@ -30,19 +31,26 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         return packetHandler;
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Channel channel, Object msg) {
-        PacketContainer<WP> packetContainer = new InternalPacketContainer<>(null, channel);
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Channel channel, Object msg, PacketBound bound) {
+        switch (bound) {
+            case SERVER:
+                PacketContainer<WP> packetContainer = new InternalPacketContainer<>(null, channel);
+                return packetProcessor.read(channel, null, msg, packetContainer);
+            case CLIENT:
+                return packetProcessor.write(channel, null, msg);
+        }
 
-        return (PacketContainer<WP>) packetProcessor.read(channel, null, msg, packetContainer);
+        throw new IllegalStateException();
     }
 
-    private <WP extends WrappedPacket<WP>> void sendThroughPipeline(Channel channel, Object msg, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
+    private <WP extends WrappedPacket<WP>> void sendThroughPipeline(Object msg, PacketContainer<WP> packetContainer,
+                                                                    Function<PacketContainer<WP>, Boolean> handling,
+                                                                    Runnable sending) {
         if (msg instanceof ByteBuf) {
             sending.run();
             return;
         }
 
-        PacketContainer<WP> packetContainer = initPacketContainer(channel, msg);
         if (!handling.apply(packetContainer)) {
             return;
         }
@@ -56,10 +64,12 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        sendThroughPipeline(ctx.channel(), msg, packetHandler::read, () -> ctx.fireChannelRead(msg));
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
+        sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
     }
 
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        sendThroughPipeline(ctx.channel(), msg, (packet) -> packetHandler.write((PacketContainer<? extends WrappedPacket<?>>) packet), () -> ctx.write(msg, promise));
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
+        sendThroughPipeline(msg, packetContainer, packetHandler::write, () -> ctx.write(msg, promise));
     }
 }

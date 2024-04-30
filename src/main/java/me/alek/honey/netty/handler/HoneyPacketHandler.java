@@ -34,6 +34,10 @@ public class HoneyPacketHandler {
         this.channel = channel;
     }
 
+    public Channel getChannel() {
+        return channel;
+    }
+
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
         this.playerName = player.name;

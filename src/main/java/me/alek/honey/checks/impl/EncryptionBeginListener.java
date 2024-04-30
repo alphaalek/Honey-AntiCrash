@@ -53,7 +53,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_RESPONSE);
+        return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_BEGIN);
     }
 
     public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse> {

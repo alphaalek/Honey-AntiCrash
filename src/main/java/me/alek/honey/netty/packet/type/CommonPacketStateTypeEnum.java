@@ -8,5 +8,9 @@ public interface CommonPacketStateTypeEnum extends PacketTypeEnum {
         return PacketState.UNKNOWN;
     }
 
+    default boolean isCommonState() {
+        return true;
+    }
+
     Array<PacketState> getCommonStates();
 }
