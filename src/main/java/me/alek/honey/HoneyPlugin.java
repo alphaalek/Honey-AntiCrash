@@ -12,8 +12,9 @@ import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.listeners.DispenserListener;
-import me.alek.honey.listeners.PlayerJoinListener;
+import me.alek.honey.listeners.PlayerJoinQuitListener;
 import me.alek.honey.listeners.TabCompleteListener;
+import me.alek.honey.listeners.TeleportListener;
 import me.alek.honey.metrics.Metrics;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
@@ -280,7 +281,8 @@ public class HoneyPlugin implements HoneyAPI {
         new Metrics(plugin, 19028);
 
         // setup listeners
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new TeleportListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
         packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 

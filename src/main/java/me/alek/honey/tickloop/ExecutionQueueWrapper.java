@@ -101,7 +101,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 
-    private final class DelegatedWrapper extends ConcurrentLinkedQueue<Object> {
+    private final class DelegatedWrapper extends WrappedQueue<Object> {
 
         private final IStructureModifier<Integer> tickStructureModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
                 .asInt().withTarget(NMS.getMinecraftServer());
@@ -131,17 +131,13 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         private long positionPacketsTime;
 
         public DelegatedWrapper(final Queue<Object> delegate) {
+            super(delegate);
             EMPTY_TICK_TASK = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14) ? null :
                     (tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class))
                             .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {});
 
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
                 tickTaskConstructor = null;
-            }
-
-            // convert all elements from the previous queue to the current one, if there are any
-            while (!delegate.isEmpty()) {
-                add(delegate.poll());
             }
 
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
@@ -180,7 +176,9 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         public Object peek() {
             // if we have any packets ready to be run, we will return an empty value to mark we're ready
             // if not, we will just return null and tell the server that the delegated queue is empty
-            if (super.peek() == null) return null;
+            if (super.peek() == null) {
+                return null;
+            }
 
             // this runnable is not run by the server, just used to check if the task can be executed
             // so we just return a runnable with an empty body and instead do the tracking work in methods used afterward

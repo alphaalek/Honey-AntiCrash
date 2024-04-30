@@ -3,7 +3,7 @@ package me.alek.honey.netty.bukkit;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.listeners.PlayerJoinListener;
+import me.alek.honey.listeners.PlayerJoinQuitListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.util.NMS;
@@ -43,7 +43,7 @@ public class BukkitEventInternal implements Listener {
                 return;
             }
 
-            PlayerJoinListener.onPostLoginSuccess(honeyPlayer);
+            PlayerJoinQuitListener.onPostLoginSuccess(honeyPlayer);
         });
     }
 
