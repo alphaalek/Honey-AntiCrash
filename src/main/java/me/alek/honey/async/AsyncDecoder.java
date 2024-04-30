@@ -46,12 +46,14 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     }
 
     public synchronized void prependDecode(Consumer<Object> consumer) {
-        if (currentTask == null || currentTask.isCalled())
-            consumer.accept(currentTask);
-        else {
+        if (currentTask == null) {
+            consumer.accept(null);
+        } else if (currentTask.isCalled()) {
+            consumer.accept(currentTask.getValue());
+        } else {
             synchronized (currentTask) {
-                if (currentTask.isCalled()) {
-                    consumer.accept(currentTask);
+                if (currentTask == null || currentTask.isCalled()) {
+                    prependDecode(consumer);
                     return;
                 }
 
@@ -65,12 +67,12 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         if (unregistered) {
             return;
         }
+        currentTask = task;
 
         if (lastHandledTask.get() == 0) {
             lastHandledTask.set(System.currentTimeMillis());
         }
-        currentTask = task;
-        currentTask.addListener((Consumer<Object>) (d) -> lastHandledTask.set(System.currentTimeMillis()));
+        currentTask.addListener(d -> lastHandledTask.set(System.currentTimeMillis()));
 
         if (worker != null && worker.isActive()) {
             worker.submit(this);

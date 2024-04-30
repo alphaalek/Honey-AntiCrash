@@ -87,7 +87,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static synchronized CheckVisitor<?> getCachedVisitor(Array<CheckVisitor<?>> visitors, CheckVisitable visitable, HoneyPlayer player, int registryID) {
         if (!visitable.requiresPlayer() && !visitors.has(registryID)
-                || visitable.requiresPlayer() && player != null && player.isOnlineDirect() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
+                || visitable.requiresPlayer() && player != null && player.isOnlineWeak() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getVisitor(player)).getPlayer())) {
             visitors.set(registryID, visitable.getVisitor(player));
 
             if (player != null) {
