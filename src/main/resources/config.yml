@@ -254,7 +254,7 @@ packet-logger:
   debug-packets-cancelled: false
 
 
-# MySQL settings for storage
+# MySQL/mariadb settings for storage
 mysql:
   # Should storing of data in mysql database be enabled
   enabled: false
