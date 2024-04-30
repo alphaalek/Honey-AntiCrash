@@ -1,6 +1,5 @@
 package me.alek.honey.tickloop.packet;
 
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
@@ -12,19 +11,17 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
-import me.alek.honey.tickloop.ExecutionQueueWrapper;
 import org.bukkit.ChatColor;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PacketTaskHandler {
 
     public static final double TO_MILLIS_MULTIPLIER = PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
-    public static final Object ignoreDecrementLock = new Object();
     private static final Object handleTaskLock = new Object();
-    private static final ExecutionQueueWrapper tracker = HoneyPlugin.get().getServerThreadTracker();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     private static WrappedPacketTaskFuture<?> handledTask;
@@ -152,12 +149,6 @@ public class PacketTaskHandler {
     }
 
     public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
-        if (packet.getPlayer() != null) {
-            synchronized (ignoreDecrementLock) {
-                tracker.decrementPacketsInQueueExecution(packet.getPlayer().uuid);
-            }
-        }
-
         packet.getEventloopStateTimings().stopTimings();
 
         if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED

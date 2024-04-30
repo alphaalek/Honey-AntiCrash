@@ -276,18 +276,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             super.add(EMPTY_VALUE);
-
-            if (packet.getPlayer() != null) {
-                UUID uuid = packet.getPlayer().uuid;
-                synchronized (PacketTaskHandler.ignoreDecrementLock) {
-                    if (!PacketType.isUnknown(packet.getType()) && !ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
-                        packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) + 1);
-                    } else {
-                        ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0) + 1);
-                    }
-                }
-            }
-
             return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet, ExecutionQueueWrapper.this.getCurrentExecutionTick()));
         }
 
@@ -370,7 +358,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
         }
 
         private void tickLoopExecutionDone(int currentTick) {
-            packetsInQueueExecution.clear();
             submitQueue.clear();
 
             recentPollStart = -1;
@@ -385,17 +372,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             doneTicks = currentTick;
             doneExecutionTicks++;
             executing = false;
-        }
-    }
-
-    public void decrementPacketsInQueueExecution(UUID uuid) {
-        synchronized (PacketTaskHandler.ignoreDecrementLock) {
-            int ignoredDecrement = ignoredPacketsDecrementInQueueExecution.getOrDefault(uuid, 0);
-            if (ignoredDecrement > 0) {
-                ignoredPacketsDecrementInQueueExecution.put(uuid, ignoredDecrement - 1);
-            }
-
-            packetsInQueueExecution.put(uuid, packetsInQueueExecution.getOrDefault(uuid, 0) - (ignoredDecrement == 0 ? 1 : 0));
         }
     }
 
