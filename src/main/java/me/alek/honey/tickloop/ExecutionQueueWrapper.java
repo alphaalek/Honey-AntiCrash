@@ -35,7 +35,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
 
     private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
-    private final Map<UUID, Integer> ignoredPacketsDecrementInQueueExecution = new HashMap<>();
     private DelegatedWrapper executionQueue;
     public IDRegistry ignoredPacketsInQueueExecutionSaver;
     private boolean executing;
@@ -228,7 +227,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                     task.setPostponed();
                     HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), true, false);
                 }
-
                 recentPollStart = -1;
                 return getEmptyTask();
             }
@@ -379,7 +377,6 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
     public void remove(HoneyPlayer player) {
         UUID uuid = player.uuid;
         packetsInQueueExecution.remove(uuid);
-        ignoredPacketsDecrementInQueueExecution.remove(uuid);
         super.remove(player);
     }
 
