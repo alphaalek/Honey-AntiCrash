@@ -13,7 +13,6 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.tickloop.packet.PacketTaskHandler;
 import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeHandler;
@@ -24,7 +23,6 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -110,7 +108,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 .count();
         private final Supplier<Integer> tickAccessor = () -> {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-                return tickStructureModifier.readField("ticks", 0);
+                return tickStructureModifier.readField(null, "ticks", 0);
             } else {
                 return tickStructureModifier.readField(finalFields + 1);
             }

@@ -199,19 +199,19 @@ public class NotificationService {
                     ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
                     .asInt().withTarget(player.player);
 
-            return craftPlayerModifier.invokeMethod("getPing");
+            return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
         IStructureModifier<Object> craftPlayerModifier =
                 ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
                 .withType(NMS.getEntityPlayerClass()).withTarget(player.player);
 
-        Object entityPlayer = craftPlayerModifier.invokeMethod("getHandle");
+        Object entityPlayer = craftPlayerModifier.invokeMethod(null, "getHandle", 0);
 
         IStructureModifier<Integer> entityPlayerModifier =
                 ReflectStructureCache.acquireStructure(entityPlayer.getClass())
                 .asInt().withTarget(entityPlayer);
 
-        return entityPlayerModifier.readField("ping", 0);
+        return entityPlayerModifier.readField(null, "ping", 0);
     }
 
     public String formatPing(HoneyPlayer player) {
@@ -338,7 +338,7 @@ public class NotificationService {
                     .withType(NMS.getIChatBaseComponentClass())
                     .withTarget(null);
         }
-        Object chatComponent = chatSerializer.invokeMethod(0, "{\"text\":\"" + text + "\"}");
+        Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
         if (IchatBaseComponentClass == null) {
             IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
         }

@@ -38,7 +38,9 @@ public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
     }
 
     public String getText() {
-        if (text == null) return getHandle() != null ? (text = getModifier(String.class).readField(0)) : null;
+        if (text == null) {
+            return getHandle() != null ? (text = getModifier(String.class).readField(0)) : null;
+        }
 
         return text;
     }
@@ -48,9 +50,11 @@ public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
         if (o instanceof WrappedSuggestion) {
             return getText().equals(((WrappedSuggestion)o).getText());
         }
+
         if (SUGGESTION_CLASS.isInstance(o)) {
             return getText().equals(new WrappedSuggestion(o).getText());
         }
+
         return false;
     }
 }

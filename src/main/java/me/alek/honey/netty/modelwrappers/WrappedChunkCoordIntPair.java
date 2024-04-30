@@ -1,11 +1,16 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.checks.impl.PositionListener;
+import me.alek.honey.netty.util.FieldAccessor;
 import org.bukkit.World;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
+
+    private static final AtomicReference<FieldAccessor<Integer>> chunkCoordIntPairXCachedAccessor = new AtomicReference<>();
+    private static final AtomicReference<FieldAccessor<Integer>> chunkCoordIntPairYCachedAccessor = new AtomicReference<>();
 
     private final int x;
     private final int y;
@@ -22,8 +27,8 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
     public WrappedChunkCoordIntPair(Object handle) {
         super(handle);
 
-        this.x = getModifier(int.class).readField("x", 0);
-        this.y = getModifier(int.class).readField("z", 0);
+        this.x = getModifier(int.class).readField(chunkCoordIntPairXCachedAccessor, "x", 0);
+        this.y = getModifier(int.class).readField(chunkCoordIntPairYCachedAccessor, "z", 0);
         this.loaded = (world) -> PositionListener.isChunkLoaded(world, x, y);
     }
 

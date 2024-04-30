@@ -1,10 +1,7 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.util.ConstructorInvoker;
-import me.alek.honey.netty.util.MathHelper;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.netty.util.*;
 import me.alek.honey.util.NumberConversions;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,12 +9,17 @@ import org.bukkit.util.Vector;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> implements Cloneable, Serializable {
 
     private static final ConstructorInvoker<?> nmsConstructorInvoker = Reflection.getConstructor(NMS.getBlockPositionClass(), int.class, int.class, int.class);
     public static final WrappedBlockPosition ORIGIN = new WrappedBlockPosition(0, 0, 0);
     public static final WrappedBlockPosition DEFAULT = new WrappedBlockPosition(-1, -1, -1);
+
+    private static final AtomicReference<FieldAccessor<Integer>> blockPositionXCachedAccessor = new AtomicReference<>();
+    private static final AtomicReference<FieldAccessor<Integer>> blockPositionYCachedAccessor = new AtomicReference<>();
+    private static final AtomicReference<FieldAccessor<Integer>> blockPositionZCachedAccessor = new AtomicReference<>();
 
     private static final int c = 1 + MathHelper.c(MathHelper.b(30000000));
     private static final int d = c;
@@ -42,9 +44,9 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
         super(handle);
         IStructureModifier<Integer> intModifier = getModifier(int.class);
 
-        this.x = intModifier.readField("x", 0);
-        this.y = intModifier.readField("y", 0);
-        this.z = intModifier.readField("z", 0);
+        this.x = intModifier.readField(blockPositionXCachedAccessor, "x", 0);
+        this.y = intModifier.readField(blockPositionYCachedAccessor, "y", 0);
+        this.z = intModifier.readField(blockPositionZCachedAccessor, "z", 0);
     }
 
     public WrappedBlockPosition(int x, int y, int z) {

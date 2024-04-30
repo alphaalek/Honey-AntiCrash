@@ -6,15 +6,17 @@ import io.netty.util.AttributeKey;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.util.FieldAccessor;
+import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
-import org.w3c.dom.Attr;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
+
+    private static final AtomicReference<MethodInvoker<Object>> createPacketCachedInvoker = new AtomicReference<>();
 
     public static AttributeKey<Object> getProtocolAttributeKey(Channel channel, PacketBound bound) {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2) && channel.pipeline().get("packet_handler") != null)
@@ -81,6 +83,6 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     }
 
     private Object invoke(Object... params) throws Exception {
-        return packetModifier.invokeMethodWithException(0, params);
+        return packetModifier.invokeMethodWithException(createPacketCachedInvoker, 0, params);
     }
 }

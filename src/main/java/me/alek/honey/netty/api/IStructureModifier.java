@@ -7,6 +7,7 @@ import me.alek.honey.netty.util.MethodInvoker;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public interface IStructureModifier<T> {
@@ -19,29 +20,25 @@ public interface IStructureModifier<T> {
 
     IStructureModifier<T> writeField(int index, T value);
 
-    IStructureModifier<T> writeField(String name, int index, T value);
+    <O> IStructureModifier<T> writeField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index, T value);
 
     T readField(int index);
 
     <K, V, R> T readFieldAndApplyMapping(int index);
 
-    T readField(String name, int index);
+    <O> T readField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index);
 
-    T invokeMethod(Predicate<MethodInvoker<?>> filter, Object... params);
+    <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, Predicate<MethodInvoker<?>> filter, Object... params);
 
-    T invokeMethod(String name);
+    <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params);
 
-    T invokeMethod(int index, Object... params);
+    <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params);
 
-    T invokeMethod(String name, int index, Object... params);
+    <O> T invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, Predicate<MethodInvoker<?>> filter, Object... params) throws Exception;
 
-    T invokeMethodWithException(Predicate<MethodInvoker<?>> filter, Object... params) throws Exception;
+    <O> T invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) throws Exception;
 
-    T invokeMethodWithException(String name) throws Exception;
-
-    T invokeMethodWithException(int index, Object... params) throws Exception;
-
-    T invokeMethodWithException(String name, int index, Object... params) throws Exception;
+    <O> T invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) throws Exception;
 
     Collection<T> readFieldValues();
 

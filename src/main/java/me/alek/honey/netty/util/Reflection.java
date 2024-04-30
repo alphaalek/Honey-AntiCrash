@@ -51,50 +51,32 @@ public class Reflection {
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
 
     public static Class<?> getSubClass(Class<?> superClass, String name) {
-        if (superClass == null) {
-            throw new RuntimeException("Reflection error " + name);
-        }
         for (Class<?> subClass : superClass.getDeclaredClasses()) {
             if (subClass.getSimpleName().equals(name)) {
                 return subClass;
             }
         }
-        throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + name);
-    }
 
-    public static Class<Object> getSubClass(String superClass, String name) {
-        return (Class<Object>) getSubClass(getClass(superClass), name);
+        throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + name);
     }
 
     public static Class<?> getClassWithException(String name) throws Exception {
         return getCanonicalClassWithException(setPlaceholders(name));
     }
 
-    public static Class<Object> getObjectClassWithException(String name) throws Exception {
-        return (Class<Object>) getClassWithException(name);
-    }
-
     public static Class<?> getClass(String name) {
         return CLASS_CACHE.computeIfAbsent(name, (d) -> getCanonicalClass(setPlaceholders(name)));
-    }
-
-    public static Class<Object> getObjectClass(String name) {
-        return (Class<Object>) getClass(name);
     }
 
     public static Class<?> getArrayClass(String name) {
         return getClass("[L" + name + ";");
     }
 
-    public static Class<Object[]> getArrayObjectClass(String name) {
-        return (Class<Object[]>) getClass("[" + name + ";");
-    }
-
     public static Class<?> getFuzzyClass(String... names) {
         for (String name : names) {
             try {
                 return getClassWithException(name);
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
             }
         }
         throw new RuntimeException("Reflection error (class): " + Arrays.stream(names).map(Reflection::setPlaceholders).collect(Collectors.toList()));

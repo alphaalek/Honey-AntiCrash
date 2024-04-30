@@ -19,7 +19,6 @@ import me.alek.honey.netty.util.ConstructorInvoker;
 import me.alek.honey.netty.util.ItemReflection;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
-import org.bukkit.Chunk;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -62,12 +61,13 @@ public class Converters {
                 if (delegate == null) {
                     return null;
                 }
+
                 if (!NMS.isBlockPosition(delegate)) {
                     return null;
                 }
+
                 ReflectStructure<Object, ?> blockPositionStructure = ReflectStructureCache.acquireStructure(NMS.getBaseBlockPositionClass());
                 IStructureModifier<Integer> intStructure = blockPositionStructure.asInt().withTarget(delegate);
-
                 if (intStructure.fieldSize() < 3) {
                     throw new RuntimeException("Reflection error");
                 }
@@ -80,6 +80,7 @@ public class Converters {
                 if (blockPosition == null) {
                     return null;
                 }
+
                 ConstructorInvoker<Object> blockPositionConstructor = Reflection.getConstructor(
                         NMS.getBlockPositionClass(), int.class, int.class, int.class);
                 try {
@@ -163,25 +164,6 @@ public class Converters {
 
     public static JavaConverter<Object, WrappedSuggestion> getSuggestionConverter() {
         return getConverter(WrappedSuggestion.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestion.class));
-    }
-
-    public static JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction> getEntityUseActionConverter() {
-        return getConverter(WrappedPlayInUseEntity.EnumEntityUseAction.class, (clazz) -> new JavaConverter<Object, WrappedPlayInUseEntity.EnumEntityUseAction>() {
-
-            private final Class<Object> enumEntityUseActionClass = NMS.getEntityUseActionClass();
-
-            @Override
-            public WrappedPlayInUseEntity.EnumEntityUseAction convertDelegate(Object delegate, Object... params) {
-                if (delegate == null) return null;
-                return WrappedPlayInUseEntity.EnumEntityUseAction.valueOf(delegate.toString());
-            }
-
-            @Override
-            public Object convertDeclaring(WrappedPlayInUseEntity.EnumEntityUseAction object) {
-                if (object == null) return null;
-                return enumEntityUseActionClass.getEnumConstants()[object.ordinal()];
-            }
-        });
     }
 
     public static JavaConverter<Object, WrappedChunkCoordIntPair> getChunkCoordIntConverter() {

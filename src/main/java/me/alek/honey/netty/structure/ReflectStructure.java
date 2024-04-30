@@ -6,13 +6,13 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.util.*;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public class ReflectStructure<T, C> {
@@ -305,24 +305,38 @@ public class ReflectStructure<T, C> {
             if (!hasField(index)) {
                 return this;
             }
-            final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
+
+            FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             set(accessor, value);
+
             return this;
         }
 
         @Override
-        public IStructureModifier<C> writeField(String name, int index, C value) {
+        public <O> IStructureModifier<C> writeField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index, C value) {
+            FieldAccessor<O> cachedAccessor;
+            if (fieldReference != null && (cachedAccessor = fieldReference.get()) != null) {
+                set((FieldAccessor<T>) cachedAccessor, value);
+                return this;
+            }
+
             if (!hasField(index)) {
                 return this;
             }
+
             int specificIndex = 0;
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
-
                 if (accessor.getName().equals(name) && index == specificIndex++) {
+
+                    if (fieldReference != null) {
+                        fieldReference.set((FieldAccessor<O>) accessor);
+                    }
+
                     set(accessor, value);
-                    break;
+                    return this;
                 }
             }
+
             return this;
         }
 
@@ -341,10 +355,12 @@ public class ReflectStructure<T, C> {
             if (!hasField(index)) {
                 return null;
             }
-            final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
+
+            FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (accessor != null) {
                 return get(accessor);
             }
+
             return null;
         }
 
@@ -359,7 +375,7 @@ public class ReflectStructure<T, C> {
                 return readField(index);
             }
 
-            final FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
+            FieldAccessor<T> accessor = ACQUIRED_ACCESSORS.get(index);
             if (accessor != null) {
                 T originalValue = accessor.get(handle);
 
@@ -403,63 +419,28 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public C readField(String name, int index) {
+        public <O> C readField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index) {
+            FieldAccessor<O> cachedAccessor;
+            if (fieldReference != null && (cachedAccessor = fieldReference.get()) != null) {
+                return get((FieldAccessor<T>) cachedAccessor);
+            }
+
             if (!hasField(index)) {
                 return null;
             }
+
             int specificIndex = 0;
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
-
                 if (accessor.getName().equals(name) && index == specificIndex++) {
+
+                    if (fieldReference != null) {
+                        fieldReference.set((FieldAccessor<O>) accessor);
+                    }
+
                     return get(accessor);
                 }
             }
-            return null;
-        }
 
-        @Override
-        public C invokeMethod(Predicate<MethodInvoker<?>> filter, Object... params) {
-            try {
-                return invokeMethodWithException(filter, params);
-            } catch (Exception ex) {
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
-            }
-        }
-
-        @Override
-        public C invokeMethod(String name) {
-            try {
-                return invokeMethodWithException(name);
-            } catch (Exception ex) {
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
-            }
-        }
-
-        @Override
-        public C invokeMethod(int index, Object... params) {
-            try {
-                return invokeMethodWithException(index, params);
-            } catch (Exception ex) {
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
-            }
-        }
-
-        @Override
-        public C invokeMethod(String name, int index, Object... params) {
-            try {
-                return invokeMethodWithException(name, index, params);
-            } catch (Exception ex) {
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
-            }
-        }
-
-        @Override
-        public C invokeMethodWithException(Predicate<MethodInvoker<?>> filter, Object... params) throws Exception {
-            for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
-                        && filter.test(invoker))
-                    return invoke(invoker, params);
-            }
             return null;
         }
 
@@ -474,14 +455,74 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public C invokeMethodWithException(int index, Object... params) throws Exception {
+        public <O> C invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, Predicate<MethodInvoker<?>> filter, Object... params) {
+            try {
+                return invokeMethodWithException(methodReference, filter, params);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+            }
+        }
+
+        @Override
+        public <O> C invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) {
+            try {
+                return invokeMethodWithException(methodReference, index, params);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+            }
+        }
+
+        @Override
+        public <O> C invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) {
+            try {
+                return invokeMethodWithException(methodReference, name, index, params);
+            } catch (Exception ex) {
+                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+            }
+        }
+
+        @Override
+        public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, Predicate<MethodInvoker<?>> filter, Object... params) throws Exception {
+            MethodInvoker<O> cachedInvoker;
+            if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
+                return invoke((MethodInvoker<T>) cachedInvoker, params);
+            }
+
+            for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
+                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
+                        && filter.test(invoker)) {
+
+                    if (methodReference != null) {
+                        methodReference.set((MethodInvoker<O>) invoker);
+                    }
+
+                    return invoke(invoker, params);
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) throws Exception {
+            MethodInvoker<O> cachedInvoker;
+            if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
+                return invoke((MethodInvoker<T>) cachedInvoker, params);
+            }
+
             if (!hasMethod(index)) {
                 return null;
             }
-            final MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
+
+            MethodInvoker<T> invoker = ACQUIRED_INVOKERS.get(index);
             if (!Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))) {
                 return null;
             }
+
+            if (methodReference != null) {
+                methodReference.set((MethodInvoker<O>) invoker);
+            }
+
             return invoke(invoker, params);
         }
 
@@ -490,23 +531,29 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public C invokeMethodWithException(String name) throws Exception {
-            return invokeMethodWithException(name, 0);
-        }
+        public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) throws Exception {
+            MethodInvoker<O> cachedInvoker;
+            if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
+                return invoke((MethodInvoker<T>) cachedInvoker, params);
+            }
 
-        @Override
-        public C invokeMethodWithException(String name, int index, Object... params) throws Exception {
-            if (!hasMethod(index)) {
+            if (!hasMethod(name, index)) {
                 return null;
             }
+
             int specificIndex = 0;
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-
                 if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
                         && invoker.getName().equals(name) && index == specificIndex++) {
+
+                    if (methodReference != null) {
+                        methodReference.set((MethodInvoker<O>) invoker);
+                    }
+
                     return invoke(invoker, params);
                 }
             }
+
             return null;
         }
 
@@ -517,10 +564,11 @@ public class ReflectStructure<T, C> {
 
         @Override
         public Map<String, C> readFieldEntries() {
-            final Map<String, C> entries = new HashMap<>();
+            Map<String, C> entries = new HashMap<>();
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
                 entries.put(accessor.getName(), get(accessor));
             }
+
             return entries;
         }
 
@@ -533,11 +581,11 @@ public class ReflectStructure<T, C> {
         public boolean hasField(String name, int index) {
             int specificIndex = 0;
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
-
                 if (accessor.getName().equals(name) && index == specificIndex++) {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -550,11 +598,11 @@ public class ReflectStructure<T, C> {
         public boolean hasMethod(String name, int index) {
             int specificIndex = 0;
             for (MethodInvoker<T> accessor : ACQUIRED_INVOKERS.values()) {
-
                 if (accessor.getName().equals(name) && index == specificIndex++) {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -577,6 +625,5 @@ public class ReflectStructure<T, C> {
         public Collection<MethodInvoker<?>> getInvokers() {
             return (Collection<MethodInvoker<?>>) (Collection<?>) ACQUIRED_INVOKERS.values();
         }
-
     }
 }

@@ -7,7 +7,6 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.util.*;
-import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +79,7 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
     }
 
     public Object readItemStack() {
-        return getModifier(NMS.getItemStackClass()).invokeMethod(0);
+        return getModifier(NMS.getItemStackClass()).invokeMethod(null, 0);
     }
 
     public Object readItemStackWithoutMeta() {
@@ -94,7 +93,7 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
             damage = readShort();
         }
 
-        Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(0);
+        Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(null, 0);
         Object item = ItemReflection.getItemFromId(itemId);
         if (item == null) {
             return null;

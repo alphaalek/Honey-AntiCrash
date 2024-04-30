@@ -38,11 +38,13 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
             return getContainer().getStringArrays().readField(0);
         }
+
         Object[] chatBaseComponentArray = getChatBaseComponents();
         String[] lines = new String[4];
         for (int i = 0; i < 4; i++) {
             lines[i] = (String) textComponentGetter.invoke(chatBaseComponentArray[i]);
         }
+
         return lines;
     }
 

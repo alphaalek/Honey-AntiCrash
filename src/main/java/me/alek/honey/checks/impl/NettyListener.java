@@ -38,7 +38,6 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.NumberConversions;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;

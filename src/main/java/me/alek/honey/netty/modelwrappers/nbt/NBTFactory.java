@@ -7,7 +7,6 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -115,10 +114,10 @@ public class NBTFactory {
         }
 
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            return structureModifier.invokeMethod("getTypeId");
+            return structureModifier.invokeMethod(null, "getTypeId", 0);
         }
 
-        return structureModifier.invokeMethod(
+        return structureModifier.invokeMethod(null,
                 (invoker) -> invoker.getMethod().getDeclaringClass().equals(NMS.getNBTBaseClass()));
     }
 

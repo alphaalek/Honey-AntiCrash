@@ -55,13 +55,10 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
 
     public void removeSuggestion(String suggestion) {
         if (!IS_MODERN) {
-            final List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
+            List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
             suggestions.remove(suggestion);
-
-            getContainer().getStringArrays().writeField(0,
-                    createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
-        }
-        else {
+            getContainer().getStringArrays().writeField(0, createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
+        } else {
             getModernSuggestionsHandle(true).removeConverted(new WrappedSuggestion(suggestion));
         }
     }
@@ -70,9 +67,9 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         if (!IS_MODERN) {
             return getContainer().getStringArrays().readField(0);
         }
-        final ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(true);
 
-        final String[] suggestionsArray = new String[suggestionsHandle.size()];
+        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(true);
+        String[] suggestionsArray = new String[suggestionsHandle.size()];
         int i = 0;
         for (final WrappedSuggestion suggestion : suggestionsHandle) {
             suggestionsArray[i++] = suggestion.getText();
@@ -85,8 +82,8 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         if (!IS_MODERN) {
             return getSuggestions().length;
         }
-        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(false);
 
+        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(false);
         return suggestionsHandle.size();
     }
 }
