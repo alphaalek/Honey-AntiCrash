@@ -181,7 +181,7 @@ packet-dump:
     enabled: true
 
     # Min main thread handle time (in millis) for packet to be dumped in log.
-    min-server-handle: 25
+    min-server-handle: 100
 
   server-thread-dump:
     # Should server thread dump for heavy handled packets be enabled.
