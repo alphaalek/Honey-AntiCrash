@@ -64,8 +64,6 @@ public class PlayerJoinQuitListener implements Listener {
         HoneyPlugin.get().getLoggerService().removePacketData(player);
         HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
 
-        HoneyPlugin.get().removeRecentPingLookup(player);
-
         HoneyPlugin.get().getNettyPacketTracker().remove(player);
         HoneyPlugin.get().getServerThreadTracker().remove(player);
 

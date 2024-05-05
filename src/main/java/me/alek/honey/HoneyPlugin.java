@@ -39,7 +39,7 @@ import me.alek.honey.storage.BeanRepositoryCollection;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.RegistryMarkableHandleTracker;
-import me.alek.honey.tickloop.ExecutionQueueWrapper;
+import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
@@ -70,7 +70,7 @@ public class HoneyPlugin implements HoneyAPI {
     private CommandManager commandManager;
     private SQLManagerWrapper sqlManager;
     private Configuration configuration;
-    private ExecutionQueueWrapper serverThreadTracker;
+    private ExecutionQueueProxy serverThreadTracker;
     private WideTempQueuedHandleTracker packetNettyTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
     private CraftScheduledTPSTracker tickloop;
@@ -78,8 +78,6 @@ public class HoneyPlugin implements HoneyAPI {
     private boolean isLoaded;
     private boolean isRunning;
     private PacketLibrary packetLibrary;
-    private final Map<UUID, Integer> recentPingLookup = new HashMap<>();
-    private final Object recentPingLookupLock = new Object();
     private Thread serverThread;
 
     private final Plugin plugin;
@@ -264,7 +262,7 @@ public class HoneyPlugin implements HoneyAPI {
         sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
 
         // setup tracking
-        serverThreadTracker = new ExecutionQueueWrapper();
+        serverThreadTracker = new ExecutionQueueProxy();
         packetNettyTracker = new WideTempQueuedHandleTracker();
         checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
@@ -286,9 +284,6 @@ public class HoneyPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
         packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 
-        // setup runnables
-        setupRecentPingLookupRunnable();
-
         getLoggerService().getLogger().info("Honey is now fully loaded in! Version: " + plugin.getDescription().getVersion());
     }
 
@@ -296,19 +291,6 @@ public class HoneyPlugin implements HoneyAPI {
         if (packetLibrary == null) {
             packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey-filter", "honey-connection", "honey-channel-init", "honey-decode-prepare", "honey-encode-prepare", "honey-debugger"));
         }
-    }
-
-    private void setupRecentPingLookupRunnable() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                synchronized (recentPingLookupLock) {
-                    for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
-                        recentPingLookup.put(player.uuid, HoneyPlugin.get().getNotificationService().getPing(player));
-                    }
-                }
-            }
-        }.runTaskTimerAsynchronously(plugin, 0L, 60L);
     }
 
     public void onDisable() {
@@ -392,7 +374,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         monitorManager.reload();
 
-        ((ExecutionQueueWrapper) serverThreadTracker).reload();
+        ((ExecutionQueueProxy) serverThreadTracker).reload();
 
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();
@@ -448,7 +430,7 @@ public class HoneyPlugin implements HoneyAPI {
         return packetNettyTracker;
     }
 
-    public ExecutionQueueWrapper getServerThreadTracker() {
+    public ExecutionQueueProxy getServerThreadTracker() {
         return serverThreadTracker;
     }
 
@@ -490,17 +472,5 @@ public class HoneyPlugin implements HoneyAPI {
 
     public Thread getServerThread() {
         return serverThread;
-    }
-
-    public int getRecentPing(HoneyPlayer player) {
-        synchronized (recentPingLookupLock) {
-            return recentPingLookup.computeIfAbsent(player.uuid, (d) -> notificationService.getPing(player));
-        }
-    }
-
-    public void removeRecentPingLookup(HoneyPlayer player) {
-        synchronized (recentPingLookupLock) {
-            recentPingLookup.remove(player.uuid);
-        }
     }
 }

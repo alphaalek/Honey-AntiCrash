@@ -333,15 +333,15 @@ public class NotificationService {
 
         packetContainer.getBytes().writeField(0, (byte) 2);
 
-        if (chatSerializer == null) {
-            chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
-                    .withType(NMS.getIChatBaseComponentClass())
-                    .withTarget(null);
-        }
-        Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
         if (IchatBaseComponentClass == null) {
             IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
         }
+        if (chatSerializer == null) {
+            chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
+                    .withType(IchatBaseComponentClass)
+                    .withTarget(null);
+        }
+        Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
         packetContainer.getObjects(IchatBaseComponentClass).writeField(0, chatComponent);
 
         try {

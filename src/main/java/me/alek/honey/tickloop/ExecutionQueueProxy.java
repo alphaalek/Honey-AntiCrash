@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
+public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
 
     private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
     private final Map<UUID, Integer> packetsInQueueExecution = new HashMap<>();
@@ -39,7 +39,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
     private int doneTicks;
     private int doneExecutionTicks;
 
-    public ExecutionQueueWrapper() {
+    public ExecutionQueueProxy() {
         reload();
         inject();
     }
@@ -246,13 +246,7 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
             }
 
             if (value instanceof WrappedPacketTaskFuture) {
-                if (super.isEmpty()) {
-                    // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
-                    super.add(EMPTY_VALUE);
-                }
-
-                super.add(EMPTY_VALUE);
-                return submitQueue.add((WrappedPacketTaskFuture<Object>) value);
+                return addPacketTask((WrappedPacketTaskFuture<Object>) value);
             }
 
             // only register tracking for tasks added by netty threads (packet handling)
@@ -266,13 +260,17 @@ public class ExecutionQueueWrapper extends WideTempQueuedHandleTracker {
                 return super.add(value);
             }
 
+            return addPacketTask(new WrappedPacketTaskFuture<>((Runnable) value, packet, ExecutionQueueProxy.this.getCurrentExecutionTick()));
+        }
+
+        private boolean addPacketTask(WrappedPacketTaskFuture<Object> packetTask) {
             if (super.isEmpty()) {
                 // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
                 super.add(EMPTY_VALUE);
             }
 
             super.add(EMPTY_VALUE);
-            return submitQueue.add(new WrappedPacketTaskFuture<>((Runnable) value, packet, ExecutionQueueWrapper.this.getCurrentExecutionTick()));
+            return submitQueue.add(packetTask);
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {

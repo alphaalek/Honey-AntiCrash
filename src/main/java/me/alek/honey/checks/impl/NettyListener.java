@@ -29,7 +29,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPosition;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPositionLook;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tickloop.ExecutionQueueWrapper;
+import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.packet.PacketTaskHandler;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
@@ -77,7 +77,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final ExecutionQueueWrapper tracker = (ExecutionQueueWrapper) HoneyPlugin.get().getServerThreadTracker();
+        private static final ExecutionQueueProxy tracker = (ExecutionQueueProxy) HoneyPlugin.get().getServerThreadTracker();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {

@@ -8,12 +8,14 @@ import javax.tools.JavaFileObject;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 @NoSessionEncryption
 public class Session {
+
+    public static Class<?> sessionDecrypterClass;
+    private static MethodHandle decryptStringInvoker;
 
     public static void setup() {
         InMemoryCompiler.IMCSourceCode source = SessionDecrypterProvider.getSource();
@@ -26,7 +28,7 @@ public class Session {
                 sessionDecrypterClass = compiler.getCompiledClass("me.alek.honey.session.SessionDecrypter");
 
                 MethodType methodType = MethodType.methodType(String.class, String.class, int.class, long.class, long.class);
-                methodHandle = MethodHandles.lookup().findStatic(sessionDecrypterClass, "getString", methodType);
+                decryptStringInvoker = MethodHandles.lookup().findStatic(sessionDecrypterClass, "getString", methodType);
 
             } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
                 throw new RuntimeException("Failed to setup session decrypting environment!", e);
@@ -39,18 +41,14 @@ public class Session {
         }
     }
 
-    public static Class<?> sessionDecrypterClass;
-
     public static void requestSession() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         sessionDecrypterClass.getDeclaredMethod("requestSession", Object.class, String.class)
                 .invoke(null, HoneyPlugin.get().getPlugin(), HoneyPlugin.get().getLicense());
     }
 
-    private static MethodHandle methodHandle;
-
     public static String getString(String encryptedText, int encryption, long cacheDividend, long cacheDivisor) throws Exception {
         try {
-            Object invoke = methodHandle.invoke(encryptedText, encryption, cacheDividend, cacheDivisor);
+            Object invoke = decryptStringInvoker.invoke(encryptedText, encryption, cacheDividend, cacheDivisor);
 
             return invoke.toString();
         } catch (Throwable ex) {

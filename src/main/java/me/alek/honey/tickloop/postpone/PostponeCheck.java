@@ -4,14 +4,14 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.tickloop.ExecutionQueueWrapper;
+import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
 public interface PostponeCheck {
 
-    default ExecutionQueueWrapper getTracker() {
+    default ExecutionQueueProxy getTracker() {
         return HoneyPlugin.get().getServerThreadTracker();
     }
 
