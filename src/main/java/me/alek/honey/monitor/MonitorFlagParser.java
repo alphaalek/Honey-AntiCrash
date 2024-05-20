@@ -189,7 +189,6 @@ public class MonitorFlagParser {
     public static Flags.RuntimeFlags getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
         Array<Object> elements = getMonitorFlagsAndOperators(args).as(Parsed::get);
 
-
         Flags.Conditions conditions = new Flags.Conditions();
         return new Flags.RuntimeFlags(Array.from(new Flags.Env(getFlagsWithin(elements, conditions), conditions)));
     }

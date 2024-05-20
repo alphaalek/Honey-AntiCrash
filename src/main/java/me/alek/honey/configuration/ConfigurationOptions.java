@@ -678,12 +678,14 @@ public class ConfigurationOptions {
     public static class Commands extends VlSetting implements VlSimpleRequiredContentsSetting {
 
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
-        public static List<String> PROHIBITED_COMMANDS;
+        public static List<String> PROHIBITED_COMMANDS_LITERAL;
+        public static List<String> PROHIBITED_COMMANDS_REGEX;
         public static List<String> FALLBACK_PREFIXES;
 
         public static void load() {
             PROHIBITED_TAB_COMPLETE_COMMANDS = file.getStringList("commands.prohibited-tab-complete-commands");
-            PROHIBITED_COMMANDS = file.getStringList("commands.prohibited-commands");
+            PROHIBITED_COMMANDS_LITERAL = file.getStringList("commands.prohibited-commands.literal");
+            PROHIBITED_COMMANDS_REGEX = file.getStringList("commands.prohibited-commands.regex");
             FALLBACK_PREFIXES = file.getStringList("commands.fallback-prefixes");
         }
     }

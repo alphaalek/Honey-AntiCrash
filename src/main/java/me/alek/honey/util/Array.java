@@ -15,7 +15,7 @@ public class Array<T> implements Iterable<T> {
 
     public static <T> Array<T> from(Object[] data) {
         Array<T> array = new Array<>();
-        array.data = data;
+        array.data = Arrays.copyOf(data, data.length);
         return array;
     }
 
@@ -55,14 +55,6 @@ public class Array<T> implements Iterable<T> {
     }
 
     public <R> Array<R> as(Function<? super T, ? extends R> mapper) {
-        return Array.from(
-                with(Objects::nonNull)
-                        .stream()
-                        .map(mapper)
-                        .toArray(Object[]::new));
-    }
-
-    public <R> Array<R> asFlat(Function<? super T, ? extends Array<R>> mapper) {
         return Array.from(
                 with(Objects::nonNull)
                         .stream()

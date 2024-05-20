@@ -25,7 +25,9 @@ import org.bukkit.command.CommandMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
@@ -55,7 +57,8 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
     @Override
     public void load() {
-       CommandsA.prohibitedCommands = getSatisfiedList(ConfigurationOptions.Commands.PROHIBITED_COMMANDS);
+       CommandsA.prohibitedCommandsLiteral = getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_COMMANDS_LITERAL);
+       CommandsA.prohibitedCommandsRegex = getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_COMMANDS_REGEX);
     }
 
     @Override
@@ -159,23 +162,24 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
     private static String getLabel(String command) {
         String label = command.split( " ")[0];
-        boolean isCommandFormat = label.startsWith("/");
-        return isCommandFormat ? getNameFormat(label) : label;
+
+        return label.startsWith("/") ? getNameFormat(label) : label;
     }
 
     private static String getNameFormat(String command) {
         if (command.startsWith("/")) {
             return command.substring(1).toLowerCase();
         }
+
         return command.toLowerCase();
     }
 
-    public static String[] getSatisfiedList(List<String> commands) {
+    public static String[] getRegisteredCommands(List<String> commands) {
         IStructureModifier<CommandMap> craftServerModifier = ReflectStructureCache.acquireStructure(NMS.getCraftServerClass())
                 .withType(CommandMap.class)
                 .withTarget(Bukkit.getServer());
-        final CommandMap commandMap = craftServerModifier.readField(0);
-        final List<String> knownCommands = new ArrayList<>();
+        CommandMap commandMap = craftServerModifier.readField(0);
+        List<String> knownCommands = new ArrayList<>();
 
         for (String command : commands) {
             String label = getLabel(command);
@@ -186,30 +190,42 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                     knownCommands.add(fallbackPrefix + ":" + nameFormat);
                 }
             }
+
             if (commandMap.getCommand(label) != null) {
                 knownCommands.add(nameFormat);
             }
         }
+
         String[] prohibitedCommands = new String[knownCommands.size()];
         int index = 0;
         for (String command : knownCommands) {
             prohibitedCommands[index] = command;
             index++;
         }
+
         return prohibitedCommands;
     }
 
     public static boolean match(String commandCheck, String commandSent) {
+        commandCheck = commandCheck.toLowerCase();
+        String format = getNameFormat(commandSent);
+
         String[] args = commandSent.split(" ");
         if (args.length == 1) {
-            return commandCheck.equalsIgnoreCase(getNameFormat(commandSent));
+            return format.equalsIgnoreCase(commandCheck);
+        } else {
+            return format.startsWith(commandCheck);
         }
-        return getNameFormat(commandSent).startsWith(commandCheck.toLowerCase());
+    }
+
+    public static boolean matchRegex(String regexCheck, String commandSent) {
+        return Pattern.compile(regexCheck).matcher(commandSent).matches();
     }
 
     public static class CommandsA implements ViolationCheck, PacketCheck<WrappedPlayInChat> {
 
-        private static String[] prohibitedCommands;
+        private static String[] prohibitedCommandsLiteral;
+        private static String[] prohibitedCommandsRegex;
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
@@ -217,19 +233,31 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
             if (!message.startsWith("/")) {
                 return ResponseBuilder.PASS;
             }
-            for (String prohibitedCommand : prohibitedCommands) {
 
+            Consumer<Runnable> onViolationConsumer = onViolation -> {
+                if (onViolation != null) onViolation.run();
+
+                String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
+                container.getDevelopmentData(this).addPoint("Command", messageFormatted);
+            };
+
+            for (String prohibitedCommand : prohibitedCommandsLiteral) {
                 if (match(prohibitedCommand, message)) {
                     return ResponseBuilder.inst().cancel().flag()
-                            .onViolation(onViolation -> {
-                                if (onViolation != null) onViolation.run();
-
-                                String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
-                                container.getDevelopmentData(this).addPoint("Command", messageFormatted);
-                            })
+                            .onViolation(onViolationConsumer)
                             .build();
                 }
             }
+
+            for (String prohibitedCommand : prohibitedCommandsRegex) {
+                if (matchRegex(prohibitedCommand, message)) {
+                    return ResponseBuilder.inst().cancel().flag()
+                            .onViolation(onViolationConsumer)
+                            .build();
+                }
+            }
+
+
             return ResponseBuilder.PASS;
         }
 

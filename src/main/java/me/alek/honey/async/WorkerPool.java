@@ -280,7 +280,7 @@ public class WorkerPool<T> {
                     newWorkers[i++] = worker;
                 }
                 if (Arrays.stream(newWorkers).anyMatch(Objects::isNull)) {
-                    Bukkit.getLogger().info("Null worker, aborting GC " + Arrays.asList(newWorkers) + " " + newWorkers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
+                    Bukkit.getLogger().info("Aborting GC (3), workers: " + Arrays.asList(workers) + " size: " + workers.length + " quarantined: " + quarantinedWorkers.size() + " min: " + minimumWorkerThreads + " other: " + otherWorkers.size());
                     return;
                 }
                 workers = newWorkers;
@@ -289,10 +289,10 @@ public class WorkerPool<T> {
                 for (Worker<T> worker : otherWorkers) {
                     worker.destroy();
                 }
-                Bukkit.getLogger().info("Post GC " + Arrays.asList(newWorkers) + " " + newWorkers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
+                Bukkit.getLogger().info("Post GC (1), new: " + Arrays.asList(newWorkers) + " active: " + Arrays.stream(newWorkers).filter(Worker::isActive).count() + " size: " + newWorkers.length + " quarantined: " + quarantinedWorkers.size() + " min: " + minimumWorkerThreads + " other: " + otherWorkers.size());
 
             } catch (Exception ex) {
-                Bukkit.getLogger().info("GC error: " + Arrays.asList(workers) + " " + workers.length + " " + quarantinedWorkers.size() + " " + minimumWorkerThreads + " " + otherWorkers.size());
+                Bukkit.getLogger().info("GC error (2), workers: " + Arrays.asList(workers) + " size: " + workers.length + " quarantined: " + quarantinedWorkers.size() + " min: " + minimumWorkerThreads + " other: " + otherWorkers.size());
                 ex.printStackTrace();
             }
         }

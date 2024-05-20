@@ -53,7 +53,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
     @Override
     public void load() {
-        TabA.prohibitedCommands = ChatListener.getSatisfiedList(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+        TabA.prohibitedCommands = ChatListener.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
 
         if (TabC.labelSetting != null) {
             TabC.labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
