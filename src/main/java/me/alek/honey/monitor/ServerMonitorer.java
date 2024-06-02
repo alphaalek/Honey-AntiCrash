@@ -35,10 +35,6 @@ public class ServerMonitorer implements ScheduledMonitorer {
     public String getMessage() {
         HoneyPlugin.get().getServerThreadTracker().clearExceedingNodes(false, System.currentTimeMillis());
 
-        Bukkit.broadcastMessage("Generating...");
-        Bukkit.broadcastMessage(TPSProvider.getTPS(Timespan.TEN_SECOND));
-        Bukkit.broadcastMessage(HoneyPlugin.get().getLoggerService().getTotalPacketRate() + "");
-        Bukkit.broadcastMessage(getPacketTaskPercentage(Timespan.TEN_SECOND));
         int packetRate;
         return "§6*§8TPS: §7" + TPSProvider.getTPS(Timespan.TEN_SECOND) + "§7, " + TPSProvider.getTPS(Timespan.FIFTEEN_SECOND) + "§8, "
                 + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLoggerService().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLoggerService().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.TEN_SECOND) + " ppqe§8, "

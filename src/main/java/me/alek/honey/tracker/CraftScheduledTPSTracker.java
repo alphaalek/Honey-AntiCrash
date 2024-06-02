@@ -23,7 +23,7 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
     private final AtomicLong expectedTick = new AtomicLong();
 
     public double evaluateTPS(Timespan timespan) {
-        return Math.min(20, (long) 20 * 1005 * timespan.getTimespan() / timespan.getTotal(this));
+        return Math.min(20, ((double) 20 * 1010 * timespan.getTimespan()) / timespan.getTotal(this));
     }
 
     public CraftScheduledTPSTracker() {

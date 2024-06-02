@@ -9,7 +9,6 @@ public class TPSProvider {
 
     public static String getTPS(Timespan timespan) {
         double value = -1;
-        Bukkit.broadcastMessage(HoneyPlugin.get().getPlugin().getServer().getPluginManager().isPluginEnabled("spark") + "");
         if (SparkTPSProvider.SparkValidator.VALIDATOR.has()) {
             value = SparkTPSProvider.getTPS(timespan);
         }

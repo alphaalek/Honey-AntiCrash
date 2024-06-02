@@ -36,15 +36,12 @@ public class MonitorManager {
         executorService = Executors.newSingleThreadScheduledExecutor();
 
         executorService.scheduleAtFixedRate(() -> {
-            Bukkit.broadcastMessage("Schedule " + monitorObservers);
             try {
                 for (Monitorer monitorer : monitorObservers.keySet()) {
                     if (monitorer instanceof ScheduledMonitorer) {
                         ScheduledMonitorer scheduledMonitorer = (ScheduledMonitorer) monitorer;
 
-                        Bukkit.broadcastMessage("Getting message");
                         String message = scheduledMonitorer.getMessage();
-                        Bukkit.broadcastMessage("got " + message + " " + monitorObservers.get(monitorer));
                         for (MonitorObserver observer : monitorObservers.get(monitorer)) {
                             observer.sendInfo(message);
                         }
