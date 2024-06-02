@@ -10,6 +10,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.NotificationService;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;
@@ -35,15 +36,22 @@ public class MonitorManager {
         executorService = Executors.newSingleThreadScheduledExecutor();
 
         executorService.scheduleAtFixedRate(() -> {
-            for (Monitorer monitorer : monitorObservers.keySet()) {
-                if (monitorer instanceof ScheduledMonitorer) {
-                    ScheduledMonitorer scheduledMonitorer = (ScheduledMonitorer) monitorer;
+            Bukkit.broadcastMessage("Schedule " + monitorObservers);
+            try {
+                for (Monitorer monitorer : monitorObservers.keySet()) {
+                    if (monitorer instanceof ScheduledMonitorer) {
+                        ScheduledMonitorer scheduledMonitorer = (ScheduledMonitorer) monitorer;
 
-                    String message = scheduledMonitorer.getMessage();
-                    for (MonitorObserver observer : monitorObservers.get(monitorer)) {
-                        observer.sendInfo(message);
+                        Bukkit.broadcastMessage("Getting message");
+                        String message = scheduledMonitorer.getMessage();
+                        Bukkit.broadcastMessage("got " + message + " " + monitorObservers.get(monitorer));
+                        for (MonitorObserver observer : monitorObservers.get(monitorer)) {
+                            observer.sendInfo(message);
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }, 0L, ConfigurationOptions.Monitor.MESSAGE_INTERVAL, TimeUnit.MILLISECONDS);
     }

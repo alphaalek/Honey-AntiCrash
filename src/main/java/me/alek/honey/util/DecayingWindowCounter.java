@@ -6,6 +6,8 @@ import java.util.NoSuchElementException;
 
 public class DecayingWindowCounter {
 
+    public static DecayingWindowCounter EMPTY = new DecayingWindowCounter();
+
     private final int[] marks;
     private final Map<Integer, DecayingListeningCounter> delegatedCounters = new HashMap<>();
 
@@ -63,7 +65,13 @@ public class DecayingWindowCounter {
     }
 
     public int size(int mark) {
-        if (mark > marks.length) throw new NoSuchElementException();
+        if (mark > marks.length) {
+            if (EMPTY.equals(this)) {
+                return 0;
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
 
         return delegatedCounters.get(mark).size();
     }

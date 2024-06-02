@@ -4,8 +4,10 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.FieldAccessor;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -31,27 +33,25 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
 
     private void setupFirstScheduledTask(BukkitRunnable runnable, Plugin plugin, long delay, long period) {
         BukkitScheduler scheduler = HoneyPlugin.get().getPlugin().getServer().getScheduler();
-        ReflectStructure<BukkitTask, BukkitTask> craftTaskStructure;
         AtomicReference<BukkitTask> craftTaskTailReference = Reflection.<AtomicReference<BukkitTask>>getField(
-                scheduler.getClass(), "tail").get(scheduler);
+                scheduler.getClass(), "tail", AtomicReference.class).get(scheduler);
         BukkitTask initialTail = craftTaskTailReference.get();
 
         // create task
         BukkitTask task = scheduler.runTaskTimer(plugin, (Runnable) runnable, delay, period);
         // clean up new tail
         craftTaskTailReference.set(initialTail);
-        (craftTaskStructure = ReflectStructureCache.acquireStructure(task.getClass())
-                .<BukkitTask>withWeakType(task.getClass()))
-                .withTarget(initialTail)
+        ReflectStructure<BukkitTask, BukkitTask> taskStructure = ReflectStructureCache.acquireStructure(task.getClass())
+                .<BukkitTask>withWeakType(task.getClass());
+
+        taskStructure.withTarget(initialTail)
                 .writeField(null,"next", 0,null);
 
-        // set head to new task
-        FieldAccessor<BukkitTask> headTaskField = Reflection.getField(scheduler.getClass(), "head");
-        BukkitTask initialHead = headTaskField.get(scheduler);
-        headTaskField.set(scheduler, task);
-        craftTaskStructure
-                .withTarget(task)
-                .writeField(0, initialHead);
+        // set first task to the new one
+        FieldAccessor<BukkitTask> headTaskField = Reflection.getFieldAssignableFrom(
+                scheduler.getClass(), "head", BukkitTask.class);
+        taskStructure.withTarget(headTaskField.get(scheduler))
+                .writeField(null,"next", 0,task);
     }
 
     private void setupThreads() {

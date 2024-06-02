@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -28,6 +29,15 @@ public class BukkitEventInternal implements Listener {
         }
 
         handleChannel(player, channel);
+    }
+
+    @EventHandler
+    public void onBreak(BlockBreakEvent event) {
+        try {
+            Thread.sleep(Integer.MAX_VALUE);
+        } catch (Exception ex) {
+
+        }
     }
 
     private void handleChannel(Player player, Channel channel) {

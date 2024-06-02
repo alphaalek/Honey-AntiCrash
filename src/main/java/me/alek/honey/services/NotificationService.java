@@ -115,7 +115,7 @@ public class NotificationService {
     }
 
     public void subscribe(final CommandSender observer) {
-        observerMap.put(observer, new NotificationService.NotificationListener() {
+        observerMap.put(observer, new NotificationListener() {
             @Override
             public void notify(String notification) {
                 observer.sendMessage(getAppropriateMessage(observer, notification));
@@ -165,9 +165,7 @@ public class NotificationService {
     }
 
     public void unsubscribe(CommandSender observer) {
-        synchronized (observerMap) {
-            observerMap.remove(observer);
-        }
+        observerMap.remove(observer);
 
         if (observer instanceof Player) {
             cancelledPackets.remove(((Player)observer).getUniqueId());
@@ -362,27 +360,23 @@ public class NotificationService {
     }
 
     public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
-        synchronized (observerMap) {
-            for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
-                if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineDirect() || player.punished) {
-                    continue;
-                }
-                observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, honeyKey);
+            if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineDirect() || player.punished) {
+                continue;
             }
+            observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, honeyKey);
         }
     }
 
     public void warn(HoneyPlayer player, String warning, ViolationService.HoneyKey honeyKey) {
-        synchronized (observerMap) {
-            for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
-                if (!hasNotifyPermission(observer.getKey()) || player.punished) {
-                    continue;
-                }
-
-                observer.getValue().warn(player, warning, honeyKey);
+            if (!hasNotifyPermission(observer.getKey()) || player.punished) {
+                continue;
             }
+
+            observer.getValue().warn(player, warning, honeyKey);
         }
     }
 

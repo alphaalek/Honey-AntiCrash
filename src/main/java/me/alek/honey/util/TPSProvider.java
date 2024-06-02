@@ -3,12 +3,14 @@ package me.alek.honey.util;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.SparkTPSProvider;
 import me.alek.honey.tracker.Timespan;
+import org.bukkit.Bukkit;
 
 public class TPSProvider {
 
     public static String getTPS(Timespan timespan) {
         double value = -1;
-        if (SparkTPSProvider.canUseSpark()) {
+        Bukkit.broadcastMessage(HoneyPlugin.get().getPlugin().getServer().getPluginManager().isPluginEnabled("spark") + "");
+        if (SparkTPSProvider.SparkValidator.VALIDATOR.has()) {
             value = SparkTPSProvider.getTPS(timespan);
         }
 

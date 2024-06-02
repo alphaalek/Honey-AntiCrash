@@ -55,8 +55,10 @@ public class LoggerService {
                 if (player != null) {
                     long time = System.currentTimeMillis();
                     // register to packet rate
-                    packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
-                            .count(time);
+                    synchronized (packetRate) {
+                        packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
+                                .count(time);
+                    }
                     totalPacketRate.count(time);
                 }
             }
@@ -94,7 +96,9 @@ public class LoggerService {
     }
 
     public int getPacketRate(HoneyPlayer player) {
-        return packetRate.get(player.uuid).size(0);
+        synchronized (packetRate) {
+            return packetRate.getOrDefault(player.uuid, DecayingWindowCounter.EMPTY).size(0);
+        }
     }
 
     public int getTotalPacketRate() {
@@ -102,13 +106,17 @@ public class LoggerService {
     }
 
     public String getTotalPacketRateGrade(int packetRate) {
-        int prevRate = totalPacketRate.size(1, 2);
-        return getPacketRateGrade(packetRate, prevRate);
+        synchronized (this.packetRate) {
+            int prevRate = totalPacketRate.size(1, 2);
+            return getPacketRateGrade(packetRate, prevRate);
+        }
     }
 
     public String getPacketRateGrade(HoneyPlayer player, int packetRate) {
-        int prevRate = (int) (this.packetRate.get(player.uuid).size(1, 2) * 0.965);
-        return getPacketRateGrade(packetRate, prevRate);
+        synchronized (this.packetRate) {
+            int prevRate = (int) (this.packetRate.getOrDefault(player.uuid, DecayingWindowCounter.EMPTY).size(1, 2) * 0.965);
+            return getPacketRateGrade(packetRate, prevRate);
+        }
     }
 
     public String getPacketRateGrade(int rate, int prevRate) {
@@ -167,6 +175,9 @@ public class LoggerService {
     }
 
     public void dumpPackets(HoneyPlayer player, List<PacketContainer<?>> packets) {
+        if (packets.isEmpty()) {
+            return;
+        }
         getLogger().info("Packet dump of " + packets.size() + " packets from " + player.name);
 
         long time = System.currentTimeMillis();

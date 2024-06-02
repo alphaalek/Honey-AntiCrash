@@ -5,51 +5,47 @@ import me.alek.honey.tracker.Timespan;
 import me.lucko.spark.api.Spark;
 import me.lucko.spark.api.statistic.StatisticWindow;
 import me.lucko.spark.api.statistic.types.DoubleStatistic;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
-public class SparkTPSProvider {
+public class SparkTPSProvider implements ServiceProvider<Spark> {
 
+    public static class SparkValidator implements ServiceValidator {
+
+        public static final ServiceValidator VALIDATOR = new SparkValidator();
+
+        public boolean has() {
+            return HoneyPlugin.get().getPlugin().getServer().getPluginManager().isPluginEnabled("spark");
+        }
+    }
+
+    public static final ServiceProvider<Spark> PROVIDER = new SparkTPSProvider();
     private static final Object registrationLock = new Object();
-    private static Spark SPARK = getSpark();
+    private static Spark SPARK = null;
 
-    private static boolean hasSpark() {
-        return HoneyPlugin.get().getPlugin().getServer().getPluginManager().isPluginEnabled("spark");
-    }
-
-    public static boolean canUseSpark() {
-        return hasSpark() && getSpark() != null;
-    }
-
-    public static Spark getSpark() {
-        if (!hasSpark()) {
+    public Spark get() {
+        if (!SparkValidator.VALIDATOR.has()) {
             return null;
         }
 
         try {
             synchronized (registrationLock) {
-                return SPARK != null ? SPARK : (SPARK = initRegistration());
+                if (SPARK != null) {
+                    return SPARK;
+                }
+                SPARK = initRegistration(Spark.class);
+
+                return SPARK;
             }
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public static Spark initRegistration() {
-        RegisteredServiceProvider<Spark> provider = Bukkit.getServicesManager().getRegistration(Spark.class);
-        if (provider != null) {
-            return provider.getProvider();
-        }
-
-        throw new UnsupportedCompatabilityException();
-    }
-
     public static double getTPS(StatisticWindow.TicksPerSecond window) {
-        if (!canUseSpark()) {
+        if (!SparkValidator.VALIDATOR.has()) {
             throw new UnsupportedCompatabilityException();
         }
 
-        DoubleStatistic<StatisticWindow.TicksPerSecond> TPS = SPARK.tps();
+        DoubleStatistic<StatisticWindow.TicksPerSecond> TPS = PROVIDER.get().tps();
         if (TPS == null) {
             return -1;
         }
