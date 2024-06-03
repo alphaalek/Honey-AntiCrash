@@ -2,6 +2,7 @@ package me.alek.honey.async;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.packet.PacketFactory;
@@ -124,7 +125,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         WrappedPacket<WrappedPlayOutKickDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketType.Play.Server.KICK_DISCONNECT, player);
         kickDisconnect.getContainer().getObjects(NMS.getIChatBaseComponentClass())
                 .writeField(0, Reflection.getConstructor(Reflection.getClass("{nms}.ChatComponentText"), String.class).invoke(
-                        "Packet task took way too long to be handled. The server is completely fine though :-)"
+                        Lang.get("kick.too.long.packet.handle")
                 ));
 
         try {

@@ -156,7 +156,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public String getWrongSyntaxMessage() {
-            return "You have to type a valid number.";
+            return "You have to type a valid number";
         }
 
         @Override

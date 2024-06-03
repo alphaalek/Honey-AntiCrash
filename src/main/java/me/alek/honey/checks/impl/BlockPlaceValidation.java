@@ -3,11 +3,12 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -66,33 +67,33 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         // check if the block position is close to the origin block position, just ignore this packet if it is
         final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
-        final Location lastPlayerLocation = PositionListener.getLastLocationFor(player);
+        final Location lastPlayerLocation = MovementValidation.getLastLocationFor(player);
 
         if (blockPosition.distance(originLocation) < 10
                 && Locations.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
-        if (!PositionListener.isChunkLoaded(blockPosition.toLocation(player.getWorld()))
+        if (!MovementValidation.isChunkLoaded(blockPosition.toLocation(player.getWorld()))
                 || blockPosition.isInvalid())
             // dont flag because it might just be server lag, just cancel it
-            return ResponseBuilder.inst().cancel().build();
+            return Validation.inst().cancel().build();
 
         // checks distance between the player and the block placed
-        Location playerLocation = PositionListener.getLastLocationFor(player);
+        Location playerLocation = MovementValidation.getLastLocationFor(player);
         if (playerLocation == null) playerLocation = player.getLocation();
 
         final double distance = blockPosition.distance(playerLocation);
 
         // the distance is higher than the recent client location
         if (distance == -1 ||
-                distance > maxDistance && !PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
+                distance > maxDistance && !MovementValidation.isAnyLatelyTeleportationLocationsCloseTo(
                         player, maxDistance, blockPosition::distance)) {
 
             // add the distance to the development data
-            return ResponseBuilder.inst().cancel().flag()
+            return Validation.inst().cancel().flag()
                     .onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
@@ -101,7 +102,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                     })
                     .build();
         }
-        return ResponseBuilder.PASS;
+        return Validation.PASS;
     }
 
     public static class BlockInteractA<WP extends WrappedAbstractBlockInteraction<WP>> implements ViolationCheck, PacketCheck<WP> {
@@ -111,11 +112,11 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null) return ResponseBuilder.PASS;
+                if (blockPosition == null) return Validation.PASS;
 
                 return checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -128,7 +129,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public String getDescription() {
-            return "Placing block too far away";
+            return Lang.get("validation.block.a");
         }
 
         @Override
@@ -152,7 +153,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
                 return ItemAnalysis.flagIf(player, item, container.getDevelopmentData(this));
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -167,7 +168,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public String getDescription() {
-            return "Right clicking with illegal item";
+            return Lang.get("validation-block-b");
         }
 
         @Override
@@ -190,16 +191,16 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
                 final ItemStack item = blockPlacePacket.getItem();
                 if (item == null)
-                    return ResponseBuilder.PASS;
+                    return Validation.PASS;
 
                 final Material material = item.getType();
 
                 if (material == Material.PISTON_MOVING_PIECE
                         || material == Material.PISTON_EXTENSION) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return Validation.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -214,7 +215,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public String getDescription() {
-            return "Placing illegal piston block";
+            return Lang.get("validation-block-c");
         }
 
         @Override
@@ -244,7 +245,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                 final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
 
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -253,7 +254,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                             .build();
                 }
                 if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -264,7 +265,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -279,7 +280,7 @@ public class BlockPlaceListener<WP extends WrappedAbstractBlockInteraction<WP>> 
 
         @Override
         public String getDescription() {
-            return "Illegal facing or direction";
+            return Lang.get("validation-block-d");
         }
 
         @Override

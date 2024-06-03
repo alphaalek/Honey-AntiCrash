@@ -112,7 +112,8 @@ public class MonitorManager {
     }
 
     public void setupPlayerMonitor(CommandSender sender, HoneyPlayer player) {
-        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+        if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
             sender.sendMessage(NotificationService.PREFIX + "§cCan't start player monitor on " + player.name + ", because the player has bypass permission.");
             return;
         }

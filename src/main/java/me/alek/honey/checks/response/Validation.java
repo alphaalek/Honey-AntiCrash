@@ -6,24 +6,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ResponseBuilder {
+public class Validation {
 
-    public static ResponseContainer PASS = ResponseBuilder
+    public static ResponseContainer PASS = Validation
             .inst()
             .pass()
             .build();
 
-    public static ResponseBuilder inst() {
-        return new ResponseBuilder();
+    public static Validation inst() {
+        return new Validation();
     }
 
     private final ResponseContainer responseContainer;
 
-    public ResponseBuilder() {
+    public Validation() {
         responseContainer = new ResponseContainer();
     }
 
-    public ResponseBuilder(ResponseContainer container) {
+    public Validation(ResponseContainer container) {
         this.responseContainer = container;
     }
 
@@ -31,67 +31,67 @@ public class ResponseBuilder {
         return responseContainer;
     }
 
-    public ResponseBuilder(ResponseContainer container, List<ResponseContainer> subContainers) {
+    public Validation(ResponseContainer container, List<ResponseContainer> subContainers) {
         this(container);
         this.responseContainer.subContainers = subContainers;
     }
 
-    public ResponseBuilder add(ResponseContainer... containers) {
+    public Validation add(ResponseContainer... containers) {
         responseContainer.subContainers.addAll(Arrays.asList(containers));
         return this;
     }
 
-    public ResponseBuilder pass() {
+    public Validation pass() {
         responseContainer.success = true;
         return this;
     }
 
-    public ResponseBuilder cancel() {
+    public Validation cancel() {
         responseContainer.cancelled = true;
         return this;
     }
 
-    public ResponseBuilder flag() {
+    public Validation flag() {
         return flag(1);
     }
 
-    public ResponseBuilder flag(double amount) {
+    public Validation flag(double amount) {
         responseContainer.flag = amount;
         return this;
     }
 
-    public ResponseBuilder punish() {
+    public Validation punish() {
         responseContainer.punish = true;
         return this;
     }
 
-    public ResponseBuilder terminate() {
+    public Validation terminate() {
         responseContainer.terminate = true;
         return this;
     }
 
-    public ResponseBuilder skip(int indices) {
+    public Validation skip(int indices) {
         responseContainer.skipIndices = indices;
         return this;
     }
 
-    public ResponseBuilder withViolationKey(ViolationService.HoneyKey key) {
+    public Validation withViolationKey(ViolationService.HoneyKey key) {
         responseContainer.violationKey = key;
         return this;
     }
 
-    public ResponseBuilder onPunish(Runnable runnable) {
+    public Validation onPunish(Runnable runnable) {
         responseContainer.onPunish = runnable;
         return this;
     }
 
-    public ResponseBuilder onViolation(Consumer<Runnable> runnable) {
+    public Validation onViolation(Consumer<Runnable> runnable) {
         Runnable priorOnViolation = responseContainer.onViolation;
         responseContainer.onViolation = () -> runnable.accept(priorOnViolation);
         return this;
     }
 
-    public ResponseBuilder onFlag(Runnable runnable) {
+    public Validation onFlag(Runnable runnable) {
         responseContainer.onFlag = runnable;
         return this;
     }

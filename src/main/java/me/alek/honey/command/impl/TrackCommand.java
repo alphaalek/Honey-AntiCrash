@@ -31,13 +31,14 @@ public class TrackCommand implements CommandImpl {
                 WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getServerThreadTracker();
 
                 if (stTracker.getTrackerSize() == 0) {
-                    sender.sendMessage(CommandManager.PREFIX + " §cNo data to be shown yet!");
+                    sender.sendMessage(CommandManager.PREFIX + " §cNo data!");
                     return;
                 }
-                sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the space occupation of server thread by players...");
+                sender.sendMessage(CommandManager.PREFIX + " §7Sending information about the space occupation of server thread by players...");
 
                 for (HoneyPlayer player : stTracker.getTrackersOrdered()) {
-                    if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                    if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                            && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                         sender.sendMessage("§e" + player.name + ": §cNo data because the player has bypass permission");
                         continue;
                     }
@@ -51,15 +52,13 @@ public class TrackCommand implements CommandImpl {
                 }
                 sender.sendMessage("§f");
                 sender.sendMessage("§7Average: " + format(stTracker.getAverage(Timespan.FIVE_SECOND)) + " §8(5s) §7" + "§7" + format(stTracker.getAverage(Timespan.TEN_SECOND)) + " §8(10s) §7" + format(stTracker.getAverage(Timespan.FIFTEEN_SECOND)) + " §8(15s) §7" + format(stTracker.getAverage(Timespan.HALF_MINUTE)) + " §8(30s)");
-                sender.sendMessage(" §8What is this showing?");
-                sender.sendMessage(" §7Type §e/honey stq§7 to see more information.");
 
                 break;
             case "checks":
                 MarkableHandleTracker<Double, String> checkTracker = HoneyPlugin.get().getCheckHandleTracker();
 
                 if (checkTracker.getTrackerSize() == 0) {
-                    sender.sendMessage(CommandManager.PREFIX + " §cNo data to be shown yet!");
+                    sender.sendMessage(CommandManager.PREFIX + " §cNo data!");
                     return;
                 }
                 sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the work of checks...");
@@ -71,7 +70,6 @@ public class TrackCommand implements CommandImpl {
 
                     sender.sendMessage("§e" + trackName + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(time of total)§7, " + FORMATTER.format(timeToAverageQuotient * 100) + "% §8(avg. time/op.)");
                 }
-                sender.sendMessage("§7Remember, that all this work is done on the netty threads, so it wont affect the server thread at all!");
                 break;
             default:
                 sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey track <players/checks>");
@@ -94,7 +92,7 @@ public class TrackCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Track performance of checks and players";
+        return "Track performance of checks and players.";
     }
 
     @Override

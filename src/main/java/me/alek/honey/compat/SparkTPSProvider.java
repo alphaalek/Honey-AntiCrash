@@ -13,7 +13,7 @@ public class SparkTPSProvider implements ServiceProvider<Spark> {
         public static final ServiceValidator VALIDATOR = new SparkValidator();
 
         public boolean has() {
-            return HoneyPlugin.get().getPlugin().getServer().getPluginManager().isPluginEnabled("spark");
+            return HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("spark") != null;
         }
     }
 

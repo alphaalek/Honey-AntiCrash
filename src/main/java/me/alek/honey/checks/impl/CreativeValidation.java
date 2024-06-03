@@ -3,11 +3,12 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -22,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
+public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -60,10 +61,10 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
             if (getSetting().isEnabled()) {
 
                 if (player.player.getGameMode() != GameMode.CREATIVE) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return Validation.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -78,7 +79,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getDescription() {
-            return "Using creative without being in right mode";
+            return Lang.get("validation.creative.a");
         }
 
         @Override
@@ -99,7 +100,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -108,7 +109,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -123,7 +124,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getDescription() {
-            return "Exceeding max slots of inventory";
+            return Lang.get("validation.creative.b");
         }
 
         @Override
@@ -145,7 +146,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -160,7 +161,7 @@ public class CreativeSlotListener extends AbstractPacketListener<WrappedPlayInSe
 
         @Override
         public String getDescription() {
-            return "Clicking on illegal item";
+            return Lang.get("validation.creative.c");
         }
 
         @Override

@@ -9,23 +9,23 @@ import java.util.function.Supplier;
 
 public enum ListenerRegistry {
 
-    v1(FloodListener::new),
-    v2(PositionListener::new),
-    v3(HeldItemListener::new),
-    v4(CreativeSlotListener::new),
-    v5(CustomPayloadListener::new),
-    v6(NettyListener::new),
-    v7(NettyListener.NettyB::new),
-    v8(NettyDecodeListener::new),
-    v9(LoginStartListener::new),
-    v10(UpdateSignListener::new),
-    v11(BlockPlaceListener::new),
-    v12(ChatListener::new),
-    v13(EncryptionBeginListener::new),
-    v14(WindowClickListener::new),
-    v15(RotationListener::new),
-    v17(BlockDigListener::new),
-    v18(TabCompleteListener::new);
+    v1(FloodValidation::new),
+    v2(MovementValidation::new),
+    v3(HeldItemValidation::new),
+    v4(CreativeValidation::new),
+    v5(PayloadValidation::new),
+    v6(NettyValidation::new),
+    v7(NettyValidation.NettyB::new),
+    v8(NettyDecodeValidation::new),
+    v9(LoginValidation::new),
+    v10(SignValidation::new),
+    v11(BlockPlaceValidation::new),
+    v12(ChatValidation::new),
+    v13(EncryptionValidation::new),
+    v14(WindowValidation::new),
+    v15(RotationValidation::new),
+    v17(BlockDigValidation::new),
+    v18(TabValidation::new);
 
 
     private final Supplier<IListener> check;

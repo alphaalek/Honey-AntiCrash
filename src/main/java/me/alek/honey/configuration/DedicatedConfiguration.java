@@ -29,5 +29,4 @@ public class DedicatedConfiguration implements Configuration {
     public boolean isMisconfigured() {
         return misConfigured;
     }
-
 }

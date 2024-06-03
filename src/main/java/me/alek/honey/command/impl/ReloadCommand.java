@@ -16,15 +16,15 @@ public class ReloadCommand implements CommandImpl {
     @Override
     public synchronized void perform(CommandSender sender, String[] args) {
         if (reloading.get()) {
-            sender.sendMessage(CommandManager.PREFIX + "§c The plugin is already reloading!");
+            sender.sendMessage(CommandManager.PREFIX + " §cThe plugin is already reloading!");
             return;
         }
-        sender.sendMessage(CommandManager.PREFIX + "§7 Reloading the plugin...");
+        sender.sendMessage(CommandManager.PREFIX + " §7Reloading the plugin...");
 
         reloading.set(true);
         HoneyPlugin.get().getPlugin().getServer().getScheduler().runTaskAsynchronously(HoneyPlugin.get().getPlugin(), () -> {
             HoneyPlugin.get().reload();
-            sender.sendMessage(CommandManager.PREFIX + "§7 Reload done.");
+            sender.sendMessage(CommandManager.PREFIX + " §7Reload done.");
             reloading.set(false);
         });
     }

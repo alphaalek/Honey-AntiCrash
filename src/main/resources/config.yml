@@ -181,7 +181,7 @@ packet-dump:
     enabled: true
 
     # Min main thread handle time (in millis) for packet to be dumped in log.
-    min-server-handle: 100
+    min-server-handle: 150
 
   server-thread-dump:
     # Should server thread dump for heavy handled packets be enabled.
@@ -386,12 +386,6 @@ commands:
       # spigot
       - "/skill"
 
-      # permissions ex
-      - "/pex promote"
-      - "/pex demote"
-      - "/promote"
-      - "/demote"
-
       # world edit
       - "//calc"
       - "//calculate"
@@ -399,7 +393,7 @@ commands:
       - "//eval"
       - "//evaluate"
 
-    # Note, that if snakeyaml (Bukkit's YAML parser) has trouble parsing the string, use single quotes instead of double quotes
+    # Note, that if snakeyaml (Bukkit's YAML parser) has trouble parsing strings when adding regex commands, use single quotes instead of double quotes.
     regex:
       # multiverse
       - '\/(multiverse-core:)?mv(h|help| help) [^a-zA-Z0-9]'
@@ -811,7 +805,8 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 235
+      interval: 1250
+      max-per-interval: 300
       vls-amount: 10
 
     # held item slot

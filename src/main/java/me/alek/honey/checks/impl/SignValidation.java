@@ -3,9 +3,10 @@ package me.alek.honey.checks.impl;
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -19,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
+public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -60,23 +61,23 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
             List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
             for (JsonObject page : legacyChatComponentPages) {
                 if (!page.has("text")) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return Validation.inst().cancel().punish().build();
                 }
             }
 
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return Validation.inst().cancel().punish().build();
                 }
 
                 for (String string : ILLEGAL_COMPONENT_STRINGS) {
                     if (line.toLowerCase().replace("\"", "").trim().contains(string)) {
-                        return ResponseBuilder.inst().cancel().punish().build();
+                        return Validation.inst().cancel().punish().build();
                     }
                 }
             }
 
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -91,7 +92,7 @@ public class UpdateSignListener extends AbstractPacketListener<WrappedPlayInUpda
 
         @Override
         public String getDescription() {
-            return "Illegal sign text";
+            return Lang.get("validation.sign.a");
         }
 
         @Override

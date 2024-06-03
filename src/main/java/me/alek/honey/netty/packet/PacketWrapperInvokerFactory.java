@@ -71,7 +71,7 @@ public class PacketWrapperInvokerFactory {
                 INVOKERS.put(wrappedPacket.value(), methodHandle);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                Bukkit.getLogger().severe("Error occurred at finding invoker for \"" + wrappedPacket.value() + "\".");
+                Bukkit.getLogger().severe("Error occurred when finding invoker for \"" + wrappedPacket.value() + "\".");
             }
         }
 

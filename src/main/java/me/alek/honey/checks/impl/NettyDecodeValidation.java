@@ -4,11 +4,12 @@ import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.DecodeCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
@@ -19,7 +20,7 @@ import me.alek.honey.util.DecayingListeningCounter;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class NettyDecodeListener extends AbstractDecodeListener implements IListener {
+public class NettyDecodeValidation extends AbstractDecodeListener implements IListener {
 
     @Override
     public CheckVisitor<?> getVisitor(HoneyPlayer player) {
@@ -71,9 +72,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
             container.getStorage().putInt(size);
 
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag(size).build();
+                return Validation.inst().flag(size).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -88,7 +89,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too big packet to be decoded";
+            return Lang.get("validation.netty.d");
         }
 
         @Override
@@ -107,9 +108,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag(container.getStorage().getInt(1)).build();
+                return Validation.inst().flag(container.getStorage().getInt(1)).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -124,7 +125,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Buffer of packet bytes exceeded";
+            return Lang.get("validation.netty.e");
         }
 
         @Override
@@ -143,9 +144,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
+                return Validation.inst().flag(container.getStorage().getInt(0)).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -160,7 +161,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Buffer of accumulated byte count exceeded";
+            return Lang.get("validation.netty.f");
         }
 
         @Override
@@ -179,9 +180,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag(container.getStorage().getInt(0)).build();
+                return Validation.inst().flag(container.getStorage().getInt(0)).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -196,7 +197,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too high accumulated byte count";
+            return Lang.get("validation.netty.g");
         }
 
         @Override
@@ -217,9 +218,9 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(0, "ta");
         private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(1, "tt");
-        private final ResponseContainer success = ResponseBuilder.inst().add(
-                ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
-                ResponseBuilder.inst().flag(0).withViolationKey(TTKey).build()
+        private final ResponseContainer success = Validation.inst().add(
+                Validation.inst().flag(0).withViolationKey(TAKey).build(),
+                Validation.inst().flag(0).withViolationKey(TTKey).build()
         ).build();
 
         @Override
@@ -242,7 +243,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 return success;
             }
             */
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -308,10 +309,10 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 }
                 if (waitingFlag) {
                     waitingFlag = false;
-                    return ResponseBuilder.inst().cancel().flag(getSetting().maxPerInterval).build();
+                    return Validation.inst().cancel().flag(getSetting().maxPerInterval).build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -338,7 +339,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too many categorized big packets";
+            return Lang.get("validation.netty.l");
         }
 
         @Override
@@ -370,15 +371,10 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
                 lastFlag = System.currentTimeMillis();
 
                 if (diff > getSetting().min) {
-                    return ResponseBuilder.inst().flag().build();
+                    return Validation.inst().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
-        }
-
-        @Override
-        public String getDescription() {
-            return "Packet flood for big packets";
+            return Validation.PASS;
         }
 
         @Override
@@ -398,6 +394,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         }
 
         @Override
+        public String getDescription() {
+            return Lang.get("validation.netty.m");
+        }
+
+        @Override
         public String getName() {
             return "Netty.M";
         }
@@ -413,6 +414,11 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
         @Override
         public int getID() {
             return 39;
+        }
+
+        @Override
+        public String getDescription() {
+            return Lang.get("validation.netty.n");
         }
 
         @Override
@@ -477,7 +483,7 @@ public class NettyDecodeListener extends AbstractDecodeListener implements IList
 
         @Override
         public String getDescription() {
-            return "Too many timed categorized big packets";
+            return Lang.get("validation.netty.o");
         }
 
         @Override

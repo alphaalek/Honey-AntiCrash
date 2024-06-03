@@ -3,11 +3,12 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
@@ -24,7 +25,7 @@ import me.alek.honey.util.CallbackAction;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTabComplete> implements IPacketListener {
+public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComplete> implements IPacketListener {
 
 
     @Override
@@ -53,7 +54,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
     @Override
     public void load() {
-        TabA.prohibitedCommands = ChatListener.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+        TabA.prohibitedCommands = ChatValidation.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
 
         if (TabC.labelSetting != null) {
             TabC.labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
@@ -81,8 +82,8 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
             for (String prohibitedCommand : prohibitedCommands) {
 
-                if (ChatListener.match(prohibitedCommand, label)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                if (ChatValidation.match(prohibitedCommand, label)) {
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -92,7 +93,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -107,7 +108,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getDescription() {
-            return "Tab completing prohibited command";
+            return Lang.get("validation.tab.a");
         }
 
         @Override
@@ -160,9 +161,9 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
                 // and therefore will block this packet. I do this by just flagging with 0.
-                return ResponseBuilder.inst().flag(0).build();
+                return Validation.inst().flag(0).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -177,7 +178,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getDescription() {
-            return "Buffer of tab complete suggestions exceeded";
+            return Lang.get("validation.tab.b");
         }
 
         @Override
@@ -213,12 +214,12 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
                 int label = packet.getMessage().indexOf(" ");
                 int total = packet.getMessage().length();
-                return ResponseBuilder.inst().add(
-                        ResponseBuilder.inst().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
-                        ResponseBuilder.inst().flag(total).withViolationKey(totalKey).build()
+                return Validation.inst().add(
+                        Validation.inst().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
+                        Validation.inst().flag(total).withViolationKey(totalKey).build()
                 ).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -233,7 +234,7 @@ public class TabCompleteListener extends AbstractPacketListener<WrappedPlayInTab
 
         @Override
         public String getDescription() {
-            return "Length of tab complete exceeded";
+            return Lang.get("validation.tab.c");
         }
 
         @Override

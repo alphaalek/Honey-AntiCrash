@@ -6,11 +6,12 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
@@ -29,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInCustomPayload> implements IPacketListener {
+public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCustomPayload> implements IPacketListener {
 
     private final Class<?> PACKET_SERIALIZER_CLASS = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
     private final ConstructorInvoker<?> PACKET_SERIALIZER_CONSTRUCTOR = Reflection.getConstructor(PACKET_SERIALIZER_CLASS, ByteBuf.class);
@@ -109,10 +110,10 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
                 if (serializer == null || serializer.getClass() == EmptyByteBuf.class) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return Validation.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -127,7 +128,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return "Empty serializer for payload";
+            return Lang.get("validation.payload.a");
         }
 
         @Override
@@ -148,11 +149,11 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 ByteBuf serializer = container.getStorage().get(ByteBuf.class,0);
                 if (serializer == null) {
-                    return ResponseBuilder.PASS;
+                    return Validation.PASS;
                 }
-                return ResponseBuilder.inst().flag(serializer.readableBytes()).build();
+                return Validation.inst().flag(serializer.readableBytes()).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -167,7 +168,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return "Too big serializer for payload";
+            return Lang.get("validation.payload.b");
         }
 
         @Override
@@ -193,7 +194,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
-                        return ResponseBuilder.inst().cancel().flag().onViolation(onViolation -> {
+                        return Validation.inst().cancel().flag().onViolation(onViolation -> {
                             if (onViolation != null) onViolation.run();
 
                             CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
@@ -203,7 +204,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                     int nbtSize;
                     if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
-                        return ResponseBuilder.inst().cancel().flag()
+                        return Validation.inst().cancel().flag()
                                 .onViolation(onViolation -> {
                                     if (onViolation != null) onViolation.run();
 
@@ -213,7 +214,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                     }
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -228,7 +229,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return "Illegal item in payload";
+            return Lang.get("validation.payload.c");
         }
 
         @Override
@@ -253,15 +254,15 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
                 if (!channel.isEmpty()) {
                     if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
-                        return ResponseBuilder.PASS;
+                        return Validation.PASS;
                     }
                     if (itemInHand.getType() == MaterialMappings.getType("writable-book") || itemInHand.getType() == Material.WRITTEN_BOOK) {
-                        return ResponseBuilder.PASS;
+                        return Validation.PASS;
                     }
                 }
-                return ResponseBuilder.inst().cancel().flag().build();
+                return Validation.inst().cancel().flag().build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -276,7 +277,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return "Illegal usage of book channel";
+            return Lang.get("validation.payload.d");
         }
 
         @Override
@@ -300,7 +301,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                 if (channel.equalsIgnoreCase("register") &&
                         player.player.getListeningPluginChannels().size() > getSetting().max) {
 
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -309,7 +310,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -324,7 +325,7 @@ public class CustomPayloadListener extends AbstractPacketListener<WrappedPlayInC
 
         @Override
         public String getDescription() {
-            return "Too many registered channels";
+            return Lang.get("validation.payload.e");
         }
 
         @Override

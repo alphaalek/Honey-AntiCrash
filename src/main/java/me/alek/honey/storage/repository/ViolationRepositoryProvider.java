@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.storage.ComponentBridge;
 import me.alek.honey.storage.QueryFactory;
-import me.alek.honey.storage.RepositoryComponentProvider;
+import me.alek.honey.storage.Repository;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.ViolationEntry;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class ViolationRepositoryProvider implements RepositoryComponentProvider {
+public class ViolationRepositoryProvider implements Repository {
 
     @Override
     public void prepare(QueryFactory queryFactory) {

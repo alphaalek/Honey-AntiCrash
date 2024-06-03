@@ -3,11 +3,12 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
@@ -31,13 +32,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
-    public PositionListener() {
+    public MovementValidation() {
         HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutPosition>() {
 
             @Override
@@ -167,7 +168,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND))
-                return ResponseBuilder.PASS;
+                return Validation.PASS;
 
             if (getSetting().isEnabled()) {
 
@@ -175,10 +176,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 this.wasOnGround = packet.onGround();
 
                 if (packet.onGround() != wasOnGround) {
-                    return ResponseBuilder.inst().terminate().flag().build();
+                    return Validation.inst().terminate().flag().build();
                 }
             }
-            return ResponseBuilder.inst().terminate().build();
+            return Validation.inst().terminate().build();
         }
 
         @Override
@@ -188,12 +189,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.A";
+            return "Movement.A";
         }
 
         @Override
         public String getDescription() {
-            return "Switching between ground and air too quickly";
+            return Lang.get("validation.movement.a");
         }
 
         @Override
@@ -220,7 +221,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
                     (location) -> Locations.calculate3DDistance(location, packetLoc))) {
-                return ResponseBuilder.PASS.copy().skip(3).build();
+                return Validation.PASS.copy().skip(3).build();
             }
 
             final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
@@ -233,7 +234,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 final double maxDistance = getSetting().max;
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(twoDKey)
+                    return Validation.inst().cancel().flag().withViolationKey(twoDKey)
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -243,7 +244,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
-                    return ResponseBuilder.inst().cancel().flag().withViolationKey(YKey)
+                    return Validation.inst().cancel().flag().withViolationKey(YKey)
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -252,7 +253,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -262,12 +263,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.B";
+            return "Movement.B";
         }
 
         @Override
         public String getDescription() {
-            return "Too high delta movement";
+            return Lang.get("validation.movement.b");
         }
 
         @Override
@@ -292,23 +293,23 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
                 if (player.player.getVelocity().getY() < -1.5)
-                    return ResponseBuilder.PASS;
+                    return Validation.PASS;
 
                 final Location priorLocation = container.getStorage().getLocation(0);
                 // return if it's the first location being sent
-                if (priorLocation == null) return ResponseBuilder.PASS;
+                if (priorLocation == null) return Validation.PASS;
 
                 // ignores packets close to the recent flag
                 if (lastFlaggedLocation != null) {
                     if (Locations.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1)
-                        return ResponseBuilder.PASS;
+                        return Validation.PASS;
                 }
                 lastFlaggedLocation = packet.getLocation();
 
                 final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
-                return ResponseBuilder.inst().flag(Math.min(10, priorDistance)).build();
+                return Validation.inst().flag(Math.min(10, priorDistance)).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -318,12 +319,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.C";
+            return "Movement.C";
         }
 
         @Override
         public String getDescription() {
-            return "Buffer of position distance exceeded";
+            return Lang.get("validation.movement.c");
         }
 
         @Override
@@ -361,9 +362,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             // or if the player is in the same chunk as the last position or the same chunk as the previous chunk
             // the skip is for letting the next check in the check pipeline (Position.E), either flag or not flag
             if (!getSetting().isEnabled() || equalsChunk || equalsPreviousChunk) {
-                return ResponseBuilder.PASS.copy().skip(skip).build();
+                return Validation.PASS.copy().skip(skip).build();
             }
-            return ResponseBuilder.inst().flag().skip(skip).build();
+            return Validation.inst().flag().skip(skip).build();
         }
 
         @Override
@@ -373,12 +374,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.D";
+            return "Movement.D";
         }
 
         @Override
         public String getDescription() {
-            return "Too many chunks discovered";
+            return Lang.get("validation.movement.d");
         }
 
         @Override
@@ -397,9 +398,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().cancel().flag().build();
+                return Validation.inst().cancel().flag().build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -409,12 +410,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.E";
+            return "Movement.E";
         }
 
         @Override
         public String getDescription() {
-            return "Too many unloaded chunks discovered";
+            return Lang.get("validation.movement.e");
         }
 
         @Override
@@ -483,7 +484,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().getLocation(0);
-                if (priorLocation == null) return ResponseBuilder.PASS;
+                if (priorLocation == null) return Validation.PASS;
 
                 final Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
                 final Direction[] priorVelocity = lastDirectionFlow;
@@ -492,7 +493,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 if (priorVelocity != null && priorVelocity.length == velocity.length) {
 
                     int i = 0;
-                    final ResponseBuilder builder = ResponseBuilder.inst();
+                    final Validation builder = Validation.inst();
                     for (final Direction dir : velocity) {
 
                         final Axis axis = axisLookup.get(dir);
@@ -501,7 +502,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            builder.add(ResponseBuilder.inst().flag().withViolationKey(
+                            builder.add(Validation.inst().flag().withViolationKey(
                                     ViolationService.HoneyKey.of(axis.ordinal(), axis.name().toLowerCase())).build());
                         }
                     }
@@ -510,7 +511,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                         return response;
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -520,12 +521,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.F";
+            return "Movement.F";
         }
 
         @Override
         public String getDescription() {
-            return "Switching directions too quickly";
+            return Lang.get("validation.movement.f");
         }
 
         @Override
@@ -547,10 +548,10 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                 if (packet.getType() == PacketType.Play.Client.VEHICLE_MOVE
                         && player.player.getVehicle() == null) {
-                    return ResponseBuilder.inst().flag().build();
+                    return Validation.inst().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -560,12 +561,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.G";
+            return "Movement.G";
         }
 
         @Override
         public String getDescription() {
-            return "Moving vehicle without being in one";
+            return Lang.get("validation.movement.g");
         }
 
         @Override
@@ -589,7 +590,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            ResponseContainer response = ResponseBuilder.PASS.copy().skip(1).build();
+            ResponseContainer response = Validation.PASS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
                 double delta2D = container.getStorage().getDouble(0);
                 double deltaY = container.getStorage().getDouble(1);
@@ -599,12 +600,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 }
 
                 boolean hasPattern = false;
-                ResponseBuilder builder = ResponseBuilder.inst();
+                Validation builder = Validation.inst();
 
                 if (delta2D > 0.05) {
                     if (lastDelta2D == delta2D) {
                         builder.add(
-                                ResponseBuilder.inst().flag()
+                                Validation.inst().flag()
                                         .withViolationKey(twoDKey)
                                         .build()
                         );
@@ -626,7 +627,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
                     if (lastDeltaY == deltaY) {
                         builder.add(
-                                ResponseBuilder.inst().flag()
+                                Validation.inst().flag()
                                         .withViolationKey(YKey)
                                         .build()
                         );
@@ -650,12 +651,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.H";
+            return "Movement.H";
         }
 
         @Override
         public String getDescription() {
-            return "Too many identical delta movements";
+            return Lang.get("validation.movement.h");
         }
 
         @Override
@@ -675,9 +676,9 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                return ResponseBuilder.inst().flag().build();
+                return Validation.inst().flag().build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -687,12 +688,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.I";
+            return "Movement.I";
         }
 
         @Override
         public String getDescription() {
-            return "Too many identical delta movements";
+            return Lang.get("validation.movement.i");
         }
 
         @Override
@@ -716,16 +717,16 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                 final double z = packet.getZ();
 
                 if (x > 3.0E7 || x < -3.0E7) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return Validation.inst().cancel().flag().build();
                 }
                 if (z > 3.0E7 || z < -3.0E7) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return Validation.inst().cancel().flag().build();
                 }
                 if (y < getSetting().min || y > getSetting().max) {
                     if (player.player.isDead())
-                        return ResponseBuilder.inst().cancel().build();
+                        return Validation.inst().cancel().build();
 
-                    return ResponseBuilder.inst().cancel().flag().onPunish(() -> {
+                    return Validation.inst().cancel().flag().onPunish(() -> {
                         double yPosFix = y;
                         if (y < getSetting().min) {
                             while (player.getWorld().getBlockAt((int) x, (int) yPosFix++, (int) z).getType() != Material.AIR || yPosFix < 0) {
@@ -742,7 +743,7 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
                     }).build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -752,12 +753,12 @@ public class PositionListener<WP extends WrappedAbstractPositional<WP>> extends 
 
         @Override
         public String getName() {
-            return "Position.J";
+            return "Movement.J";
         }
 
         @Override
         public String getDescription() {
-            return "Too high up in air or below bedrock";
+            return Lang.get("validation.movement.j");
         }
 
         @Override

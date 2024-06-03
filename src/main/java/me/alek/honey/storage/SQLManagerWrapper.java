@@ -28,13 +28,13 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
 
     private Connection connection;
 
-    private final BeanRepositoryCollection repositoryCollection;
+    private final RepositoryProvider repositoryCollection;
     private final ComponentBridge componentBridge;
     private final QueryFactory queryFactory;
 
-    public SQLManagerWrapper(BeanRepositoryCollection repositoryCollection) {
+    public SQLManagerWrapper(RepositoryProvider repositoryCollection) {
         this.repositoryCollection = repositoryCollection;
-        this.componentBridge = new SimpleComponentBridge(repositoryCollection, this);
+        this.componentBridge = new InternalComponentBridge(repositoryCollection, this);
 
         reload(true);
 
@@ -46,7 +46,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
     }
 
     public void prepareRepositories() {
-        for (RepositoryComponentProvider repository : repositoryCollection) {
+        for (Repository repository : repositoryCollection) {
             repository.prepare(this);
         }
     }
@@ -76,7 +76,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         HoneyPlugin.get().getLoggerService().getLogger().info(url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
     }
 
-    public BeanRepositoryCollection getRepositoryCollection() {
+    public RepositoryProvider getRepositoryCollection() {
         return this.repositoryCollection;
     }
 

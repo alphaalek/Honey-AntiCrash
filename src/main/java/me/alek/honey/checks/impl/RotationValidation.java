@@ -2,11 +2,12 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -22,7 +23,7 @@ import org.bukkit.Location;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, Float> lastYawMap = new HashMap<>();
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
@@ -44,8 +45,8 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         if (location.getYaw() == lastYaw && location.getPitch() == lastPitch) return false;
 
-        container.getStorage().put(ResponseBuilder.class, ResponseBuilder.inst().flag(deltaYaw));
-        container.getStorage().put(ResponseBuilder.class, ResponseBuilder.inst().flag(deltaPitch));
+        container.getStorage().put(Validation.class, Validation.inst().flag(deltaYaw));
+        container.getStorage().put(Validation.class, Validation.inst().flag(deltaPitch));
 
         callback.addAction(responseCallback -> {
             responseCallback.builder().onViolation(onViolation -> {
@@ -107,10 +108,10 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
                 final float pitch = packet.getPitch();
 
                 if (pitch < -90 || pitch > 90) {
-                    return ResponseBuilder.inst().flag().build();
+                    return Validation.inst().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -125,7 +126,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return "Illegal pitch rotation";
+            return Lang.get("validation.rotation.a");
         }
 
         @Override
@@ -146,18 +147,18 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            if (packet.getYaw() == 0 || PositionListener.isAnyLatelyTeleportationLocationsCloseTo(
+            if (packet.getYaw() == 0 || MovementValidation.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
-                return ResponseBuilder.PASS.copy().terminate().build();
+                return Validation.PASS.copy().terminate().build();
             }
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().add(
-                        container.getStorage().get(ResponseBuilder.class, 0).withViolationKey(yawKey).build(),
-                        container.getStorage().get(ResponseBuilder.class, 1).withViolationKey(pitchKey).build()
+                return Validation.inst().add(
+                        container.getStorage().get(Validation.class, 0).withViolationKey(yawKey).build(),
+                        container.getStorage().get(Validation.class, 1).withViolationKey(pitchKey).build()
                 ).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -172,7 +173,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return "Too high delta rotation";
+            return Lang.get("validation.rotation.b");
         }
 
         @Override
@@ -196,13 +197,13 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
             if (getSetting().isEnabled()) {
 
                 if (packet.getYaw() != 0) {
-                    return ResponseBuilder.inst().add(
-                            container.getStorage().get(ResponseBuilder.class, 0).withViolationKey(yawKey).build(),
-                            container.getStorage().get(ResponseBuilder.class, 1).withViolationKey(pitchKey).build()
+                    return Validation.inst().add(
+                            container.getStorage().get(Validation.class, 0).withViolationKey(yawKey).build(),
+                            container.getStorage().get(Validation.class, 1).withViolationKey(pitchKey).build()
                     ).build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -217,7 +218,7 @@ public class RotationListener<WP extends WrappedPlayInFlying<WP>> extends Abstra
 
         @Override
         public String getDescription() {
-            return "Buffer of rotation exceeded";
+            return Lang.get("validation.rotation.c");
         }
 
         @Override

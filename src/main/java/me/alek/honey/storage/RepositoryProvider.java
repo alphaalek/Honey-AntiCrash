@@ -6,13 +6,13 @@ import me.alek.honey.storage.repository.PlayerRepositoryProvider;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class BeanRepositoryCollection implements Iterable<RepositoryComponentProvider> {
+public class RepositoryProvider implements Iterable<Repository> {
 
     public PlayerRepositoryProvider playerRepository = new PlayerRepositoryProvider();
     public ViolationRepositoryProvider violationRepository = new ViolationRepositoryProvider();
 
     @Override
-    public Iterator<RepositoryComponentProvider> iterator() {
+    public Iterator<Repository> iterator() {
         return Arrays.asList(playerRepository, violationRepository).iterator();
     }
 

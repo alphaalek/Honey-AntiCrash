@@ -7,18 +7,17 @@ import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;
 import me.alek.honey.storage.model.ViolationEntry;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class SimpleComponentBridge implements ComponentBridge {
+public class InternalComponentBridge implements ComponentBridge {
 
     private final QueryFactory queryFactory;
-    private final BeanRepositoryCollection repositoryCollection;
+    private final RepositoryProvider repositoryCollection;
 
     private boolean enabled;
 
-    public SimpleComponentBridge(BeanRepositoryCollection repositoryCollection, QueryFactory queryFactory) {
+    public InternalComponentBridge(RepositoryProvider repositoryCollection, QueryFactory queryFactory) {
         this.queryFactory = queryFactory;
         this.repositoryCollection = repositoryCollection;
     }

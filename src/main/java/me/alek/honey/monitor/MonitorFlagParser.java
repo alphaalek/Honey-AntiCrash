@@ -92,13 +92,17 @@ public class MonitorFlagParser {
     }
 
     public static boolean testOperator(Array<Parsed> parsed, int index, LogicalOperator operator, AtomicReference<String> wrongSyntaxMessage) {
-        if (index == parsed.size() - 1 && operator != LogicalOperator.PARANTHESIS_END && operator != LogicalOperator.NOT) {
+        if (index == parsed.size() - 1
+                && operator != LogicalOperator.PARANTHESIS_END
+                && operator != LogicalOperator.NOT) {
             wrongSyntaxMessage.set("Using operator without flag.");
             return false;
         }
         if (operator != LogicalOperator.PARANTHESIS_END && operator != LogicalOperator.PARANTHESIS_START) {
             Object next = parsed.get(index + 1).get();
-            if (!(next instanceof MonitorFlag || next.equals(LogicalOperator.PARANTHESIS_START) || next.equals(LogicalOperator.NOT))) {
+            if (!(next instanceof MonitorFlag
+                    || next.equals(LogicalOperator.PARANTHESIS_START)
+                    || next.equals(LogicalOperator.NOT))) {
                 wrongSyntaxMessage.set("Using operator without flag.");
                 return false;
             }

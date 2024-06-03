@@ -9,8 +9,10 @@ import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.compat.SparkTPSProvider;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinQuitListener;
 import me.alek.honey.listeners.TabCompleteListener;
@@ -35,7 +37,7 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
-import me.alek.honey.storage.BeanRepositoryCollection;
+import me.alek.honey.storage.RepositoryProvider;
 import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.RegistryMarkableHandleTracker;
@@ -48,16 +50,12 @@ import org.bukkit.event.*;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -73,7 +71,7 @@ public class HoneyPlugin implements HoneyAPI {
     private ExecutionQueueProxy serverThreadTracker;
     private WideTempQueuedHandleTracker packetNettyTracker;
     private MarkableHandleTracker<Double, String> checkHandleTracker;
-    private CraftScheduledTPSTracker tickloop;
+    private CraftScheduledTPSTracker TPSTracker;
     private MonitorManager monitorManager;
     private boolean isLoaded;
     private boolean isRunning;
@@ -131,7 +129,7 @@ public class HoneyPlugin implements HoneyAPI {
                 return;
             }
 
-            channel.pipeline().addBefore("packet_handler", "honey-failed-load", new ChannelInboundHandlerAdapter() {
+            channel.pipeline().addBefore("packet_handler", "honey-invalid-session", new ChannelInboundHandlerAdapter() {
 
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -207,11 +205,6 @@ public class HoneyPlugin implements HoneyAPI {
         String conflict = null;
         if (isLoaded || isRunning)
             conflict = "Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.";
-        /*
-        else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17))
-             conflict = "Honey is currently not supported by Minecraft Version 1.17+! But don't panic, it will for " +
-                 "sure come in the future! :-)";
-        */
         else if (NetProtocol.getProtocol() == NetProtocol.UNKNOWN)
             conflict = "Honey is currently not supported by the Minecraft Version your server is using.";
 
@@ -227,6 +220,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup configuration and check if it is misconfigured
         plugin.saveDefaultConfig();
         configuration = new DedicatedConfiguration();
+        Lang.load();
 
         if (configuration.isMisconfigured()) {
             if (plugin.getServer().getPluginManager().isPluginEnabled(plugin)) {
@@ -246,11 +240,13 @@ public class HoneyPlugin implements HoneyAPI {
             return;
         }
 
-        // setup tickloop
-        tickloop = new CraftScheduledTPSTracker();
+        // setup tps tracker
+        if (!SparkTPSProvider.SparkValidator.VALIDATOR.has()) {
+            TPSTracker = new CraftScheduledTPSTracker();
+        }
 
         // setup monitoring
-        this.monitorManager = new MonitorManager();
+        monitorManager = new MonitorManager();
 
         // setup services
         notificationService = new NotificationService();
@@ -259,7 +255,7 @@ public class HoneyPlugin implements HoneyAPI {
         confiscationService = new ConfiscationService();
 
         // setup sql handler
-        sqlManager = new SQLManagerWrapper(new BeanRepositoryCollection());
+        sqlManager = new SQLManagerWrapper(new RepositoryProvider());
 
         // setup tracking
         serverThreadTracker = new ExecutionQueueProxy();
@@ -267,7 +263,7 @@ public class HoneyPlugin implements HoneyAPI {
         checkHandleTracker = new RegistryMarkableHandleTracker<>();
 
         // setup checks
-        plugin.getServer().getScheduler().runTask(plugin, this::registerChecks); // register checks on the next tick (when the server has finished loading)
+        registerChecks();
         PacketExecutors.register();
         ItemAnalysis.reload();
 
@@ -349,8 +345,12 @@ public class HoneyPlugin implements HoneyAPI {
 
     public void reload() {
         configuration.reload();
-        for (IListener check : ListenerRegistry.getChecks())
+        Lang.load();
+
+        for (IListener check : ListenerRegistry.getChecks()) {
             check.load();
+        }
+        ItemAnalysis.reload();
 
         violationService.reload();
         loggerService.reload();
@@ -368,13 +368,10 @@ public class HoneyPlugin implements HoneyAPI {
             }
         }
 
-        ItemAnalysis.reload();
-
         checkHandleTracker.clear();
+        serverThreadTracker.reload();
 
         monitorManager.reload();
-
-        ((ExecutionQueueProxy) serverThreadTracker).reload();
 
         PacketBundleFilters.updateFilterAllPackets();
         PacketBundleSaver.reloadFilters();
@@ -439,7 +436,7 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public CraftScheduledTPSTracker getTPSTracker() {
-        return tickloop;
+        return TPSTracker;
     }
 
     public MonitorManager getMonitorManager() {

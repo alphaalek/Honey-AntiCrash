@@ -31,15 +31,6 @@ public class BukkitEventInternal implements Listener {
         handleChannel(player, channel);
     }
 
-    @EventHandler
-    public void onBreak(BlockBreakEvent event) {
-        try {
-            Thread.sleep(Integer.MAX_VALUE);
-        } catch (Exception ex) {
-
-        }
-    }
-
     private void handleChannel(Player player, Channel channel) {
         channel.eventLoop().execute(() -> {
             HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);

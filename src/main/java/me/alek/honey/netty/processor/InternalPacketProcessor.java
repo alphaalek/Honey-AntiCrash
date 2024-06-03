@@ -14,27 +14,26 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 public class InternalPacketProcessor implements PacketProcessor {
 
-    private final ListenerPipeline<?> decodeListModifier = new ListenerPipeline<>();
-    private final Array<ListenerPipeline<? extends WrappedPacket<?>>> packetAdapters = new Array<>();
+    private final EventBus<?> decodeListModifier = new EventBus<>();
+    private final Array<EventBus<? extends WrappedPacket<?>>> packetAdapters = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
     private final Array<CallbackAction<PacketContainer<? extends WrappedPacket<?>>>> postActions = new Array<>();
 
-    private static class ListenerPipeline<WP extends WrappedPacket<WP>> {
+    private static class EventBus<WP extends WrappedPacket<WP>> {
 
         private final EnumMap<ListenerPriority, List<PacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
-        public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer, boolean isRead) {
-            callPipeline((packetAdapter) -> {
+        public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer) {
+            callPipeline(packetAdapter -> {
                 try {
-                    if (isRead) {
+                    if (packetContainer.getType().getBound() == PacketBound.SERVER) {
                         packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     } else {
                         packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
@@ -46,9 +45,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
-            callPipeline((packetAdapter) -> {
-                packetAdapter.onByteBufDecode(player, byteBuf);
-            });
+            callPipeline(packetAdapter -> packetAdapter.onByteBufDecode(player, byteBuf));
         }
 
         public void callPipeline(Consumer<PacketAdapter<WP>> consumer) {
@@ -177,12 +174,11 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
-            if (packetType instanceof RangedPacketTypeEnum) {
-                if (!NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
-                    continue;
-                }
+            if (packetType instanceof RangedPacketTypeEnum
+                    && !NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
+                continue;
             }
-            packetAdapters.get(packetType.getPacketId(), ListenerPipeline::new).addListener(packetAdapter, priority);
+            packetAdapters.get(packetType.getPacketId(), EventBus::new).addListener(packetAdapter, priority);
         }
     }
 
@@ -208,7 +204,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> check) {
-        for (ListenerPipeline<?> listModifier : packetAdapters) {
+        for (EventBus<?> listModifier : packetAdapters) {
             if (listModifier != null && existsInListModifier(listModifier, check)) {
                 return true;
             }
@@ -216,7 +212,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(ListenerPipeline<WP2> listModifier, PacketAdapter<WP> check) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(EventBus<WP2> listModifier, PacketAdapter<WP> check) {
         for (List<PacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
             for (PacketAdapter<WP2> packetAdapter : packetAdapters) {
                 if (packetAdapter == check) {
@@ -236,13 +232,14 @@ public class InternalPacketProcessor implements PacketProcessor {
         return true;
     }
 
-    public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer, boolean isRead) {
+    public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         int id;
-        if (PacketType.isUnknown(packetContainer.getType()) || !packetAdapters.has(id = packetContainer.getType().getPacketId())) {
+        if (PacketType.isUnknown(packetContainer.getType())
+                || !packetAdapters.has(id = packetContainer.getType().getPacketId())) {
             return;
         }
 
-        packetAdapters.get(id).callPacket(player, packetContainer, isRead);
+        packetAdapters.get(id).callPacket(player, packetContainer);
     }
 
     public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
@@ -277,6 +274,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, packetType);
 
+
         // check if this packet type has any listeners which can handle this packet.
         // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
         if (PacketType.isUnknown(packetType)) {
@@ -297,7 +295,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
-        callListeners(player, packet.getClass(), packetContainer, packetBound == PacketBound.SERVER);
+        callListeners(player, packet.getClass(), packetContainer);
         packetContainer.getEventloopStateTimings().stopTimings();
 
         return packetContainer;

@@ -4,9 +4,10 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -22,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class EncryptionBeginListener extends AbstractPacketListener<WrappedLoginInEncryptionResponse> implements IPacketListener {
+public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInEncryptionResponse> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -67,10 +68,10 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
                 InetSocketAddress address = NMS.getSocketAddress(handler);
 
                 if (address == null || address.getAddress() == null) {
-                    return ResponseBuilder.inst().cancel().build();
+                    return Validation.inst().cancel().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -85,7 +86,7 @@ public class EncryptionBeginListener extends AbstractPacketListener<WrappedLogin
 
         @Override
         public String getDescription() {
-            return "Encryption response with invalid ping";
+            return Lang.get("validation.encryption.a");
         }
 
         @Override

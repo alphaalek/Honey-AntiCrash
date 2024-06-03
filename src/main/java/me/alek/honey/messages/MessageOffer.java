@@ -5,6 +5,7 @@ import me.alek.honey.services.NotificationService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -24,11 +25,15 @@ public class MessageOffer {
     }
 
     public String get(String key) {
-        return Optional.ofNullable(offers.get(key)).map(Supplier::get).orElse(getGlobal(key));
+        return Optional.ofNullable(offers.get(key))
+                .map(Supplier::get)
+                .orElse(getGlobal(key));
     }
 
     public String getGlobal(String key) {
-        return Optional.ofNullable(globalOffers.get(key)).map(Supplier::get).orElse("???");
+        return Optional.ofNullable(globalOffers.get(key))
+                .map(Supplier::get)
+                .orElseThrow(NoSuchElementException::new);
     }
 
     public Builder builder() {

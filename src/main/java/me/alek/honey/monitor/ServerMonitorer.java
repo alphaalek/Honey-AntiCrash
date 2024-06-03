@@ -21,7 +21,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
     private String getPacketTaskPercentage(Timespan timespan) {
         return NumberConversions.format(
-                (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / (PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER * timespan.getTimespan()) * 100)), 1) + "%";
+                (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / timespan.getNanoTimespan()) * 100), 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {

@@ -2,13 +2,13 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
@@ -27,13 +27,12 @@ import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.function.Supplier;
 
-public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
@@ -96,9 +95,9 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return ResponseBuilder.inst().flag().build();
+                return Validation.inst().flag().build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -126,7 +125,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "General packet flood limiter";
+            return Lang.get("validation.flood.a");
         }
     }
 
@@ -149,7 +148,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Packet flood for sudden spikes";
+            return Lang.get("validation.flood.b");
         }
     }
 
@@ -174,11 +173,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     NBTCompound nbt = NBTFactory.fromItem(item, false, true);
                     if (nbt != null && !nbt.isEmpty()) {
                         int elements = nbt.getRoot().getTotalElements();
-                        return ResponseBuilder.inst().flag(elements).build();
+                        return Validation.inst().flag(elements).build();
                     }
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -193,7 +192,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Packet flood for nbt bases";
+            return Lang.get("validation.flood.c");
         }
 
         @Override
@@ -212,11 +211,11 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
-                return ResponseBuilder.inst().flag()
+                return Validation.inst().flag()
                         .withViolationKey(getKey(packet))
                         .build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -231,7 +230,7 @@ public class FloodListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Packet flood for specific packet type";
+            return Lang.get("validation.flood.d");
         }
 
         @Override

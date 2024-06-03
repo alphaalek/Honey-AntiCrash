@@ -42,7 +42,6 @@ public class CommandManager implements CommandExecutor {
         registerCommand(new ReloadCommand());
         registerCommand(new PasteLogsCommand());
         registerCommand(new TrackCommand());
-        registerCommand(new QuotientInfoCommand());
         registerCommand(new MonitorCommand());
         registerCommand(new PacketMonitorCommand());
     }

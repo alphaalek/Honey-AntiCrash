@@ -50,6 +50,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         return message.substring(2, message.length());
     }
 
+    @Override
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
@@ -69,7 +70,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             });
         });
 
-        if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
+        if (requiresPlayer() && player == null
+                || !onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
 

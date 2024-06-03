@@ -3,11 +3,12 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
@@ -42,7 +43,7 @@ import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
-public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
@@ -84,18 +85,18 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             if (getSetting().isEnabled()) {
                 if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
                         && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
-                    return ResponseBuilder.inst().flag(1).build();
+                    return Validation.inst().flag(1).build();
                 }
 
                 WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
                 if (task != null && task.getPlayer().equals(player)
                         && (System.nanoTime() - task.getStarted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
                         && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(task.getPacket().getType().getPacketId())) {
-                    return ResponseBuilder.inst().flag(1).build();
+                    return Validation.inst().flag(1).build();
                 }
             }
 
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -207,27 +208,27 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                     for (Object value : values) {
                         if (value instanceof Float && NumberConversions.isInvalid((float) value)) {
-                            return ResponseBuilder.inst().cancel().flag().build();
+                            return Validation.inst().cancel().flag().build();
                         }
                         if (value instanceof Double && NumberConversions.isInfinite((double) value)) {
-                            return ResponseBuilder.inst().cancel().flag().build();
+                            return Validation.inst().cancel().flag().build();
                         }
                     }
-                    return ResponseBuilder.PASS;
+                    return Validation.PASS;
                 }
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
                     if (NumberConversions.isInvalid(value)) {
-                        return ResponseBuilder.inst().cancel().flag().build();
+                        return Validation.inst().cancel().flag().build();
                     }
                 }
                 for (float value : packet.getContainer().getFloats().readFieldValues()) {
                     if (NumberConversions.isInvalid(value)) {
-                        return ResponseBuilder.inst().cancel().flag().build();
+                        return Validation.inst().cancel().flag().build();
                     }
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -242,7 +243,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Packet structure with illegal attributes";
+            return Lang.get("validation.netty.b");
         }
 
         @Override
@@ -278,12 +279,12 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                 double playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, false);
                 if (playerRate5S < IGNORE_RATE_5S || (playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, true)) < IGNORE_RATE_5S) {
-                    return ResponseBuilder.PASS;
+                    return Validation.PASS;
                 }
 
                 if (playerRate5S > RATE_5S
                         || tracker.getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S) {
-                    return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
+                    return Validation.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Rate (5s)",
@@ -296,7 +297,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 if (playerRate5S > RATE_ACCEL_5S
                         && tracker.hasCollected(player, Timespan.FIVE_SECOND)
                         && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
-                    return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
+                    return Validation.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel quotient (5s)",
@@ -307,7 +308,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 }
 
                 if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL) {
-                    return ResponseBuilder.inst().flag(1).onViolation(onViolation -> {
+                    return Validation.inst().flag(1).onViolation(onViolation -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel",
@@ -317,9 +318,9 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                     }).build();
                 }
 
-                return ResponseBuilder.inst().flag(0).build();
+                return Validation.inst().flag(0).build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         private double toMillis(double amount) {
@@ -359,7 +360,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
 
             if (setting.isEnabled() && decodeTime > 0) {
-                return ResponseBuilder.inst().flag(decodeTime)
+                return Validation.inst().flag(decodeTime)
                         .onViolation(onViolation -> {
                             if (onViolation != null) onViolation.run();
 
@@ -367,7 +368,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                         })
                         .build();
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -387,7 +388,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Too long decode time";
+            return Lang.get("validation.netty.h");
         }
 
         @Override
@@ -420,7 +421,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
         @Override
         public String getDescription() {
-            return "Buffer overflow of decode time";
+            return Lang.get("validation.netty.i");
         }
 
         @Override
@@ -443,10 +444,10 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
         private final ViolationService.HoneyKey HSQKey = ViolationService.HoneyKey.of(0, "hsq");
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(1,"ta");
         private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(2,"tt");
-        private final ResponseContainer success = ResponseBuilder.inst().add(
-                ResponseBuilder.inst().flag(0).withViolationKey(HSQKey).build(),
-                ResponseBuilder.inst().flag(0).withViolationKey(TAKey).build(),
-                ResponseBuilder.inst().flag(0).withViolationKey(TTKey).build()
+        private final ResponseContainer success = Validation.inst().add(
+                Validation.inst().flag(0).withViolationKey(HSQKey).build(),
+                Validation.inst().flag(0).withViolationKey(TAKey).build(),
+                Validation.inst().flag(0).withViolationKey(TTKey).build()
         ).build();
 
         @Override
@@ -464,7 +465,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         double hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
                         if ((trackerSize > 25 && hsq > 0.4 * multiplier) || (trackerSize > 10 && hsq > 0.5 * multiplier) || hsq > 0.55 * multiplier) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(HSQKey).flag(1)
+                            return Validation.inst().cancel().withViolationKey(HSQKey).flag(1)
                                     .onViolation(onViolation -> {
                                         if (onViolation != null) onViolation.run();
 
@@ -475,7 +476,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan, true);
                         if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(TAKey).flag(1)
+                            return Validation.inst().cancel().withViolationKey(TAKey).flag(1)
                                     .onViolation(onViolation -> {
                                         if (onViolation != null) onViolation.run();
 
@@ -489,7 +490,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan, true);
                         if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
-                            return ResponseBuilder.inst().cancel().withViolationKey(TTKey).flag(1)
+                            return Validation.inst().cancel().withViolationKey(TTKey).flag(1)
                                     .onViolation(onViolation -> {
                                         if (onViolation != null) onViolation.run();
 
@@ -504,7 +505,7 @@ public class NettyListener<WP extends WrappedPacket<WP>> extends AbstractPacketL
                 }
                 return success;
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, double multiplier, double hsq) {

@@ -19,24 +19,24 @@ public class ResponseContainer implements Cloneable {
     public Runnable onPunish;
     public double flag = -1;
 
-    public ResponseBuilder copy() {
-        return new ResponseBuilder(this.clone(), new ArrayList<>(subContainers));
+    public Validation copy() {
+        return new Validation(this.clone(), new ArrayList<>(subContainers));
     }
 
     public ResponseContainer copyDirectly() {
         return copy().build();
     }
 
-    public ResponseBuilder copyWithoutPosts() {
-        ResponseBuilder builder = copy();
+    public Validation copyWithoutPosts() {
+        Validation builder = copy();
         builder.getContainer().onViolation = null;
         builder.getContainer().onFlag = null;
         builder.getContainer().onPunish = null;
         return builder;
     }
 
-    public ResponseBuilder builder() {
-        return new ResponseBuilder(this);
+    public Validation builder() {
+        return new Validation(this);
     }
 
     @Override

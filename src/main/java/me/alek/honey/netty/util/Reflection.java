@@ -79,7 +79,6 @@ public class Reflection {
             } catch (Exception ignored) {
             }
         }
-
         throw new RuntimeException("Reflection error (class): " + Arrays.stream(names).map(Reflection::setPlaceholders).collect(Collectors.toList()));
     }
 
@@ -172,7 +171,9 @@ public class Reflection {
                 return new MethodInvoker<>(method);
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getMethod(target, methodPredicate);
+        }
         throw new RuntimeException("Reflection error (method predicate): " + target.getName());
     }
 
@@ -187,7 +188,9 @@ public class Reflection {
                 }
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getMethod(target.getSuperclass(), index, parameters);
+        }
         throw new RuntimeException("Reflection error (method): " + target.getName() + ", " + index + ", " + Arrays.toString(parameters));
     }
 
@@ -198,7 +201,9 @@ public class Reflection {
             }
             return new MethodInvoker<>(method);
         }
-
+        if (target.getSuperclass() != null) {
+            return getMethod(target.getSuperclass(), name, parameters);
+        }
         throw new RuntimeException("Reflection error (method): " + target.getName() + ", " + name + ", " + Arrays.toString(parameters));
     }
 
@@ -212,7 +217,9 @@ public class Reflection {
                 currentIndex++;
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getMethodFromReturnType(target.getSuperclass(), index, returnType);
+        }
         throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
@@ -223,7 +230,9 @@ public class Reflection {
             }
             return new MethodInvoker<>(method);
         }
-
+        if (target.getSuperclass() != null) {
+            return getMethodFromReturnType(target.getSuperclass(), name, returnType);
+        }
         throw new RuntimeException("Reflection error (method):" + name + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
@@ -237,7 +246,9 @@ public class Reflection {
                 currentIndex++;
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getMethodFromReturnType(target.getSuperclass(), index, returnType, parameters);
+        }
         throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
@@ -249,7 +260,9 @@ public class Reflection {
             }
             return new FieldAccessor<>(field);
         }
-
+        if (target.getSuperclass() != null) {
+            return getNullableField(target.getSuperclass(), name, type);
+        }
         return null;
     }
 
@@ -263,18 +276,23 @@ public class Reflection {
                 }
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getNullableField(target.getSuperclass(), index, type);
+        }
         return null;
     }
 
     public static <T> FieldAccessor<T> getNullableFieldAssignableFrom(Class<?> target, String name, Class<?> type) {
         for (Field field : target.getDeclaredFields()) {
-            if (!field.getName().equals(name) || !type.isAssignableFrom(field.getType())) {
+            if (!field.getName().equals(name)
+                    || !type.isAssignableFrom(field.getType())) {
                 continue;
             }
             return new FieldAccessor<>(field);
         }
-
+        if (target.getSuperclass() != null) {
+            return getNullableFieldAssignableFrom(target.getSuperclass(), name, type);
+        }
         return null;
     }
 
@@ -288,7 +306,9 @@ public class Reflection {
                 }
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getNullableFieldAssignableFrom(target.getSuperclass(), index, type);
+        }
         return null;
     }
 
@@ -303,7 +323,9 @@ public class Reflection {
                 return accessor;
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getField(target.getSuperclass(), name, types);
+        }
         throw new RuntimeException("Reflection error (field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
     }
 
@@ -314,7 +336,9 @@ public class Reflection {
                 return accessor;
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getField(target.getSuperclass(), index, types);
+        }
         throw new RuntimeException("Reflection error (field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
     }
 
@@ -325,7 +349,9 @@ public class Reflection {
                 return accessor;
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getFieldAssignableFrom(target.getSuperclass(), name, types);
+        }
         throw new RuntimeException("Reflection error (assignable type field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
     }
 
@@ -336,7 +362,9 @@ public class Reflection {
                 return accessor;
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getFieldAssignableFrom(target.getSuperclass(), index, types);
+        }
         throw new RuntimeException("Reflection error (assignable type field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
     }
 
@@ -352,7 +380,9 @@ public class Reflection {
                 }
             }
         }
-
+        if (target.getSuperclass() != null) {
+            return getParameterizedField(target.getSuperclass(), bound, generic);
+        }
         throw new RuntimeException("Reflection error (parameterized field):" + target.getName() + ", " + bound + ", " + Arrays.toString(generic));
     }
 
@@ -362,7 +392,6 @@ public class Reflection {
                 return enumValue;
             }
         }
-
         throw new RuntimeException("Reflection error (enum): " + enumClass.getName() + ", " + ordinal);
     }
 
@@ -372,7 +401,6 @@ public class Reflection {
                 return enumValue;
             }
         }
-
         throw new RuntimeException("Reflection error (enum): " + enumClass.getName() + ", " + name);
     }
 

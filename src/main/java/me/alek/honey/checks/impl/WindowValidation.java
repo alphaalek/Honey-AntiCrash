@@ -4,11 +4,12 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -24,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWindowClick> implements IPacketListener {
+public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindowClick> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -69,7 +70,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                     inventorySlots += 4; // armor slots
                 }
                 if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -78,7 +79,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -93,7 +94,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return "Exceeding max slots of inventory";
+            return Lang.get("validation.window.a");
         }
 
         @Override
@@ -115,7 +116,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -130,7 +131,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return "Clicking on illegal item";
+            return Lang.get("validation.window.b");
         }
 
         @Override
@@ -151,10 +152,10 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
             if (getSetting().isEnabled()) {
                 if (player.player.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getMode() == 1) {
-                    return ResponseBuilder.inst().cancel().flag().build();
+                    return Validation.inst().cancel().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -169,7 +170,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return "Illegal lectern quick move";
+            return Lang.get("validation.window.c");
         }
 
         @Override
@@ -191,10 +192,10 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
                 if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {
                     HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
-                    return ResponseBuilder.inst().flag().build();
+                    return Validation.inst().flag().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -209,7 +210,7 @@ public class WindowClickListener extends AbstractPacketListener<WrappedPlayInWin
 
         @Override
         public String getDescription() {
-            return "Negative window click values";
+            return Lang.get("validation.window.d");
         }
 
         @Override

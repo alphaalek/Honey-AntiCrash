@@ -2,11 +2,12 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
@@ -29,7 +30,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
+public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -58,7 +59,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
     @Override
     public void load() {
        CommandsA.prohibitedCommandsLiteral = getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_COMMANDS_LITERAL);
-       CommandsA.prohibitedCommandsRegex = getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_COMMANDS_REGEX);
+       CommandsA.prohibitedCommandsRegex = ConfigurationOptions.Commands.PROHIBITED_COMMANDS_REGEX.toArray(new String[0]);
     }
 
     @Override
@@ -74,15 +75,15 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
                 String message = packet.getMessage();
                 if (message.isEmpty()) {
-                    return ResponseBuilder.inst().cancel().flag().terminate().build();
+                    return Validation.inst().cancel().flag().terminate().build();
                 }
                 for (char character : message.toCharArray()) {
                     if (character == Character.MIN_VALUE) {
-                        return ResponseBuilder.inst().cancel().flag().terminate().build();
+                        return Validation.inst().cancel().flag().terminate().build();
                     }
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -97,7 +98,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return "Bad character in chat message";
+            return Lang.get("validation.chat.a");
         }
 
         @Override
@@ -122,7 +123,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                 int messageLength = packet.getMessage().length();
 
                 if (messageLength > (below_1_11 ? 100 : 256)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -131,7 +132,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -146,7 +147,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return "Too long chat message";
+            return Lang.get("validation.chat.b");
         }
 
         @Override
@@ -231,7 +232,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             String message = packet.getMessage();
             if (!message.startsWith("/")) {
-                return ResponseBuilder.PASS;
+                return Validation.PASS;
             }
 
             Consumer<Runnable> onViolationConsumer = onViolation -> {
@@ -243,7 +244,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
             for (String prohibitedCommand : prohibitedCommandsLiteral) {
                 if (match(prohibitedCommand, message)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolationConsumer)
                             .build();
                 }
@@ -251,14 +252,14 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
             for (String prohibitedCommand : prohibitedCommandsRegex) {
                 if (matchRegex(prohibitedCommand, message)) {
-                    return ResponseBuilder.inst().cancel().flag()
+                    return Validation.inst().cancel().flag()
                             .onViolation(onViolationConsumer)
                             .build();
                 }
             }
 
 
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -273,7 +274,7 @@ public class ChatListener extends AbstractPacketListener<WrappedPlayInChat> impl
 
         @Override
         public String getDescription() {
-            return "Executing prohibited command";
+            return Lang.get("validation.command.a");
         }
 
         @Override

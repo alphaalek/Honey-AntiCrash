@@ -56,7 +56,7 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
 
     private void setupThreads() {
         final AtomicLong lastTick = new AtomicLong(System.currentTimeMillis());
-        setupFirstScheduledTask(new BukkitRunnable() {
+        HoneyPlugin.get().getPlugin().getServer().getScheduler().runTaskTimer(HoneyPlugin.get().getPlugin(), new BukkitRunnable() {
             @Override
             public void run() {
                 if (System.currentTimeMillis() - lastTick.get() < 95) return;
@@ -74,7 +74,7 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
 
                 add(amount);
             }
-        }, HoneyPlugin.get().getPlugin(), 0L, 2L);
+        }, 0L, 2L);
 
         new Thread(() -> {
             expectedTick.set(System.currentTimeMillis());

@@ -3,11 +3,12 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -20,7 +21,7 @@ import me.alek.honey.util.CallbackAction;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
+public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -58,7 +59,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
-                    return ResponseBuilder.inst().cancel().flag().terminate()
+                    return Validation.inst().cancel().flag().terminate()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -67,7 +68,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
                             .build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -82,7 +83,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getDescription() {
-            return "Switching to illegal item slot";
+            return Lang.get("validation.held.item.a");
         }
 
         @Override
@@ -104,7 +105,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
                 return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this));
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -119,7 +120,7 @@ public class HeldItemListener extends AbstractPacketListener<WrappedPlayInHeldIt
 
         @Override
         public String getDescription() {
-            return "Switching to illegal item";
+            return Lang.get("validation.held.item.b");
         }
 
         @Override

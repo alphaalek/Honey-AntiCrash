@@ -2,11 +2,12 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -21,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockDig> implements IPacketListener {
+public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBlockDig> implements IPacketListener {
 
     @Override
     public CheckVisitor<WrappedPlayInBlockDig> getVisitor(HoneyPlayer player) {
@@ -57,11 +58,11 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null || blockPosition.getY() == -1) return ResponseBuilder.PASS;
+                if (blockPosition == null || blockPosition.getY() == -1) return Validation.PASS;
 
-                return BlockPlaceListener.checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
+                return BlockPlaceValidation.checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -76,7 +77,7 @@ public class BlockDigListener extends AbstractPacketListener<WrappedPlayInBlockD
 
         @Override
         public String getDescription() {
-            return "Interacting with block too far away";
+            return Lang.get("validation.block.e");
         }
 
         @Override

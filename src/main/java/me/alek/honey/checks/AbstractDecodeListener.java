@@ -30,7 +30,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
                 CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {
                     defaultDevelopmentData.addEmpty();
-                    defaultDevelopmentData.addValue(" ByteBuf", bytes + " bytes");
+                    defaultDevelopmentData.addValue(" Byte buffer", bytes + " bytes");
                     AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
                 }
 

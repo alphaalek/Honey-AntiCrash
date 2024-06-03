@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
@@ -98,14 +98,14 @@ public class ItemAnalysis {
     public static ResponseContainer flagIf(HoneyPlayer player, ItemStack item, CheckContextContainer.DevelopmentData developmentData) {
         CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
         if (ItemAnalysis.checkItem(player, item, callback)) {
-            return ResponseBuilder.inst().cancel().flag().onViolation(onViolation -> {
+            return Validation.inst().cancel().flag().onViolation(onViolation -> {
                 if (onViolation != null) onViolation.run();
 
                 callback.call(developmentData);
             }).build();
         }
 
-        return ResponseBuilder.PASS;
+        return Validation.PASS;
     }
 
     public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction<CheckContextContainer.DevelopmentData> context) {
@@ -190,7 +190,6 @@ public class ItemAnalysis {
 
     private static boolean checkStrategyAcceptance(AcceptStrategy strategy, ItemStack item, NBTCompound nbt) {
         switch (strategy) {
-
             case ALL:
                 return true;
             case ONLY_WITH_NBT:

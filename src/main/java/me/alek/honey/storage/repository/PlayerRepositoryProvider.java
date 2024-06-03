@@ -2,7 +2,7 @@ package me.alek.honey.storage.repository;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.storage.QueryFactory;
-import me.alek.honey.storage.RepositoryComponentProvider;
+import me.alek.honey.storage.Repository;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;
@@ -10,7 +10,7 @@ import me.alek.honey.storage.model.PlayerEntry;
 import java.sql.ResultSet;
 import java.util.concurrent.CompletableFuture;
 
-public class PlayerRepositoryProvider implements RepositoryComponentProvider {
+public class PlayerRepositoryProvider implements Repository {
 
     @Override
     public void prepare(QueryFactory queryFactory) {

@@ -4,9 +4,10 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.ResponseBuilder;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
@@ -25,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLoginStart> implements IPacketListener {
+public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginStart> implements IPacketListener {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -65,16 +66,16 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
         public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
             if (profile == null) {
-                return ResponseBuilder.PASS;
+                return Validation.PASS;
             }
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
-                    return ResponseBuilder.inst().cancel().punish().build();
+                    return Validation.inst().cancel().punish().build();
                 }
             }
 
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -89,7 +90,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public String getDescription() {
-            return "Player name already online";
+            return Lang.get("validation.login.a");
         }
 
         @Override
@@ -109,10 +110,10 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
                 InetSocketAddress address = NMS.getSocketAddress(handler);
 
                 if (address.getAddress() == null) {
-                    return ResponseBuilder.inst().cancel().build();
+                    return Validation.inst().cancel().build();
                 }
             }
-            return ResponseBuilder.PASS;
+            return Validation.PASS;
         }
 
         @Override
@@ -127,7 +128,7 @@ public class LoginStartListener extends AbstractPacketListener<WrappedLoginInLog
 
         @Override
         public String getDescription() {
-            return "Login start with invalid ping";
+            return Lang.get("validation.login.b");
         }
 
         @Override
