@@ -119,12 +119,8 @@ public class ReflectStructure<T, C> {
             return true;
         }
 
-        if (!disallowClasses.isEmpty()
-                && disallowClasses.contains(member.getDeclaringClass())) {
-            return true;
-        }
-
-        return false;
+        return !disallowClasses.isEmpty()
+                && disallowClasses.contains(member.getDeclaringClass());
     }
 
     private boolean disallowedField(IReflectionMember<?> member) {
