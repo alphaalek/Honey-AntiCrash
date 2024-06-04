@@ -60,7 +60,8 @@ public class PacketExecutors {
         public boolean accepts(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
             String channel = packetContainer.getPacket().getChannel();
 
-            return channel.equals("MC|BEdit") || channel.equals("MC|BSign");
+            return channel.equals("MC|BEdit")
+                    || channel.equals("MC|BSign");
         }
 
         @Override
@@ -69,7 +70,7 @@ public class PacketExecutors {
             ItemStack item = null;
             try {
                 item = Converters.getItemStackConverter().convertDelegate(serializer.readItemStack());
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
 
             }
             serializer.release();
@@ -175,15 +176,11 @@ public class PacketExecutors {
             Iterator<FieldAccessor<Object>> toIterator = structure.withTarget(to)
                     .getAccessors().iterator();
 
-            Bukkit.broadcastMessage(from + " -> " + to);
-
             while (toIterator.hasNext() && fromIterator.hasNext()) {
                 FieldAccessor<Object> next = fromIterator.next();
-                Bukkit.broadcastMessage("Val: " + next.get(from) + ", field: " + next.getField());
                 toIterator.next().set(to, next.get(from));
             }
 
-            Bukkit.broadcastMessage("Post " + to);
             return to;
         }
 
