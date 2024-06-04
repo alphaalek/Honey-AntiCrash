@@ -7,7 +7,6 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
@@ -41,7 +40,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
         IStructureModifier<Enum<?>> structure = ReflectStructureCache.acquireStructure(protocol.getClass())
                 .withType(NMS.getEnumProtocolClass())
-                .disableStaticFields()
+                .withoutStatic()
                 .withTarget(protocol);
         if (!structure.getAccessors().isEmpty()) {
             return structure.readField(0);

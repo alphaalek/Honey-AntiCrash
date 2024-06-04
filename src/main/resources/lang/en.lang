@@ -1,135 +1,145 @@
 loaded=Honey is now fully loaded in! Version: %s
 unloaded=Honey is now disabled!
+failed.shutdown.session.error=Failed to shutdown session!
+failed.load=Honey failed to load!
+failed.load.session.error=§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.
+invalid.license=You have an invalid license specified in your config.yml. Open the configuration file at /plugins/honey/config.yml and follow the instructions at the top.
+license.connection.error=An error occurred when connecting to license auth servers!
+
+conflict.unsupported.version=Honey is currently not supported by the Minecraft Version your server is using.
+conflict.runtime.load=Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.
+conflict.misconfiguration=You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.
+conflict.packet.library.setup=Aborting because the plugin was disabled during packet library setup.
 
 unknown=Unknown
 
-kick-too-long-packet-handle=Packet task took way too long to be handled.
-update-found=§7Found an update: %s. Download:
-server-frozen={prefix} §cThe server seems to be frozen after a packet was sent by %s. See the log for thread dump and more info.
+kick.too.long.packet.handle=Packet task took way too long to be handled.
+update.found=§7Found an update: %s. Download:
+server.frozen={prefix} §cThe server seems to be frozen after a packet was sent by %s. See the log for thread dump and more info.
 
-validation-block-a=Placing block too far away
-validation-block-b=Right clicking with illegal item
-validation-block-c=Placing illegal piston block
-validation-block-d=Illegal facing or direction
-validation-block-e=Interacting with block too far away
+validation.block.a=Placing block too far away
+validation.block.b=Right clicking with illegal item
+validation.block.c=Placing illegal piston block
+validation.block.d=Illegal facing or direction
+validation.block.e=Interacting with block too far away
 
-validation-chat-a=Bad character in chat message
-validation-chat-b=Too long chat message
-validation-command-a=Executing prohibited command
+validation.chat.a=Bad character in chat message
+validation.chat.b=Too long chat message
+validation.command.a=Executing prohibited command
 
-validation-tab-a=Tab completing prohibited command
-validation-tab-b=Buffer of tab complete suggestions exceeded
-validation-tab-c=Length of tab complete exceeded
+validation.tab.a=Tab completing prohibited command
+validation.tab.b=Buffer of tab complete suggestions exceeded
+validation.tab.c=Length of tab complete exceeded
 
 validation.creative.a=Spoofed creative mode
-validation-creative-b=Exceeding max slots in inventory
-validation-creative-c=Clicking on illegal item
+validation.creative.b=Exceeding max slots in inventory
+validation.creative.c=Clicking on illegal item
 
-validation-window-a=Exceeding max slots of inventory
-validation-window-b=Clicking on illegal item
-validation-window-c=Illegal lectern move
-validation-window-d=Negative click context values
+validation.window.a=Exceeding max slots of inventory
+validation.window.b=Clicking on illegal item
+validation.window.c=Illegal lectern move
+validation.window.d=Negative click context values
 
-validation-encryption-a=Encryption response with invalid ping
-validation-login-a=Player name already online
-validation-login-b=Login start with invalid ping
+validation.encryption.a=Encryption response with invalid ping
+validation.login.a=Player name already online
+validation.login.b=Login start with invalid ping
 
-validation-flood-a=General packet flood limiter
-validation-flood-b=Packet flood for sudden spikes
-validation-flood-c=Packet flood for nbt bases
-validation-flood-d=Packet flood for specific packet type
+validation.flood.a=General packet flood limiter
+validation.flood.b=Packet flood for sudden spikes
+validation.flood.c=Packet flood for nbt bases
+validation.flood.d=Packet flood for specific packet type
 
-validation-held-item-a=Switching to exceeding item slot
-validation-held-item-b=Switching to illegal item
+validation.held.item.a=Switching to exceeding item slot
+validation.held.item.b=Switching to illegal item
 
-validation-movement-a=Switching between ground and air too quickly
-validation-movement-b=Too high delta movement
-validation-movement-c=Buffer of position distance exceeded
-validation-movement-d=Too many chunks discovered
-validation-movement-e=Too many unloaded chunks discovered
-validation-movement-f=Switching directions too quickly
-validation-movement-g=Spoofed vehicle movement
-validation-movement-h=Too many identical delta movements
-validation-movement-i=Too many identical delta movements
-validation-movement-j=Too high up in air or down in void
+validation.movement.a=Switching between ground and air too quickly
+validation.movement.b=Too high delta movement
+validation.movement.c=Buffer of position distance exceeded
+validation.movement.d=Too many chunks discovered
+validation.movement.e=Too many unloaded chunks discovered
+validation.movement.f=Switching directions too quickly
+validation.movement.g=Spoofed vehicle movement
+validation.movement.h=Too many identical delta movements
+validation.movement.i=Too many identical delta movements
+validation.movement.j=Too high up in air or down in void
 
-validation-rotation-a=Illegal pitch rotation
-validation-rotation-b=Too high delta rotation
-validation-rotation-c=Buffer of rotation distance exceeded
+validation.rotation.a=Illegal pitch rotation
+validation.rotation.b=Too high delta rotation
+validation.rotation.c=Buffer of rotation distance exceeded
 
-validation-sign-a=Illegal sign text
+validation.sign.a=Illegal sign text
 
-validation-netty-b=Packet structure with illegal attributes
-validation-netty-d=Too big packet
-validation-netty-e=Buffer of packet size exceeded
-validation-netty-f=Buffer of accumulated packet size exceeded
-validation-netty-g=Too high accumulated packet size
-validation-netty-h=Too long decode time
-validation-netty-i=Buffer of decode time exceeded
-validation-netty-l=Too many categorized big packets
-validation-netty-m=Packet flood for big packets
-validation-netty-n=Packet flood for big packets
-validation-netty-o=Too many timed categorized big packets
+validation.netty.b=Packet structure with illegal attributes
+validation.netty.d=Too big packet
+validation.netty.e=Buffer of packet size exceeded
+validation.netty.f=Buffer of accumulated packet size exceeded
+validation.netty.g=Too high accumulated packet size
+validation.netty.h=Too long decode time
+validation.netty.i=Buffer of decode time exceeded
+validation.netty.l=Too many categorized big packets
+validation.netty.m=Packet flood for big packets
+validation.netty.n=Packet flood for big packets
+validation.netty.o=Too many timed categorized big packets
 
-validation-payload-a=Empty serializer for payload
-validation-payload-b=Too big serializer for payload
-validation-payload-c=Illegal item in payload
-validation-payload-d=Illegal usage of book channel
-validation-payload-e=Too many registered plugin channels
+validation.payload.a=Empty serializer for payload
+validation.payload.b=Too big serializer for payload
+validation.payload.c=Illegal item in payload
+validation.payload.d=Illegal usage of book channel
+validation.payload.e=Too many registered plugin channels
 
-command-desc-help=Sends all the commands you can use.
-command-desc-monitor=Monitor either server performance or player impact.
-command-desc-packetmonitor=Advanced packet monitor with customizable flags.
-command-desc-notify=Toggle notifications on/off for you.
-command-desc-pastelogs=Paste the violation logs of a player.
-command-desc-reload=Reloads the configuration.
-command-desc-track=Track performance of checks and players.
+command.desc.help=Sends all the commands you can use.
+command.desc.monitor=Monitor either server performance or player impact.
+command.desc.packetmonitor=Advanced packet monitor with customizable flags.
+command.desc.notify=Toggle notifications on/off for you.
+command.desc.pastelogs=Paste the violation logs of a player.
+command.desc.reload=Reloads the configuration.
+command.desc.track=Track performance of checks and players.
 
-command-outdated=§c(Outdated! Latest: %s)
-command-byline=§6Honey %s. Made by Alek05. %s
-command-help-suggestion=§7Type §8/honey help §7for help on command usage.
-command-no-console={prefix} §cThis command can not be used by the console.
-command-no-permission={prefix} §cYou do not have permission to use this command!
-command-cooldown={prefix} §cYou have cooldown on this command. Wait %s.
+command.outdated=§c(Outdated! Latest: %s)
+command.byline=§6Honey %s. Made by Alek05. %s
+command.help.suggestion=§7Type §8/honey help §7for help on command usage.
+command.no.console={prefix} §cThis command can not be used by the console.
+command.no.permission={prefix} §cYou do not have permission to use this command!
+command.cooldown={prefix} §cYou have cooldown on this command. Wait %s.
 
-monitor-unknown-player={prefix} §cYou have to choose a valid player name.
-monitor-executor-service-shutdown-error=Monitor executor service did not shutdown successfully!
-monitor-executor-service-shutdown-exception=Exception occurred when shutting down monitor executor service!
-monitor-stopping={prefix} §cStopping %s.
-monitor-stop-no-active={prefix} §7You do not currently monitor anything.
-monitor-start-bypass-permission-error=§cCan't start player monitor on %s, because the player has bypass permission.
-monitor-start={prefix} §7Started %s. Use /honey monitor stop if you want to stop the monitoring.
-monitor-name-player=player monitor of %s
+monitor.unknown.player={prefix} §cYou have to choose a valid player name.
+monitor.executor.service.shutdown.error=Monitor executor service did not shutdown successfully!
+monitor.executor.service.shutdown.exception=Exception occurred when shutting down monitor executor service!
+monitor.stopping={prefix} §cStopping %s.
+monitor.stop.no.active={prefix} §7You do not currently monitor anything.
+monitor.start.bypass.permission.error=§cCan't start player monitor on %s, because the player has bypass permission.
+monitor.start={prefix} §7Started %s. Use /honey monitor stop if you want to stop the monitoring.
+monitor.name.player=player monitor of %s
 
-packetmonitor-min-flag-1={prefix} §7You have to choose at least one flag for the packet monitor. Remember you can use the same flag multiple times.
-packetmonitor-min-flag-2={prefix} §7You can use the following flags:
-packetmonitor-using-flags={prefix} §7Using the following flags:
-packetmonitor-wrong-flag-syntax={prefix} Wrong syntax of "%s": %s
-packetmonitor-unknown-flag=Couldn't find any flag with that name
-packetmonitor-flag-no-argument=You have to choose an argument
-packetmonitor-flag-invalid-number=You have to type a valid number
-packetmonitor-flag-unknown-packettype=Couldn't find any packet type matching "%s"
-packetmonitor-operator-no-flag=Using operator without flag
-packetmonitor-operator-unexpected-paranthesis=Unexpected paranthesis at index %s, at "%s".
+packetmonitor.min.flag.1={prefix} §7You have to choose at least one flag for the packet monitor. Remember you can use the same flag multiple times.
+packetmonitor.min.flag.2={prefix} §7You can use the following flags:
+packetmonitor.using.flags={prefix} §7Using the following flags:
+packetmonitor.wrong.flag.syntax={prefix} Wrong syntax of "%s": %s
+packetmonitor.unknown.flag=Couldn't find any flag with that name
+packetmonitor.flag.no.argument=You have to choose an argument
+packetmonitor.flag.invalid.number=You have to type a valid number
+packetmonitor.flag.unknown.packettype=Couldn't find any packet type matching "%s"
+packetmonitor.operator.no.flag=Using operator without flag
+packetmonitor.operator.unexpected.paranthesis=Unexpected paranthesis at index %s, at "%s".
 
-notify-toggled={prefix} §7You have now toggled notifications %s§7.
-notify-on=§aon
-notify-off=§coff
+notify.toggled={prefix} §7You have now toggled notifications %s§7.
+notify.on=§aon
+notify.off=§coff
 
-pastelogs-mysql-disabled={prefix} §cYou don't have MySQL enabled in the configuration.
-pastelogs-mysql-connection-error={prefix} §cConnection is not established with the MySQL database. Try again later or change the connection values.
-pastelogs-pastebin-developer-key-error={prefix} §cYou have an empty pastebin developer key. Check the configuration for more information.
-pastelogs-specify-player={prefix} §cYou have to specify a player!
-pastelogs-unknown-player={prefix} §cYou have to choose a valid player name.
+pastelogs.mysql.disabled={prefix} §cYou don't have MySQL enabled in the configuration.
+pastelogs.mysql.connection.error={prefix} §cConnection is not established with the MySQL database. Try again later or change the connection values.
+pastelogs.pastebin.developer.key.error={prefix} §cYou have an empty pastebin developer key. Check the configuration for more information.
+pastelogs.specify.player={prefix} §cYou have to specify a player!
+pastelogs.unknown.player={prefix} §cYou have to choose a valid player name.
 
-reload-already-reloading={prefix} §cThe plugin is already reloading!
-reload-start={prefix} §7Reloading the plugin...
-reload-end={prefix} §7Reload done.
+reload.already.reloading={prefix} §cThe plugin is already reloading!
+reload.start={prefix} §7Reloading the plugin...
+reload.end={prefix} §7Reload done.
 
-track-no-data={prefix} §cNo data!
-track-players={prefix} §7Sending information about the server thread occupation by players...
-track-no-data-bypass-permission=§e%s: §cNo data because the player has bypass permission!
-track-average=Average
-track-checks={prefix} §7Sending information about the work of checks...
+track.no.data={prefix} §cNo data!
+track.players={prefix} §7Sending information about the server thread occupation by players...
+track.no.data.bypass.permission=§e%s: §cNo data because the player has bypass permission!
+track.average=Average
+track.checks={prefix} §7Sending information about the work of checks...
 
 

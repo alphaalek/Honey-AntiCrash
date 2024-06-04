@@ -1,9 +1,7 @@
 package me.alek.honey.netty.handler.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderException;
-import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
@@ -61,12 +59,12 @@ public class HoneyPacketDecoder {
             if (packet.getClass().equals(PacketType.Play.Client.BLOCK_PLACE.getNmsClass())
                     && ConfigurationOptions.Decoder.DISABLE_NBT && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 DisabledNBTCodec.BLOCK_PLACE.apply(
-                        ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
+                        ReflectStructureCache.acquireStructure(packet.getClass()).withoutStatic().withTarget(packet), dataSerializer);
             }
             else if (packet.getClass().equals(PacketType.Play.Client.WINDOW_CLICK.getNmsClass())
                     && ConfigurationOptions.Decoder.DISABLE_NBT) {
                 DisabledNBTCodec.WINDOW_CLICK.apply(
-                        ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet), dataSerializer);
+                        ReflectStructureCache.acquireStructure(packet.getClass()).withoutStatic().withTarget(packet), dataSerializer);
             }
             else if (packet.getClass().equals(PacketType.Play.Client.SET_CREATIVE_SLOT.getNmsClass())
                     && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE && player != null && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
@@ -96,7 +94,7 @@ public class HoneyPacketDecoder {
             if (dataSerializer.isReadable()) {
                 int end = dataSerializer.readerIndex();
                 int remaining = dataSerializer.readableBytes();
-                throw new DecoderException("Found " + remaining + " (" + (end + dataSerializer.readableBytes()) + "/" + end + ") extra bytes while decoding packet " + packetId + ", " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).disableStaticFields().withTarget(packet).readFieldEntries());
+                throw new DecoderException("Found " + remaining + " (" + (end + dataSerializer.readableBytes()) + "/" + end + ") extra bytes while decoding packet " + packetId + ", " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).withoutStatic().withTarget(packet).readFieldEntries());
             }
         }
 

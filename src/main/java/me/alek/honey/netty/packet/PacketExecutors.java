@@ -2,7 +2,7 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -13,15 +13,25 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class PacketExecutors {
 
@@ -36,11 +46,15 @@ public class PacketExecutors {
     private static class CustomPayloadPacketExecutor implements PacketExecutor<WrappedPlayInCustomPayload> {
 
         private static final Class<?> craftEventFactory = Reflection.getClass("{obc}.event.CraftEventFactory");
-        private static final MethodInvoker<Object> handleBookEditEventInvoker = Reflection.getMethod(craftEventFactory, "handleEditBookEvent", NMS.getEntityPlayerClass(), NMS.getItemStackClass());
+
         private static final ConstructorInvoker<Object> chatComponentTextConstructor = Reflection.getConstructor(
                 Reflection.getClass("{nms}.ChatComponentText"), String.class);
         private static final MethodInvoker<Object> chatComponentSerializerInvoker = Reflection.getMethod(
                 Reflection.getClass("{nms}.IChatBaseComponent$ChatSerializer"), 0, Reflection.getClass("{nms}.IChatBaseComponent"));
+
+        private static final MethodInvoker<Object> stripEventsInvoker = Reflection.getMethod(
+                craftEventFactory, "stripEvents", NMS.getIChatBaseComponentClass());
+        private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
 
         @Override
         public boolean accepts(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
@@ -65,60 +79,112 @@ public class PacketExecutors {
             }
 
             NBTCompound nbt = NBTFactory.fromItem(item, false, false);
+            return handleBookEdit(packetContainer, item, nbt);
+        }
 
+        private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
+            Player player = packetContainer.getPlayer().player;
             switch (packetContainer.getPacket().getChannel()) {
                 case "MC|BEdit":
-                    if (!isValidQuillTag(nbt)) {
+                    if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)) {
                         break;
                     }
 
-                    return () -> handleMCBEdit(packetContainer, nbt);
+                    if (item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+                        break;
+                    }
+
+                    stripEvents((BookMeta) item.getItemMeta());
+
+                    return () -> {
+                        ItemStack heldItem = getItemInMainHand(player);
+
+                        PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
+                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) item.getItemMeta(), false
+                        );
+                        Bukkit.getPluginManager().callEvent(editBookEvent);
+                        if (editBookEvent.isCancelled()) {
+                            return;
+                        }
+
+                        heldItem.setItemMeta((ItemMeta) copyStructure(item.getItemMeta(), heldItem.getItemMeta()));
+                    };
                 case "MC|BSign":
-                    if (!isValidBookTag(nbt) || !isValidAuthor(nbt, packetContainer.getPlayer())) {
+                    if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null) ||
+                            !isValidAuthor(packetContainer.getPlayer(), nbt)) {
                         break;
                     }
 
-                    NBTList<String> pages = nbt.getListOf("pages", NBTType.STRING);
-                    if (pages == null) {
-                        pages = new NBTList<>(NBTType.STRING);
+                    if (item.getType() != Material.WRITTEN_BOOK) {
+                        break;
                     }
 
+                    // TODO: check pages tag
                     if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
+                        NBTList<String> pages = nbt.hasKeyOfType("pages", NBTType.STRING)
+                                ? nbt.getListOf("pages", NBTType.STRING)
+                                : new NBTList<>(NBTType.STRING);
                         serializeTextComponents(pages);
                     }
+                    stripEvents((BookMeta) item.getItemMeta());
 
-                    NBTList<String> finalPages = pages;
-                    return () -> handleMCBSign(packetContainer, nbt, finalPages);
+                    return () -> {
+                        ItemStack heldItem = getItemInMainHand(player);
+
+                        PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
+                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) item.getItemMeta(), true
+                        );
+                        Bukkit.getPluginManager().callEvent(editBookEvent);
+                        if (editBookEvent.isCancelled()) {
+                            return;
+                        }
+
+                        heldItem.setType(Material.WRITTEN_BOOK);;
+                        heldItem.setItemMeta((ItemMeta) copyStructure(item.getItemMeta(), heldItem.getItemMeta()));
+                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
+
+                        Bukkit.broadcastMessage("Done " + heldItem + " " + heldItem.getItemMeta() + " " + ((BookMeta)heldItem.getItemMeta()).getAuthor() + " " + ((BookMeta)heldItem.getItemMeta()).getTitle());
+                    };
                 default:
                     return null;
             }
-            return () -> packetContainer.getPlayer().player.kickPlayer("Invalid book data!");
+            return () -> player.kickPlayer("Invalid book data!");
         }
 
-        private void handleMCBEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt) {
-            ItemStack editedItem = handlePrerequisites(packetContainer, MaterialMappings.getTypeIfAny("writable-book"), editedNBT -> {
-                editedNBT.put("pages", nbt.get("pages"));
-            });
+        private void stripEvents(BookMeta meta) {
+            IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructureCache.acquireStructure(meta.getClass())
+                    .<List<Object>>withWeakType(List.class)
+                    .withTarget(meta);
 
-            if (editedItem == null) {
-                return;
+            List<Object> pages = bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
+
+            List<Object> newPages = new ArrayList<>();
+            for (Object page : pages) {
+                newPages.add(stripEventsInvoker.invoke(null, page));
             }
 
-            callHandleBookEditEvent(packetContainer.getPlayer().player, editedItem);
+            bookMetaPageModifier.writeField(bookMetaPageCache, "pages", 0, newPages);
         }
 
-        private void handleMCBSign(PacketContainer<WrappedPlayInCustomPayload> packetContainer, NBTCompound nbt, NBTList<String> pages) {
-            ItemStack editedItem = handlePrerequisites(packetContainer, Material.WRITTEN_BOOK, editedNBT -> {
-                editedNBT.put("author", nbt.get("author"));
-                editedNBT.put("title", nbt.get("title"));
-                editedNBT.put("pages", pages);
-            });
+        private Object copyStructure(Object from, Object to) {
+            ReflectStructure<Object, Object> structure = ReflectStructureCache.acquireStructure(from.getClass())
+                    .withoutStatic().without(NMS.getCraftMetaItemClass());
 
-            if (editedItem == null) {
-                return;
+            Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)
+                    .getAccessors().iterator();
+            Iterator<FieldAccessor<Object>> toIterator = structure.withTarget(to)
+                    .getAccessors().iterator();
+
+            Bukkit.broadcastMessage(from + " -> " + to);
+
+            while (toIterator.hasNext() && fromIterator.hasNext()) {
+                FieldAccessor<Object> next = fromIterator.next();
+                Bukkit.broadcastMessage("Val: " + next.get(from) + ", field: " + next.getField());
+                toIterator.next().set(to, next.get(from));
             }
 
-            callHandleBookEditEvent(packetContainer.getPlayer().player, editedItem);
+            Bukkit.broadcastMessage("Post " + to);
+            return to;
         }
 
         private void serializeTextComponents(NBTList<String> pages) {
@@ -136,35 +202,6 @@ public class PacketExecutors {
             }
         }
 
-        private void callHandleBookEditEvent(Player player, ItemStack item) {
-            IStructureModifier<Object> entityStructureModifier = ReflectStructureCache.acquireStructure(NMS.getCraftEntityClass())
-                    .withType(NMS.getEntityClass())
-                    .withTarget(player);
-            Object entityPlayer = entityStructureModifier.readField(0);
-
-            Object nmsItem = ItemReflection.getHandleItem(item);
-
-            handleBookEditEventInvoker.invoke(null, entityPlayer, nmsItem);
-        }
-
-        private ItemStack handlePrerequisites(PacketContainer<WrappedPlayInCustomPayload> packetContainer,
-                                              Material type, Consumer<NBTCompound> nbtConsumer) {
-
-            ItemStack playerItem = getItemInMainHand(packetContainer.getPlayer().player);
-            if (playerItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
-                return null;
-            }
-
-            if (playerItem.getType() != type) {
-                playerItem.setType(type);
-            }
-
-            NBTCompound editedNBT = NBTFactory.fromItem(playerItem, true, false);
-            nbtConsumer.accept(editedNBT);
-
-            return playerItem;
-        }
-
         private ItemStack getItemInMainHand(Player player) {
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 return player.getInventory().getItemInHand();
@@ -174,37 +211,11 @@ public class PacketExecutors {
             }
         }
 
-        private boolean isValidAuthor(NBTCompound nbt, HoneyPlayer player) {
+        private boolean isValidAuthor(HoneyPlayer player, NBTCompound nbt) {
             String author;
             return nbt != null
                     && nbt.hasKeyOfType("author", NBTType.STRING)
                     && (author = nbt.getString("author")) != null && author.equals(player.name);
-        }
-
-        private boolean isValidBookTag(NBTCompound nbt) {
-            String title;
-            String author;
-            return isValidQuillTag(nbt)
-                    && nbt.hasKeyOfType("title", NBTType.STRING)
-                    && (title = nbt.getString("title")) != null && title.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH
-                    && nbt.hasKeyOfType("author", NBTType.STRING)
-                    && (author = nbt.getString("author")) != null && author.length() <= ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
-        }
-
-        private boolean isValidQuillTag(NBTCompound nbt) {
-            return nbt != null
-                    && nbt.hasKeyOfType("pages", NBTType.LIST)
-                    && !isAnyPageTooLong(nbt);
-        }
-
-        private boolean isAnyPageTooLong(NBTCompound nbt) {
-            for (NBTElement<String> page : nbt.<String>getListOf("pages", NBTType.STRING)) {
-                if (page == null
-                        || page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }

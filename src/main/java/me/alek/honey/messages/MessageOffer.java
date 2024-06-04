@@ -33,7 +33,7 @@ public class MessageOffer {
     public String getGlobal(String key) {
         return Optional.ofNullable(globalOffers.get(key))
                 .map(Supplier::get)
-                .orElseThrow(NoSuchElementException::new);
+                .orElse("<unknown>");
     }
 
     public Builder builder() {

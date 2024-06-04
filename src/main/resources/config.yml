@@ -32,6 +32,9 @@ license: ""
 # +------------------------------------------------------+ #
 ############################################################
 
+# Language
+lang: "en"
+
 # How long time between each clearing of old violations (in millis).
 clear-old-violations-timestamp: 90000 # 1 minute and 30 seconds as default
 

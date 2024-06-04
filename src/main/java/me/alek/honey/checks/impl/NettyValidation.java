@@ -183,7 +183,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 final List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
                 BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
-                        !structure.withType(clazz).disableStaticFields().getAccessors().isEmpty();
+                        !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
                 for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 

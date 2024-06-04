@@ -56,8 +56,8 @@ public interface IStructureModifier<T> {
 
     int methodSize();
 
-    Collection<FieldAccessor<?>> getAccessors();
+    <O> Collection<FieldAccessor<O>> getAccessors();
 
-    Collection<MethodInvoker<?>> getInvokers();
+    <O> Collection<MethodInvoker<O>> getInvokers();
 
 }

@@ -3,12 +3,12 @@ package me.alek.honey.lang;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.services.NotificationService;
+import org.bukkit.Bukkit;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class Lang {
 
@@ -27,7 +27,7 @@ public class Lang {
         return Optional.ofNullable(messages.get(key))
                 .orElse(
                         Optional.ofNullable(defaultMessages.get(key))
-                                .orElseThrow(NoSuchElementException::new)
+                                .orElseThrow(() -> new NoSuchElementException(key))
                 );
     }
 
@@ -37,38 +37,43 @@ public class Lang {
 
         String language = HoneyPlugin.get().getPlugin().getConfig().getString("lang");
 
-        File folder = new File(Lang.class.getClassLoader().getResource("lang/").getFile());
-        if (!folder.exists() || folder.listFiles() == null) {
-            return;
+        try {
+            JarFile jar = new JarFile(new File(Lang.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
+
+            jar.stream().filter(entry -> entry.getName().startsWith("lang/")).forEach(entry -> {
+                String[] packages = entry.getName().split("/");
+
+                if (packages[packages.length - 1].split("\\.")[0].equals(language)) {
+                    try {
+                        loadMessages(entry.getName(), jar.getInputStream(entry), false);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+
+            loadMessages("lang/en.lang", jar.getInputStream(jar.getJarEntry("lang/en.lang")), true);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
-        loadMessages(getDefaultMessagesFile(folder), true);
-
-        for (File file : folder.listFiles()) {
-           if (file.getName().split("\\.")[0].equals(language)) {
-               loadMessages(file, false);
-               return;
-           }
-        }
-
-        for (Map.Entry<String, String> messageEntry : defaultMessages.entrySet()) {
-            messages.put(messageEntry.getKey(), messageEntry.getValue());
-        }
+        messages.putAll(defaultMessages);
     }
 
-    private static File getDefaultMessagesFile(File folder) {
-        return new File(folder.getAbsolutePath() + File.separator + "en.lang");
-    }
-
-    private static void loadMessages(File file, boolean isDefault) {
+    private static void loadMessages(String name, InputStream inputStream, boolean isDefault) {
         try {
             BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(file)));
+                    new InputStreamReader(inputStream));
 
             String line;
             while ((line = reader.readLine()) != null) {
-                String key = line.split("=")[0];
-                String value = line.split("=")[1];
+                String[] split = line.split("=");
+                if (split.length != 2) {
+                    continue;
+                }
+                String key = split[0];
+                String value = split[1];
 
                 if (isDefault) {
                     defaultMessages.put(key, value);
@@ -79,7 +84,7 @@ public class Lang {
 
         } catch (IOException ex) {
             ex.printStackTrace();
-            HoneyPlugin.get().getPlugin().getLogger().info("Failed to load messages for language file " + file.getName());
+            HoneyPlugin.get().getPlugin().getLogger().info("Failed to load messages for language file " + name);
         }
     }
 }

@@ -1,6 +1,8 @@
 package me.alek.honey.checks.item;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.nbt.*;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
@@ -25,7 +27,7 @@ public class ItemChecks {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             NBTRoot root = nbt.getRoot();
 
             for (NBTElement<Double> doubleValue : root.<Double>getAllPrimitiveElementsAs(NBTType.DOUBLE)) {
@@ -33,22 +35,21 @@ public class ItemChecks {
                     return true;
                 }
             }
+
             for (NBTElement<Float> floatValue : root.<Float>getAllPrimitiveElementsAs(NBTType.FLOAT)) {
                 if (NumberConversions.isInvalid(floatValue.getValue())) {
                     return true;
                 }
             }
+
             for (NBTElement<Integer> intValue : root.<Integer>getAllPrimitiveElementsAs(NBTType.INT)) {
-                if (intValue.getValue() == Integer.MAX_VALUE || intValue.getValue() == Integer.MIN_VALUE) {
+                if (intValue.getValue() == Integer.MAX_VALUE
+                        || intValue.getValue() == Integer.MIN_VALUE) {
                     return true;
                 }
             }
 
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
         }
 
         @Override
@@ -59,11 +60,10 @@ public class ItemChecks {
 
     public static class MaxEnchantmentLevelCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_ENCHANTMENT_LEVEL;
         private final String[] enchantmentKeys = new String[]{"ench", "StoredEnchantments", "Enchantments"};
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             NBTListOfCompound enchantments = null;
 
             for (String key : enchantmentKeys) {
@@ -76,18 +76,13 @@ public class ItemChecks {
             if (enchantments != null) {
                 for (NBTCompound enchantment : enchantments) {
                     short level = enchantment.getShort("lvl");
-                    if (level > MAX_ENCHANTMENT_LEVEL) {
+                    if (level > ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL) {
                         return true;
                     }
                 }
             }
 
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_ENCHANTMENT_LEVEL = value;
         }
 
         @Override
@@ -98,16 +93,9 @@ public class ItemChecks {
 
     public static class MaxAmountCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_AMOUNT;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return item.getAmount() > MAX_AMOUNT;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_AMOUNT = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return item.getAmount() > ConfigurationOptions.ItemAnalysis.MAX_AMOUNT;
         }
 
         @Override
@@ -118,16 +106,10 @@ public class ItemChecks {
 
     public static class MaxDisplayNameLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_DISPLAYNAME_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return item.getItemMeta().hasDisplayName() && item.getItemMeta().getDisplayName().length() > MAX_DISPLAYNAME_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_DISPLAYNAME_LENGTH = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return item.getItemMeta().hasDisplayName()
+                    && item.getItemMeta().getDisplayName().length() > ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH;
         }
 
         @Override
@@ -138,10 +120,8 @@ public class ItemChecks {
 
     public static class MaxTotalLoreLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_TOTAL_LORE_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             if (!item.getItemMeta().hasLore()) {
                 return false;
             }
@@ -149,17 +129,12 @@ public class ItemChecks {
             int counter = 0;
             for (String lore : item.getItemMeta().getLore()) {
                 counter += lore.length();
-                if (counter > MAX_TOTAL_LORE_LENGTH) {
+                if (counter > ConfigurationOptions.ItemAnalysis.MAX_TOTAL_LORE_LENGTH) {
                     return true;
                 }
             }
 
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_TOTAL_LORE_LENGTH = value;
         }
 
         @Override
@@ -171,12 +146,9 @@ public class ItemChecks {
     public static class UnbreakableItemCheck implements ItemAnalysis.ItemChecker {
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("Unbreakable", NBTType.BYTE) && nbt.getByte("Unbreakable") == (byte) 1;
-        }
-
-        @Override
-        public void setValue(int value) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)
+                    && nbt.getByte("Unbreakable") == (byte) 1;
         }
 
         @Override
@@ -188,12 +160,8 @@ public class ItemChecks {
     public static class AttributeModifiersCheck implements ItemAnalysis.ItemChecker {
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.hasKeyOfType("AttributeModifiers", NBTType.LISTOFCOMOUND);
-        }
-
-        @Override
-        public void setValue(int value) {
         }
 
         @Override
@@ -205,12 +173,8 @@ public class ItemChecks {
     public static class CustomPotionEffectsCheck implements ItemAnalysis.ItemChecker {
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.hasKeyOfType("CustomPotionEffects", NBTType.LISTOFCOMOUND);
-        }
-
-        @Override
-        public void setValue(int value) {
         }
 
         @Override
@@ -222,7 +186,7 @@ public class ItemChecks {
     public static class IllegalCharacterCheck implements ItemAnalysis.ItemChecker {
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             if (item.getItemMeta().hasDisplayName() && checkBadCharacter(item.getItemMeta().getDisplayName())) {
                 return true;
             }
@@ -242,17 +206,14 @@ public class ItemChecks {
             if (str == null) {
                 return false;
             }
+
             for (char character : str.toCharArray()) {
                 if (character == Character.MIN_VALUE) {
                     return true;
                 }
             }
+
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-
         }
 
         @Override
@@ -263,16 +224,9 @@ public class ItemChecks {
 
     public static class MaxNBTLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_NBT_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.toString().getBytes().length > MAX_NBT_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_NBT_LENGTH = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH;
         }
 
         @Override
@@ -283,22 +237,15 @@ public class ItemChecks {
 
     public static class MaxNBTStringLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_NBT_STRING_LENGTH;
-
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             for (NBTElement<String> stringValue : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
-                if (stringValue.getValue().getBytes().length > MAX_NBT_STRING_LENGTH) {
+                if (stringValue.getValue().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH) {
                     return true;
                 }
             }
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_NBT_STRING_LENGTH = value;
         }
 
         @Override
@@ -309,23 +256,17 @@ public class ItemChecks {
 
     public static class MaxPageLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_PAGE_LENGTH;
-
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> page : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
-
-                if (page.getValue().length() > MAX_PAGE_LENGTH) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            for (NBTElement<String> page : nbt.<String>getListOf("pages", NBTType.STRING)) {
+                if (page != null
+                        && page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
                     return true;
                 }
             }
-            return false;
-        }
 
-        @Override
-        public void setValue(int value) {
-            MAX_PAGE_LENGTH = value;
+            return false;
         }
 
         @Override
@@ -336,16 +277,9 @@ public class ItemChecks {
 
     public static class MaxFireworkLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_FIREWORK_NBT_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.toString().getBytes().length > MAX_FIREWORK_NBT_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_FIREWORK_NBT_LENGTH = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH;
         }
 
         @Override
@@ -356,16 +290,9 @@ public class ItemChecks {
 
     public static class MaxBookNBTLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BOOK_NBT_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.toString().getBytes().length > MAX_BOOK_NBT_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_BOOK_NBT_LENGTH = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH;
         }
 
         @Override
@@ -376,16 +303,10 @@ public class ItemChecks {
 
     public static class MaxBookPagesCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BOOK_PAGES;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("pages", NBTType.LIST) && nbt.getListOf("pages", String.class).size() > MAX_BOOK_PAGES;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_BOOK_PAGES = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("pages", NBTType.LIST)
+                    && nbt.getListOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
         }
 
         @Override
@@ -396,16 +317,12 @@ public class ItemChecks {
 
     public static class MaxBookAuthorLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BOOK_AUTHOR_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("author", NBTType.STRING) && nbt.getString("author").length() > MAX_BOOK_AUTHOR_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_BOOK_AUTHOR_LENGTH = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            String author;
+            return nbt != null
+                    && nbt.hasKeyOfType("author", NBTType.STRING)
+                    && (author = nbt.getString("author")) != null && author.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
         }
 
         @Override
@@ -416,16 +333,10 @@ public class ItemChecks {
 
     public static class MaxBookTitleLengthCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BOOK_TITLE_LENGTH;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("title", NBTType.STRING) && nbt.getString("title").length() > MAX_BOOK_TITLE_LENGTH;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_BOOK_TITLE_LENGTH = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("title", NBTType.STRING)
+                    && nbt.getString("title").length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH;
         }
 
         @Override
@@ -436,16 +347,9 @@ public class ItemChecks {
 
     public static class MaxNBTBasesCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_NBT_BASES;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.getRoot().getTotalElements() > MAX_NBT_BASES;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_NBT_BASES = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.getRoot().getTotalElements() > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES;
         }
 
         @Override
@@ -456,16 +360,9 @@ public class ItemChecks {
 
     public static class MaxNBTNestingCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_NBT_NESTING;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.getRoot().getMaxDistanceBetweenTail() > MAX_NBT_NESTING;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_NBT_NESTING = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.getRoot().getMaxDistanceBetweenTail() > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
         }
 
         @Override
@@ -480,7 +377,7 @@ public class ItemChecks {
         private static final String[] skullOwnerKeys = new String[]{"SkullOwner", "Owner"};
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             NBTCompound skullOwnerCompound = null;
             for (String key : skullOwnerKeys) {
                 if (nbt.hasKeyOfType(key, NBTType.COMPOUND)) {
@@ -529,11 +426,6 @@ public class ItemChecks {
         }
 
         @Override
-        public void setValue(int value) {
-
-        }
-
-        @Override
         public AcceptStrategy getAcceptStrategy() {
             return AcceptStrategy.ONLY_WITH_NBT;
         }
@@ -542,13 +434,8 @@ public class ItemChecks {
     public static class IllegalEnchantmentsCheck implements ItemAnalysis.ItemChecker {
 
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
-
         }
 
         @Override
@@ -559,10 +446,8 @@ public class ItemChecks {
 
     public static class MaxFireworkExplosionsCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_FIREWORK_EXPLOSIONS;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             if (!nbt.hasKeyOfType("Fireworks", NBTType.COMPOUND)) {
                 return false;
             }
@@ -572,12 +457,7 @@ public class ItemChecks {
                 return false;
             }
 
-            return fireworksCompound.getListOfCompound("Explosions").size() > MAX_FIREWORK_EXPLOSIONS;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_FIREWORK_EXPLOSIONS = value;
+            return fireworksCompound.getListOfCompound("Explosions").size() > ConfigurationOptions.ItemAnalysis.MAX_FIREWORK_EXPLOSIONS;
         }
 
         @Override
@@ -588,16 +468,10 @@ public class ItemChecks {
 
     public static class MaxBannerPatternsCheck implements ItemAnalysis.ItemChecker {
 
-        private int MAX_BANNER_PATTENRS;
-
         @Override
-        public boolean check(ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("Patterns", NBTType.LISTOFCOMOUND) && nbt.getListOfCompound("Patterns").size() > MAX_BANNER_PATTENRS;
-        }
-
-        @Override
-        public void setValue(int value) {
-            MAX_BANNER_PATTENRS = value;
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            return nbt.hasKeyOfType("Patterns", NBTType.LISTOFCOMOUND)
+                    && nbt.getListOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
 
         @Override
@@ -610,7 +484,7 @@ public class ItemChecks {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             MapView mapView = Bukkit.getMap(item.getDurability());
             if (mapView == null) return false;
 
@@ -632,11 +506,6 @@ public class ItemChecks {
         }
 
         @Override
-        public void setValue(int value) {
-
-        }
-
-        @Override
         public AcceptStrategy getAcceptStrategy() {
             return AcceptStrategy.ALL;
         }
@@ -653,7 +522,7 @@ public class ItemChecks {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(ItemStack item, NBTCompound nbt) {
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             for (NBTElement<String> string : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
                 String trimmed = string.getValue().toLowerCase().replace("\\", "").trim();
                 for (String component : ILLEGAL_COMPONENT_STRINGS) {
@@ -664,10 +533,6 @@ public class ItemChecks {
             }
 
             return false;
-        }
-
-        @Override
-        public void setValue(int value) {
         }
 
         @Override

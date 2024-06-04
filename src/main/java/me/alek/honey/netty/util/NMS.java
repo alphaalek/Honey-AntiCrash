@@ -133,7 +133,12 @@ public class NMS {
 
     private static Class<Object> IAsyncTaskHandlerClass;
     public static Class<Object> getIAsyncTaskHandlerClass() {
-        return IAsyncTaskHandlerClass != null ? IAsyncTaskHandlerClass : (IAsyncTaskHandlerClass =getFuzzyClass("{nms}.IAsyncTaskHandler", "{nms}.util.thread.IAsyncTaskHandler"));
+        return IAsyncTaskHandlerClass != null ? IAsyncTaskHandlerClass : (IAsyncTaskHandlerClass = getFuzzyClass("{nms}.IAsyncTaskHandler", "{nms}.util.thread.IAsyncTaskHandler"));
+    }
+
+    private static Class<Object> craftMetaItemClass;
+    public static Class<Object> getCraftMetaItemClass() {
+        return craftMetaItemClass != null ? craftMetaItemClass : (craftMetaItemClass = getFuzzyClass("{obc}.inventory.CraftMetaItem"));
     }
 
     private static Class<Object> serverConnectionClass;

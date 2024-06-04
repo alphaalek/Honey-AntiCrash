@@ -87,12 +87,14 @@ public class HoneyPlugin implements HoneyAPI {
         INSTANCE = this;
 
         plugin.saveDefaultConfig();
+        Lang.load();
+
         Session.setup();
         try {
             Session.requestSession();
         } catch (Exception ex) {
             registerFailedHoneyLoadEvents();
-            throw new RuntimeException("Failed to load Honey", ex.getCause());
+            throw new RuntimeException(Lang.get("failed.load"), ex.getCause());
         }
 
         this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
@@ -121,7 +123,7 @@ public class HoneyPlugin implements HoneyAPI {
 
             Player player = ((PlayerJoinEvent)event).getPlayer();
             if (player.isOp()) {
-                player.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
+                player.sendMessage(Lang.get("failed.load.session.error"));
             }
 
             Channel channel = NMS.getChannelFromPlayer(player);
@@ -139,7 +141,7 @@ public class HoneyPlugin implements HoneyAPI {
                                 .readField(0);
 
                         if (message.startsWith("/honey")) {
-                            player.sendMessage("§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.");
+                            player.sendMessage(Lang.get("failed.load.session.error"));
                             return;
                         }
                     }
@@ -155,7 +157,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         @Override
         public String getMessage() {
-            return "You have an invalid license specified in your config.yml. Open the configuration file at /plugins/honey/config.yml and follow the instructions at the top.";
+            return Lang.get("invalid.license");
         }
     }
 
@@ -176,7 +178,7 @@ public class HoneyPlugin implements HoneyAPI {
             return connection;
         } catch (IOException ex) {
             ex.printStackTrace();
-            Bukkit.getLogger().severe("An error occurred when connecting to license auth servers!");
+            Bukkit.getLogger().severe(Lang.get("license.connection.error"));
         }
 
         return null;
@@ -194,7 +196,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            Bukkit.getLogger().severe("An error occurred when connecting to license auth servers!");
+            Bukkit.getLogger().severe(Lang.get("license.connection.error"));
         }
         throw new InvalidLicenseException();
     }
@@ -204,9 +206,9 @@ public class HoneyPlugin implements HoneyAPI {
         // check compatability and conflicts of runtime load or minecraft version
         String conflict = null;
         if (isLoaded || isRunning)
-            conflict = "Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.";
+            conflict = Lang.get("conflict.runtime.load");
         else if (NetProtocol.getProtocol() == NetProtocol.UNKNOWN)
-            conflict = "Honey is currently not supported by the Minecraft Version your server is using.";
+            conflict = Lang.get("conflict.unsupported.version");
 
         if (conflict != null) {
             Bukkit.getPluginManager().disablePlugin(plugin);
@@ -220,14 +222,13 @@ public class HoneyPlugin implements HoneyAPI {
         // setup configuration and check if it is misconfigured
         plugin.saveDefaultConfig();
         configuration = new DedicatedConfiguration();
-        Lang.load();
 
         if (configuration.isMisconfigured()) {
             if (plugin.getServer().getPluginManager().isPluginEnabled(plugin)) {
                 resetConfiguration();
                 plugin.getServer().getPluginManager().disablePlugin(plugin);
 
-                throw new RuntimeException("You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.");
+                throw new RuntimeException(Lang.get("conflict.misconfiguration"));
             }
             return;
         }
@@ -236,7 +237,7 @@ public class HoneyPlugin implements HoneyAPI {
         setupPacketLibrary();
 
         if (!Bukkit.getServer().getPluginManager().isPluginEnabled(plugin)) {
-            plugin.getLogger().severe("Aborting because the plugin was disabled during packet library setup.");
+            plugin.getLogger().severe(Lang.get("conflict.packet.library.setup"));
             return;
         }
 
@@ -280,7 +281,7 @@ public class HoneyPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
         packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
 
-        getLoggerService().getLogger().info("Honey is now fully loaded in! Version: " + plugin.getDescription().getVersion());
+        getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
     }
 
     private void setupPacketLibrary() {
@@ -302,10 +303,10 @@ public class HoneyPlugin implements HoneyAPI {
                         .invoke(null, false, true);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                getLoggerService().getLogger().severe("Failed to shutdown session!");
+                getLoggerService().getLogger().severe(Lang.get("failed.shutdown.session.error"));
             }
 
-            getLoggerService().getLogger().info("Honey is now disabled!");
+            getLoggerService().getLogger().info(Lang.get("unloaded"));
         }
     }
 

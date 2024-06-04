@@ -6,6 +6,7 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.netty.util.*;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,9 +29,11 @@ public class ReflectStructure<T, C> {
     }};
 
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
+    private final List<Class<?>> disallowClasses = new ArrayList<>();
     private final Class<?> handle;
     private final Class<?> type;
     private boolean withStaticFields = true;
+    private boolean withSuperClass = true;
     private JavaConverter<T, C> converter;
     private Map<Integer, FieldAccessor<?>> DEFAULT_ACCESSORS;
     private Map<Integer, MethodInvoker<?>> DEFAULT_INVOKERS;
@@ -69,13 +72,29 @@ public class ReflectStructure<T, C> {
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
     }
 
-    public synchronized ReflectStructure<T, C> disableStaticFields() {
+    public synchronized ReflectStructure<T, C> withoutStatic() {
         this.withStaticFields = false;
+        resetIf(this::disallowedField);
+        return this;
+    }
 
+    public synchronized ReflectStructure<T, C> withoutSuperClass() {
+        this.withSuperClass = false;
+        resetIf(this::disallowedClass);
+        return this;
+    }
+
+    public synchronized ReflectStructure<T, C> without(Class<?> handle) {
+        this.disallowClasses.add(handle);
+        resetIf(this::disallowedClass);
+        return this;
+    }
+
+    private void resetIf(Predicate<IReflectionMember<?>> member) {
         int defaultSize = DEFAULT_ACCESSORS.size();
         int acquiredSize = ACQUIRED_ACCESSORS.size();
-        DEFAULT_ACCESSORS.values().removeIf(this::disallowedField);
-        ACQUIRED_ACCESSORS.values().removeIf(this::disallowedField);
+        DEFAULT_ACCESSORS.values().removeIf(member);
+        ACQUIRED_ACCESSORS.values().removeIf(member);
 
         if (defaultSize != DEFAULT_ACCESSORS.size()) {
             DEFAULT_ACCESSORS = new HashMap<>();
@@ -84,16 +103,34 @@ public class ReflectStructure<T, C> {
         if (acquiredSize != ACQUIRED_ACCESSORS.size()) {
             ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
         }
-
-        return this;
     }
 
     public boolean isStaticFieldsAllowed() {
         return withStaticFields;
     }
 
+    public boolean isSuperClassAllowed() {
+        return withSuperClass;
+    }
+
+    private boolean disallowedClass(IReflectionMember<?> member) {
+        if (!withSuperClass
+                && !member.getDeclaringClass().equals(this.handle)) {
+            return true;
+        }
+
+        if (!disallowClasses.isEmpty()
+                && disallowClasses.contains(member.getDeclaringClass())) {
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean disallowedField(IReflectionMember<?> member) {
-        return !withStaticFields && member.getMemberType().equals(MemberType.FIELD) && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers());
+        return !withStaticFields
+                && member.getMemberType().equals(MemberType.FIELD)
+                && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers());
     }
 
     private void setDefault(
@@ -115,11 +152,17 @@ public class ReflectStructure<T, C> {
             Class<?> clazz,
             boolean isFields
     ) {
-        Object[] handles = (isFields) ? clazz.getDeclaredFields() : Reflection.getDeclaredMethods(clazz);
-        for (Object handle : handles) {
-            IReflectionMember<?> member = (isFields) ? new FieldAccessor<>((Field) handle) : new MethodInvoker<>((Method) handle);
+        Object[] handles = (isFields)
+                ? clazz.getDeclaredFields()
+                : Reflection.getDeclaredMethods(clazz);
 
-            if (disallowedField(member)) {
+        for (Object handle : handles) {
+            IReflectionMember<?> member = (isFields)
+                    ? new FieldAccessor<>((Field) handle)
+                    : new MethodInvoker<>((Method) handle);
+
+            if (disallowedField(member)
+                    || disallowedClass(member)) {
                 continue;
             }
 
@@ -617,13 +660,13 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public Collection<FieldAccessor<?>> getAccessors() {
-            return (Collection<FieldAccessor<?>>) (Collection<?>) ACQUIRED_ACCESSORS.values();
+        public <O> Collection<FieldAccessor<O>> getAccessors() {
+            return (Collection<FieldAccessor<O>>) (Collection<?>) ACQUIRED_ACCESSORS.values();
         }
 
         @Override
-        public Collection<MethodInvoker<?>> getInvokers() {
-            return (Collection<MethodInvoker<?>>) (Collection<?>) ACQUIRED_INVOKERS.values();
+        public <O> Collection<MethodInvoker<O>> getInvokers() {
+            return (Collection<MethodInvoker<O>>) (Collection<?>) ACQUIRED_INVOKERS.values();
         }
     }
 }

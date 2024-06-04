@@ -38,6 +38,11 @@ public class MethodInvoker<T> implements IReflectionMember<T> {
     }
 
     @Override
+    public Class<?> getDeclaringClass() {
+        return method.getDeclaringClass();
+    }
+
+    @Override
     public String getName() {
         return method.getName();
     }

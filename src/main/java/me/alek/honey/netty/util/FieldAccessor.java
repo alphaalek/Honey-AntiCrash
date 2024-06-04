@@ -33,6 +33,11 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
     }
 
     @Override
+    public Class<?> getDeclaringClass() {
+        return field.getDeclaringClass();
+    }
+
+    @Override
     public String getName() {
         return field.getName();
     }

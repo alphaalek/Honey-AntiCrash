@@ -51,12 +51,8 @@ public class ItemAnalysis {
                 continue;
             }
 
-            ItemCheckRegistry registry = setting.value();
             try {
-                if (field.getType() == int.class) {
-                    checkRegistryLookup.get(registry).setValue(field.getInt(null));
-                }
-                else if (field.getType() == boolean.class) {
+                if (field.getType() == boolean.class) {
                     if (!field.getBoolean(null)) {
                         disabledChecks.add(checkRegistryLookup.get(setting.value()));
                     }
@@ -120,16 +116,21 @@ public class ItemAnalysis {
 
     public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction<CheckContextContainer.DevelopmentData> callback) {
         for (final String ignoredPlayer : ignoredPlayers) {
-            if (player.name.equalsIgnoreCase(ignoredPlayer) || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
+            if (player.name.equalsIgnoreCase(ignoredPlayer)
+                    || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
                 return false;
             }
         }
 
-        ItemCheckRegistry flaggedCheck = checkItem(item, nbt);
+        ItemCheckRegistry flaggedCheck = checkItem(player, item, nbt);
         if (flaggedCheck == null) {
             return false;
         }
-        callback.addAction(context -> context.addPoint("Type", flaggedCheck.name()));
+
+        if (callback != null) {
+            callback.addAction(context -> context.addPoint("Type", flaggedCheck.name()));
+        }
+
         if (ConfigurationOptions.PacketLogger.DEBUG) {
             Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flaggedCheck.name());
         }
@@ -138,11 +139,12 @@ public class ItemAnalysis {
         return true;
     }
 
-    private static ItemCheckRegistry checkItem(ItemStack item, NBTCompound nbt) {
+    private static ItemCheckRegistry checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
         final Material material = item.getType();
-        if (!material.equals(Material.AIR) && directAvailableMaterialChecks.containsKey(material)) {
+        if (!material.equals(Material.AIR)
+                && directAvailableMaterialChecks.containsKey(material)) {
             for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
-                ItemCheckRegistry registry = check(checker, item, nbt);
+                ItemCheckRegistry registry = check(player, checker, item, nbt);
                 if (registry != null) return registry;
             }
         }
@@ -151,7 +153,7 @@ public class ItemAnalysis {
             for (final String key : nbt.getKeys()) {
                 if (directAvailableNBTChecks.containsKey(key)) {
                     for (final ItemChecker checker : directAvailableNBTChecks.get(key)) {
-                        ItemCheckRegistry registry = check(checker, item, nbt);
+                        ItemCheckRegistry registry = check(player, checker, item, nbt);
                         if (registry != null) return registry;
                     }
                 }
@@ -159,16 +161,17 @@ public class ItemAnalysis {
         }
 
         for (final ItemChecker checker : globalAvailableChecks) {
-            ItemCheckRegistry registry = check(checker, item, nbt);
+            ItemCheckRegistry registry = check(player, checker, item, nbt);
             if (registry != null) return registry;
         }
 
         return null;
     }
 
-    private static ItemCheckRegistry check(ItemChecker checker, ItemStack item, NBTCompound nbt) {
+    private static ItemCheckRegistry check(HoneyPlayer player, ItemChecker checker, ItemStack item, NBTCompound nbt) {
         try {
-            if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt) && checker.check(item, nbt)) {
+            if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt)
+                    && checker.check(player, item, nbt)) {
                 return getRegistryFrom(checker);
             }
         } catch (Exception ex) {
@@ -202,9 +205,7 @@ public class ItemAnalysis {
 
     public interface ItemChecker {
 
-        boolean check(ItemStack item, NBTCompound nbt);
-
-        void setValue(int value);
+        boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt);
 
         AcceptStrategy getAcceptStrategy();
     }

@@ -18,9 +18,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -67,7 +65,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         if (!PacketType.isUnknown(type) && type.getNmsClass().equals(rawPacket.getClass())) {
             this.packetStructure = ReflectStructureCache.acquireStructure(type);
             if (this.packetStructure.isStaticFieldsAllowed()) {
-                this.packetStructure.disableStaticFields();
+                this.packetStructure.withoutStatic();
             }
             this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
         }
