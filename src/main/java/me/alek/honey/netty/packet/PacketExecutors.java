@@ -85,6 +85,7 @@ public class PacketExecutors {
 
         private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
             Player player = packetContainer.getPlayer().player;
+            ItemMeta meta = item.getItemMeta();
             switch (packetContainer.getPacket().getChannel()) {
                 case "MC|BEdit":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)) {
@@ -95,7 +96,7 @@ public class PacketExecutors {
                         break;
                     }
 
-                    stripEvents((BookMeta) item.getItemMeta());
+                    stripEvents(meta);
 
                     return () -> {
                         ItemStack heldItem = getItemInMainHand(player);
@@ -108,7 +109,7 @@ public class PacketExecutors {
                             return;
                         }
 
-                        heldItem.setItemMeta((ItemMeta) copyStructure(item.getItemMeta(), heldItem.getItemMeta()));
+                        heldItem.setItemMeta((ItemMeta) copyStructure(meta, heldItem.getItemMeta()));
                     };
                 case "MC|BSign":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null) ||
@@ -116,35 +117,34 @@ public class PacketExecutors {
                         break;
                     }
 
-                    if (item.getType() != Material.WRITTEN_BOOK) {
+                    if (item.getType() != Material.WRITTEN_BOOK
+                            && item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
                         break;
                     }
 
-                    // TODO: check pages tag
                     if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
                         NBTList<String> pages = nbt.hasKeyOfType("pages", NBTType.STRING)
                                 ? nbt.getListOf("pages", NBTType.STRING)
                                 : new NBTList<>(NBTType.STRING);
-                        serializeTextComponents(pages);
+                        if (!serializeTextComponents(pages)) {
+                            break;
+                        }
                     }
-                    stripEvents((BookMeta) item.getItemMeta());
+                    stripEvents(meta);
 
                     return () -> {
                         ItemStack heldItem = getItemInMainHand(player);
 
                         PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) item.getItemMeta(), true
+                                player, player.getInventory().getHeldItemSlot(), (BookMeta) meta, (BookMeta) item.getItemMeta(), true
                         );
                         Bukkit.getPluginManager().callEvent(editBookEvent);
                         if (editBookEvent.isCancelled()) {
                             return;
                         }
 
-                        heldItem.setType(Material.WRITTEN_BOOK);;
-                        heldItem.setItemMeta((ItemMeta) copyStructure(item.getItemMeta(), heldItem.getItemMeta()));
-                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
-
-                        Bukkit.broadcastMessage("Done " + heldItem + " " + heldItem.getItemMeta() + " " + ((BookMeta)heldItem.getItemMeta()).getAuthor() + " " + ((BookMeta)heldItem.getItemMeta()).getTitle());
+                        heldItem.setType(Material.WRITTEN_BOOK);
+                        heldItem.setItemMeta((ItemMeta) copyStructure(meta, heldItem.getItemMeta()));
                     };
                 default:
                     return null;
@@ -152,7 +152,7 @@ public class PacketExecutors {
             return () -> player.kickPlayer("Invalid book data!");
         }
 
-        private void stripEvents(BookMeta meta) {
+        private void stripEvents(Object meta) {
             IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructureCache.acquireStructure(meta.getClass())
                     .<List<Object>>withWeakType(List.class)
                     .withTarget(meta);
@@ -184,7 +184,7 @@ public class PacketExecutors {
             return to;
         }
 
-        private void serializeTextComponents(NBTList<String> pages) {
+        private boolean serializeTextComponents(NBTList<String> pages) {
             for (int i = 0; i < pages.size(); i++) {
                 NBTElement<String> page = pages.get(i);
 
@@ -195,8 +195,11 @@ public class PacketExecutors {
                     pages.set(i, new NBTElement<>(NBTType.STRING, serialized));
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    return false;
                 }
             }
+
+            return true;
         }
 
         private ItemStack getItemInMainHand(Player player) {
