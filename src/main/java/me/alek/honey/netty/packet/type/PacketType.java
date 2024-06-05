@@ -157,6 +157,7 @@ public enum PacketType implements PacketTypeEnum {
     public static class Common {
 
         private static Class<?> CLIENT_INFORMATION_CLASS;
+        private static Class<?> COOKIE_RESPONSE_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_CLIENT_CLASS;
         private static Class<?> KEEP_ALIVE_CLIENT_CLASS;
         private static Class<?> PONG_CLASS;
@@ -170,10 +171,14 @@ public enum PacketType implements PacketTypeEnum {
                 PONG_CLASS = Reflection.getClass("{common}.ServerboundPongPacket");
                 RESOURCE_PACK_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
+            }
         }
 
         public enum Client implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
             CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             PONG(PONG_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
@@ -218,6 +223,7 @@ public enum PacketType implements PacketTypeEnum {
             }
         }
 
+        private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> DISCONNECT_CLASS;
         private static Class<?> KEEP_ALIVE_SERVER_CLASS;
@@ -242,9 +248,13 @@ public enum PacketType implements PacketTypeEnum {
                 RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
                 RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
+            }
         }
 
         public enum Server implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             DISCONNECT(DISCONNECT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
