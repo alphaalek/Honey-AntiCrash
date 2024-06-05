@@ -1,5 +1,6 @@
 package me.alek.honey.monitor;
 
+import me.alek.honey.lang.Lang;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -65,7 +66,7 @@ public class MonitorFlagParser {
                 public String type() {
                     return Optional.ofNullable(
                                     MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName)
-                            .orElse("Unknown");
+                            .orElse(Lang.get("unknown"));
                 }
 
                 @Override
@@ -95,7 +96,7 @@ public class MonitorFlagParser {
         if (index == parsed.size() - 1
                 && operator != LogicalOperator.PARANTHESIS_END
                 && operator != LogicalOperator.NOT) {
-            wrongSyntaxMessage.set("Using operator without flag.");
+            wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
             return false;
         }
         if (operator != LogicalOperator.PARANTHESIS_END && operator != LogicalOperator.PARANTHESIS_START) {
@@ -103,7 +104,7 @@ public class MonitorFlagParser {
             if (!(next instanceof MonitorFlag
                     || next.equals(LogicalOperator.PARANTHESIS_START)
                     || next.equals(LogicalOperator.NOT))) {
-                wrongSyntaxMessage.set("Using operator without flag.");
+                wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
                 return false;
             }
         }
@@ -122,10 +123,12 @@ public class MonitorFlagParser {
 
         try {
             if (start.size() > end.size()) {
-                wrongSyntaxMessage.set("Unexpected paranthesis at index " + start.get(0) + ", at \"" + getContextString(parsed, start.get(0)) + "\".");
+                wrongSyntaxMessage.set(
+                        Lang.getFormatted("packetmonitor.operator.unexpected.paranthesis", start.get(0), getContextString(parsed, start.get(0))));
             }
             if (start.size() < end.size()) {
-                wrongSyntaxMessage.set("Unexpected paranthesis at index " + end.getLast() + ", at \"" + getContextString(parsed, end.getLast()) + "\".");
+                wrongSyntaxMessage.set(
+                        Lang.getFormatted("packetmonitor.operator.unexpected.paranthesis", end.getLast(), getContextString(parsed, end.getLast())));
             }
         } catch (WrongMonitorFlagSyntaxException ex) {
             wrongSyntaxMessage.set(ex.getMessage());

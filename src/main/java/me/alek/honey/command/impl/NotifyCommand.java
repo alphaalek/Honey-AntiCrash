@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.services.NotificationService;
 import org.bukkit.command.CommandSender;
 
@@ -15,13 +16,13 @@ public class NotifyCommand implements CommandImpl {
 
         String toggledString;
         if (notificationService.isSubscribed(sender)) {
-            toggledString = "§coff";
+            toggledString = Lang.get("notify.off");
             notificationService.untoggle(sender);
         } else {
-            toggledString = "§aon";
+            toggledString = Lang.get("notify.on");
             notificationService.toggle(sender);
         }
-        sender.sendMessage(CommandManager.PREFIX + " §7You have now toggled notifications " + toggledString + "§7.");
+        sender.sendMessage(Lang.getFormatted("notify.toggled", toggledString));
     }
 
     @Override
@@ -36,7 +37,7 @@ public class NotifyCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Toggle notifications on/off for you.";
+        return Lang.get("command.desc.notify");
     }
 
     @Override

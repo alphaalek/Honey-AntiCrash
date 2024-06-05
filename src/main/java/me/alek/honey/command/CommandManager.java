@@ -3,6 +3,7 @@ package me.alek.honey.command;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.impl.*;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -55,10 +56,10 @@ public class CommandManager implements CommandExecutor {
     }
 
     public void showInfo(CommandSender sender) {
-        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? " §c(Outdated! Latest: v" + HoneyPlugin.get().getLatestVersion() + ")" : "";
+        String outdatedVersion = HoneyPlugin.get().isUsingOldVersion() ? Lang.getFormatted("command.outdated", HoneyPlugin.get().getLatestVersion()) : "";
         String version = HoneyPlugin.get().getPlugin().getDescription().getVersion();
 
-        sender.sendMessage("§6Honey v" + version + ". Made by Alek05." + outdatedVersion);
+        sender.sendMessage(Lang.getFormatted("command.byline", version, outdatedVersion));
         sender.sendMessage("§8* §7" + HoneyPlugin.get().getPlugin().getDescription().getDescription());
         sender.sendMessage("§8* §7Discord: §8https://discord.gg/veAtFHG65u");
         sender.sendMessage("");
@@ -103,7 +104,7 @@ public class CommandManager implements CommandExecutor {
             }
         }
 
-        sender.sendMessage("§7Type §8/honey help §7for help on command usage.");
+        sender.sendMessage(Lang.get("command.help.suggestion"));
     }
 
     private String getDefaultUnknownCommandMessage() {
@@ -154,22 +155,22 @@ public class CommandManager implements CommandExecutor {
             final CommandImpl commandImpl = commandImplEntry.getValue();
 
             if (!commandImpl.isExecutableByConsole() && commandSender instanceof ConsoleCommandSender) {
-                commandSender.sendMessage(PREFIX + "This command can not be used by the console.");
+                commandSender.sendMessage(Lang.getFormatted("command.no.console"));
                 return true;
             }
 
             if (commandImpl.getPermission() != null
-                    && !commandImpl.getPermission().equals("")
+                    && !commandImpl.getPermission().isEmpty()
                     && !commandSender.hasPermission(commandImpl.getPermission())) {
-                commandSender.sendMessage(PREFIX + "You do not have permission to use this command!");
+                commandSender.sendMessage(Lang.getFormatted("command.no.permission"));
                 return true;
             }
 
             if (commandSender instanceof Player) {
                 final Player player = (Player) commandSender;
                 if (this.cooldownManager.hasCooldown(player, commandImpl)) {
-                    commandSender.sendMessage(PREFIX + "You have cooldown on this command. Wait "
-                            + this.cooldownManager.getFormattedCooldown(player, commandImpl) + ".");
+                    commandSender.sendMessage(
+                            Lang.getFormatted("command.cooldown", this.cooldownManager.getFormattedCooldown(player, commandImpl)));
                     return true;
                 }
                 this.cooldownManager.setCooldown(player, commandImpl);

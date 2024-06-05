@@ -5,6 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
@@ -31,15 +32,15 @@ public class TrackCommand implements CommandImpl {
                 WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getServerThreadTracker();
 
                 if (stTracker.getTrackerSize() == 0) {
-                    sender.sendMessage(CommandManager.PREFIX + " §cNo data!");
+                    sender.sendMessage(Lang.getFormatted("track.no.data"));
                     return;
                 }
-                sender.sendMessage(CommandManager.PREFIX + " §7Sending information about the space occupation of server thread by players...");
+                sender.sendMessage(Lang.getFormatted("track.players"));
 
                 for (HoneyPlayer player : stTracker.getTrackersOrdered()) {
                     if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
                             && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-                        sender.sendMessage("§e" + player.name + ": §cNo data because the player has bypass permission");
+                        sender.sendMessage(Lang.getFormatted("track.no.data.bypass.permission", player.name));
                         continue;
                     }
 
@@ -58,10 +59,10 @@ public class TrackCommand implements CommandImpl {
                 MarkableHandleTracker<Double, String> checkTracker = HoneyPlugin.get().getCheckHandleTracker();
 
                 if (checkTracker.getTrackerSize() == 0) {
-                    sender.sendMessage(CommandManager.PREFIX + " §cNo data!");
+                    sender.sendMessage(Lang.getFormatted("track.no.data"));
                     return;
                 }
-                sender.sendMessage(CommandManager.PREFIX + "§7 Sending information about the work of checks...");
+                sender.sendMessage(Lang.getFormatted("track.checks"));
 
                 for (String trackName : checkTracker.getTrackersOrdered()) {
 
@@ -92,7 +93,7 @@ public class TrackCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Track performance of checks and players.";
+        return Lang.get("command.desc.track");
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.alek.honey.command.impl;
 
+import me.alek.honey.lang.Lang;
 import me.alek.honey.util.pastebin.enums.Expiration;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
@@ -21,24 +22,24 @@ public class PasteLogsCommand implements CommandImpl {
 
     public boolean handlePreconditions(CommandSender sender, String[] args) {
         if (!sqlHandler.isEnabled()) {
-            sender.sendMessage(CommandManager.PREFIX + " §cYou don't have MySQL enabled in the configuration.");
+            sender.sendMessage(Lang.getFormatted("pastelogs.mysql.disabled"));
             return false;
         }
         if (sqlHandler.isConnectionClosed()) {
-            sender.sendMessage(CommandManager.PREFIX + " §cConnection is not established with the MySQL database. Try again later or fix the connection values.");
+            sender.sendMessage(Lang.getFormatted("pastelogs.mysql.connection.error"));
             return false;
         }
         if (ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY.isEmpty()) {
-            sender.sendMessage(CommandManager.PREFIX + " §cYou have an empty pastebin developer key. Check the configuration for more information.");
+            sender.sendMessage(Lang.getFormatted("pastelogs.pastebin.developer.key.error"));
             return false;
         }
         if (args.length == 0) {
-            sender.sendMessage(CommandManager.PREFIX + " §cYou have to specify a player!");
+            sender.sendMessage(Lang.getFormatted("pastelogs.specify.player"));
             return false;
         }
         final String playerName = args[0];
         if (!sqlHandler.existsPlayer(playerName)) {
-            sender.sendMessage(CommandManager.PREFIX + " §cThat player does not exist in the database!");
+            sender.sendMessage(Lang.getFormatted("pastelogs.unknown.player"));
             return false;
         }
         return true;
@@ -97,7 +98,7 @@ public class PasteLogsCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Paste the violation logs of a player.";
+        return Lang.get("command.desc.pastelogs");
     }
 
     @Override

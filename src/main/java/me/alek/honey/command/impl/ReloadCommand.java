@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -16,15 +17,15 @@ public class ReloadCommand implements CommandImpl {
     @Override
     public synchronized void perform(CommandSender sender, String[] args) {
         if (reloading.get()) {
-            sender.sendMessage(CommandManager.PREFIX + " §cThe plugin is already reloading!");
+            sender.sendMessage(Lang.getFormatted("reload.already.reloading"));
             return;
         }
-        sender.sendMessage(CommandManager.PREFIX + " §7Reloading the plugin...");
+        sender.sendMessage(Lang.getFormatted("reload.start"));
 
         reloading.set(true);
         HoneyPlugin.get().getPlugin().getServer().getScheduler().runTaskAsynchronously(HoneyPlugin.get().getPlugin(), () -> {
             HoneyPlugin.get().reload();
-            sender.sendMessage(CommandManager.PREFIX + " §7Reload done.");
+            sender.sendMessage(Lang.getFormatted("reload.end"));
             reloading.set(false);
         });
     }
@@ -41,7 +42,7 @@ public class ReloadCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Reloads the configuration.";
+        return Lang.get("command.desc.reload");
     }
 
     @Override

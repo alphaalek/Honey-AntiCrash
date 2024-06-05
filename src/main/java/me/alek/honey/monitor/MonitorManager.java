@@ -7,6 +7,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.NotificationService;
@@ -57,10 +58,10 @@ public class MonitorManager {
         try {
             executorService.shutdown();
             if (!executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS)) {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("Monitor executor service did not terminate successfully!");
+                HoneyPlugin.get().getLoggerService().getLogger().severe(Lang.get("monitor.executor.service.shutdown.error"));
             }
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Exception occurred when shutting down monitor executor service!");
+            HoneyPlugin.get().getLoggerService().getLogger().severe(Lang.get("monitor.executor.service.shutdown.exception"));
         }
         schedule();
     }
@@ -94,9 +95,9 @@ public class MonitorManager {
     public Monitorer removeIfHasMonitor(CommandSender sender, boolean onlyStop) {
         Monitorer monitorer = removeMonitor(sender);
         if (monitorer != null) {
-            sender.sendMessage(CommandManager.PREFIX + "§7Stopping " + monitorer.getName() + ".");
+            sender.sendMessage(Lang.getFormatted("monitor.stopping", monitorer.getName()));
         } else if (onlyStop) {
-            sender.sendMessage(CommandManager.PREFIX + "§7You do not currently monitor anything.");
+            sender.sendMessage(Lang.getFormatted("monitor.stop.no.active"));
         }
 
         return monitorer;
@@ -114,7 +115,7 @@ public class MonitorManager {
     public void setupPlayerMonitor(CommandSender sender, HoneyPlayer player) {
         if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
                 && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-            sender.sendMessage(NotificationService.PREFIX + "§cCan't start player monitor on " + player.name + ", because the player has bypass permission.");
+            sender.sendMessage(Lang.getFormatted("monitor.start.bypass.permission.error", player.name));
             return;
         }
 
@@ -190,8 +191,7 @@ public class MonitorManager {
                 sender.sendMessage(message);
             }
         });
-        sender.sendMessage(CommandManager.PREFIX + "§7Started " + monitorer.getName() +
-                ". Use /honey monitor stop if you want to stop the monitoring.");
+        sender.sendMessage(Lang.getFormatted("monitor.start", monitorer.getName()));
     }
 
     public Monitorer removeMonitor(CommandSender sender) {

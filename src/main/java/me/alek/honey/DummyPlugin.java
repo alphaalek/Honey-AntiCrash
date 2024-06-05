@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class FakePlugin implements Plugin {
+public class DummyPlugin implements Plugin {
 
     @Override
     public File getDataFolder() {

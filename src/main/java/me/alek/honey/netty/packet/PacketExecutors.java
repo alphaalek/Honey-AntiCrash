@@ -102,7 +102,7 @@ public class PacketExecutors {
                         ItemStack heldItem = getItemInMainHand(player);
 
                         PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) item.getItemMeta(), false
+                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) meta, true
                         );
                         Bukkit.getPluginManager().callEvent(editBookEvent);
                         if (editBookEvent.isCancelled()) {
@@ -136,7 +136,7 @@ public class PacketExecutors {
                         ItemStack heldItem = getItemInMainHand(player);
 
                         PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                                player, player.getInventory().getHeldItemSlot(), (BookMeta) meta, (BookMeta) item.getItemMeta(), true
+                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) meta, true
                         );
                         Bukkit.getPluginManager().callEvent(editBookEvent);
                         if (editBookEvent.isCancelled()) {

@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.lang.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ public class MonitorCommand implements CommandImpl {
         Player target = Bukkit.getPlayerExact(args[0]);
         HoneyPlayer targetHoneyPlayer;
         if (target == null || !target.isOnline() || (targetHoneyPlayer = HoneyPlayer.getPlayer(target.getUniqueId())) == null) {
-            sender.sendMessage(CommandManager.PREFIX + "§cYou have to choose a valid player name.");
+            sender.sendMessage(Lang.getFormatted("monitor.unknown.player"));
             return;
         }
         HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, targetHoneyPlayer);
@@ -49,7 +50,7 @@ public class MonitorCommand implements CommandImpl {
 
     @Override
     public String getDescription() {
-        return "Monitor either server performance or player impact.";
+        return Lang.get("command.desc.monitor");
     }
 
     @Override

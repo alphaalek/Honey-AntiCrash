@@ -21,6 +21,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -82,6 +83,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
             for (String prohibitedCommand : prohibitedCommands) {
 
+                Bukkit.broadcastMessage(prohibitedCommand + " " + label);
                 if (ChatValidation.match(prohibitedCommand, label)) {
                     return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {

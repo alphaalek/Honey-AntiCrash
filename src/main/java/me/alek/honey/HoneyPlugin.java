@@ -115,7 +115,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private void registerFailedHoneyLoadEvents() {
         HandlerList handlerList = PlayerJoinEvent.getHandlerList();
-        Plugin fakePlugin = new FakePlugin();
+        Plugin fakePlugin = new DummyPlugin();
         handlerList.register(new RegisteredListener(new Listener() {}, (listener, event) -> {
             if (!(event instanceof PlayerJoinEvent)) {
                 return;

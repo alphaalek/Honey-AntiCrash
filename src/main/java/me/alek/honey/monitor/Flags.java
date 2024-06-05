@@ -241,7 +241,9 @@ public class Flags {
         }
 
         public boolean shouldAddANDCondition() {
-            return triggers.isEmpty() || triggers.size() == 1 && triggers.get(0).getOperator().equals(LogicalOperator.NOT);
+            return triggers.isEmpty()
+                    || triggers.size() == 1
+                    && triggers.get(0).getOperator().equals(LogicalOperator.NOT);
         }
 
         public boolean test(int id) {
