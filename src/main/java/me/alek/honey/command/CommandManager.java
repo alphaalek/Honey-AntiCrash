@@ -161,7 +161,8 @@ public class CommandManager implements CommandExecutor {
 
             if (commandImpl.getPermission() != null
                     && !commandImpl.getPermission().isEmpty()
-                    && !commandSender.hasPermission(commandImpl.getPermission())) {
+                    && !commandSender.hasPermission(commandImpl.getPermission())
+                    && !commandSender.hasPermission("honey.*")) {
                 commandSender.sendMessage(Lang.getFormatted("command.no.permission"));
                 return true;
             }
