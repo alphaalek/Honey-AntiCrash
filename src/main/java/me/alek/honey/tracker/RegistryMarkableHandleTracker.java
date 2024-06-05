@@ -128,7 +128,6 @@ public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<D
     public void clear() {
         checkHandleTimeMap.clear();
         checkHandleRegistry.clear();
-        checkHandleTimeMap.clear();
         totalTime = 0;
         totalIndex = 0;
         key = 0;

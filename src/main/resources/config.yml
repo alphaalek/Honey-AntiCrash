@@ -200,7 +200,7 @@ async-decoder:
   # If you edit the values below, you will have to restart the server for the changes to be applied.
 
   # Minimum of worker threads to be used for packet decoding. At urgency relocation there will be created more worker threads.
-  min-worker-threads: 4
+  min-worker-threads: NETTY_DEFAULT
 
   # Minimum packet decode time (in millis), before a worker is quarantined.
   min-time-for-quarantine: 15.0

@@ -7,7 +7,9 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -529,7 +531,12 @@ public class ConfigurationOptions {
 
         public static void load() {
             ENABLED = file.getBoolean("async-decoder.enabled");
-            MIN_WORKER_THREADS = file.getInt("async-decoder.min-worker-threads");
+            if (file.getString("async-decoder.min-worker-threads").equals("NETTY_DEFAULT")) {
+                MIN_WORKER_THREADS = YamlConfiguration.loadConfiguration(new File("spigot.yml"))
+                        .getInt("settings.netty-threads");
+            } else {
+                MIN_WORKER_THREADS = file.getInt("async-decoder.min-worker-threads");
+            }
             MIN_PENDING_TASK_FOR_QUARANTINE = file.getInt("async-decoder.min-pending-task-size-for-quarantine");
             MIN_TIME_FOR_QUARANTINE = file.getDouble("async-decoder.min-time-for-quarantine");
         }
