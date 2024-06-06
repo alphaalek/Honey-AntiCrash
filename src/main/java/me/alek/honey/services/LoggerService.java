@@ -7,10 +7,8 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -21,7 +19,6 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.DecayingWindowCounter;
 import me.alek.honey.util.NumberConversions;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,7 +84,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER));
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableForBound(PacketBound.SERVER));
         }
     }
 

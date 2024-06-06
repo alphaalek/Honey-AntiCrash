@@ -46,7 +46,7 @@ public class PacketBundleFilterFactory {
             @Override
             public PacketTypeEnum[] getAcceptedPacketTypes() {
                 return packetTypes.length > 0 ? packetTypes
-                        : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.SERVER).toArray(new PacketTypeEnum[0]);
+                        : PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER).toArray(new PacketTypeEnum[0]);
             }
         };
     }

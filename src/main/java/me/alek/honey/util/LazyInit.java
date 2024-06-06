@@ -9,6 +9,7 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -45,11 +46,12 @@ public class LazyInit<T> {
                             continue;
                         }
 
-                        String packet = args[0].getTypeName();
+                        String packet = Array.<String>from(args[0].getTypeName().split("\\.")).getLast();
                         if (packet.equals(type.getNmsClass().getName())) {
                             return type.getBound() == PacketBound.SERVER ? serverBoundIndex : clientBoundIndex;
                         }
 
+                        Bukkit.broadcastMessage("Packet " + packet);
                         if (PacketWrapperInvokerFactory.getPacketTypeForName(packet).getBound() == PacketBound.SERVER) {
                             serverBoundIndex++;
                         } else {

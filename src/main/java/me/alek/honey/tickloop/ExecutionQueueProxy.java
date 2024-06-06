@@ -23,7 +23,6 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -54,7 +53,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 packets.add(packetType);
 
             } else {
-                for (PacketTypeEnum type : PacketType.getTypesAvailableFor(NetProtocol.getProtocol())) {
+                for (PacketTypeEnum type : PacketType.getTypesAvailable()) {
                     if (type != null && type.toString().equalsIgnoreCase(ignoredPacket)) {
                         packets.add(type);
                         break;

@@ -212,7 +212,7 @@ public interface MonitorFlag<T> {
                     return 1;
                 }
             }
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER)) {
+            for (PacketTypeEnum packetType : PacketType.getTypesAvailableForBound(PacketBound.SERVER)) {
                 if (packetType != null && packetType.toString().equalsIgnoreCase(specified)) {
                     this.type = packetType;
                     return 1;

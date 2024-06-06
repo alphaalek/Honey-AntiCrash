@@ -99,46 +99,53 @@ public enum PacketType implements PacketTypeEnum {
             registerPacketDetails(configurationServer); }
     }
 
-    public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketState state, PacketBound packetBound) {
+    public static List<PacketTypeEnum> getTypesAvailableFor(PacketState state, PacketBound bound) {
         if (state == PacketState.UNKNOWN) {
             return new ArrayList<>();
         }
-        final ArrayList<PacketTypeEnum> packetTypes = new ArrayList<>();
+
+        List<PacketTypeEnum> packetTypes = new ArrayList<>();
         for (PacketTypeEnum packetType : packetFromStateLookup.get(state)) {
 
-            if (packetBound != null && packetType.getBound() != packetBound) {
-                continue;
-            }
-            if (packetType instanceof RangedPacketTypeEnum) {
-                RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) packetType;
-                if (!NetProtocol.matchProtocol(rangedPacketType, protocol)) {
-                    continue;
+            if (packetType.getBound().equals(bound)) {
+                if (packetType instanceof RangedPacketTypeEnum) {
+                    RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) packetType;
+                    if (!NetProtocol.matchProtocol(rangedPacketType, NetProtocol.getProtocol())) {
+                        continue;
+                    }
                 }
+                packetTypes.add(packetType);
             }
-            packetTypes.add(packetType);
         }
         return packetTypes;
     }
 
 
-    public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketState state) {
-        return getTypesAvailableFor(protocol, state, null);
-    }
-
-    public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketBound packetBound) {
-        final List<PacketTypeEnum> totalList = new ArrayList<>();
-        for (PacketState state : PacketState.values()) {
-            totalList.addAll(getTypesAvailableFor(protocol, state, packetBound));
+    public static List<PacketTypeEnum> getTypesAvailableForState(PacketState state) {
+        List<PacketTypeEnum> types = new ArrayList<>();
+        for (PacketBound bound : PacketBound.values()) {
+            types.addAll(getTypesAvailableFor(state, bound));
         }
-        return totalList;
+        return types;
     }
 
-    public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol) {
-        return getTypesAvailableFor(protocol, (PacketBound) null);
+    public static List<PacketTypeEnum> getTypesAvailableForBound(PacketBound bound) {
+        List<PacketTypeEnum> types = new ArrayList<>();
+        for (PacketState state : PacketState.values()) {
+            if (state != PacketState.UNKNOWN && state != PacketState.ANY) {
+                types.addAll(getTypesAvailableFor(state, bound));
+            }
+        }
+        return types;
     }
 
     public static List<PacketTypeEnum> getTypesAvailable() {
-        return getTypesAvailableFor(protocolVersion);
+        List<PacketTypeEnum> types = new ArrayList<>();
+        for (PacketBound bound : PacketBound.values()) {
+            types.addAll(getTypesAvailableForBound(bound));
+        }
+
+        return types;
     }
 
     public static Map<Class<?>, PacketTypeEnum> getRegisteredPackets() {
@@ -930,6 +937,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> BLOCK_CHANGED_ACK_CLASS;
         private static Class<?> BOSS_CLASS;
         private static Class<?> BUNDLE_CLASS;
+        private static Class<?> BUNDLE_DELIMITER_CLASS;
         private static Class<?> CHAT_PREVIEW_SERVER_CLASS;
         private static Class<?> CHUNK_BATCH_FINISHED_CLASS;
         private static Class<?> CHUNK_BATCH_START_CLASS;
@@ -1150,6 +1158,9 @@ public enum PacketType implements PacketTypeEnum {
                 TICKING_STATE_CLASS = Reflection.getClass("{play}.ClientboundTickingStatePacket");
                 TICKING_STEP_CLASS = Reflection.getClass("{play}.ClientboundTickingStepPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                BUNDLE_DELIMITER_CLASS = Reflection.getClass("{play}.ClientboundBundleDelimiterPacket");
+            }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutCustomPayload");
                 KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutKeepAlive");
@@ -1175,6 +1186,7 @@ public enum PacketType implements PacketTypeEnum {
             BLOCK_CHANGED_ACK(BLOCK_CHANGED_ACK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19)),
             BOSS(BOSS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
             BUNDLE(BUNDLE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_4)),
+            BUNDLE_DELIMITER(BUNDLE_DELIMITER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5)),
             CAMERA(CAMERA_CLASS, idRegistry.acquire()),
             CHAT_PREVIEW(CHAT_PREVIEW_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
             CHUNK_BATCH_FINISHED(CHUNK_BATCH_FINISHED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),

@@ -47,7 +47,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketState.PLAY, PacketBound.SERVER);
+        return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER);
     }
 
     @Override
@@ -184,7 +184,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                 BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
                         !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
-                for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(NetProtocol.getProtocol(), PacketBound.SERVER)) {
+                for (PacketTypeEnum packetType : PacketType.getTypesAvailableForBound(PacketBound.SERVER)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
 
                     if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {

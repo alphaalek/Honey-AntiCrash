@@ -130,7 +130,7 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void removeListener(PacketAdapter<WP> adapter) {
-        removeListeners(adapter, PacketType.getTypesAvailableFor(NetProtocol.getProtocol()));
+        removeListeners(adapter, PacketType.getTypesAvailable());
     }
 
     public <WP extends WrappedPacket<WP>> void removeListeners(PacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {
