@@ -5,10 +5,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
-import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
-import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.util.Optional;

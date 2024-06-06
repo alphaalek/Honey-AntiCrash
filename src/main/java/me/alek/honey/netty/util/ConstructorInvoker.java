@@ -1,7 +1,10 @@
 package me.alek.honey.netty.util;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ConstructorInvoker<T> {
 
@@ -24,12 +27,24 @@ public class ConstructorInvoker<T> {
         this(getUnsafeConstructor(clazz, params));
     }
 
-    public T invoke(Object... parameters) {
+    public T invokeAndFixArrays(Object... params) {
+        List<Object> newParams = new ArrayList<>();
+        for (Object param : params) {
+            if (param instanceof Object[]) {
+                newParams.addAll(Arrays.asList((Object[]) param));
+            } else {
+                newParams.add(param);
+            }
+        }
+        return invoke(newParams.toArray());
+    }
+
+    public T invoke(Object... params) {
         try {
-            return constructor.newInstance(parameters);
+            return constructor.newInstance(params);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection error (constructor invoke): constructor: " + constructor + ", params: " + Arrays.toString(parameters) + ", message: " + ex.getMessage());
+            throw new RuntimeException("Reflection error (constructor invoke): constructor: " + constructor + ", params: " + Arrays.toString(params) + ", message: " + ex.getMessage());
         }
     }
 

@@ -2,6 +2,7 @@ package me.alek.honey.netty.structure.converters;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.util.ConstructorInvoker;
+import org.bukkit.Bukkit;
 
 public class SimpleWrapperConverter<WO extends WrappedObject<WO>> implements JavaConverter<Object, WO> {
 
@@ -16,7 +17,12 @@ public class SimpleWrapperConverter<WO extends WrappedObject<WO>> implements Jav
 
     @Override
     public WO convertDelegate(Object delegate, Object... params) {
-        return constructorInvoker.invoke(delegate);
+        Bukkit.broadcastMessage("Convert delegate " + delegate + " " + params.length);
+        if (params.length == 0) {
+            return constructorInvoker.invoke(delegate);
+        } else {
+            return constructorInvoker.invokeAndFixArrays(delegate, params);
+        }
     }
 
     @Override

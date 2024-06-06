@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
@@ -60,7 +61,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
 
         try {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(ctx.channel()).updateProtocol(PacketBound.SERVER);
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(ctx.channel()).setProtocolState(PacketBound.SERVER, PacketState.HANDSHAKE);
         } catch (MissingHandlerException ex) {
             ctx.close();
         }
@@ -79,7 +80,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        Bukkit.getLogger().info("Filter " + byteBuf + " " + ctx.channel().pipeline().toMap());
+        Bukkit.getLogger().info("Filter " + byteBuf);
 
         if (player != null) {
             checkRelocation();

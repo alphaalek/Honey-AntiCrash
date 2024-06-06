@@ -1,7 +1,6 @@
 package me.alek.honey.netty.codec;
 
 import io.netty.buffer.ByteBuf;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -36,7 +35,7 @@ public class CodecFactory {
                     .<Map<Object, Object>>withWeakType(Map.class).withTarget(protocol).readField(0);
             protocol = delegatedDirectionPacketFlowMap.get(PacketBound.SERVER.getNMSWrapperType());
         }
-        WrappedEnumProtocol enumProtocol = new WrappedEnumProtocol(PacketBound.SERVER, protocol);
+        WrappedEnumProtocol enumProtocol = new WrappedEnumProtocol(protocol, PacketBound.SERVER);
         return new EmulatorCodec.In<Object, PacketDataSerializer>() {
 
             @Override

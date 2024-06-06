@@ -159,8 +159,6 @@ public class SpigotPipelineInjector {
             }
 
             ensureCorrectPipelineOrder(channel);
-
-            Bukkit.getLogger().info("Relocated");
         }
     }
 
@@ -237,7 +235,6 @@ public class SpigotPipelineInjector {
             }
         }
 
-        Bukkit.getLogger().info("Could not find");
         throw new MissingHandlerException();
     }
 

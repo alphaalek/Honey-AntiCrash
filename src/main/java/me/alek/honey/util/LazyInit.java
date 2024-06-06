@@ -1,6 +1,6 @@
 package me.alek.honey.util;
 
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 

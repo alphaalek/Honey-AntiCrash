@@ -7,7 +7,7 @@ import io.netty.util.AttributeKey;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;

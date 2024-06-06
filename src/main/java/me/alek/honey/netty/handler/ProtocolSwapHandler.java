@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -49,26 +49,23 @@ public class ProtocolSwapHandler {
             JavaConverter<Enum<?>, WrappedEnumProtocol> converter = Converters.getEnumProtocolConverter();
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter).readField(0);
+                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter, PacketBound.SERVER).readField(0);
                 packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
             } else {
                 Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
                 int clientIntentOrdinal = ((Enum<?>)clientIntent).ordinal();
                 packetStateOrdinal = clientIntentOrdinal == 0 ? /* STATUS */ 2 : /* LOGIN */ 3;
-            }
+           }
             PacketState packetState = PacketState.values()[packetStateOrdinal];
             setProtocolState(packet.getChannel(), packetState, PacketBound.SERVER);
         }
-
     }
 
-    private void setProtocolState(Channel channel, PacketState state, PacketBound bound) {
-        /*
+    private void setProtocolState(Channel channel, PacketState state, PacketBound bound)  {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).setProtocolState(bound, state);
         } catch (MissingHandlerException ex) {
             channel.close();
         }
-        */
     }
 }

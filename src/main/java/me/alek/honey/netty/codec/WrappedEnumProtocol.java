@@ -1,4 +1,4 @@
-package me.alek.honey.netty.modelwrappers.network;
+package me.alek.honey.netty.codec;
 
 import com.google.common.collect.BiMap;
 import io.netty.channel.Channel;
@@ -6,7 +6,6 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.util.AttributeKey;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -15,7 +14,6 @@ import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
-import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,7 +38,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         if (protocolAttributeKey == null) {
             throw new DecoderException("Couldn't get protocol due to invalid enum protocol from channel attribute.");
         }
-        return new WrappedEnumProtocol(bound, channel.attr(protocolAttributeKey).get());
+        return new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get(), bound);
     }
 
     public static Object getEnumProtocolDelegate(Channel channel, PacketBound bound) {
@@ -65,10 +63,10 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         Enum<?> enumProtocol = NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            return new WrappedEnumProtocol(bound, enumProtocol);
+            return new WrappedEnumProtocol(enumProtocol, bound);
         }
 
-        return new WrappedEnumProtocol(bound, getProtocolInfo(enumProtocol, bound));
+        return new WrappedEnumProtocol(getProtocolInfo(enumProtocol, bound), bound);
     }
 
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
@@ -82,7 +80,8 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     private final MethodInvoker<Integer> getPacketIdModifier;
     private final Object classToIdMap;
 
-    public WrappedEnumProtocol(PacketBound bound, Object handle) {
+    @SuppressWarnings("unchecked")
+    public WrappedEnumProtocol(Object handle, PacketBound bound) {
         super(handle);
         this.bound = bound;
 
@@ -101,17 +100,17 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
             }
 
             classToIdMap = ReflectStructureCache.acquireStructure(protocolRegistry.getClass())
-                    .withType(Object2IntMap.class).withTarget(protocolRegistry)
+                    .withType(NMS.getObject2IntMapClass()).withTarget(protocolRegistry)
                     .readField(0);
 
-            getPacketIdModifier = ReflectStructureCache.acquireStructure(Object2IntMap.class)
+            getPacketIdModifier = ReflectStructureCache.acquireStructure(NMS.getObject2IntMapClass())
                     .asInt().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "getInt", 0, Class.class);
         } else {
             Object protocolMap = getProtocolInfo(handle, bound);
             classToIdMap = ((BiMap<Integer, Class<? extends Object>>)protocolMap).inverse();
 
-            getPacketIdModifier = ReflectStructureCache.acquireStructure(Map.class)
-                    .asInt().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "get", 0, Object.class);
+            getPacketIdModifier = (MethodInvoker<Integer>) (MethodInvoker<?>) ReflectStructureCache.acquireStructure(Map.class)
+                    .withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "get", 0, Object.class);
         }
     }
 

@@ -89,6 +89,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     packet = list.get(0);
                 }
             } catch (Throwable ex) {
+                ex.printStackTrace();
                 byteBuf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
@@ -99,7 +100,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            Bukkit.getLogger().info("Decoded " + packet);
+            Bukkit.getLogger().info("Decoded " + packet + " " + packetHandler.getProtocolState(PacketBound.SERVER) + " " + packetHandler.getProtocol(PacketBound.SERVER));
 
             byteBuf.release();
 

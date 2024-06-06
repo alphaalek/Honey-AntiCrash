@@ -22,6 +22,10 @@ import java.util.function.BiConsumer;
 public class HoneyPacketDecoder {
 
     public static Object decodePacket(HoneyPlayer player, PacketState state, EmulatorCodec<Object, PacketDataSerializer> protocol, ByteBuf byteBuf) throws DecoderException {
+        if (protocol == null) {
+            return null;
+        }
+
         Object packet;
         try {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
@@ -60,7 +64,6 @@ public class HoneyPacketDecoder {
         if (!PacketType.isUnknown(type) && !PacketType.getCommonStates(type).contains(state)) {
             return null;
         }
-
 
         return packet;
     }

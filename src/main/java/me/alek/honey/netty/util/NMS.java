@@ -1,6 +1,7 @@
 package me.alek.honey.netty.util;
 
 import io.netty.channel.Channel;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -296,6 +297,19 @@ public class NMS {
     private static Class<Object> clientIntentClass;
     public static Class<Object> getClientIntentClass() {
         return clientIntentClass != null ? clientIntentClass : (clientIntentClass = getFuzzyClass("{nms}.network.protocol.handshake.ClientIntent"));
+    }
+
+    private static Class<Object> object2IntMapClass;
+    public static Class<Object> getObject2IntMapClass() {
+        if (object2IntMapClass != null) {
+            return object2IntMapClass;
+        }
+
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
+            return object2IntMapClass = getFuzzyClass("org.bukkit.craftbukkit.libs." + Object2IntMap.class.getName());
+        }
+
+        return object2IntMapClass = (Class<Object>) (Class<?>) Object2IntMap.class;
     }
 
     public static boolean isFakeChannel(Channel channel) {

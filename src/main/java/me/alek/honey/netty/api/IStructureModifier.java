@@ -43,7 +43,7 @@ public interface IStructureModifier<T> {
 
     <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params);
 
-    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter);
+    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params);
 
     <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params);
 

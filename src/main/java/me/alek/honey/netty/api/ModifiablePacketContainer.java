@@ -54,5 +54,5 @@ public interface ModifiablePacketContainer {
 
     <T> IStructureModifier<T> getModifier(Class<T> clazz);
 
-    <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter);
+    <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params);
 }

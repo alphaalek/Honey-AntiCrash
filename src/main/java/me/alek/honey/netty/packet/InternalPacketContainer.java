@@ -219,12 +219,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         return getModifier(clazz, null);
     }
 
-    public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter) {
+    public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params) {
         if (packetStructure == null) {
             return null;
         }
 
-        return packetStructure.withType(clazz, converter).withTarget(handle);
+        return packetStructure.withType(clazz, converter).withTarget(handle, params);
     }
 
     @Override

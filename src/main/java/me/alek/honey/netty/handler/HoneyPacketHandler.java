@@ -1,16 +1,13 @@
 package me.alek.honey.netty.handler;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.CodecFactory;
+import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -106,14 +103,14 @@ public class HoneyPacketHandler {
             return false;
         }
 
-        //protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
+        protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         packetSendMarker.set(packetContainer);
 
         return true;
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        //protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
+        protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         return !isCancelled(packetContainer);
     }
 }

@@ -5,10 +5,11 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
@@ -168,7 +169,7 @@ public class Converters {
     }
 
     public static JavaConverter<Enum<?>, WrappedEnumProtocol> getEnumProtocolConverter() {
-        return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class));
+        return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class, PacketBound.class));
     }
 
     public static JavaConverter<Object, WrappedSuggestions> getSuggestionsConverter() {

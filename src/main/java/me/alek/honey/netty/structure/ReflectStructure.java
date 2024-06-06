@@ -185,8 +185,9 @@ public class ReflectStructure<T, C> {
     ) {
         int index = 0;
         for (IReflectionMember<?> member : defaultMap.values()) {
-            if (disallowedField(member) ||
-                    targetType != null && !targetType.isAssignableFrom(member.getType())) {
+            if (disallowedField(member)
+                    || disallowedClass(member)
+                    || targetType != null && !targetType.isAssignableFrom(member.getType())) {
                 continue;
             }
 
@@ -302,18 +303,20 @@ public class ReflectStructure<T, C> {
         return DEFAULT_INVOKERS.values();
     }
 
-    public IStructureModifier<C> withTarget(Object handle) {
-        return new StructureModifier(handle, converter);
+    public IStructureModifier<C> withTarget(Object handle, Object... params) {
+        return new StructureModifier(handle, converter, params);
     }
 
     private class StructureModifier implements IStructureModifier<C> {
 
         private final Object handle;
         private final JavaConverter<T, C> converter;
+        private final Object[] params;
 
-        public StructureModifier(Object handle, JavaConverter<T, C> converter) {
+        public StructureModifier(Object handle, JavaConverter<T, C> converter, Object... params) {
             this.handle = handle;
             this.converter = converter;
+            this.params = params;
         }
 
         public ReflectStructure<?, C> getStructure() {
@@ -432,7 +435,7 @@ public class ReflectStructure<T, C> {
             }
 
             if (converter != null) {
-                return converter.convertDelegate(accessor.get(handle));
+                return converter.convertDelegate(accessor.get(handle), params);
             } else {
                 return (C) accessor.get(handle);
             }
@@ -486,7 +489,7 @@ public class ReflectStructure<T, C> {
                     }
                 }
 
-                return converter.convertDelegate(originalValue);
+                return converter.convertDelegate(originalValue, params);
             }
 
             return null;
@@ -518,7 +521,7 @@ public class ReflectStructure<T, C> {
             }
 
             if (converter != null) {
-                return converter.convertDelegate(invoker.invokeWithException(handle, params));
+                return converter.convertDelegate(invoker.invokeWithException(handle, params), params);
             } else {
                 return (C) invoker.invokeWithException(handle, params);
             }
@@ -573,6 +576,11 @@ public class ReflectStructure<T, C> {
             return false;
         }
 
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) {
+            return getMethod(methodReference, (i, invoker) -> invoker.getName().equals(name) && i.getAndIncrement() == index, params);
+        }
+
+        @Override
         public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params) {
             MethodInvoker<O> cachedInvoker;
             if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
@@ -581,7 +589,7 @@ public class ReflectStructure<T, C> {
 
             AtomicInteger index = new AtomicInteger();
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
+                if (Arrays.equals(params, getWrapperClasses(invoker.getMethod().getParameterTypes()))
                         && filter.test(index, invoker)) {
 
                     if (methodReference != null) {
@@ -593,15 +601,6 @@ public class ReflectStructure<T, C> {
             }
 
             return null;
-        }
-
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) {
-            return getMethod(methodReference, (i, invoker) -> invoker.getName().equals(name) && i.getAndIncrement() == index, params);
-        }
-
-        @Override
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter) {
-            return getMethod(methodReference, filter);
         }
 
         public <O> MethodInvoker<O> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) {
@@ -616,7 +615,7 @@ public class ReflectStructure<T, C> {
 
             @SuppressWarnings("unchecked")
             MethodInvoker<O> invoker = (MethodInvoker<O>) ACQUIRED_INVOKERS.get(index);
-            if (!Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))) {
+            if (!Arrays.equals(params, getWrapperClasses(invoker.getMethod().getParameterTypes()))) {
                 return null;
             }
 
@@ -629,12 +628,12 @@ public class ReflectStructure<T, C> {
 
         @Override
         public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) throws Exception {
-            return invoke((MethodInvoker<T>) getMethod(methodReference, index, params), params);
+            return invoke((MethodInvoker<T>) getMethod(methodReference, index, Arrays.stream(params).map(Object::getClass).toArray()), params);
         }
 
         @Override
         public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) throws Exception {
-            return invoke((MethodInvoker<T>) getMethod(methodReference, name, index, params), params);
+            return invoke((MethodInvoker<T>) getMethod(methodReference, name, index, Arrays.stream(params).map(Object::getClass).toArray()), params);
         }
 
         private Object[] getWrapperClasses(Class<?>[] classes) {

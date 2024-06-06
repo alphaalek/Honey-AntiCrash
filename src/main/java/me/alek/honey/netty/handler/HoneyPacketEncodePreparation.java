@@ -10,12 +10,9 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.async.AsyncDecoder;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
-import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 
@@ -101,8 +98,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
-        @SuppressWarnings("unchecked")
-        PacketContainer<WP> packetContainer = (PacketContainer<WP>) packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
+        PacketContainer<WP> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
         if (!packetHandler.write(packetContainer)) {
             return;
         }

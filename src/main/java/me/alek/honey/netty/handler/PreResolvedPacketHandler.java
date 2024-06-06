@@ -8,7 +8,6 @@ import io.netty.channel.ChannelPromise;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -16,7 +15,6 @@ import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
