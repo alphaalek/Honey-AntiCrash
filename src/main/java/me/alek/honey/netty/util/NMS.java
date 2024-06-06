@@ -299,6 +299,16 @@ public class NMS {
         return clientIntentClass != null ? clientIntentClass : (clientIntentClass = getFuzzyClass("{nms}.network.protocol.handshake.ClientIntent"));
     }
 
+    private static Class<Object> gamePacketTypesClass;
+    public static Class<Object> getGamePacketTypesClass() {
+        return gamePacketTypesClass != null ? gamePacketTypesClass : (gamePacketTypesClass = getFuzzyClass("{play}.GamePacketTypes"));
+    }
+
+    private static Class<Object> packetTypeClass;
+    public static Class<Object> getPacketTypeClass() {
+        return packetTypeClass != null ? packetTypeClass : (packetTypeClass = getFuzzyClass("{nms}.network.protocol.PacketType"));
+    }
+
     private static Class<Object> object2IntMapClass;
     public static Class<Object> getObject2IntMapClass() {
         if (object2IntMapClass != null) {

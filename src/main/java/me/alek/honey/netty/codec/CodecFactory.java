@@ -29,13 +29,7 @@ public class CodecFactory {
             };
         }
 
-        Object protocol = NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-            Map<Object, Object> delegatedDirectionPacketFlowMap = ReflectStructureCache.acquireStructure(NMS.getEnumProtocolClass())
-                    .<Map<Object, Object>>withWeakType(Map.class).withTarget(protocol).readField(0);
-            protocol = delegatedDirectionPacketFlowMap.get(PacketBound.SERVER.getNMSWrapperType());
-        }
-        WrappedEnumProtocol enumProtocol = new WrappedEnumProtocol(protocol, PacketBound.SERVER);
+        WrappedEnumProtocol enumProtocol = WrappedEnumProtocol.getEnumProtocolDelegate(PacketBound.SERVER, state);
         return new EmulatorCodec.In<Object, PacketDataSerializer>() {
 
             @Override

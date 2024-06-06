@@ -36,7 +36,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     public static WrappedEnumProtocol getEnumProtocol(Channel channel, PacketBound bound) {
         AttributeKey<?> protocolAttributeKey = getProtocolAttributeKey(channel, bound);
         if (protocolAttributeKey == null) {
-            throw new DecoderException("Couldn't get protocol due to invalid enum protocol from channel attribute.");
+            throw new DecoderException("Could not get protocol due to invalid enum protocol from channel attribute.");
         }
         return new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get(), bound);
     }

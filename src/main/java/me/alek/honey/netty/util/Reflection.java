@@ -28,6 +28,7 @@ public class Reflection {
             NMS = protocolPackage = OBC.replace("org.bukkit.craftbukkit", "net.minecraft.server");
         }
         COMMON        = protocolPackage + (newProtocol ? "." + "common"        : "");
+        COOKIE        = protocolPackage + (newProtocol ? "." + "cookie"        : "");
         HANDSHAKE     = protocolPackage + (newProtocol ? "." + "handshake"     : "");
         PLAY          = protocolPackage + (newProtocol ? "." + "game"          : "");
         STATUS        = protocolPackage + (newProtocol ? "." + "status"        : "");
@@ -40,6 +41,7 @@ public class Reflection {
 
     private static final String OBC_PREFIX;
     private static final String COMMON;
+    private static final String COOKIE;
     private static final String HANDSHAKE;
     private static final String PLAY;
     private static final String STATUS;
@@ -113,6 +115,9 @@ public class Reflection {
                     break;
                 case "common":
                     replacement = COMMON;
+                    break;
+                case "cookie":
+                    replacement = COOKIE;
                     break;
                 case "handshake":
                     replacement = HANDSHAKE;
