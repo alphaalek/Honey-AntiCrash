@@ -22,7 +22,6 @@ public class ItemReflection {
         }
         return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
     });
-    private static final MethodInvoker<?> setTagInvoker = Reflection.getMethod(itemStackClass, 0, NMS.getNBTTagCompoundClass());
 
     static {
         try {

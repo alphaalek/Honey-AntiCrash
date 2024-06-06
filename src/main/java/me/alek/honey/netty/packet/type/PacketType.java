@@ -498,26 +498,40 @@ public enum PacketType implements PacketTypeEnum {
 
     public static class Status {
 
-        private static final Class<?> PING_CLASS = Reflection.getClass("{status}.PacketStatusInPing");
+        private static Class<?> PING_CLASS;
         private static final Class<?> START_CLASS = Reflection.getClass("{status}.PacketStatusInStart");
 
-        public enum Client implements PacketTypeEnum {
+        static {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
+                PING_CLASS = Reflection.getClass("{status}.PacketStatusInPing");
+            }
+        }
 
-            PING_REQUEST(PING_CLASS, idRegistry.acquire()),
-            STATUS_REQUEST(START_CLASS, idRegistry.acquire());
+        public enum Client implements RangedPacketTypeEnum {
+
+            PING(PING_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_20_4)),
+            START(START_CLASS, idRegistry.acquire());
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
-            private final Class<?> nmsPacket;
+            private final Class<?> nmsClass;
+            private final NetProtocolRange protocolRange;
             private final int packetId;
 
-            Client(Class<?> nmsPacket, int packetId) {
-                this.nmsPacket = nmsPacket;
+            Client(Class<?> nmsClass, int packetId) {
+                this.nmsClass = nmsClass;
                 this.packetId = packetId;
+                this.protocolRange = NetProtocolRange.ALL;
+            }
+
+            Client(Class<?> nmsClass, int packetId, NetProtocolRange protocolRange) {
+                this.nmsClass = nmsClass;
+                this.packetId = packetId;
+                this.protocolRange = protocolRange;
             }
 
             @Override
             public Class<?> getNmsClass() {
-                return nmsPacket;
+                return nmsClass;
             }
 
             @Override
@@ -539,28 +553,47 @@ public enum PacketType implements PacketTypeEnum {
             public PacketState getState() {
                 return PacketState.STATUS;
             }
+
+            @Override
+            public NetProtocolRange getRange() {
+                return protocolRange;
+            }
         }
 
-        private static final Class<?> PONG_CLASS = Reflection.getClass("{status}.PacketStatusOutPong");
+        private static Class<?> PONG_CLASS;
         private static final Class<?> SERVER_INFO_CLASS = Reflection.getClass("{status}.PacketStatusOutServerInfo");
 
-        public enum Server implements PacketTypeEnum {
+        static {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
+                PONG_CLASS = Reflection.getClass("{status}.PacketStatusOutPong");
+            }
+        }
 
-            PING_RESPONSE(PONG_CLASS, idRegistry.acquire()),
-            STATUS_RESPONSE(SERVER_INFO_CLASS, idRegistry.acquire());
+        public enum Server implements RangedPacketTypeEnum {
+
+            PONG(PONG_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_20_4)),
+            SERVER_INFO(SERVER_INFO_CLASS, idRegistry.acquire());
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
-            private final Class<?> nmsPacket;
+            private final Class<?> nmsClass;
+            private final NetProtocolRange protocolRange;
             private final int packetId;
 
             Server(Class<?> nmsPacket, int packetId) {
-                this.nmsPacket = nmsPacket;
+                this.nmsClass = nmsPacket;
                 this.packetId = packetId;
+                this.protocolRange = NetProtocolRange.ALL;
+            }
+
+            Server(Class<?> nmsClass, int packetId, NetProtocolRange protocolRange) {
+                this.nmsClass = nmsClass;
+                this.packetId = packetId;
+                this.protocolRange = protocolRange;
             }
 
             @Override
             public Class<?> getNmsClass() {
-                return nmsPacket;
+                return nmsClass;
             }
 
             @Override
@@ -581,6 +614,11 @@ public enum PacketType implements PacketTypeEnum {
             @Override
             public PacketState getState() {
                 return PacketState.STATUS;
+            }
+
+            @Override
+            public NetProtocolRange getRange() {
+                return protocolRange;
             }
         }
     }
