@@ -46,7 +46,10 @@ public class LazyInit<T> {
                             continue;
                         }
 
-                        String packet = Array.<String>from(args[0].getTypeName().split("\\.")).getLast();
+                        String packet = Array.<String>from(
+                                Array.<String>from(args[0].getTypeName().split("\\.")).getLast()
+                                        .split("\\$")
+                                ).getLast();
                         if (packet.equals(type.getNmsClass().getName())) {
                             return type.getBound() == PacketBound.SERVER ? serverBoundIndex : clientBoundIndex;
                         }

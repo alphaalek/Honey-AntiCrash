@@ -656,11 +656,13 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> BOAT_MOVE_CLASS;
         private static Class<?> CHAT_ACK_CLASS;
         private static Class<?> CHAT_COMMAND_CLASS;
+        private static Class<?> CHAT_COMMAND_SIGNED_CLASS;
         private static Class<?> CHAT_PREVIEW_CLIENT_CLASS;
         private static Class<?> CHUNK_BATCH_RECEIVED_CLASS;
         private static Class<?> CONFIGURATION_ACKNOWLEDGED_CLASS;
         private static Class<?> CONTAINER_SLOT_STATE_CHANGED_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_CLASS;
+        private static Class<?> DEBUG_SAMPLE_SUBSCRIPTION_CLASS;
         private static Class<?> DIFFICULTY_CHANGE_CLASS;
         private static Class<?> DIFFICULTY_LOCK_CLASS;
         private static Class<?> ENTITY_NBT_QUERY_CLASS;
@@ -760,6 +762,10 @@ public enum PacketType implements PacketTypeEnum {
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
                 CONTAINER_SLOT_STATE_CHANGED_CLASS = Reflection.getClass("{play}.ServerboundContainerSlotStateChangedPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                CHAT_COMMAND_SIGNED_CLASS = Reflection.getClass("{play}.ServerboundChatCommandSignedPacket");
+                DEBUG_SAMPLE_SUBSCRIPTION_CLASS = Reflection.getClass("{play}.ServerboundDebugSampleSubscriptionPacket");
+            }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{play}.PacketPlayInCustomPayload");
                 KEEP_ALIVE_CLIENT_CLASS = Reflection.getClass("{play}.PacketPlayInKeepAlive");
@@ -783,12 +789,14 @@ public enum PacketType implements PacketTypeEnum {
             CHAT_ACK(CHAT_ACK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_1)),
             CHAT_PREVIEW(CHAT_PREVIEW_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
             CHAT_COMMAND(CHAT_COMMAND_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19)),
+            CHAT_COMMAND_SIGNED(CHAT_COMMAND_SIGNED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5)),
             CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
             CLIENT_COMMAND(CLIENT_COMMAND_CLASS, idRegistry.acquire()),
             CLOSE_WINDOW(CLOSE_WINDOW_CLASS, idRegistry.acquire()),
             CONFIGURATION_ACKNOWLEDGED(CONFIGURATION_ACKNOWLEDGED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
             CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            DEBUG_SAMPLE_SUBSCRIPTION(DEBUG_SAMPLE_SUBSCRIPTION_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5)),
             DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
             DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
             ENCHANT_ITEM(ENCHANT_ITEM_CLASS, idRegistry.acquire()),
@@ -948,6 +956,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> CUSTOM_CHAT_COMPLETIONS_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> DAMAGE_EVENT_CLASS;
+        private static Class<?> DEBUG_SAMPLE_CLASS;
         private static Class<?> DELETE_CHAT_CLASS;
         private static Class<?> DISGUISED_CHAT_CLASS;
         private static Class<?> ENTITY_LOOK_CLASS;
@@ -976,6 +985,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> PLAYER_COMBAT_KILL_CLASS;
         private static Class<?> PLAYER_INFO_REMOVE_CLASS;
         private static Class<?> PLAYER_INFO_UPDATE_CLASS;
+        private static Class<?> PROJECTILE_POWER_CLASS;
         private static Class<?> RECIPE_UPDATE_CLASS;
         private static Class<?> RECIPES_CLASS;
         private static Class<?> RESET_SCORE_CLASS;
@@ -1160,6 +1170,8 @@ public enum PacketType implements PacketTypeEnum {
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 BUNDLE_DELIMITER_CLASS = Reflection.getClass("{play}.ClientboundBundleDelimiterPacket");
+                DEBUG_SAMPLE_CLASS = Reflection.getClass("{play}.ClientboundDebugSamplePacket");
+                PROJECTILE_POWER_CLASS = Reflection.getClass("{play}.ClientboundProjectilePowerPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutCustomPayload");
@@ -1200,6 +1212,7 @@ public enum PacketType implements PacketTypeEnum {
             CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_1)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
             DAMAGE_EVENT(DAMAGE_EVENT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_4)),
+            DEBUG_SAMPLE(DEBUG_SAMPLE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5)),
             DELETE_CHAT(DELETE_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_1)),
             DISGUISED_CHAT(DISGUISED_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_3)),
             ENTITY(ENTITY_CLASS, idRegistry.acquire()),
@@ -1242,7 +1255,7 @@ public enum PacketType implements PacketTypeEnum {
             OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
             PING(PING_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
-            PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_18_2)),
+            PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquire()),
             PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_COMBAT_ENTER(PLAYER_COMBAT_ENTER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
@@ -1252,6 +1265,7 @@ public enum PacketType implements PacketTypeEnum {
             PLAYER_INFO_UPDATE(PLAYER_INFO_UPDATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_3)),
             PLAYERLIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, idRegistry.acquire()),
             POSITION(POSITION_SERVER_CLASS, idRegistry.acquire()),
+            PROJECTILE_POWER(PROJECTILE_POWER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5)),
             RECIPE_UPDATE(RECIPE_UPDATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
             RECIPES(RECIPES_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
             REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, idRegistry.acquire()),
