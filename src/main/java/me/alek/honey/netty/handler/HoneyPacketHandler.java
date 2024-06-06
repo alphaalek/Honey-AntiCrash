@@ -1,6 +1,7 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
+import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -8,8 +9,10 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 
@@ -59,13 +62,18 @@ public class HoneyPacketHandler {
     }
 
     public void updateProtocol(PacketBound bound) {
-
-        /*
-        if (channel.pipeline().get("pre-resolved-packet-handler") == null && !ConfigurationOptions.Decoder.USE_DEFAULT) {
-            Attribute<Object> protocolAttribute = channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, bound));
-            protocolAttribute.set(WrappedEnumProtocol.getProtocol(bound).getHandle());
+        if (bound == null) {
+            updateProtocol(PacketBound.SERVER);
+            updateProtocol(PacketBound.CLIENT);
+            return;
         }
-        */
+
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_5)
+                && channel.pipeline().get("pre-resolved-packet-handler") == null
+                && !ConfigurationOptions.Decoder.USE_DEFAULT) {
+            Attribute<Object> protocolAttribute = channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, bound));
+            protocolAttribute.set(WrappedEnumProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
+        }
     }
 
     public void setProtocolState(PacketBound bound, PacketState state) {
@@ -81,6 +89,8 @@ public class HoneyPacketHandler {
             serverboundProtocol = CodecFactory.createInboundCodec(getProtocolState(PacketBound.SERVER));
             clientboundProtocol = CodecFactory.createOutboundCodec(getProtocolState(PacketBound.CLIENT));
         }
+
+        updateProtocol(bound);
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

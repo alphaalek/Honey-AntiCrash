@@ -55,12 +55,16 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         return protocol;
     }
 
-    public static WrappedEnumProtocol getEnumProtocolDelegate(PacketBound bound, PacketState state) {
+    public static Object getEnumProtocol(PacketState state) {
         if (state == PacketState.ANY || state == PacketState.UNKNOWN) {
             return null;
         }
 
-        Enum<?> enumProtocol = NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
+        return NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
+    }
+
+    public static WrappedEnumProtocol getEnumProtocolDelegate(PacketBound bound, PacketState state) {
+        Object enumProtocol = getEnumProtocol(state);
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             return new WrappedEnumProtocol(enumProtocol, bound);

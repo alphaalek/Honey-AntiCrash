@@ -306,7 +306,7 @@ public class NMS {
         }
 
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
-            return object2IntMapClass = getFuzzyClass("org.bukkit.craftbukkit.libs." + Object2IntMap.class.getName());
+            return object2IntMapClass = getFuzzyClass("org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2IntMap");
         }
 
         return object2IntMapClass = (Class<Object>) (Class<?>) Object2IntMap.class;
