@@ -1,10 +1,14 @@
 package me.alek.honey.netty.packet.type;
 
+import me.alek.honey.util.LazyInit;
+
 public interface PacketTypeEnum {
 
     Class<?> getNmsClass();
 
-    int getPacketId();
+    LazyInit<Integer> getMinecraftID();
+
+    int getHoneyID();
 
     PacketState getState();
 

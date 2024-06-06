@@ -8,7 +8,7 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -44,7 +44,7 @@ public class PostActions {
         packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation());
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
-            WrappedPacketDataSerializer serializer = packet.getDataSerializers().readField(0);
+            PacketDataSerializer serializer = packet.getDataSerializers().readField(0);
 
             if (serializer.refCnt() > 0) {
                 serializer.retain();

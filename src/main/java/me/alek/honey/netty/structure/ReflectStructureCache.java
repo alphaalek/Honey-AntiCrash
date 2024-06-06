@@ -12,7 +12,7 @@ public class ReflectStructureCache {
     public static Map<Class<?>, ReflectStructure<Object, Object>> WRAPPER_STRUCTURE_CACHE = new ConcurrentHashMap<>();
 
     public static synchronized ReflectStructure<Object, Object> acquireStructure(PacketTypeEnum packetType) {
-        return PACKET_STRUCTURE_CACHE.get(packetType.getPacketId(), () -> new ReflectStructure<>(packetType.getNmsClass()));
+        return PACKET_STRUCTURE_CACHE.get(packetType.getHoneyID(), () -> new ReflectStructure<>(packetType.getNmsClass()));
     }
 
     public static synchronized ReflectStructure<Object, Object> acquireStructure(Class<?> clazz) {

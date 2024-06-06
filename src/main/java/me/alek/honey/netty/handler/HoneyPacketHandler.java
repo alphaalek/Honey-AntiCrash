@@ -1,20 +1,19 @@
 package me.alek.honey.netty.handler;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.EmulatorCodec;
+import me.alek.honey.netty.codec.CodecFactory;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-
-import java.util.Map;
 
 
 public class HoneyPacketHandler {
@@ -25,8 +24,8 @@ public class HoneyPacketHandler {
     private volatile HoneyPlayer player;
     private PacketState clientboundProtocolState = PacketState.HANDSHAKE;
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
-    private WrappedEnumProtocol clientboundProtocol;
-    private WrappedEnumProtocol serverboundProtocol;
+    private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
+    private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
     private String playerName;
 
     public HoneyPacketHandler(Channel channel) {
@@ -58,45 +57,32 @@ public class HoneyPacketHandler {
         return bound == PacketBound.CLIENT ? clientboundProtocolState : serverboundProtocolState;
     }
 
-    public WrappedEnumProtocol getProtocol(PacketBound bound) {
+    public EmulatorCodec<Object, PacketDataSerializer> getProtocol(PacketBound bound) {
         return bound == PacketBound.CLIENT ? clientboundProtocol : serverboundProtocol;
     }
 
-    public void setProtocol(PacketBound bound, WrappedEnumProtocol protocol) {
-        if (bound == PacketBound.CLIENT) {
-            this.clientboundProtocol = protocol;
-        } else if (bound == PacketBound.SERVER) {
-            this.serverboundProtocol = protocol;
-        }
-    }
-
     public void updateProtocol(PacketBound bound) {
-        Object protocol = NMS.getEnumProtocolClass().getEnumConstants()[getProtocolState(bound).ordinal()];
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-            Map<Object, Object> delegatedDirectionPacketFlowMap = ReflectStructureCache.acquireStructure(NMS.getEnumProtocolClass())
-                    .<Map<Object, Object>>withWeakType(Map.class).withTarget(protocol).readField(0);
-            protocol = delegatedDirectionPacketFlowMap.get(bound.getNMSWrapperType());
-        }
-        setProtocol(bound, new WrappedEnumProtocol(protocol));
 
+        /*
         if (channel.pipeline().get("pre-resolved-packet-handler") == null && !ConfigurationOptions.Decoder.USE_DEFAULT) {
             Attribute<Object> protocolAttribute = channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, bound));
-            protocolAttribute.set(getProtocol(bound).getHandle());
+            protocolAttribute.set(WrappedEnumProtocol.getProtocol(bound).getHandle());
         }
+        */
     }
 
     public void setProtocolState(PacketBound bound, PacketState state) {
         if (bound == PacketBound.SERVER) {
             serverboundProtocolState = state;
-            updateProtocol(PacketBound.SERVER);
+            serverboundProtocol = CodecFactory.createInboundCodec(getProtocolState(PacketBound.SERVER));
         } else if (bound == PacketBound.CLIENT) {
             clientboundProtocolState = state;
-            updateProtocol(PacketBound.CLIENT);
+            clientboundProtocol = CodecFactory.createOutboundCodec(getProtocolState(PacketBound.CLIENT));
         } else {
             serverboundProtocolState = state;
             clientboundProtocolState = state;
-            updateProtocol(PacketBound.SERVER);
-            updateProtocol(PacketBound.CLIENT);
+            serverboundProtocol = CodecFactory.createInboundCodec(getProtocolState(PacketBound.SERVER));
+            clientboundProtocol = CodecFactory.createOutboundCodec(getProtocolState(PacketBound.CLIENT));
         }
     }
 

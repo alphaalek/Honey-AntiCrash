@@ -64,7 +64,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
 
         ignoredPacketsInQueueExecutionSaver = new IDRegistry();
         for (PacketTypeEnum packetType : packets) {
-            ignoredPacketsInQueueExecutionSaver.addID(packetType.getPacketId());
+            ignoredPacketsInQueueExecutionSaver.add(packetType.getHoneyID());
         }
     }
 

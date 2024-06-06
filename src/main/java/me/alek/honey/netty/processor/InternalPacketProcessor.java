@@ -136,16 +136,16 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public void addPacketExecutor(PacketExecutor<? extends WrappedPacket<?>> packetExecutor, PacketTypeEnum packetType) {
-        packetExecutors.get(packetType.getPacketId(), ArrayList::new)
+        packetExecutors.get(packetType.getHoneyID(), ArrayList::new)
                 .add(packetExecutor);
     }
 
     public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
-        if (PacketType.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getPacketId())) {
+        if (PacketType.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
             return null;
         }
 
-        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(packetContainer.getType().getPacketId());
+        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(packetContainer.getType().getHoneyID());
         if (executors.isEmpty()) {
             return null;
         }
@@ -178,7 +178,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                     && !NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
                 continue;
             }
-            packetAdapters.get(packetType.getPacketId(), EventBus::new).addListener(packetAdapter, priority);
+            packetAdapters.get(packetType.getHoneyID(), EventBus::new).addListener(packetAdapter, priority);
         }
     }
 
@@ -192,12 +192,12 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
-            if (!packetAdapters.has(packetType.getPacketId())) continue;
+            if (!packetAdapters.has(packetType.getHoneyID())) continue;
 
-            packetAdapters.get(packetType.getPacketId()).removeListener(packetAdapter);
+            packetAdapters.get(packetType.getHoneyID()).removeListener(packetAdapter);
 
-            if (packetAdapters.get(packetType.getPacketId()).isEmpty()) {
-                packetAdapters.remove(packetType.getPacketId());
+            if (packetAdapters.get(packetType.getHoneyID()).isEmpty()) {
+                packetAdapters.remove(packetType.getHoneyID());
             }
         }
     }
@@ -225,7 +225,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public boolean hasListener(PacketTypeEnum... packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
-            if (!packetAdapters.has(packetType.getPacketId())) {
+            if (!packetAdapters.has(packetType.getHoneyID())) {
                 return false;
             }
         }
@@ -235,7 +235,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         int id;
         if (PacketType.isUnknown(packetContainer.getType())
-                || !packetAdapters.has(id = packetContainer.getType().getPacketId())) {
+                || !packetAdapters.has(id = packetContainer.getType().getHoneyID())) {
             return;
         }
 
@@ -269,7 +269,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                                                                      PacketContainer<WP> earlyInitializedPacket) {
         // initialize the packet container
         PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
-        CallbackAction<PacketContainer<WP>> postAction = !PacketType.isUnknown(packetType) ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getPacketId()) : null;
+        CallbackAction<PacketContainer<WP>> postAction = !PacketType.isUnknown(packetType) ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID()) : null;
 
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, packetType);
@@ -317,11 +317,11 @@ public class InternalPacketProcessor implements PacketProcessor {
             return;
         }
 
-        if (!postActions.has(packetType.getPacketId())) {
-            postActions.set(packetType.getPacketId(), new CallbackAction<>());
+        if (!postActions.has(packetType.getHoneyID())) {
+            postActions.set(packetType.getHoneyID(), new CallbackAction<>());
         }
 
-        CallbackAction<PacketContainer<? extends WrappedPacket<?>>> action = postActions.get(packetType.getPacketId());
+        CallbackAction<PacketContainer<? extends WrappedPacket<?>>> action = postActions.get(packetType.getHoneyID());
         action.addAction(callback);
     }
 }

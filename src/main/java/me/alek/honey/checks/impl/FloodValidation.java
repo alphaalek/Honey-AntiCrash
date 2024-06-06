@@ -160,14 +160,14 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
             for (PacketTypeEnum packetType : PacketType.getTypesAvailable()) {
                 if (!ReflectStructureCache.acquireStructure(packetType.getNmsClass()).withType(NMS.getItemStackClass())
                         .getAccessors().isEmpty()) {
-                    packetTypes.addID(packetType.getPacketId());
+                    packetTypes.add(packetType.getHoneyID());
                 }
             }
         }
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && !PacketType.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getPacketId())) {
+            if (getSetting().isEnabled() && !PacketType.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getHoneyID())) {
 
                 for (ItemStack item : packet.getContainer().getItems().readFieldValues()) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, true);
@@ -240,7 +240,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public ViolationService.HoneyKey getKey(WP val) {
-            return ViolationService.HoneyKey.of(val.getType().getPacketId());
+            return ViolationService.HoneyKey.of(val.getType().getHoneyID());
         }
 
         @Override

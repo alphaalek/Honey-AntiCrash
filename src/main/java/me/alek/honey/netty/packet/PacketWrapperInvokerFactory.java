@@ -76,19 +76,19 @@ public class PacketWrapperInvokerFactory {
         }
 
         PLAY = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.PLAY), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getHoneyID());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         HANDSHAKE = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.HANDSHAKE), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getHoneyID());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         LOGIN = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.LOGIN), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getHoneyID());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
         STATUS = mapCreator.streamConcurrentMap(PacketType.getTypesAvailableFor(PROTOCOL_VERSION, PacketState.STATUS), (packetType) -> {
-            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getPacketId());
+            if (packetType.getNmsClass() == null) HoneyPlugin.get().getPlugin().getLogger().severe("Found wrong packet mapping: " + packetType.getClass().getName() + " " + packetType.getHoneyID());
             return getCachedInvoker(packetType, packetType.getNmsClass().getSimpleName());
         });
     }

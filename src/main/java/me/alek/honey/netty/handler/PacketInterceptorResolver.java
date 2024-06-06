@@ -4,19 +4,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.AttributeKey;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -210,7 +207,7 @@ public class PacketInterceptorResolver {
         for (int id = 0; ; id++) {
             Object packet = null;
             try {
-                packet = protocol.createPacket(bound, id, new WrappedPacketDataSerializer(serializer));
+                packet = protocol.createPacket(bound, id, new PacketDataSerializer(serializer));
             } catch (Exception ignored) {
             }
 

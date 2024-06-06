@@ -27,8 +27,8 @@ public class PacketBundleSaver {
 
         int max = 0;
         for (PacketTypeEnum packetType : PACKET_SAVER_WINDOWS.stream().flatMap((w) -> w.getPacketTypes().stream()).collect(Collectors.toSet())) {
-            if (packetType.getPacketId() > max)
-                max = packetType.getPacketId();
+            if (packetType.getHoneyID() > max)
+                max = packetType.getHoneyID();
         }
         MAX_PACKET_ID = max;
     }
@@ -43,9 +43,9 @@ public class PacketBundleSaver {
 
             Set<PacketTypeEnum> packetTypeSet = window.getPacketTypes();
             for (PacketTypeEnum packetType : packetTypeSet) {
-                List<PacketSaverQueue> packets = this.packets[packetType.getPacketId()];
+                List<PacketSaverQueue> packets = this.packets[packetType.getHoneyID()];
                 if (packets == null) {
-                    this.packets[packetType.getPacketId()] = (packets = new ArrayList<>());
+                    this.packets[packetType.getHoneyID()] = (packets = new ArrayList<>());
                 }
                 boolean hasWindow = false;
                 for (PacketSaverQueue queue : packets) {
@@ -66,9 +66,9 @@ public class PacketBundleSaver {
     }
 
     private synchronized List<PacketSaverQueue> getQueue(PacketTypeEnum packetType) {
-        if (packetType.getPacketId() > MAX_PACKET_ID) return null;
+        if (packetType.getHoneyID() > MAX_PACKET_ID) return null;
 
-        return packets[packetType.getPacketId()];
+        return packets[packetType.getHoneyID()];
     }
 
     public void add(PacketContainer<? extends WrappedPacket<?>> packet) {

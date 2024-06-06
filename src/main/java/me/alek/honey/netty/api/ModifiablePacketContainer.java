@@ -2,7 +2,7 @@ package me.alek.honey.netty.api;
 
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import org.bukkit.inventory.ItemStack;
 
@@ -46,7 +46,7 @@ public interface ModifiablePacketContainer {
 
     IStructureModifier<WrappedGameProfile> getGameProfiles();
 
-    IStructureModifier<WrappedPacketDataSerializer> getDataSerializers();
+    IStructureModifier<PacketDataSerializer> getDataSerializers();
 
     IStructureModifier<WrappedBlockPosition> getBlockPositions();
 

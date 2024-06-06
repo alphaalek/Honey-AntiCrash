@@ -1,21 +1,28 @@
 package me.alek.honey.netty.modelwrappers.network;
 
+import com.google.common.collect.BiMap;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderException;
 import io.netty.util.AttributeKey;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.Reflection;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
     private static final AtomicReference<MethodInvoker<Object>> createPacketCachedInvoker = new AtomicReference<>();
+    private static final AtomicReference<MethodInvoker<Object>> getPacketIdCachedInvoker = new AtomicReference<>();
 
     public static AttributeKey<Object> getProtocolAttributeKey(Channel channel, PacketBound bound) {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2) && channel.pipeline().get("packet_handler") != null)
@@ -32,7 +39,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         if (protocolAttributeKey == null) {
             throw new DecoderException("Couldn't get protocol due to invalid enum protocol from channel attribute.");
         }
-        return new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get());
+        return new WrappedEnumProtocol(bound, channel.attr(protocolAttributeKey).get());
     }
 
     public static Object getEnumProtocolDelegate(Channel channel, PacketBound bound) {
@@ -49,36 +56,92 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         return protocol;
     }
 
-    public static int getEnumProtocolDelegateOrdinal(Channel channel, PacketBound bound) {
-        return ((Enum<?>)getEnumProtocolDelegate(channel, bound)).ordinal();
+    public static WrappedEnumProtocol getEnumProtocolDelegate(PacketBound bound, PacketState state) {
+        if (state == PacketState.ANY || state == PacketState.UNKNOWN) {
+            return null;
+        }
+
+        Enum<?> enumProtocol = NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)
+                || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            return new WrappedEnumProtocol(bound, enumProtocol);
+        }
+
+        return new WrappedEnumProtocol(bound, getProtocolInfo(enumProtocol, bound));
     }
 
+    public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
+        Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructureCache.acquireStructure(NMS.getEnumProtocolClass())
+                .<Map<Object, Object>>withWeakType(Map.class).withTarget(enumProtocol).readField(0);
+        return enumProtocolDelegateFlowMap.get(bound.getNMSWrapperType());
+    }
+
+    private final PacketBound bound;
     private final IStructureModifier<Object> packetModifier = getModifier(NMS.getPacketClass());
+    private final MethodInvoker<Integer> getPacketIdModifier;
+    private final Object classToIdMap;
 
-    public WrappedEnumProtocol(Object handle) {
+    public WrappedEnumProtocol(PacketBound bound, Object handle) {
         super(handle);
+        this.bound = bound;
+
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            classToIdMap = null;
+            getPacketIdModifier = null;
+        }
+        else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_15)) {
+            Object protocolRegistry;
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+                protocolRegistry = ReflectStructureCache.acquireStructure(handle.getClass())
+                        .withType(Reflection.getClass("{nms}.network.EnumProtocol$b")).withTarget(handle)
+                        .readField(0);
+            } else {
+                protocolRegistry = getProtocolInfo(handle, bound);
+            }
+
+            classToIdMap = ReflectStructureCache.acquireStructure(protocolRegistry.getClass())
+                    .withType(Object2IntMap.class).withTarget(protocolRegistry)
+                    .readField(0);
+
+            getPacketIdModifier = ReflectStructureCache.acquireStructure(Object2IntMap.class)
+                    .asInt().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "getInt", 0, Class.class);
+        } else {
+            Object protocolMap = getProtocolInfo(handle, bound);
+            classToIdMap = ((BiMap<Integer, Class<? extends Object>>)protocolMap).inverse();
+
+            getPacketIdModifier = ReflectStructureCache.acquireStructure(Map.class)
+                    .asInt().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "get", 0, Object.class);
+        }
     }
 
-    public Object createPacket(PacketBound direction, int id, WrappedPacketDataSerializer serializer) throws Exception {
+    public PacketBound getBound() {
+        return bound;
+    }
+
+    public int getPacketId(Class<?> clazz) {
+        return getPacketIdModifier.invoke(classToIdMap, clazz);
+    }
+
+    public Object createPacket(PacketBound direction, int id, PacketDataSerializer serializer) throws Exception {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
             return createLegacyPacket(direction, id);
         }
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
-            return createModernPacket(direction, serializer, id);
+            return createModernPacket1_20_1(direction, serializer, id);
         }
-        return createModernPacket(serializer, id);
+        return createModernPacket1_20_2(serializer, id);
     }
 
     public Object createLegacyPacket(PacketBound direction, int id) throws Exception {
         return invoke(direction.getNMSWrapperType(), id);
     }
 
-    public Object createModernPacket(PacketBound direction, WrappedPacketDataSerializer serializer, int id) throws Exception {
-        return invoke(direction.getNMSWrapperType(), id, serializer.toNMSSerializer());
+    public Object createModernPacket1_20_1(PacketBound direction, PacketDataSerializer serializer, int id) throws Exception {
+        return invoke(direction.getNMSWrapperType(), id, serializer.getSerializer());
     }
 
-    public Object createModernPacket(WrappedPacketDataSerializer serializer, int id) throws Exception {
-        return invoke(id, serializer.toNMSSerializer());
+    public Object createModernPacket1_20_2(PacketDataSerializer serializer, int id) throws Exception {
+        return invoke(id, serializer.getSerializer());
     }
 
     private Object invoke(Object... params) throws Exception {

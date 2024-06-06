@@ -1,13 +1,13 @@
-package me.alek.honey.netty.handler.codec.impl;
+package me.alek.honey.netty.codec.disablednbtimpl;
 
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.handler.codec.Codec;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.LegacyCodec;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 
-public class PacketPlayInBlockPlace_WithoutNBT implements Codec {
+public class PacketPlayInBlockPlace_WithoutNBT implements LegacyCodec {
 
     @Override
-    public void apply(IStructureModifier<Object> structure, WrappedPacketDataSerializer serializer) {
+    public void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) {
         structure.writeField(0, serializer.readBlockPosition());
         structure.writeField(1, serializer.readUnsignedByte());
         structure.writeField(2, serializer.readItemStackWithoutMeta());

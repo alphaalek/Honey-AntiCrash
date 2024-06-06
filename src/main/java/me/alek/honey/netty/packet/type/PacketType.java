@@ -5,6 +5,7 @@ import me.alek.honey.netty.util.NetProtocolRange;
 import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.LazyInit;
 
 import java.util.*;
 
@@ -17,7 +18,12 @@ public enum PacketType implements PacketTypeEnum {
     }
 
     @Override
-    public int getPacketId() {
+    public LazyInit<Integer> getMinecraftID() {
+        return null;
+    }
+
+    @Override
+    public int getHoneyID() {
         return -1;
     }
 
@@ -52,10 +58,9 @@ public enum PacketType implements PacketTypeEnum {
             packetFromStateLookup.get(type.getState()).add(type);
         }
 
-        if (type instanceof RangedPacketTypeEnum) {
-            if (!NetProtocol.matchProtocol((RangedPacketTypeEnum) type)) {
-                return;
-            }
+        if (type instanceof RangedPacketTypeEnum
+                && !NetProtocol.matchProtocol((RangedPacketTypeEnum) type)) {
+            return;
         }
         registeredPackets.put(type.getNmsClass(), type);
     }
@@ -69,39 +74,29 @@ public enum PacketType implements PacketTypeEnum {
         for (PacketState state : PacketState.values()) {
             packetFromStateLookup.put(state, new ArrayList<>());
         }
+
         for (Common.Client commonClient : Common.Client.values()) {
-            registerPacketDetails(commonClient);
-        }
+            registerPacketDetails(commonClient); }
         for (Common.Server commonServer : Common.Server.values()) {
-            registerPacketDetails(commonServer);
-        }
+            registerPacketDetails(commonServer); }
         for (Handshake.Client handshakeClient : Handshake.Client.values()) {
-            registerPacketDetails(handshakeClient);
-        }
+            registerPacketDetails(handshakeClient); }
         for (Login.Client loginClient : Login.Client.values()) {
-            registerPacketDetails(loginClient);
-        }
+            registerPacketDetails(loginClient); }
         for (Login.Server loginServer : Login.Server.values()) {
-            registerPacketDetails(loginServer);
-        }
+            registerPacketDetails(loginServer); }
         for (Status.Client statusClient : Status.Client.values()) {
-            registerPacketDetails(statusClient);
-        }
+            registerPacketDetails(statusClient); }
         for (Status.Server statusServer : Status.Server.values()) {
-            registerPacketDetails(statusServer);
-        }
+            registerPacketDetails(statusServer); }
         for (Play.Client playClient : Play.Client.values()) {
-            registerPacketDetails(playClient);
-        }
+            registerPacketDetails(playClient); }
         for (Play.Server playServer : Play.Server.values()) {
-            registerPacketDetails(playServer);
-        }
+            registerPacketDetails(playServer); }
         for (Configuration.Client configurationClient : Configuration.Client.values()) {
-            registerPacketDetails(configurationClient);
-        }
+            registerPacketDetails(configurationClient); }
         for (Configuration.Server configurationServer : Configuration.Server.values()) {
-            registerPacketDetails(configurationServer);
-        }
+            registerPacketDetails(configurationServer); }
     }
 
     public static List<PacketTypeEnum> getTypesAvailableFor(NetProtocol protocol, PacketState state, PacketBound packetBound) {
@@ -177,14 +172,15 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Client implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
-            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            PONG(PONG_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            PONG(PONG_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             ;
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsClass;
             private final int packetId;
             private final NetProtocolRange range;
@@ -203,7 +199,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -254,17 +255,18 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Server implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
-            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            PING(PING_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_20_2, NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION))
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            PING(PING_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_20_2, NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
+            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION))
             ;
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsClass;
             private final int packetId;
             private final NetProtocolRange range;
@@ -283,7 +285,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -310,8 +317,9 @@ public enum PacketType implements PacketTypeEnum {
 
         public enum Client implements PacketTypeEnum {
 
-            SET_PROTOCOL(SET_PROTOCOL_CLASS, idRegistry.acquireID());
+            SET_PROTOCOL(SET_PROTOCOL_CLASS, idRegistry.acquire());
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
 
@@ -326,7 +334,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -361,12 +374,13 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Client implements RangedPacketTypeEnum {
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
-            CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, idRegistry.acquireID()),
-            LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            LOGIN_START(LOGIN_START_CLASS, idRegistry.acquireID());
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
+            CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, idRegistry.acquire()),
+            LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            LOGIN_START(LOGIN_START_CLASS, idRegistry.acquire());
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
             private final NetProtocolRange protocolRange;
@@ -389,7 +403,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -422,12 +441,13 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Server implements RangedPacketTypeEnum {
-            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquireID()),
-            ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, idRegistry.acquireID()),
-            LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, idRegistry.acquireID()),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
-            SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquireID());
+            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire()),
+            ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, idRegistry.acquire()),
+            LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, idRegistry.acquire()),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
+            SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquire());
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
             private final NetProtocolRange protocolRange;
@@ -450,7 +470,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -478,9 +503,10 @@ public enum PacketType implements PacketTypeEnum {
 
         public enum Client implements PacketTypeEnum {
 
-            PING_REQUEST(PING_CLASS, idRegistry.acquireID()),
-            STATUS_REQUEST(START_CLASS, idRegistry.acquireID());
+            PING_REQUEST(PING_CLASS, idRegistry.acquire()),
+            STATUS_REQUEST(START_CLASS, idRegistry.acquire());
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
 
@@ -495,7 +521,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -515,9 +546,10 @@ public enum PacketType implements PacketTypeEnum {
 
         public enum Server implements PacketTypeEnum {
 
-            PING_RESPONSE(PONG_CLASS, idRegistry.acquireID()),
-            STATUS_RESPONSE(SERVER_INFO_CLASS, idRegistry.acquireID());
+            PING_RESPONSE(PONG_CLASS, idRegistry.acquire()),
+            STATUS_RESPONSE(SERVER_INFO_CLASS, idRegistry.acquire());
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
 
@@ -532,7 +564,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -688,65 +725,66 @@ public enum PacketType implements PacketTypeEnum {
 
         public enum Client implements RangedPacketTypeEnum {
 
-            ABILITIES(ABILITIES_CLASS, idRegistry.acquireID()),
-            ADVANCEMENTS(ADVANCEMENTS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
-            ARM_ANIMATION(ARM_ANIMATION_CLASS, idRegistry.acquireID()),
-            AUTO_RECIPE(AUTO_RECIPE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
-            B_EDIT(B_EDIT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            BEACON(BEACON_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            BLOCK_DIG(BLOCK_DIG_CLASS, idRegistry.acquireID()),
-            BLOCK_PLACE(BLOCK_PLACE_CLASS, idRegistry.acquireID()),
-            BOAT_MOVE(BOAT_MOVE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            CHAT(CHAT_CLASS, idRegistry.acquireID()),
-            CHAT_ACK(CHAT_ACK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_1)),
-            CHAT_PREVIEW(CHAT_PREVIEW_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
-            CHAT_COMMAND(CHAT_COMMAND_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
-            CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CLIENT_COMMAND(CLIENT_COMMAND_CLASS, idRegistry.acquireID()),
-            CLOSE_WINDOW(CLOSE_WINDOW_CLASS, idRegistry.acquireID()),
-            CONFIGURATION_ACKNOWLEDGED(CONFIGURATION_ACKNOWLEDGED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            ENCHANT_ITEM(ENCHANT_ITEM_CLASS, idRegistry.acquireID()),
-            ENTITY_ACTION(ENTITY_ACTION_CLASS, idRegistry.acquireID()),
-            ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            FLYING(FLYING_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
-            GROUND(GROUND_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            HELD_ITEM_SLOT(HELD_ITEM_SLOT_CLASS, idRegistry.acquireID()),
-            ITEM_NAME(ITEM_NAME_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_16_1)),
-            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            LOOK(LOOK_CLASS, idRegistry.acquireID()),
-            PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            PONG(PONG_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
-            POSITION(POSITION_CLASS, idRegistry.acquireID()),
-            POSITION_LOOK(POSITION_LOOK_CLASS, idRegistry.acquireID()),
-            RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
-            RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_16_2)),
-            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            CHAT_SESSION_UPDATE(CHAT_SESSION_UPDATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_3)),
-            SET_COMMAND_BLOCK(SET_COMMAND_BLOCK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_CREATIVE_SLOT(SET_CREATIVE_SLOT_CLASS, idRegistry.acquireID()),
-            SET_JIGSAW(SET_JIGSAW_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            SETTINGS(SETTINGS_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            SPECTATE(SPECTATE_CLASS, idRegistry.acquireID()),
-            STEER_VEHICLE(STEER_VEHICLE_CLASS, idRegistry.acquireID()),
-            STRUCT(STRUCT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            TAB_COMPLETE(TAB_COMPLETE_CLASS, idRegistry.acquireID()),
-            TELEPORT_ACCEPT(TELEPORT_ACCEPT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            TILE_NBT_QUERY(TILE_NBT_QUERY_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            TR_SEL(TR_SEL_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            TRANSACTION(TRANSACTION_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
-            UPDATE_SIGN(UPDATE_SIGN_CLASS, idRegistry.acquireID()),
-            USE_ENTITY(USE_ENTITY_CLASS, idRegistry.acquireID()),
-            USE_ITEM(USE_ITEM_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            VEHICLE_MOVE(VEHICLE_MOVE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            WINDOW_CLICK(WINDOW_CLICK_CLASS, idRegistry.acquireID()),
+            ABILITIES(ABILITIES_CLASS, idRegistry.acquire()),
+            ADVANCEMENTS(ADVANCEMENTS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
+            ARM_ANIMATION(ARM_ANIMATION_CLASS, idRegistry.acquire()),
+            AUTO_RECIPE(AUTO_RECIPE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
+            B_EDIT(B_EDIT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            BEACON(BEACON_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            BLOCK_DIG(BLOCK_DIG_CLASS, idRegistry.acquire()),
+            BLOCK_PLACE(BLOCK_PLACE_CLASS, idRegistry.acquire()),
+            BOAT_MOVE(BOAT_MOVE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            CHAT(CHAT_CLASS, idRegistry.acquire()),
+            CHAT_ACK(CHAT_ACK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_1)),
+            CHAT_PREVIEW(CHAT_PREVIEW_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
+            CHAT_COMMAND(CHAT_COMMAND_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19)),
+            CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CLIENT_COMMAND(CLIENT_COMMAND_CLASS, idRegistry.acquire()),
+            CLOSE_WINDOW(CLOSE_WINDOW_CLASS, idRegistry.acquire()),
+            CONFIGURATION_ACKNOWLEDGED(CONFIGURATION_ACKNOWLEDGED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            ENCHANT_ITEM(ENCHANT_ITEM_CLASS, idRegistry.acquire()),
+            ENTITY_ACTION(ENTITY_ACTION_CLASS, idRegistry.acquire()),
+            ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            FLYING(FLYING_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_16_5)),
+            GROUND(GROUND_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            HELD_ITEM_SLOT(HELD_ITEM_SLOT_CLASS, idRegistry.acquire()),
+            ITEM_NAME(ITEM_NAME_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_16_1)),
+            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            LOOK(LOOK_CLASS, idRegistry.acquire()),
+            PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            PONG(PONG_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            POSITION(POSITION_CLASS, idRegistry.acquire()),
+            POSITION_LOOK(POSITION_LOOK_CLASS, idRegistry.acquire()),
+            RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
+            RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_16_2)),
+            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            CHAT_SESSION_UPDATE(CHAT_SESSION_UPDATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_3)),
+            SET_COMMAND_BLOCK(SET_COMMAND_BLOCK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_CREATIVE_SLOT(SET_CREATIVE_SLOT_CLASS, idRegistry.acquire()),
+            SET_JIGSAW(SET_JIGSAW_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            SETTINGS(SETTINGS_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            SPECTATE(SPECTATE_CLASS, idRegistry.acquire()),
+            STEER_VEHICLE(STEER_VEHICLE_CLASS, idRegistry.acquire()),
+            STRUCT(STRUCT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            TAB_COMPLETE(TAB_COMPLETE_CLASS, idRegistry.acquire()),
+            TELEPORT_ACCEPT(TELEPORT_ACCEPT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            TILE_NBT_QUERY(TILE_NBT_QUERY_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            TR_SEL(TR_SEL_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            TRANSACTION(TRANSACTION_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_16_5)),
+            UPDATE_SIGN(UPDATE_SIGN_CLASS, idRegistry.acquire()),
+            USE_ENTITY(USE_ENTITY_CLASS, idRegistry.acquire()),
+            USE_ITEM(USE_ITEM_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            VEHICLE_MOVE(VEHICLE_MOVE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            WINDOW_CLICK(WINDOW_CLICK_CLASS, idRegistry.acquire()),
             ;
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsClass;
             private final int packetId;
             private final NetProtocolRange protocolRange;
@@ -769,7 +807,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -1080,146 +1123,147 @@ public enum PacketType implements PacketTypeEnum {
 
         public enum Server implements RangedPacketTypeEnum {
 
-            ABILITIES(ABILITIES_SERVER_CLASS, idRegistry.acquireID()),
-            ADD_VIBRATION_SIGNAL(ADD_VIBRATION_SIGNAL_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_18_2)),
-            ADVANCEMENTS(ADVANCEMENTS_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
-            ANIMATION(ANIMATION_CLASS, idRegistry.acquireID()),
-            ATTACH_ENTITY(ATTACH_ENTITY_CLASS, idRegistry.acquireID()),
-            AUTO_RECIPE(AUTO_RECIPE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12_1)),
-            BED(BED_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_13_2)),
-            BLOCK_ACTION(BLOCK_ACTION_CLASS, idRegistry.acquireID()),
-            BLOCK_BREAK(BLOCK_BREAK_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_14, NetProtocol.v1_18_2)),
-            BLOCK_BREAK_ANIMATION(BLOCK_BREAK_ANIMATION_CLASS, idRegistry.acquireID()),
-            BLOCK_CHANGE(BLOCK_CHANGE_CLASS, idRegistry.acquireID()),
-            BLOCK_CHANGED_ACK(BLOCK_CHANGED_ACK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
-            BOSS(BOSS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            BUNDLE(BUNDLE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_4)),
-            CAMERA(CAMERA_CLASS, idRegistry.acquireID()),
-            CHAT_PREVIEW(CHAT_PREVIEW_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
-            CHUNK_BATCH_FINISHED(CHUNK_BATCH_FINISHED_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CHUNK_BATCH_START(CHUNK_BATCH_START_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CHUNKS_BIOMES(CHUNKS_BIOMES_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_4)),
-            CLEAR_TITLES(CLEAR_TITLES_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, idRegistry.acquireID()),
-            COLLECT(COLLECT_CLASS, idRegistry.acquireID()),
-            COMBAT_EVENT(COMBAT_EVENT_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
-            COMMANDS(COMMANDS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_1)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            DAMAGE_EVENT(DAMAGE_EVENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_4)),
-            DELETE_CHAT(DELETE_CHAT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_1)),
-            DISGUISED_CHAT(DISGUISED_CHAT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_3)),
-            ENTITY(ENTITY_CLASS, idRegistry.acquireID()),
-            ENTITY_DESTROY(ENTITY_DESTROY_CLASS, idRegistry.acquireID()),
-            ENTITY_EFFECT(ENTITY_EFFECT_CLASS, idRegistry.acquireID()),
-            ENTITY_EQUIPMENT(ENTITY_EQUIPMENT_CLASS, idRegistry.acquireID()),
-            ENTITY_HEAD_ROTATION(ENTITY_HEAD_ROTATION_CLASS, idRegistry.acquireID()),
-            ENTITY_LOOK(ENTITY_LOOK_CLASS, idRegistry.acquireID()),
-            ENTITY_METADATA(ENTITY_METADATA_CLASS, idRegistry.acquireID()),
-            ENTITY_MOVE(REL_ENTITY_MOVE_CLASS, idRegistry.acquireID()),
-            ENTITY_MOVE_LOOK(REL_ENTITY_MOVE_LOOK_CLASS, idRegistry.acquireID()),
-            ENTITY_SOUND(ENTITY_SOUND_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            ENTITY_STATUS(ENTITY_STATUS_CLASS, idRegistry.acquireID()),
-            ENTITY_TELEPORT(ENTITY_TELEPORT_CLASS, idRegistry.acquireID()),
-            ENTITY_VELOCITY(ENTITY_VELOCITY_CLASS, idRegistry.acquireID()),
-            EXPERIENCE(EXPERIENCE_CLASS, idRegistry.acquireID()),
-            EXPLOSION(EXPLOSION_CLASS, idRegistry.acquireID()),
-            GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, idRegistry.acquireID()),
-            HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, idRegistry.acquireID()),
-            HURT_ANIMATION(HURT_ANIMATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_4)),
-            INITIALIZE_BORDER(INITIALIZE_BORDER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            LEVEL_CHUNK_DATA(LEVEL_CHUNK_DATA_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_18)),
-            LEVEL_CHUNK_WITH_LIGHT(LEVEL_CHUNK_WITH_LIGHT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_18)),
-            LIGHT_UPDATE(LIGHT_UPDATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            LOGIN(LOGIN_CLASS, idRegistry.acquireID()),
-            LOOK_AT(LOOK_AT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            MAP(MAP_CLASS, idRegistry.acquireID()),
-            MAP_CHUNK(MAP_CHUNK_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_17_1)),
-            MAP_CHUNK_BULK(MAP_CHUNK_BULK_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_8_8)),
-            MOUNT(MOUNT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, idRegistry.acquireID()),
-            NBT_QUERY(NBT_QUERY_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            NAMED_SOUND_EFFECT(NAMED_SOUND_EFFECT_CLASS, idRegistry.acquireID()),
-            OPEN_BOOK(OPEN_BOOK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, idRegistry.acquireID()),
-            OPEN_WINDOW(OPEN_WINDOW_CLASS, idRegistry.acquireID()),
-            OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            PING(PING_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
-            PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_18_2)),
-            PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
-            PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            PLAYER_COMBAT_ENTER(PLAYER_COMBAT_ENTER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            PLAYER_COMBAT_KILL(PLAYER_COMBAT_KILL_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            PLAYER_INFO(PLAYER_INFO_CLASS, idRegistry.acquireID()),
-            PLAYER_INFO_REMOVE(PLAYER_INFO_REMOVE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_3)),
-            PLAYER_INFO_UPDATE(PLAYER_INFO_UPDATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19_3)),
-            PLAYERLIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, idRegistry.acquireID()),
-            POSITION(POSITION_SERVER_CLASS, idRegistry.acquireID()),
-            RECIPE_UPDATE(RECIPE_UPDATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            RECIPES(RECIPES_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
-            REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, idRegistry.acquireID()),
-            RESET_SCORE(RESET_SCORE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4)),
-            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, idRegistry.acquireID(), NetProtocolRange.before(NetProtocol.v1_20_2)),
-            RESPAWN(RESPAWN_CLASS, idRegistry.acquireID()),
-            SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, idRegistry.acquireID()),
-            SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, idRegistry.acquireID()),
-            SCOREBOARD_SCORE(SCOREBOARD_SCORE_CLASS, idRegistry.acquireID()),
-            SCOREBOARD_TEAM(SCOREBOARD_TEAM_CLASS, idRegistry.acquireID()),
-            SELECT_ADVANCEMENT_TAB(SELECT_ADVANCEMENT_TAB_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_12)),
-            SERVER_DATA(SERVER_DATA_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
-            SERVER_DIFFICULTY(SERVER_DIFFICULTY_CLASS, idRegistry.acquireID()),
-            SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_8_8)),
-            SET_ACTIONBAR_TEXT(SET_ACTION_BAR_TEXT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_BORDER_CENTER(SET_BORDER_CENTER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_BORDER_LERP_SIZE(SET_BORDER_LERP_SIZE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_BORDER_SIZE(SET_BORDER_SIZE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_BORDER_WARNING_DELAY(SET_BORDER_WARNING_DELAY_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_BORDER_WARNING_DISTANCE(SET_BORDER_WARNING_DISTANCE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_SIMULATION_DISTANCE(SET_SIMULATION_DISTANCE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_18)),
-            SET_SUBTITLE_TEXT(SET_SUBTITLE_TEXT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_COOLDOWN(SET_COOLDOWN_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            SET_DISPLAY_CHAT_PREVIEW(SET_DISPLAY_CHAT_PREVIEW_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
-            SET_TITLE_TEXT(SET_TITLE_TEXT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_TITLES_ANIMATION(SET_TITLES_ANIMATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_17)),
-            SET_SLOT(SET_SLOT_CLASS, idRegistry.acquireID()),
-            SPAWN_ENTITY(SPAWN_ENTITY_CLASS, idRegistry.acquireID()),
-            SPAWN_ENTITY_EXPERIENCE_ORB(SPAWN_ENTITY_EXPERIENCE_ORB_CLASS, idRegistry.acquireID()),
-            SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_18_2)),
-            SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_18_2)),
-            SPAWN_ENTITY_WEATHER(SPAWN_ENTITY_WEATHER_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_15_2)),
-            SPAWN_POSITION(SPAWN_POSITION_CLASS, idRegistry.acquireID()),
-            SYSTEM_CHAT(SYSTEM_CHAT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_19)),
-            START_CONFIGURATION(START_CONFIGURATION_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            STATISTIC(STATISTIC_CLASS, idRegistry.acquireID()),
-            STOP_SOUND(STOP_SOUND_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_13)),
-            TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, idRegistry.acquireID()),
-            TAGS(TAGS_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
-            TICKING_STATE(TICKING_STATE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4)),
-            TICKING_STEP(TICKING_STEP_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_4)),
-            TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, idRegistry.acquireID()),
-            TITLE(TITLE_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
-            TRANSACTION(TRANSACTION_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_16_5)),
-            UNLOAD_CHUNK(UNLOAD_CHUNK_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            UPDATE_ATTRIBUTES(UPDATE_ATTRIBUTES_CLASS, idRegistry.acquireID()),
-            UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquireID(), NetProtocolRange.between(NetProtocol.v1_19_3, NetProtocol.v1_20_1)),
-            UPDATE_ENTITY_NBT(UPDATE_ENTITY_NBT_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_8_8)),
-            UPDATE_HEALTH(UPDATE_HEALTH_CLASS, idRegistry.acquireID()),
-            UPDATE_SIGN(UPDATE_SIGN_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.until(NetProtocol.v1_9_2)),
-            UPDATE_TIME(UPDATE_TIME_CLASS, idRegistry.acquireID()),
-            VEHICLE_MOVE(VEHICLE_MOVE_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_9)),
-            VIEW_CENTRE(VIEW_CENTRE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            VIEW_DISTANCE(VIEW_DISTANCE_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_14)),
-            WINDOW_DATA(WINDOW_DATA_CLASS, idRegistry.acquireID()),
-            WINDOW_ITEMS(WINDOW_ITEMS_CLASS, idRegistry.acquireID()),
-            WORLD_BORDER(WORLD_BORDER_CLASS, idRegistry.acquireID()),
-            WORLD_EVENT(WORLD_EVENT_CLASS, idRegistry.acquireID()),
-            WORLD_PARTICLES(WORLD_PARTICLES_CLASS, idRegistry.acquireID())
+            ABILITIES(ABILITIES_SERVER_CLASS, idRegistry.acquire()),
+            ADD_VIBRATION_SIGNAL(ADD_VIBRATION_SIGNAL_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_18_2)),
+            ADVANCEMENTS(ADVANCEMENTS_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
+            ANIMATION(ANIMATION_CLASS, idRegistry.acquire()),
+            ATTACH_ENTITY(ATTACH_ENTITY_CLASS, idRegistry.acquire()),
+            AUTO_RECIPE(AUTO_RECIPE_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12_1)),
+            BED(BED_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_13_2)),
+            BLOCK_ACTION(BLOCK_ACTION_CLASS, idRegistry.acquire()),
+            BLOCK_BREAK(BLOCK_BREAK_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_14, NetProtocol.v1_18_2)),
+            BLOCK_BREAK_ANIMATION(BLOCK_BREAK_ANIMATION_CLASS, idRegistry.acquire()),
+            BLOCK_CHANGE(BLOCK_CHANGE_CLASS, idRegistry.acquire()),
+            BLOCK_CHANGED_ACK(BLOCK_CHANGED_ACK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19)),
+            BOSS(BOSS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            BUNDLE(BUNDLE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_4)),
+            CAMERA(CAMERA_CLASS, idRegistry.acquire()),
+            CHAT_PREVIEW(CHAT_PREVIEW_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
+            CHUNK_BATCH_FINISHED(CHUNK_BATCH_FINISHED_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CHUNK_BATCH_START(CHUNK_BATCH_START_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CHUNKS_BIOMES(CHUNKS_BIOMES_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_4)),
+            CLEAR_TITLES(CLEAR_TITLES_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, idRegistry.acquire()),
+            COLLECT(COLLECT_CLASS, idRegistry.acquire()),
+            COMBAT_EVENT(COMBAT_EVENT_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_16_5)),
+            COMMANDS(COMMANDS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_1)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            DAMAGE_EVENT(DAMAGE_EVENT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_4)),
+            DELETE_CHAT(DELETE_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_1)),
+            DISGUISED_CHAT(DISGUISED_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_3)),
+            ENTITY(ENTITY_CLASS, idRegistry.acquire()),
+            ENTITY_DESTROY(ENTITY_DESTROY_CLASS, idRegistry.acquire()),
+            ENTITY_EFFECT(ENTITY_EFFECT_CLASS, idRegistry.acquire()),
+            ENTITY_EQUIPMENT(ENTITY_EQUIPMENT_CLASS, idRegistry.acquire()),
+            ENTITY_HEAD_ROTATION(ENTITY_HEAD_ROTATION_CLASS, idRegistry.acquire()),
+            ENTITY_LOOK(ENTITY_LOOK_CLASS, idRegistry.acquire()),
+            ENTITY_METADATA(ENTITY_METADATA_CLASS, idRegistry.acquire()),
+            ENTITY_MOVE(REL_ENTITY_MOVE_CLASS, idRegistry.acquire()),
+            ENTITY_MOVE_LOOK(REL_ENTITY_MOVE_LOOK_CLASS, idRegistry.acquire()),
+            ENTITY_SOUND(ENTITY_SOUND_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            ENTITY_STATUS(ENTITY_STATUS_CLASS, idRegistry.acquire()),
+            ENTITY_TELEPORT(ENTITY_TELEPORT_CLASS, idRegistry.acquire()),
+            ENTITY_VELOCITY(ENTITY_VELOCITY_CLASS, idRegistry.acquire()),
+            EXPERIENCE(EXPERIENCE_CLASS, idRegistry.acquire()),
+            EXPLOSION(EXPLOSION_CLASS, idRegistry.acquire()),
+            GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, idRegistry.acquire()),
+            HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, idRegistry.acquire()),
+            HURT_ANIMATION(HURT_ANIMATION_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_4)),
+            INITIALIZE_BORDER(INITIALIZE_BORDER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            LEVEL_CHUNK_DATA(LEVEL_CHUNK_DATA_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_18)),
+            LEVEL_CHUNK_WITH_LIGHT(LEVEL_CHUNK_WITH_LIGHT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_18)),
+            LIGHT_UPDATE(LIGHT_UPDATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            LOGIN(LOGIN_CLASS, idRegistry.acquire()),
+            LOOK_AT(LOOK_AT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            MAP(MAP_CLASS, idRegistry.acquire()),
+            MAP_CHUNK(MAP_CHUNK_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_17_1)),
+            MAP_CHUNK_BULK(MAP_CHUNK_BULK_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_8_8)),
+            MOUNT(MOUNT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, idRegistry.acquire()),
+            NBT_QUERY(NBT_QUERY_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            NAMED_SOUND_EFFECT(NAMED_SOUND_EFFECT_CLASS, idRegistry.acquire()),
+            OPEN_BOOK(OPEN_BOOK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, idRegistry.acquire()),
+            OPEN_WINDOW(OPEN_WINDOW_CLASS, idRegistry.acquire()),
+            OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            PING(PING_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_18_2)),
+            PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
+            PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            PLAYER_COMBAT_ENTER(PLAYER_COMBAT_ENTER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            PLAYER_COMBAT_KILL(PLAYER_COMBAT_KILL_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            PLAYER_INFO(PLAYER_INFO_CLASS, idRegistry.acquire()),
+            PLAYER_INFO_REMOVE(PLAYER_INFO_REMOVE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_3)),
+            PLAYER_INFO_UPDATE(PLAYER_INFO_UPDATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19_3)),
+            PLAYERLIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, idRegistry.acquire()),
+            POSITION(POSITION_SERVER_CLASS, idRegistry.acquire()),
+            RECIPE_UPDATE(RECIPE_UPDATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            RECIPES(RECIPES_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
+            REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, idRegistry.acquire()),
+            RESET_SCORE(RESET_SCORE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4)),
+            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, idRegistry.acquire(), NetProtocolRange.before(NetProtocol.v1_20_2)),
+            RESPAWN(RESPAWN_CLASS, idRegistry.acquire()),
+            SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, idRegistry.acquire()),
+            SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, idRegistry.acquire()),
+            SCOREBOARD_SCORE(SCOREBOARD_SCORE_CLASS, idRegistry.acquire()),
+            SCOREBOARD_TEAM(SCOREBOARD_TEAM_CLASS, idRegistry.acquire()),
+            SELECT_ADVANCEMENT_TAB(SELECT_ADVANCEMENT_TAB_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_12)),
+            SERVER_DATA(SERVER_DATA_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19)),
+            SERVER_DIFFICULTY(SERVER_DIFFICULTY_CLASS, idRegistry.acquire()),
+            SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_8_8)),
+            SET_ACTIONBAR_TEXT(SET_ACTION_BAR_TEXT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_CENTER(SET_BORDER_CENTER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_LERP_SIZE(SET_BORDER_LERP_SIZE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_SIZE(SET_BORDER_SIZE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_WARNING_DELAY(SET_BORDER_WARNING_DELAY_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_BORDER_WARNING_DISTANCE(SET_BORDER_WARNING_DISTANCE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_SIMULATION_DISTANCE(SET_SIMULATION_DISTANCE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_18)),
+            SET_SUBTITLE_TEXT(SET_SUBTITLE_TEXT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_COOLDOWN(SET_COOLDOWN_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            SET_DISPLAY_CHAT_PREVIEW(SET_DISPLAY_CHAT_PREVIEW_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
+            SET_TITLE_TEXT(SET_TITLE_TEXT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_TITLES_ANIMATION(SET_TITLES_ANIMATION_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_17)),
+            SET_SLOT(SET_SLOT_CLASS, idRegistry.acquire()),
+            SPAWN_ENTITY(SPAWN_ENTITY_CLASS, idRegistry.acquire()),
+            SPAWN_ENTITY_EXPERIENCE_ORB(SPAWN_ENTITY_EXPERIENCE_ORB_CLASS, idRegistry.acquire()),
+            SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_18_2)),
+            SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_18_2)),
+            SPAWN_ENTITY_WEATHER(SPAWN_ENTITY_WEATHER_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_15_2)),
+            SPAWN_POSITION(SPAWN_POSITION_CLASS, idRegistry.acquire()),
+            SYSTEM_CHAT(SYSTEM_CHAT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_19)),
+            START_CONFIGURATION(START_CONFIGURATION_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            STATISTIC(STATISTIC_CLASS, idRegistry.acquire()),
+            STOP_SOUND(STOP_SOUND_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_13)),
+            TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, idRegistry.acquire()),
+            TAGS(TAGS_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
+            TICKING_STATE(TICKING_STATE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4)),
+            TICKING_STEP(TICKING_STEP_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_4)),
+            TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, idRegistry.acquire()),
+            TITLE(TITLE_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_16_5)),
+            TRANSACTION(TRANSACTION_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_16_5)),
+            UNLOAD_CHUNK(UNLOAD_CHUNK_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            UPDATE_ATTRIBUTES(UPDATE_ATTRIBUTES_CLASS, idRegistry.acquire()),
+            UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquire(), NetProtocolRange.between(NetProtocol.v1_19_3, NetProtocol.v1_20_1)),
+            UPDATE_ENTITY_NBT(UPDATE_ENTITY_NBT_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_8_8)),
+            UPDATE_HEALTH(UPDATE_HEALTH_CLASS, idRegistry.acquire()),
+            UPDATE_SIGN(UPDATE_SIGN_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.until(NetProtocol.v1_9_2)),
+            UPDATE_TIME(UPDATE_TIME_CLASS, idRegistry.acquire()),
+            VEHICLE_MOVE(VEHICLE_MOVE_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_9)),
+            VIEW_CENTRE(VIEW_CENTRE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            VIEW_DISTANCE(VIEW_DISTANCE_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_14)),
+            WINDOW_DATA(WINDOW_DATA_CLASS, idRegistry.acquire()),
+            WINDOW_ITEMS(WINDOW_ITEMS_CLASS, idRegistry.acquire()),
+            WORLD_BORDER(WORLD_BORDER_CLASS, idRegistry.acquire()),
+            WORLD_EVENT(WORLD_EVENT_CLASS, idRegistry.acquire()),
+            WORLD_PARTICLES(WORLD_PARTICLES_CLASS, idRegistry.acquire())
             ;
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsClass;
             private final int packetId;
             private final NetProtocolRange protocolRange;
@@ -1242,7 +1286,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -1274,9 +1323,10 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Client implements RangedPacketTypeEnum {
-            FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2))
+            FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2))
             ;
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
             private final NetProtocolRange protocolRange;
@@ -1293,7 +1343,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 
@@ -1326,11 +1381,12 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         public enum Server implements RangedPacketTypeEnum {
-            FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            REGISTRY_DATA(REGISTRY_DATA_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
-            UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquireID(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            REGISTRY_DATA(REGISTRY_DATA_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
+            UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquire(), NetProtocolRange.since(NetProtocol.v1_20_2)),
             ;
 
+            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final Class<?> nmsPacket;
             private final int packetId;
             private final NetProtocolRange protocolRange;
@@ -1347,7 +1403,12 @@ public enum PacketType implements PacketTypeEnum {
             }
 
             @Override
-            public int getPacketId() {
+            public LazyInit<Integer> getMinecraftID() {
+                return minecraftIdInit;
+            }
+
+            @Override
+            public int getHoneyID() {
                 return packetId;
             }
 

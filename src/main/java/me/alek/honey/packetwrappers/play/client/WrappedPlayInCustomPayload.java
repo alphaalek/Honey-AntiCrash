@@ -1,7 +1,7 @@
 package me.alek.honey.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -19,7 +19,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
         }
     }
 
-    public WrappedPacketDataSerializer getDataSerializer() {
+    public PacketDataSerializer getDataSerializer() {
         return getContainer().getDataSerializers().readField(0);
     }
 

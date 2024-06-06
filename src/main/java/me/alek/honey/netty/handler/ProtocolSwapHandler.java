@@ -29,11 +29,10 @@ public class ProtocolSwapHandler {
         if (packet.getType() == PacketType.Login.Server.LOGIN_SUCCESS) {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                 updateAfterEventloop = PacketState.PLAY;
-                updateDirection = PacketBound.CLIENT;
             } else {
                 updateAfterEventloop = PacketState.CONFIGURATION;
-                updateDirection = PacketBound.CLIENT;
             }
+            updateDirection = PacketBound.CLIENT;
         } else if (packet.getType() == PacketType.Configuration.Server.FINISH_CONFIGURATION
                 || packet.getType() == PacketType.Play.Server.START_CONFIGURATION) {
             updateAfterEventloop = PacketState.PLAY;

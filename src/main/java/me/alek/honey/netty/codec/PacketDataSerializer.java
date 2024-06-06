@@ -1,11 +1,12 @@
-package me.alek.honey.netty.modelwrappers.network;
+package me.alek.honey.netty.codec;
 
 import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufProcessor;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.*;
 
 import java.io.IOException;
@@ -18,7 +19,7 @@ import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
-public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketDataSerializer> {
+public class PacketDataSerializer extends ByteBuf {
 
     private static final ConstructorInvoker<?> packetDataSerializerConstructor = Reflection.getConstructor(NMS.getPacketDataSerializerClass(), ByteBuf.class);
 
@@ -27,25 +28,19 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
     }
 
     private final ByteBuf handle;
+    private final Object serializer;
 
-    public WrappedPacketDataSerializer(ByteBuf byteBufHandle) {
-        super(toNMSSerializer(byteBufHandle));
+    public PacketDataSerializer(ByteBuf byteBufHandle) {
         this.handle = byteBufHandle;
-    }
-
-    public WrappedPacketDataSerializer(Object handle) {
-        super(handle);
-        this.handle = getModifier(ByteBuf.class).readField(0);
+        this.serializer = toNMSSerializer(byteBufHandle);
     }
 
     public ByteBuf getBuf() {
         return handle;
     }
 
-    public Object toNMSSerializer() {
-        if (getHandle() != null) return getHandle();
-
-        return toNMSSerializer(handle);
+    public Object getSerializer() {
+        return serializer;
     }
 
     public Object readBlockPosition() {
@@ -79,7 +74,9 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
     }
 
     public Object readItemStack() {
-        return getModifier(NMS.getItemStackClass()).invokeMethod(null, 0);
+        return ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
+                .withType(NMS.getItemStackClass()).withTarget(serializer)
+                .invokeMethod(null, 0);
     }
 
     public Object readItemStackWithoutMeta() {
@@ -93,7 +90,9 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
             damage = readShort();
         }
 
-        Object nbt = getModifier(NMS.getNBTTagCompoundClass()).invokeMethod(null, 0);
+        Object nbt = ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(serializer)
+                .invokeMethod(null, 0);
         Object item = ItemReflection.getItemFromId(itemId);
         if (item == null) {
             return null;
@@ -578,6 +577,26 @@ public class WrappedPacketDataSerializer extends WrappedObject<WrappedPacketData
 
     public int bytesBefore(int i, int j, byte b0) {
         return this.handle.bytesBefore(i, j, b0);
+    }
+
+    @Override
+    public int forEachByte(ByteBufProcessor byteBufProcessor) {
+        return 0;
+    }
+
+    @Override
+    public int forEachByte(int i, int i1, ByteBufProcessor byteBufProcessor) {
+        return 0;
+    }
+
+    @Override
+    public int forEachByteDesc(ByteBufProcessor byteBufProcessor) {
+        return 0;
+    }
+
+    @Override
+    public int forEachByteDesc(int i, int i1, ByteBufProcessor byteBufProcessor) {
+        return 0;
     }
 
     public ByteBuf copy() {

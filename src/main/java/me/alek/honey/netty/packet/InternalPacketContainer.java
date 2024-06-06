@@ -12,7 +12,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -322,7 +322,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public IStructureModifier<WrappedPacketDataSerializer> getDataSerializers() {
+    public IStructureModifier<PacketDataSerializer> getDataSerializers() {
         return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter());
     }
 

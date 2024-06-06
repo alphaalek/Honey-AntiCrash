@@ -84,14 +84,14 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
-                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getPacketId())) {
+                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getHoneyID())) {
                     return Validation.inst().flag(1).build();
                 }
 
                 WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
                 if (task != null && task.getPlayer().equals(player)
                         && (System.nanoTime() - task.getStarted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
-                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(task.getPacket().getType().getPacketId())) {
+                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(task.getPacket().getType().getHoneyID())) {
                     return Validation.inst().flag(1).build();
                 }
             }
@@ -133,7 +133,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         private static final Array<PacketReader<? extends WrappedPacket<?>>> READERS = new Array<>();
 
         static {
-            READERS.set(PacketType.Play.Client.POSITION.getPacketId(), new PacketReader<WrappedPlayInPosition>() {
+            READERS.set(PacketType.Play.Client.POSITION.getHoneyID(), new PacketReader<WrappedPlayInPosition>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPosition> packetContainer) {
@@ -141,7 +141,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2)};
                 }
             });
-            READERS.set(PacketType.Play.Client.POSITION_LOOK.getPacketId(), new PacketReader<WrappedPlayInPositionLook>() {
+            READERS.set(PacketType.Play.Client.POSITION_LOOK.getHoneyID(), new PacketReader<WrappedPlayInPositionLook>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPositionLook> packetContainer) {
@@ -150,7 +150,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2), floats.readField(0), floats.readField(1)};
                 }
             });
-            READERS.set(PacketType.Play.Client.LOOK.getPacketId(), new PacketReader<WrappedPlayInLook>() {
+            READERS.set(PacketType.Play.Client.LOOK.getHoneyID(), new PacketReader<WrappedPlayInLook>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInLook> packetContainer) {
@@ -202,7 +202,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                PacketReader<WP> reader = (PacketReader<WP>) READERS.get(packet.getType().getPacketId());
+                PacketReader<WP> reader = (PacketReader<WP>) READERS.get(packet.getType().getHoneyID());
                 if (reader != null) {
                     Object[] values = reader.read(packet.getContainer());
 

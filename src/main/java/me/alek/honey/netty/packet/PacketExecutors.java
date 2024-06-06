@@ -11,7 +11,7 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -29,9 +29,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class PacketExecutors {
 
@@ -66,7 +64,7 @@ public class PacketExecutors {
 
         @Override
         public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            WrappedPacketDataSerializer serializer = new WrappedPacketDataSerializer(packetContainer.getPacket().getDataSerializer().getHandle());
+            PacketDataSerializer serializer = packetContainer.getPacket().getDataSerializer();
             ItemStack item = null;
             try {
                 item = Converters.getItemStackConverter().convertDelegate(serializer.readItemStack());

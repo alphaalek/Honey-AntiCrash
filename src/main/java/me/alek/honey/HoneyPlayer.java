@@ -44,7 +44,7 @@ public class HoneyPlayer {
     public final UUID uuid;
     public final String name;
     public final Channel channel;
-    public final int registryID = IDRegistry.PLAYERS.acquireID();
+    public final int registryID = IDRegistry.PLAYERS.acquire();
 
     public boolean online = true;
     public boolean punished;

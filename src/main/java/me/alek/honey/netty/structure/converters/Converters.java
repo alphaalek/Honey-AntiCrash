@@ -1,14 +1,14 @@
 package me.alek.honey.netty.structure.converters;
 
+import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.*;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.modelwrappers.network.WrappedEnumProtocol;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInUseEntity;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
@@ -150,8 +150,21 @@ public class Converters {
         return getConverter(WrappedGameProfile.class, (clazz) -> new SimpleWrapperConverter<>(WrappedGameProfile.class));
     }
 
-    public static JavaConverter<Object, WrappedPacketDataSerializer> getPacketDataSerializerConverter() {
-        return getConverter(WrappedPacketDataSerializer.class, (clazz) -> new SimpleWrapperConverter<>(WrappedPacketDataSerializer.class));
+    public static JavaConverter<Object, PacketDataSerializer> getPacketDataSerializerConverter() {
+        return new JavaConverter<Object, PacketDataSerializer>() {
+            @Override
+            public PacketDataSerializer convertDelegate(Object delegate, Object... params) {
+                return new PacketDataSerializer(
+                        ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
+                                .withType(ByteBuf.class).withTarget(delegate)
+                                .readField(0));
+            }
+
+            @Override
+            public Object convertDeclaring(PacketDataSerializer object) {
+                return object.getSerializer();
+            }
+        };
     }
 
     public static JavaConverter<Enum<?>, WrappedEnumProtocol> getEnumProtocolConverter() {

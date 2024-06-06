@@ -1,9 +1,6 @@
 package me.alek.honey.util;
 
-import org.bukkit.Bukkit;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class IDRegistry {
@@ -17,7 +14,7 @@ public class IDRegistry {
     public static IDRegistry create(int ids) {
         IDRegistry registry = new IDRegistry();
         for (int i = 0; i < ids; i++) {
-            registry.acquireID();
+            registry.acquire();
         }
         return registry;
     }
@@ -32,10 +29,7 @@ public class IDRegistry {
 
         IDRegistry registry = new IDRegistry();
         for (int i = 0; i <= max; i++) {
-            registry.acquireID();
-        }
-
-        for (int i = 0; i < max; i++) {
+            registry.add(i);
             if (!idsList.contains(i)) {
                 registry.remove(i);
             }
@@ -48,7 +42,7 @@ public class IDRegistry {
 
     }
 
-    public synchronized int acquireID() {
+    public synchronized int acquire() {
         try {
             int i = 0;
             for (int id : ids) {
@@ -65,7 +59,7 @@ public class IDRegistry {
         }
     }
 
-    public synchronized void addID(int id) {
+    public synchronized void add(int id) {
         if (id >= ids.length) {
             int[] newIds = new int[id + 1];
             System.arraycopy(ids, 0, newIds, 0, ids.length);

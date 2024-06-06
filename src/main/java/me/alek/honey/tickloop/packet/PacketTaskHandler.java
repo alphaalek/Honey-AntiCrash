@@ -117,7 +117,7 @@ public class PacketTaskHandler {
             String name = packet != null ? packet.getPlayerName() : "Unknown";
 
             if (packet != null && !PacketType.isUnknown(packet.getType())) {
-                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getPacketId() + ", State: " + packet.getProtocolState(PacketBound.SERVER));
+                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getHoneyID() + ", State: " + packet.getProtocolState(PacketBound.SERVER));
                 loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
             } else {

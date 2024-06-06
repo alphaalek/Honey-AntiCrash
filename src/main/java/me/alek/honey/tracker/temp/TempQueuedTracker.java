@@ -12,7 +12,7 @@ public class TempQueuedTracker implements HoneyTracker {
     private final boolean fixed;
 
     public TempQueuedTracker(boolean hasId, boolean fixed) {
-        if (hasId) id = IDRegistry.TRACKER_CONTEXT.acquireID();
+        if (hasId) id = IDRegistry.TRACKER_CONTEXT.acquire();
         else id = -1;
 
         this.fixed = fixed;

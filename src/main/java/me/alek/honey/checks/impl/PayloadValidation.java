@@ -40,7 +40,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         ByteBuf serializer;
         try {
-            serializer = (ByteBuf) packetContainer.getPacket().getDataSerializer().getHandle();
+            serializer = packetContainer.getPacket().getDataSerializer().getBuf();
         } catch (Exception ex) {
             return false;
         }

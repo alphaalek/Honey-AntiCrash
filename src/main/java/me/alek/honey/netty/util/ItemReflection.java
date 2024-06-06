@@ -108,6 +108,7 @@ public class ItemReflection {
 
     public static void setItemTag(Object item, Object tag) {
         ReflectStructureCache.acquireStructure(NMS.getItemClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(item).writeField(0, tag);
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
+                .writeField(0, tag);
     }
 }

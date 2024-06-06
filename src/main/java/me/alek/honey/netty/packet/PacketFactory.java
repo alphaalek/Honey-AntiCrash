@@ -6,7 +6,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.modelwrappers.network.WrappedPacketDataSerializer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.NMS;
@@ -40,7 +40,7 @@ public class PacketFactory {
 
         try {
             return type.getNmsClass().getDeclaredConstructor(NMS.getPacketDataSerializerClass())
-                    .newInstance(new WrappedPacketDataSerializer(serializer).toNMSSerializer());
+                    .newInstance(new PacketDataSerializer(serializer).getSerializer());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -99,7 +99,7 @@ public class PacketFactory {
     }
 
     public static MethodHandle getWrapperInvoker(PacketTypeEnum type) {
-        return WRAPPER_CACHE.get(type.getPacketId(), () -> {
+        return WRAPPER_CACHE.get(type.getHoneyID(), () -> {
             Class<?> nmsClass = type.getNmsClass();
 
             return PacketWrapperInvokerFactory.createWrapperInvoker(type, nmsClass);

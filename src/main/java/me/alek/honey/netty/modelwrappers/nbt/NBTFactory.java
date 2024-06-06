@@ -118,7 +118,7 @@ public class NBTFactory {
         }
 
         return structureModifier.invokeMethod(null,
-                (invoker) -> invoker.getMethod().getDeclaringClass().equals(NMS.getNBTBaseClass()));
+                (index, invoker) -> invoker.getMethod().getDeclaringClass().equals(NMS.getNBTBaseClass()));
     }
 
     public static NBTType getType(Object handle, boolean ignoreNestedLists, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
