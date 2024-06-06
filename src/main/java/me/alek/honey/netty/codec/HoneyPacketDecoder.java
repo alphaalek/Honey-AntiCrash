@@ -28,7 +28,7 @@ public class HoneyPacketDecoder {
 
         Object packet;
         try {
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+            if (EmulatorCodec.LEGACY) {
                 packet = protocol.decodeLegacy(byteBuf, (packetType, applier) -> {
                     if (packetType.equals(PacketType.Play.Client.BLOCK_PLACE)
                             && ConfigurationOptions.Decoder.DISABLE_NBT

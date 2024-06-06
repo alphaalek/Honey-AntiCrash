@@ -1,5 +1,6 @@
 package me.alek.honey.util;
 
+import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -30,8 +31,7 @@ public class LazyInit<T> {
     public static LazyInit<Integer> getMinecraftIDInit(PacketTypeEnum type) {
         return new LazyInit<>(() -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                Collection<FieldAccessor<Object>> accessors = ReflectStructureCache.acquireStructure(NMS.getGamePacketTypesClass())
-                        .withType(NMS.getPacketTypeClass()).withTarget(null).getAccessors();
+                Collection<FieldAccessor<Object>> accessors = CodecFactory.getPacketTypes1_20_5(type.getState());
 
                 int clientBoundIndex = 0;
                 int serverBoundIndex = 0;

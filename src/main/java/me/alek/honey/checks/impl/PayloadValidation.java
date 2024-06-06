@@ -14,6 +14,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
@@ -32,24 +33,17 @@ import java.util.function.Supplier;
 
 public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCustomPayload> implements IPacketListener {
 
-    private final Class<?> PACKET_SERIALIZER_CLASS = Reflection.getFuzzyClass("{nms}.PacketDataSerializer", "{nms}.network.PacketDataSerializer");
-    private final ConstructorInvoker<?> PACKET_SERIALIZER_CONSTRUCTOR = Reflection.getConstructor(PACKET_SERIALIZER_CLASS, ByteBuf.class);
-    private final MethodInvoker<?> ITEMSTACK_SERIALIZER_INVOKER = Reflection.getMethodFromReturnType(PACKET_SERIALIZER_CLASS, 0, ItemReflection.getNMSItemStackClass());
-
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        ByteBuf serializer;
-        try {
-            serializer = packetContainer.getPacket().getDataSerializer().getBuf();
-        } catch (Exception ex) {
-            return false;
-        }
         String channel = packetContainer.getPacket().getChannel();
-        if (channel.equals("MC|BEdit") || channel.equals("MC|BOpen") || channel.equals("MC|BSign")) {
+        ByteBuf buf = packetContainer.getPacket().getDataSerializer().getBuf();
 
-            ByteBuf copiedSerializer = (ByteBuf) PACKET_SERIALIZER_CONSTRUCTOR.invoke(Unpooled.copiedBuffer(serializer));
+        if (channel.equals("MC|BEdit")
+                || channel.equals("MC|BOpen")
+                || channel.equals("MC|BSign")) {
+            PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
             try {
-                Object item = ITEMSTACK_SERIALIZER_INVOKER.invokeWithException(copiedSerializer);
+                Object item = serializer.readItemStack();
                 ItemStack bukkitItem = ItemReflection.asBukkitCopy(item);
 
                 container.getStorage().put(ItemStack.class, bukkitItem);
@@ -57,14 +51,14 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
             }
         }
 
-        container.getStorage().put(ByteBuf.class, serializer);
+        container.getStorage().put(ByteBuf.class, buf);
 
         callback.addAction(response -> {
             response.builder().onViolation(onViolation -> {
                 if (onViolation != null) onViolation.run();
 
                 container.getDefaultDevelopmentData().addPoint("Channel", channel);
-                container.getDefaultDevelopmentData().addPoint("ByteBuf", serializer.readableBytes() + " bytes");
+                container.getDefaultDevelopmentData().addPoint("ByteBuf", buf.readableBytes() + " bytes");
             });
         });
 

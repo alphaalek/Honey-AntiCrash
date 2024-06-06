@@ -304,9 +304,64 @@ public class NMS {
         return gamePacketTypesClass != null ? gamePacketTypesClass : (gamePacketTypesClass = getFuzzyClass("{play}.GamePacketTypes"));
     }
 
+    private static Class<Object> loginPacketTypesClass;
+    public static Class<Object> getLoginPacketTypesClass() {
+        return loginPacketTypesClass != null ? loginPacketTypesClass : (loginPacketTypesClass = getFuzzyClass("{login}.LoginPacketTypes"));
+    }
+
+    private static Class<Object> handshaakePacketTypesClass;
+    public static Class<Object> getHandshakePacketTypesClass() {
+        return handshaakePacketTypesClass != null ? handshaakePacketTypesClass : (handshaakePacketTypesClass = getFuzzyClass("{handshake}.HandshakePacketTypes"));
+    }
+
+    private static Class<Object> statusPacketTypesClass;
+    public static Class<Object> getStatusPacketTypesClass() {
+        return statusPacketTypesClass != null ? statusPacketTypesClass : (statusPacketTypesClass = getFuzzyClass("{status}.StatusPacketTypes"));
+    }
+
+    private static Class<Object> configurationPacketTypesClass;
+    public static Class<Object> getConfigurationPacketTypesClass() {
+        return configurationPacketTypesClass != null ? configurationPacketTypesClass : (configurationPacketTypesClass = getFuzzyClass("{configuration}.ConfigurationPacketTypes"));
+    }
+
+    private static Class<Object> gameProtocolsClass;
+    public static Class<Object> getGameProtocolsClass() {
+        return gameProtocolsClass != null ? gameProtocolsClass : (gameProtocolsClass = getFuzzyClass("{play}.GameProtocols"));
+    }
+
+    private static Class<Object> loginProtocolsClass;
+    public static Class<Object> getLoginProtocolsClass() {
+        return loginProtocolsClass != null ? loginProtocolsClass : (loginProtocolsClass = getFuzzyClass("{login}.LoginProtocols"));
+    }
+
+    private static Class<Object> handshakeProtocolsClass;
+    public static Class<Object> getHandshakeProtocolsClass() {
+        return handshakeProtocolsClass != null ? handshakeProtocolsClass : (handshakeProtocolsClass = getFuzzyClass("{handshake}.HandshakeProtocols"));
+    }
+
+    private static Class<Object> statusProtocolsClass;
+    public static Class<Object> getStatusProtocolsClass() {
+        return statusProtocolsClass != null ? statusProtocolsClass : (statusProtocolsClass = getFuzzyClass("{status}.StatusProtocols"));
+    }
+
+    private static Class<Object> configurationProtocolsClass;
+    public static Class<Object> getConfigurationProtocolsClass() {
+        return configurationProtocolsClass != null ? configurationProtocolsClass : (configurationProtocolsClass = getFuzzyClass("{configuration}.ConfigurationProtocols"));
+    }
+
+    private static Class<Object> protocolInfoClass;
+    public static Class<Object> getProtocolInfoClass() {
+        return protocolInfoClass != null ? protocolInfoClass : (protocolInfoClass = getFuzzyClass("{nms}.network.ProtocolInfo"));
+    }
+
     private static Class<Object> packetTypeClass;
     public static Class<Object> getPacketTypeClass() {
         return packetTypeClass != null ? packetTypeClass : (packetTypeClass = getFuzzyClass("{nms}.network.protocol.PacketType"));
+    }
+
+    private static Class<Object> streamCodecClass;
+    public static Class<Object> getStreamCodecClass() {
+        return streamCodecClass != null ? streamCodecClass : (streamCodecClass = getFuzzyClass("{nms}.network.codec.StreamCodec"));
     }
 
     private static Class<Object> object2IntMapClass;

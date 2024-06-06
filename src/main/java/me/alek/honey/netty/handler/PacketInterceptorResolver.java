@@ -5,13 +5,17 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.AttributeKey;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.CodecFactory;
+import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 
@@ -70,8 +74,8 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        String packetName = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17) ? "PacketPlayInFlying" : "d";
-        ByteBuf byteBuf = createByteBufPacket(pipeline.channel(), PacketBound.SERVER, packetName, serializer -> serializer.writeBoolean(false));
+        ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketType.Play.Client.FLYING : PacketType.Play.Client.GROUND,
+                serializer -> serializer.writeBoolean(false));
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
@@ -119,7 +123,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf buf = createByteBufPacket(pipeline.channel(), PacketBound.CLIENT, "PacketPlayOutPosition", (serializer) -> {
+        ByteBuf buf = createByteBuf(PacketType.Play.Server.POSITION, serializer -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -166,7 +170,8 @@ public class PacketInterceptorResolver {
         for (String name : names) {
 
             ChannelHandler handler;
-            if (pipeline.context(name) == null || !accept.test(handler = pipeline.context(name).handler())) {
+            if (pipeline.context(name) == null
+                    || !accept.test(handler = pipeline.context(name).handler())) {
                 continue;
             }
 
@@ -192,33 +197,10 @@ public class PacketInterceptorResolver {
         return wrappedHandlers;
     }
 
-    private static ByteBuf createByteBufPacket(Channel channel, PacketBound bound, String name, Consumer<ByteBuf> write) {
-        AttributeKey<?> key = WrappedEnumProtocol.getProtocolAttributeKey(channel, bound);
-        if (key == null) {
-            throw new UnsupportedOperationException("Can't create keep alive packet for channel that is not registered for a player.");
-        }
-
-        WrappedEnumProtocol protocol = WrappedEnumProtocol.getEnumProtocol(channel, bound);
-
+    private static ByteBuf createByteBuf(PacketTypeEnum packetType, Consumer<ByteBuf> write) {
         ByteBuf serializer = Unpooled.buffer();
-        serializer.writeBytes(new byte[64]);
+        serializer.writeInt(packetType.getMinecraftID().get());
         write.accept(serializer);
-
-        for (int id = 0; ; id++) {
-            Object packet = null;
-            try {
-                packet = protocol.createPacket(bound, id, new PacketDataSerializer(serializer));
-            } catch (Exception ignored) {
-            }
-
-            if (packet != null && packet.getClass().getSimpleName().equals(name)) {
-                ByteBuf buf = Unpooled.buffer();
-                buf.writeByte(id);
-                write.accept(buf);
-
-                return buf;
-            }
-            serializer.readerIndex(0);
-        }
+        return serializer;
     }
 }
