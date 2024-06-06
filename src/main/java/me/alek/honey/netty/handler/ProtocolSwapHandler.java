@@ -59,13 +59,16 @@ public class ProtocolSwapHandler {
             PacketState packetState = PacketState.values()[packetStateOrdinal];
             setProtocolState(packet.getChannel(), packetState, PacketBound.SERVER);
         }
+
     }
 
     private void setProtocolState(Channel channel, PacketState state, PacketBound bound) {
+        /*
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).setProtocolState(bound, state);
         } catch (MissingHandlerException ex) {
             channel.close();
         }
+        */
     }
 }

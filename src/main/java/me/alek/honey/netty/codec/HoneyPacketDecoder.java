@@ -21,17 +21,7 @@ import java.util.function.BiConsumer;
 
 public class HoneyPacketDecoder {
 
-    private static final Class<?> packetDataSerializerClass = NMS.getPacketDataSerializerClass();
-    private static final EnumMap<PacketState, Array<MethodHandle>> legacySerializerApplicationLookup = new EnumMap<>(PacketState.class);
-
-    static {
-        for (PacketState state : PacketState.values()) {
-            legacySerializerApplicationLookup.put(state, new Array<>());
-        }
-    }
-
     public static Object decodePacket(HoneyPlayer player, PacketState state, EmulatorCodec<Object, PacketDataSerializer> protocol, ByteBuf byteBuf) throws DecoderException {
-
         Object packet;
         try {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {

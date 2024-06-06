@@ -66,7 +66,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         }
     }
 
-
     @Override
     public synchronized void channelInactive(ChannelHandlerContext ctx) {
         ctx.fireChannelInactive();
@@ -80,6 +79,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
+        Bukkit.getLogger().info("Filter " + byteBuf + " " + ctx.channel().pipeline().toMap());
+
         if (player != null) {
             checkRelocation();
         }
@@ -90,7 +91,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
         CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
         packetProcessor.callDecode(player, cancellableByteBuf);
-
         packetContainer.getEventloopStateTimings().stopTimings();
 
         if (!cancellableByteBuf.isCancelled()) {

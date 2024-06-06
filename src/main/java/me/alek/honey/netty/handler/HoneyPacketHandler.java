@@ -106,14 +106,14 @@ public class HoneyPacketHandler {
             return false;
         }
 
-        protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
+        //protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         packetSendMarker.set(packetContainer);
 
         return true;
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
+        //protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         return !isCancelled(packetContainer);
     }
 }

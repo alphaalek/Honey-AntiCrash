@@ -10,6 +10,7 @@ import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,8 @@ public class SpigotPipelineInjector {
             } else {
                 setupPreparationHandlers(channel, packetHandler);
             }
+
+            Bukkit.getLogger().info("Injected " + channel.pipeline().toMap());
         }
     }
 
@@ -156,6 +159,8 @@ public class SpigotPipelineInjector {
             }
 
             ensureCorrectPipelineOrder(channel);
+
+            Bukkit.getLogger().info("Relocated");
         }
     }
 
@@ -232,6 +237,7 @@ public class SpigotPipelineInjector {
             }
         }
 
+        Bukkit.getLogger().info("Could not find");
         throw new MissingHandlerException();
     }
 

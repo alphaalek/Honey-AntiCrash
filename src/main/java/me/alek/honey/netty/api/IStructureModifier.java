@@ -7,6 +7,7 @@ import me.alek.honey.netty.util.MethodInvoker;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -23,12 +24,12 @@ public interface IStructureModifier<T> {
 
     <O> FieldAccessor<T> getField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index);
 
-    <O> FieldAccessor<T> getField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<Integer, FieldAccessor<?>> filter);
+    <O> FieldAccessor<T> getField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter);
 
     IStructureModifier<T> writeField(int index, T value);
 
     <O> IStructureModifier<T> writeField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index, T value);
-    <O> IStructureModifier<T> writeField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<Integer, FieldAccessor<?>> filter, T value);
+    <O> IStructureModifier<T> writeField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter, T value);
 
     T readField(int index);
 
@@ -36,21 +37,21 @@ public interface IStructureModifier<T> {
 
     <O> T readField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index);
 
-    <O> T readField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<Integer, FieldAccessor<?>> filter);
+    <O> T readField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter);
 
     MethodInvoker<T> getMethod(int index, Object... params);
 
     <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params);
 
-    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, FieldAccessor<?>> filter);
+    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter);
 
-    <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, MethodInvoker<?>> filter, Object... params);
+    <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params);
 
     <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params);
 
     <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params);
 
-    <O> T invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, MethodInvoker<?>> filter, Object... params) throws Exception;
+    <O> T invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params) throws Exception;
 
     <O> T invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) throws Exception;
 

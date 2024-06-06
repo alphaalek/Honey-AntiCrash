@@ -83,13 +83,12 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
             for (String prohibitedCommand : prohibitedCommands) {
 
-                Bukkit.broadcastMessage(prohibitedCommand + " " + label);
                 if (ChatValidation.match(prohibitedCommand, label)) {
                     return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
-                                String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;;
+                                String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "<...>" : message;;
                                 container.getDevelopmentData(this).addPoint("Message", messageFormatted);
                             })
                             .build();

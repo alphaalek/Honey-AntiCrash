@@ -64,11 +64,13 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        Bukkit.getLogger().info("Read " + msg);
         PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
         sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
     }
 
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        Bukkit.getLogger().info("Write " + msg);
         PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
         sendThroughPipeline(msg, packetContainer, packetHandler::write, () -> ctx.write(msg, promise));
     }

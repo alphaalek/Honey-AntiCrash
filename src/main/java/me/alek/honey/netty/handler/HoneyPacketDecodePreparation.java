@@ -18,6 +18,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -97,6 +98,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
                 return;
             }
+
+            Bukkit.getLogger().info("Decoded " + packet);
 
             byteBuf.release();
 

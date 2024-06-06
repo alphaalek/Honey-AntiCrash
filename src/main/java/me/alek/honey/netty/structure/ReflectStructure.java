@@ -372,18 +372,18 @@ public class ReflectStructure<T, C> {
         }
 
         public <O> FieldAccessor<C> getField(AtomicReference<FieldAccessor<O>> fieldReference, String name, int index) {
-            return getField(fieldReference, (i, field) -> i == index && field.getName().equals(name));
+            return getField(fieldReference, (i, field) -> field.getName().equals(name) && i.getAndIncrement() == index);
         }
 
-        public <O> FieldAccessor<C> getField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<Integer, FieldAccessor<?>> filter) {
+        public <O> FieldAccessor<C> getField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter) {
             FieldAccessor<O> cachedAccessor;
             if (fieldReference != null && (cachedAccessor = fieldReference.get()) != null) {
                 return (FieldAccessor<C>) cachedAccessor;
             }
 
-            int index = 0;
+            AtomicInteger index = new AtomicInteger();
             for (FieldAccessor<T> accessor : ACQUIRED_ACCESSORS.values()) {
-                if (filter.test(index++, accessor)) {
+                if (filter.test(index, accessor)) {
 
                     if (fieldReference != null) {
                         fieldReference.set((FieldAccessor<O>) accessor);
@@ -421,12 +421,16 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public <O> IStructureModifier<C> writeField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<Integer, FieldAccessor<?>> filter, C value) {
+        public <O> IStructureModifier<C> writeField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter, C value) {
             set((FieldAccessor<T>) getField(fieldReference, filter), value);
             return this;
         }
 
         private C get(FieldAccessor<T> accessor) {
+            if (accessor == null) {
+                return null;
+            }
+
             if (converter != null) {
                 return converter.convertDelegate(accessor.get(handle));
             } else {
@@ -494,7 +498,7 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public <O> C readField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<Integer, FieldAccessor<?>> filter) {
+        public <O> C readField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter) {
             return get((FieldAccessor<T>) getField(fieldReference, filter));
         }
 
@@ -521,7 +525,7 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public <O> C invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, MethodInvoker<?>> filter, Object... params) {
+        public <O> C invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params) {
             try {
                 return invokeMethodWithException(methodReference, filter, params);
             } catch (Exception ex) {
@@ -548,7 +552,7 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, MethodInvoker<?>> filter, Object... params) throws Exception {
+        public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params) throws Exception {
             return invoke((MethodInvoker<T>) getMethod(methodReference, filter, params), params);
         }
 
@@ -569,16 +573,16 @@ public class ReflectStructure<T, C> {
             return false;
         }
 
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, MethodInvoker<?>> filter, Object... params) {
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params) {
             MethodInvoker<O> cachedInvoker;
             if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
                 return (MethodInvoker<C>) cachedInvoker;
             }
 
-            int index = 0;
+            AtomicInteger index = new AtomicInteger();
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
                 if (Arrays.equals(Arrays.stream(params).map(Object::getClass).toArray(), getWrapperClasses(invoker.getMethod().getParameterTypes()))
-                        && filter.test(index++, invoker)) {
+                        && filter.test(index, invoker)) {
 
                     if (methodReference != null) {
                         methodReference.set((MethodInvoker<O>) invoker);
@@ -592,11 +596,11 @@ public class ReflectStructure<T, C> {
         }
 
         public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) {
-            return getMethod(methodReference, (i, invoker) -> i == index && invoker.getName().equals(name), params);
+            return getMethod(methodReference, (i, invoker) -> invoker.getName().equals(name) && i.getAndIncrement() == index, params);
         }
 
         @Override
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<Integer, FieldAccessor<?>> filter) {
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter) {
             return getMethod(methodReference, filter);
         }
 

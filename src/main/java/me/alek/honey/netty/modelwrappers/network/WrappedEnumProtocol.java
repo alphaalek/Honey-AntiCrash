@@ -15,6 +15,7 @@ import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
+import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -72,7 +73,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
         Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructureCache.acquireStructure(NMS.getEnumProtocolClass())
-                .<Map<Object, Object>>withWeakType(Map.class).withTarget(enumProtocol).readField(0);
+                .<Map<Object, Object>>withWeakType(Map.class).withoutStatic().withTarget(enumProtocol).readField(0);
         return enumProtocolDelegateFlowMap.get(bound.getNMSWrapperType());
     }
 
