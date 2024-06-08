@@ -11,7 +11,6 @@ import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.BungeeMessenger;
 import org.bukkit.Bukkit;
@@ -362,20 +361,6 @@ public class ViolationService {
             }
 
             if (check != null) {
-                if (ConfigurationOptions.PacketDump.VLS_ENABLED) {
-
-                    PacketBundleFilter filter = check.getDumpFilter();
-                    if (filter != null && filter.getAcceptedPacketTypes() != null) {
-
-                        List<PacketContainer<?>> dumpedPackets = player.packetBundleSaver
-                                .get(Sets.newHashSet(filter.getAcceptedPacketTypes()), filter.size(), true);
-
-                        if (dumpedPackets != null) {
-                            HoneyPlugin.get().getLoggerService().dumpPackets(player, dumpedPackets);
-                        }
-                    }
-                }
-
                 HoneyPlugin.get().getNotificationService().notify(
                         player, check.getName(), honeyKey, getSetting(), this, developmentData);
 

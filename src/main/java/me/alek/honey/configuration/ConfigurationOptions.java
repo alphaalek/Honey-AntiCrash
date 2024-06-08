@@ -486,9 +486,6 @@ public class ConfigurationOptions {
     @Setting
     public static class PacketDump {
 
-        public static boolean VLS_ENABLED;
-        public static List<String> VLS_FILTER_ALL;
-
         public static boolean HEAVY_PACKET_DUMP_ENABLED;
         public static double MIN_SERVER_HANDLE_PACKET_DUMP;
 
@@ -496,9 +493,6 @@ public class ConfigurationOptions {
         public static double MIN_SERVER_HANDLE_THREAD_DUMP;
 
         public static void load() {
-            VLS_ENABLED = file.getBoolean("packet-dump.enabled", true);
-            VLS_FILTER_ALL = file.getStringList("packet-dump.filter-all");
-
             HEAVY_PACKET_DUMP_ENABLED = file.getBoolean("packet-dump.heavy-packet.enabled", true);
             MIN_SERVER_HANDLE_PACKET_DUMP = file.getDouble("packet-dump.heavy-packet.min-server-handle", 5d);
 

@@ -3,19 +3,20 @@ package me.alek.honey.checks.impl;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionBegin;
 import me.alek.honey.netty.util.NMS;
+import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionBegin;
 import me.alek.honey.util.CallbackAction;
 
 import java.net.InetSocketAddress;
@@ -87,11 +88,6 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
         @Override
         public String getDescription() {
             return Lang.get("validation.encryption.a");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
         }
     }
 }

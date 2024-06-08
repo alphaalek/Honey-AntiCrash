@@ -2,16 +2,14 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
@@ -128,11 +126,6 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SHORT_ROTATION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Rotation.RotationA.class);
         }
@@ -175,11 +168,6 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SHORT_ROTATION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Rotation.RotationB.class);
         }
@@ -217,11 +205,6 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public String getDescription() {
             return Lang.get("validation.rotation.c");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_ROTATION_FILTER;
         }
 
         @Override

@@ -3,8 +3,8 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -15,31 +15,29 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.netty.packet.PacketReader;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPosition;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPositionLook;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
-import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tickloop.packet.PacketTaskHandler;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.NumberConversions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
@@ -112,11 +110,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         @Override
         public String getDescription() {
             return "Exceeds limit of packets in queue execution";
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         @Override
@@ -247,11 +240,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createLenientFilter(1);
-        }
-
-        @Override
         public ListenerPriority getPriority() {
             return ListenerPriority.HIGHEST;
         }
@@ -343,11 +331,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyC.class);
         }
@@ -392,11 +375,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_SINGLETON_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyH.class);
         }
@@ -422,11 +400,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         @Override
         public String getDescription() {
             return Lang.get("validation.netty.i");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         @Override
@@ -526,11 +499,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         @Override
         public String getDescription() {
             return "Too high usage of server thread";
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         @Override

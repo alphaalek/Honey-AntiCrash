@@ -3,8 +3,8 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -12,8 +12,6 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -21,7 +19,6 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -113,11 +110,6 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SINGLETON_TAB_COMPLETE_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabA.class);
         }
@@ -183,11 +175,6 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_TAB_COMPLETE_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabB.class);
         }
@@ -236,11 +223,6 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         @Override
         public String getDescription() {
             return Lang.get("validation.tab.c");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_TAB_COMPLETE_FILTER;
         }
 
         @Override

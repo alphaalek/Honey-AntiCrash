@@ -4,20 +4,19 @@ import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.DecodeCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.DecayingListeningCounter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class NettyDecodeValidation extends AbstractDecodeListener implements IListener {
@@ -93,11 +92,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyD.class);
         }
@@ -126,11 +120,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         @Override
         public String getDescription() {
             return Lang.get("validation.netty.e");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
         @Override
@@ -165,11 +154,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyF.class);
         }
@@ -198,11 +182,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         @Override
         public String getDescription() {
             return Lang.get("validation.netty.g");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilterFactory.createEmptyFilter();
         }
 
         @Override
@@ -262,11 +241,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyK.class);
         }
@@ -313,11 +287,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
                 }
             }
             return Validation.PASS;
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         public abstract boolean check(long sizeKey, ByteBuf byteBuf);
@@ -375,11 +344,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
                 }
             }
             return Validation.PASS;
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LENIENT_LONG_FILTER;
         }
 
         public abstract ConfigurationOptions.VlSetting getSetting();

@@ -1,6 +1,7 @@
 package me.alek.honey.packetwrappers.play.client;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.alek.honey.netty.api.PacketContainer;
@@ -72,11 +73,12 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
                 JsonElement json = gson.toJsonTree(chatBaseComponent);
                 if (json.isJsonObject()) {
                     pages.add(json.getAsJsonObject());
-                }
-                else {
+                } else if (json.isJsonPrimitive()) {
                     JsonObject page = new JsonObject();
                     page.add("text", json);
                     pages.add(page);
+                } else {
+                    throw new IllegalStateException("Illegal json type: " + json);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

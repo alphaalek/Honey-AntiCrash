@@ -2,7 +2,6 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
-import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tickloop.TickloopHandler;
@@ -52,7 +51,6 @@ public class HoneyPlayer {
     public HoneyPacketHandler packetHandler;
     public TempQueuedTracker timedQueuedTracker;
     public TempQueuedTracker serverThreadTimedQueuedTracker;
-    public PacketBundleSaver packetBundleSaver = new PacketBundleSaver();
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
     public final TickloopHandler tickloopHandler = new TickloopHandler();
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();

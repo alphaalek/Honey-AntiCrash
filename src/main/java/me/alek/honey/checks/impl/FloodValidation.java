@@ -2,8 +2,8 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.KeyedViolationCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
@@ -13,8 +13,6 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -23,7 +21,6 @@ import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
-import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
@@ -98,11 +95,6 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 return Validation.inst().flag().build();
             }
             return Validation.PASS;
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.FLOOD_FILTER;
         }
     }
 
@@ -196,11 +188,6 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.FLOOD_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodC.class);
         }
@@ -231,11 +218,6 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         @Override
         public String getDescription() {
             return Lang.get("validation.flood.d");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.FLOOD_FILTER;
         }
 
         @Override

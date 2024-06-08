@@ -2,15 +2,16 @@ package me.alek.honey.checks.impl;
 
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
+import me.alek.honey.checks.AbstractPacketListener;
+import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInUpdateSign;
@@ -93,11 +94,6 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
         @Override
         public String getDescription() {
             return Lang.get("validation.sign.a");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.UPDATE_SIGN_FILTER;
         }
     }
 }

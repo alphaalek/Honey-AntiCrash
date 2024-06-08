@@ -3,16 +3,14 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
@@ -83,11 +81,6 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CREATIVE_SLOT_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeA.class);
         }
@@ -128,11 +121,6 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CREATIVE_SLOT_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeB.class);
         }
@@ -162,11 +150,6 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
         @Override
         public String getDescription() {
             return Lang.get("validation.creative.c");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CREATIVE_SLOT_FILTER;
         }
 
         @Override

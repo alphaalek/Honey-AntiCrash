@@ -2,8 +2,8 @@ package me.alek.honey.checks.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -11,8 +11,6 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -102,11 +100,6 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CHAT_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Chat.ChatA.class);
         }
@@ -148,11 +141,6 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
         @Override
         public String getDescription() {
             return Lang.get("validation.chat.b");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CHAT_FILTER;
         }
 
         @Override
@@ -275,11 +263,6 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
         @Override
         public String getDescription() {
             return Lang.get("validation.command.a");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CHAT_FILTER;
         }
 
         @Override

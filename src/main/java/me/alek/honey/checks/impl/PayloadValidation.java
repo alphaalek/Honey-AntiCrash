@@ -6,8 +6,8 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -17,12 +17,11 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.util.ItemReflection;
+import me.alek.honey.netty.util.MaterialMappings;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import me.alek.honey.netty.util.*;
 import me.alek.honey.util.CallbackAction;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -126,11 +125,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadA.class);
         }
@@ -163,11 +157,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         @Override
         public String getDescription() {
             return Lang.get("validation.payload.b");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
         }
 
         @Override
@@ -227,11 +216,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadC.class);
         }
@@ -275,11 +259,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadD.class);
         }
@@ -320,11 +299,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         @Override
         public String getDescription() {
             return Lang.get("validation.payload.e");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.CUSTOM_PAYLOAD_FILTER;
         }
 
         @Override

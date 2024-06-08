@@ -121,11 +121,6 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.BLOCK_PLACE_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractA.class);
         }
@@ -154,11 +149,6 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         @Override
         public String getDescription() {
             return Lang.get("validation-block-b");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.BLOCK_PLACE_FILTER;
         }
 
         @Override
@@ -199,11 +189,6 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         @Override
         public String getDescription() {
             return Lang.get("validation-block-c");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.BLOCK_PLACE_FILTER;
         }
 
         @Override
@@ -261,11 +246,6 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         @Override
         public String getDescription() {
             return Lang.get("validation-block-d");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.BLOCK_PLACE_FILTER;
         }
 
         @Override

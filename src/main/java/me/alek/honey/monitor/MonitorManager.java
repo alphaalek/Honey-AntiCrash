@@ -168,7 +168,6 @@ public class MonitorManager {
             }
 
             String message = independentMonitorer.getMessage(packetContainer);
-            Bukkit.broadcastMessage(packetMonitorer + " " + message);
             if (message == null) {
                 continue;
             }

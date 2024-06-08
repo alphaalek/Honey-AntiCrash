@@ -3,8 +3,8 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -14,8 +14,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
@@ -196,11 +194,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Position.PositionA.class);
         }
@@ -270,11 +263,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SHORT_POSITION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Position.PositionB.class);
         }
@@ -323,11 +311,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public String getDescription() {
             return Lang.get("validation.movement.c");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
         }
 
         @Override
@@ -381,11 +364,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Position.PositionD.class);
         }
@@ -414,11 +392,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public String getDescription() {
             return Lang.get("validation.movement.e");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
         }
 
         @Override
@@ -528,11 +501,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Position.PositionF.class);
         }
@@ -565,11 +533,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public String getDescription() {
             return Lang.get("validation.movement.g");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SHORT_POSITION_FILTER;
         }
 
         @Override
@@ -658,11 +621,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Position.PositionH.class);
         }
@@ -692,11 +650,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public String getDescription() {
             return Lang.get("validation.movement.i");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.LONG_POSITION_FILTER;
         }
 
         @Override
@@ -757,11 +710,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public String getDescription() {
             return Lang.get("validation.movement.j");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.SHORT_POSITION_FILTER;
         }
 
         @Override

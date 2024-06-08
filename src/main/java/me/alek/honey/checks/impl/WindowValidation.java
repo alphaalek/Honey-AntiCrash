@@ -4,20 +4,18 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.util.CallbackAction;
 import org.bukkit.event.inventory.InventoryType;
 
@@ -98,11 +96,6 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.WINDOW_CLICK_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowA.class);
         }
@@ -132,11 +125,6 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         @Override
         public String getDescription() {
             return Lang.get("validation.window.b");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.WINDOW_CLICK_FILTER;
         }
 
         @Override
@@ -174,11 +162,6 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.WINDOW_CLICK_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowC.class);
         }
@@ -211,11 +194,6 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         @Override
         public String getDescription() {
             return Lang.get("validation.window.d");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.WINDOW_CLICK_FILTER;
         }
 
         @Override

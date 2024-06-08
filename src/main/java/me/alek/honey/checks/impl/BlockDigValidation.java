@@ -81,11 +81,6 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.BLOCK_DIG_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractE.class);
         }

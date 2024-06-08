@@ -247,14 +247,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         decodeEventBus.callDecode(player, byteBuf);
     }
 
-    private void registerToBundle(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        if (packetType.getBound() == PacketBound.CLIENT
-                && player != null
-                && packetContainer.getPlayer() != null) {
-            player.packetBundleSaver.add(packetContainer);
-        }
-    }
-
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                          Object packet, HoneyPlayer player, Channel channel,
                                                                                          CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
@@ -288,12 +280,12 @@ public class InternalPacketProcessor implements PacketProcessor {
             return packetContainer;
         }
 
-        if (packetType != PacketType.Play.Client.KEEP_ALIVE) {
-            registerToBundle(player, packetType, packetContainer);
-        }
-
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
-        callListeners(player, packet.getClass(), packetContainer);
+        try {
+            callListeners(player, packet.getClass(), packetContainer);
+        } catch (Exception ex) {
+            packetContainer.cancel();
+        }
         packetContainer.getEventloopStateTimings().stopTimings();
 
         return packetContainer;

@@ -164,17 +164,6 @@ postpone:
 
 # Packet dump
 packet-dump:
-  # Should packet dump for check violations be enabled or not.
-  enabled: false
-
-  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
-  # E.g. violations of position checks will still dump position packets even though you have added it below.
-  # (PacketPlayInKeepAlive is ignored as default, and you can't change that)
-  filter-all:
-    - "PacketPlayInFlying"
-  # - "PacketPlayInLook"
-  # - "PacketPlayInPosition"
-  # - "PacketPlayInPositionLook"
 
   heavy-packet:
     # Should packet dump for heavy handled packets be enabled.

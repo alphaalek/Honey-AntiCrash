@@ -3,22 +3,21 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInHeldItemSlot;
 import me.alek.honey.util.CallbackAction;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
@@ -87,11 +86,6 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
         }
 
         @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.HELD_ITEM_FILTER;
-        }
-
-        @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemA.class);
         }
@@ -121,11 +115,6 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
         @Override
         public String getDescription() {
             return Lang.get("validation.held.item.b");
-        }
-
-        @Override
-        public PacketBundleFilter getDumpFilter() {
-            return PacketBundleFilters.HELD_ITEM_FILTER;
         }
 
         @Override
