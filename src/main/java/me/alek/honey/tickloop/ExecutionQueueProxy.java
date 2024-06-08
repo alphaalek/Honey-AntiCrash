@@ -47,9 +47,10 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
         Set<PacketTypeEnum> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.Postpone.MAX_QUEUE_SIZE_IGNORED) {
 
-            PacketTypeEnum ignoredPacketType = PacketType.getPacketType(ignoredPacket, PacketType.NameGetStrategy.EITHER);
-            if (!PacketType.isUnknown(ignoredPacketType)) {
-                packets.add(ignoredPacketType);
+            Optional<PacketTypeEnum> ignoredPacketType = PacketType.getPacketType(ignoredPacket, PacketType::isServerbound, PacketType.NameGetStrategy.EITHER);
+            PacketTypeEnum type;
+            if (ignoredPacketType.isPresent() && !PacketType.isUnknown(type = ignoredPacketType.get())) {
+                packets.add(type);
             }
         }
 

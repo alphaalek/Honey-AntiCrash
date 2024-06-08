@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -287,16 +288,14 @@ public class InternalPacketProcessor implements PacketProcessor {
             return packetContainer;
         }
 
-        if (packetContainer.getPacket() == null) {
-            registerToBundle(player, packetType, packetContainer);
-            return packetContainer;
-        }
-
         if (packetType != PacketType.Play.Client.KEEP_ALIVE) {
             registerToBundle(player, packetType, packetContainer);
         }
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
+        if (packetContainer.getType().getBound() == PacketBound.SERVER) {
+            Bukkit.getLogger().info(packetContainer.getType() + " " + packet);
+        }
         callListeners(player, packet.getClass(), packetContainer);
         packetContainer.getEventloopStateTimings().stopTimings();
 

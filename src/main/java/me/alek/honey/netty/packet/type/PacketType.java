@@ -6,8 +6,10 @@ import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
+import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public enum PacketType implements PacketTypeEnum {
@@ -43,8 +45,16 @@ public enum PacketType implements PacketTypeEnum {
         return PacketBound.SERVER;
     }
 
-    public static boolean isUnknown(PacketTypeEnum packetType) {
-        return packetType == null || packetType == UNKNOWN;
+    public static boolean isUnknown(PacketTypeEnum type) {
+        return type == null || type == UNKNOWN;
+    }
+
+    public static boolean isServerbound(PacketTypeEnum type) {
+        return type.getBound().equals(PacketBound.SERVER);
+    }
+
+    public static boolean isClientbound(PacketTypeEnum type) {
+        return type.getBound().equals(PacketBound.CLIENT);
     }
 
     public static Array<PacketState> getCommonStates(PacketTypeEnum type) {
@@ -70,14 +80,16 @@ public enum PacketType implements PacketTypeEnum {
         }
 
         registeredPackets.put(type.getNmsClass(), type);
-        registeredPacketsByName.put(type.toString(), type);
-        registeredPacketsByClassName.put(type.getNmsClass().getSimpleName(), type);
+        registeredPacketsByName.computeIfAbsent(type.toString().toLowerCase(), d -> new ArrayList<>())
+                .add(type);
+        registeredPacketsByName.computeIfAbsent(type.getNmsClass().getSimpleName(), d -> new ArrayList<>())
+                .add(type);
     }
 
     private static final NetProtocol protocolVersion = NetProtocol.getProtocol();
-    private static final Map<Class<?>, PacketTypeEnum> registeredPackets = new IdentityHashMap<>();
-    private static final Map<String, PacketTypeEnum> registeredPacketsByClassName = new IdentityHashMap<>();
-    private static final Map<String, PacketTypeEnum> registeredPacketsByName = new IdentityHashMap<>();
+    private static final Map<Class<?>, PacketTypeEnum> registeredPackets = new HashMap<>();
+    private static final Map<String, List<PacketTypeEnum>> registeredPacketsByClassName = new HashMap<>();
+    private static final Map<String, List<PacketTypeEnum>> registeredPacketsByName = new HashMap<>();
     private static final Map<PacketState, List<PacketTypeEnum>> packetFromStateLookup = new HashMap<>();
     private static final IDRegistry idRegistry = new IDRegistry();
 
@@ -188,16 +200,19 @@ public enum PacketType implements PacketTypeEnum {
         return registeredPackets.getOrDefault(clazz, UNKNOWN);
     }
 
-    public static PacketTypeEnum getPacketType(String name, NameGetStrategy strategy) {
-        Supplier<PacketTypeEnum> byName = () -> registeredPacketsByName.get(name);
-        Supplier<PacketTypeEnum> byClassName = () -> registeredPacketsByClassName.get(name);
+    public static Optional<PacketTypeEnum> getPacketType(String name, Predicate<PacketTypeEnum> filter, NameGetStrategy strategy) {
+        Optional<PacketTypeEnum> byName = Optional.ofNullable(registeredPacketsByName.get(name.toLowerCase()))
+                .flatMap(l -> l.stream().filter(filter).findFirst());
+        Optional<PacketTypeEnum> byClassName = Optional.ofNullable(registeredPacketsByClassName.get(name.toLowerCase()))
+                .flatMap(l -> l.stream().filter(filter).findFirst());
+
         switch (strategy) {
             case EITHER:
-                return Optional.ofNullable(byName.get()).orElseGet(byClassName);
+                return byName.isPresent() ? byName : byClassName;
             case BY_CLASS_NAME:
-                return byClassName.get();
+                return byClassName;
             case BY_NAME:
-                return byName.get();
+                return byName;
         }
 
         throw new IllegalStateException();

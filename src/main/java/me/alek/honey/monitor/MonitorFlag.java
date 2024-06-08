@@ -11,6 +11,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
+import org.bukkit.Bukkit;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -203,18 +204,10 @@ public interface MonitorFlag<T> {
             Flag.checkSyntax(args, readIndex, this, 1);
 
             this.specified = MonitorFlagParser.getFromArgs(args, readIndex);
-            {
-                PacketTypeEnum packetType = PacketType.getPacketType(specified, PacketType.NameGetStrategy.EITHER);
-                if (packetType != null) {
-                    this.type = packetType;
-                    return 1;
-                }
-            }
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailableForBound(PacketBound.SERVER)) {
-                if (packetType != null && packetType.toString().equalsIgnoreCase(specified)) {
-                    this.type = packetType;
-                    return 1;
-                }
+            Optional<PacketTypeEnum> type = PacketType.getPacketType(specified, PacketType::isServerbound, PacketType.NameGetStrategy.EITHER);
+            if (type.isPresent()) {
+                this.type = type.get();
+                return 1;
             }
 
             throw WrongMonitorFlagSyntaxException.wrongFlagUsage(this);
@@ -222,6 +215,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+            Bukkit.getLogger().info("Testing " + input.getType() + " " + this.type);
             return input.getType().equals(this.type);
         }
 

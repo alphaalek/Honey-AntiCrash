@@ -38,8 +38,9 @@ public class PacketBundleFilters {
     public static void updateFilterAllPackets() {
         Set<PacketTypeEnum> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.PacketDump.VLS_FILTER_ALL) {
-            PacketTypeEnum type = PacketType.getPacketType(ignoredPacket, PacketType.NameGetStrategy.EITHER);
-            if (!PacketType.isUnknown(type)) {
+            Optional<PacketTypeEnum> typeOptional = PacketType.getPacketType(ignoredPacket, PacketType::isServerbound, PacketType.NameGetStrategy.EITHER);
+            PacketTypeEnum type;
+            if (typeOptional.isPresent() && !PacketType.isUnknown(type = typeOptional.get())) {
                 packets.add(type);
             }
         }

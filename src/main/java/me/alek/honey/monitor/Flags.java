@@ -39,11 +39,15 @@ public class Flags {
                     flag.process(processId, input, data);
                 }
 
+                Bukkit.getLogger().info(flag + " " + flag.isProcessed(processId));
+
                 try {
                     if (!flag.getOutput(processId)) {
+                        Bukkit.getLogger().info("No");
                         return false;
                     }
                 } catch (Processable.GetOutputWithoutProcessException ex) {
+                    ex.printStackTrace();
                     return false;
                 }
             }
@@ -111,6 +115,8 @@ public class Flags {
             if (this.output) {
                 acceptAppend();
             }
+
+            Bukkit.getLogger().info("Done processing " + this + " " + output);
         }
 
         @Override
@@ -312,6 +318,8 @@ public class Flags {
             lastProcessId = id;
             this.output = flag.test(input);
             flag.append(input, this, data);
+
+            Bukkit.getLogger().info("Done processing " + this + " " + output);
         }
 
         @Override
