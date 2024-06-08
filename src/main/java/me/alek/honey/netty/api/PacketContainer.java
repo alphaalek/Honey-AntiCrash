@@ -3,7 +3,6 @@ package me.alek.honey.netty.api;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
-import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;

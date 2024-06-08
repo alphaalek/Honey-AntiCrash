@@ -16,7 +16,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.Locations;
+import me.alek.honey.util.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -56,7 +56,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         final Location lastPlayerLocation = MovementValidation.getLastLocationFor(player);
 
         if (blockPosition.distance(originLocation) < 10
-                && Locations.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
+                && LocationUtils.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
             return Validation.PASS;
         }
 

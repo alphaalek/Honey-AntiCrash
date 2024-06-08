@@ -1,7 +1,10 @@
 package me.alek.honey.async;
 
+import me.alek.honey.async.worker.DelegatedIsolatorWorker;
+import me.alek.honey.async.worker.HeavyPacketIsolatorWorker;
+import me.alek.honey.async.worker.HighPendingIsolatorWorker;
+import me.alek.honey.async.worker.IsolatorWorkerWrapper;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.async.worker.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 

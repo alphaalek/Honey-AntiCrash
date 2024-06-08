@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 
 public class PacketEventLoopStateTimings {
 
@@ -41,7 +41,7 @@ public class PacketEventLoopStateTimings {
     }
 
     public String formatPerformance() {
-        return NumberConversions.format(getPerformance(), 2) + "%";
+        return NumberUtils.format(getPerformance(), 2) + "%";
     }
 
     public double getPerformance() {
@@ -61,7 +61,7 @@ public class PacketEventLoopStateTimings {
     }
 
     public double getTimeForMillisFormatted(EventloopState state) {
-        return NumberConversions.format(getTimeForMillis(state), 2);
+        return NumberUtils.format(getTimeForMillis(state), 2);
     }
 
     public long getServerTime() {

@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.function.Supplier;

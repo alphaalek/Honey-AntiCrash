@@ -1,7 +1,5 @@
 package me.alek.honey.netty.structure.converters;
 
-import org.bukkit.Bukkit;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;

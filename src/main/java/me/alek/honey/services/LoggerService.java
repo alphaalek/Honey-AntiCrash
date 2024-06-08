@@ -13,12 +13,11 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.DecayingWindowCounter;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -120,9 +119,9 @@ public class LoggerService {
         double grade = ((double)rate) / (((double)prevRate) / 8);
         if (prevRate == 0) grade = 1;
 
-        if (grade > 1.025) return "§a+" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
+        if (grade > 1.025) return "§a+" + NumberUtils.format(Math.abs(1 - grade) * 100) + "%";
         if (grade > 0.975) return "§e~0%";
-        else return "§c-" + NumberConversions.format(Math.abs(1 - grade) * 100) + "%";
+        else return "§c-" + NumberUtils.format(Math.abs(1 - grade) * 100) + "%";
     }
 
     public void removePacketData(HoneyPlayer player) {

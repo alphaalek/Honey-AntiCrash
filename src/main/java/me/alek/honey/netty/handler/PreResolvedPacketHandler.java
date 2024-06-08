@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 

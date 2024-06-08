@@ -2,10 +2,7 @@ package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
-import me.alek.honey.command.CommandManager;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import java.util.concurrent.atomic.AtomicBoolean;

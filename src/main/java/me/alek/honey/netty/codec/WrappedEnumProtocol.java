@@ -7,17 +7,14 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
-import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 

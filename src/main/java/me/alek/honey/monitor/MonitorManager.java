@@ -4,14 +4,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.command.CommandManager;
-import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.services.NotificationService;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;

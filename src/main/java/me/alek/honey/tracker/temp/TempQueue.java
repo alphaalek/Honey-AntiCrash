@@ -2,14 +2,11 @@ package me.alek.honey.tracker.temp;
 
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
-import org.bukkit.Bukkit;
 
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 public class TempQueue {

@@ -3,7 +3,6 @@ package me.alek.honey.command.impl;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.lang.Lang;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 public class HelpCommand implements CommandImpl {

@@ -2,11 +2,11 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.util.IDRegistry;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.ListenerRegistry;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;

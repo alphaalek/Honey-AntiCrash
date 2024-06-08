@@ -12,9 +12,9 @@ import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.List;

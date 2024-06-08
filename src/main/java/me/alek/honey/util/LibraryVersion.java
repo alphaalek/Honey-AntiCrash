@@ -3,16 +3,15 @@ package me.alek.honey.util;
 import java.util.Arrays;
 
 
-public class LibVersion {
+public class LibraryVersion {
 
     private final int[] versionIntArray;
 
-
-    public LibVersion(final int... version) {
+    public LibraryVersion(final int... version) {
         this.versionIntArray = version;
     }
 
-    public LibVersion(final String version) {
+    public LibraryVersion(final String version) {
         String[] versionIntegers = version.split("\\.");
         int length = versionIntegers.length;
         this.versionIntArray = new int[length];
@@ -21,7 +20,7 @@ public class LibVersion {
         }
     }
 
-    public int compareTo(LibVersion version) {
+    public int compareTo(LibraryVersion version) {
         int localLength = versionIntArray.length;
         int oppositeLength = version.versionIntArray.length;
         int length = Math.max(localLength, oppositeLength);
@@ -37,11 +36,11 @@ public class LibVersion {
         return 0;
     }
 
-    public boolean isNewerThan(LibVersion version) {
+    public boolean isNewerThan(LibraryVersion version) {
         return compareTo(version) == 1;
     }
 
-    public boolean isOlderThan(LibVersion version) {
+    public boolean isOlderThan(LibraryVersion version) {
         return compareTo(version) == -1;
     }
 
@@ -54,15 +53,15 @@ public class LibVersion {
         if (obj == null) {
             return false;
         }
-        if (obj instanceof LibVersion) {
-            return Arrays.equals(versionIntArray, ((LibVersion) obj).versionIntArray);
+        if (obj instanceof LibraryVersion) {
+            return Arrays.equals(versionIntArray, ((LibraryVersion) obj).versionIntArray);
         }
         return false;
     }
 
     @Override
-    public LibVersion clone() {
-        return new LibVersion(versionIntArray);
+    public LibraryVersion clone() {
+        return new LibraryVersion(versionIntArray);
     }
 
     @Override

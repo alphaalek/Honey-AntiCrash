@@ -2,7 +2,7 @@ package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.util.*;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
@@ -84,7 +84,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public boolean isInvalid() {
-        return NumberConversions.isInvalid(x, y, z);
+        return NumberUtils.isInvalid(x, y, z);
     }
 
     public Vector toVector() {
@@ -104,7 +104,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public double distance(double x, double y, double z) {
-        if (NumberConversions.isInvalid(x, y, z)) {
+        if (NumberUtils.isInvalid(x, y, z)) {
             return -1;
         }
         double deltaX = Math.abs(this.x - x);

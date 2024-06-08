@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 
 public interface IStructureModifier<T> {
 

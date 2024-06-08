@@ -2,8 +2,8 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;

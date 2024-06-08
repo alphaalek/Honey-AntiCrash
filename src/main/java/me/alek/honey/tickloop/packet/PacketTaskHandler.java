@@ -7,7 +7,6 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
-import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;

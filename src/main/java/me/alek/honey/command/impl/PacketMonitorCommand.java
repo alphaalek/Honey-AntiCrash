@@ -2,7 +2,6 @@ package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
-import me.alek.honey.command.CommandManager;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.monitor.Flags;
 import me.alek.honey.monitor.MonitorFlag;
@@ -10,13 +9,9 @@ import me.alek.honey.monitor.MonitorFlagParser;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.Array;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class PacketMonitorCommand implements CommandImpl {
 

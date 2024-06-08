@@ -15,7 +15,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 
 public class HoneyPacketHandler {

@@ -3,13 +3,13 @@ package me.alek.honey.packetwrappers.play.server;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.packetwrappers.WrappedPacket;
 
 import java.util.*;
 import java.util.stream.Collectors;

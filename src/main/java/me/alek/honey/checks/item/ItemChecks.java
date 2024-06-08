@@ -4,12 +4,15 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.modelwrappers.nbt.*;
+import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
+import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
+import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -31,13 +34,13 @@ public class ItemChecks {
             NBTRoot root = nbt.getRoot();
 
             for (NBTElement<Double> doubleValue : root.<Double>getAllPrimitiveElementsAs(NBTType.DOUBLE)) {
-                if (NumberConversions.isInvalid(doubleValue.getValue())) {
+                if (NumberUtils.isInvalid(doubleValue.getValue())) {
                     return true;
                 }
             }
 
             for (NBTElement<Float> floatValue : root.<Float>getAllPrimitiveElementsAs(NBTType.FLOAT)) {
-                if (NumberConversions.isInvalid(floatValue.getValue())) {
+                if (NumberUtils.isInvalid(floatValue.getValue())) {
                     return true;
                 }
             }

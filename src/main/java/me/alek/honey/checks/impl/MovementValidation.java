@@ -21,7 +21,7 @@ import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.Locations;
+import me.alek.honey.util.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -68,11 +68,11 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         // check if the packet has any valid location to be checked, or just origin location
         // if it does, ignore this packet and avoid adding this location to the last packet location lookup
-        if (Locations.compareLocation(currentLocation, originLocation)) return false;
+        if (LocationUtils.compareLocation(currentLocation, originLocation)) return false;
         lastPacketLocation.put(player.uuid, currentLocation);
 
         // check if the player has moved by checking if the last location is equal to the current location
-        if (Locations.compare3DLocation(currentLocation, lastLocation)) return false;
+        if (LocationUtils.compare3DLocation(currentLocation, lastLocation)) return false;
 
         // share this last location with the pipeline, so the checks can take use of it
         container.getStorage().putLocation(lastLocation);
@@ -86,7 +86,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 final String z = format(currentLocation.getZ());
 
                 container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
-                container.getDefaultDevelopmentData().addPoint("Delta Movement", Locations.calculate3DDistance(currentLocation, lastLocation));
+                container.getDefaultDevelopmentData().addPoint("Delta Movement", LocationUtils.calculate3DDistance(currentLocation, lastLocation));
             });
         }));
 
@@ -210,14 +210,14 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
-                    (location) -> Locations.calculate3DDistance(location, packetLoc))) {
+                    (location) -> LocationUtils.calculate3DDistance(location, packetLoc))) {
                 return Validation.PASS.copy().skip(3).build();
             }
 
-            final double distance2d = Locations.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+            final double distance2d = LocationUtils.calculate2DDistance(packetLoc, lastKnownPacketLoc);
             container.getStorage().putDouble(distance2d);
 
-            final double distanceY = Locations.calculateYDistance(packetLoc, lastKnownPacketLoc);
+            final double distanceY = LocationUtils.calculateYDistance(packetLoc, lastKnownPacketLoc);
             container.getStorage().putDouble(distanceY);
 
             if (getSetting().isEnabled()) {
@@ -287,12 +287,12 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
                 // ignores packets close to the recent flag
                 if (lastFlaggedLocation != null) {
-                    if (Locations.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1)
+                    if (LocationUtils.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1)
                         return Validation.PASS;
                 }
                 lastFlaggedLocation = packet.getLocation();
 
-                final double priorDistance = Locations.calculate3DDistance(priorLocation, packet.getLocation());
+                final double priorDistance = LocationUtils.calculate3DDistance(priorLocation, packet.getLocation());
                 return Validation.inst().flag(Math.min(10, priorDistance)).build();
             }
             return Validation.PASS;

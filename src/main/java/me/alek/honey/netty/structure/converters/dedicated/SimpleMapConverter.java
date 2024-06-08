@@ -2,7 +2,6 @@ package me.alek.honey.netty.structure.converters.dedicated;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import org.bukkit.Bukkit;
 
 import java.util.Collection;
 import java.util.HashMap;

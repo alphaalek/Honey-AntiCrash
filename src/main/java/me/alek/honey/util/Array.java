@@ -51,7 +51,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public Array<T> without(Predicate<? super T> filter) {
-        return with(PredicateUtils.not(filter));
+        return with(d -> !filter.test(d));
     }
 
     public <R> Array<R> as(Function<? super T, ? extends R> mapper) {

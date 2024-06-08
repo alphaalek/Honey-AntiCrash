@@ -6,7 +6,6 @@ import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;
 import me.alek.honey.storage.model.ViolationEntry;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

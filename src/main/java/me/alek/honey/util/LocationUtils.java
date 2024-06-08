@@ -2,7 +2,7 @@ package me.alek.honey.util;
 
 import org.bukkit.Location;
 
-public class Locations {
+public class LocationUtils {
 
     private static boolean compare(double x1, double x2, double y1, double y2, double z1, double z2) {
         return x1 == x2 && y1 == y2 && z1 == z2;
@@ -33,8 +33,8 @@ public class Locations {
         for (Location location : locations) {
             if (location == null) continue;
 
-            if (NumberConversions.isInvalid(location.getX(), location.getZ(), location.getY())
-                    || NumberConversions.isInvalid(location.getPitch(), location.getPitch())) {
+            if (NumberUtils.isInvalid(location.getX(), location.getZ(), location.getY())
+                    || NumberUtils.isInvalid(location.getPitch(), location.getPitch())) {
                 return true;
             }
         }
@@ -50,7 +50,7 @@ public class Locations {
     }
 
     public static float calculateYawDistance(float yaw1, float yaw2) {
-        if (NumberConversions.isInvalid(yaw1, yaw2)) return -1;
+        if (NumberUtils.isInvalid(yaw1, yaw2)) return -1;
 
         return Math.abs(yaw1 - yaw2);
     }

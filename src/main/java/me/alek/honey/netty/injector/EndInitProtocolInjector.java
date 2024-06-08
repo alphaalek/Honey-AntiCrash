@@ -2,7 +2,6 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.PacketLibrary;
 import org.bukkit.Bukkit;
 
 public class EndInitProtocolInjector {

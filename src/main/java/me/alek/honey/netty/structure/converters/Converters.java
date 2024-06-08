@@ -2,11 +2,14 @@ package me.alek.honey.netty.structure.converters;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.modelwrappers.*;
+import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.WrappedEnumProtocol;
+import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
+import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
-import me.alek.honey.netty.codec.WrappedEnumProtocol;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.packet.type.PacketBound;

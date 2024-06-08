@@ -16,7 +16,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.Locations;
+import me.alek.honey.util.LocationUtils;
 import org.bukkit.Location;
 
 import java.util.*;
@@ -37,8 +37,8 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         float lastYaw = getLastYawFor(player, location.getYaw());
         float lastPitch = getLastPitchFor(player, location.getPitch());
 
-        float deltaYaw = Locations.calculateYawDistance(location.getYaw(), lastYaw);
-        float deltaPitch = Locations.calculateYawDistance(location.getPitch(), lastPitch);
+        float deltaYaw = LocationUtils.calculateYawDistance(location.getYaw(), lastYaw);
+        float deltaPitch = LocationUtils.calculateYawDistance(location.getPitch(), lastPitch);
 
         lastYawMap.put(player.uuid, location.getYaw());
         lastPitchMap.put(player.uuid, location.getPitch());
@@ -144,7 +144,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (packet.getYaw() == 0 || MovementValidation.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
-                    (location) -> (double) Locations.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
+                    (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
                 return Validation.PASS.copy().terminate().build();
             }
             if (getSetting().isEnabled()) {

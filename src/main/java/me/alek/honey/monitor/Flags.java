@@ -4,9 +4,11 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 public class Flags {
 

@@ -1,15 +1,14 @@
 package me.alek.honey.netty.handler;
 
-import io.netty.buffer.*;
-import io.netty.channel.Channel;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -17,7 +16,6 @@ import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 

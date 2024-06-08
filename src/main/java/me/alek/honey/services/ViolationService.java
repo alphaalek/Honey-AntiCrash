@@ -1,6 +1,5 @@
 package me.alek.honey.services;
 
-import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.AbstractPacketListener;
@@ -8,16 +7,18 @@ import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
-import me.alek.honey.netty.util.UnsafeChannelCloser;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
+import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.BungeeMessenger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 

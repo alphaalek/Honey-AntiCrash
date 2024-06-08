@@ -4,20 +4,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.packet.type.*;
+import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.MethodInvoker;
-import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.netty.util.Reflection;
-import me.alek.honey.util.Array;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.util.EnumMap;
-import java.util.function.BiConsumer;
 
 public class HoneyPacketDecoder {
 

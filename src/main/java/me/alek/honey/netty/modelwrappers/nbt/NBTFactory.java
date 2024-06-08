@@ -1,12 +1,15 @@
 package me.alek.honey.netty.modelwrappers.nbt;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.util.*;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.util.ConstructorInvoker;
+import me.alek.honey.netty.util.ItemReflection;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

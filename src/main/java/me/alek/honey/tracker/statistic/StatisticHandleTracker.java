@@ -1,7 +1,6 @@
 package me.alek.honey.tracker.statistic;
 
 import me.alek.honey.tracker.HandleTracker;
-import me.alek.honey.tracker.statistic.StatisticProvider;
 
 public interface StatisticHandleTracker<I extends Number, T> extends HandleTracker<I, T> {
 

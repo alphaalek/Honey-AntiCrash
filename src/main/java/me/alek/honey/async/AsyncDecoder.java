@@ -3,13 +3,13 @@ package me.alek.honey.async;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
 

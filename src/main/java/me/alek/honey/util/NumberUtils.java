@@ -1,6 +1,6 @@
 package me.alek.honey.util;
 
-public class NumberConversions {
+public class NumberUtils {
 
     public static boolean isInfinite(double value) {
         return Double.isInfinite(value);

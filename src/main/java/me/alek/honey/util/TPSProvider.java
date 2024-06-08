@@ -3,7 +3,6 @@ package me.alek.honey.util;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.SparkTPSProvider;
 import me.alek.honey.tracker.Timespan;
-import org.bukkit.Bukkit;
 
 public class TPSProvider {
 
@@ -17,7 +16,7 @@ public class TPSProvider {
             value = HoneyPlugin.get().getTPSTracker().evaluateTPS(timespan);
         }
 
-        value = NumberConversions.format(value);
+        value = NumberUtils.format(value);
         return (value > 20 ? "§a*" : "") + (value < 12 ? "§c" : value < 17 ? "§e" : "§a") + Math.min(20, value);
     }
 }

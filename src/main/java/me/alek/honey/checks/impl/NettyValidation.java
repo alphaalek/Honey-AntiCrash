@@ -32,9 +32,8 @@ import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,10 +180,10 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     Object[] values = reader.read(packet.getContainer());
 
                     for (Object value : values) {
-                        if (value instanceof Float && NumberConversions.isInvalid((float) value)) {
+                        if (value instanceof Float && NumberUtils.isInvalid((float) value)) {
                             return Validation.inst().cancel().flag().build();
                         }
-                        if (value instanceof Double && NumberConversions.isInfinite((double) value)) {
+                        if (value instanceof Double && NumberUtils.isInfinite((double) value)) {
                             return Validation.inst().cancel().flag().build();
                         }
                     }
@@ -192,12 +191,12 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 }
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
-                    if (NumberConversions.isInvalid(value)) {
+                    if (NumberUtils.isInvalid(value)) {
                         return Validation.inst().cancel().flag().build();
                     }
                 }
                 for (float value : packet.getContainer().getFloats().readFieldValues()) {
-                    if (NumberConversions.isInvalid(value)) {
+                    if (NumberUtils.isInvalid(value)) {
                         return Validation.inst().cancel().flag().build();
                     }
                 }
@@ -271,9 +270,9 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel quotient (5s)",
-                                NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) * 100, 2) + "%");
+                                NumberUtils.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) * 100, 2) + "%");
                         container.getDevelopmentData(this).addPoint("Avg. accel quotient (5s)",
-                                NumberConversions.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, true, true) * 100, 2) + "%");
+                                NumberUtils.format(tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, true, true) * 100, 2) + "%");
                     }).build();
                 }
 
@@ -331,7 +330,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                         .onViolation(onViolation -> {
                             if (onViolation != null) onViolation.run();
 
-                            developmentDataSupplier.get().addPoint("Decode Time", NumberConversions.format(decodeTime) + " ms");
+                            developmentDataSupplier.get().addPoint("Decode Time", NumberUtils.format(decodeTime) + " ms");
                         })
                         .build();
             }
@@ -442,7 +441,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                                         applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
                                         container.getDevelopmentData(this).addPoint("t.a.",
-                                                NumberConversions.format(
+                                                NumberUtils.format(
                                                         tracker.getTimeToAverageWithoutQuotient(player, timespan, true) * 100, 2) + "%");
                                     })
                                     .build();
@@ -456,7 +455,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                                         applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
                                         container.getDevelopmentData(this).addPoint("t.t.",
-                                                NumberConversions.format(
+                                                NumberUtils.format(
                                                         tracker.getTimeToTotalQuotient(player, timespan, true) * 100, 2) + "%");
                                     })
                                     .build();
@@ -470,7 +469,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, double multiplier, double hsq) {
             developmentData.addPoint("Multiplier", multiplier);
-            developmentData.addPoint("h.s.q.", NumberConversions.format(hsq * 100, 2) + "%");
+            developmentData.addPoint("h.s.q.", NumberUtils.format(hsq * 100, 2) + "%");
         }
 
         @Override

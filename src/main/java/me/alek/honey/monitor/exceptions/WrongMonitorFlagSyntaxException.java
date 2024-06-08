@@ -3,7 +3,6 @@ package me.alek.honey.monitor.exceptions;
 import me.alek.honey.monitor.LogicalOperator;
 import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.MonitorFlagParser;
-import me.alek.honey.monitor.Monitorer;
 
 import java.util.Optional;
 

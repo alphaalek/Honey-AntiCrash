@@ -10,11 +10,9 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.GameMode;
 

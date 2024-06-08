@@ -1,13 +1,13 @@
 package me.alek.honey.lang;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.command.CommandManager;
 import me.alek.honey.services.NotificationService;
-import org.bukkit.Bukkit;
 
 import java.io.*;
-import java.util.*;
-import java.util.jar.JarEntry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.jar.JarFile;
 
 public class Lang {

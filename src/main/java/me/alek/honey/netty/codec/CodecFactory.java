@@ -12,7 +12,6 @@ import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;

@@ -4,7 +4,10 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.RangedPacketTypeEnum;
 import org.bukkit.Bukkit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public enum NetProtocol {
     v1_8(47), v1_8_1(47), v1_8_2(47), v1_8_3(47), v1_8_4(47), v1_8_5(47), v1_8_6(47), v1_8_7(47), v1_8_8(47),

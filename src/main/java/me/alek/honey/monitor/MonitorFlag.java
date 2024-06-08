@@ -4,14 +4,12 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
-import org.bukkit.Bukkit;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

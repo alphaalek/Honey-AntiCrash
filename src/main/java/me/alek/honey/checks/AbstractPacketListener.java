@@ -9,7 +9,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 import org.bukkit.Bukkit;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements IPacketListener, CheckVisitable {
@@ -45,7 +45,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
         for (double percentage : percentages) {
             if (percentage == 0) percentage = 1;
-            message.append(", ").append(NumberConversions.format(percentage * 100, 2)).append("%");
+            message.append(", ").append(NumberUtils.format(percentage * 100, 2)).append("%");
         }
         return message.substring(2, message.length());
     }

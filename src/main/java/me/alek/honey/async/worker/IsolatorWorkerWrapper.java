@@ -1,7 +1,10 @@
 package me.alek.honey.async.worker;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.*;
+import me.alek.honey.async.ChainedCallable;
+import me.alek.honey.async.TaskSupplier;
+import me.alek.honey.async.Worker;
+import me.alek.honey.async.WorkerPool;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;

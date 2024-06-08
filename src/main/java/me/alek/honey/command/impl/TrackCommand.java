@@ -10,7 +10,7 @@ import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 import org.bukkit.command.CommandSender;
 
 import java.text.DecimalFormat;
@@ -78,7 +78,7 @@ public class TrackCommand implements CommandImpl {
     }
 
     private String format(double nanos) {
-        return NumberConversions.format(nanos * PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER, 2) + "ms";
+        return NumberUtils.format(nanos * PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER, 2) + "ms";
     }
 
     @Override

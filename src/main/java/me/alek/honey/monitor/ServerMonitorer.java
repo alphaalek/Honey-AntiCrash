@@ -1,11 +1,9 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 import me.alek.honey.util.TPSProvider;
-import org.bukkit.Bukkit;
 
 public class ServerMonitorer implements ScheduledMonitorer {
 
@@ -20,12 +18,12 @@ public class ServerMonitorer implements ScheduledMonitorer {
     }
 
     private String getPacketTaskPercentage(Timespan timespan) {
-        return NumberConversions.format(
+        return NumberUtils.format(
                 (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / timespan.getNanoTimespan()) * 100), 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {
-        double rate = NumberConversions.format(
+        double rate = NumberUtils.format(
                 HoneyPlugin.get().getLoggerService().getPacketRatePerQueueExecution(timespan),1);
 
         return Double.isNaN(rate) ? 0 : rate;

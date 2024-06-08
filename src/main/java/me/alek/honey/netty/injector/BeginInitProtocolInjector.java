@@ -7,17 +7,17 @@ import io.netty.util.Version;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.util.LibVersion;
+import me.alek.honey.util.LibraryVersion;
 
 import java.util.Map;
 
 public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
 
     public static volatile boolean CHECKED_NETTY_VERSION;
-    public static volatile LibVersion NETTY_VERSION;
-    public static final LibVersion MODERN_NETTY_VERSION = new LibVersion(4, 1, 24);
+    public static volatile LibraryVersion NETTY_VERSION;
+    public static final LibraryVersion MODERN_NETTY_VERSION = new LibraryVersion(4, 1, 24);
 
-    private static LibVersion resolveNettyVersion() {
+    private static LibraryVersion resolveNettyVersion() {
         Map<String, Version> nettyArtifacts = Version.identify();
 
         Version version = nettyArtifacts.getOrDefault("netty-common", nettyArtifacts.get("netty-all"));
@@ -29,7 +29,7 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
             if (stringVersion.endsWith(".")) {
                 stringVersion = stringVersion.substring(0, stringVersion.length() - 1);
             }
-            return new LibVersion(stringVersion);
+            return new LibraryVersion(stringVersion);
         }
         return null;
     }

@@ -7,16 +7,12 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.async.AsyncDecoder;
-import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 import java.nio.channels.ClosedChannelException;

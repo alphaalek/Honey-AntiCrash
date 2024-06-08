@@ -4,7 +4,6 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import org.bukkit.Bukkit;
 
 public class NBTConverter implements JavaConverter<Object, NBTBase<?, ?>> {
 

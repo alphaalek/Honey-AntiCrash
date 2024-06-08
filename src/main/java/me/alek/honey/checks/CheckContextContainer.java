@@ -2,10 +2,11 @@ package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.NumberConversions;
+import me.alek.honey.util.NumberUtils;
 import org.bukkit.Location;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CheckContextContainer {
 
@@ -82,13 +83,13 @@ public class CheckContextContainer {
         }
 
         public void addPoint(String key, Object value) {
-            if (value instanceof Number) value = NumberConversions.format((Number) value);
+            if (value instanceof Number) value = NumberUtils.format((Number) value);
             addText(" §8* " + key + ": " + value);
             addInvisibleData(key + ": " + value);
         }
 
         public void addValue(String key, Object value) {
-            if (value instanceof Number) value = NumberConversions.format((Number) value);
+            if (value instanceof Number) value = NumberUtils.format((Number) value);
             addText("§6" + key + ": §e" + value);
             addInvisibleData(key + ": " + value);
         }
@@ -102,13 +103,13 @@ public class CheckContextContainer {
         }
 
         public void setPoint(int index, String key, Object value) {
-            if (value instanceof Number) value = NumberConversions.format((Number) value);
+            if (value instanceof Number) value = NumberUtils.format((Number) value);
             setText(index, " §8* " + key + ": " + value);
             addInvisibleData(key + ": " + value);
         }
 
         public void setValue(int index, String key, Object value) {
-            if (value instanceof Number) value = NumberConversions.format((Number) value);
+            if (value instanceof Number) value = NumberUtils.format((Number) value);
             setText(index, "§6" + key + ": §e" + value);
             addInvisibleData(key + ": " + value);
         }
