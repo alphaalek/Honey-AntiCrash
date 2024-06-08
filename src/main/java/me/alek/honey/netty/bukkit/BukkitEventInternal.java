@@ -38,9 +38,10 @@ public class BukkitEventInternal implements Listener {
             SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
             try {
                 injector.updatePlayer(honeyPlayer);
-            } catch (MissingHandlerException exception) {
+            } catch (MissingHandlerException ex) {
+                ex.printStackTrace();
                 HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                        () -> player.kickPlayer("Broken pipe! " + exception.getMessage()));
+                        () -> player.kickPlayer("Broken pipe! " + ex.getMessage()));
                 return;
             }
 

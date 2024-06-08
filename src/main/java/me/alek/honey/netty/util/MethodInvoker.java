@@ -1,5 +1,7 @@
 package me.alek.honey.netty.util;
 
+import org.bukkit.Bukkit;
+
 import java.lang.reflect.Method;
 
 public class MethodInvoker<T> implements IReflectionMember<T> {

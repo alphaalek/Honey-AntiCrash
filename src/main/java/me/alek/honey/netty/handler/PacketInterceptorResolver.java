@@ -3,21 +3,23 @@ package me.alek.honey.netty.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.util.AttributeKey;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
-import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.util.NMS;
+import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +41,14 @@ public class PacketInterceptorResolver {
 
     public static boolean isEncoderPositionResolved() {
         return encoderPosition != null;
+    }
+
+    public static boolean hasDecoderHandler(ChannelPipeline pipeline) {
+        return isDecoderPositionResolved() && pipeline.get(decoderPosition) != null;
+    }
+
+    public static boolean hasEncoderHandler(ChannelPipeline pipeline) {
+        return isEncoderPositionResolved() && pipeline.get(encoderPosition) != null;
     }
 
     public static String getDecoderPosition(ChannelPipeline pipeline) {
@@ -76,6 +86,7 @@ public class PacketInterceptorResolver {
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
         ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketType.Play.Client.FLYING : PacketType.Play.Client.GROUND,
                 serializer -> serializer.writeBoolean(false));
+        Bukkit.broadcastMessage("DECODER INTERCEPTOR " + byteBuf);
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
@@ -98,6 +109,7 @@ public class PacketInterceptorResolver {
                         ctx.fireChannelRead(o);
 
                 } catch (Exception ignored) {
+                    ignored.printStackTrace();
                 }
             }
 
@@ -107,7 +119,7 @@ public class PacketInterceptorResolver {
 
         });
 
-        String start = pipeline.get("decompress") != null ? "decompress" : "splitter";
+        String start = pipeline.get(MinecraftHandlers.DECOMPRESS) != null ? MinecraftHandlers.DECOMPRESS : MinecraftHandlers.SPLITTER;
         for (String name : pipeline.names()) {
             if (pipeline.get(name) != null) pipeline.remove(name);
             handlers.remove(name);
@@ -152,6 +164,7 @@ public class PacketInterceptorResolver {
                     ((ChannelOutboundHandler)intercepted).write(ctx, packet.getHandle(), promise);
 
                 } catch (Exception ignored) {
+                    ignored.printStackTrace();
                 }
             }
         });
@@ -185,8 +198,7 @@ public class PacketInterceptorResolver {
                     } else {
                         pipeline.addLast(name + INTERCEPTOR, interceptor);
                     }
-                }
-                if (prevName != null) {
+                } else {
                     pipeline.addBefore(prevInterceptor, name + INTERCEPTOR, interceptor);
                 }
             } catch (Exception ex) {
@@ -198,8 +210,9 @@ public class PacketInterceptorResolver {
     }
 
     private static ByteBuf createByteBuf(PacketTypeEnum packetType, Consumer<ByteBuf> write) {
-        ByteBuf serializer = Unpooled.buffer();
-        serializer.writeInt(packetType.getMinecraftID().get());
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer());
+        serializer.writeByte(packetType.getMinecraftID().get());
+        Bukkit.broadcastMessage("ID " + packetType.getMinecraftID().get());
         write.accept(serializer);
         return serializer;
     }

@@ -2,18 +2,13 @@ package me.alek.honey.util;
 
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
-import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
-import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class LazyInit<T> {
@@ -32,36 +27,31 @@ public class LazyInit<T> {
     public static LazyInit<Integer> getMinecraftIDInit(PacketTypeEnum type) {
         return new LazyInit<>(() -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                Collection<FieldAccessor<Object>> accessors = CodecFactory.getPacketTypes1_20_5(type.getState());
-
-                int clientBoundIndex = 0;
-                int serverBoundIndex = 0;
-
-                for (FieldAccessor<Object> accessor : accessors) {
-                    Type genericType = accessor.getField().getGenericType();
-                    if (genericType instanceof ParameterizedType) {
-                        ParameterizedType parameterizedType = (ParameterizedType) genericType;
-                        Type[] args = parameterizedType.getActualTypeArguments();
-                        if (args.length == 0) {
-                            continue;
-                        }
-
-                        String packet = Array.<String>from(
-                                Array.<String>from(args[0].getTypeName().split("\\.")).getLast()
-                                        .split("\\$")
-                                ).getLast();
-                        if (packet.equals(type.getNmsClass().getName())) {
-                            return type.getBound() == PacketBound.SERVER ? serverBoundIndex : clientBoundIndex;
-                        }
-
-                        Bukkit.broadcastMessage("Packet " + packet);
-                        if (PacketWrapperInvokerFactory.getPacketTypeForName(packet).getBound() == PacketBound.SERVER) {
-                            serverBoundIndex++;
-                        } else {
-                            clientBoundIndex++;
-                        }
-                    }
+                if (type.getKeyName1_20_5() == null) {
+                    throw new IllegalStateException("Modern protocol for packet mapping without minecraft key");
                 }
+
+                Object streamCodec = CodecFactory.getStreamCodec1_20_5(type.getBound(), type.getState());
+
+                List<Object> codecs = ReflectStructureCache.acquireStructure(streamCodec.getClass())
+                        .<List<Object>>withWeakType(List.class).withTarget(streamCodec)
+                        .readField(0);
+                int in = 0;
+                for (Object codec : codecs) {
+                    Object packetType = ReflectStructureCache.acquireStructure(codec.getClass())
+                            .withTarget(codec)
+                            .readField(null, (i, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getField().getType()));
+                    Object minecraftKey = ReflectStructureCache.acquireStructure(NMS.getPacketTypeClass())
+                            .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
+                            .readField(0);
+
+                    PacketTypeEnum typeFromCodec = PacketType.getTypeFromMinecraftKey(minecraftKey);
+                    if (typeFromCodec.equals(type)) {
+                        return in;
+                    }
+                    in++;
+                }
+
             } else {
                 WrappedEnumProtocol enumProtocol = WrappedEnumProtocol.getEnumProtocolDelegate(type.getBound(), type.getState());
 

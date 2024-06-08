@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.util.ConstructorInvoker;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -11,13 +12,10 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.util.Array;
 
 import java.lang.invoke.MethodHandle;
 
 public class PacketFactory {
-
-    public static Array<MethodHandle> WRAPPER_CACHE = new Array<>();
 
     public static Object createRawPacket(PacketTypeEnum type) {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
@@ -39,8 +37,8 @@ public class PacketFactory {
         }
 
         try {
-            return type.getNmsClass().getDeclaredConstructor(NMS.getPacketDataSerializerClass())
-                    .newInstance(new PacketDataSerializer(serializer).getSerializer());
+            return new ConstructorInvoker<>(type.getNmsClass(), NMS.getPacketDataSerializerClass())
+                    .invoke(new PacketDataSerializer(serializer).getSerializer());
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -75,34 +73,10 @@ public class PacketFactory {
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
-        return initWrappedPacket(type, rawPacket, new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
+        return PacketWrapperFactory.initWrappedPacket(type, rawPacket, new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
-        return initWrappedPacket(type, rawPacket, packetContainer);
-    }
-
-    private static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<?> packetContainer) {
-        MethodHandle wrapperInvoker = getWrapperInvoker(type);
-        if (wrapperInvoker == null) {
-            return new WrappedPacket<>(rawPacket, (PacketContainer<WP>) packetContainer);
-        }
-
-        try {
-            Object packet = wrapperInvoker.invokeWithArguments(new Object[]{rawPacket, packetContainer});
-            return (WrappedPacket<WP>) packet;
-        } catch (Throwable ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating wrapped packet for type " + type);
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    public static MethodHandle getWrapperInvoker(PacketTypeEnum type) {
-        return WRAPPER_CACHE.get(type.getHoneyID(), () -> {
-            Class<?> nmsClass = type.getNmsClass();
-
-            return PacketWrapperInvokerFactory.createWrapperInvoker(type, nmsClass);
-        });
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<WP> packetContainer) {
+        return PacketWrapperFactory.initWrappedPacket(type, rawPacket, packetContainer);
     }
 }

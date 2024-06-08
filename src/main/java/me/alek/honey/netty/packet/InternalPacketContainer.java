@@ -124,13 +124,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public PacketState getProtocolState(PacketBound bound) {
+    public PacketState getProtocolState() {
         if (player != null) {
-            return player.packetHandler.getProtocolState(bound);
+            return player.packetHandler.getProtocolState(type.getBound());
         }
 
         try {
-            return HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getProtocolState(bound);
+            return HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getProtocolState(type.getBound());
         } catch (MissingHandlerException ex) {
             return PacketState.UNKNOWN;
         }

@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet.type;
 
+import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
 
@@ -11,10 +12,10 @@ public enum PacketBound {
     private final Enum<?> nmsEnum = Reflection.getEnumAtIndex(NMS.getEnumProtocolDirectionClass(), ordinal());
 
     public String getProtocolHandlerName() {
-        return this == SERVER ? "decoder" : "encoder";
+        return this == SERVER ? MinecraftHandlers.DECODER : MinecraftHandlers.ENCODER;
     }
 
-    public Enum<?> getNMSWrapperType() {
+    public Enum<?> getNMSType() {
         return nmsEnum;
     }
 }

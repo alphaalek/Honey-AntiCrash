@@ -6,11 +6,10 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ItemReflection {
 
-    private static final Class<?> itemStackClass = Reflection.getFuzzyClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
+    private static final Class<?> itemStackClass = Reflection.getUnsureClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
     private static ConstructorInvoker<?> itemStackConstructor;
 

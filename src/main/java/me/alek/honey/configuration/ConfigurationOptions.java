@@ -1308,7 +1308,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketType.Play.Client.ENCHANT_ITEM)
+            @Flood(PacketType.Play.Client.CONTAINER_BUTTON_CLICK)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.enchant-item"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class EnchantItem extends VlSetting implements VlIntervalRequiredContentsSetting {

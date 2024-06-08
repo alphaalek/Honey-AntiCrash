@@ -15,7 +15,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
         super(rawPacket, packetContainer);
 
         if (MODERN) {
-            MINECRAFT_KEY_CLASS = Reflection.getFuzzyClass("{nms}.MinecraftKey", "{nms}.resources.MinecraftKey");
+            MINECRAFT_KEY_CLASS = Reflection.getUnsureClass("{nms}.MinecraftKey", "{nms}.resources.MinecraftKey");
         }
     }
 

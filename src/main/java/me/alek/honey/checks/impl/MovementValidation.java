@@ -19,7 +19,6 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
-import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
@@ -32,7 +31,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
@@ -54,7 +53,6 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         return () -> Arrays.asList(
                 PacketType.Play.Client.POSITION,
                 PacketType.Play.Client.POSITION_LOOK,
-                PacketType.Play.Client.VEHICLE_MOVE,
                 PacketType.Play.Client.GROUND,
                 PacketType.Play.Client.FLYING
         );
@@ -208,7 +206,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionB<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
         private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
@@ -282,7 +280,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionC<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private Location lastFlaggedLocation;
 
@@ -338,7 +336,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionD<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionD<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private WrappedChunkCoordIntPair lastChunkCameFrom;
         private WrappedChunkCoordIntPair lastChunk;
@@ -393,7 +391,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionE<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionE<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -429,7 +427,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionF<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionF<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final Map<Direction, Axis> axisLookup = new EnumMap<>(Direction.class);
 
@@ -540,7 +538,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionG<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionG<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -580,7 +578,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionH<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionH<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
         private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
@@ -670,7 +668,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionI<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionI<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -707,7 +705,7 @@ public class MovementValidation<WP extends WrappedAbstractPositional<WP>> extend
         }
     }
 
-    public static class PositionJ<WP extends WrappedAbstractPositional<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class PositionJ<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {

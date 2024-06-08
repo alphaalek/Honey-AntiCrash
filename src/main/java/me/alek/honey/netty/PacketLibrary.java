@@ -8,7 +8,7 @@ import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.SpigotServerInjector;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.listener.PacketAdapter;
-import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
+import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
@@ -47,7 +47,7 @@ public class PacketLibrary {
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
         PacketType.load();
-        PacketWrapperInvokerFactory.load();
+        PacketWrapperFactory.loadWrappers();
 
         packetProcessor = new InternalPacketProcessor();
         packetManager = new ServerPacketManager();

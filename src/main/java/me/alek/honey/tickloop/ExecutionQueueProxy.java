@@ -7,7 +7,6 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -48,17 +47,9 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
         Set<PacketTypeEnum> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.Postpone.MAX_QUEUE_SIZE_IGNORED) {
 
-            PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(ignoredPacket);
-            if (packetType != null) {
-                packets.add(packetType);
-
-            } else {
-                for (PacketTypeEnum type : PacketType.getTypesAvailable()) {
-                    if (type != null && type.toString().equalsIgnoreCase(ignoredPacket)) {
-                        packets.add(type);
-                        break;
-                    }
-                }
+            PacketTypeEnum ignoredPacketType = PacketType.getPacketType(ignoredPacket, PacketType.NameGetStrategy.EITHER);
+            if (!PacketType.isUnknown(ignoredPacketType)) {
+                packets.add(ignoredPacketType);
             }
         }
 

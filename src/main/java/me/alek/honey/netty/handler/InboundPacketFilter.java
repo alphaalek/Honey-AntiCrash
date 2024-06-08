@@ -9,6 +9,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -82,6 +83,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         Bukkit.getLogger().info("Filter " + byteBuf);
 
+        Bukkit.getLogger().info("Id " + new PacketDataSerializer(Unpooled.copiedBuffer(byteBuf)).readVarInt());
+
         if (player != null) {
             checkRelocation();
         }
@@ -103,9 +106,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     public void checkRelocation() {
         if (!hasBeenRelocated) {
-            hasBeenRelocated = true;
             try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateHandlers(player, channel);
+                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(channel);
             } catch (MissingHandlerException ex) {
                 hasBeenRelocated = false;
             }

@@ -3,9 +3,7 @@ package me.alek.honey.netty.util;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;
-import java.text.Collator;
 import java.util.*;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,6 +50,11 @@ public class Reflection {
             "org.bukkit.craftbukkit", "").replace(".", "");
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
 
+    @SuppressWarnings("unchecked")
+    public static Class<Object> asObject(Class<?> clazz) {
+        return (Class<Object>) clazz;
+    }
+
     public static Class<?> getSubClass(Class<?> superClass, String name) {
         for (Class<?> subClass : superClass.getDeclaredClasses()) {
             if (subClass.getSimpleName().equals(name)) {
@@ -60,6 +63,17 @@ public class Reflection {
         }
 
         throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + name);
+    }
+
+    public static Class<?> getSubClass(Class<?> superClass, int i) {
+        int index = 0;
+        for (Class<?> subClass : superClass.getDeclaredClasses()) {
+            if (index++ == i) {
+                return subClass;
+            }
+        }
+
+        throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + i);
     }
 
     public static Class<?> getClassWithException(String name) throws Exception {
@@ -74,7 +88,7 @@ public class Reflection {
         return getClass("[L" + name + ";");
     }
 
-    public static Class<?> getFuzzyClass(String... names) {
+    public static Class<?> getUnsureClass(String... names) {
         for (String name : names) {
             try {
                 return getClassWithException(name);
@@ -84,8 +98,8 @@ public class Reflection {
         throw new RuntimeException("Reflection error (class): " + Arrays.stream(names).map(Reflection::setPlaceholders).collect(Collectors.toList()));
     }
 
-    public static Class<Object> getFuzzyObjectClass(String... names) {
-        return (Class<Object>) getFuzzyClass(names);
+    public static Class<Object> getUnsureObjectClass(String... names) {
+        return (Class<Object>) getUnsureClass(names);
     }
 
     public static Class<?> getCanonicalClassWithException(String name) throws Exception {
@@ -168,6 +182,15 @@ public class Reflection {
                 return o1.getName().compareTo(o2.getName());
             }
         }).toArray(Method[]::new);
+    }
+
+    public static Field[] getDeclaredFields(Class<?> clazz) {
+        return Arrays.stream(clazz.getDeclaredFields()).sorted(new Comparator<Field>() {
+            @Override
+            public int compare(Field o1, Field o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        }).toArray(Field[]::new);
     }
 
     public static MethodInvoker<Object> getMethod(Class<?> target, Predicate<Method> methodPredicate) {

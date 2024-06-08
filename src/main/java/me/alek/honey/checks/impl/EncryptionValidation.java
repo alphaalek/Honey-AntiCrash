@@ -14,7 +14,7 @@ import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilterFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionResponse;
+import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionBegin;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.util.CallbackAction;
 
@@ -23,15 +23,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInEncryptionResponse> implements IPacketListener {
+public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInEncryptionBegin> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionBegin> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionResponse> packetContainer, CheckContextContainer container) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionBegin> packetContainer, CheckContextContainer container) {
 
     }
 
@@ -46,8 +46,8 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
     }
 
     @Override
-    public CheckVisitor<WrappedLoginInEncryptionResponse> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedLoginInEncryptionResponse> visitor = new CheckVisitor<>(player);
+    public CheckVisitor<WrappedLoginInEncryptionBegin> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedLoginInEncryptionBegin> visitor = new CheckVisitor<>(player);
         visitor.visit(new EncryptionA());
         return visitor;
     }
@@ -57,10 +57,10 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
         return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_BEGIN);
     }
 
-    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionResponse> {
+    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionBegin> {
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedLoginInEncryptionResponse packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedLoginInEncryptionBegin packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

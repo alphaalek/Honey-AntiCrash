@@ -70,8 +70,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             });
         });
 
-        if (requiresPlayer() && player == null
-                || !onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
+        if (requiresPlayer() && player == null) {
+            return;
+        }
+
+        if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
 
@@ -109,8 +112,12 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         return initializedCheckInstances;
     }
 
-    public abstract boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback);
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+        return true;
+    }
 
-    public abstract void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container);
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+
+    }
 
 }

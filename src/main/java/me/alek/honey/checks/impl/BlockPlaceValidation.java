@@ -3,23 +3,20 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
-import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilter;
 import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
-import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractBlockInteraction;
 import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,17 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
-
-    @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-
-    }
+public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBlockPlace> implements IPacketListener {
 
     @Override
     public ListenerPriority getPriority() {
@@ -47,13 +34,13 @@ public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
-        visitor.visit(new BlockInteractA<>());
-        visitor.visit(new BlockInteractB<>());
-        visitor.visit(new BlockInteractC<>());
+    public CheckVisitor<WrappedPlayInBlockPlace> getVisitor(HoneyPlayer player) {
+        CheckVisitor<WrappedPlayInBlockPlace> visitor = new CheckVisitor<>(player);
+        visitor.visit(new BlockInteractA());
+        visitor.visit(new BlockInteractB());
+        visitor.visit(new BlockInteractC());
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            visitor.visit(new BlockInteractD<>());
+            visitor.visit(new BlockInteractD());
         }
         return visitor;
     }
@@ -105,10 +92,10 @@ public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>
         return Validation.PASS;
     }
 
-    public static class BlockInteractA<WP extends WrappedAbstractBlockInteraction<WP>> implements ViolationCheck, PacketCheck<WP> {
+    public static class BlockInteractA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
@@ -143,15 +130,12 @@ public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>
         }
     }
 
-    public static class BlockInteractB<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class BlockInteractB implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
-                WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
-                ItemStack item = blockPlacePacket.getItem();
-
-                return ItemAnalysis.flagIf(player, item, container.getDevelopmentData(this));
+                return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
             return Validation.PASS;
         }
@@ -182,19 +166,17 @@ public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>
         }
     }
 
-    public static class BlockInteractC<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class BlockInteractC implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
-                final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
-
-                final ItemStack item = blockPlacePacket.getItem();
-                if (item == null)
+                ItemStack item = packet.getItem();
+                if (item == null) {
                     return Validation.PASS;
+                }
 
-                final Material material = item.getType();
-
+                Material material = item.getType();
                 if (material == Material.PISTON_MOVING_PIECE
                         || material == Material.PISTON_EXTENSION) {
                     return Validation.inst().cancel().flag().build();
@@ -229,21 +211,18 @@ public class BlockPlaceValidation<WP extends WrappedAbstractBlockInteraction<WP>
         }
     }
 
-    public static class BlockInteractD<WP extends WrappedAbstractBlockInteraction<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class BlockInteractD implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
-                final WrappedPlayInBlockPlace blockPlacePacket = (WrappedPlayInBlockPlace) packet;
+                int placedBlockDirection = packet.getPlacedBlockDirection();
 
-                final int placedBlockDirection = blockPlacePacket.getPlacedBlockDirection();
+                float facingX = packet.getFacingX();
+                float facingY = packet.getFacingY();
+                float facingZ = packet.getFacingZ();
 
-                final float facingX = blockPlacePacket.getFacingX();
-                final float facingY = blockPlacePacket.getFacingY();
-                final float facingZ = blockPlacePacket.getFacingZ();
-
-                final CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
-
+                CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
                     return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {

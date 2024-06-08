@@ -4,12 +4,10 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
@@ -206,7 +204,7 @@ public interface MonitorFlag<T> {
 
             this.specified = MonitorFlagParser.getFromArgs(args, readIndex);
             {
-                PacketTypeEnum packetType = PacketWrapperInvokerFactory.getPacketTypeForNameIgnoreCase(specified);
+                PacketTypeEnum packetType = PacketType.getPacketType(specified, PacketType.NameGetStrategy.EITHER);
                 if (packetType != null) {
                     this.type = packetType;
                     return 1;
@@ -265,7 +263,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from(input.getProtocolState(PacketBound.SERVER).name(), appendable));
+            data.add(Flags.AppendedData.from(input.getProtocolState().name(), appendable));
         }
     }
 

@@ -2,9 +2,7 @@ package me.alek.honey.netty.codec;
 
 import com.google.common.collect.BiMap;
 import io.netty.channel.Channel;
-import io.netty.handler.codec.DecoderException;
 import io.netty.util.AttributeKey;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -33,28 +31,6 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         return null;
     }
 
-    public static WrappedEnumProtocol getEnumProtocol(Channel channel, PacketBound bound) {
-        AttributeKey<?> protocolAttributeKey = getProtocolAttributeKey(channel, bound);
-        if (protocolAttributeKey == null) {
-            throw new DecoderException("Could not get protocol due to invalid enum protocol from channel attribute.");
-        }
-        return new WrappedEnumProtocol(channel.attr(protocolAttributeKey).get(), bound);
-    }
-
-    public static Object getEnumProtocolDelegate(Channel channel, PacketBound bound) {
-        Object protocol = getEnumProtocol(channel, bound).getHandle();
-
-        IStructureModifier<Enum<?>> structure = ReflectStructureCache.acquireStructure(protocol.getClass())
-                .withType(NMS.getEnumProtocolClass())
-                .withoutStatic()
-                .withTarget(protocol);
-        if (!structure.getAccessors().isEmpty()) {
-            return structure.readField(0);
-        }
-
-        return protocol;
-    }
-
     public static Object getEnumProtocol(PacketState state) {
         if (state == PacketState.ANY || state == PacketState.UNKNOWN) {
             return null;
@@ -76,7 +52,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
         Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructureCache.acquireStructure(NMS.getEnumProtocolClass())
                 .<Map<Object, Object>>withWeakType(Map.class).withoutStatic().withTarget(enumProtocol).readField(0);
-        return enumProtocolDelegateFlowMap.get(bound.getNMSWrapperType());
+        return enumProtocolDelegateFlowMap.get(bound.getNMSType());
     }
 
     private final PacketBound bound;
@@ -126,22 +102,12 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         return getPacketIdModifier.invoke(classToIdMap, clazz);
     }
 
-    public Object createPacket(PacketBound direction, int id, PacketDataSerializer serializer) throws Exception {
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            return createLegacyPacket(direction, id);
-        }
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
-            return createModernPacket1_20_1(direction, serializer, id);
-        }
-        return createModernPacket1_20_2(serializer, id);
-    }
-
     public Object createLegacyPacket(PacketBound direction, int id) throws Exception {
-        return invoke(direction.getNMSWrapperType(), id);
+        return invoke(direction.getNMSType(), id);
     }
 
     public Object createModernPacket1_20_1(PacketBound direction, PacketDataSerializer serializer, int id) throws Exception {
-        return invoke(direction.getNMSWrapperType(), id, serializer.getSerializer());
+        return invoke(direction.getNMSType(), id, serializer.getSerializer());
     }
 
     public Object createModernPacket1_20_2(PacketDataSerializer serializer, int id) throws Exception {

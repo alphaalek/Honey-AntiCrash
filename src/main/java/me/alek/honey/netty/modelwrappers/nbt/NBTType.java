@@ -45,7 +45,7 @@ public enum NBTType {
     private static final Map<Class<?>, NBTType> typeLookup;
 
     private static Class<?> getNBTClass(String name) {
-        return Reflection.getFuzzyClass("{nms}." + name, "{nms}.nbt." + name);
+        return Reflection.getUnsureClass("{nms}." + name, "{nms}.nbt." + name);
     }
 
     static {

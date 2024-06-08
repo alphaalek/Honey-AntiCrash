@@ -32,7 +32,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketState getState();
 
-    PacketState getProtocolState(PacketBound bound);
+    PacketState getProtocolState();
 
     WP getPacket();
 

@@ -12,37 +12,70 @@ import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class CodecFactory {
 
     public static Object getProtocolInfo1_20_5(PacketBound bound, PacketState state) {
-        Function<Class<Object>, IStructureModifier<Object>> get = c -> ReflectStructureCache.acquireStructure(c)
-                .withType(NMS.getProtocolInfoClass()).withTarget(null);
+        Class<Object> protocolInfoClass = NMS.getProtocolInfoClass();
+        Class<Object> protocolInfoBinderClass = NMS.getProtocolInfoBinderClass();
 
-        int index = bound.equals(PacketBound.SERVER) ? 0 : 1;
+        BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> {
+            Bukkit.broadcastMessage(c + " " + ReflectStructureCache.acquireStructure(c)
+                    .withType(t).withTarget(null).readFieldEntries());
+            return ReflectStructureCache.acquireStructure(c)
+                    .withType(t).withTarget(null);
+        };
+
+        int index = bound.equals(PacketBound.CLIENT) ? 0 : 1;
 
         switch (state) {
             case HANDSHAKE:
                 if (bound == PacketBound.CLIENT) {
                     throw new NoSuchElementException();
                 }
-                return get.apply(Protocols.HANDSHAKE_CLASS).readField(0);
+                return get.apply(Protocols.HANDSHAKE_CLASS, protocolInfoClass).readField(0);
             case PLAY:
-                return get.apply(Protocols.GAME_CLASS).readField(index);
+                return bindProtocolInfo1_20_5(
+                        get.apply(Protocols.GAME_CLASS, protocolInfoBinderClass).readField(index));
             case STATUS:
-                return get.apply(Protocols.STATUS_CLASS).readField(index);
+                return get.apply(Protocols.STATUS_CLASS, protocolInfoClass).readField(index);
             case LOGIN:
-                return get.apply(Protocols.LOGIN_CLASS).readField(index);
+                return get.apply(Protocols.LOGIN_CLASS, protocolInfoClass).readField(index);
             case CONFIGURATION:
-                return get.apply(Protocols.CONFIGURATION_CLASS).readField(index);
+                return get.apply(Protocols.CONFIGURATION_CLASS, protocolInfoClass).readField(index);
             default:
                 return null;
         }
+    }
+
+    public static Object bindProtocolInfo1_20_5(Object protocolInfoBinder) {
+        Bukkit.broadcastMessage(protocolInfoBinder + " " + ReflectStructureCache.acquireStructure(NMS.getProtocolInfoBinderClass())
+                .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder).getMethod(null, "bind", 0, getRegistryCustomFunction1_20_5().getClass()));
+        return ReflectStructureCache.acquireStructure(NMS.getProtocolInfoBinderClass())
+                .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder)
+                .invokeMethod(null, "bind", 0, getRegistryCustomFunction1_20_5());
+    }
+
+    public static Function<ByteBuf, Object> getRegistryCustomFunction1_20_5() {
+        Object layeredRegistryAccess = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
+                .withType(NMS.getLayeredRegistryAccessClass()).withTarget(NMS.getMinecraftServer())
+                .readField(0);
+
+        Object registryCustomDimension = ReflectStructureCache.acquireStructure(NMS.getLayeredRegistryAccessClass())
+                .withType(NMS.getRegistryCustomDimensionClass()).withTarget(layeredRegistryAccess)
+                .readField(0);
+
+        return ReflectStructureCache.acquireStructure(NMS.getRegistryFriendlyByteBufClass())
+                .<Function<ByteBuf, Object>>withWeakType(Function.class).withTarget(null)
+                .invokeMethod(null, 0, registryCustomDimension);
     }
 
     public static Collection<FieldAccessor<Object>> getPacketTypes1_20_5(PacketState state) {
@@ -68,22 +101,24 @@ public class CodecFactory {
     public static Object getStreamCodec1_20_5(PacketBound bound, PacketState state) {
         Object protocolInfo = getProtocolInfo1_20_5(bound, state);
 
-        return ReflectStructureCache.acquireStructure(NMS.getEnumProtocolClass())
+        Bukkit.broadcastMessage("PROTOCOL INFO " + protocolInfo);
+        return ReflectStructureCache.acquireStructure(NMS.getProtocolInfoClass())
                 .withType(NMS.getStreamCodecClass()).withTarget(protocolInfo)
                 .invokeMethod(null, 0);
     }
 
     public static EmulatorCodec<Object, ByteBuf> createFromStreamCodec1_20_5(Object codec, Supplier<? extends ByteBuf> byteBuf) {
-
-        MethodInvoker<Object> decoderInvoker = ReflectStructureCache.acquireStructure(NMS.getStreamCodecClass())
-                .withTarget(codec).getMethod(null, "decode", 0, Object.class);
-
-        MethodInvoker<Object> encoderInvoker = ReflectStructureCache.acquireStructure(NMS.getStreamCodecClass())
-                .withTarget(codec).getMethod(null, "encode", 0, Object.class, Object.class);
-
         return new EmulatorCodec<Object, ByteBuf>() {
+
+            private final MethodInvoker<Object> decoderInvoker = ReflectStructureCache.acquireStructure(NMS.getStreamDecoderClass())
+                    .withTarget(codec).getMethod(null, "decode", 0, Object.class);
+
+            private final MethodInvoker<Object> encoderInvoker = ReflectStructureCache.acquireStructure(NMS.getStreamEncoderClass())
+                    .withTarget(codec).getMethod(null, "encode", 0, Object.class, Object.class);
+
             @Override
             public Object decodeModern(ByteBuf buf) throws CodecException {
+                Bukkit.broadcastMessage("Decoding " + buf + " " + codec);
                 return decoderInvoker.invoke(codec, buf);
             }
 

@@ -60,11 +60,6 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
     public ListenerPriority getPriority() {
         return ListenerPriority.NORMAL;
     }

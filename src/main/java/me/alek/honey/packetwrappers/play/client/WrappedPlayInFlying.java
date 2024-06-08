@@ -1,18 +1,26 @@
 package me.alek.honey.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.packetwrappers.play.client.common.WrappedAbstractPositional;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Location;
 
-public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends WrappedAbstractPositional<WP> {
+public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends WrappedPacket<WP> {
+
+    public static class Status extends WrappedPlayInFlying<Status> {
+
+        public Status(Object rawPacket, PacketContainer<Status> packetContainer) {
+            super(rawPacket, packetContainer);
+        }
+    }
+
+    private Location location;
 
     public WrappedPlayInFlying(Object rawPacket, PacketContainer<WP> packetContainer) {
         super(rawPacket, packetContainer);
     }
 
-    @Override
-    public Location getLocation(PacketContainer<WP> packetContainer) {
-        return new Location(
+    public Location getLocation() {
+        return location != null ? location : new Location(
                 getWorld(),
                 getContainer().getDoubles().readField(0),
                 getContainer().getDoubles().readField(1),
@@ -20,6 +28,26 @@ public class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends Wra
                 getContainer().getFloats().readField(0),
                 getContainer().getFloats().readField(1)
         );
+    }
+
+    public double getX() {
+        return getLocation().getX();
+    }
+
+    public double getY() {
+        return getLocation().getY();
+    }
+
+    public double getZ() {
+        return getLocation().getZ();
+    }
+
+    public float getYaw() {
+        return getLocation().getYaw();
+    }
+
+    public float getPitch() {
+        return getLocation().getPitch();
     }
 
     public void setX(double x) {

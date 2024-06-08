@@ -8,6 +8,8 @@ public interface PacketTypeEnum {
 
     LazyInit<Integer> getMinecraftID();
 
+    String getKeyName1_20_5();
+
     int getHoneyID();
 
     PacketState getState();

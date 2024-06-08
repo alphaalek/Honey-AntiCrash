@@ -3,7 +3,6 @@ package me.alek.honey.netty.packet.bundle;
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.packet.PacketWrapperInvokerFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 
@@ -39,7 +38,10 @@ public class PacketBundleFilters {
     public static void updateFilterAllPackets() {
         Set<PacketTypeEnum> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.PacketDump.VLS_FILTER_ALL) {
-            packets.add(PacketWrapperInvokerFactory.getPacketTypeForName(ignoredPacket));
+            PacketTypeEnum type = PacketType.getPacketType(ignoredPacket, PacketType.NameGetStrategy.EITHER);
+            if (!PacketType.isUnknown(type)) {
+                packets.add(type);
+            }
         }
         FILTER_ALL_PACKETS = packets;
     }

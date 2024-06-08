@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 
 public class InternalPacketProcessor implements PacketProcessor {
 
-    private final EventBus<?> decodeListModifier = new EventBus<>();
+    private final EventBus<?> decodeEventBus = new EventBus<>();
     private final Array<EventBus<? extends WrappedPacket<?>>> packetAdapters = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
     private final Array<CallbackAction<PacketContainer<? extends WrappedPacket<?>>>> postActions = new Array<>();
@@ -169,7 +169,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public void addDecodeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority) {
-        decodeListModifier.addListener(packetAdapter, priority);
+        decodeEventBus.addListener(packetAdapter, priority);
     }
 
     public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
@@ -204,16 +204,16 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> check) {
-        for (EventBus<?> listModifier : packetAdapters) {
-            if (listModifier != null && existsInListModifier(listModifier, check)) {
+        for (EventBus<?> bus : packetAdapters) {
+            if (bus != null && existsInBus(bus, check)) {
                 return true;
             }
         }
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInListModifier(EventBus<WP2> listModifier, PacketAdapter<WP> check) {
-        for (List<PacketAdapter<WP2>> packetAdapters : listModifier.priorityMap.values()) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketAdapter<WP> check) {
+        for (List<PacketAdapter<WP2>> packetAdapters : bus.priorityMap.values()) {
             for (PacketAdapter<WP2> packetAdapter : packetAdapters) {
                 if (packetAdapter == check) {
                     return true;
@@ -243,18 +243,20 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
-        decodeListModifier.callDecode(player, byteBuf);
+        decodeEventBus.callDecode(player, byteBuf);
     }
 
     private void registerToBundle(HoneyPlayer player, PacketTypeEnum packetType, PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        if (packetType.getBound() == PacketBound.CLIENT && player != null && packetContainer.getPlayer() != null) {
+        if (packetType.getBound() == PacketBound.CLIENT
+                && player != null
+                && packetContainer.getPlayer() != null) {
             player.packetBundleSaver.add(packetContainer);
         }
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
-                                                                                  Object packet, HoneyPlayer player, Channel channel,
-                                                                                  CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
+                                                                                         Object packet, HoneyPlayer player, Channel channel,
+                                                                                         CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
         if (packetContainer != null) {
             packetContainer.init(packet, postAction, type);
 
@@ -265,11 +267,11 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, Channel channel,
-                                                                     Object packet, PacketBound packetBound,
-                                                                     PacketContainer<WP> earlyInitializedPacket) {
+                                                                     Object packet, PacketContainer<WP> earlyInitializedPacket) {
         // initialize the packet container
         PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
-        CallbackAction<PacketContainer<WP>> postAction = !PacketType.isUnknown(packetType) ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID()) : null;
+        CallbackAction<PacketContainer<WP>> postAction = !PacketType.isUnknown(packetType)
+                ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID()) : null;
 
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, packetType);
@@ -303,12 +305,12 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        return handleCommon(player, channel, packet, PacketBound.SERVER, earlyInitializedPacket);
+        return handleCommon(player, channel, packet, earlyInitializedPacket);
     }
 
     @Override
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet) {
-        return handleCommon(player, channel, packet, PacketBound.CLIENT, null);
+        return handleCommon(player, channel, packet, null);
     }
 
     @Override
