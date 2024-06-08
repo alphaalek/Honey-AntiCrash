@@ -215,7 +215,6 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            Bukkit.getLogger().info("Testing " + input.getType() + " " + this.type);
             return input.getType().equals(this.type);
         }
 
