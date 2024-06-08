@@ -127,7 +127,7 @@ public class ReflectStructure<T, C> {
     private boolean disallowedField(IReflectionMember<?> member) {
         return !withStaticFields
                 && member.getMemberType().equals(MemberType.FIELD)
-                && Modifier.isStatic(((FieldAccessor<?>)member).getField().getModifiers());
+                && Modifier.isStatic(((FieldAccessor<?>)member).getHandle().getModifiers());
     }
 
     private void setDefault(
@@ -137,10 +137,23 @@ public class ReflectStructure<T, C> {
         AtomicInteger index = new AtomicInteger();
         Class<?> clazz = handle;
 
-        while (clazz != null && clazz != Object.class) {
+        while (clazz != null && !clazz.equals(Object.class)) {
             setDefaultSpecific(index, defaults, clazz, isFields);
+            for (Class<?> interfaceType : clazz.getInterfaces()) {
+                setDefaultSpecific(index, defaults, interfaceType, isFields);
+            }
             clazz = clazz.getSuperclass();
         }
+    }
+
+    private boolean exists(Map<Integer, ? extends IReflectionMember<?>> defaults, IReflectionMember<?> member) {
+        for (IReflectionMember<?> defaultMember : defaults.values()) {
+            if (Objects.equals(defaultMember, member)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private synchronized Map<Integer, ? extends IReflectionMember<?>> setDefaultSpecific(
@@ -159,7 +172,8 @@ public class ReflectStructure<T, C> {
                     : new MethodInvoker<>((Method) handle);
 
             if (disallowedField(member)
-                    || disallowedClass(member)) {
+                    || disallowedClass(member)
+                    || exists(defaults, member)) {
                 continue;
             }
 
@@ -198,8 +212,8 @@ public class ReflectStructure<T, C> {
     }
 
     @SuppressWarnings("unchecked")
-    private <R extends IReflectionMember<?>> R castReflectionMember(IReflectionMember<?> reflectToucher) {
-        return (R) reflectToucher;
+    private <R extends IReflectionMember<?>> R castReflectionMember(IReflectionMember<?> member) {
+        return (R) member;
     }
 
     @SuppressWarnings("unchecked")
@@ -221,7 +235,6 @@ public class ReflectStructure<T, C> {
     }
 
     public <R> ReflectStructure<R, R> withType(Class<R> clazz) {
-        // R og D er den samme i generic context
         return withSpecificType(clazz, null, true);
     }
 
@@ -238,21 +251,11 @@ public class ReflectStructure<T, C> {
     }
 
     public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter, boolean withCache) {
-        if (clazz == null) return null;
-
-        ReflectStructure<R, D> packetStructure = null;
         if (withCache) {
-            packetStructure = (ReflectStructure<R, D>) SUB_TYPE_CACHE.get(clazz);
+            return (ReflectStructure<R, D>) SUB_TYPE_CACHE.computeIfAbsent(clazz, d -> new ReflectStructure<>(handle, clazz, converter));
+        } else {
+            return new ReflectStructure<>(handle, clazz, converter);
         }
-
-        if (packetStructure == null) {
-            packetStructure = new ReflectStructure<>(handle, clazz, converter);
-
-            if (withCache) {
-                SUB_TYPE_CACHE.put(clazz, packetStructure);
-            }
-        }
-        return packetStructure;
     }
 
     public ReflectStructure<Integer, Integer> asInt() {
@@ -587,7 +590,7 @@ public class ReflectStructure<T, C> {
 
             AtomicInteger index = new AtomicInteger();
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (matchParams(params, getWrapperClasses(invoker.getMethod().getParameterTypes()))
+                if (matchParams(params, getWrapperClasses(invoker.getHandle().getParameterTypes()))
                         && filter.test(index, invoker)) {
 
                     if (methodReference != null) {
@@ -613,7 +616,7 @@ public class ReflectStructure<T, C> {
 
             @SuppressWarnings("unchecked")
             MethodInvoker<O> invoker = (MethodInvoker<O>) ACQUIRED_INVOKERS.get(index);
-            if (!matchParams(params, getWrapperClasses(invoker.getMethod().getParameterTypes()))) {
+            if (!matchParams(params, getWrapperClasses(invoker.getHandle().getParameterTypes()))) {
                 return null;
             }
 

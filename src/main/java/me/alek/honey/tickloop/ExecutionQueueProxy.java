@@ -95,7 +95,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 .asInt().withTarget(NMS.getMinecraftServer());
         private final int finalFields = (int) tickStructureModifier.getAccessors()
                 .stream()
-                .filter(field -> Modifier.isFinal(field.getField().getModifiers()))
+                .filter(field -> Modifier.isFinal(field.getHandle().getModifiers()))
                 .count();
         private final Supplier<Integer> tickAccessor = () -> {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {

@@ -433,7 +433,7 @@ public class Reflection {
     }
 
     public static void setFinalField(Object instance, FieldAccessor<?> accessor, Object value) throws Exception {
-        setFinalField(instance, accessor.getField(), value);
+        setFinalField(instance, accessor.getHandle(), value);
     }
 
     public static void setFinalField(Object instance, Field field, Object value) throws Exception {

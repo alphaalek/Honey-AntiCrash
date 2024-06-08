@@ -7,6 +7,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -40,7 +41,7 @@ public class LazyInit<T> {
                 for (Object codec : codecs) {
                     Object packetType = ReflectStructureCache.acquireStructure(codec.getClass())
                             .withTarget(codec)
-                            .readField(null, (i, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getField().getType()));
+                            .readField(null, (i, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getHandle().getType()));
                     Object minecraftKey = ReflectStructureCache.acquireStructure(NMS.getPacketTypeClass())
                             .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
                             .readField(0);

@@ -17,7 +17,6 @@ public class SimpleWrapperConverter<WO extends WrappedObject<WO>> implements Jav
 
     @Override
     public WO convertDelegate(Object delegate, Object... params) {
-        Bukkit.broadcastMessage("Convert delegate " + delegate + " " + params.length);
         if (params.length == 0) {
             return constructorInvoker.invoke(delegate);
         } else {

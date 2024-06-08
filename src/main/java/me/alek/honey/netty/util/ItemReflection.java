@@ -52,7 +52,7 @@ public class ItemReflection {
     }
 
     public static Object asNMSCopy(ItemStack item) {
-        if (item != null && Arrays.equals(nmsCopyInvoker.getMethod().getParameterTypes(), new Class[]{ItemStack.class})) {
+        if (item != null && Arrays.equals(nmsCopyInvoker.getHandle().getParameterTypes(), new Class[]{ItemStack.class})) {
 
             try {
                 Object nmsItem = nmsCopyInvoker.invokeWithException(null, item);

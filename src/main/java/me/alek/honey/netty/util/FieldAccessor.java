@@ -14,7 +14,8 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
         this.field = field;
     }
 
-    public Field getField() {
+    @Override
+    public Field getHandle() {
         return field;
     }
 

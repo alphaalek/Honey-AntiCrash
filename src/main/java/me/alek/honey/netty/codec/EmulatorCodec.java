@@ -6,7 +6,7 @@ import me.alek.honey.netty.util.NetProtocol;
 
 public interface EmulatorCodec<T, B extends ByteBuf> {
 
-    boolean LEGACY = NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17);
+    boolean LEGACY = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17);
 
     T decodeModern(ByteBuf buf) throws CodecException;
     T decodeLegacy(ByteBuf buf, PacketBuilder<PacketTypeEnum, LegacyCodec.Applier> codec) throws CodecException;

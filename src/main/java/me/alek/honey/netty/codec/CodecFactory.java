@@ -26,12 +26,8 @@ public class CodecFactory {
         Class<Object> protocolInfoClass = NMS.getProtocolInfoClass();
         Class<Object> protocolInfoBinderClass = NMS.getProtocolInfoBinderClass();
 
-        BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> {
-            Bukkit.broadcastMessage(c + " " + ReflectStructureCache.acquireStructure(c)
-                    .withType(t).withTarget(null).readFieldEntries());
-            return ReflectStructureCache.acquireStructure(c)
-                    .withType(t).withTarget(null);
-        };
+        BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> ReflectStructureCache.acquireStructure(c)
+                .withType(t).withTarget(null);
 
         int index = bound.equals(PacketBound.CLIENT) ? 0 : 1;
 
@@ -56,8 +52,6 @@ public class CodecFactory {
     }
 
     public static Object bindProtocolInfo1_20_5(Object protocolInfoBinder) {
-        Bukkit.broadcastMessage(protocolInfoBinder + " " + ReflectStructureCache.acquireStructure(NMS.getProtocolInfoBinderClass())
-                .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder).getMethod(null, "bind", 0, getRegistryCustomFunction1_20_5().getClass()));
         return ReflectStructureCache.acquireStructure(NMS.getProtocolInfoBinderClass())
                 .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder)
                 .invokeMethod(null, "bind", 0, getRegistryCustomFunction1_20_5());
@@ -100,7 +94,6 @@ public class CodecFactory {
     public static Object getStreamCodec1_20_5(PacketBound bound, PacketState state) {
         Object protocolInfo = getProtocolInfo1_20_5(bound, state);
 
-        Bukkit.broadcastMessage("PROTOCOL INFO " + protocolInfo);
         return ReflectStructureCache.acquireStructure(NMS.getProtocolInfoClass())
                 .withType(NMS.getStreamCodecClass()).withTarget(protocolInfo)
                 .invokeMethod(null, 0);
@@ -117,7 +110,6 @@ public class CodecFactory {
 
             @Override
             public Object decodeModern(ByteBuf buf) throws CodecException {
-                Bukkit.broadcastMessage("Decoding " + buf + " " + codec);
                 return decoderInvoker.invoke(codec, buf);
             }
 

@@ -154,6 +154,11 @@ public class SpigotPipelineInjector {
             PacketInterceptorResolver.getEncoderPosition(channel.pipeline());
         }
 
+        ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
+        if (preResolvedPacketHandler != null) {
+            togglePreResolvedBounds(channel, (PreResolvedPacketHandler) preResolvedPacketHandler);
+        }
+
         if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
             if (player != null && player.packetHandler != null) {
                 setupPreparationHandlers(channel, player.packetHandler);
@@ -161,14 +166,13 @@ public class SpigotPipelineInjector {
                 setupPreparationHandlers(channel, packetHandler);
             }
 
+            if (preResolvedPacketHandler != null) {
+                togglePreResolvedBounds(channel, (PreResolvedPacketHandler) preResolvedPacketHandler);
+            }
+
             if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
                 return false;
             }
-        }
-
-        ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
-        if (preResolvedPacketHandler != null) {
-            togglePreResolvedBounds(channel, (PreResolvedPacketHandler) preResolvedPacketHandler);
         }
 
         if (player != null && player.updateHandlersLater) {

@@ -28,7 +28,7 @@ public interface LegacyCodec {
                 MethodHandle applicationMethod = LegacyCodecLookup.get().get(type.getState()).get(packetId, () -> {
                     MethodInvoker<?> invoker = Reflection.getMethod(type.getNmsClass(), 0, NMS.getPacketDataSerializerClass());
                     try {
-                        return MethodHandles.lookup().unreflect(invoker.getMethod());
+                        return MethodHandles.lookup().unreflect(invoker.getHandle());
                     } catch (IllegalAccessException ex) {
                         ex.printStackTrace();
                         Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet " + packetId + ", " + type + ", " + type.getState());
