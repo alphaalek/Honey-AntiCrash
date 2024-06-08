@@ -108,6 +108,7 @@ public class PacketExecutors {
                         }
 
                         heldItem.setItemMeta((ItemMeta) copyStructure(meta, heldItem.getItemMeta()));
+                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
                     };
                 case "MC|BSign":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null) ||
@@ -138,6 +139,7 @@ public class PacketExecutors {
                         );
                         Bukkit.getPluginManager().callEvent(editBookEvent);
                         if (editBookEvent.isCancelled()) {
+                            player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
                             return;
                         }
 
