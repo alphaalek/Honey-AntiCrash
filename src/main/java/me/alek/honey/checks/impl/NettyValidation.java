@@ -33,6 +33,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.NumberConversions;
 
 import java.util.ArrayList;
@@ -64,19 +65,10 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         return visitor;
     }
 
-    @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-
-    }
-
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private static final ExecutionQueueProxy tracker = (ExecutionQueueProxy) HoneyPlugin.get().getServerThreadTracker();
+        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final ExecutionQueueProxy tracker = HoneyPlugin.get().getServerThreadTracker();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -99,7 +91,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 26;
+            return id;
         }
 
         @Override
@@ -121,7 +113,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
-
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static final List<PacketTypeEnum> IGNORE = Arrays.asList(PacketType.Play.Client.FLYING);
         private static final Array<PacketReader<? extends WrappedPacket<?>>> READERS = new Array<>();
 
@@ -161,16 +153,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-            return true;
-        }
-
-        @Override
-        public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-
-        }
-
-        @Override
         public Supplier<List<PacketTypeEnum>> getPacketTypes() {
             return () -> {
                 final List<PacketTypeEnum> packetTypes = new ArrayList<>();
@@ -186,7 +168,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 }
 
                 packetTypes.removeAll(IGNORE);
-
                 return packetTypes;
             };
         }
@@ -226,7 +207,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 27;
+            return id;
         }
 
         @Override
@@ -252,6 +233,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class NettyC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
 
         private static final double IGNORE_RATE_5S = /* 7.5 */ 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
@@ -317,7 +299,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 28;
+            return id;
         }
 
         @Override
@@ -337,6 +319,8 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) throws Exception {
             // evaluate the duration of decoding this packet
@@ -361,7 +345,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 33;
+            return id;
         }
 
         @Override
@@ -382,6 +366,8 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             return NettyH.check0(packet, getSetting(), () -> container.getDevelopmentData(this));
@@ -389,7 +375,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 34;
+            return id;
         }
 
         @Override
@@ -410,6 +396,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
         private static final double MIN_HSQ_ENTER = 0.1;
@@ -488,7 +475,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 35;
+            return id;
         }
 
         @Override

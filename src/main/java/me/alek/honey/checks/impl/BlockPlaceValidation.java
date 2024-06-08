@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -92,6 +93,8 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
     public static class BlockInteractA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -106,7 +109,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public int getID() {
-            return 0;
+            return id;
         }
 
         @Override
@@ -125,6 +128,8 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
     public static class BlockInteractB implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
@@ -135,7 +140,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public int getID() {
-            return 1;
+            return id;
         }
 
         @Override
@@ -156,6 +161,8 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
     public static class BlockInteractC implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
@@ -175,7 +182,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public int getID() {
-            return 2;
+            return id;
         }
 
         @Override
@@ -195,6 +202,8 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
     }
 
     public static class BlockInteractD implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
@@ -232,7 +241,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public int getID() {
-            return 3;
+            return id;
         }
 
         @Override

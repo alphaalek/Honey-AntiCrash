@@ -48,11 +48,6 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
     public void cleanup(HoneyPlayer player) {
         lastSetCreativeSlot.remove(player.uuid);
     }
@@ -100,6 +95,8 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodA.class);
@@ -107,7 +104,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 17;
+            return id;
         }
 
         @Override
@@ -123,6 +120,8 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class FloodB<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodB.class);
@@ -130,7 +129,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 19;
+            return id;
         }
 
         @Override
@@ -146,6 +145,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class FloodC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static final IDRegistry packetTypes = new IDRegistry();
 
         static {
@@ -174,7 +174,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 62;
+            return id;
         }
 
         @Override
@@ -195,6 +195,8 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
@@ -207,7 +209,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public int getID() {
-            return 21;
+            return id;
         }
 
         @Override

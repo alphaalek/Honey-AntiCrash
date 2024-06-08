@@ -16,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInUpdateSign;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +53,8 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
 
     public static class SignA implements PacketCheck<WrappedPlayInUpdateSign> {
 
-        private final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
+        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
                 "{translate:\\\"translation.test.invalid\\\"}",
                 "{translate:\\\"translation.test.invalid2\\\"}"
         };
@@ -83,7 +85,7 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
 
         @Override
         public int getID() {
-            return 57;
+            return id;
         }
 
         @Override

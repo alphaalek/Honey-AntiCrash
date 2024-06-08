@@ -19,6 +19,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -63,6 +64,8 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
 
     public static class LoginA implements PacketCheck<WrappedLoginInLoginStart> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
@@ -81,7 +84,7 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
 
         @Override
         public int getID() {
-            return 24;
+            return id;
         }
 
         @Override
@@ -96,6 +99,8 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
     }
 
     public static class LoginB implements PacketCheck<WrappedLoginInLoginStart> {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
@@ -114,7 +119,7 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
 
         @Override
         public int getID() {
-            return 25;
+            return id;
         }
 
         @Override

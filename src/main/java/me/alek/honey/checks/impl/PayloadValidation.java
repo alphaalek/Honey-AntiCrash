@@ -23,6 +23,7 @@ import me.alek.honey.netty.util.ItemReflection;
 import me.alek.honey.netty.util.MaterialMappings;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -97,6 +98,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
     public static class PayloadA implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -111,7 +114,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
         @Override
         public int getID() {
-            return 11;
+            return id;
         }
 
         @Override
@@ -131,6 +134,9 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -146,7 +152,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
         @Override
         public int getID() {
-            return 12;
+            return id;
         }
 
         @Override
@@ -166,6 +172,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     public static class PayloadC implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
@@ -202,7 +210,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
         @Override
         public int getID() {
-            return 13;
+            return id;
         }
 
         @Override
@@ -222,6 +230,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     public static class PayloadD implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
@@ -245,7 +255,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
         @Override
         public int getID() {
-            return 14;
+            return id;
         }
 
         @Override
@@ -265,6 +275,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     public static class PayloadE implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
@@ -288,7 +300,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
         @Override
         public int getID() {
-            return 15;
+            return id;
         }
 
         @Override

@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.GameMode;
 
 import java.util.Collections;
@@ -22,16 +23,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
-
-    @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer, CheckContextContainer container) {
-
-    }
 
     @Override
     public ListenerPriority getPriority() {
@@ -54,6 +45,8 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
     public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -67,7 +60,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
         @Override
         public int getID() {
-            return 8;
+            return id;
         }
 
         @Override
@@ -88,6 +81,8 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
     public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -107,7 +102,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
         @Override
         public int getID() {
-            return 9;
+            return id;
         }
 
         @Override
@@ -128,6 +123,8 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
     public static class CreativeC implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -139,7 +136,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
         @Override
         public int getID() {
-            return 10;
+            return id;
         }
 
         @Override

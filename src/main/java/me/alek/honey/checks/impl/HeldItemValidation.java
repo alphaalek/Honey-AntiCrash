@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInHeldItemSlot;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +53,8 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
 
     public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -72,7 +75,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
 
         @Override
         public int getID() {
-            return 22;
+            return id;
         }
 
         @Override
@@ -93,6 +96,8 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
 
     public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -104,7 +109,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
 
         @Override
         public int getID() {
-            return 23;
+            return id;
         }
 
         @Override

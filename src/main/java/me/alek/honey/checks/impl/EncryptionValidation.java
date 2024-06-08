@@ -18,6 +18,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionBegin;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 
 import java.net.InetSocketAddress;
 import java.util.Collections;
@@ -60,6 +61,8 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
 
     public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionBegin> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedLoginInEncryptionBegin packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
@@ -77,7 +80,7 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
 
         @Override
         public int getID() {
-            return 17;
+            return id;
         }
 
         @Override

@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.Locations;
 import org.bukkit.Location;
 
@@ -98,6 +99,8 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -112,7 +115,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 51;
+            return id;
         }
 
         @Override
@@ -133,8 +136,9 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
-        private final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
+        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
+        private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -154,7 +158,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 52;
+            return id;
         }
 
         @Override
@@ -175,8 +179,9 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
-        private final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
+        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
+        private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -194,7 +199,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 53;
+            return id;
         }
 
         @Override

@@ -19,6 +19,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -71,6 +72,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
     public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static String[] prohibitedCommands;
 
         @Override
@@ -96,7 +98,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
         @Override
         public int getID() {
-            return 54;
+            return id;
         }
 
         @Override
@@ -117,8 +119,9 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
     public static class TabB implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static final Map<UUID, Queue<ResponseListener>> tabCompleteQueueMap = new HashMap<>();
-        private final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(this);
+        private static final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(id);
 
         private interface ResponseListener {
 
@@ -161,7 +164,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
         @Override
         public int getID() {
-            return 55;
+            return id;
         }
 
         @Override
@@ -182,9 +185,10 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
     public static class TabC implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static ConfigurationOptions.VlSetting labelSetting;
-        private final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(0, "total");
-        private final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
+        private static final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(0, "total");
+        private static final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
@@ -212,7 +216,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
         @Override
         public int getID() {
-            return 56;
+            return id;
         }
 
         @Override

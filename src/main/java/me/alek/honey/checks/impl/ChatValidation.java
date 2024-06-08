@@ -18,6 +18,7 @@ import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
@@ -30,15 +31,6 @@ import java.util.regex.Pattern;
 
 public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
-    @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInChat> packetContainer, CheckContextContainer container) {
-
-    }
 
     @Override
     public ListenerPriority getPriority() {
@@ -67,6 +59,8 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
     public static class ChatA implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -86,7 +80,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
         @Override
         public int getID() {
-            return 5;
+            return id;
         }
 
         @Override
@@ -107,7 +101,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
     public static class ChatB implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
 
-        private final boolean below_1_11 = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11);
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
@@ -115,7 +109,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
                 int messageLength = packet.getMessage().length();
 
-                if (messageLength > (below_1_11 ? 100 : 256)) {
+                if (messageLength > (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11) ? 100 : 256)) {
                     return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
@@ -130,7 +124,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
         @Override
         public int getID() {
-            return 6;
+            return id;
         }
 
         @Override
@@ -213,6 +207,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
     public static class CommandsA implements ViolationCheck, PacketCheck<WrappedPlayInChat> {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static String[] prohibitedCommandsLiteral;
         private static String[] prohibitedCommandsRegex;
 
@@ -252,7 +247,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
         @Override
         public int getID() {
-            return 7;
+            return id;
         }
 
         @Override

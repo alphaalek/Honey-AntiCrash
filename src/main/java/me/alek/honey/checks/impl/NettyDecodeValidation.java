@@ -13,6 +13,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.DecayingListeningCounter;
+import me.alek.honey.util.IDRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +64,8 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyD implements DecodeCheck, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             processByteBuf(byteBuf, container);
@@ -78,7 +81,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
         @Override
         public int getID() {
-            return 29;
+            return id;
         }
 
         @Override
@@ -99,6 +102,8 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyE implements DecodeCheck, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -109,7 +114,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
         @Override
         public int getID() {
-            return 30;
+            return id;
         }
 
         @Override
@@ -130,6 +135,8 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyF implements DecodeCheck, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -140,7 +147,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
         @Override
         public int getID() {
-            return 31;
+            return id;
         }
 
         @Override
@@ -161,6 +168,8 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyG implements DecodeCheck, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -171,7 +180,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
         @Override
         public int getID() {
-            return 32;
+            return id;
         }
 
         @Override
@@ -192,6 +201,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyK implements DecodeCheck, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketTracker();
         private static final double MIN_TA_ENTER = 5;
 
@@ -227,7 +237,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
         @Override
         public int getID() {
-            return 36;
+            return id;
         }
 
         @Override
@@ -296,9 +306,11 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyL extends AbstractCategorizedCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public int getID() {
-            return 37;
+            return id;
         }
 
         @Override
@@ -352,9 +364,11 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyM extends AbstractFloodDecodeCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public int getID() {
-            return 38;
+            return id;
         }
 
         @Override
@@ -375,9 +389,11 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     public static class NettyN extends AbstractFloodDecodeCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public int getID() {
-            return 39;
+            return id;
         }
 
         @Override
@@ -397,6 +413,8 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
     }
 
     public static class NettyO extends AbstractCategorizedCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         public static class LocalCategorizedHandler {
 
@@ -437,7 +455,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
         @Override
         public int getID() {
-            return 40;
+            return id;
         }
 
         @Override

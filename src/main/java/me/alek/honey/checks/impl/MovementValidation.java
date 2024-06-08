@@ -20,6 +20,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.Locations;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -93,10 +94,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
-    }
-
-    @Override
     public ListenerPriority getPriority() {
         return ListenerPriority.NORMAL;
     }
@@ -159,6 +156,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private boolean wasOnGround;
 
         @Override
@@ -180,7 +178,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 41;
+            return id;
         }
 
         @Override
@@ -201,8 +199,9 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
-        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
+        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
+        private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -249,7 +248,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 42;
+            return id;
         }
 
         @Override
@@ -270,6 +269,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private Location lastFlaggedLocation;
 
         @Override
@@ -300,7 +300,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 43;
+            return id;
         }
 
         @Override
@@ -321,6 +321,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionD<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
         private WrappedChunkCoordIntPair lastChunkCameFrom;
         private WrappedChunkCoordIntPair lastChunk;
 
@@ -350,7 +351,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 44;
+            return id;
         }
 
         @Override
@@ -371,6 +372,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionE<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -381,7 +384,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 45;
+            return id;
         }
 
         @Override
@@ -401,6 +404,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     public static class PositionF<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         private static final Map<Direction, Axis> axisLookup = new EnumMap<>(Direction.class);
 
@@ -487,7 +492,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 46;
+            return id;
         }
 
         @Override
@@ -508,6 +513,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionG<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -522,7 +529,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 47;
+            return id;
         }
 
         @Override
@@ -543,8 +550,9 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionH<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
-        private final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
-        private final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
+        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
+        private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         private double lastDelta2D;
         private double lastDeltaY;
@@ -607,7 +615,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 48;
+            return id;
         }
 
         @Override
@@ -628,6 +636,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
     public static class PositionI<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -639,7 +649,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 49;
+            return id;
         }
 
         @Override
@@ -659,6 +669,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     public static class PositionJ<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
@@ -699,7 +711,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public int getID() {
-            return 50;
+            return id;
         }
 
         @Override

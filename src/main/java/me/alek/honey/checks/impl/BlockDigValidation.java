@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockDig;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,16 +31,6 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInBlockDig> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInBlockDig> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
     public ListenerPriority getPriority() {
         return ListenerPriority.NORMAL;
     }
@@ -50,6 +41,8 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
     }
 
     public static class BlockInteractE implements PacketCheck<WrappedPlayInBlockDig>, ViolationCheck {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockDig packet, CheckContextContainer container) throws Exception {
@@ -65,7 +58,7 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
 
         @Override
         public int getID() {
-            return 4;
+            return id;
         }
 
         @Override

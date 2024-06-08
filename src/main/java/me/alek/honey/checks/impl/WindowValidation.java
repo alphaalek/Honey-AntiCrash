@@ -17,6 +17,7 @@ import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.IDRegistry;
 import org.bukkit.event.inventory.InventoryType;
 
 import java.util.Collections;
@@ -58,6 +59,8 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
     public static class WindowA implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -82,7 +85,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
         @Override
         public int getID() {
-            return 58;
+            return id;
         }
 
         @Override
@@ -103,6 +106,8 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
     public static class WindowB implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
@@ -114,7 +119,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
         @Override
         public int getID() {
-            return 59;
+            return id;
         }
 
         @Override
@@ -135,6 +140,8 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
     public static class WindowC implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -148,7 +155,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
         @Override
         public int getID() {
-            return 60;
+            return id;
         }
 
         @Override
@@ -169,6 +176,8 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
     public static class WindowD implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
 
+        private static final int id = IDRegistry.CHECKS.acquire();
+
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
@@ -183,7 +192,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
         @Override
         public int getID() {
-            return 61;
+            return id;
         }
 
         @Override
