@@ -23,8 +23,8 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     private final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private final HoneyPacketHandler packetHandler;
 
-    private boolean read = true;
-    private boolean write = true;
+    public boolean read = true;
+    public boolean write = true;
     private boolean hasBeenRelocated;
     private boolean resolving;
 
@@ -34,14 +34,6 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
     public HoneyPacketHandler getPacketHandler() {
         return packetHandler;
-    }
-
-    public void disableRead() {
-        read = false;
-    }
-
-    public void disableWrite() {
-        write = false;
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Channel channel, Object msg, PacketBound bound) {
@@ -78,31 +70,51 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (resolving) {
+            ctx.fireChannelRead(msg);
             return;
         }
         checkRelocation();
+
+        if (!packetHandler.isPacket(msg)) {
+            if (!packetHandler.handleNonPacket(msg)) {
+                return;
+            }
+            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+            return;
+        }
 
         if (!read) {
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
             return;
         }
-        Bukkit.getLogger().info("Read " + msg.getClass() + " " + ctx.pipeline().toMap());
+
         PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
         sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
     }
 
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (resolving) {
+            ctx.write(msg, promise);
             return;
         }
         checkRelocation();
+
+        Bukkit.getLogger().info("Write " + msg + " " + ctx.pipeline().toMap());
+
+        if (!packetHandler.isPacket(msg)) {
+            if (!packetHandler.handleNonPacket(msg)) {
+                promise.setSuccess();
+                return;
+            }
+            ctx.write(msg, promise);
+            return;
+        }
 
         if (!write) {
             ctx.write(ReferenceCountUtil.retain(msg));
             return;
         }
 
-        // Bukkit.getLogger().info("Write " +  msg.getClass());
         PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
         sendThroughPipeline(msg, packetContainer, packetHandler::write, () -> ctx.write(msg, promise));
     }

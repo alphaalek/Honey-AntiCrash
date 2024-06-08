@@ -86,7 +86,6 @@ public class PacketInterceptorResolver {
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
         ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketType.Play.Client.FLYING : PacketType.Play.Client.GROUND,
                 serializer -> serializer.writeBoolean(false));
-        Bukkit.broadcastMessage("DECODER INTERCEPTOR " + byteBuf);
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
@@ -94,6 +93,10 @@ public class PacketInterceptorResolver {
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object o) {
+                if (position.get() != null) {
+                    return;
+                }
+
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
                 if (!(o instanceof ByteBuf)) {
                     position.set(prev.get());
@@ -121,7 +124,7 @@ public class PacketInterceptorResolver {
 
         String start = pipeline.get(MinecraftHandlers.DECOMPRESS) != null ? MinecraftHandlers.DECOMPRESS : MinecraftHandlers.SPLITTER;
         for (String name : pipeline.names()) {
-            if (pipeline.get(name) != null) pipeline.remove(name);
+            pipeline.remove(name);
             handlers.remove(name);
 
             if (name.equals(start + INTERCEPTOR)) {
@@ -152,6 +155,10 @@ public class PacketInterceptorResolver {
                 handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
             @Override
             public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) {
+                if (position.get() != null) {
+                    return;
+                }
+
                 String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
                 if (o instanceof ByteBuf) {
                     position.set(prev.get() != null ? prev.get() : name);
@@ -212,7 +219,6 @@ public class PacketInterceptorResolver {
     private static ByteBuf createByteBuf(PacketTypeEnum packetType, Consumer<ByteBuf> write) {
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer());
         serializer.writeByte(packetType.getMinecraftID().get());
-        Bukkit.broadcastMessage("ID " + packetType.getMinecraftID().get());
         write.accept(serializer);
         return serializer;
     }

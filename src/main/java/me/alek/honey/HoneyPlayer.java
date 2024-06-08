@@ -62,7 +62,7 @@ public class HoneyPlayer {
 
         uuid = player.getUniqueId();
         name = player.getName();
-        channel = NMS.getChannelIfSet(name);
+        channel = NMS.getChannel(name);
     }
 
     public void setPacketHandler(HoneyPacketHandler handler) {

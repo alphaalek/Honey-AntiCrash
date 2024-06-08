@@ -12,8 +12,10 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 
 public class HoneyPacketHandler {
@@ -108,6 +110,19 @@ public class HoneyPacketHandler {
         return false;
     }
 
+    public boolean isPacket(Object raw) {
+        return NMS.getPacketClass().isInstance(raw);
+    }
+
+    public boolean handleNonPacket(Object raw) {
+        if (raw.toString().contains("UnconfiguredPipelineHandler")
+                && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(channel.pipeline())) {
+            return false;
+        }
+
+        return true;
+    }
+
     public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
         if (isCancelled(packetContainer)) {
             return false;
@@ -120,6 +135,8 @@ public class HoneyPacketHandler {
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
+        Bukkit.getLogger().info("Write " + packetContainer.getType() + " " + packetContainer.getChannel().pipeline().toMap());
+
         protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         return !isCancelled(packetContainer);
     }

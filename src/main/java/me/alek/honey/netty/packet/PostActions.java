@@ -41,7 +41,17 @@ public class PostActions {
             }
         });
 
-        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(packet.getChannel()).checkRelocation());
+        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
+            try {
+                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packet.getPlayer(), packet.getChannel());
+            } catch (MissingHandlerException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        packetProcessor.addPostAction(PacketType.Login.Server.SET_COMPRESSION, packet -> {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(packet.getChannel());
+        });
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
             PacketDataSerializer serializer = packet.getDataSerializers().readField(0);

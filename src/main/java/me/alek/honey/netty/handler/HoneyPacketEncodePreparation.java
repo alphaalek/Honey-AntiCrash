@@ -4,23 +4,27 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.ReferenceCounted;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.async.AsyncDecoder;
+import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
+import java.nio.channels.ClosedChannelException;
 
 @ChannelHandler.Sharable
 public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final Class<?> packetClass = NMS.getPacketClass();
     private static final Method packetEncode;
 
     static {
@@ -55,6 +59,15 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (!ctx.channel().isOpen()) {
+            promise.setFailure(new ClosedChannelException());
+            return;
+        }
+        if (!packetHandler.isPacket(msg)) {
+            if (!packetHandler.handleNonPacket(msg)) {
+                promise.setSuccess();
+                return;
+            }
+            ctx.write(msg, promise);
             return;
         }
 
@@ -62,7 +75,9 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             player = asyncDecoder.getPlayer();
         }
 
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED
+                || player == null
+                || !PacketInterceptorResolver.hasDecoderHandler(ctx.pipeline())) {
             write0(ctx, msg, promise, false);
             return;
         }
@@ -89,22 +104,14 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
     }
 
     private <WP extends WrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) {
-        if (!packetClass.isAssignableFrom(msg.getClass())) {
-            if (promise != null) {
-                ctx.write(msg, promise);
-            } else {
-                ctx.write(msg);
-            }
-            return;
+        if (msg instanceof ReferenceCounted && retain) {
+            ReferenceCountUtil.retain(msg);
         }
 
         PacketContainer<WP> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), msg);
         if (!packetHandler.write(packetContainer)) {
+            promise.setSuccess();
             return;
-        }
-
-        if (retain) {
-            ReferenceCountUtil.retain(msg);
         }
 
         if (promise != null) {

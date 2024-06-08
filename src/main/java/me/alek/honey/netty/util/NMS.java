@@ -31,10 +31,6 @@ public class NMS {
         return lookupChannels.get(name);
     }
 
-    public static synchronized Channel getChannelIfSet(String name) {
-        return getChannel(name);
-    }
-
     public static synchronized void submitChannelForName(String name, Channel channel) {
         lookupChannels.put(name, channel);
     }

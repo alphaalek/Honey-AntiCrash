@@ -33,14 +33,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         return packet;
     }
 
-    private boolean hasBeenRelocated;
     private boolean hasCalledChannelInactive;
     private HoneyPlayer player;
-    private final Channel channel;
-
-    public InboundPacketFilter(Channel channel) {
-        this.channel = channel;
-    }
 
     public void setPlayer(HoneyPlayer player) {
         this.player = player;
@@ -81,13 +75,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        Bukkit.getLogger().info("Filter " + byteBuf);
-
-        Bukkit.getLogger().info("Id " + new PacketDataSerializer(Unpooled.copiedBuffer(byteBuf)).readVarInt());
-
-        if (player != null) {
-            checkRelocation();
-        }
+        Bukkit.getLogger().info("Filter " + byteBuf + " " + ctx.pipeline().toMap());
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
         earlyPacketInitializer.set(packetContainer);
@@ -101,16 +89,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
             list.add(byteBuf.readBytes(byteBuf.readableBytes()));
         } else {
             list.add(Unpooled.buffer());
-        }
-    }
-
-    public void checkRelocation() {
-        if (!hasBeenRelocated) {
-            try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(channel);
-            } catch (MissingHandlerException ex) {
-                hasBeenRelocated = false;
-            }
         }
     }
 }

@@ -3,11 +3,13 @@ package me.alek.honey.netty.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -102,8 +104,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            Bukkit.getLogger().info("Decoded " + packet + " " + packetHandler.getProtocolState(PacketBound.SERVER) + " " + packetHandler.getProtocol(PacketBound.SERVER));
-
             byteBuf.release();
 
             if (packet == null) {
@@ -181,7 +181,14 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
-        if (!ctx.channel().isOpen() || !(o instanceof ByteBuf)) {
+        if (!ctx.channel().isOpen()) {
+            return;
+        }
+        if (!(o instanceof ByteBuf)) {
+            if (!packetHandler.handleNonPacket(o)) {
+                return;
+            }
+            ctx.fireChannelRead(ReferenceCountUtil.retain(o));
             return;
         }
 
@@ -199,7 +206,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED || player == null) {
+        if (!ConfigurationOptions.AsyncDecoder.ENABLED
+                || player == null
+                || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
             return;
         }
