@@ -25,8 +25,6 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.async.*;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutors;
-import me.alek.honey.netty.packet.bundle.PacketBundleFilters;
-import me.alek.honey.netty.packet.bundle.PacketBundleSaver;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.*;
@@ -373,13 +371,6 @@ public class HoneyPlugin implements HoneyAPI {
         serverThreadTracker.reload();
 
         monitorManager.reload();
-
-        PacketBundleFilters.updateFilterAllPackets();
-        PacketBundleSaver.reloadFilters();
-
-        for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
-            player.packetBundleSaver = new PacketBundleSaver();
-        }
     }
 
     @NoSessionEncryption

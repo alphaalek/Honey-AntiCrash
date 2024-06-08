@@ -6,11 +6,9 @@ import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public enum PacketType implements PacketTypeEnum {
     UNKNOWN;
@@ -140,6 +138,7 @@ public enum PacketType implements PacketTypeEnum {
                 packetTypes.add(packetType);
             }
         }
+
         return packetTypes;
     }
 
@@ -597,18 +596,12 @@ public enum PacketType implements PacketTypeEnum {
 
     public static class Status {
 
-        private static Class<?> PING_CLASS;
+        private static final Class<?> PING_CLASS = Reflection.getUnsureClass("{status}.PacketStatusInPing", "{ping}.ServerboundPingRequestPacket");
         private static final Class<?> START_CLASS = Reflection.getClass("{status}.PacketStatusInStart");
-
-        static {
-            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
-                PING_CLASS = Reflection.getClass("{status}.PacketStatusInPing");
-            }
-        }
 
         public enum Client implements RangedPacketTypeEnum {
 
-            PING(PING_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_4)),
+            PING(PING_CLASS, idRegistry.acquire(), "ping_request"),
             START(START_CLASS, idRegistry.acquire(), "status_request");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
@@ -664,18 +657,12 @@ public enum PacketType implements PacketTypeEnum {
             }
         }
 
-        private static Class<?> PONG_CLASS;
+        private static final Class<?> PONG_CLASS = Reflection.getUnsureClass("{status}.PacketStatusOutPong", "{ping}.ClientboundPongResponsePacket");
         private static final Class<?> SERVER_INFO_CLASS = Reflection.getClass("{status}.PacketStatusOutServerInfo");
-
-        static {
-            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
-                PONG_CLASS = Reflection.getClass("{status}.PacketStatusOutPong");
-            }
-        }
 
         public enum Server implements RangedPacketTypeEnum {
 
-            PONG(PONG_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_4)),
+            PONG(PONG_CLASS, idRegistry.acquire(), "pong_response"),
             SERVER_INFO(SERVER_INFO_CLASS, idRegistry.acquire(), "status_response");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
@@ -760,6 +747,7 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> CHAT_COMMAND_CLASS;
         private static Class<?> CHAT_COMMAND_SIGNED_CLASS;
         private static Class<?> CHAT_PREVIEW_CLIENT_CLASS;
+        private static Class<?> CHAT_SESSION_UPDATE_CLASS;
         private static Class<?> CHUNK_BATCH_RECEIVED_CLASS;
         private static Class<?> CONFIGURATION_ACKNOWLEDGED_CLASS;
         private static Class<?> CONTAINER_SLOT_STATE_CHANGED_CLASS;
@@ -777,11 +765,11 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> POSITION_CLASS;
         private static Class<?> POSITION_LOOK_CLASS;
         private static Class<?> PICK_ITEM_CLASS;
-        private static Class<?> PONG_CLASS;
+        private static Class<?> PING_CLIENT_CLASS;
+        private static Class<?> PONG_CLIENT_CLASS;
         private static Class<?> RECIPE_DISPLAYED_CLASS;
         private static Class<?> RECIPE_SETTINGS_CLASS;
         private static Class<?> RESOURCE_PACK_STATUS_CLASS;
-        private static Class<?> CHAT_SESSION_UPDATE_CLASS;
         private static Class<?> SET_COMMAND_BLOCK_CLASS;
         private static Class<?> SET_COMMAND_MINECART_CLASS;
         private static Class<?> SET_JIGSAW_CLASS;
@@ -842,7 +830,7 @@ public enum PacketType implements PacketTypeEnum {
                 LOOK_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
                 if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                    PONG_CLASS = Reflection.getClass("{play}.ServerboundPongPacket");
+                    PONG_CLIENT_CLASS = Reflection.getClass("{play}.ServerboundPongPacket");
                 }
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19)) {
@@ -867,6 +855,7 @@ public enum PacketType implements PacketTypeEnum {
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 CHAT_COMMAND_SIGNED_CLASS = Reflection.getClass("{play}.ServerboundChatCommandSignedPacket");
                 DEBUG_SAMPLE_SUBSCRIPTION_CLASS = Reflection.getClass("{play}.ServerboundDebugSampleSubscriptionPacket");
+                PING_CLIENT_CLASS = Reflection.getClass("{ping}.ServerboundPingRequestPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_CLASS = Reflection.getClass("{play}.PacketPlayInCustomPayload");
@@ -913,7 +902,8 @@ public enum PacketType implements PacketTypeEnum {
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
             LOOK(LOOK_CLASS, idRegistry.acquire(), "move_player_rot"),
             PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquire(), "pick_item", NetProtocolRange.since(NetProtocol.v1_13)),
-            PONG(PONG_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            PING(PING_CLIENT_CLASS, idRegistry.acquire(), "ping_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
+            PONG(PONG_CLIENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
             POSITION(POSITION_CLASS, idRegistry.acquire(), "move_player_pos"),
             POSITION_LOOK(POSITION_LOOK_CLASS, idRegistry.acquire(), "move_player_pos_rot"),
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquire(), "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
@@ -1083,7 +1073,8 @@ public enum PacketType implements PacketTypeEnum {
         private static Class<?> OPEN_BOOK_CLASS;
         private static Class<?> OPEN_WINDOW_HORSE_CLASS;
         private static Class<?> OPEN_WINDOW_MERCHANT_CLASS;
-        private static Class<?> PING_CLASS;
+        private static Class<?> PING_SERVER_CLASS;
+        private static Class<?> PONG_SERVER_CLASS;
         private static Class<?> PLAYER_CHAT_CLASS;
         private static Class<?> PLAYER_CHAT_HEADER_CLASS;
         private static Class<?> PLAYER_COMBAT_END_CLASS;
@@ -1226,7 +1217,7 @@ public enum PacketType implements PacketTypeEnum {
                     ADD_VIBRATION_SIGNAL_CLASS = Reflection.getClass("{play}.ClientboundAddVibrationSignalPacket");
                 }
                 if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                    PING_CLASS = Reflection.getClass("{play}.ClientboundPingPacket");
+                    PING_SERVER_CLASS = Reflection.getClass("{play}.ClientboundPingPacket");
                 }
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_18)) {
@@ -1280,6 +1271,7 @@ public enum PacketType implements PacketTypeEnum {
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 BUNDLE_DELIMITER_CLASS = Reflection.getClass("{play}.ClientboundBundleDelimiterPacket");
                 DEBUG_SAMPLE_CLASS = Reflection.getClass("{play}.ClientboundDebugSamplePacket");
+                PONG_SERVER_CLASS = Reflection.getClass("{ping}.ClientboundPongResponsePacket");
                 PROJECTILE_POWER_CLASS = Reflection.getClass("{play}.ClientboundProjectilePowerPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
@@ -1363,7 +1355,7 @@ public enum PacketType implements PacketTypeEnum {
             OPEN_WINDOW(OPEN_WINDOW_CLASS, idRegistry.acquire(), "open_screen"),
             OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquire(), "horse_screen_open", NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquire(), "merchant_offers", NetProtocolRange.since(NetProtocol.v1_14)),
-            PING(PING_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            PING(PING_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
             PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquire(), "player_chat"),
             PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquire(), "player_combat_end", NetProtocolRange.since(NetProtocol.v1_17)),
@@ -1373,6 +1365,7 @@ public enum PacketType implements PacketTypeEnum {
             PLAYER_INFO_REMOVE(PLAYER_INFO_REMOVE_CLASS, idRegistry.acquire(), "player_info_remove", NetProtocolRange.since(NetProtocol.v1_19_3)),
             PLAYER_INFO_UPDATE(PLAYER_INFO_UPDATE_CLASS, idRegistry.acquire(), "player_info_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
             PLAYER_LIST_HEADER_FOOTER(PLAYER_LIST_HEADER_FOOTER_CLASS, idRegistry.acquire(), "tab_list"),
+            PONG(PONG_SERVER_CLASS, idRegistry.acquire(), "pong_response", NetProtocolRange.since(NetProtocol.v1_20_5)),
             POSITION(POSITION_SERVER_CLASS, idRegistry.acquire(), "player_position"),
             PROJECTILE_POWER(PROJECTILE_POWER_CLASS, idRegistry.acquire(), "projectile_power", NetProtocolRange.since(NetProtocol.v1_20_5)),
             RECIPE_UPDATE(RECIPE_UPDATE_CLASS, idRegistry.acquire(), "update_recipes", NetProtocolRange.since(NetProtocol.v1_13)),
@@ -1493,15 +1486,20 @@ public enum PacketType implements PacketTypeEnum {
     public static class Configuration {
 
         private static Class<?> FINISH_CONFIGURATION_CLIENT_CLASS;
+        private static Class<?> SELECT_KNOWN_PACKS_CLIENT_CLASS;
 
         static {
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 FINISH_CONFIGURATION_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundFinishConfigurationPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                SELECT_KNOWN_PACKS_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundSelectKnownPacks");
+            }
         }
 
         public enum Client implements RangedPacketTypeEnum {
-            FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2))
+            FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_CLIENT_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_5)),
             ;
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
@@ -1555,6 +1553,8 @@ public enum PacketType implements PacketTypeEnum {
 
         private static Class<?> FINISH_CONFIGURATION_SERVER_CLASS;
         private static Class<?> REGISTRY_DATA_CLASS;
+        private static Class<?> RESET_CHAT_CLASS;
+        private static Class<?> SELECT_KNOWN_PACKS_SERVER_CLASS;
         private static Class<?> UPDATE_ENABLED_FEATURES_CLASS;
 
         static {
@@ -1563,11 +1563,17 @@ public enum PacketType implements PacketTypeEnum {
                 REGISTRY_DATA_CLASS = Reflection.getClass("{configuration}.ClientboundRegistryDataPacket");
                 UPDATE_ENABLED_FEATURES_CLASS = Reflection.getClass("{configuration}.ClientboundUpdateEnabledFeaturesPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                RESET_CHAT_CLASS = Reflection.getClass("{configuration}.ClientboundResetChatPacket");
+                SELECT_KNOWN_PACKS_SERVER_CLASS = Reflection.getClass("{configuration}.ClientboundSelectKnownPacks");
+            }
         }
 
         public enum Server implements RangedPacketTypeEnum {
             FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
             REGISTRY_DATA(REGISTRY_DATA_CLASS, idRegistry.acquire(), "registry_data", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            RESET_CHAT(RESET_CHAT_CLASS, idRegistry.acquire(), "reset_chat", NetProtocolRange.since(NetProtocol.v1_20_5)),
+            SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_SERVER_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_5)),
             UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquire(), "update_enabled_features", NetProtocolRange.since(NetProtocol.v1_20_2)),
             ;
 

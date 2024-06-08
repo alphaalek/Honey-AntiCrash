@@ -28,6 +28,7 @@ public class Reflection {
         COMMON        = protocolPackage + (newProtocol ? "." + "common"        : "");
         COOKIE        = protocolPackage + (newProtocol ? "." + "cookie"        : "");
         HANDSHAKE     = protocolPackage + (newProtocol ? "." + "handshake"     : "");
+        PING          = protocolPackage + (newProtocol ? "." + "ping"          : "");
         PLAY          = protocolPackage + (newProtocol ? "." + "game"          : "");
         STATUS        = protocolPackage + (newProtocol ? "." + "status"        : "");
         LOGIN         = protocolPackage + (newProtocol ? "." + "login"         : "");
@@ -41,6 +42,7 @@ public class Reflection {
     private static final String COMMON;
     private static final String COOKIE;
     private static final String HANDSHAKE;
+    private static final String PING;
     private static final String PLAY;
     private static final String STATUS;
     private static final String LOGIN;
