@@ -75,8 +75,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        Bukkit.getLogger().info("Filter " + byteBuf + " " + ctx.pipeline().toMap());
-
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
         earlyPacketInitializer.set(packetContainer);
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);

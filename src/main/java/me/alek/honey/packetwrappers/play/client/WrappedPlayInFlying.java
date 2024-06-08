@@ -25,8 +25,8 @@ public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> ex
                 getContainer().getDoubles().readField(0),
                 getContainer().getDoubles().readField(1),
                 getContainer().getDoubles().readField(2),
-                getContainer().getFloats().readField(0),
-                getContainer().getFloats().readField(1)
+                getContainer().getFloats().readField(1),
+                getContainer().getFloats().readField(0)
         );
     }
 

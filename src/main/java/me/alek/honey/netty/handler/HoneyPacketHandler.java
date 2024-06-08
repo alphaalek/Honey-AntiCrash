@@ -135,8 +135,6 @@ public class HoneyPacketHandler {
     }
 
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        Bukkit.getLogger().info("Write " + packetContainer.getType() + " " + packetContainer.getChannel().pipeline().toMap());
-
         protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         return !isCancelled(packetContainer);
     }

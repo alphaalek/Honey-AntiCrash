@@ -99,8 +99,6 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
         checkRelocation();
 
-        Bukkit.getLogger().info("Write " + msg + " " + ctx.pipeline().toMap());
-
         if (!packetHandler.isPacket(msg)) {
             if (!packetHandler.handleNonPacket(msg)) {
                 promise.setSuccess();

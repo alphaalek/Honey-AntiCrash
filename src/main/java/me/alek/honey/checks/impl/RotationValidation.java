@@ -31,8 +31,9 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     @Override
     public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         Location location = packetContainer.getPacket().getLocation();
-
-        if (location.getPitch() == 0 && location.getYaw() == 0) return false;
+        if (location.getPitch() == 0 && location.getYaw() == 0) {
+            return false;
+        }
 
         float lastYaw = getLastYawFor(player, location.getYaw());
         float lastPitch = getLastPitchFor(player, location.getPitch());
@@ -52,6 +53,8 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
             responseCallback.builder().onViolation(onViolation -> {
                 if (onViolation != null) onViolation.run();
 
+                container.getDefaultDevelopmentData().addPoint("Yaw" , location.getYaw());
+                container.getDefaultDevelopmentData().addPoint("Pitch" , location.getPitch());
                 container.getDefaultDevelopmentData().addPoint("Delta yaw" , deltaYaw);
                 container.getDefaultDevelopmentData().addPoint("Delta pitch" , deltaPitch);
             });

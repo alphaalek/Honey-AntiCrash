@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
@@ -28,12 +29,12 @@ import java.util.function.Consumer;
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private PacketTypeEnum type;
-    private Object handle;
-    private WP wrappedPacket;
+    private Object raw;
+    private WP wrapped;
     private CallbackAction<PacketContainer<WP>> postAction;
     private final HoneyPlayer player;
     private final Channel channel;
-    private ReflectStructure<Object, ?> packetStructure;
+    private ReflectStructure<Object, ?> structure;
     private boolean cancelled;
     private boolean dumped;
     private boolean handledByServer;
@@ -48,7 +49,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     public InternalPacketContainer(Object rawPacket, PacketTypeEnum packetType, HoneyPlayer player, Channel channel) {
         this(player, channel);
-        this.handle = rawPacket;
+        this.raw = rawPacket;
         this.type = packetType;
     }
 
@@ -57,24 +58,25 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.channel = channel;
     }
 
-    public void init(Object rawPacket, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum packetType) {
-        this.handle = rawPacket;
+    public void init(Object raw, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum packetType) {
+        this.raw = raw;
         this.postAction = postAction;
         this.type = packetType;
 
-        if (!PacketType.isUnknown(type) && type.getNmsClass().equals(rawPacket.getClass())) {
-            this.packetStructure = ReflectStructureCache.acquireStructure(type);
-            if (this.packetStructure.isStaticFieldsAllowed()) {
-                this.packetStructure.withoutStatic();
+        if (!PacketType.isUnknown(type)
+                && type.getNmsClass().equals(raw.getClass())) {
+            this.structure = ReflectStructureCache.acquireStructure(type);
+            if (this.structure.isStaticFieldsAllowed()) {
+                this.structure.withoutStatic();
             }
-            this.wrappedPacket = (WP) PacketFactory.createWrappedPacket(type, rawPacket, this);
+            this.wrapped = (WP) PacketFactory.createWrappedPacket(type, raw, this);
         }
     }
 
     @Override
     public String toString() {
         if (type == null) {
-            return "Unknown Packet";
+            return Lang.get("unknown");
         }
 
         return "Packet:{Type:" + type + ",Player:" + getPlayerName() + "}";
@@ -138,12 +140,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public Object getHandle() {
-        return handle;
+        return raw;
     }
 
     @Override
     public String getName() {
-        return handle.getClass().getSimpleName();
+        return raw.getClass().getSimpleName();
     }
 
     @Override
@@ -183,7 +185,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public WP getPacket() {
-        return wrappedPacket;
+        return wrapped;
     }
 
     @Override
@@ -220,11 +222,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params) {
-        if (packetStructure == null) {
+        if (structure == null) {
             return null;
         }
 
-        return packetStructure.withType(clazz, converter).withTarget(handle, params);
+        return structure.withType(clazz, converter).withTarget(raw, params);
     }
 
     @Override
@@ -274,11 +276,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public IStructureModifier<Object> getAll() {
-        if (packetStructure == null) {
+        if (structure == null) {
             return null;
         }
 
-        return (IStructureModifier<Object>) packetStructure.withTarget(handle);
+        return (IStructureModifier<Object>) structure.withTarget(raw);
     }
 
     @Override
@@ -333,11 +335,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public <T> IStructureModifier<T> getObjects(Class<T> target) {
-        if (packetStructure == null) {
+        if (structure == null) {
             return null;
         }
 
-        return packetStructure.withType(target).withTarget(handle);
+        return structure.withType(target).withTarget(raw);
     }
 
 }

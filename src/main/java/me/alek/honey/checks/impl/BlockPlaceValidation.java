@@ -23,6 +23,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -47,7 +48,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
     @Override
     public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Arrays.asList(PacketType.Play.Client.BLOCK_PLACE, PacketType.Play.Client.USE_ITEM);
+        return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
     }
 
     public static ResponseContainer checkExceedingMaxDistance(HoneyPlayer player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
