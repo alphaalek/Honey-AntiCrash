@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class PacketExecutors {
 
@@ -64,15 +67,7 @@ public class PacketExecutors {
 
         @Override
         public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            PacketDataSerializer serializer = packetContainer.getPacket().getDataSerializer();
-            ItemStack item = null;
-            try {
-                item = Converters.getItemStackConverter().convertDelegate(serializer.readItemStack());
-            } catch (Exception ignored) {
-
-            }
-            serializer.release();
-
+            ItemStack item = packetContainer.getPacket().getItemStack();
             if (item == null) {
                 return null;
             }
@@ -96,20 +91,7 @@ public class PacketExecutors {
 
                     stripEvents(meta);
 
-                    return () -> {
-                        ItemStack heldItem = getItemInMainHand(player);
-
-                        PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) meta, true
-                        );
-                        Bukkit.getPluginManager().callEvent(editBookEvent);
-                        if (editBookEvent.isCancelled()) {
-                            return;
-                        }
-
-                        heldItem.setItemMeta((ItemMeta) copyStructure(meta, heldItem.getItemMeta()));
-                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
-                    };
+                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> player.getInventory().setItem(player.getInventory().getHeldItemSlot(), i));
                 case "MC|BSign":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null) ||
                             !isValidAuthor(packetContainer.getPlayer(), nbt)) {
@@ -131,25 +113,33 @@ public class PacketExecutors {
                     }
                     stripEvents(meta);
 
-                    return () -> {
-                        ItemStack heldItem = getItemInMainHand(player);
-
-                        PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                                player, player.getInventory().getHeldItemSlot(), (BookMeta) heldItem.getItemMeta(), (BookMeta) meta, true
-                        );
-                        Bukkit.getPluginManager().callEvent(editBookEvent);
-                        if (editBookEvent.isCancelled()) {
-                            player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
-                            return;
-                        }
-
-                        heldItem.setType(Material.WRITTEN_BOOK);
-                        heldItem.setItemMeta((ItemMeta) copyStructure(meta, heldItem.getItemMeta()));
-                    };
+                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> i.setItemMeta((ItemMeta) copyStructure(meta, m)));
                 default:
                     return null;
             }
             return () -> player.kickPlayer("Invalid book data!");
+        }
+
+        private void handleItem(Player player, BookMeta meta, BiConsumer<ItemStack, ItemMeta> success) {
+            ItemStack heldItem = getItemInMainHand(player);
+            if (heldItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+                return;
+            }
+
+            Bukkit.broadcastMessage("Handle " + heldItem.getType());
+
+            BookMeta heldItemMeta = (BookMeta) heldItem.getItemMeta();
+            PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
+                    player, player.getInventory().getHeldItemSlot(), heldItemMeta, meta, true
+            );
+            Bukkit.getPluginManager().callEvent(editBookEvent);
+            if (editBookEvent.isCancelled()) {
+                player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
+                return;
+            }
+
+            heldItem.setType(Material.WRITTEN_BOOK);
+            success.accept(heldItem, heldItemMeta);
         }
 
         private void stripEvents(Object meta) {
@@ -158,6 +148,7 @@ public class PacketExecutors {
                     .withTarget(meta);
 
             List<Object> pages = bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
+            Bukkit.broadcastMessage("Pages: " + pages.stream().map(Object::getClass).collect(Collectors.toList()));
 
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {

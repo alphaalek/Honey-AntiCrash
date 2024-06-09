@@ -392,7 +392,7 @@ public class NMS {
 
     private static Class<Object> minecraftKeyClass;
     public static Class<Object> getMinecraftKeyClass() {
-        return minecraftKeyClass != null ? minecraftKeyClass : (minecraftKeyClass = getUnsureClass("{nms}.resources.MinecraftKey"));
+        return minecraftKeyClass != null ? minecraftKeyClass : (minecraftKeyClass = getUnsureClass("{nms}.MinecraftKey", "{nms}.resources.MinecraftKey"));
     }
 
     private static Class<Object> object2IntMapClass;

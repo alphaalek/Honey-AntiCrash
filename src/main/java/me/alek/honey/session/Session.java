@@ -48,7 +48,7 @@ public class Session {
 
     public static String getString(String encryptedText, int encryption, long cacheDividend, long cacheDivisor) throws Exception {
         try {
-            Object invoke = decryptStringInvoker.invoke(encryptedText, encryption, cacheDividend, cacheDivisor);
+            Object invoke = decryptStringInvoker.invokeWithArguments(new Object[]{encryptedText, encryption, cacheDividend, cacheDivisor});
 
             return invoke.toString();
         } catch (Throwable ex) {

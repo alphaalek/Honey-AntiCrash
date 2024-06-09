@@ -2,6 +2,7 @@ package me.alek.honey.lang;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.services.NotificationService;
+import me.alek.honey.session.NoSessionEncryption;
 
 import java.io.*;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.jar.JarFile;
 
+@NoSessionEncryption
 public class Lang {
 
     private static final Map<String, String> messages = new HashMap<>();

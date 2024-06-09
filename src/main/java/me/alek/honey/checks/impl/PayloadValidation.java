@@ -1,8 +1,6 @@
 package me.alek.honey.checks.impl;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
-import io.netty.buffer.Unpooled;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
@@ -14,12 +12,10 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.util.ItemReflection;
 import me.alek.honey.netty.util.MaterialMappings;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.CallbackAction;
@@ -36,43 +32,17 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         String channel = packetContainer.getPacket().getChannel();
-        ByteBuf buf = packetContainer.getPacket().getDataSerializer().getBuf();
-
-        if (channel.equals("MC|BEdit")
-                || channel.equals("MC|BOpen")
-                || channel.equals("MC|BSign")) {
-            PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
-            try {
-                Object item = serializer.readItemStack();
-                ItemStack bukkitItem = ItemReflection.asBukkitCopy(item);
-
-                container.getStorage().put(ItemStack.class, bukkitItem);
-            } catch (Exception ex) {
-            }
-        }
-
-        container.getStorage().put(ByteBuf.class, buf);
 
         callback.addAction(response -> {
             response.builder().onViolation(onViolation -> {
                 if (onViolation != null) onViolation.run();
 
                 container.getDefaultDevelopmentData().addPoint("Channel", channel);
-                container.getDefaultDevelopmentData().addPoint("ByteBuf", buf.readableBytes() + " bytes");
+                container.getDefaultDevelopmentData().addPoint("ByteBuf", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
             });
         });
 
         return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container) {
-        if (packetContainer.isCancelled()) {
-            ByteBuf byteBuf = container.getStorage().get(ByteBuf.class, 0);
-            if (byteBuf != null) {
-                byteBuf.release();
-            }
-        }
     }
 
     @Override
@@ -104,8 +74,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ByteBuf serializer = container.getStorage().get(ByteBuf.class, 0);
-                if (serializer == null || serializer.getClass() == EmptyByteBuf.class) {
+                if (packet.getBuf().getClass().equals(EmptyByteBuf.class)) {
                     return Validation.inst().cancel().flag().build();
                 }
             }
@@ -140,12 +109,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
-                ByteBuf serializer = container.getStorage().get(ByteBuf.class,0);
-                if (serializer == null) {
-                    return Validation.PASS;
-                }
-                return Validation.inst().flag(serializer.readableBytes()).build();
+                return Validation.inst().flag(packet.getBuf().readableBytes()).build();
             }
             return Validation.PASS;
         }
@@ -179,7 +143,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ItemStack item = container.getStorage().get(ItemStack.class, 0);
+                ItemStack item = packet.getItemStack();
                 if (item != null) {
 
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
@@ -241,10 +205,14 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                 ItemStack itemInHand = player.player.getItemInHand();
 
                 if (!channel.isEmpty()) {
-                    if (!channel.contains("BSign") && !channel.contains("BEdit") && !channel.contains("BOpen")) {
+                    if (!channel.contains("BSign")
+                            && !channel.contains("BEdit")
+                            && !channel.contains("BOpen")) {
                         return Validation.PASS;
                     }
-                    if (itemInHand.getType() == MaterialMappings.getType("writable-book") || itemInHand.getType() == Material.WRITTEN_BOOK) {
+
+                    if (itemInHand.getType() == MaterialMappings.getType("writable-book")
+                            || itemInHand.getType() == Material.WRITTEN_BOOK) {
                         return Validation.PASS;
                     }
                 }

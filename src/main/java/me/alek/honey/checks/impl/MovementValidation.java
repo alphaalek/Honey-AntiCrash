@@ -200,7 +200,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     public static class PositionB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
+        private static final ViolationService.HoneyKey XZKey = ViolationService.HoneyKey.of(0, "2d");
         private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         @Override
@@ -224,7 +224,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 final double maxDistance = getSetting().max;
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
-                    return Validation.inst().cancel().flag().withViolationKey(twoDKey)
+                    return Validation.inst().cancel().flag().withViolationKey(XZKey)
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -517,13 +517,6 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled()) {
-
-                if (packet.getType() == PacketType.Play.Client.VEHICLE_MOVE
-                        && player.player.getVehicle() == null) {
-                    return Validation.inst().flag().build();
-                }
-            }
             return Validation.PASS;
         }
 

@@ -326,8 +326,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public IStructureModifier<PacketDataSerializer> getDataSerializers() {
-        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter());
+    public IStructureModifier<PacketDataSerializer> getDataSerializers(boolean copy) {
+        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter(), copy);
     }
 
     @Override

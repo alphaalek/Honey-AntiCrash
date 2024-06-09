@@ -1,6 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
@@ -158,10 +159,15 @@ public class Converters {
         return new JavaConverter<Object, PacketDataSerializer>() {
             @Override
             public PacketDataSerializer convertDelegate(Object delegate, Object... params) {
-                return new PacketDataSerializer(
-                        ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
-                                .withType(ByteBuf.class).withTarget(delegate)
-                                .readField(0));
+                ByteBuf buf = ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
+                        .withType(ByteBuf.class).withTarget(delegate)
+                        .readField(0);
+
+                if (params.length > 0 && params[0].equals(true)) {
+                    buf = Unpooled.copiedBuffer(buf);
+                }
+
+                return new PacketDataSerializer(buf);
             }
 
             @Override

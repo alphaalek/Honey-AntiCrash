@@ -54,10 +54,12 @@ public class PostActions {
         });
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
-            PacketDataSerializer serializer = packet.getDataSerializers().readField(0);
+            PacketDataSerializer serializer = packet.getDataSerializers(false).readField(0);
 
             if (serializer.refCnt() > 0) {
                 serializer.retain();
+            } else {
+                serializer.release();
             }
         });
     }

@@ -141,6 +141,9 @@ public class Reflection {
                 case "handshake":
                     replacement = HANDSHAKE;
                     break;
+                case "ping":
+                    replacement = PING;
+                    break;
                 case "play":
                     replacement = PLAY;
                     break;

@@ -46,7 +46,7 @@ public interface ModifiablePacketContainer {
 
     IStructureModifier<WrappedGameProfile> getGameProfiles();
 
-    IStructureModifier<PacketDataSerializer> getDataSerializers();
+    IStructureModifier<PacketDataSerializer> getDataSerializers(boolean copy);
 
     IStructureModifier<WrappedBlockPosition> getBlockPositions();
 
