@@ -70,6 +70,18 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
     }
 
+    private void stopTimings(PacketContainer<? extends WrappedPacket<?>> packet) {
+        packet.getEventloopStateTimings().stopTimings();
+
+        if (packet.getPlayer() != null) {
+            HoneyPlugin.get().getNettyPacketTracker().getTracker(packet.getPlayer()).add(
+                      packet.getEventloopStateTimings().getTimeFor(EventloopState.HONEY_HANDLE)
+                    + packet.getEventloopStateTimings().getTimeFor(EventloopState.IN_BETWEEN)
+                    + packet.getEventloopStateTimings().getTimeFor(EventloopState.DECODE)
+            );
+        }
+    }
+
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) {
@@ -85,6 +97,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
 
                     if (list.isEmpty()) {
+                        if (packetContainer != null) {
+                            stopTimings(packetContainer);
+                        }
                         return;
                     }
                     packet = list.get(0);
@@ -100,21 +115,23 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 if (player != null) {
                     player.punished = true;
                 }
+                if (packetContainer != null) {
+                    stopTimings(packetContainer);
+                }
                 return;
             }
 
             byteBuf.release();
 
             if (packet == null) {
+                if (packetContainer != null) {
+                    stopTimings(packetContainer);
+                }
                 return;
             }
 
             if (packetContainer != null) {
                 packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
-
-                if (player != null) {
-                    HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.IN_BETWEEN));
-                }
 
                 if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
@@ -126,12 +143,13 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
                                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + packetContainer.getPlayerName());
                             }
+                            stopTimings(packetContainer);
                             return;
                         }
                     }
 
                     ctx.fireChannelRead(packet);
-                    packetContainer.getEventloopStateTimings().stopTimings();
+                    stopTimings(packetContainer);
                     return;
                 }
             }
@@ -157,7 +175,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {
                 if (packetContainer != null) {
-                    packetContainer.getEventloopStateTimings().stopTimings();
+                    stopTimings(packetContainer);
                 }
             }
         }
@@ -168,7 +186,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             packetContainer.getEventloopStateTimings().stopTimings();
             return;
         }
-        packetContainer.getEventloopStateTimings().stopTimings();
+        stopTimings(packetContainer);
 
         if (packetExecutorTask != null) {
             serverThreadExecutionQueue.add(packetExecutorTask);

@@ -34,7 +34,8 @@ public class PacketTaskHandler {
                             && (System.nanoTime() - handledTask.getStarted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                        if (packet == null || packet.isDumped()) {
+                        if (packet == null
+                                || packet.isDumped()) {
                             continue;
                         }
                         packet.dump();

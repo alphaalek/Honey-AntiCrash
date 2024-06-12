@@ -88,7 +88,6 @@ public class UnsyncTempQueue {
 
             total += (long) (double) node.getValue();
 
-            // clearExceedingNodes(node.getInsertionInstant());
             if (clearNode(node.getInsertionInstant())) {
                 TIMED.remove();
             }
