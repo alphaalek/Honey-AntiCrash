@@ -35,7 +35,10 @@ public class PacketTaskHandler {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null
-                                || packet.isDumped()) {
+                                || packet.isDumped()
+                                || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                                    && packet.getPlayer() != null
+                                    && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                             continue;
                         }
                         packet.dump();

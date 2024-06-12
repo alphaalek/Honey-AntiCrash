@@ -18,6 +18,7 @@ import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 public class InternalPacketProcessor implements PacketProcessor {
@@ -33,6 +34,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer) {
+            AtomicBoolean cancelled = new AtomicBoolean();
             callPipeline(packetAdapter -> {
                 try {
                     if (packetContainer.getType().getBound() == PacketBound.SERVER) {
@@ -41,20 +43,36 @@ public class InternalPacketProcessor implements PacketProcessor {
                         packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
                     }
                 } catch (Exception ex) {
-                    Bukkit.getLogger().info("Error occured in packet task " + packetContainer.getPlayerName() + ", " + packetContainer.getType() + ", " + packetContainer.getState());
                     ex.printStackTrace();
+                    Bukkit.getLogger().info("Error occurred in packet task: " + packetContainer.getPlayerName() + ", " + packetContainer.getType() + ", " + packetContainer.getState());
+
+                    packetContainer.cancel();
                 }
-            });
+            }, cancelled);
         }
 
-        public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
-            callPipeline(packetAdapter -> packetAdapter.onByteBufDecode(player, byteBuf));
+        public void callDecode(HoneyPlayer player, CancellableByteBufImpl buf) {
+            AtomicBoolean cancelled = new AtomicBoolean();
+            callPipeline(packetAdapter -> {
+                try {
+                    packetAdapter.onByteBufDecode(player, buf);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Bukkit.getLogger().info("Error occurred in packet task: " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown") + ", " + buf.buf().readableBytes() + " bytes");
+
+                    buf.cancel();
+                }
+            }, cancelled);
         }
 
-        public void callPipeline(Consumer<PacketAdapter<WP>> consumer) {
+        public void callPipeline(Consumer<PacketAdapter<WP>> consumer, AtomicBoolean cancelled) {
             for (ListenerPriority priority : pipeline) {
                 for (PacketAdapter<WP> listener : priorityMap.get(priority)) {
                     consumer.accept(listener);
+
+                    if (cancelled.get()) {
+                        return;
+                    }
                 }
             }
         }
