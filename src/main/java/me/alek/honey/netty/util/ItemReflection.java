@@ -1,11 +1,17 @@
 package me.alek.honey.netty.util;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ItemReflection {
 
@@ -22,12 +28,21 @@ public class ItemReflection {
         return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
     });
 
+    private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
+
+    private static final Gson CHAT_SERIALIZER_GSON;
+
     static {
         try {
             itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getItemClass(), int.class, int.class);
         } catch (Exception ex) {
             itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getIMaterialClass(), int.class);
         }
+
+        CHAT_SERIALIZER_GSON = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
+                .withType(Gson.class)
+                .withTarget(null)
+                .readField(0);
     }
 
     public static Class<?> getNMSItemStackClass() {
@@ -36,6 +51,19 @@ public class ItemReflection {
 
     public static Class<?> getCraftItemStackClass() {
         return craftItemStackClass;
+    }
+
+    public static JsonElement chatComponentToJson(Object component) {
+        return CHAT_SERIALIZER_GSON.toJsonTree(component);
+    }
+
+    public static List<Object> getPages(AtomicReference<IStructureModifier<List<Object>>> reference, BookMeta meta) {
+        IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructureCache.acquireStructure(meta.getClass())
+                .<List<Object>>withWeakType(List.class)
+                .withTarget(meta);
+        reference.set(bookMetaPageModifier);
+
+        return bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
     }
 
     public static ItemStack asBukkitCopy(Object itemStack) {

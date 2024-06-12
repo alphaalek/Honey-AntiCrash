@@ -58,11 +58,10 @@ public class PacketExecutors {
         private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
 
         @Override
-        public boolean accepts(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
+        public boolean test(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
             String channel = packetContainer.getPacket().getChannel();
 
-            return channel.equals("MC|BEdit")
-                    || channel.equals("MC|BSign");
+            return channel.equals("MC|BEdit") || channel.equals("MC|BSign");
         }
 
         @Override
@@ -91,7 +90,10 @@ public class PacketExecutors {
 
                     stripEvents(meta);
 
-                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> player.getInventory().setItem(player.getInventory().getHeldItemSlot(), i));
+                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> {
+                        i.setItemMeta((ItemMeta) ReflectStructure.copyStructure(meta, m));
+                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), i);
+                    });
                 case "MC|BSign":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null) ||
                             !isValidAuthor(packetContainer.getPlayer(), nbt)) {
@@ -113,7 +115,10 @@ public class PacketExecutors {
                     }
                     stripEvents(meta);
 
-                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> i.setItemMeta((ItemMeta) copyStructure(meta, m)));
+                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> {
+                        i.setType(Material.WRITTEN_BOOK);
+                        i.setItemMeta((ItemMeta) ReflectStructure.copyStructure(meta, m));
+                    });
                 default:
                     return null;
             }
@@ -136,40 +141,19 @@ public class PacketExecutors {
                 return;
             }
 
-            heldItem.setType(Material.WRITTEN_BOOK);
             success.accept(heldItem, heldItemMeta);
         }
 
         private void stripEvents(Object meta) {
-            IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructureCache.acquireStructure(meta.getClass())
-                    .<List<Object>>withWeakType(List.class)
-                    .withTarget(meta);
-
-            List<Object> pages = bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
+            AtomicReference<IStructureModifier<List<Object>>> bookMetaPageModifier = new AtomicReference<>();
+            List<Object> pages = ItemReflection.getPages(bookMetaPageModifier, (BookMeta) meta);
 
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {
                 newPages.add(stripEventsInvoker.invoke(null, page));
             }
 
-            bookMetaPageModifier.writeField(bookMetaPageCache, "pages", 0, newPages);
-        }
-
-        private Object copyStructure(Object from, Object to) {
-            ReflectStructure<Object, Object> structure = ReflectStructureCache.acquireStructure(from.getClass())
-                    .withoutStatic().without(NMS.getCraftMetaItemClass());
-
-            Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)
-                    .getAccessors().iterator();
-            Iterator<FieldAccessor<Object>> toIterator = structure.withTarget(to)
-                    .getAccessors().iterator();
-
-            while (toIterator.hasNext() && fromIterator.hasNext()) {
-                FieldAccessor<Object> next = fromIterator.next();
-                toIterator.next().set(to, next.get(from));
-            }
-
-            return to;
+            bookMetaPageModifier.get().writeField(bookMetaPageCache, "pages", 0, newPages);
         }
 
         private boolean serializeTextComponents(NBTList<String> pages) {

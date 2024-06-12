@@ -158,7 +158,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             @SuppressWarnings("unchecked")
             PacketExecutor<WP> castedExecutor = (PacketExecutor<WP>) executor;
 
-            if (castedExecutor.accepts(packetContainer)) {
+            if (castedExecutor.test(packetContainer)) {
                 double start = System.nanoTime();
                 Runnable runnable = castedExecutor.getTask(packetContainer);
                 double end = System.nanoTime();

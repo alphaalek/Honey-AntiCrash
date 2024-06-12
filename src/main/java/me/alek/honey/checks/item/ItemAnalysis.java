@@ -14,19 +14,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class ItemAnalysis {
 
-    private static final Map<ItemCheckRegistry, ItemChecker> checkRegistryLookup = new HashMap<>();
-    private static final Map<Class<? extends ItemChecker>, ItemCheckRegistry> reversedCheckRegistryLookup = new HashMap<>();
-    private static final List<ItemChecker> disabledChecks = new ArrayList<>();
+    private static final Map<ItemCheckRegistry, Check> checkRegistryLookup = new HashMap<>();
+    private static final Map<Class<? extends Check>, ItemCheckRegistry> reversedCheckRegistryLookup = new HashMap<>();
+    private static final List<Check> disabledChecks = new ArrayList<>();
     private static List<String> ignoredPlayers;
 
-    private static final Map<Material, Set<ItemChecker>> directAvailableMaterialChecks = new EnumMap<>(Material.class);
-    private static final Map<String, Set<ItemChecker>> directAvailableNBTChecks = new HashMap<>();
-    private static final List<ItemChecker> globalAvailableChecks = new ArrayList<>();
+    private static final Map<Material, Set<Check>> directAvailableMaterialChecks = new EnumMap<>(Material.class);
+    private static final Map<String, Set<Check>> directAvailableNBTChecks = new HashMap<>();
+    private static final List<Check> globalAvailableChecks = new ArrayList<>();
 
     static {
         for (ItemCheckRegistry registry : ItemCheckRegistry.values()) {
@@ -45,22 +44,6 @@ public class ItemAnalysis {
 
         ignoredPlayers = ConfigurationOptions.ItemAnalysis.General.IGNORED_PLAYERS;
 
-        for (Field field : ConfigurationOptions.getItemAnalysisFields()) {
-            ConfigurationOptions.ItemAnalysisSetting setting = field.getAnnotation(ConfigurationOptions.ItemAnalysisSetting.class);
-            if (setting == null) {
-                continue;
-            }
-
-            try {
-                if (field.getType() == boolean.class) {
-                    if (!field.getBoolean(null)) {
-                        disabledChecks.add(checkRegistryLookup.get(setting.value()));
-                    }
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
         for (ItemCheckRegistry registry : ItemCheckRegistry.values()) {
             if (registry.getCheck() == null || disabledChecks.contains(registry.getCheck())) {
                 continue;
@@ -143,7 +126,7 @@ public class ItemAnalysis {
         final Material material = item.getType();
         if (!material.equals(Material.AIR)
                 && directAvailableMaterialChecks.containsKey(material)) {
-            for (final ItemChecker checker : directAvailableMaterialChecks.get(material)) {
+            for (final Check checker : directAvailableMaterialChecks.get(material)) {
                 ItemCheckRegistry registry = check(player, checker, item, nbt);
                 if (registry != null) return registry;
             }
@@ -152,7 +135,7 @@ public class ItemAnalysis {
         if (nbt != null) {
             for (final String key : nbt.getKeys()) {
                 if (directAvailableNBTChecks.containsKey(key)) {
-                    for (final ItemChecker checker : directAvailableNBTChecks.get(key)) {
+                    for (final Check checker : directAvailableNBTChecks.get(key)) {
                         ItemCheckRegistry registry = check(player, checker, item, nbt);
                         if (registry != null) return registry;
                     }
@@ -160,7 +143,7 @@ public class ItemAnalysis {
             }
         }
 
-        for (final ItemChecker checker : globalAvailableChecks) {
+        for (final Check checker : globalAvailableChecks) {
             ItemCheckRegistry registry = check(player, checker, item, nbt);
             if (registry != null) return registry;
         }
@@ -168,7 +151,7 @@ public class ItemAnalysis {
         return null;
     }
 
-    private static ItemCheckRegistry check(HoneyPlayer player, ItemChecker checker, ItemStack item, NBTCompound nbt) {
+    private static ItemCheckRegistry check(HoneyPlayer player, Check checker, ItemStack item, NBTCompound nbt) {
         try {
             if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt)
                     && checker.check(player, item, nbt)) {
@@ -181,8 +164,8 @@ public class ItemAnalysis {
         return null;
     }
 
-    private static ItemCheckRegistry getRegistryFrom(ItemChecker checker) {
-        Class<? extends ItemChecker> clazz = checker.getClass();
+    private static ItemCheckRegistry getRegistryFrom(Check checker) {
+        Class<? extends Check> clazz = checker.getClass();
         ItemCheckRegistry registry = reversedCheckRegistryLookup.get(clazz);
 
         if (registry == null) {
@@ -203,7 +186,7 @@ public class ItemAnalysis {
         return true;
     }
 
-    public interface ItemChecker {
+    public interface Check {
 
         boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt);
 

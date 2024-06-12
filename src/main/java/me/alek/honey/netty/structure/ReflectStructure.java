@@ -28,6 +28,23 @@ public class ReflectStructure<T, C> {
         put(boolean.class, Boolean.class);
     }};
 
+    public static Object copyStructure(Object from, Object to) {
+        ReflectStructure<Object, Object> structure = ReflectStructureCache.acquireStructure(from.getClass())
+                .withoutStatic().without(NMS.getCraftMetaItemClass());
+
+        Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)
+                .getAccessors().iterator();
+        Iterator<FieldAccessor<Object>> toIterator = structure.withTarget(to)
+                .getAccessors().iterator();
+
+        while (toIterator.hasNext() && fromIterator.hasNext()) {
+            FieldAccessor<Object> next = fromIterator.next();
+            toIterator.next().set(to, next.get(from));
+        }
+
+        return to;
+    }
+
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final List<Class<?>> disallowClasses = new ArrayList<>();
     private final Class<?> handle;

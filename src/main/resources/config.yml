@@ -317,6 +317,9 @@ item-analysis:
   # May items not have attribute modifiers. Can be bugged through creative mode.
   disable-attribute-modifiers: false
 
+  # May books have translation components as pages.
+  disable-book-no-text-components: true
+
   # NBT
   nbt:
     # How many bytes may the NBT of an item have.

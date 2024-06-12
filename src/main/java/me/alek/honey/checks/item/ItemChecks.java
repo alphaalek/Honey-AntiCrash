@@ -1,8 +1,10 @@
 package me.alek.honey.checks.item;
 
+import com.google.gson.JsonElement;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
@@ -12,21 +14,26 @@ import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
+import me.alek.honey.netty.util.ItemReflection;
+import me.alek.honey.netty.util.NMS;
 import me.alek.honey.util.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ItemChecks {
 
-    public static class IllegalNumbersCheck implements ItemAnalysis.ItemChecker {
+    public static class IllegalNumbersCheck implements ItemAnalysis.Check {
 
         @Override
         @SuppressWarnings("unchecked")
@@ -61,7 +68,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxEnchantmentLevelCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxEnchantmentLevelCheck implements ItemAnalysis.Check {
 
         private final String[] enchantmentKeys = new String[]{"ench", "StoredEnchantments", "Enchantments"};
 
@@ -94,7 +101,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxAmountCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxAmountCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -107,7 +114,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxDisplayNameLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxDisplayNameLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -121,7 +128,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxTotalLoreLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxTotalLoreLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -146,11 +153,12 @@ public class ItemChecks {
         }
     }
 
-    public static class UnbreakableItemCheck implements ItemAnalysis.ItemChecker {
+    public static class UnbreakableItemCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)
+            return ConfigurationOptions.ItemAnalysis.CHECK_UNBREAKABLE_ITEMS
+                    && nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)
                     && nbt.getByte("Unbreakable") == (byte) 1;
         }
 
@@ -160,11 +168,12 @@ public class ItemChecks {
         }
     }
 
-    public static class AttributeModifiersCheck implements ItemAnalysis.ItemChecker {
+    public static class AttributeModifiersCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("AttributeModifiers", NBTType.LISTOFCOMOUND);
+            return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
+                    && nbt.hasKeyOfType("AttributeModifiers", NBTType.LISTOFCOMOUND);
         }
 
         @Override
@@ -173,11 +182,12 @@ public class ItemChecks {
         }
     }
 
-    public static class CustomPotionEffectsCheck implements ItemAnalysis.ItemChecker {
+    public static class CustomPotionEffectsCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("CustomPotionEffects", NBTType.LISTOFCOMOUND);
+            return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
+                    && nbt.hasKeyOfType("CustomPotionEffects", NBTType.LISTOFCOMOUND);
         }
 
         @Override
@@ -186,7 +196,32 @@ public class ItemChecks {
         }
     }
 
-    public static class IllegalCharacterCheck implements ItemAnalysis.ItemChecker {
+    public static class BookTranslationComponents implements ItemAnalysis.Check {
+
+        @Override
+        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+            AtomicReference<IStructureModifier<List<Object>>> bookMetaPageModifier = new AtomicReference<>();
+            List<Object> pages = ItemReflection.getPages(bookMetaPageModifier, (BookMeta) item.getItemMeta());
+
+            for (Object page : pages) {
+                if (NMS.getIChatBaseComponentClass().isAssignableFrom(page.getClass())) {
+                    JsonElement json = ItemReflection.chatComponentToJson(page);
+                    if (json.isJsonObject() && !json.getAsJsonObject().has("text")) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public AcceptStrategy getAcceptStrategy() {
+            return AcceptStrategy.ONLY_WITH_METADATA;
+        }
+    }
+
+    public static class IllegalCharacterCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -225,7 +260,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxNBTLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxNBTLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -238,7 +273,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxNBTStringLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxNBTStringLengthCheck implements ItemAnalysis.Check {
 
         @Override
         @SuppressWarnings("unchecked")
@@ -257,7 +292,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxPageLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxPageLengthCheck implements ItemAnalysis.Check {
 
         @Override
         @SuppressWarnings("unchecked")
@@ -278,7 +313,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxFireworkLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxFireworkLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -291,7 +326,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBookNBTLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBookNBTLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -304,7 +339,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBookPagesCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBookPagesCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -318,7 +353,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBookAuthorLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBookAuthorLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -334,7 +369,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBookTitleLengthCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBookTitleLengthCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -348,7 +383,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxNBTBasesCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxNBTBasesCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -361,7 +396,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxNBTNestingCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxNBTNestingCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -374,7 +409,7 @@ public class ItemChecks {
         }
     }
 
-    public static class IllegalSkullTexturesCheck implements ItemAnalysis.ItemChecker {
+    public static class IllegalSkullTexturesCheck implements ItemAnalysis.Check {
 
         private static final Pattern URL_PATTERN = Pattern.compile("url");
         private static final String[] skullOwnerKeys = new String[]{"SkullOwner", "Owner"};
@@ -434,7 +469,7 @@ public class ItemChecks {
         }
     }
 
-    public static class IllegalEnchantmentsCheck implements ItemAnalysis.ItemChecker {
+    public static class IllegalEnchantmentsCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -447,7 +482,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxFireworkExplosionsCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxFireworkExplosionsCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -469,7 +504,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MaxBannerPatternsCheck implements ItemAnalysis.ItemChecker {
+    public static class MaxBannerPatternsCheck implements ItemAnalysis.Check {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
@@ -483,7 +518,7 @@ public class ItemChecks {
         }
     }
 
-    public static class MapRangeCheck implements ItemAnalysis.ItemChecker {
+    public static class MapRangeCheck implements ItemAnalysis.Check {
 
         @Override
         @SuppressWarnings("unchecked")
@@ -515,7 +550,7 @@ public class ItemChecks {
     }
 
 
-    public static class IllegalComponentStrings implements ItemAnalysis.ItemChecker {
+    public static class IllegalComponentStrings implements ItemAnalysis.Check {
 
         private final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
                 "{translate:\"translation.test.invalid\"}",

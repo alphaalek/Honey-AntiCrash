@@ -145,7 +145,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
                 ItemStack item = packet.getItemStack();
                 if (item != null) {
-
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
@@ -200,23 +199,16 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 String channel = packet.getChannel();
-                ItemStack itemInHand = player.player.getItemInHand();
+                if (channel.equals("MC|BSign")
+                        || channel.equals("MC|BEdit")) {
 
-                if (!channel.isEmpty()) {
-                    if (!channel.contains("BSign")
-                            && !channel.contains("BEdit")
-                            && !channel.contains("BOpen")) {
-                        return Validation.PASS;
-                    }
-
+                    ItemStack itemInHand = player.player.getItemInHand();
                     if (itemInHand.getType() == MaterialMappings.getType("writable-book")
                             || itemInHand.getType() == Material.WRITTEN_BOOK) {
-                        return Validation.PASS;
+                        return Validation.inst().cancel().flag().build();
                     }
                 }
-                return Validation.inst().cancel().flag().build();
             }
             return Validation.PASS;
         }
@@ -253,12 +245,11 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                 String channel = packet.getChannel();
                 if (channel.equalsIgnoreCase("register") &&
                         player.player.getListeningPluginChannels().size() > getSetting().max) {
-
                     return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Channel Size", player.player.getListeningPluginChannels().size());
+                                container.getDevelopmentData(this).addPoint("Plugin Channels", player.player.getListeningPluginChannels().size());
                             })
                             .build();
                 }

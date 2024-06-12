@@ -2,7 +2,6 @@ package me.alek.honey.configuration;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.item.ItemCheckRegistry;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import org.bukkit.Bukkit;
@@ -40,14 +39,6 @@ public class ConfigurationOptions {
 
     public static void setFile(FileConfiguration file) {
         ConfigurationOptions.file = file;
-    }
-
-    public static List<Field> getItemAnalysisFields() {
-        List<Field> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(ItemAnalysis.class.getDeclaredFields()));
-        fields.addAll(Arrays.asList(ItemAnalysis.NBT.class.getDeclaredFields()));
-
-        return fields;
     }
 
     public static boolean load() {
@@ -240,13 +231,6 @@ public class ConfigurationOptions {
     private @interface Flood {
 
         PacketType.Play.Client[] value();
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface ItemAnalysisSetting {
-
-        ItemCheckRegistry value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -693,24 +677,16 @@ public class ConfigurationOptions {
 
     @Setting
     public static class ItemAnalysis {
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_ENCHANTMENT_LEVEL)
         public static int MAX_ENCHANTMENT_LEVEL;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_AMOUNT)
         public static int MAX_AMOUNT;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_DISPLAYNAME_LENGTH)
         public static int MAX_DISPLAYNAME_LENGTH;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_TOTAL_LORE_LENGTH)
         public static int MAX_TOTAL_LORE_LENGTH;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_FIREWORK_EXPLOSIONS)
         public static int MAX_FIREWORK_EXPLOSIONS;
-        @ItemAnalysisSetting(ItemCheckRegistry.MAX_BANNER_PATTERNS)
         public static int MAX_BANNER_PATTERNS;
-        @ItemAnalysisSetting(ItemCheckRegistry.CUSTOM_POTION_EFFECTS)
         public static boolean CHECK_CUSTOM_POTION_EFFECTS;
-        @ItemAnalysisSetting(ItemCheckRegistry.UNBREAKABLE_ITEM)
         public static boolean CHECK_UNBREAKABLE_ITEMS;
-        @ItemAnalysisSetting(ItemCheckRegistry.ATTRIBUTE_MODIFIERS)
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
+        public static boolean CHECK_BOOK_NO_TEXT_COMPONENTS;
 
         public static void load() {
             MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level", 256);
@@ -725,6 +701,7 @@ public class ConfigurationOptions {
             CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects", false);
             CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items", false);
             CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers", false);
+            CHECK_BOOK_NO_TEXT_COMPONENTS = file.getBoolean("item-analysis.disable-book-no-text-components", true);
         }
 
         @Setting
@@ -744,27 +721,16 @@ public class ConfigurationOptions {
         @Setting
         public static class NBT {
 
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_LENGTH)
             public static int MAX_NBT_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_STRING_LENGTH)
             public static int MAX_NBT_STRING_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_FIREWORK_NBT_LENGTH)
             public static int MAX_FIREWORK_NBT_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_NBT_LENGTH)
             public static int MAX_BOOK_NBT_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_PAGES)
             public static int MAX_BOOK_PAGES;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_PAGE_LENGTH)
             public static int MAX_BOOK_PAGE_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_AUTHOR_LENGTH)
             public static int MAX_BOOK_AUTHOR_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_BOOK_TITLE_LENGTH)
             public static int MAX_BOOK_TITLE_LENGTH;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_BASES)
             public static int MAX_NBT_BASES;
-            @ItemAnalysisSetting(ItemCheckRegistry.MAX_NBT_NESTING)
             public static int MAX_NBT_NESTING;
-            @ItemAnalysisSetting(ItemCheckRegistry.ILLEGAL_SKULL_TEXTURES)
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {

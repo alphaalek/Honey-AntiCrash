@@ -3,9 +3,9 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
-public interface PacketExecutor<WP extends WrappedPacket<WP>> {
+import java.util.function.Predicate;
 
-    boolean accepts(PacketContainer<WP> packetContainer);
+public interface PacketExecutor<WP extends WrappedPacket<WP>> extends Predicate<PacketContainer<WP>> {
 
     Runnable getTask(PacketContainer<WP> packetContainer);
 }

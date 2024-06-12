@@ -93,6 +93,10 @@ public class Reflection {
         return getClass("[L" + name + ";");
     }
 
+    public static Class<?> getArrayClass(Class<?> clazz) {
+        return getArrayClass(clazz.getName());
+    }
+
     public static Class<?> getUnsureClass(String... names) {
         for (String name : names) {
             try {

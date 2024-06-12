@@ -24,6 +24,7 @@ public enum ItemCheckRegistry {
     UNBREAKABLE_ITEM(ItemChecks.UnbreakableItemCheck::new),
     CUSTOM_POTION_EFFECTS(ItemChecks.CustomPotionEffectsCheck::new, Material.POTION),
     ATTRIBUTE_MODIFIERS(ItemChecks.AttributeModifiersCheck::new),
+    BOOK_NO_TEXT_COMPONENT(ItemChecks.BookTranslationComponents::new, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
     MAP_RANGE(ItemChecks.MapRangeCheck::new, MaterialMappings.getTypeIfAny("empty-map"), MaterialMappings.getTypeIfAny("filled-map")),
 
     // nbt
@@ -48,25 +49,25 @@ public enum ItemCheckRegistry {
     UNKNOWN(null)
     ;
 
-    private final ItemAnalysis.ItemChecker itemCheck;
+    private final ItemAnalysis.Check itemCheck;
     private final Material[] availableMaterials;
     private final String tag;
 
-    ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, Material... availableMaterials) {
+    ItemCheckRegistry(Supplier<ItemAnalysis.Check> check, Material... availableMaterials) {
         this(check, "", availableMaterials);
     }
 
-    ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag) {
+    ItemCheckRegistry(Supplier<ItemAnalysis.Check> check, String tag) {
         this(check, tag, new Material[0]);
     }
 
-    ItemCheckRegistry(Supplier<ItemAnalysis.ItemChecker> check, String tag, Material... availableMaterials) {
+    ItemCheckRegistry(Supplier<ItemAnalysis.Check> check, String tag, Material... availableMaterials) {
         this.itemCheck = Optional.ofNullable(check).map(Supplier::get).orElse(null);
         this.tag = tag;
         this.availableMaterials = availableMaterials;
     }
 
-    public ItemAnalysis.ItemChecker getCheck() {
+    public ItemAnalysis.Check getCheck() {
         return itemCheck;
     }
 
