@@ -193,12 +193,7 @@ public class Reflection {
     }
 
     public static Field[] getDeclaredFields(Class<?> clazz) {
-        return Arrays.stream(clazz.getDeclaredFields()).sorted(new Comparator<Field>() {
-            @Override
-            public int compare(Field o1, Field o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        }).toArray(Field[]::new);
+        return clazz.getDeclaredFields();
     }
 
     public static MethodInvoker<Object> getMethod(Class<?> target, Predicate<Method> methodPredicate) {

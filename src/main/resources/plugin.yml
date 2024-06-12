@@ -2,7 +2,7 @@ name: Honey
 description: One of the most advanced and revolutionary AntiCrash-solutions securing servers for Packet Exploits.
 author: Alek05
 website: https://discord.gg/veAtFHG65u
-version: 2.5
+version: 2.5.1
 api-version: 1.13
 main: me.alek.honey.HoneyPluginInitializer
 commands:

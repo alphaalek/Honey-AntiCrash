@@ -40,7 +40,7 @@ public class PacketExecutors {
         PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            packetProcessor.addPacketExecutor(new CustomPayloadPacketExecutor(), PacketType.Play.Client.CUSTOM_PAYLOAD);
+            packetProcessor.addPacketExecutor(PacketType.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor());
         }
     }
 
@@ -126,8 +126,6 @@ public class PacketExecutors {
                 return;
             }
 
-            Bukkit.broadcastMessage("Handle " + heldItem.getType());
-
             BookMeta heldItemMeta = (BookMeta) heldItem.getItemMeta();
             PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
                     player, player.getInventory().getHeldItemSlot(), heldItemMeta, meta, true
@@ -148,7 +146,6 @@ public class PacketExecutors {
                     .withTarget(meta);
 
             List<Object> pages = bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
-            Bukkit.broadcastMessage("Pages: " + pages.stream().map(Object::getClass).collect(Collectors.toList()));
 
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {
@@ -196,8 +193,7 @@ public class PacketExecutors {
         private ItemStack getItemInMainHand(Player player) {
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 return player.getInventory().getItemInHand();
-            }
-            else {
+            } else {
                 return player.getInventory().getItemInMainHand();
             }
         }

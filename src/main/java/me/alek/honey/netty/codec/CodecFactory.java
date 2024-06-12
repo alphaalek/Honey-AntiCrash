@@ -28,7 +28,7 @@ public class CodecFactory {
         BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> ReflectStructureCache.acquireStructure(c)
                 .withType(t).withTarget(null);
 
-        int index = bound.equals(PacketBound.CLIENT) ? 0 : 1;
+        int index = bound.equals(PacketBound.CLIENT) ? 1 : 0;
 
         switch (state) {
             case HANDSHAKE:

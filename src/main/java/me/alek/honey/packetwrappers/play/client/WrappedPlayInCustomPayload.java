@@ -15,13 +15,21 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_12_2);
 
     private final ByteBuf buf;
-    private final ItemStack itemStack;
+    private final String channel;
+    private ItemStack itemStack;
 
     public WrappedPlayInCustomPayload(Object rawPacket, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
         super(rawPacket, packetContainer);
 
         buf = getDataSerializer(false);
-        itemStack = Converters.getItemStackConverter().convertDelegate(getDataSerializer(true).readItemStack());
+        channel = getMinecraftKey().toString();
+
+        if (channel.equals("MC|BEdit") || channel.equals("MC|BSign")) {
+            try {
+                itemStack = Converters.getItemStackConverter().convertDelegate(getDataSerializer(true).readItemStack());
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     public PacketDataSerializer getDataSerializer(boolean copy) {
@@ -36,7 +44,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
         return buf;
     }
 
-    public Object getMinecraftKey() {
+    private Object getMinecraftKey() {
         if (MODERN) {
             return getContainer().getObjects(NMS.getMinecraftKeyClass()).readField(0);
         }
@@ -44,6 +52,6 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
     }
 
     public String getChannel() {
-        return getMinecraftKey().toString();
+        return channel;
     }
 }

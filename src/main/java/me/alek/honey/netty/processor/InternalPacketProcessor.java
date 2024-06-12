@@ -137,11 +137,13 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
-    public void addPacketExecutor(PacketExecutor<? extends WrappedPacket<?>> packetExecutor, PacketTypeEnum packetType) {
+    @Override
+    public void addPacketExecutor(PacketTypeEnum packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor) {
         packetExecutors.get(packetType.getHoneyID(), ArrayList::new)
                 .add(packetExecutor);
     }
 
+    @Override
     public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
         if (PacketType.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
             return null;
@@ -170,10 +172,12 @@ public class InternalPacketProcessor implements PacketProcessor {
         return null;
     }
 
+    @Override
     public void addDecodeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority) {
         decodeEventBus.addListener(packetAdapter, priority);
     }
 
+    @Override
     public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum
@@ -184,14 +188,17 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
     }
 
+    @Override
     public void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetTypes) {
         addListener(packetAdapter, priority, Arrays.asList(packetTypes));
     }
 
+    @Override
     public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, PacketTypeEnum... packetTypes) {
         removeListener(packetAdapter, Arrays.asList(packetTypes));
     }
 
+    @Override
     public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
             if (!packetAdapters.has(packetType.getHoneyID())) continue;
@@ -234,6 +241,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return true;
     }
 
+    @Override
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         int id;
         if (PacketType.isUnknown(packetContainer.getType())
@@ -244,6 +252,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         packetAdapters.get(id).callPacket(player, packetContainer);
     }
 
+    @Override
     public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
         decodeEventBus.callDecode(player, byteBuf);
     }

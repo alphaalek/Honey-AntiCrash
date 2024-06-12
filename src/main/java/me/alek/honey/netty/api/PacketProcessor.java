@@ -25,7 +25,7 @@ public interface PacketProcessor {
 
     void removeListener(PacketAdapter<?> packetAdapter, List<PacketTypeEnum> packetType);
 
-    void addPacketExecutor(PacketExecutor<? extends WrappedPacket<?>> packetExecutor, PacketTypeEnum packetType);
+    void addPacketExecutor(PacketTypeEnum packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor);
 
     <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer);
 
