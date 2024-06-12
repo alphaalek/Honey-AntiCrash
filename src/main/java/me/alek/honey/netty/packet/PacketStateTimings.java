@@ -2,14 +2,15 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.util.NumberUtils;
 
-public class PacketEventLoopStateTimings {
+public class PacketStateTimings {
 
+    public static final double NANOS_TO_MILLIS_MULTIPLIER = Math.pow(10, -6);
     private static final int LENGTH = EventloopState.values().length;
+
     private final long[] times = new long[LENGTH];
     private EventloopState currentState = EventloopState.NO_STATE;
     private long currentStateStart;
     private long totalTime;
-    public static final double NANOS_TO_MILLIS_MULTIPLIER = Math.pow(10, -6);
 
     public void startTimings(EventloopState state) {
         startTimings(state, System.nanoTime());
@@ -40,14 +41,6 @@ public class PacketEventLoopStateTimings {
         currentState = EventloopState.NO_STATE;
     }
 
-    public String formatPerformance() {
-        return NumberUtils.format(getPerformance(), 2) + "%";
-    }
-
-    public double getPerformance() {
-        return (((double) getHoneyTime()) / getTotalTime()) * 100;
-    }
-
     public long getTotalTime() {
         return totalTime;
     }
@@ -62,14 +55,6 @@ public class PacketEventLoopStateTimings {
 
     public double getTimeForMillisFormatted(EventloopState state) {
         return NumberUtils.format(getTimeForMillis(state), 2);
-    }
-
-    public long getServerTime() {
-        return getTimeFor(EventloopState.SERVER_DECODE) + getTimeFor(EventloopState.SERVER_HANDLE);
-    }
-
-    public long getHoneyTime() {
-        return getTimeFor(EventloopState.HONEY_DECODE) + getTimeFor(EventloopState.HONEY_HANDLE);
     }
 
     private double toMillis(long value) {

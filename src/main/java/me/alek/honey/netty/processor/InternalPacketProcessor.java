@@ -290,7 +290,6 @@ public class InternalPacketProcessor implements PacketProcessor {
             return packetContainer;
         }
 
-        packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
         try {
             callListeners(player, packet.getClass(), packetContainer);
         } catch (Exception ex) {

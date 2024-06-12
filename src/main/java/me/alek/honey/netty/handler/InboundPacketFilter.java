@@ -75,7 +75,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
         earlyPacketInitializer.set(packetContainer);
-        packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_DECODE);
+        packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
         CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
         packetProcessor.callDecode(player, cancellableByteBuf);
@@ -86,5 +86,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         } else {
             list.add(Unpooled.buffer());
         }
+
+        packetContainer.getEventloopStateTimings().startTimings(EventloopState.IN_BETWEEN);
     }
 }

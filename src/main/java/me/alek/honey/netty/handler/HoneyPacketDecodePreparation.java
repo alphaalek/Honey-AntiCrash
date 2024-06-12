@@ -73,7 +73,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> packetContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
         try {
             if (packetContainer != null) {
-                packetContainer.getEventloopStateTimings().startTimings(EventloopState.SERVER_DECODE);
+                packetContainer.getEventloopStateTimings().startTimings(EventloopState.DECODE);
             }
 
             Object packet;
@@ -110,10 +110,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             }
 
             if (packetContainer != null) {
-                packetContainer.getEventloopStateTimings().stopTimings();
+                packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
                 if (player != null) {
-                    HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_DECODE));
+                    HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double) packetContainer.getEventloopStateTimings().getTimeFor(EventloopState.IN_BETWEEN));
                 }
 
                 if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
@@ -131,6 +131,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     }
 
                     ctx.fireChannelRead(packet);
+                    packetContainer.getEventloopStateTimings().stopTimings();
                     return;
                 }
             }
@@ -155,15 +156,19 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {
-
+                if (packetContainer != null) {
+                    packetContainer.getEventloopStateTimings().stopTimings();
+                }
             }
         }
     }
 
     private <WP extends WrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packetContainer, Runnable packetExecutorTask) {
         if (!packetHandler.read(packetContainer)) {
+            packetContainer.getEventloopStateTimings().stopTimings();
             return;
         }
+        packetContainer.getEventloopStateTimings().stopTimings();
 
         if (packetExecutorTask != null) {
             serverThreadExecutionQueue.add(packetExecutorTask);
@@ -196,13 +201,16 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             return;
         }
 
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
+        if (packetContainer != null) {
+            packetContainer.getEventloopStateTimings().stopTimings();
+        }
+
         if (player == null && asyncDecoder.getPlayer() != null) {
             player = asyncDecoder.getPlayer();
             exemptedIntervalThrottle = new ViolationService.PacketIntervalThrottleHandler(
                     player, ConfigurationOptions.getFloodSettings().get(PacketType.Play.Client.TRANSACTION));
         }
-
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
 
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED

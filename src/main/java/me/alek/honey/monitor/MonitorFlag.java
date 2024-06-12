@@ -27,8 +27,8 @@ public interface MonitorFlag<T> {
         STATE("state", "--state [packet state]", false, StateFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
         DETAILED("detailed", "--detailed", false, DetailedFlag::new),
-        HONEY_DECODE("min-honey-decode", "--min-honey-decode [number (as decimal) (in millis)]", false, HoneyDecodeTimingsFlag::new),
-        SERVER_DECODE("min-server-decode", "--min-server-decode [number (as decimal) (in millis)]", false, ServerDecodeTimingsFlag::new),
+        DECODE("min-decode", "--min-decode [number (as decimal) (in millis)]", false, DecodeTimingsFlag::new),
+        IN_BETWEEN("min-in-between", "--min-in-between [number (as decimal) (in millis)]", false, InBetweenFlag::new),
         HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal) (in millis)]", true, HoneyHandleTimingsFlag::new),
         SERVER_HANDLE("min-server-handle", "--min-server-handle [number (as decimal) (in millis)]", true, ServerHandleTimingsFlag::new),
         NTQ_OAWO("min-ntq-oawo", "--min-ntq-oawo [number (as percentage)]", true, NTQOfAverageWithoutFlag::new),
@@ -36,7 +36,6 @@ public interface MonitorFlag<T> {
         STQ_OAWO("min-stq-oawo", "--min-stq-oawo [number (as percentage)]", true, STQOfAverageWithoutFlag::new),
         STQ_OT("min-stq-ot", "--min-stq-ot [number (as percentage)]", true, STQOfTotalFlag::new),
         STQ_OHST("min-ohst", "--min-ohst [number (as percentage)]", true, STQOfHalfServerThreadFlag::new),
-        PERFORMANCE("min-performance", "--min-performance [number (as percentage)]", true, PerformanceFlag::new),
         ;
 
         private final String name;
@@ -302,27 +301,31 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from(getState().getFormat() + ":" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms", appendable));
+            data.add(Flags.AppendedData.from(format(getState()) + "=" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms", appendable));
+        }
+
+        public String format(EventloopState state) {
+            return state.toString().toLowerCase().replaceAll("_", "-");
         }
 
         public abstract EventloopState getState();
     }
 
-    @FlagAnnotation(Flag.HONEY_DECODE)
-    class HoneyDecodeTimingsFlag extends TimingsFlag {
+    @FlagAnnotation(Flag.DECODE)
+    class DecodeTimingsFlag extends TimingsFlag {
 
         @Override
         public EventloopState getState() {
-            return EventloopState.HONEY_DECODE;
+            return EventloopState.DECODE;
         }
     }
 
-    @FlagAnnotation(Flag.SERVER_DECODE)
-    class ServerDecodeTimingsFlag extends TimingsFlag {
+    @FlagAnnotation(Flag.IN_BETWEEN)
+    class InBetweenFlag extends TimingsFlag {
 
         @Override
         public EventloopState getState() {
-            return EventloopState.SERVER_DECODE;
+            return EventloopState.IN_BETWEEN;
         }
     }
 
@@ -366,7 +369,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("ntq:o.a.w.o.:" + TrackerUtils.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+            data.add(Flags.AppendedData.from("ntq-oawo=" + TrackerUtils.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -392,7 +395,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("ntq:o.t.:" + TrackerUtils.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+            data.add(Flags.AppendedData.from("ntq-ot=" + TrackerUtils.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -418,7 +421,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("stq:o.a.w.o.:" + TrackerUtils.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+            data.add(Flags.AppendedData.from("stq-oawo=" + TrackerUtils.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -444,7 +447,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("stq:o.t.:" + TrackerUtils.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+            data.add(Flags.AppendedData.from("stq-ot=" + TrackerUtils.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -470,33 +473,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("o.h.s.t.:" + TrackerUtils.getServer().getOfPacketTaskFormatted(input.getPlayer(), Timespan.TEN_SECOND), appendable));
-        }
-    }
-
-    @FlagAnnotation(Flag.PERFORMANCE)
-    class PerformanceFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
-
-        private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
-
-        @Override
-        public String getSpecified() {
-            return numberArgumentFlag.getSpecified();
-        }
-
-        @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
-        }
-
-        @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return numberArgumentFlag.test(input.getEventloopStateTimings().getPerformance());
-        }
-
-        @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("perf:" + input.getEventloopStateTimings().formatPerformance(), appendable));
+            data.add(Flags.AppendedData.from("stq-ohst=" + TrackerUtils.getServer().getOfPacketTaskFormatted(input.getPlayer(), Timespan.TEN_SECOND), appendable));
         }
     }
 }

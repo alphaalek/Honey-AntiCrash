@@ -13,7 +13,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PacketEventLoopStateTimings;
+import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -36,7 +36,6 @@ import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.NumberUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -285,7 +284,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         private double toMillis(double amount) {
-            return amount * PacketEventLoopStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
+            return amount * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
         }
 
         @Override
@@ -315,7 +314,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) throws Exception {
             // evaluate the duration of decoding this packet
-            double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_DECODE);
+            double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.DECODE);
 
             if (setting.isEnabled() && decodeTime > 0) {
                 return Validation.inst().flag(decodeTime)
