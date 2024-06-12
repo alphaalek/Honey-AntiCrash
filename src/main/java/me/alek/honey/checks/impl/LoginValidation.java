@@ -11,14 +11,11 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -42,8 +39,8 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Login.Client.LOGIN_START);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
     }
 
     public static class LoginA implements PacketCheck<WrappedLoginInLoginStart> {

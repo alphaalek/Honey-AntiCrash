@@ -5,8 +5,8 @@ import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
@@ -188,7 +188,7 @@ public interface MonitorFlag<T> {
     @FlagAnnotation(Flag.TYPE)
     class TypeFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
 
-        private PacketTypeEnum type;
+        private PacketType type;
         private String specified;
 
         @Override
@@ -201,7 +201,7 @@ public interface MonitorFlag<T> {
             Flag.checkSyntax(args, readIndex, this, 1);
 
             this.specified = MonitorFlagParser.getFromArgs(args, readIndex);
-            Optional<PacketTypeEnum> type = PacketType.getPacketType(specified, PacketType::isServerbound, PacketType.NameGetStrategy.EITHER);
+            Optional<PacketType> type = PacketTypes.getPacketType(specified, PacketTypes::isServerbound, PacketTypes.NameGetStrategy.EITHER);
             if (type.isPresent()) {
                 this.type = type.get();
                 return 1;
@@ -248,7 +248,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return state == PacketState.ANY || (input.getCommonStates().contains(state));
+            return state == PacketState.ANY || (input.getState().equals(state));
         }
 
         @Override

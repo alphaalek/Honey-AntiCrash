@@ -10,8 +10,8 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.GameMode;
@@ -34,8 +34,8 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.SET_CREATIVE_SLOT);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.SET_CREATIVE_SLOT);
     }
 
     public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {

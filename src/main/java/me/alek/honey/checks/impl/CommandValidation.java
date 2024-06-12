@@ -3,7 +3,6 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitable;
 import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
@@ -12,8 +11,8 @@ import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
@@ -143,12 +142,12 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
+    public Supplier<List<PacketType>> getPacketTypes() {
         return () -> {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
-                return Collections.singletonList(PacketType.Play.Client.CHAT);
+                return Collections.singletonList(PacketTypes.Play.Client.CHAT);
             } else {
-                return Collections.singletonList(PacketType.Play.Client.CHAT_COMMAND);
+                return Collections.singletonList(PacketTypes.Play.Client.CHAT_COMMAND);
             }
         };
     }

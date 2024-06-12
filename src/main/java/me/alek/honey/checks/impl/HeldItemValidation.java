@@ -9,12 +9,9 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInHeldItemSlot;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
@@ -30,8 +27,8 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.HELD_ITEM_SLOT);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.HELD_ITEM_SLOT);
     }
 
     public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {

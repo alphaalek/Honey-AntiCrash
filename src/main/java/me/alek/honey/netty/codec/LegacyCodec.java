@@ -1,7 +1,7 @@
 package me.alek.honey.netty.codec;
 
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.Reflection;
@@ -18,7 +18,7 @@ public interface LegacyCodec {
         void apply(LegacyCodec codec) throws CodecException;
     }
 
-    static LegacyCodec createDefault(PacketTypeEnum type) {
+    static LegacyCodec createDefault(PacketType type) {
         return new LegacyCodec() {
             @Override
             public void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) throws CodecException {

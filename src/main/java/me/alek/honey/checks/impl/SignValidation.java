@@ -10,12 +10,9 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInUpdateSign;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
@@ -30,8 +27,8 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.UPDATE_SIGN);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.UPDATE_SIGN);
     }
 
     public static class SignA implements PacketCheck<WrappedPlayInUpdateSign> {

@@ -8,10 +8,9 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
@@ -68,10 +67,10 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
+    public Supplier<List<PacketType>> getPacketTypes() {
         return () -> Arrays.asList(
-                PacketType.Play.Client.LOOK,
-                PacketType.Play.Client.POSITION_LOOK
+                PacketTypes.Play.Client.LOOK,
+                PacketTypes.Play.Client.POSITION_LOOK
         );
     }
 

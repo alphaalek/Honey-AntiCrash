@@ -10,8 +10,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockDig;
 import me.alek.honey.util.IDRegistry;
 
@@ -32,8 +32,8 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_DIG);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.BLOCK_DIG);
     }
 
     public static class BlockInteractE implements PacketCheck<WrappedPlayInBlockDig>, ViolationCheck {

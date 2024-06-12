@@ -3,7 +3,7 @@ package me.alek.honey.packetwrappers;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packet.type.PacketType;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -28,7 +28,7 @@ public class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<W
         return packetContainer;
     }
 
-    public PacketTypeEnum getType() {
+    public PacketType getType() {
         return packetContainer.getType();
     }
 

@@ -5,8 +5,8 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.MethodInvoker;
@@ -15,6 +15,7 @@ import me.alek.honey.netty.util.NetProtocol;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -108,24 +109,24 @@ public class CodecFactory {
                     .withTarget(codec).getMethod(null, "encode", 0, Object.class, Object.class);
 
             @Override
-            public Object decodeModern(ByteBuf buf) throws CodecException {
+            public Object decodeModern(ByteBuf buf, PacketState state) throws CodecException {
                 return decoderInvoker.invoke(codec, buf);
             }
 
             @Override
-            public Object decodeLegacy(ByteBuf buf, PacketBuilder<PacketTypeEnum, LegacyCodec.Applier> codec) throws CodecException {
+            public Object decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) throws CodecException {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public ByteBuf encodeModern(Object val, PacketBuilder<PacketTypeEnum, ByteBuf> function) throws CodecException {
+            public ByteBuf encodeModern(Object val, PacketState state, PacketBuilder<PacketType, ByteBuf> function) throws CodecException {
                 ByteBuf buf = byteBuf.get();
                 encoderInvoker.invoke(codec, buf, val);
                 return buf;
             }
 
             @Override
-            public ByteBuf encodeLegacy(Object val, PacketBuilder<PacketTypeEnum, LegacyCodec.Applier> codec) throws CodecException {
+            public ByteBuf encodeLegacy(Object val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) throws CodecException {
                 throw new UnsupportedOperationException();
             }
         };
@@ -143,7 +144,7 @@ public class CodecFactory {
                     : null;
 
             @Override
-            public Object decodeModern(ByteBuf buf) throws CodecException {
+            public Object decodeModern(ByteBuf buf, PacketState state) throws CodecException {
                 if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
                     PacketDataSerializer dataSerializer = new PacketDataSerializer(buf);
                     int id = dataSerializer.readVarInt();
@@ -161,12 +162,12 @@ public class CodecFactory {
                         throw new CodecException(id, ex);
                     }
                 } else {
-                    return wrappedStreamCodec.decodeModern(buf);
+                    return wrappedStreamCodec.decodeModern(buf, state);
                 }
             }
 
             @Override
-            public Object decodeLegacy(ByteBuf buf, PacketBuilder<PacketTypeEnum, LegacyCodec.Applier> codec) throws CodecException {
+            public Object decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) throws CodecException {
                 PacketDataSerializer dataSerializer = new PacketDataSerializer(buf);
                 int id = dataSerializer.readVarInt();
                 if (id < 0) {
@@ -184,7 +185,12 @@ public class CodecFactory {
                     throw new CodecException(id, "Bad Packet ID");
                 }
 
-                codec.accept(PacketType.getPacketType(packet.getClass()), new LegacyCodec.Applier() {
+                Optional<PacketType> type = PacketTypes.getPacketType(packet.getClass(), state);
+                if (!type.isPresent()) {
+                    throw new CodecException(id, "Wrong protocol state");
+                }
+
+                codec.accept(type.get(), new LegacyCodec.Applier() {
                     @Override
                     public void apply(LegacyCodec codec) throws CodecException {
                         codec.apply(packet,

@@ -6,16 +6,13 @@ import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import org.bukkit.Bukkit;
@@ -27,12 +24,9 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class PacketExecutors {
 
@@ -40,7 +34,7 @@ public class PacketExecutors {
         PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            packetProcessor.addPacketExecutor(PacketType.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor());
+            packetProcessor.addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor());
         }
     }
 

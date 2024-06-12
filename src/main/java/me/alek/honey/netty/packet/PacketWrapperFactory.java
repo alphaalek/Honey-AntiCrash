@@ -1,8 +1,8 @@
 package me.alek.honey.netty.packet;
 
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionBegin;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
@@ -24,39 +24,39 @@ public class PacketWrapperFactory {
     }
 
     public static void loadWrappers() {
-        loadWrapper(PacketType.Play.Client.BLOCK_DIG, WrappedPlayInBlockDig::new);
-        loadWrapper(PacketType.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
-        loadWrapper(PacketType.Play.Client.CHAT, WrappedPlayInChat::new);
-        loadWrapper(PacketType.Play.Client.SET_CREATIVE_SLOT, WrappedPlayInSetCreativeSlot::new);
-        loadWrapper(PacketType.Play.Client.HELD_ITEM_SLOT, WrappedPlayInHeldItemSlot::new);
-        loadWrapper(PacketType.Play.Client.POSITION, WrappedPlayInPosition::new);
-        loadWrapper(PacketType.Play.Client.POSITION_LOOK, WrappedPlayInPosition::new);
-        loadWrapper(PacketType.Play.Client.LOOK, WrappedPlayInPosition::new);
-        loadWrapper(PacketType.Play.Client.FLYING, WrappedPlayInFlying.Status::new);
-        loadWrapper(PacketType.Play.Client.GROUND, WrappedPlayInGround::new);
-        loadWrapper(PacketType.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload::new);
-        loadWrapper(PacketType.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
-        loadWrapper(PacketType.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
-        loadWrapper(PacketType.Play.Client.WINDOW_CLICK, WrappedPlayInWindowClick::new);
-        loadWrapper(PacketType.Login.Client.ENCRYPTION_BEGIN, WrappedLoginInEncryptionBegin::new);
-        loadWrapper(PacketType.Login.Client.LOGIN_START, WrappedLoginInLoginStart::new);
+        loadWrapper(PacketTypes.Play.Client.BLOCK_DIG, WrappedPlayInBlockDig::new);
+        loadWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
+        loadWrapper(PacketTypes.Play.Client.CHAT, WrappedPlayInChat::new);
+        loadWrapper(PacketTypes.Play.Client.SET_CREATIVE_SLOT, WrappedPlayInSetCreativeSlot::new);
+        loadWrapper(PacketTypes.Play.Client.HELD_ITEM_SLOT, WrappedPlayInHeldItemSlot::new);
+        loadWrapper(PacketTypes.Play.Client.POSITION, WrappedPlayInPosition::new);
+        loadWrapper(PacketTypes.Play.Client.POSITION_LOOK, WrappedPlayInPosition::new);
+        loadWrapper(PacketTypes.Play.Client.LOOK, WrappedPlayInPosition::new);
+        loadWrapper(PacketTypes.Play.Client.FLYING, WrappedPlayInFlying.Status::new);
+        loadWrapper(PacketTypes.Play.Client.GROUND, WrappedPlayInGround::new);
+        loadWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload::new);
+        loadWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
+        loadWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
+        loadWrapper(PacketTypes.Play.Client.WINDOW_CLICK, WrappedPlayInWindowClick::new);
+        loadWrapper(PacketTypes.Login.Client.ENCRYPTION_BEGIN, WrappedLoginInEncryptionBegin::new);
+        loadWrapper(PacketTypes.Login.Client.LOGIN_START, WrappedLoginInLoginStart::new);
 
-        loadWrapper(PacketType.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);
-        loadWrapper(PacketType.Play.Server.KICK_DISCONNECT, WrappedPlayOutKickDisconnect::new);
-        loadWrapper(PacketType.Play.Server.POSITION, WrappedPlayOutPosition::new);
-        loadWrapper(PacketType.Play.Server.TAB_COMPLETE, WrappedPlayOutTabComplete::new);
+        loadWrapper(PacketTypes.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);
+        loadWrapper(PacketTypes.Play.Server.KICK_DISCONNECT, WrappedPlayOutKickDisconnect::new);
+        loadWrapper(PacketTypes.Play.Server.POSITION, WrappedPlayOutPosition::new);
+        loadWrapper(PacketTypes.Play.Server.TAB_COMPLETE, WrappedPlayOutTabComplete::new);
     }
 
-    private static <WP extends WrappedPacket<WP>> void loadWrapper(PacketTypeEnum type, PacketInvoker<WP> invoker) {
+    private static <WP extends WrappedPacket<WP>> void loadWrapper(PacketType type, PacketInvoker<WP> invoker) {
         WRAPPERS.set(type.getHoneyID(), invoker);
     }
 
     @SuppressWarnings("unchecked")
-    private static <WP extends WrappedPacket<WP>> PacketInvoker<WP> getInvoker(PacketTypeEnum type) {
+    private static <WP extends WrappedPacket<WP>> PacketInvoker<WP> getInvoker(PacketType type) {
         return (PacketInvoker<WP>) WRAPPERS.get(type.getHoneyID());
     }
 
-    public static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketTypeEnum type, Object raw, PacketContainer<WP> container) {
+    public static <WP extends WrappedPacket<WP>> WrappedPacket<WP> initWrappedPacket(PacketType type, Object raw, PacketContainer<WP> container) {
         if (!WRAPPERS.has(type.getHoneyID())) {
             return new WrappedPacket<>(raw, container);
         }

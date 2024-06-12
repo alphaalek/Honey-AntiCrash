@@ -6,7 +6,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.util.ConstructorInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
@@ -15,7 +15,7 @@ import me.alek.honey.util.CallbackAction;
 
 public class PacketFactory {
 
-    public static Object createRawPacket(PacketTypeEnum type) {
+    public static Object createRawPacket(PacketType type) {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
             throw new UnsupportedOperationException();
         }
@@ -29,7 +29,7 @@ public class PacketFactory {
         return null;
     }
 
-    public static Object createRawPacket(PacketTypeEnum type, ByteBuf serializer) {
+    public static Object createRawPacket(PacketType type, ByteBuf serializer) {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
             return createRawPacket(type);
         }
@@ -44,15 +44,15 @@ public class PacketFactory {
         return null;
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player) {
         return createNewPacket(type, null, player);
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, ByteBuf serializer, HoneyPlayer player) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, ByteBuf serializer, HoneyPlayer player) {
         return createNewPacket(type, player, serializer, player.channel, null);
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketTypeEnum type, HoneyPlayer player, ByteBuf serializer, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
         try {
             Object rawPacket;
             if (serializer == null) {
@@ -70,11 +70,11 @@ public class PacketFactory {
         return null;
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction) {
         return PacketWrapperFactory.initWrappedPacket(type, rawPacket, new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketTypeEnum type, Object rawPacket, PacketContainer<WP> packetContainer) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, PacketContainer<WP> packetContainer) {
         return PacketWrapperFactory.initWrappedPacket(type, rawPacket, packetContainer);
     }
 }

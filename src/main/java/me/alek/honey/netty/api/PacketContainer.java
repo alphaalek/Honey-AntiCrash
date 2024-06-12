@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
@@ -15,7 +15,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketStateTimings getEventloopStateTimings();
 
-    void init(Object packet, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum packetType);
+    void init(Object packet, CallbackAction<PacketContainer<WP>> postAction, PacketType packetType);
 
     long getTime();
 
@@ -25,9 +25,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     Channel getChannel();
 
-    PacketTypeEnum getType();
-
-    Array<PacketState> getCommonStates();
+    PacketType getType();
 
     PacketState getState();
 

@@ -7,7 +7,7 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketStateTimings;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
 import org.bukkit.ChatColor;
@@ -43,11 +43,11 @@ public class PacketTaskHandler {
                         }
                         packet.dump();
 
-                        if (packet.getType() != PacketType.Play.Client.FLYING
-                                && packet.getType() != PacketType.Play.Client.POSITION
-                                && packet.getType() != PacketType.Play.Client.POSITION_LOOK
-                                && packet.getType() != PacketType.Play.Client.GROUND
-                                && packet.getType() != PacketType.Play.Client.VEHICLE_MOVE) {
+                        if (packet.getType() != PacketTypes.Play.Client.FLYING
+                                && packet.getType() != PacketTypes.Play.Client.POSITION
+                                && packet.getType() != PacketTypes.Play.Client.POSITION_LOOK
+                                && packet.getType() != PacketTypes.Play.Client.GROUND
+                                && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
                             dumpThread(packet);
                         }
                     }
@@ -119,7 +119,7 @@ public class PacketTaskHandler {
         if (!dump.contains("PacketTaskHandler")) {
             String name = packet != null ? packet.getPlayerName() : "Unknown";
 
-            if (packet != null && !PacketType.isUnknown(packet.getType())) {
+            if (packet != null && !PacketTypes.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getHoneyID() + ", State: " + packet.getProtocolState());
                 loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
@@ -160,7 +160,7 @@ public class PacketTaskHandler {
         }
 
         // we have to make sure it's not an unmodifiable packet (made for some packet types in higher versions where packet mapping is not yet made)
-        if (!PacketType.isUnknown(packet.getType())) {
+        if (!PacketTypes.isUnknown(packet.getType())) {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }
 

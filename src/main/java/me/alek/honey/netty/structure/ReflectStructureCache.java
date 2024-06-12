@@ -1,6 +1,6 @@
 package me.alek.honey.netty.structure;
 
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.Array;
 
 import java.util.Map;
@@ -11,7 +11,7 @@ public class ReflectStructureCache {
     public static Array<ReflectStructure<Object, Object>> PACKET_STRUCTURE_CACHE = new Array<>();
     public static Map<Class<?>, ReflectStructure<Object, Object>> WRAPPER_STRUCTURE_CACHE = new ConcurrentHashMap<>();
 
-    public static synchronized ReflectStructure<Object, Object> acquireStructure(PacketTypeEnum packetType) {
+    public static synchronized ReflectStructure<Object, Object> acquireStructure(PacketType packetType) {
         return PACKET_STRUCTURE_CACHE.get(packetType.getHoneyID(), () -> new ReflectStructure<>(packetType.getNmsClass()));
     }
 

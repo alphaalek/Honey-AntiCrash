@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketExecutor;
@@ -156,14 +157,14 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void addPacketExecutor(PacketTypeEnum packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor) {
+    public void addPacketExecutor(PacketType packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor) {
         packetExecutors.get(packetType.getHoneyID(), ArrayList::new)
                 .add(packetExecutor);
     }
 
     @Override
     public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
-        if (PacketType.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
+        if (PacketTypes.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
             return null;
         }
 
@@ -196,8 +197,8 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketTypeEnum> packetTypes) {
-        for (PacketTypeEnum packetType : packetTypes) {
+    public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketType> packetTypes) {
+        for (PacketType packetType : packetTypes) {
             if (packetType instanceof RangedPacketTypeEnum
                     && !NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
                 continue;
@@ -207,18 +208,18 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, PacketTypeEnum... packetTypes) {
+    public void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, PacketType... packetTypes) {
         addListener(packetAdapter, priority, Arrays.asList(packetTypes));
     }
 
     @Override
-    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, PacketTypeEnum... packetTypes) {
+    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, PacketType... packetTypes) {
         removeListener(packetAdapter, Arrays.asList(packetTypes));
     }
 
     @Override
-    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketTypeEnum> packetTypes) {
-        for (PacketTypeEnum packetType : packetTypes) {
+    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketType> packetTypes) {
+        for (PacketType packetType : packetTypes) {
             if (!eventBusses.has(packetType.getHoneyID())) continue;
 
             eventBusses.get(packetType.getHoneyID()).removeListener(packetAdapter);
@@ -250,8 +251,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    public boolean hasListener(PacketTypeEnum... packetTypes) {
-        for (PacketTypeEnum packetType : packetTypes) {
+    public boolean hasListener(PacketType... packetTypes) {
+        for (PacketType packetType : packetTypes) {
             if (!eventBusses.has(packetType.getHoneyID())) {
                 return false;
             }
@@ -262,7 +263,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     @Override
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         int id;
-        if (PacketType.isUnknown(packetContainer.getType())
+        if (PacketTypes.isUnknown(packetContainer.getType())
                 || !eventBusses.has(id = packetContainer.getType().getHoneyID())) {
             return;
         }
@@ -277,7 +278,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                          Object packet, HoneyPlayer player, Channel channel,
-                                                                                         CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
+                                                                                         CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
         if (packetContainer != null) {
             packetContainer.init(packet, postAction, type);
 
@@ -287,24 +288,17 @@ public class InternalPacketProcessor implements PacketProcessor {
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, Channel channel,
-                                                                     Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        // initialize the packet container
-        PacketTypeEnum packetType = PacketType.getPacketType(packet.getClass());
-        CallbackAction<PacketContainer<WP>> postAction = !PacketType.isUnknown(packetType)
-                ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID()) : null;
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, HoneyPacketHandler handler, Channel channel,
+                                                                            Object packet, PacketContainer<WP> earlyInitializedPacket) {
+        PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(PacketBound.SERVER))
+                .orElse(null);
 
+        CallbackAction<PacketContainer<WP>> postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, channel, postAction, packetType);
+                earlyInitializedPacket, packet, player, channel, postAction, type);
 
-
-        // check if this packet type has any listeners which can handle this packet.
-        // if there are not any, we will just create a simple container and avoid using performance on unnecessary packets
-        if (PacketType.isUnknown(packetType)) {
-            return packetContainer;
-        }
-
-        if (packetContainer.getCommonStates().contains(PacketState.PLAY) && packetContainer.getPlayer() == null) {
+        if (PacketTypes.isUnknown(type)
+                || packetContainer.getState().equals(PacketState.PLAY) && packetContainer.getPlayer() == null) {
             return packetContainer;
         }
 
@@ -319,18 +313,24 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        return handleCommon(player, channel, packet, earlyInitializedPacket);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet, PacketContainer<WP> earlyInitializedPacket) {
+        return handleCommon(player, handler, channel, packet, earlyInitializedPacket);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet) {
-        return handleCommon(player, channel, packet, null);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet) {
+        return handleCommon(player, handler, channel, packet, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <WP extends WrappedPacket<WP>> CallbackAction<PacketContainer<WP>> getPostAction(PacketType type) {
+        return !PacketTypes.isUnknown(type)
+                ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(type.getHoneyID()) : null;
     }
 
     @Override
-    public synchronized void addPostAction(PacketTypeEnum packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback) {
-        if (PacketType.isUnknown(packetType)) {
+    public synchronized void addPostAction(PacketType packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback) {
+        if (PacketTypes.isUnknown(packetType)) {
             return;
         }
 

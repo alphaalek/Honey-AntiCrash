@@ -10,7 +10,7 @@ import me.alek.honey.messages.Placeholders;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
@@ -326,7 +326,7 @@ public class NotificationService {
             return;
         }
 
-        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketType.Play.Server.PLAYER_CHAT, player);
+        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.PLAYER_CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
         packetContainer.getBytes().writeField(0, (byte) 2);

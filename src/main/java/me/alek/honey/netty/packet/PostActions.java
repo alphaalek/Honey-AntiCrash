@@ -9,7 +9,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -30,7 +30,7 @@ public class PostActions {
         PacketLibrary packetLibrary = HoneyPlugin.get().getPacketLibrary();
         PacketProcessor packetProcessor = packetLibrary.getPacketProcessor();
 
-        packetProcessor.addPostAction(PacketType.Login.Client.LOGIN_START, packet -> {
+        packetProcessor.addPostAction(PacketTypes.Login.Client.LOGIN_START, packet -> {
             String name = getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) packet);
             NMS.submitChannelForName(name, packet.getChannel());
 
@@ -41,7 +41,7 @@ public class PostActions {
             }
         });
 
-        packetProcessor.addPostAction(PacketType.Login.Server.LOGIN_SUCCESS, packet -> {
+        packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, packet -> {
             try {
                  HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packet.getPlayer(), packet.getChannel());
             } catch (MissingHandlerException ex) {
@@ -49,11 +49,11 @@ public class PostActions {
             }
         });
 
-        packetProcessor.addPostAction(PacketType.Login.Server.SET_COMPRESSION, packet -> {
+        packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, packet -> {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(packet.getChannel());
         });
 
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketType.Play.Client.CUSTOM_PAYLOAD, packet -> {
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {
             PacketDataSerializer serializer = packet.getDataSerializers(false).readField(0);
 
             if (serializer.refCnt() > 0) {

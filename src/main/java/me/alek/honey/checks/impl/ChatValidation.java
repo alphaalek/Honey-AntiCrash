@@ -8,24 +8,15 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandMap;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
@@ -36,8 +27,8 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.CHAT);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.CHAT);
     }
 
     public static class ChatA implements PacketCheck<WrappedPlayInChat>, ViolationCheck {

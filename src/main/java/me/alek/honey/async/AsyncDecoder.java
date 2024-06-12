@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.packet.PacketFactory;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
@@ -122,7 +122,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
         }
 
         ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
-        WrappedPacket<WrappedPlayOutKickDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketType.Play.Server.KICK_DISCONNECT, player);
+        WrappedPacket<WrappedPlayOutKickDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketTypes.Play.Server.KICK_DISCONNECT, player);
         kickDisconnect.getContainer().getObjects(NMS.getIChatBaseComponentClass())
                 .writeField(0, Reflection.getConstructor(Reflection.getClass("{nms}.ChatComponentText"), String.class).invoke(
                         Lang.get("kick.too.long.packet.handle")

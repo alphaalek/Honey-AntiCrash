@@ -11,8 +11,8 @@ import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
@@ -32,7 +32,7 @@ public class LoggerService {
     private List<String> ignoredPackets;
     private final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
     private final NotificationService notificationService = HoneyPlugin.get().getNotificationService();
-    private final Map<UUID, Queue<PacketTypeEnum>> recentPackets = new HashMap<>();
+    private final Map<UUID, Queue<PacketType>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
     private final TempQueuedTracker packetRatePerQueueExecution = new TempQueuedTracker(false, false);
@@ -61,7 +61,7 @@ public class LoggerService {
 
             // log the packet
             if (enabled) {
-                if (!packet.getCommonStates().contains(PacketState.PLAY) && !ConfigurationOptions.PacketLogger.EARLY) {
+                if (!packet.getState().equals(PacketState.PLAY) && !ConfigurationOptions.PacketLogger.EARLY) {
                     return;
                 }
 
@@ -83,7 +83,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketType.getTypesAvailableForBound(PacketBound.SERVER));
+            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketTypes.getTypesAvailableForBound(PacketBound.SERVER));
         }
     }
 
@@ -146,10 +146,10 @@ public class LoggerService {
         if (player != null && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
-                Queue<PacketTypeEnum> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
+                Queue<PacketType> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
-                PacketTypeEnum packetType = recentPackets.peek();
-                PacketTypeEnum sentPacketType = Optional.ofNullable(packet).map(PacketContainer::getType).orElse(null);
+                PacketType packetType = recentPackets.peek();
+                PacketType sentPacketType = Optional.ofNullable(packet).map(PacketContainer::getType).orElse(null);
                 if (packetType != sentPacketType) {
                     if (packetType == null) packetType = sentPacketType;
 
@@ -183,7 +183,7 @@ public class LoggerService {
     }
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
-        if (PacketType.isUnknown(packet.getType())) {
+        if (PacketTypes.isUnknown(packet.getType())) {
             return;
         }
 
@@ -206,7 +206,7 @@ public class LoggerService {
         }
         message.append(playerName + " sent " + packetContainer.getName());
 
-        if (detailed && !PacketType.isUnknown(packetContainer.getType())) {
+        if (detailed && !PacketTypes.isUnknown(packetContainer.getType())) {
             message.append(": " + formatPacketEntries(packetContainer));
         }
 
@@ -214,7 +214,7 @@ public class LoggerService {
     }
 
     public Map<String, Object> getPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
-        if (PacketType.isUnknown(packet.getType())) {
+        if (PacketTypes.isUnknown(packet.getType())) {
             return new HashMap<>();
         }
 

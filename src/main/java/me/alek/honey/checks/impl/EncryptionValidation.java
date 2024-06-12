@@ -11,13 +11,10 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInEncryptionBegin;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 
 import java.net.InetSocketAddress;
@@ -38,8 +35,8 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Login.Client.ENCRYPTION_BEGIN);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Login.Client.ENCRYPTION_BEGIN);
     }
 
     public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionBegin> {

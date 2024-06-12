@@ -17,8 +17,8 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -44,8 +44,8 @@ import java.util.function.Supplier;
 public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER);
     }
 
     @Override
@@ -108,11 +108,11 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final List<PacketTypeEnum> IGNORE = Collections.singletonList(PacketType.Play.Client.FLYING);
+        private static final List<PacketType> IGNORE = Collections.singletonList(PacketTypes.Play.Client.FLYING);
         private static final Array<PacketReader<? extends WrappedPacket<?>>> READERS = new Array<>();
 
         static {
-            READERS.set(PacketType.Play.Client.POSITION.getHoneyID(), new PacketReader<WrappedPlayInPosition>() {
+            READERS.set(PacketTypes.Play.Client.POSITION.getHoneyID(), new PacketReader<WrappedPlayInPosition>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPosition> packetContainer) {
@@ -120,7 +120,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2)};
                 }
             });
-            READERS.set(PacketType.Play.Client.POSITION_LOOK.getHoneyID(), new PacketReader<WrappedPlayInPositionLook>() {
+            READERS.set(PacketTypes.Play.Client.POSITION_LOOK.getHoneyID(), new PacketReader<WrappedPlayInPositionLook>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPositionLook> packetContainer) {
@@ -129,7 +129,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2), floats.readField(0), floats.readField(1)};
                 }
             });
-            READERS.set(PacketType.Play.Client.LOOK.getHoneyID(), new PacketReader<WrappedPlayInLook>() {
+            READERS.set(PacketTypes.Play.Client.LOOK.getHoneyID(), new PacketReader<WrappedPlayInLook>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInLook> packetContainer) {
@@ -145,13 +145,13 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public Supplier<List<PacketTypeEnum>> getPacketTypes() {
+        public Supplier<List<PacketType>> getPacketTypes() {
             return () -> {
-                List<PacketTypeEnum> packetTypes = new ArrayList<>();
+                List<PacketType> packetTypes = new ArrayList<>();
 
                 BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
                         !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
-                for (PacketTypeEnum packetType : PacketType.getTypesAvailableForBound(PacketBound.SERVER)) {
+                for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
                     if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
                         packetTypes.add(packetType);

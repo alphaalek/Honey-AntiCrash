@@ -7,7 +7,7 @@ import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.util.NMS;
@@ -26,26 +26,26 @@ public class ProtocolSwapHandler {
             updateDirection = null;
         }
 
-        if (packet.getType() == PacketType.Login.Server.LOGIN_SUCCESS) {
+        if (packet.getType() == PacketTypes.Login.Server.LOGIN_SUCCESS) {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                 updateAfterEventloop = PacketState.PLAY;
             } else {
                 updateAfterEventloop = PacketState.CONFIGURATION;
             }
             updateDirection = PacketBound.CLIENT;
-        } else if (packet.getType() == PacketType.Configuration.Server.FINISH_CONFIGURATION
-                || packet.getType() == PacketType.Play.Server.START_CONFIGURATION) {
+        } else if (packet.getType() == PacketTypes.Configuration.Server.FINISH_CONFIGURATION
+                || packet.getType() == PacketTypes.Play.Server.START_CONFIGURATION) {
             updateAfterEventloop = PacketState.PLAY;
             updateDirection = PacketBound.CLIENT;
-        } else if (packet.getType() == PacketType.Login.Client.LOGIN_ACKNOWLEDGED) {
+        } else if (packet.getType() == PacketTypes.Login.Client.LOGIN_ACKNOWLEDGED) {
             setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
-        } else if (packet.getType() == PacketType.Play.Client.CONFIGURATION_ACKNOWLEDGED) {
+        } else if (packet.getType() == PacketTypes.Play.Client.CONFIGURATION_ACKNOWLEDGED) {
             setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
-        } else if (packet.getType() == PacketType.Configuration.Client.FINISH_CONFIGURATION) {
+        } else if (packet.getType() == PacketTypes.Configuration.Client.FINISH_CONFIGURATION) {
             setProtocolState(packet.getChannel(), PacketState.PLAY, PacketBound.SERVER);
-        } else if (packet.getType() == PacketType.Play.Server.LOGIN) {
+        } else if (packet.getType() == PacketTypes.Play.Server.LOGIN) {
             setProtocolState(packet.getChannel(), PacketState.PLAY, null);
-        } else if (packet.getType() == PacketType.Handshake.Client.SET_PROTOCOL) {
+        } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
             JavaConverter<Enum<?>, WrappedEnumProtocol> converter = Converters.getEnumProtocolConverter();
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {

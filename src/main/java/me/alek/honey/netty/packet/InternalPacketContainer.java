@@ -11,8 +11,8 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
-    private PacketTypeEnum type;
+    private PacketType type;
     private Object raw;
     private WP wrapped;
     private CallbackAction<PacketContainer<WP>> postAction;
@@ -44,12 +44,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final PacketStateTimings eventLoopStateTracker = new PacketStateTimings();
     private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum type) {
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
         this(rawPacket, type, player, channel);
         init(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(Object rawPacket, PacketTypeEnum packetType, HoneyPlayer player, Channel channel) {
+    public InternalPacketContainer(Object rawPacket, PacketType packetType, HoneyPlayer player, Channel channel) {
         this(player, channel);
         this.raw = rawPacket;
         this.type = packetType;
@@ -60,12 +60,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.channel = channel;
     }
 
-    public void init(Object raw, CallbackAction<PacketContainer<WP>> postAction, PacketTypeEnum packetType) {
+    public void init(Object raw, CallbackAction<PacketContainer<WP>> postAction, PacketType packetType) {
         this.raw = raw;
         this.postAction = postAction;
         this.type = packetType;
 
-        if (!PacketType.isUnknown(type)
+        if (!PacketTypes.isUnknown(type)
                 && type.getNmsClass().equals(raw.getClass())) {
             this.structure = ReflectStructureCache.acquireStructure(type);
             if (this.structure.isStaticFieldsAllowed()) {
@@ -109,13 +109,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         return channel;
     }
     @Override
-    public PacketTypeEnum getType() {
+    public PacketType getType() {
         return type;
-    }
-
-    @Override
-    public Array<PacketState> getCommonStates() {
-        return PacketType.getCommonStates(type);
     }
 
     @Override
@@ -197,7 +192,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String getPlayerName() {
-        if (type == PacketType.Login.Client.LOGIN_START) {
+        if (type == PacketTypes.Login.Client.LOGIN_START) {
             String name = PostActions.getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) this);
 
             try {

@@ -13,8 +13,8 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
@@ -49,8 +49,8 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.TAB_COMPLETE);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.TAB_COMPLETE);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
                     }
                 }
 
-            }, ListenerPriority.NORMAL, () -> PacketType.Play.Server.TAB_COMPLETE);
+            }, ListenerPriority.NORMAL, () -> PacketTypes.Play.Server.TAB_COMPLETE);
         }
 
         @Override

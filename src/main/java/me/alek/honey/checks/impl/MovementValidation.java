@@ -14,8 +14,8 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
@@ -44,16 +44,16 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 lastTeleportationLocationMap.put(player.uuid, packetContainer.getPacket().getLocation());
             }
 
-        }, ListenerPriority.HIGHEST, () -> PacketType.Play.Server.POSITION);
+        }, ListenerPriority.HIGHEST, () -> PacketTypes.Play.Server.POSITION);
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
+    public Supplier<List<PacketType>> getPacketTypes() {
         return () -> Arrays.asList(
-                PacketType.Play.Client.POSITION,
-                PacketType.Play.Client.POSITION_LOOK,
-                PacketType.Play.Client.GROUND,
-                PacketType.Play.Client.FLYING
+                PacketTypes.Play.Client.POSITION,
+                PacketTypes.Play.Client.POSITION_LOOK,
+                PacketTypes.Play.Client.GROUND,
+                PacketTypes.Play.Client.FLYING
         );
     }
 
@@ -152,7 +152,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            if (!(packet.getType() == PacketType.Play.Client.FLYING || packet.getType() == PacketType.Play.Client.GROUND))
+            if (!(packet.getType() == PacketTypes.Play.Client.FLYING || packet.getType() == PacketTypes.Play.Client.GROUND))
                 return Validation.PASS;
 
             if (getSetting().isEnabled()) {

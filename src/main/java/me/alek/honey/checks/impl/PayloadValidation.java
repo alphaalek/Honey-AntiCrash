@@ -14,8 +14,8 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.MaterialMappings;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.CallbackAction;
@@ -57,8 +57,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.CUSTOM_PAYLOAD);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.CUSTOM_PAYLOAD);
     }
 
     public static class PayloadA implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {

@@ -26,7 +26,7 @@ import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutors;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.NMS;
@@ -288,7 +288,7 @@ public class HoneyPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new TeleportListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
-        packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketType.Play.Server.TAB_COMPLETE);
+        packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketTypes.Play.Server.TAB_COMPLETE);
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
     }

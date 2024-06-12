@@ -15,8 +15,8 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -37,7 +37,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
 
         // return if the player is removing content from his inventory by using the clear all slots button in creative menu
-        if (packetContainer.getType() == PacketType.Play.Client.SET_CREATIVE_SLOT) {
+        if (packetContainer.getType() == PacketTypes.Play.Client.SET_CREATIVE_SLOT) {
             int slot = ((WrappedPlayInSetCreativeSlot)packetContainer.getPacket()).getSlot();
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
 
@@ -64,12 +64,12 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
+    public Supplier<List<PacketType>> getPacketTypes() {
         return () -> {
-            Set<PacketTypeEnum> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
-            List<PacketTypeEnum> packetTypes = new ArrayList<>();
+            Set<PacketType> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
+            List<PacketType> packetTypes = new ArrayList<>();
 
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
+            for (PacketType packetType : PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
                 if (floodSettings.contains(packetType)) {
                     packetTypes.add(packetType);
                 }
@@ -145,7 +145,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         private static final IDRegistry packetTypes = new IDRegistry();
 
         static {
-            for (PacketTypeEnum packetType : PacketType.getTypesAvailable()) {
+            for (PacketType packetType : PacketTypes.getTypesAvailable()) {
                 if (!ReflectStructureCache.acquireStructure(packetType.getNmsClass()).withType(NMS.getItemStackClass())
                         .getAccessors().isEmpty()) {
                     packetTypes.add(packetType.getHoneyID());
@@ -155,7 +155,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && !PacketType.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getHoneyID())) {
+            if (getSetting().isEnabled() && !PacketTypes.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getHoneyID())) {
 
                 for (ItemStack item : packet.getContainer().getItems().readFieldValues()) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, true);

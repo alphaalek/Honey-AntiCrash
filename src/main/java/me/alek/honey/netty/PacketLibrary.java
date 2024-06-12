@@ -10,8 +10,8 @@ import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.PostActions;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -46,7 +46,7 @@ public class PacketLibrary {
         this.settings = settings;
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
-        PacketType.load();
+        PacketTypes.load();
         PacketWrapperFactory.loadWrappers();
 
         packetProcessor = new InternalPacketProcessor();
@@ -113,15 +113,15 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListener(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketTypeEnum> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void addListener(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketType> packetTypes) {
         packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketType>> packetTypes) {
         packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
-    public void addFuzzyListeners(FuzzyPacketAdapter adapter, ListenerPriority priority, Supplier<List<PacketTypeEnum>> packetTypes) {
+    public void addFuzzyListeners(FuzzyPacketAdapter adapter, ListenerPriority priority, Supplier<List<PacketType>> packetTypes) {
         packetProcessor.addListener(adapter, priority, packetTypes.get());
     }
 
@@ -130,10 +130,10 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void removeListener(PacketAdapter<WP> adapter) {
-        removeListeners(adapter, PacketType.getTypesAvailable());
+        removeListeners(adapter, PacketTypes.getTypesAvailable());
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListeners(PacketAdapter<WP> adapter, List<PacketTypeEnum> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void removeListeners(PacketAdapter<WP> adapter, List<PacketType> packetTypes) {
         packetProcessor.removeListener(adapter, packetTypes);
     }
 
@@ -143,7 +143,7 @@ public class PacketLibrary {
     }
 
     @SuppressWarnings("unchecked")
-    public void removeFuzzyListeners(FuzzyPacketAdapter adapter, List<PacketTypeEnum> packetTypes) {
+    public void removeFuzzyListeners(FuzzyPacketAdapter adapter, List<PacketType> packetTypes) {
         removeListeners(adapter, packetTypes);
     }
 

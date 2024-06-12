@@ -11,8 +11,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
@@ -45,8 +45,8 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.BLOCK_PLACE);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.BLOCK_PLACE);
     }
 
     public static ResponseContainer checkExceedingMaxDistance(HoneyPlayer player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
@@ -132,7 +132,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
             return Validation.PASS;
@@ -165,7 +165,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 ItemStack item = packet.getItem();
                 if (item == null) {
                     return Validation.PASS;
@@ -207,7 +207,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
-            if (getSetting().isEnabled() && packet.getType() == PacketType.Play.Client.BLOCK_PLACE) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 int placedBlockDirection = packet.getPlacedBlockDirection();
 
                 float facingX = packet.getFacingX();

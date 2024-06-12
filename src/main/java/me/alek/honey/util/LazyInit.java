@@ -2,12 +2,11 @@ package me.alek.honey.util;
 
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -25,7 +24,7 @@ public class LazyInit<T> {
         return val == null ? (val = function.get()) : val;
     }
 
-    public static LazyInit<Integer> getMinecraftIDInit(PacketTypeEnum type) {
+    public static LazyInit<Integer> getMinecraftIDInit(PacketType type) {
         return new LazyInit<>(() -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 if (type.getKeyName1_20_5() == null) {
@@ -46,7 +45,7 @@ public class LazyInit<T> {
                             .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
                             .readField(0);
 
-                    PacketTypeEnum typeFromCodec = PacketType.getTypeFromMinecraftKey(minecraftKey);
+                    PacketType typeFromCodec = PacketTypes.getTypeFromMinecraftKey(minecraftKey);
                     if (typeFromCodec.equals(type)) {
                         return i;
                     }

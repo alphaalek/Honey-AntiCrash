@@ -10,13 +10,10 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
-import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.event.inventory.InventoryType;
 
@@ -39,8 +36,8 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
     }
 
     @Override
-    public Supplier<List<PacketTypeEnum>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketType.Play.Client.WINDOW_CLICK);
+    public Supplier<List<PacketType>> getPacketTypes() {
+        return () -> Collections.singletonList(PacketTypes.Play.Client.WINDOW_CLICK);
     }
 
     public static class WindowA implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {

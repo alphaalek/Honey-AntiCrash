@@ -9,8 +9,8 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
 import me.alek.honey.netty.packet.PacketFactory;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 
 import java.util.ArrayList;
@@ -76,7 +76,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketType.Play.Client.FLYING : PacketType.Play.Client.GROUND,
+        ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketTypes.Play.Client.FLYING : PacketTypes.Play.Client.GROUND,
                 serializer -> serializer.writeBoolean(false));
 
         AtomicReference<String> prev = new AtomicReference<>();
@@ -130,7 +130,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf buf = createByteBuf(PacketType.Play.Server.POSITION, serializer -> {
+        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.POSITION, serializer -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -140,7 +140,7 @@ public class PacketInterceptorResolver {
             serializer.writeInt(0);
         }).copy();
         PacketContainer<WrappedPlayOutPosition> packet = PacketFactory.<WrappedPlayOutPosition>createWrappedPacket(
-                PacketType.Play.Server.POSITION, PacketFactory.createRawPacket(PacketType.Play.Server.POSITION, buf), null, pipeline.channel(), null).getContainer();
+                PacketTypes.Play.Server.POSITION, PacketFactory.createRawPacket(PacketTypes.Play.Server.POSITION, buf), null, pipeline.channel(), null).getContainer();
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, false, handler -> handler instanceof ChannelOutboundHandler,
@@ -208,7 +208,7 @@ public class PacketInterceptorResolver {
         return wrappedHandlers;
     }
 
-    private static ByteBuf createByteBuf(PacketTypeEnum packetType, Consumer<ByteBuf> write) {
+    private static ByteBuf createByteBuf(PacketType packetType, Consumer<ByteBuf> write) {
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer());
         serializer.writeByte(packetType.getMinecraftID().get());
         write.accept(serializer);

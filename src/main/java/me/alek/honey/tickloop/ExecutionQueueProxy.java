@@ -7,8 +7,8 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypeEnum;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -44,18 +44,18 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
     }
 
     public void reload() {
-        Set<PacketTypeEnum> packets = new HashSet<>();
+        Set<PacketType> packets = new HashSet<>();
         for (String ignoredPacket : ConfigurationOptions.Postpone.MAX_QUEUE_SIZE_IGNORED) {
 
-            Optional<PacketTypeEnum> ignoredPacketType = PacketType.getPacketType(ignoredPacket, PacketType::isServerbound, PacketType.NameGetStrategy.EITHER);
-            PacketTypeEnum type;
-            if (ignoredPacketType.isPresent() && !PacketType.isUnknown(type = ignoredPacketType.get())) {
+            Optional<PacketType> ignoredPacketType = PacketTypes.getPacketType(ignoredPacket, PacketTypes::isServerbound, PacketTypes.NameGetStrategy.EITHER);
+            PacketType type;
+            if (ignoredPacketType.isPresent() && !PacketTypes.isUnknown(type = ignoredPacketType.get())) {
                 packets.add(type);
             }
         }
 
         ignoredPacketsInQueueExecutionSaver = new IDRegistry();
-        for (PacketTypeEnum packetType : packets) {
+        for (PacketType packetType : packets) {
             ignoredPacketsInQueueExecutionSaver.add(packetType.getHoneyID());
         }
     }
@@ -266,7 +266,8 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture<?> task) {
-            if (!ConfigurationOptions.Postpone.ENABLED || task.getPlayer() == null) {
+            if (!ConfigurationOptions.Postpone.ENABLED
+                    || task.getPlayer() == null) {
                 return false;
             }
 
@@ -289,8 +290,8 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                     break;
                 }
             }
-
             postponed.call(false);
+
             return false;
         }
 
@@ -323,11 +324,11 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
 
                 // don't track position packets, because you can legitimately cause a lot of server thread performance by chunk loading in legacy versions (when chunk loading wasn't async)
-                if (recentPacket.getType() == PacketType.Play.Client.POSITION
-                        || recentPacket.getType() == PacketType.Play.Client.POSITION_LOOK
-                        || recentPacket.getType() == PacketType.Play.Client.FLYING
-                        || recentPacket.getType() == PacketType.Play.Client.GROUND
-                        || recentPacket.getType() == PacketType.Play.Client.VEHICLE_MOVE) {
+                if (recentPacket.getType() == PacketTypes.Play.Client.POSITION
+                        || recentPacket.getType() == PacketTypes.Play.Client.POSITION_LOOK
+                        || recentPacket.getType() == PacketTypes.Play.Client.FLYING
+                        || recentPacket.getType() == PacketTypes.Play.Client.GROUND
+                        || recentPacket.getType() == PacketTypes.Play.Client.VEHICLE_MOVE) {
                     positionPacketsAmount++;
                     positionPacketsTime += (long) Math.min(MAX_POSITION_TRACKING_AVERAGE_ENTRY, deltaTime);
 

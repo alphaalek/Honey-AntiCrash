@@ -14,12 +14,11 @@ import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -133,7 +132,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             if (packetContainer != null) {
                 packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
-                if (packetContainer.getType() == PacketType.Play.Client.TRANSACTION
+                if (packetContainer.getType() == PacketTypes.Play.Client.TRANSACTION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                     if (exemptedIntervalThrottle != null) {
@@ -227,7 +226,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         if (player == null && asyncDecoder.getPlayer() != null) {
             player = asyncDecoder.getPlayer();
             exemptedIntervalThrottle = new ViolationService.PacketIntervalThrottleHandler(
-                    player, ConfigurationOptions.getFloodSettings().get(PacketType.Play.Client.TRANSACTION));
+                    player, ConfigurationOptions.getFloodSettings().get(PacketTypes.Play.Client.TRANSACTION));
         }
 
         List<Object> nonRecycledList = new ArrayList<>();
