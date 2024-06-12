@@ -22,6 +22,7 @@ import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComplete> implements IPacketListener {
@@ -33,27 +34,14 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedPlayInTabComplete> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInTabComplete> visitor = new CheckVisitor<>(player);
-        visitor.visit(new TabA());
-        visitor.visit(new TabB());
-        visitor.visit(new TabC());
-        return visitor;
+        return CheckVisitor.from(player,
+                new TabA(), new TabB(), new TabC());
     }
 
     @Override
     public void load() {
-        TabA.prohibitedCommands = ChatValidation.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+        TabA.prohibitedCommands = CommandValidation.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
 
         if (TabC.labelSetting != null) {
             TabC.labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
@@ -81,8 +69,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
             String label = message.split(" ")[0];
 
             for (String prohibitedCommand : prohibitedCommands) {
-
-                if (ChatValidation.match(prohibitedCommand, label)) {
+                if (CommandValidation.match(prohibitedCommand, label)) {
                     return Validation.inst().cancel().flag()
                             .onViolation(onViolation -> {
                                 if (onViolation != null) onViolation.run();
@@ -93,6 +80,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
                             .build();
                 }
             }
+
             return Validation.PASS;
         }
 
@@ -120,13 +108,8 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
     public static class TabB implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final Map<UUID, Queue<ResponseListener>> tabCompleteQueueMap = new HashMap<>();
+        private static final Map<UUID, Queue<Consumer<Integer>>> tabCompleteQueueMap = new HashMap<>();
         private static final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(id);
-
-        private interface ResponseListener {
-
-            void accept(int size);
-        }
 
         public TabB() {
             HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutTabComplete>() {
@@ -135,10 +118,11 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
                 public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
                     int size = packetContainer.getPacket().getSuggestionsSize();
 
-                    ResponseListener listener = tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>())
-                            .poll();
+                    Consumer<Integer> listener = tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).poll();
 
-                    if (listener != null) listener.accept(size);
+                    if (listener != null) {
+                        listener.accept(size);
+                    }
                 }
 
             }, ListenerPriority.NORMAL, () -> PacketType.Play.Server.TAB_COMPLETE);
@@ -147,10 +131,9 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-
-                tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new ResponseListener() {
+                tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new Consumer<Integer>() {
                     @Override
-                    public void accept(int size) {
+                    public void accept(Integer size) {
                         container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
                         HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
                     }
@@ -159,6 +142,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
                 // and therefore will block this packet. I do this by just flagging with 0.
                 return Validation.inst().flag(0).build();
             }
+
             return Validation.PASS;
         }
 
@@ -211,6 +195,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
                         Validation.inst().flag(total).withViolationKey(totalKey).build()
                 ).build();
             }
+
             return Validation.PASS;
         }
 

@@ -59,12 +59,8 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     @Override
     public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
-        visitor.visit(new FloodA<>());
-        visitor.visit(new FloodB<>());
-        visitor.visit(new FloodC<>());
-        visitor.visit(new FloodD<>());
-        return visitor;
+        return CheckVisitor.from(player,
+                new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 
     @Override

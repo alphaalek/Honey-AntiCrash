@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-public enum ListenerRegistry {
+public enum Validations {
 
     v1(FloodValidation::new),
     v2(MovementValidation::new),
@@ -25,8 +25,9 @@ public enum ListenerRegistry {
     v14(WindowValidation::new),
     v15(RotationValidation::new),
     v17(BlockDigValidation::new),
-    v18(TabValidation::new);
-
+    v18(TabValidation::new),
+    v19(CommandValidation::new),
+    ;
 
     private final Supplier<IListener> check;
     private static List<IListener> checks;
@@ -34,7 +35,7 @@ public enum ListenerRegistry {
     public static synchronized List<IListener> getChecks() {
         if (checks == null) {
             List<IListener> checkList = new ArrayList<>();
-            for (ListenerRegistry check : ListenerRegistry.values()) {
+            for (Validations check : Validations.values()) {
                 checkList.add(check.getCheck().get());
             }
             checks = checkList;
@@ -55,7 +56,7 @@ public enum ListenerRegistry {
         return maxID.get();
     }
 
-    ListenerRegistry(Supplier<IListener> check) {
+    Validations(Supplier<IListener> check) {
         this.check = check;
     }
 

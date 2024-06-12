@@ -23,9 +23,7 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
 
     @Override
     public CheckVisitor<WrappedPlayInBlockDig> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInBlockDig> visitor = new CheckVisitor<>(player);
-        visitor.visit(new BlockInteractE());
-        return visitor;
+        return CheckVisitor.from(player, new BlockInteractE());
     }
 
     @Override

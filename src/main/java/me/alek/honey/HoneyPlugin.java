@@ -8,7 +8,7 @@ import me.alek.honey.async.WorkerPool;
 import me.alek.honey.checks.HoneyCheckType;
 import me.alek.honey.checks.IListener;
 import me.alek.honey.checks.IPacketListener;
-import me.alek.honey.checks.ListenerRegistry;
+import me.alek.honey.checks.Validations;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.compat.SparkTPSProvider;
@@ -320,7 +320,7 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
-        for (IListener check : ListenerRegistry.getChecks()) {
+        for (IListener check : Validations.getChecks()) {
 
             if (check instanceof PacketAdapter) {
                 ListenerPriority priority = check.getPriority();
@@ -357,7 +357,7 @@ public class HoneyPlugin implements HoneyAPI {
         configuration.reload();
         Lang.load();
 
-        for (IListener check : ListenerRegistry.getChecks()) {
+        for (IListener check : Validations.getChecks()) {
             check.load();
         }
         ItemAnalysis.reload();

@@ -29,11 +29,8 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
 
     @Override
     public CheckVisitor<WrappedPlayInSetCreativeSlot> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInSetCreativeSlot> visitor = new CheckVisitor<>(player);
-        visitor.visit(new CreativeA());
-        visitor.visit(new CreativeB());
-        visitor.visit(new CreativeC());
-        return visitor;
+        return CheckVisitor.from(player,
+                new CreativeA(), new CreativeB(), new CreativeC());
     }
 
     @Override

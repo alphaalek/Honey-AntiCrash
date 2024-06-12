@@ -27,20 +27,6 @@ import java.util.function.Supplier;
 public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindowClick> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInWindowClick> packetContainer, CheckContextContainer container) {
-    }
-
-    @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedPlayInWindowClick> getVisitor(HoneyPlayer player) {
         CheckVisitor<WrappedPlayInWindowClick> visitor = new CheckVisitor<>(player);
         visitor.visit(new WindowA());
@@ -111,7 +97,6 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
             return Validation.PASS;

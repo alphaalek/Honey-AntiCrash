@@ -38,7 +38,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                 if (onViolation != null) onViolation.run();
 
                 container.getDefaultDevelopmentData().addPoint("Channel", channel);
-                container.getDefaultDevelopmentData().addPoint("ByteBuf", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
+                container.getDefaultDevelopmentData().addPoint("Byte Buffer", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
             });
         });
 
@@ -52,13 +52,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
     @Override
     public CheckVisitor<WrappedPlayInCustomPayload> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInCustomPayload> visitor = new CheckVisitor<>(player);
-        visitor.visit(new PayloadA());
-        visitor.visit(new PayloadB());
-        visitor.visit(new PayloadC());
-        visitor.visit(new PayloadD());
-        visitor.visit(new PayloadE());
-        return visitor;
+        return CheckVisitor.from(player,
+                new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD(), new PayloadE());
     }
 
     @Override
@@ -73,7 +68,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         @Override
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 if (packet.getBuf().getClass().equals(EmptyByteBuf.class)) {
                     return Validation.inst().cancel().flag().build();
                 }

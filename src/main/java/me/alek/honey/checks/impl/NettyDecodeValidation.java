@@ -24,17 +24,8 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
 
     @Override
     public CheckVisitor<?> getVisitor(HoneyPlayer player) {
-        CheckVisitor<?> visitor = new CheckVisitor<>(player);
-        visitor.visit(new NettyD());
-        visitor.visit(new NettyE());
-        visitor.visit(new NettyF());
-        visitor.visit(new NettyG());
-        visitor.visit(new NettyK());
-        visitor.visit(new NettyL());
-        visitor.visit(new NettyM());
-        visitor.visit(new NettyN());
-        visitor.visit(new NettyO());
-        return visitor;
+        return CheckVisitor.from(player,
+                new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
     }
 
     private static void processByteBuf(ByteBuf byteBuf, CheckContextContainer container) {
@@ -44,12 +35,10 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
 
         int accumulated = 0;
-
         int readerIndex = byteBuf.readerIndex();
         do {
             byte currentByte = byteBuf.readByte();
             accumulated += Math.abs(currentByte) + 8;
-
         } while (byteBuf.isReadable());
 
         byteBuf.readerIndex(readerIndex);

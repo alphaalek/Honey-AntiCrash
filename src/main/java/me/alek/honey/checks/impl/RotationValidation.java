@@ -62,17 +62,9 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
-        visitor.visit(new RotationA<>());
-        visitor.visit(new RotationB<>());
-        visitor.visit(new RotationC<>());
-        return visitor;
+        return CheckVisitor.from(player,
+                new RotationA<>(), new RotationB<>(), new RotationC<>());
     }
 
     @Override

@@ -24,6 +24,14 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
     private final List<HoneyCheck> checks = new ArrayList<>();
     private final HoneyPlayer player;
 
+    public static <WP extends WrappedPacket<WP>> CheckVisitor<WP> from(HoneyPlayer player, HoneyCheck... checks) {
+        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
+        for (HoneyCheck check : checks) {
+            visitor.visit(check);
+        }
+        return visitor;
+    }
+
     public CheckVisitor(HoneyPlayer player) {
         this.player = player;
     }

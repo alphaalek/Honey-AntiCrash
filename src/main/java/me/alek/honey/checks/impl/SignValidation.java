@@ -25,25 +25,8 @@ import java.util.function.Supplier;
 public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInUpdateSign> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedPlayInUpdateSign> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInUpdateSign> visitor = new CheckVisitor<>(player);
-        visitor.visit(new SignA());
-        return visitor;
+        return CheckVisitor.from(player, new SignA());
     }
 
     @Override

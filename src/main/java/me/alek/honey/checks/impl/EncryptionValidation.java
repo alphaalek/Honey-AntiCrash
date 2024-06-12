@@ -28,30 +28,13 @@ import java.util.function.Supplier;
 public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInEncryptionBegin> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionBegin> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedLoginInEncryptionBegin> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
     public boolean requiresPlayer() {
         return false;
     }
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedLoginInEncryptionBegin> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedLoginInEncryptionBegin> visitor = new CheckVisitor<>(player);
-        visitor.visit(new EncryptionA());
-        return visitor;
+        return CheckVisitor.from(player, new EncryptionA());
     }
 
     @Override

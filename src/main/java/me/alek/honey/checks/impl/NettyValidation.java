@@ -37,6 +37,7 @@ import me.alek.honey.util.NumberUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
@@ -55,13 +56,8 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
     @Override
     public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WP> visitor = new CheckVisitor<>(player);
-        // visitor.visit(new NettyA<>());
-        // visitor.visit(new NettyC<>());
-        visitor.visit(new NettyH<>());
-        visitor.visit(new NettyI<>());
-        // visitor.visit(new NettyJ<>());
-        return visitor;
+        return CheckVisitor.from(player,
+                /* new NettyA<>(), */ new NettyB<>(), /*  new NettyC<>(), */ new NettyH<>(), new NettyI<>() /*, new NettyJ<>() */);
     }
 
     public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
@@ -113,7 +109,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final List<PacketTypeEnum> IGNORE = Arrays.asList(PacketType.Play.Client.FLYING);
+        private static final List<PacketTypeEnum> IGNORE = Collections.singletonList(PacketType.Play.Client.FLYING);
         private static final Array<PacketReader<? extends WrappedPacket<?>>> READERS = new Array<>();
 
         static {
@@ -146,27 +142,24 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
         @Override
         public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-            CheckVisitor<WP> visitor = new CheckVisitor<>(player);
-            visitor.visit(this);
-            return visitor;
+            return CheckVisitor.from(player, this);
         }
 
         @Override
         public Supplier<List<PacketTypeEnum>> getPacketTypes() {
             return () -> {
-                final List<PacketTypeEnum> packetTypes = new ArrayList<>();
+                List<PacketTypeEnum> packetTypes = new ArrayList<>();
 
                 BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
                         !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
                 for (PacketTypeEnum packetType : PacketType.getTypesAvailableForBound(PacketBound.SERVER)) {
                     ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
-
                     if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
                         packetTypes.add(packetType);
                     }
                 }
-
                 packetTypes.removeAll(IGNORE);
+
                 return packetTypes;
             };
         }
@@ -178,7 +171,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 PacketReader<WP> reader = (PacketReader<WP>) READERS.get(packet.getType().getHoneyID());
                 if (reader != null) {
                     Object[] values = reader.read(packet.getContainer());
-
                     for (Object value : values) {
                         if (value instanceof Float && NumberUtils.isInvalid((float) value)) {
                             return Validation.inst().cancel().flag().build();

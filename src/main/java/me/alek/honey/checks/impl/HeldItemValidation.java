@@ -24,26 +24,9 @@ import java.util.function.Supplier;
 public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        return true;
-    }
-
-    @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInHeldItemSlot> packetContainer, CheckContextContainer container) {
-
-    }
-
-    @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedPlayInHeldItemSlot> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInHeldItemSlot> visitor = new CheckVisitor<>(player);
-        visitor.visit(new HeldItemA());
-        visitor.visit(new HeldItemB());
-        return visitor;
+        return CheckVisitor.from(player,
+                new HeldItemA(), new HeldItemB());
     }
 
     @Override
