@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-public class TempQueue {
+public class UnsyncTempQueue {
 
     private final Queue<Double> FIXED = new LinkedList<>();
     private final Deque<TimedNode<Double>> TIMED = new LinkedList<>();
@@ -19,11 +19,11 @@ public class TempQueue {
     private final Predicate<Long> exceeds;
     private long total;
 
-    public TempQueue(Timespan timespan, boolean isFixed) {
+    public UnsyncTempQueue(Timespan timespan, boolean isFixed) {
         this(diff -> diff > timespan.getNanoTimespan(), isFixed);
     }
 
-    public TempQueue(Predicate<Long> exceeds, boolean isFixed) {
+    public UnsyncTempQueue(Predicate<Long> exceeds, boolean isFixed) {
         this.exceeds = exceeds;
         this.isFixed = isFixed;
     }
@@ -38,9 +38,7 @@ public class TempQueue {
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
         }
-        synchronized (this) {
-            total += timespan.getTimespan() * 1000L;
-        }
+        total += timespan.getTimespan() * 1000L;
     }
 
     public boolean isCollected() {
@@ -84,22 +82,20 @@ public class TempQueue {
         }
 
         if (!isFixed) {
-            synchronized (this) {
-                if (node.getValue() > 0) {
-                    TIMED.add(node);
-                }
+            if (node.getValue() > 0) {
+                TIMED.add(node);
+            }
 
-                total += (long) (double) node.getValue();
+            total += (long) (double) node.getValue();
 
-                // clearExceedingNodes(node.getInsertionInstant());
-                if (clearNode(node.getInsertionInstant())) {
-                    TIMED.remove();
-                }
+            // clearExceedingNodes(node.getInsertionInstant());
+            if (clearNode(node.getInsertionInstant())) {
+                TIMED.remove();
             }
         }
     }
 
-    public synchronized void clearExceedingNodes(long time) {
+    public void clearExceedingNodes(long time) {
         if (isFixed) {
             return;
         }
@@ -140,9 +136,7 @@ public class TempQueue {
         final long diff = time - node.getInsertionInstant();
 
         if (exceeds.test(diff)) {
-            synchronized (this) {
-                total -= (long) (double) node.getValue();
-            }
+            total -= (long) (double) node.getValue();
             collected = true;
             return true;
         }

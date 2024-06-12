@@ -1,6 +1,6 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.temp.TempQueue;
+import me.alek.honey.tracker.temp.UnsyncTempQueue;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.Array;
 import org.bukkit.command.CommandSender;
@@ -18,8 +18,8 @@ public enum Timespan {
 
     public static class TimespanContext {
 
-        private final TempQueue fixed;
-        private final TempQueue timed;
+        private final UnsyncTempQueue fixed;
+        private final UnsyncTempQueue timed;
         private final int timespan;
         private final HoneyTracker tracker;
 
@@ -27,8 +27,8 @@ public enum Timespan {
             this.timespan = timespan.timespan;
             this.tracker = tracker;
 
-            fixed = new TempQueue(timespan, true);
-            timed = new TempQueue(timespan, false);
+            fixed = new UnsyncTempQueue(timespan, true);
+            timed = new UnsyncTempQueue(timespan, false);
 
             fixed.prepareFixed(timespan, 10 * this.timespan, 100);
         }
@@ -46,7 +46,7 @@ public enum Timespan {
             return tempQueuedTracker.isFixed();
         }
 
-        public TempQueue getQueue(HoneyTracker tracker) {
+        public UnsyncTempQueue getQueue(HoneyTracker tracker) {
             if (isFixed(tracker)) return fixed;
             else return timed;
         }
@@ -112,7 +112,7 @@ public enum Timespan {
         return IDContext.get(tracker.getID(), () -> new TimespanContext(this, tracker));
     }
 
-    public TempQueue getQueue(HoneyTracker tracker) {
+    public UnsyncTempQueue getQueue(HoneyTracker tracker) {
         return getContext(tracker).getQueue(tracker);
     }
 

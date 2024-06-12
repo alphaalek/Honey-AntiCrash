@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.util.UnsafeChannelCloser;
 import org.bukkit.Bukkit;
 
 public class EndInitProtocolInjector {
@@ -37,13 +38,11 @@ public class EndInitProtocolInjector {
             ex.printStackTrace();
             Bukkit.getLogger().info("Error occurred when initializing channel.");
 
-            if (channel.isOpen()) {
-                channel.close();
-            }
-
             if (channel.pipeline().context(handler) != null) {
                 channel.pipeline().remove(handler);
             }
+
+            UnsafeChannelCloser.closeForcibly(channel);
         }
     }
 }

@@ -7,7 +7,6 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.listener.PacketAdapter;
-import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
@@ -16,6 +15,7 @@ import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 public class InternalPacketProcessor implements PacketProcessor {
 
     private final EventBus<?> decodeEventBus = new EventBus<>();
-    private final Array<EventBus<? extends WrappedPacket<?>>> packetAdapters = new Array<>();
+    private final Array<EventBus<? extends WrappedPacket<?>>> eventBusses = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
     private final Array<CallbackAction<PacketContainer<? extends WrappedPacket<?>>>> postActions = new Array<>();
 
@@ -41,6 +41,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                         packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
                     }
                 } catch (Exception ex) {
+                    Bukkit.getLogger().info("Error occured in packet task " + packetContainer.getPlayerName() + ", " + packetContainer.getType() + ", " + packetContainer.getState());
                     ex.printStackTrace();
                 }
             });
@@ -51,13 +52,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         public void callPipeline(Consumer<PacketAdapter<WP>> consumer) {
-            synchronized (pipeline) {
-                synchronized (priorityMap) {
-                    for (ListenerPriority priority : pipeline) {
-                        for (PacketAdapter<WP> listener : priorityMap.get(priority)) {
-                            consumer.accept(listener);
-                        }
-                    }
+            for (ListenerPriority priority : pipeline) {
+                for (PacketAdapter<WP> listener : priorityMap.get(priority)) {
+                    consumer.accept(listener);
                 }
             }
         }
@@ -76,25 +73,28 @@ public class InternalPacketProcessor implements PacketProcessor {
             synchronized (priorityMap) {
                 synchronized (pipeline) {
                     for (ListenerPriority priority : new ArrayList<>(pipeline)) {
-                        final List<PacketAdapter<WP>> listeners = priorityMap.get(priority);
 
+                        List<PacketAdapter<WP>> listeners = priorityMap.get(priority);
                         Iterator<PacketAdapter<WP>> listenerIterator = listeners.iterator();
                         while (listenerIterator.hasNext()) {
                             PacketAdapter<WP> listener = listenerIterator.next();
                             if (listener != packetAdapter) {
                                 continue;
                             }
+
                             listenerIterator.remove();
 
                             if (listeners.isEmpty()) {
                                 priorityMap.remove(priority);
                                 removeFromPipeline(priority);
                             }
+
                             return true;
                         }
                     }
                 }
             }
+
             return false;
         }
 
@@ -184,7 +184,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                     && !NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
                 continue;
             }
-            packetAdapters.get(packetType.getHoneyID(), EventBus::new).addListener(packetAdapter, priority);
+            eventBusses.get(packetType.getHoneyID(), EventBus::new).addListener(packetAdapter, priority);
         }
     }
 
@@ -201,19 +201,19 @@ public class InternalPacketProcessor implements PacketProcessor {
     @Override
     public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketTypeEnum> packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
-            if (!packetAdapters.has(packetType.getHoneyID())) continue;
+            if (!eventBusses.has(packetType.getHoneyID())) continue;
 
-            packetAdapters.get(packetType.getHoneyID()).removeListener(packetAdapter);
+            eventBusses.get(packetType.getHoneyID()).removeListener(packetAdapter);
 
-            if (packetAdapters.get(packetType.getHoneyID()).isEmpty()) {
-                packetAdapters.remove(packetType.getHoneyID());
+            if (eventBusses.get(packetType.getHoneyID()).isEmpty()) {
+                eventBusses.remove(packetType.getHoneyID());
             }
         }
     }
 
     @Override
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> check) {
-        for (EventBus<?> bus : packetAdapters) {
+        for (EventBus<?> bus : eventBusses) {
             if (bus != null && existsInBus(bus, check)) {
                 return true;
             }
@@ -234,7 +234,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     public boolean hasListener(PacketTypeEnum... packetTypes) {
         for (PacketTypeEnum packetType : packetTypes) {
-            if (!packetAdapters.has(packetType.getHoneyID())) {
+            if (!eventBusses.has(packetType.getHoneyID())) {
                 return false;
             }
         }
@@ -245,11 +245,11 @@ public class InternalPacketProcessor implements PacketProcessor {
     public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
         int id;
         if (PacketType.isUnknown(packetContainer.getType())
-                || !packetAdapters.has(id = packetContainer.getType().getHoneyID())) {
+                || !eventBusses.has(id = packetContainer.getType().getHoneyID())) {
             return;
         }
 
-        packetAdapters.get(id).callPacket(player, packetContainer);
+        eventBusses.get(id).callPacket(player, packetContainer);
     }
 
     @Override
