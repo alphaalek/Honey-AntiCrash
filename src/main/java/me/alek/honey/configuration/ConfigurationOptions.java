@@ -468,6 +468,18 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class Webhook {
+
+        public static String URL;
+        public static boolean DETAILED;
+
+        public static void load() {
+            URL = file.getString("webhook.url");
+            DETAILED = file.getBoolean("webhook.detailed", true);
+        }
+    }
+
+    @Setting
     public static class PacketDump {
 
         public static boolean HEAVY_PACKET_DUMP_ENABLED;

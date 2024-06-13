@@ -142,8 +142,6 @@ public class PacketExecutors {
             AtomicReference<IStructureModifier<List<Object>>> bookMetaPageModifier = new AtomicReference<>();
             List<Object> pages = ItemReflection.getPages(bookMetaPageModifier, (BookMeta) meta);
 
-            Bukkit.broadcastMessage(pages + "");
-
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {
                 newPages.add(stripEventsInvoker.invoke(null, page));

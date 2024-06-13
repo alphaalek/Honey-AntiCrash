@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.Settings;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketCheck;
@@ -112,7 +113,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
         Consumer<Runnable> onViolationConsumer = onViolation -> {
             if (onViolation != null) onViolation.run();
 
-            String messageFormatted = message.length() > 25 ? message.substring(0, 25) + "[...]" : message;
+            String messageFormatted = "\"" + (message.length() > 25 ? message.substring(0, 25) + "[...]" : message) + "\"";
             container.getDevelopmentData(this).addPoint("Command", messageFormatted);
         };
 
@@ -131,7 +132,6 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
                         .build();
             }
         }
-
 
         return Validation.PASS;
     }
@@ -169,6 +169,6 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
 
     @Override
     public ConfigurationOptions.VlSetting getSetting() {
-        return null;
+        return Settings.getSetting(this, ConfigurationOptions.Commands.class);
     }
 }

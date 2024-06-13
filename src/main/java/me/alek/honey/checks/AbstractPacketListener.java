@@ -19,7 +19,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
-        developmentData.removeLastInvisibleData();
+        developmentData.removeLastInternalData();
         developmentData.addEmpty();
         developmentData.addHeader("Description", null);
 
@@ -27,27 +27,6 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         developmentData.addEmpty(); // description
         developmentData.addEmpty(); // STQ
         developmentData.addEmpty(); // NTQ
-    }
-
-    public static void applyQuotients(HoneyPlayer player, CheckContextContainer.DevelopmentData developmentData) {
-        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadTracker();
-        WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
-
-        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
-        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
-
-        developmentData.setPoint(6, "STQ", serverThreadPoint);
-        developmentData.setPoint(7, "NTQ", nettyThreadPoint);
-    }
-
-    private static String formatPercentages(double[] percentages) {
-        StringBuilder message = new StringBuilder();
-
-        for (double percentage : percentages) {
-            if (percentage == 0) percentage = 1;
-            message.append(", ").append(NumberUtils.format(percentage * 100, 2)).append("%");
-        }
-        return message.substring(2, message.length());
     }
 
     @Override
@@ -60,9 +39,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
                 CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
 
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {
-                    String packet = packetContainer.getHandle().getClass().getSimpleName();
                     defaultDevelopmentData.addEmpty();
-                    defaultDevelopmentData.addValue(" Packet", packet);
+                    defaultDevelopmentData.addValue(" Packet", packetContainer.getType() + "," + packetContainer.getState());
                     applyCommonDevelopmentData(defaultDevelopmentData);
                 }
 

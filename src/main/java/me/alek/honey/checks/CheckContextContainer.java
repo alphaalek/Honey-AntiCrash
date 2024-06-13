@@ -7,6 +7,7 @@ import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class CheckContextContainer {
 
@@ -29,12 +30,20 @@ public class CheckContextContainer {
     public class DevelopmentData {
 
         private final List<String> developmentDataSet = new ArrayList<>();
-        private final List<String> invisibleData = new ArrayList<>();
+        private final List<String> internalData = new ArrayList<>();
 
         public DevelopmentData() {
             if (defaultDevelopmentData != null && defaultDevelopmentData != this) {
                 developmentDataSet.addAll(defaultDevelopmentData.developmentDataSet);
-                invisibleData.addAll(defaultDevelopmentData.invisibleData);
+                internalData.addAll(defaultDevelopmentData.internalData);
+            }
+        }
+
+        public void forDelegated(Consumer<DevelopmentData> run) {
+            if (defaultDevelopmentData == this && !developmentDataMap.isEmpty()) {
+                for (DevelopmentData developmentDataDelegate : developmentDataMap) {
+                    if (developmentDataDelegate != null) run.accept(developmentDataDelegate);
+                }
             }
         }
 
@@ -42,32 +51,32 @@ public class CheckContextContainer {
             return developmentDataSet.size();
         }
 
-        public void addInvisibleData(String data) {
-            invisibleData.add(data);
+        public void addInternalData(String data) {
+            internalData.add(data);
+
+            forDelegated(d -> d.addInternalData(data));
         }
 
-        public void removeLastInvisibleData() {
-            invisibleData.remove(invisibleData.size() - 1);
+        public void removeLastInternalData() {
+            internalData.remove(internalData.size() - 1);
+
+            forDelegated(DevelopmentData::removeLastInternalData);
+        }
+
+        public List<String> getInternalData() {
+            return internalData;
         }
 
         public void addText(String line) {
             developmentDataSet.add(line);
 
-            if (defaultDevelopmentData == this && !developmentDataMap.isEmpty()) {
-                for (DevelopmentData developmentDataDelegate : developmentDataMap) {
-                    if (developmentDataDelegate != null) developmentDataDelegate.addText(line);
-                }
-            }
+            forDelegated(d -> d.addText(line));
         }
 
         public void setText(int index, String line) {
             developmentDataSet.set(index, line);
 
-            if (defaultDevelopmentData == this && !developmentDataMap.isEmpty()) {
-                for (DevelopmentData developmentDataDelegate : developmentDataMap) {
-                    if (developmentDataDelegate != null) developmentDataDelegate.setText(index, line);
-                }
-            }
+            forDelegated(d -> d.setText(index, line));
         }
 
         public void addEmpty() {
@@ -85,13 +94,13 @@ public class CheckContextContainer {
         public void addPoint(String key, Object value) {
             if (value instanceof Number) value = NumberUtils.format((Number) value);
             addText(" §8* " + key + ": " + value);
-            addInvisibleData(key + ": " + value);
+            addInternalData(key + "=" + value);
         }
 
         public void addValue(String key, Object value) {
             if (value instanceof Number) value = NumberUtils.format((Number) value);
             addText("§6" + key + ": §e" + value);
-            addInvisibleData(key + ": " + value);
+            addInternalData(key + "=" + value);
         }
 
         public void setEmpty(int index) {
@@ -105,13 +114,13 @@ public class CheckContextContainer {
         public void setPoint(int index, String key, Object value) {
             if (value instanceof Number) value = NumberUtils.format((Number) value);
             setText(index, " §8* " + key + ": " + value);
-            addInvisibleData(key + ": " + value);
+            addInternalData(key + "=" + value);
         }
 
         public void setValue(int index, String key, Object value) {
             if (value instanceof Number) value = NumberUtils.format((Number) value);
             setText(index, "§6" + key + ": §e" + value);
-            addInvisibleData(key + ": " + value);
+            addInternalData(key + "=" + value);
         }
 
         public List<String> getDataSet() {
@@ -122,8 +131,8 @@ public class CheckContextContainer {
         public String toString() {
             StringBuilder builder = new StringBuilder();
 
-            for (String data : invisibleData) {
-                builder.append(data.trim()).append(" ");
+            for (String data : internalData) {
+                builder.append(data.trim()).append(", ");
             }
             return builder.substring(0, builder.length() - 1);
         }

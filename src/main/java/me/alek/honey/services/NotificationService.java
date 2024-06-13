@@ -17,7 +17,9 @@ import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.DecayingListeningCounter;
+import me.alek.honey.util.NumberUtils;
 import me.alek.honey.util.TPSProvider;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -222,6 +224,30 @@ public class NotificationService {
         String tps = TPSProvider.getTPS(Timespan.FIVE_SECOND);
 
         return "§8(" + ping + "ms§7/" + tps + "tps§8)§7";
+    }
+
+    private String formatPercentages(double[] percentages) {
+        StringBuilder message = new StringBuilder();
+
+        for (double percentage : percentages) {
+            if (percentage == 0) percentage = 1;
+            message.append(", ").append(NumberUtils.format(percentage * 100, 2)).append("%");
+        }
+        return message.substring(2, message.length());
+    }
+
+    public void applyQuotients(HoneyPlayer player, CheckContextContainer.DevelopmentData developmentData) {
+        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadTracker();
+        WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
+
+        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
+        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
+
+        developmentData.setPoint(6, "STQ", serverThreadPoint);
+        developmentData.setPoint(7, "NTQ", nettyThreadPoint);
+
+        developmentData.addInternalData("TPS=" + ChatColor.stripColor(TPSProvider.getTPS(Timespan.FIVE_SECOND)));
+        developmentData.addInternalData("Ping=" + HoneyPlugin.get().getNotificationService().getPing(player));
     }
 
     public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {

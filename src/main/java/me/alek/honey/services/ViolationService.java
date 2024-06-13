@@ -9,8 +9,11 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.CancellablePacketObserver;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
+import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.BungeeMessenger;
+import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.discord.DiscordWebhook;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -357,13 +360,20 @@ public class ViolationService {
 
         public void doFormatStuff(HoneyCheck check, CheckContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (developmentData != null) {
-                AbstractPacketListener.applyQuotients(player, developmentData);
+                HoneyPlugin.get().getNotificationService().applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
 
             if (check != null) {
                 HoneyPlugin.get().getNotificationService().notify(
                         player, check.getName(), honeyKey, getSetting(), this, developmentData);
+
+                if (DiscordWebhook.enabled()) {
+                    DiscordWebhook.violation(
+                            player, check,
+                            ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)),
+                            developmentData);
+                }
 
                 new BukkitRunnable() {
 
@@ -409,8 +419,6 @@ public class ViolationService {
             developmentData.addHeader("Settings", (handlerType == PacketLimitHandlerType.SIMPLE ? null : setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ")));
 
             for (Map.Entry<String, Object> valueEntry : setting.getValues()) {
-
-                 // add the line to the development data
                  developmentData.addLine(valueEntry.getKey() + ": " +valueEntry.getValue());
             }
         }
