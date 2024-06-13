@@ -77,15 +77,15 @@ public class CodecFactory {
 
         switch (state) {
             case HANDSHAKE:
-                return get.apply(NMS.getHandshakePacketTypesClass());
+                return get.apply(Protocols.HANDSHAKE_TYPES_CLASS);
             case PLAY:
-                return get.apply(NMS.getGamePacketTypesClass());
+                return get.apply(Protocols.GAME_TYPES_CLASS);
             case STATUS:
-                return get.apply(NMS.getStatusPacketTypesClass());
+                return get.apply(Protocols.STATUS_TYPES_CLASS);
             case LOGIN:
-                return get.apply(NMS.getLoginPacketTypesClass());
+                return get.apply(Protocols.LOGIN_TYPES_CLASS);
             case CONFIGURATION:
-                return get.apply(NMS.getConfigurationPacketTypesClass());
+                return get.apply(Protocols.CONFIGURATION_TYPES_CLASS);
             default:
                 return null;
         }

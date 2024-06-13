@@ -49,7 +49,7 @@ public class MethodInvoker<T> implements IReflectionMember<T> {
     }
 
     @Override
-    public MemberType getMemberType() {
-        return MemberType.METHOD;
+    public int getModifiers() {
+        return method.getModifiers();
     }
 }

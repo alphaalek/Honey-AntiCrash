@@ -12,10 +12,14 @@ import java.lang.invoke.MethodHandles;
 
 public interface LegacyCodec {
 
+    LegacyCodecLookupProvider PROVIDER = new LegacyCodecLookupProvider();
+
     void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) throws CodecException;
 
     interface Applier {
+
         void apply(LegacyCodec codec) throws CodecException;
+
     }
 
     static LegacyCodec createDefault(PacketType type) {
@@ -25,19 +29,19 @@ public interface LegacyCodec {
                 int packetId = type.getMinecraftID().get();
 
                 // otherwise apply the default implementation for the serializer
-                MethodHandle applicationMethod = LegacyCodecLookup.get().get(type.getState()).get(packetId, () -> {
+                MethodHandle method = PROVIDER.get().get(type.getState()).get(packetId, () -> {
                     MethodInvoker<?> invoker = Reflection.getMethod(type.getNmsClass(), 0, NMS.getPacketDataSerializerClass());
                     try {
                         return MethodHandles.lookup().unreflect(invoker.getHandle());
                     } catch (IllegalAccessException ex) {
                         ex.printStackTrace();
-                        Bukkit.getLogger().severe("Failed to create legacy serializer application lookup for packet " + packetId + ", " + type + ", " + type.getState());
+                        Bukkit.getLogger().severe("Failed to create legacy serializer lookup for packet " + packetId + ", " + type + ", " + type.getState());
                         return null;
                     }
                 });
                 try {
                     // explicit set variable, so Proguard recognizes the method
-                    Object empty = applicationMethod.invokeWithArguments(new Object[]{raw, serializer.getSerializer()});
+                    Object empty = method.invokeWithArguments(new Object[]{raw, serializer.getSerializer()});
                 } catch (Throwable ex) {
                     ex.printStackTrace();
                     throw new CodecException(packetId, "Failed to apply serializer for packet " + packetId + ", " + type + ", " + type.getState());

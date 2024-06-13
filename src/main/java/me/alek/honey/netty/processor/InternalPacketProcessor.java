@@ -288,9 +288,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, HoneyPacketHandler handler, Channel channel,
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, HoneyPacketHandler handler, PacketBound bound, Channel channel,
                                                                             Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(PacketBound.SERVER))
+        PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(bound))
                 .orElse(null);
 
         CallbackAction<PacketContainer<WP>> postAction = getPostAction(type);
@@ -314,12 +314,12 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        return handleCommon(player, handler, channel, packet, earlyInitializedPacket);
+        return handleCommon(player, handler, PacketBound.SERVER, channel, packet, earlyInitializedPacket);
     }
 
     @Override
     public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet) {
-        return handleCommon(player, handler, channel, packet, null);
+        return handleCommon(player, handler, PacketBound.CLIENT, channel, packet, null);
     }
 
     @SuppressWarnings("unchecked")
@@ -329,7 +329,8 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addPostAction(PacketType packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback) {
+    @SuppressWarnings("unchecked")
+    public synchronized  <WP extends WrappedPacket<WP>> void addPostAction(PacketType packetType, Consumer<PacketContainer<WP>> callback) {
         if (PacketTypes.isUnknown(packetType)) {
             return;
         }
@@ -338,7 +339,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             postActions.set(packetType.getHoneyID(), new CallbackAction<>());
         }
 
-        CallbackAction<PacketContainer<? extends WrappedPacket<?>>> action = postActions.get(packetType.getHoneyID());
+        CallbackAction<PacketContainer<WP>> action = (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID());
         action.addAction(callback);
     }
 }

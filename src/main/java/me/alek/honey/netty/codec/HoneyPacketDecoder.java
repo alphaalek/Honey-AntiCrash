@@ -56,14 +56,8 @@ public class HoneyPacketDecoder {
             throw new DecoderException("Failed to create packet with ID " + ex.getPacketID() + ", " + state);
         }
 
-        Array<PacketType> types = PacketTypes.getPacketTypes(packet.getClass());
-        if (types.has(state.ordinal())) {
-            PacketType type = types.get(state.ordinal());
-            if (PacketTypes.isUnknown(type)
-                    || !type.getState().equals(state)
-                    || !type.getNmsClass().equals(packet.getClass())) {
-                return null;
-            }
+        if (!PacketTypes.getPacketType(packet.getClass(), state).isPresent()) {
+            return null;
         }
 
         return packet;

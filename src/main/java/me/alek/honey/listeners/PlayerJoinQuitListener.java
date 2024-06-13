@@ -15,7 +15,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class PlayerJoinQuitListener implements Listener {
 
     public static void onPostLoginSuccess(HoneyPlayer player) {
-        for (IListener check : Validations.getChecks()) {
+        for (IListener check : Validations.getValidations()) {
             if (check.hasInitializedCheckInstances()) {
                 check.setup(player);
             }
@@ -34,7 +34,6 @@ public class PlayerJoinQuitListener implements Listener {
 
         SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
         new BukkitRunnable() {
-
             @Override
             public void run() {
                 if (sqlHandler.isEnabled()) {
@@ -55,7 +54,7 @@ public class PlayerJoinQuitListener implements Listener {
             player = HoneyPlayer.registerPlayer(event.getPlayer());
         }
 
-        for (IListener check : Validations.getChecks()) {
+        for (IListener check : Validations.getValidations()) {
             if (check.hasInitializedCheckInstances()) {
                 check.cleanup(player);
             }

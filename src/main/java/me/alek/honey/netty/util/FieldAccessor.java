@@ -44,8 +44,8 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
     }
 
     @Override
-    public MemberType getMemberType() {
-        return MemberType.FIELD;
+    public int getModifiers() {
+        return field.getModifiers();
     }
 
     public void set(Object object, T value) {

@@ -348,7 +348,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
 
         public abstract ConfigurationOptions.VlSetting getSetting();
-
     }
 
     public static class NettyM extends AbstractFloodDecodeCheck {

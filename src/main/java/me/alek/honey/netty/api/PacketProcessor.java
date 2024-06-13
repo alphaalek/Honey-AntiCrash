@@ -18,7 +18,7 @@ public interface PacketProcessor {
 
     <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet);
 
-    void addPostAction(PacketType packetType, Consumer<PacketContainer<? extends WrappedPacket<?>>> callback);
+    <WP extends WrappedPacket<WP>> void addPostAction(PacketType packetType, Consumer<PacketContainer<WP>> callback);
 
     void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf);
 

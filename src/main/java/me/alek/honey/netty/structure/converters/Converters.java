@@ -72,7 +72,7 @@ public class Converters {
                 }
 
                 ReflectStructure<Object, ?> blockPositionStructure = ReflectStructureCache.acquireStructure(NMS.getBaseBlockPositionClass());
-                IStructureModifier<Integer> intStructure = blockPositionStructure.asInt().withTarget(delegate);
+                IStructureModifier<Integer> intStructure = blockPositionStructure.withInts().withTarget(delegate);
                 if (intStructure.fieldSize() < 3) {
                     throw new RuntimeException("Reflection error");
                 }
@@ -107,7 +107,7 @@ public class Converters {
                 }
 
                 ReflectStructure<Object, ?> vec3DModifier = ReflectStructureCache.acquireStructure(NMS.getVec3DClass());
-                IStructureModifier<Double> doubleModifier = vec3DModifier.asDouble().withTarget(delegate);
+                IStructureModifier<Double> doubleModifier = vec3DModifier.withDoubles().withTarget(delegate);
 
                 if (doubleModifier.fieldSize() < 3) {
                     throw new RuntimeException("Reflection error");

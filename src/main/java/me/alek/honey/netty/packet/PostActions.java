@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
@@ -16,6 +17,7 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
+import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 
 public class PostActions {
 
@@ -53,8 +55,8 @@ public class PostActions {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(packet.getChannel());
         });
 
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {
-            PacketDataSerializer serializer = packet.getDataSerializers(false).readField(0);
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().<WrappedPlayInCustomPayload>addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {
+            ByteBuf serializer = packet.getPacket().getBuf();
 
             if (serializer.refCnt() > 0) {
                 serializer.retain();
@@ -74,7 +76,7 @@ public class PostActions {
             return gameProfile.getName();
         } else {
             IStructureModifier<String> stringStructureModifier = loginStartPacketReflectStructure
-                    .asString().withTarget(packet.getHandle());
+                    .withStrings().withTarget(packet.getHandle());
             return stringStructureModifier.readField(0);
         }
     }

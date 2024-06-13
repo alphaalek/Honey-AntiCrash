@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
@@ -39,9 +40,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         switch (bound) {
             case SERVER:
                 PacketContainer<WP> packetContainer = new InternalPacketContainer<>(packetHandler.getPlayer(), channel);
-                return packetProcessor.read(channel, packetHandler.getPlayer(), msg, packetContainer);
+                return packetProcessor.read(channel, packetHandler.getPlayer(), packetHandler, msg, packetContainer);
             case CLIENT:
-                return packetProcessor.write(channel, packetHandler.getPlayer(), msg);
+                return packetProcessor.write(channel, packetHandler.getPlayer(), packetHandler, msg);
         }
 
         throw new IllegalStateException();

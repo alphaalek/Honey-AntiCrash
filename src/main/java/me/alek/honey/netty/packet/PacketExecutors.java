@@ -60,7 +60,7 @@ public class PacketExecutors {
 
         @Override
         public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            ItemStack item = packetContainer.getPacket().getItemStack();
+            ItemStack item = packetContainer.getPacket().getBookChannelItemStack();
             if (item == null) {
                 return null;
             }
@@ -141,6 +141,8 @@ public class PacketExecutors {
         private void stripEvents(Object meta) {
             AtomicReference<IStructureModifier<List<Object>>> bookMetaPageModifier = new AtomicReference<>();
             List<Object> pages = ItemReflection.getPages(bookMetaPageModifier, (BookMeta) meta);
+
+            Bukkit.broadcastMessage(pages + "");
 
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {

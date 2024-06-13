@@ -17,7 +17,8 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         // cancel the decoding if the player is not even online
-        if (player != null && (!player.isOnlineDirect() || byteBuf.buf().refCnt() < 1)) {
+        if (player != null
+                && byteBuf.buf().refCnt() < 1) {
             byteBuf.cancel();
             return;
         }
@@ -52,5 +53,4 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
     public void setInitializedCheckInstances() {
         initializedCheckInstances = true;
     }
-
 }

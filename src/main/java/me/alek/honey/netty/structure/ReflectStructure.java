@@ -38,8 +38,7 @@ public class ReflectStructure<T, C> {
                 .getAccessors().iterator();
 
         while (toIterator.hasNext() && fromIterator.hasNext()) {
-            FieldAccessor<Object> next = fromIterator.next();
-            toIterator.next().set(to, next.get(from));
+            toIterator.next().set(to, fromIterator.next().get(from));
         }
 
         return to;
@@ -49,7 +48,7 @@ public class ReflectStructure<T, C> {
     private final List<Class<?>> disallowClasses = new ArrayList<>();
     private final Class<?> handle;
     private final Class<?> type;
-    private boolean withStaticFields = true;
+    private boolean withStatic = true;
     private boolean withSuperClass = true;
     private JavaConverter<T, C> converter;
     private Map<Integer, FieldAccessor<?>> DEFAULT_ACCESSORS;
@@ -90,8 +89,8 @@ public class ReflectStructure<T, C> {
     }
 
     public synchronized ReflectStructure<T, C> withoutStatic() {
-        this.withStaticFields = false;
-        resetIf(this::disallowedField);
+        this.withStatic = false;
+        resetIf(this::disallowedMember);
         return this;
     }
 
@@ -108,22 +107,35 @@ public class ReflectStructure<T, C> {
     }
 
     private void resetIf(Predicate<IReflectionMember<?>> member) {
-        int defaultSize = DEFAULT_ACCESSORS.size();
-        int acquiredSize = ACQUIRED_ACCESSORS.size();
+        int defaultAccessorsSize = DEFAULT_ACCESSORS.size();
+        int acquiredAccessorsSize = ACQUIRED_ACCESSORS.size();
         DEFAULT_ACCESSORS.values().removeIf(member);
         ACQUIRED_ACCESSORS.values().removeIf(member);
 
-        if (defaultSize != DEFAULT_ACCESSORS.size()) {
+        int defaultInvokersSize = DEFAULT_INVOKERS.size();
+        int acquiredInvokersSize = ACQUIRED_INVOKERS.size();
+        DEFAULT_INVOKERS.values().removeIf(member);
+        ACQUIRED_INVOKERS.values().removeIf(member);
+
+        if (defaultAccessorsSize != DEFAULT_ACCESSORS.size()) {
             DEFAULT_ACCESSORS = new HashMap<>();
             setDefault(DEFAULT_ACCESSORS, true);
         }
-        if (acquiredSize != ACQUIRED_ACCESSORS.size()) {
+        if (acquiredAccessorsSize != ACQUIRED_ACCESSORS.size()) {
             ACQUIRED_ACCESSORS = getAcquiredAccessors(type);
+        }
+
+        if (defaultInvokersSize != DEFAULT_INVOKERS.size()) {
+            DEFAULT_INVOKERS = new HashMap<>();
+            setDefault(DEFAULT_INVOKERS, false);
+        }
+        if (acquiredInvokersSize != ACQUIRED_INVOKERS.size()) {
+            ACQUIRED_INVOKERS = getAcquiredInvokers(type);
         }
     }
 
     public boolean isStaticFieldsAllowed() {
-        return withStaticFields;
+        return withStatic;
     }
 
     public boolean isSuperClassAllowed() {
@@ -136,14 +148,17 @@ public class ReflectStructure<T, C> {
             return true;
         }
 
-        return !disallowClasses.isEmpty()
-                && disallowClasses.contains(member.getDeclaringClass());
+        if (!disallowClasses.isEmpty()
+                && disallowClasses.contains(member.getDeclaringClass())) {
+            return true;
+        }
+
+        return false;
     }
 
-    private boolean disallowedField(IReflectionMember<?> member) {
-        return !withStaticFields
-                && member.getMemberType().equals(MemberType.FIELD)
-                && Modifier.isStatic(((FieldAccessor<?>)member).getHandle().getModifiers());
+    private boolean disallowedMember(IReflectionMember<?> member) {
+        return !withStatic
+                && Modifier.isStatic(member.getModifiers());
     }
 
     private void setDefault(
@@ -172,7 +187,7 @@ public class ReflectStructure<T, C> {
         return false;
     }
 
-    private synchronized Map<Integer, ? extends IReflectionMember<?>> setDefaultSpecific(
+    private synchronized void setDefaultSpecific(
             AtomicInteger index,
             Map<Integer, ? extends IReflectionMember<?>> defaults,
             Class<?> clazz,
@@ -187,7 +202,7 @@ public class ReflectStructure<T, C> {
                     ? new FieldAccessor<>((Field) handle)
                     : new MethodInvoker<>((Method) handle);
 
-            if (disallowedField(member)
+            if (disallowedMember(member)
                     || disallowedClass(member)
                     || exists(defaults, member)) {
                 continue;
@@ -195,7 +210,6 @@ public class ReflectStructure<T, C> {
 
             defaults.put(index.getAndIncrement(), castReflectionMember(member));
         }
-        return defaults;
     }
 
     @SuppressWarnings("unchecked")
@@ -210,21 +224,22 @@ public class ReflectStructure<T, C> {
 
     private synchronized Map<Integer, ? extends IReflectionMember<T>> getAcquired(
             Class<?> targetType,
-            Map<Integer, ? extends IReflectionMember<T>> acquiredMap,
-            Map<Integer, ? extends IReflectionMember<?>> defaultMap
+            Map<Integer, ? extends IReflectionMember<T>> acquired,
+            Map<Integer, ? extends IReflectionMember<?>> defaults
     ) {
         int index = 0;
-        for (IReflectionMember<?> member : defaultMap.values()) {
-            if (disallowedField(member)
+        for (IReflectionMember<?> member : defaults.values()) {
+            if (disallowedMember(member)
                     || disallowedClass(member)
                     || targetType != null && !targetType.isAssignableFrom(member.getType())) {
                 continue;
             }
 
-            acquiredMap.put(index, castReflectionMember(member));
+            acquired.put(index, castReflectionMember(member));
             index++;
         }
-        return acquiredMap;
+
+        return acquired;
     }
 
     @SuppressWarnings("unchecked")
@@ -268,41 +283,41 @@ public class ReflectStructure<T, C> {
 
     public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter, boolean withCache) {
         if (withCache) {
-            return (ReflectStructure<R, D>) SUB_TYPE_CACHE.computeIfAbsent(clazz, d -> new ReflectStructure<>(handle, clazz, converter));
+            return (ReflectStructure<R, D>) SUB_TYPE_CACHE.computeIfAbsent(clazz, d -> withSpecificType(clazz, converter, false));
         } else {
             return new ReflectStructure<>(handle, clazz, converter);
         }
     }
 
-    public ReflectStructure<Integer, Integer> asInt() {
+    public ReflectStructure<Integer, Integer> withInts() {
         return withSpecificType(int.class, null, true);
     }
 
-    public ReflectStructure<Short, Short> asShort() {
+    public ReflectStructure<Short, Short> withShorts() {
         return withSpecificType(short.class, null, true);
     }
 
-    public ReflectStructure<Byte, Byte> asByte() {
+    public ReflectStructure<Byte, Byte> withBytes() {
         return withSpecificType(byte.class, null, true);
     }
 
-    public ReflectStructure<Long, Long> asLong() {
+    public ReflectStructure<Long, Long> withLongs() {
         return withSpecificType(long.class, null, true);
     }
 
-    public ReflectStructure<Double, Double> asDouble() {
+    public ReflectStructure<Double, Double> withDoubles() {
         return withSpecificType(double.class, null, true);
     }
 
-    public ReflectStructure<Float, Float> asFloat() {
+    public ReflectStructure<Float, Float> withFloats() {
         return withSpecificType(float.class, null, true);
     }
 
-    public ReflectStructure<Boolean, Boolean> asBoolean() {
+    public ReflectStructure<Boolean, Boolean> withBooleans() {
         return withSpecificType(boolean.class, null, true);
     }
 
-    public ReflectStructure<String, String> asString() {
+    public ReflectStructure<String, String> withStrings() {
         return withSpecificType(String.class, null, true);
     }
 

@@ -74,6 +74,10 @@ public class Array<T> implements Iterable<T> {
         return from(from, size());
     }
 
+    public Array<T> compact() {
+        return Array.from(stream().filter(Objects::nonNull).toArray());
+    }
+
     private void resolve(int index) {
         if (index >= data.length) {
             synchronized (this) {

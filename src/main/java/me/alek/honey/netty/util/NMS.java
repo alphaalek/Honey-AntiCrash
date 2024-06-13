@@ -395,6 +395,11 @@ public class NMS {
         return minecraftKeyClass != null ? minecraftKeyClass : (minecraftKeyClass = getUnsureClass("{nms}.MinecraftKey", "{nms}.resources.MinecraftKey"));
     }
 
+    private static Class<?> customPacketPayloadClass;
+    public static Class<?> getCustomPacketPayload1_20_2Class() {
+        return customPacketPayloadClass != null ? customPacketPayloadClass : (customPacketPayloadClass = getUnsureClass("{nms}.network.protocol.common.custom.CustomPacketPayload"));
+    }
+
     private static Class<Object> object2IntMapClass;
     public static Class<Object> getObject2IntMapClass() {
         if (object2IntMapClass != null) {

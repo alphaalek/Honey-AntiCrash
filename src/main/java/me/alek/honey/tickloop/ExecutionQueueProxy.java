@@ -93,7 +93,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
     private final class DelegatedWrapper extends WrappedQueue<Object> {
 
         private final IStructureModifier<Integer> tickStructureModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
-                .asInt().withTarget(NMS.getMinecraftServer());
+                .withInts().withTarget(NMS.getMinecraftServer());
         private final int finalFields = (int) tickStructureModifier.getAccessors()
                 .stream()
                 .filter(field -> Modifier.isFinal(field.getHandle().getModifiers()))

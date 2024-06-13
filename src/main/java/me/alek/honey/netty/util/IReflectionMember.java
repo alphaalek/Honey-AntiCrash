@@ -10,5 +10,5 @@ public interface IReflectionMember<T> {
 
     String getName();
 
-    MemberType getMemberType();
+    int getModifiers();
 }

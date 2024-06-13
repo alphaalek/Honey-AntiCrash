@@ -4,7 +4,6 @@ import me.alek.honey.checks.impl.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public enum Validations {
@@ -29,38 +28,26 @@ public enum Validations {
     v19(CommandValidation::new),
     ;
 
-    private final Supplier<IListener> check;
-    private static List<IListener> checks;
+    private static List<IListener> validations;
 
-    public static synchronized List<IListener> getChecks() {
-        if (checks == null) {
+    public static synchronized List<IListener> getValidations() {
+        if (validations == null) {
             List<IListener> checkList = new ArrayList<>();
             for (Validations check : Validations.values()) {
                 checkList.add(check.getCheck().get());
             }
-            checks = checkList;
+            validations = checkList;
         }
-        return checks;
+        return validations;
     }
 
-    public static int getMaxID() {
-        AtomicInteger maxID = new AtomicInteger();
-        for (IListener listener : getChecks()) {
-            if (listener instanceof CheckVisitable) {
-                ((CheckVisitable)listener).getVisitor(null)
-                        .getChecks().stream()
-                                .filter(check -> check.getID() > maxID.get())
-                                .forEach(check -> maxID.set(check.getID()));
-            }
-        }
-        return maxID.get();
-    }
+    private final Supplier<IListener> validation;
 
     Validations(Supplier<IListener> check) {
-        this.check = check;
+        this.validation = check;
     }
 
     public Supplier<IListener> getCheck() {
-        return check;
+        return validation;
     }
 }

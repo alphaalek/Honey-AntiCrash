@@ -84,7 +84,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
                     .readField(0);
 
             getPacketIdModifier = ReflectStructureCache.acquireStructure(NMS.getObject2IntMapClass())
-                    .asInt().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "getInt", 0, Object.class);
+                    .withInts().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "getInt", 0, Object.class);
         } else {
             Object protocolMap = getProtocolInfo(handle, bound);
             classToIdMap = ((BiMap<Integer, Class<? extends Object>>)protocolMap).inverse();

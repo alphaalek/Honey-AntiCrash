@@ -46,11 +46,6 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedPlayInCustomPayload> getVisitor(HoneyPlayer player) {
         return CheckVisitor.from(player,
                 new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD(), new PayloadE());
@@ -137,7 +132,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         public ResponseContainer check(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                ItemStack item = packet.getItemStack();
+                ItemStack item = packet.getBookChannelItemStack();
                 if (item != null) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();

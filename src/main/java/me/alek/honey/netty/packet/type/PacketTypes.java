@@ -7,9 +7,11 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.NotPredicate;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public enum PacketTypes implements PacketType {
     UNKNOWN;
@@ -64,6 +66,8 @@ public enum PacketTypes implements PacketType {
             return;
         }
 
+        packetFromStateLookup.computeIfAbsent(type.getState(), d -> new ArrayList<>())
+                .add(type);
         registeredPackets.computeIfAbsent(type.getNmsClass(), d -> new Array<>())
                 .set(type.getState().ordinal(), type);
         registeredPacketsByName.computeIfAbsent(type.toString().toLowerCase(), d -> new ArrayList<>())
@@ -84,8 +88,6 @@ public enum PacketTypes implements PacketType {
             packetFromStateLookup.put(state, new ArrayList<>());
         }
 
-        for (Common.Client commonClient : Common.Client.values()) {
-            registerPacketDetails(commonClient); }
         for (Common.Server commonServer : Common.Server.values()) {
             registerPacketDetails(commonServer); }
         for (Handshake.Client handshakeClient : Handshake.Client.values()) {
@@ -113,21 +115,21 @@ public enum PacketTypes implements PacketType {
             return new ArrayList<>();
         }
 
-        List<PacketType> packetTypes = new ArrayList<>();
-        for (PacketType packetType : packetFromStateLookup.get(state)) {
+        List<PacketType> types = new ArrayList<>();
+        for (PacketType type : packetFromStateLookup.get(state)) {
 
-            if (packetType.getBound().equals(bound)) {
-                if (packetType instanceof RangedPacketTypeEnum) {
-                    RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) packetType;
+            if (type.getBound().equals(bound)) {
+                if (type instanceof RangedPacketTypeEnum) {
+                    RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) type;
                     if (!NetProtocol.matchProtocol(rangedPacketType, NetProtocol.getProtocol())) {
                         continue;
                     }
                 }
-                packetTypes.add(packetType);
+                types.add(type);
             }
         }
 
-        return packetTypes;
+        return types;
     }
 
     public static List<PacketType> getTypesAvailableForState(PacketState state) {
@@ -158,13 +160,11 @@ public enum PacketTypes implements PacketType {
     }
 
     public static PacketType getTypeFromMinecraftKey(Object key) {
-        String packet = key.toString().split(":")[1];
-        for (PacketState state : PacketState.values()) {
-            for (PacketType type : packetFromStateLookup.get(state)) {
-                if (type.getKeyName1_20_5() != null
-                        && type.getKeyName1_20_5().equals(packet)) {
-                    return type;
-                }
+        String id = key.toString().split(":")[1];
+        for (PacketType type : getTypesAvailable()) {
+            if (type.getKeyName1_20_5() != null
+                    && type.getKeyName1_20_5().equals(id)) {
+                return type;
             }
         }
 
@@ -185,6 +185,7 @@ public enum PacketTypes implements PacketType {
 
     public static Optional<PacketType> getPacketType(Class<?> clazz, PacketState state) {
         return getPacketTypes(clazz)
+                .compact()
                 .stream()
                 .filter(s -> s.getState().equals(state))
                 .findAny();
@@ -214,78 +215,6 @@ public enum PacketTypes implements PacketType {
 
     public static class Common {
 
-        private static Class<?> COOKIE_RESPONSE_CLASS;
-        private static Class<?> PONG_CLASS;
-        private static Class<?> RESOURCE_PACK_CLIENT_CLASS;
-
-        static {
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-                PONG_CLASS = Reflection.getClass("{common}.ServerboundPongPacket");
-                RESOURCE_PACK_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
-            }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
-            }
-        }
-
-        public enum Client implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
-            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
-            PONG(PONG_CLASS, idRegistry.acquire(), "pong", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, idRegistry.acquire(), "resource_pack", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            ;
-
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
-            private final Class<?> nmsClass;
-            private final int packetId;
-            private final String keyName1_20_5;
-            private final NetProtocolRange range;
-            private final Array<PacketState> states;
-
-            Client(Class<?> nmsClass, int packetId, String keyName1_20_5, NetProtocolRange range, Array<PacketState> states) {
-                this.nmsClass = nmsClass;
-                this.packetId = packetId;
-                this.range = range;
-                this.states = states;
-                this.keyName1_20_5 = keyName1_20_5;
-            }
-
-            @Override
-            public Class<?> getNmsClass() {
-                return nmsClass;
-            }
-
-            @Override
-            public LazyInit<Integer> getMinecraftID() {
-                return minecraftIdInit;
-            }
-
-            @Override
-            public String getKeyName1_20_5() {
-                return keyName1_20_5;
-            }
-
-            @Override
-            public int getHoneyID() {
-                return packetId;
-            }
-
-            @Override
-            public PacketBound getBound() {
-                return PacketBound.SERVER;
-            }
-
-            @Override
-            public NetProtocolRange getRange() {
-                return range;
-            }
-
-            @Override
-            public Array<PacketState> getCommonStates() {
-                return states;
-            }
-        }
-
-        private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> DISCONNECT_CLASS;
         private static Class<?> KEEP_ALIVE_SERVER_CLASS;
@@ -310,13 +239,9 @@ public enum PacketTypes implements PacketType {
                 RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
                 RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
-            }
         }
 
         public enum Server implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
-            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_5), Array.fromData(PacketState.PLAY, PacketState.LOGIN, PacketState.CONFIGURATION)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire(), "disconnect", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
             KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
@@ -433,6 +358,7 @@ public enum PacketTypes implements PacketType {
 
         private static final Class<?> ENCRYPTION_BEGIN_CLASS = Reflection.getClass("{login}.PacketLoginInEncryptionBegin");
         private static final Class<?> LOGIN_START_CLASS = Reflection.getClass("{login}.PacketLoginInStart");
+        private static Class<?> COOKIE_RESPONSE_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_CLIENT_CLASS;
         private static Class<?> CUSTOM_QUERY_ANSWER_CLASS;
         private static Class<?> LOGIN_ACKNOWLEDGED_CLASS;
@@ -445,9 +371,13 @@ public enum PacketTypes implements PacketType {
                 CUSTOM_QUERY_ANSWER_CLASS = Reflection.getClass("{login}.ServerboundCustomQueryAnswerPacket");
                 LOGIN_ACKNOWLEDGED_CLASS = Reflection.getClass("{login}.ServerboundLoginAcknowledgedPacket");
             }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
+            }
         }
 
         public enum Client implements RangedPacketTypeEnum {
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_5)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, idRegistry.acquire(), "custom_query", NetProtocolRange.since(NetProtocol.v1_20_2)),
             ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, idRegistry.acquire(), "key"),
@@ -511,11 +441,15 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> ENCRYPTION_REQUEST_CLASS = Reflection.getClass("{login}.PacketLoginOutEncryptionBegin");
         private static final Class<?> LOGIN_SUCCESS_CLASS = Reflection.getClass("{login}.PacketLoginOutSuccess");
         private static final Class<?> SET_COMPRESSION_CLASS = Reflection.getClass("{login}.PacketLoginOutSetCompression");
+        private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
 
         static {
             if (protocolVersion.isBetween(NetProtocol.v1_13, NetProtocol.v1_20_1)) {
                 CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{login}.PacketLoginOutCustomPayload");
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
             }
         }
 
@@ -523,6 +457,7 @@ public enum PacketTypes implements PacketType {
             DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire(), "login_disconnect"),
             ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, idRegistry.acquire(), "hello"),
             LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, idRegistry.acquire(), "game_profile"),
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquire(), "login_compression");
 
@@ -719,6 +654,7 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> ENTITY_ACTION_CLASS = Reflection.getClass("{play}.PacketPlayInEntityAction");
         private static final Class<?> HELD_ITEM_SLOT_CLASS = Reflection.getClass("{play}.PacketPlayInHeldItemSlot");
         private static final Class<?> KEEP_ALIVE_CLIENT_CLASS = Reflection.getUnsureClass("{play}.PacketPlayInKeepAlive", "{common}.ServerboundKeepAlivePacket");
+        private static final Class<?> RESOURCE_PACK_STATUS_CLASS = Reflection.getUnsureClass("{play}.PacketPlayInResourcePackStatus", "{common}.ServerboundResourcePackPacket");
         private static final Class<?> SPECTATE_CLASS = Reflection.getClass("{play}.PacketPlayInSpectate");
         private static final Class<?> STEER_VEHICLE_CLASS = Reflection.getClass("{play}.PacketPlayInSteerVehicle");
         private static final Class<?> SET_CREATIVE_SLOT_CLASS = Reflection.getClass("{play}.PacketPlayInSetCreativeSlot");
@@ -736,6 +672,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> CHAT_COMMAND_SIGNED_CLASS;
         private static Class<?> CHAT_PREVIEW_CLIENT_CLASS;
         private static Class<?> CHAT_SESSION_UPDATE_CLASS;
+        private static Class<?> COOKIE_RESPONSE_CLASS;
         private static Class<?> CHUNK_BATCH_RECEIVED_CLASS;
         private static Class<?> CLIENT_INFORMATION_CLASS;
         private static Class<?> CONFIGURATION_ACKNOWLEDGED_CLASS;
@@ -756,7 +693,6 @@ public enum PacketTypes implements PacketType {
         private static Class<?> PONG_CLIENT_CLASS;
         private static Class<?> RECIPE_DISPLAYED_CLASS;
         private static Class<?> RECIPE_SETTINGS_CLASS;
-        private static Class<?> RESOURCE_PACK_STATUS_CLASS;
         private static Class<?> SET_COMMAND_BLOCK_CLASS;
         private static Class<?> SET_COMMAND_MINECART_CLASS;
         private static Class<?> SET_JIGSAW_CLASS;
@@ -816,9 +752,7 @@ public enum PacketTypes implements PacketType {
                 POSITION_LOOK_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 LOOK_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                    PONG_CLIENT_CLASS = Reflection.getClass("{play}.ServerboundPongPacket");
-                }
+                PONG_CLIENT_CLASS = Reflection.getUnsureClass("{play}.ServerboundPongPacket", "{common}.ServerboundPongPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19)) {
                 CHAT_COMMAND_CLASS = Reflection.getClass("{play}.ServerboundChatCommandPacket");
@@ -842,11 +776,11 @@ public enum PacketTypes implements PacketType {
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 CHAT_COMMAND_SIGNED_CLASS = Reflection.getClass("{play}.ServerboundChatCommandSignedPacket");
+                COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
                 DEBUG_SAMPLE_SUBSCRIPTION_CLASS = Reflection.getClass("{play}.ServerboundDebugSampleSubscriptionPacket");
                 PING_CLIENT_CLASS = Reflection.getClass("{ping}.ServerboundPingRequestPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                RESOURCE_PACK_STATUS_CLASS = Reflection.getClass("{play}.PacketPlayInResourcePackStatus");
                 SETTINGS_CLASS = Reflection.getClass("{play}.PacketPlayInSettings");
             }
         }
@@ -870,10 +804,11 @@ public enum PacketTypes implements PacketType {
             CHAT_SESSION_UPDATE(CHAT_SESSION_UPDATE_CLASS, idRegistry.acquire(), "chat_session_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
             CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, idRegistry.acquire(), "chunk_batch_received", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CLIENT_COMMAND(CLIENT_COMMAND_CLASS, idRegistry.acquire(), "client_command"),
-            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), "client_information"),
+            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CLOSE_WINDOW(CLOSE_WINDOW_CLASS, idRegistry.acquire(), "container_close"),
             CONFIGURATION_ACKNOWLEDGED(CONFIGURATION_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "configuration_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, idRegistry.acquire(), "container_slot_state_changed", NetProtocolRange.since(NetProtocol.v1_20_4)),
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_5)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquire(), "custom_payload"),
             DEBUG_SAMPLE_SUBSCRIPTION(DEBUG_SAMPLE_SUBSCRIPTION_CLASS, idRegistry.acquire(), "debug_sample_subscription", NetProtocolRange.since(NetProtocol.v1_20_5)),
             DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, idRegistry.acquire(), "change_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
@@ -890,12 +825,12 @@ public enum PacketTypes implements PacketType {
             LOOK(LOOK_CLASS, idRegistry.acquire(), "move_player_rot"),
             PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquire(), "pick_item", NetProtocolRange.since(NetProtocol.v1_13)),
             PING(PING_CLIENT_CLASS, idRegistry.acquire(), "ping_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
-            PONG(PONG_CLIENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            PONG(PONG_CLIENT_CLASS, idRegistry.acquire(), "pong", NetProtocolRange.since(NetProtocol.v1_17)),
             POSITION(POSITION_CLASS, idRegistry.acquire(), "move_player_pos"),
             POSITION_LOOK(POSITION_LOOK_CLASS, idRegistry.acquire(), "move_player_pos_rot"),
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquire(), "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
             RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, idRegistry.acquire(), "recipe_book_change_settings", NetProtocolRange.since(NetProtocol.v1_16_2)),
-            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
+            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquire(), "resource_pack"),
             SET_COMMAND_BLOCK(SET_COMMAND_BLOCK_CLASS, idRegistry.acquire(), "set_command_block", NetProtocolRange.since(NetProtocol.v1_13)),
             SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, idRegistry.acquire(), "set_command_minecart", NetProtocolRange.since(NetProtocol.v1_13)),
             SET_CREATIVE_SLOT(SET_CREATIVE_SLOT_CLASS, idRegistry.acquire(), "set_creative_mode_slot"),
@@ -1036,6 +971,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> CLEAR_TITLES_CLASS;
         private static Class<?> COMBAT_EVENT_CLASS;
         private static Class<?> COMMANDS_CLASS;
+        private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> CUSTOM_CHAT_COMPLETIONS_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> DAMAGE_EVENT_CLASS;
@@ -1257,6 +1193,7 @@ public enum PacketTypes implements PacketType {
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 BUNDLE_DELIMITER_CLASS = Reflection.getClass("{play}.ClientboundBundleDelimiterPacket");
+                COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
                 DEBUG_SAMPLE_CLASS = Reflection.getClass("{play}.ClientboundDebugSamplePacket");
                 PONG_SERVER_CLASS = Reflection.getClass("{ping}.ClientboundPongResponsePacket");
                 PROJECTILE_POWER_CLASS = Reflection.getClass("{play}.ClientboundProjectilePowerPacket");
@@ -1296,6 +1233,7 @@ public enum PacketTypes implements PacketType {
             CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, idRegistry.acquire(), "container_close"),
             COLLECT(COLLECT_CLASS, idRegistry.acquire(), "take_item_entity"),
             COMBAT_EVENT(COMBAT_EVENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
             COMMANDS(COMMANDS_CLASS, idRegistry.acquire(), "commands", NetProtocolRange.since(NetProtocol.v1_13)),
             CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquire(), "custom_chat_completions", NetProtocolRange.since(NetProtocol.v1_19_1)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
@@ -1473,9 +1411,11 @@ public enum PacketTypes implements PacketType {
     public static class Configuration {
 
         private static Class<?> CLIENT_INFORMATION_CLASS;
+        private static Class<?> COOKIE_RESPONSE_CLASS;
         private static Class<?> CUSTOM_PAYLOAD_CLIENT_CLASS;
         private static Class<?> FINISH_CONFIGURATION_CLIENT_CLASS;
         private static Class<?> KEEP_ALIVE_CLIENT_CLASS;
+        private static Class<?> RESOURCE_PACK_STATUS_CLASS;
         private static Class<?> SELECT_KNOWN_PACKS_CLIENT_CLASS;
 
         static {
@@ -1484,17 +1424,23 @@ public enum PacketTypes implements PacketType {
                 CUSTOM_PAYLOAD_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundCustomPayloadPacket");
                 FINISH_CONFIGURATION_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundFinishConfigurationPacket");
                 KEEP_ALIVE_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundKeepAlivePacket");
+                RESOURCE_PACK_STATUS_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 SELECT_KNOWN_PACKS_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundSelectKnownPacks");
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
             }
         }
 
         public enum Client implements RangedPacketTypeEnum {
             CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_5)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
             FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquire(), "resource_pack", NetProtocolRange.since(NetProtocol.v1_20_2)),
             SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_CLIENT_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_5)),
             ;
 
@@ -1547,6 +1493,7 @@ public enum PacketTypes implements PacketType {
             }
         }
 
+        private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> FINISH_CONFIGURATION_SERVER_CLASS;
         private static Class<?> REGISTRY_DATA_CLASS;
         private static Class<?> RESET_CHAT_CLASS;
@@ -1560,12 +1507,14 @@ public enum PacketTypes implements PacketType {
                 UPDATE_ENABLED_FEATURES_CLASS = Reflection.getClass("{configuration}.ClientboundUpdateEnabledFeaturesPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
                 RESET_CHAT_CLASS = Reflection.getClass("{configuration}.ClientboundResetChatPacket");
                 SELECT_KNOWN_PACKS_SERVER_CLASS = Reflection.getClass("{configuration}.ClientboundSelectKnownPacks");
             }
         }
 
         public enum Server implements RangedPacketTypeEnum {
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
             FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
             REGISTRY_DATA(REGISTRY_DATA_CLASS, idRegistry.acquire(), "registry_data", NetProtocolRange.since(NetProtocol.v1_20_2)),
             RESET_CHAT(RESET_CHAT_CLASS, idRegistry.acquire(), "reset_chat", NetProtocolRange.since(NetProtocol.v1_20_5)),

@@ -83,7 +83,6 @@ public class Lang {
                     messages.put(key, value);
                 }
             }
-
         } catch (IOException ex) {
             ex.printStackTrace();
             HoneyPlugin.get().getPlugin().getLogger().info("Failed to load messages for language file " + name);

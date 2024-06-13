@@ -119,5 +119,4 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
 
     }
-
 }

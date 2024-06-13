@@ -195,7 +195,7 @@ public class NotificationService {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
                     ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
-                    .asInt().withTarget(player.player);
+                    .withInts().withTarget(player.player);
 
             return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
@@ -207,7 +207,7 @@ public class NotificationService {
 
         IStructureModifier<Integer> entityPlayerModifier =
                 ReflectStructureCache.acquireStructure(entityPlayer.getClass())
-                .asInt().withTarget(entityPlayer);
+                .withInts().withTarget(entityPlayer);
 
         return entityPlayerModifier.readField(null, "ping", 0);
     }

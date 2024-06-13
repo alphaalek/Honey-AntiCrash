@@ -320,7 +320,7 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public <WP extends WrappedPacket<WP>> void registerChecks() {
-        for (IListener check : Validations.getChecks()) {
+        for (IListener check : Validations.getValidations()) {
 
             if (check instanceof PacketAdapter) {
                 ListenerPriority priority = check.getPriority();
@@ -357,7 +357,7 @@ public class HoneyPlugin implements HoneyAPI {
         configuration.reload();
         Lang.load();
 
-        for (IListener check : Validations.getChecks()) {
+        for (IListener check : Validations.getValidations()) {
             check.load();
         }
         ItemAnalysis.reload();
