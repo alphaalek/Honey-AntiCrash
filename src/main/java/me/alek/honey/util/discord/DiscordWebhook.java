@@ -36,7 +36,7 @@ public class DiscordWebhook {
                 .setFooter(new Date().toString(), "https://cdn.discordapp.com/icons/1114316101136953535/1d85a2cdd1b3e6908f991d9fa9a98ec1.webp")
                 .setTitle(":lock: Honey-AntiCrash log :lock:")
                 .addField("", "", false)
-                .addField(":octagonal_sign: Player Violation", "**" + player.name + "** (" + player.uuid + ") failed **" + check.getName() + "**/ " + context, false)
+                .addField(":octagonal_sign: Player Violation", "``" + player.name + "`` (" + player.uuid + ") failed **" + check.getName() + "**/ " + context, false)
                 .addField("", "> " + check.getDescription(), false);
 
         if (ConfigurationOptions.Webhook.DETAILED) {

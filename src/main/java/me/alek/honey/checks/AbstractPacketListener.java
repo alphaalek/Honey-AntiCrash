@@ -40,7 +40,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {
                     defaultDevelopmentData.addEmpty();
-                    defaultDevelopmentData.addValue(" Packet", packetContainer.getType() + "," + packetContainer.getState());
+                    defaultDevelopmentData.addValue(" Packet", packetContainer.getType() + " (" + packetContainer.getType().getMinecraftID().get() + ")");
                     applyCommonDevelopmentData(defaultDevelopmentData);
                 }
 

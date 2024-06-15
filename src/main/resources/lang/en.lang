@@ -3,10 +3,10 @@ unloaded=Honey is now disabled!
 failed.shutdown.session.error=Failed to shutdown session!
 failed.load=Honey failed to load!
 failed.load.session.error=§4Warning! Honey did not load properly due to an invalid session! Check the log for more information.
-invalid.license=You have an invalid license specified in your config.yml. Open the configuration file at /plugins/honey/config.yml and follow the instructions at the top.
+invalid.license=You have an invalid license specified. Open the configuration file at /plugins/honey/config.yml and follow the instructions at the top.
 license.connection.error=An error occurred when connecting to license auth servers!
 
-conflict.unsupported.version=Honey is currently not supported by the Minecraft Version your server is using.
+conflict.unsupported.version=Honey is currently not supported by the Minecraft Version your server is using. (Outdated version?)
 conflict.runtime.load=Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.
 conflict.misconfiguration=You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.
 conflict.packet.library.setup=Aborting because the plugin was disabled during packet library setup.
