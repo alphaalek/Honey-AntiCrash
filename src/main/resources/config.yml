@@ -548,7 +548,8 @@ position:
   b:
     enabled: false
     max: 30
-    vls-amount: 5
+    min-vls: 4
+    vls-amount: 7
 
   c:
     enabled: true
@@ -618,7 +619,7 @@ rotation:
     enabled: true
     clear-buffer: true
     threshold: 22500
-    decay: 750
+    decay: 400
     decay-amount: 6000
     vls-amount: 3
 
@@ -629,6 +630,7 @@ block-interact:
     max: 100
     max-per-interval: 3
     interval: 1000
+    min-vls: 2
     vls-amount: 5
 
   b:
@@ -648,6 +650,7 @@ block-interact:
     max: 100
     max-per-interval: 3
     interval: 1000
+    min-vls: 2
     vls-amount: 5
 
 # |--- tab complete ---|
@@ -742,6 +745,7 @@ packet-flood:
     # sections below dedicated to that packet. they are higher priority than these common settings.
     enabled: true
     vls-amount: 5
+    min-vls: 3
     interval: 1000
 
     # abilities
@@ -758,6 +762,7 @@ packet-flood:
     auto-recipe:
       max-per-interval: 15
       vls-amount: 3
+      min-vls: 1
 
     # block dig
     block-dig:
@@ -792,6 +797,7 @@ packet-flood:
     custom-payload:
       max-per-interval: 50
       vls-amount: 3
+      min-vls: 1
 
     # enchant item
     enchant-item:

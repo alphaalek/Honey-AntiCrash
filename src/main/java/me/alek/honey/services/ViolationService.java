@@ -376,7 +376,6 @@ public class ViolationService {
                 }
 
                 new BukkitRunnable() {
-
                     @Override
                     public void run() {
                         try {
@@ -400,9 +399,9 @@ public class ViolationService {
             if (onViolation != null) onViolation.run();
             cancellablePacketObserver.cancel();
 
-            violations.incrementAndGet();
-
-            doFormatStuff(check, developmentData, honeyKey);
+            if (violations.incrementAndGet() >= setting.minVls) {
+                doFormatStuff(check, developmentData, honeyKey);
+            }
 
             if (violations.get() < getSetting().vlsAmount) {
                 return false;

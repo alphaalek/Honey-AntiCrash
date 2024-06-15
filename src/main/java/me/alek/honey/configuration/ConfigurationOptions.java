@@ -158,8 +158,8 @@ public class ConfigurationOptions {
                 if (vlSettingImpl == null) continue;
 
                 for (String prefixPath : prefixPaths) {
-                    final String configPath = prefixPath + "." + vlSettingImpl.value().getPathName();
-                    final Object value = file.get(configPath);
+                    String configPath = prefixPath + "." + vlSettingImpl.value().getPathName();
+                    Object value = file.get(configPath);
 
                     // check if this value is not present or if this field is not an interval check setting
                     if (value == null) continue;
@@ -180,11 +180,11 @@ public class ConfigurationOptions {
             }
             // check further for subclasses which are also violation settings
             try {
-                if (VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
-                    continue;
+                if (!VlSetting.class.isAssignableFrom(clazz = (Class<? extends VlSetting>) clazz.getSuperclass())) {
+                    return;
                 }
-            } catch (Exception ex) {}
-            return;
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -241,7 +241,7 @@ public class ConfigurationOptions {
     }
 
     public enum VlSettingImplType {
-        MAX_PER_INTERVAL, INTERVAL, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED, THROTTLE_AFTER;
+        MAX_PER_INTERVAL, INTERVAL, MIN_VLS, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED, THROTTLE_AFTER;
 
         public String getPathName() {
             return name().toLowerCase().replace("_", "-");
@@ -352,6 +352,8 @@ public class ConfigurationOptions {
         public double maxPerInterval = 1;
         @VlSettingImpl(VlSettingImplType.INTERVAL)
         public int interval;
+        @VlSettingImpl(VlSettingImplType.MIN_VLS)
+        public int minVls = 1;
         @VlSettingImpl(VlSettingImplType.VLS_AMOUNT)
         public int vlsAmount = 1;
         @VlSettingImpl(VlSettingImplType.THRESHOLD)
