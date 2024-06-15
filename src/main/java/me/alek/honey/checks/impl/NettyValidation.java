@@ -116,25 +116,31 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPosition> packetContainer) {
-                    IStructureModifier<Double> doubles = packetContainer.getDoubles();
-                    return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2)};
+                    return new Object[]{
+                            packetContainer.getPacket().getX(),
+                            packetContainer.getPacket().getY(),
+                            packetContainer.getPacket().getZ()};
                 }
             });
             READERS.set(PacketTypes.Play.Client.POSITION_LOOK.getHoneyID(), new PacketReader<WrappedPlayInPositionLook>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPositionLook> packetContainer) {
-                    IStructureModifier<Double> doubles = packetContainer.getDoubles();
-                    IStructureModifier<Float> floats = packetContainer.getFloats();
-                    return new Object[]{doubles.readField(0), doubles.readField(1), doubles.readField(2), floats.readField(0), floats.readField(1)};
+                    return new Object[]{
+                            packetContainer.getPacket().getX(),
+                            packetContainer.getPacket().getY(),
+                            packetContainer.getPacket().getZ(),
+                            packetContainer.getPacket().getYaw(),
+                            packetContainer.getPacket().getPitch()};
                 }
             });
             READERS.set(PacketTypes.Play.Client.LOOK.getHoneyID(), new PacketReader<WrappedPlayInLook>() {
 
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInLook> packetContainer) {
-                    IStructureModifier<Float> floats = packetContainer.getFloats();
-                    return new Object[]{floats.readField(0), floats.readField(1)};
+                    return new Object[]{
+                            packetContainer.getPacket().getYaw(),
+                            packetContainer.getPacket().getPitch()};
                 }
             });
         }
