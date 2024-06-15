@@ -11,8 +11,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
@@ -80,7 +80,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
             // add the distance to the development data
             return Validation.inst().cancel().flag()
-                    .onViolation(onViolation -> {
+                    .onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         developmentData.addPoint("BlockPos", blockPosition);
@@ -217,7 +217,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
                 CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 developmentData.addPoint("Block Direction", placedBlockDirection);
@@ -226,7 +226,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
                 }
                 if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 developmentData.addPoint("Facing X", facingX);

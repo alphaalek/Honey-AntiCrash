@@ -78,24 +78,18 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         container.getStorage().putLocation(lastLocation);
 
         callback.addAction((response -> {
-            response.builder().onViolation(onViolation -> {
+            response.builder().onViolation((check, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
                 final String x = format(currentLocation.getX());
                 final String y = format(currentLocation.getY());
                 final String z = format(currentLocation.getZ());
 
-                container.getDefaultDevelopmentData().addPoint("Position", x + ", " + y + ", " + z);
-                container.getDefaultDevelopmentData().addPoint("Delta Movement", LocationUtils.calculate3DDistance(currentLocation, lastLocation));
+                container.getDevelopmentData(check).addPoint("Position", x + ", " + y + ", " + z);
             });
         }));
 
         return true;
-    }
-
-    @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
     }
 
     @Override
@@ -216,7 +210,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
                     return Validation.inst().cancel().flag().withViolationKey(XZKey)
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
@@ -226,7 +220,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
                     return Validation.inst().cancel().flag().withViolationKey(YKey)
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("Y Distance", distanceY);

@@ -55,7 +55,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
                 }
                 if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("Slot", slot);

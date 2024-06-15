@@ -71,7 +71,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
             for (String prohibitedCommand : prohibitedCommands) {
                 if (CommandValidation.match(prohibitedCommand, label)) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 String messageFormatted = "\"" + (message.length() > 25 ? message.substring(0, 25) + "<...>" : message) + "\"";

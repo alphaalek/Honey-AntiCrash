@@ -27,11 +27,6 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
     }
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public Supplier<List<PacketType>> getPacketTypes() {
         return () -> Collections.singletonList(PacketTypes.Play.Client.BLOCK_DIG);
     }

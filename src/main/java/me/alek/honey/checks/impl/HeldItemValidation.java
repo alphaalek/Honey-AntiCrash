@@ -42,7 +42,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
                     return Validation.inst().cancel().flag().terminate()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("Slot", slot);

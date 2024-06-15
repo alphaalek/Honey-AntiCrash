@@ -244,7 +244,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                 if (playerRate5S > RATE_5S
                         || tracker.getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S) {
-                    return Validation.inst().flag(1).onViolation(onViolation -> {
+                    return Validation.inst().flag(1).onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Rate (5s)",
@@ -257,7 +257,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 if (playerRate5S > RATE_ACCEL_5S
                         && tracker.hasCollected(player, Timespan.FIVE_SECOND)
                         && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
-                    return Validation.inst().flag(1).onViolation(onViolation -> {
+                    return Validation.inst().flag(1).onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel quotient (5s)",
@@ -268,7 +268,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 }
 
                 if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL) {
-                    return Validation.inst().flag(1).onViolation(onViolation -> {
+                    return Validation.inst().flag(1).onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel",
@@ -318,7 +318,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
             if (setting.isEnabled() && decodeTime > 0) {
                 return Validation.inst().flag(decodeTime)
-                        .onViolation(onViolation -> {
+                        .onViolation((check, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
                             developmentDataSupplier.get().addPoint("Decode Time", NumberUtils.format(decodeTime) + " ms");
@@ -416,7 +416,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                         double hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
                         if ((trackerSize > 25 && hsq > 0.4 * multiplier) || (trackerSize > 10 && hsq > 0.5 * multiplier) || hsq > 0.55 * multiplier) {
                             return Validation.inst().cancel().withViolationKey(HSQKey).flag(1)
-                                    .onViolation(onViolation -> {
+                                    .onViolation((check, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
                                         applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
@@ -427,7 +427,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan, true);
                         if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
                             return Validation.inst().cancel().withViolationKey(TAKey).flag(1)
-                                    .onViolation(onViolation -> {
+                                    .onViolation((check, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
                                         applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);
@@ -441,7 +441,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                         double tt = tracker.getTimeToTotalQuotient(player, timespan, true);
                         if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
                             return Validation.inst().cancel().withViolationKey(TTKey).flag(1)
-                                    .onViolation(onViolation -> {
+                                    .onViolation((check, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
                                         applyCommonDevelopmentData(container.getDevelopmentData(this), multiplier, hsq);

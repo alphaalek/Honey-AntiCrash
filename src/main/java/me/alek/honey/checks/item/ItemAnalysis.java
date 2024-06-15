@@ -77,7 +77,7 @@ public class ItemAnalysis {
     public static ResponseContainer flagIf(HoneyPlayer player, ItemStack item, CheckContextContainer.DevelopmentData developmentData) {
         CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
         if (ItemAnalysis.checkItem(player, item, callback)) {
-            return Validation.inst().cancel().flag().onViolation(onViolation -> {
+            return Validation.inst().cancel().flag().onViolation((check, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
                 callback.call(developmentData);

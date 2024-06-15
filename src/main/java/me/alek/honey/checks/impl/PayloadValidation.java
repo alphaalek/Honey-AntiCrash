@@ -34,11 +34,11 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         String channel = packetContainer.getPacket().getChannel();
 
         callback.addAction(response -> {
-            response.builder().onViolation(onViolation -> {
+            response.builder().onViolation((check, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
-                container.getDefaultDevelopmentData().addPoint("Channel", channel);
-                container.getDefaultDevelopmentData().addPoint("Byte Buffer", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
+                container.getDevelopmentData(check).addPoint("Channel", channel);
+                container.getDevelopmentData(check).addPoint("Byte Buffer", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
             });
         });
 
@@ -137,18 +137,17 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
-                        return Validation.inst().cancel().flag().onViolation(onViolation -> {
+                        return Validation.inst().cancel().flag().onViolation((check, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
-                            CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
-                            callback.call(developmentData);
+                            callback.call(container.getDevelopmentData(this));
                         }).build();
                     }
 
                     int nbtSize;
                     if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
                         return Validation.inst().cancel().flag()
-                                .onViolation(onViolation -> {
+                                .onViolation((check, onViolation) -> {
                                     if (onViolation != null) onViolation.run();
 
                                     container.getDevelopmentData(this).addPoint("NBT Size", nbtSize);
@@ -235,7 +234,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                 if (channel.equalsIgnoreCase("register") &&
                         player.player.getListeningPluginChannels().size() > getSetting().max) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("Plugin Channels", player.player.getListeningPluginChannels().size());

@@ -85,7 +85,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
 
                 if (messageLength > (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11) ? 100 : 256)) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("Message length", messageLength);

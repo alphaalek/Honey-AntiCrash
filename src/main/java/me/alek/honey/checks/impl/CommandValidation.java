@@ -7,6 +7,7 @@ import me.alek.honey.checks.CheckVisitor;
 import me.alek.honey.checks.Settings;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
+import me.alek.honey.checks.types.HoneyCheck;
 import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -25,6 +26,7 @@ import org.bukkit.command.CommandMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -110,7 +112,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
             return Validation.PASS;
         }
 
-        Consumer<Runnable> onViolationConsumer = onViolation -> {
+        BiConsumer<HoneyCheck, Runnable> onViolationConsumer = (check, onViolation) -> {
             if (onViolation != null) onViolation.run();
 
             String messageFormatted = "\"" + (message.length() > 25 ? message.substring(0, 25) + "[...]" : message) + "\"";

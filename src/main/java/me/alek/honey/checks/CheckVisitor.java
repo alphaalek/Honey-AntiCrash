@@ -14,6 +14,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 
+import javax.xml.ws.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -116,16 +117,17 @@ public class CheckVisitor<WP extends WrappedPacket<WP>> {
                         response = response.copyWithoutPosts().build();
                     }
                     callback.call(response);
-                    response.builder().onViolation(onViolation -> {
+                    response.builder().onViolation((c, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
                         developmentData.setLine(5, check.getDescription());
                     });
 
+                    ResponseContainer finalResponse = response;
                     HoneyPlugin.get().getViolationService().flag(
                             player, handle, cancellablePacketObserver, key, response.violationKey, response.flag,
-                            response.onPunish, response.onViolation, response.onFlag, check, setting, developmentData);
+                            response.onPunish, () -> finalResponse.onViolation.accept(check), response.onFlag, check, setting, developmentData);
                 }
 
                 if (response.punish && player != null) {

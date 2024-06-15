@@ -26,7 +26,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         int bytes = byteBuf.buf().readableBytes();
         callback.addAction(response -> {
-            response.builder().onViolation(onViolation -> {
+            response.builder().onViolation((check, onViolation) -> {
 
                 CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {

@@ -23,11 +23,6 @@ import java.util.function.Supplier;
 public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
     public CheckVisitor<WrappedPlayInSetCreativeSlot> getVisitor(HoneyPlayer player) {
         return CheckVisitor.from(player,
                 new CreativeA(), new CreativeB(), new CreativeC());
@@ -84,7 +79,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
                 int slot = packet.getSlot();
                 if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
                     return Validation.inst().cancel().flag()
-                            .onViolation(onViolation -> {
+                            .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 container.getDevelopmentData(this).addPoint("Slot", slot);
