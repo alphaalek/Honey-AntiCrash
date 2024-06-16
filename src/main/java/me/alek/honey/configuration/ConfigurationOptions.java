@@ -849,22 +849,9 @@ public class ConfigurationOptions {
     public static class BlockInteract {
 
         @Setting
-        @Violation(prefixPaths = "block-interact.a", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class BlockInteractA extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "block-interact.a", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class BlockInteractA extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
 
-            private static Set<VlSettingImplType> getRequiredContentTypes() {
-                return Sets.newHashSet(
-                        VlSettingImplType.MAX,
-                        VlSettingImplType.MAX_PER_INTERVAL,
-                        VlSettingImplType.INTERVAL,
-                        VlSettingImplType.VLS_AMOUNT
-                );
-            }
-
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return getRequiredContentTypes();
-            }
         }
 
         @Setting
@@ -886,13 +873,9 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "block-interact.e", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class BlockInteractE extends VlSetting implements VlRequiredContentsSetting {
+        @Violation(prefixPaths = "block-interact.e", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class BlockInteractE extends VlSetting implements VlSimpleMaxRequiredContentsSetting {
 
-            @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
-                return BlockInteractA.getRequiredContentTypes();
-            }
         }
     }
 

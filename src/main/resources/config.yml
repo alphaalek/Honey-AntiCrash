@@ -192,7 +192,7 @@ packet-dump:
 # Asynchronous packet decoder
 async-decoder:
   # Should the async decoder be enabled.
-  enabled: true
+  enabled: false
 
   # If you edit the values below, you will have to restart the server for the changes to be applied.
 
@@ -435,7 +435,7 @@ netty:
     threshold: 32500
     decay: 650
     decay-amount: 7500
-    vls-amount: 3
+    vls-amount: 1
 
   f:
     enabled: true
@@ -546,10 +546,10 @@ position:
     vls-amount: 3
 
   b:
-    enabled: false
+    enabled: true
     max: 30
-    min-vls: 4
-    vls-amount: 7
+    min-vls: 3
+    vls-amount: 5
 
   c:
     enabled: true
@@ -628,9 +628,7 @@ block-interact:
   a:
     enabled: true
     max: 100
-    max-per-interval: 3
-    interval: 1000
-    min-vls: 2
+    min-vls: 3
     vls-amount: 5
 
   b:
@@ -648,9 +646,7 @@ block-interact:
   e:
     enabled: true
     max: 100
-    max-per-interval: 3
-    interval: 1000
-    min-vls: 2
+    min-vls: 3
     vls-amount: 5
 
 # |--- tab complete ---|
