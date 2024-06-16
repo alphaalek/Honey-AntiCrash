@@ -18,7 +18,10 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -72,8 +75,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     private void stopTimings(PacketContainer<? extends WrappedPacket<?>> packet) {
         packet.getEventloopStateTimings().stopTimings();
 
-        if (packet.getPlayer() != null) {
-            HoneyPlugin.get().getNettyPacketTracker().getTracker(packet.getPlayer()).add(
+        if (player != null) {
+            HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double)
                       packet.getEventloopStateTimings().getTimeFor(EventloopState.HONEY_HANDLE)
                     + packet.getEventloopStateTimings().getTimeFor(EventloopState.IN_BETWEEN)
                     + packet.getEventloopStateTimings().getTimeFor(EventloopState.DECODE)

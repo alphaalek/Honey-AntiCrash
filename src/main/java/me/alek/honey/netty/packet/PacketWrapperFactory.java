@@ -30,8 +30,8 @@ public class PacketWrapperFactory {
         loadWrapper(PacketTypes.Play.Client.SET_CREATIVE_SLOT, WrappedPlayInSetCreativeSlot::new);
         loadWrapper(PacketTypes.Play.Client.HELD_ITEM_SLOT, WrappedPlayInHeldItemSlot::new);
         loadWrapper(PacketTypes.Play.Client.POSITION, WrappedPlayInPosition::new);
-        loadWrapper(PacketTypes.Play.Client.POSITION_LOOK, WrappedPlayInPosition::new);
-        loadWrapper(PacketTypes.Play.Client.LOOK, WrappedPlayInPosition::new);
+        loadWrapper(PacketTypes.Play.Client.POSITION_LOOK, WrappedPlayInPositionLook::new);
+        loadWrapper(PacketTypes.Play.Client.LOOK, WrappedPlayInLook::new);
         loadWrapper(PacketTypes.Play.Client.FLYING, WrappedPlayInFlying.Status::new);
         loadWrapper(PacketTypes.Play.Client.GROUND, WrappedPlayInGround::new);
         loadWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload::new);

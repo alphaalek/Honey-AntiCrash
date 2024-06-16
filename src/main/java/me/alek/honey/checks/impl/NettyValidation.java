@@ -34,6 +34,7 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.NumberUtils;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -184,6 +185,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                             return Validation.inst().cancel().flag().build();
                         }
                     }
+
                     return Validation.PASS;
                 }
 
@@ -198,6 +200,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     }
                 }
             }
+
             return Validation.PASS;
         }
 

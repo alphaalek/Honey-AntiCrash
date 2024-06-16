@@ -2,9 +2,10 @@ package me.alek.honey.tracker;
 
 import java.util.*;
 
-public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<Double, T> {
+public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T> {
 
     private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
+
     private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
     private final Map<T, Integer> checkHandleIndexMap = new HashMap<>();
     private final Map<T, List<TimedNode<T>>> checkHandleRegistry = new HashMap<>();
@@ -128,6 +129,7 @@ public class RegistryMarkableHandleTracker<T> implements MarkableHandleTracker<D
     public void clear() {
         checkHandleTimeMap.clear();
         checkHandleRegistry.clear();
+        checkHandleIndexMap.clear();
         totalTime = 0;
         totalIndex = 0;
         key = 0;
