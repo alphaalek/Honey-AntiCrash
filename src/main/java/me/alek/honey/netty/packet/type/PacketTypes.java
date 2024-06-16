@@ -6,12 +6,9 @@ import me.alek.honey.netty.util.Reflection;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
-import me.alek.honey.util.NotPredicate;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public enum PacketTypes implements PacketType {
     UNKNOWN;
@@ -88,8 +85,6 @@ public enum PacketTypes implements PacketType {
             packetFromStateLookup.put(state, new ArrayList<>());
         }
 
-        for (Common.Server commonServer : Common.Server.values()) {
-            registerPacketDetails(commonServer); }
         for (Handshake.Client handshakeClient : Handshake.Client.values()) {
             registerPacketDetails(handshakeClient); }
         for (Login.Client loginClient : Login.Client.values()) {
@@ -211,97 +206,6 @@ public enum PacketTypes implements PacketType {
         }
 
         throw new IllegalStateException();
-    }
-
-    public static class Common {
-
-        private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
-        private static Class<?> DISCONNECT_CLASS;
-        private static Class<?> KEEP_ALIVE_SERVER_CLASS;
-        private static Class<?> PING_CLASS;
-        private static Class<?> RESOURCE_PACK_SERVER_CLASS;
-        private static Class<?> RESOURCE_PACK_POP_CLASS;
-        private static Class<?> RESOURCE_PACK_PUSH_CLASS;
-        private static Class<?> UPDATE_TAGS_CLASS;
-
-        static {
-            if (protocolVersion.isEqual(NetProtocol.v1_20_2)) {
-                RESOURCE_PACK_SERVER_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPacket");
-            }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-                CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
-                DISCONNECT_CLASS = Reflection.getClass("{common}.ClientboundDisconnectPacket");
-                KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{common}.ClientboundKeepAlivePacket");
-                PING_CLASS = Reflection.getClass("{common}.ClientboundPingPacket");
-                UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
-            }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
-                RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
-                RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
-            }
-        }
-
-        public enum Server implements CommonPacketStateTypeEnum, RangedPacketTypeEnum {
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire(), "disconnect", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            PING(PING_CLASS, idRegistry.acquire(), "ping", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, idRegistry.acquire(), "resource_pack", NetProtocolRange.between(NetProtocol.v1_20_2, NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquire(), "resource_pack_pop", NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquire(), "resource_pack_push", NetProtocolRange.since(NetProtocol.v1_20_4), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
-            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquire(), "update_tags", NetProtocolRange.since(NetProtocol.v1_20_2), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION))
-            ;
-
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
-            private final Class<?> nmsClass;
-            private final int packetId;
-            private final String keyName1_20_5;
-            private final NetProtocolRange range;
-            private final Array<PacketState> states;
-
-            Server(Class<?> nmsClass, int packetId, String keyName1_20_5, NetProtocolRange range, Array<PacketState> states) {
-                this.nmsClass = nmsClass;
-                this.packetId = packetId;
-                this.range = range;
-                this.states = states;
-                this.keyName1_20_5 = keyName1_20_5;
-            }
-
-            @Override
-            public Class<?> getNmsClass() {
-                return nmsClass;
-            }
-
-            @Override
-            public LazyInit<Integer> getMinecraftID() {
-                return minecraftIdInit;
-            }
-
-            @Override
-            public String getKeyName1_20_5() {
-                return keyName1_20_5;
-            }
-
-            @Override
-            public int getHoneyID() {
-                return packetId;
-            }
-
-            @Override
-            public PacketBound getBound() {
-                return PacketBound.CLIENT;
-            }
-
-            @Override
-            public NetProtocolRange getRange() {
-                return range;
-            }
-
-            @Override
-            public Array<PacketState> getCommonStates() {
-                return states;
-            }
-        }
     }
 
     public static class Handshake {
@@ -913,6 +817,7 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> CAMERA_CLASS = Reflection.getClass("{play}.PacketPlayOutCamera");
         private static final Class<?> CLOSE_WINDOW_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutCloseWindow");
         private static final Class<?> COLLECT_CLASS = Reflection.getClass("{play}.PacketPlayOutCollect");
+        private static final Class<?> CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutCustomPayload", "{common}.ClientboundCustomPayloadPacket");;
         private static final Class<?> ENTITY_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity");
         private static final Class<?> ENTITY_DESTROY_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityDestroy");
         private static final Class<?> ENTITY_EFFECT_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityEffect");
@@ -926,6 +831,8 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> EXPLOSION_CLASS = Reflection.getClass("{play}.PacketPlayOutExplosion");
         private static final Class<?> GAME_STATE_CHANGE_CLASS = Reflection.getClass("{play}.PacketPlayOutGameStateChange");
         private static final Class<?> HELD_ITEM_SLOT_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutHeldItemSlot");
+        private static final Class<?> KEEP_ALIVE_SERVER_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutKeepAlive", "{common}.ClientboundKeepAlivePacket");
+        private static final Class<?> KICK_DISCONNECT_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutKickDisconnect", "{common}.ClientboundDisconnectPacket");
         private static final Class<?> LOGIN_CLASS = Reflection.getClass("{play}.PacketPlayOutLogin");
         private static final Class<?> MAP_CLASS = Reflection.getClass("{play}.PacketPlayOutMap");
         private static final Class<?> MULTI_BLOCK_CHANGE_CLASS = Reflection.getClass("{play}.PacketPlayOutMultiBlockChange");
@@ -973,7 +880,6 @@ public enum PacketTypes implements PacketType {
         private static Class<?> COMMANDS_CLASS;
         private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> CUSTOM_CHAT_COMPLETIONS_CLASS;
-        private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> DAMAGE_EVENT_CLASS;
         private static Class<?> DEBUG_SAMPLE_CLASS;
         private static Class<?> DELETE_CHAT_CLASS;
@@ -982,8 +888,6 @@ public enum PacketTypes implements PacketType {
         private static Class<?> ENTITY_SOUND_CLASS;
         private static Class<?> HURT_ANIMATION_CLASS;
         private static Class<?> INITIALIZE_BORDER_CLASS;
-        private static Class<?> KEEP_ALIVE_SERVER_CLASS;
-        private static Class<?> KICK_DISCONNECT_CLASS;
         private static Class<?> LEVEL_CHUNK_DATA_CLASS;
         private static Class<?> LEVEL_CHUNK_WITH_LIGHT_CLASS;
         private static Class<?> LIGHT_UPDATE_CLASS;
@@ -1013,6 +917,8 @@ public enum PacketTypes implements PacketType {
         private static Class<?> ENTITY_MOVE_LOOK_CLASS;
         private static Class<?> ENTITY_MOVE_CLASS;
         private static Class<?> RESOURCE_PACK_SEND_CLASS;
+        private static Class<?> RESOURCE_PACK_POP_CLASS;
+        private static Class<?> RESOURCE_PACK_PUSH_CLASS;
         private static Class<?> SELECT_ADVANCEMENT_TAB_CLASS;
         private static Class<?> SERVER_DATA_CLASS;
         private static Class<?> SET_ACTION_BAR_TEXT_CLASS;
@@ -1043,6 +949,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> UPDATE_ENABLED_FEATURES_CLASS;
         private static Class<?> UPDATE_ENTITY_NBT_CLASS;
         private static Class<?> UPDATE_SIGN_SERVER_CLASS;
+        private static Class<?> UPDATE_TAGS_CLASS;
         private static Class<?> VEHICLE_MOVE_SERVER_CLASS;
         private static Class<?> VIEW_CENTRE_CLASS;
         private static Class<?> VIEW_DISTANCE_CLASS;
@@ -1121,6 +1028,7 @@ public enum PacketTypes implements PacketType {
                 CLEAR_TITLES_CLASS = Reflection.getClass("{play}.ClientboundClearTitlesPacket");
                 ENTITY_LOOK_CLASS = Reflection.getClass( "{play}.PacketPlayOutEntity$PacketPlayOutEntityLook");
                 INITIALIZE_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
+                PING_SERVER_CLASS = Reflection.getUnsureClass("{play}.ClientboundPingPacket", "{common}.ClientboundPingPacket");
                 PLAYER_COMBAT_END_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatEndPacket");
                 PLAYER_COMBAT_ENTER_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatEnterPacket");
                 PLAYER_COMBAT_KILL_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatKillPacket");
@@ -1138,9 +1046,6 @@ public enum PacketTypes implements PacketType {
                 WORLD_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
                 if (protocolVersion.isOlderThan(NetProtocol.v1_19)) {
                     ADD_VIBRATION_SIGNAL_CLASS = Reflection.getClass("{play}.ClientboundAddVibrationSignalPacket");
-                }
-                if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                    PING_SERVER_CLASS = Reflection.getClass("{play}.ClientboundPingPacket");
                 }
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_18)) {
@@ -1185,9 +1090,12 @@ public enum PacketTypes implements PacketType {
                 CHUNK_BATCH_FINISHED_CLASS = Reflection.getClass("{play}.ClientboundChunkBatchFinishedPacket");
                 CHUNK_BATCH_START_CLASS = Reflection.getClass("{play}.ClientboundChunkBatchStartPacket");
                 START_CONFIGURATION_CLASS = Reflection.getClass("{play}.ClientboundStartConfigurationPacket");
+                UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
                 RESET_SCORE_CLASS = Reflection.getClass("{play}.ClientboundResetScorePacket");
+                RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
+                RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
                 TICKING_STATE_CLASS = Reflection.getClass("{play}.ClientboundTickingStatePacket");
                 TICKING_STEP_CLASS = Reflection.getClass("{play}.ClientboundTickingStepPacket");
             }
@@ -1199,11 +1107,10 @@ public enum PacketTypes implements PacketType {
                 PROJECTILE_POWER_CLASS = Reflection.getClass("{play}.ClientboundProjectilePowerPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutCustomPayload");
-                KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutKeepAlive");
-                KICK_DISCONNECT_CLASS = Reflection.getClass("{play}.PacketPlayOutKickDisconnect");
-                RESOURCE_PACK_SEND_CLASS = Reflection.getClass("{play}.PacketPlayOutResourcePackSend");
                 NAMED_ENTITY_SPAWN_CLASS = Reflection.getClass("{play}.PacketPlayOutNamedEntitySpawn");
+            }
+            if (protocolVersion.isOlderThan(NetProtocol.v1_20_4)) {
+                RESOURCE_PACK_SEND_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutResourcePackSend", "{common}.ClientboundResourcePackPacket");
             }
         }
 
@@ -1236,7 +1143,7 @@ public enum PacketTypes implements PacketType {
             COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
             COMMANDS(COMMANDS_CLASS, idRegistry.acquire(), "commands", NetProtocolRange.since(NetProtocol.v1_13)),
             CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquire(), "custom_chat_completions", NetProtocolRange.since(NetProtocol.v1_19_1)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_payload"),
             DAMAGE_EVENT(DAMAGE_EVENT_CLASS, idRegistry.acquire(), "damage_event", NetProtocolRange.since(NetProtocol.v1_19_4)),
             DEBUG_SAMPLE(DEBUG_SAMPLE_CLASS, idRegistry.acquire(), "debug_sample", NetProtocolRange.since(NetProtocol.v1_20_5)),
             DELETE_CHAT(DELETE_CHAT_CLASS, idRegistry.acquire(), "delete_chat", NetProtocolRange.since(NetProtocol.v1_19_1)),
@@ -1260,8 +1167,8 @@ public enum PacketTypes implements PacketType {
             HELD_ITEM_SLOT(HELD_ITEM_SLOT_SERVER_CLASS, idRegistry.acquire(), "set_carried_item"),
             HURT_ANIMATION(HURT_ANIMATION_CLASS, idRegistry.acquire(), "hurt_animation", NetProtocolRange.since(NetProtocol.v1_19_4)),
             INITIALIZE_BORDER(INITIALIZE_BORDER_CLASS, idRegistry.acquire(), "initialize_border", NetProtocolRange.since(NetProtocol.v1_17)),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
-            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), "keep_alive"),
+            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, idRegistry.acquire(), "disconnect"),
             LEVEL_CHUNK_DATA(LEVEL_CHUNK_DATA_CLASS, idRegistry.acquire(), null, NetProtocolRange.since(NetProtocol.v1_18)),
             LEVEL_CHUNK_WITH_LIGHT(LEVEL_CHUNK_WITH_LIGHT_CLASS, idRegistry.acquire(), "level_chunk_with_light", NetProtocolRange.since(NetProtocol.v1_18)),
             LIGHT_UPDATE(LIGHT_UPDATE_CLASS, idRegistry.acquire(), "light_update", NetProtocolRange.since(NetProtocol.v1_14)),
@@ -1280,7 +1187,7 @@ public enum PacketTypes implements PacketType {
             OPEN_WINDOW(OPEN_WINDOW_CLASS, idRegistry.acquire(), "open_screen"),
             OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquire(), "horse_screen_open", NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquire(), "merchant_offers", NetProtocolRange.since(NetProtocol.v1_14)),
-            PING(PING_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_20_1)),
+            PING(PING_SERVER_CLASS, idRegistry.acquire(), "ping", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquire(), "player_chat"),
             PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquire(), "player_combat_end", NetProtocolRange.since(NetProtocol.v1_17)),
@@ -1297,7 +1204,9 @@ public enum PacketTypes implements PacketType {
             RECIPES(RECIPES_CLASS, idRegistry.acquire(), "recipe", NetProtocolRange.since(NetProtocol.v1_12)),
             REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, idRegistry.acquire(), "remove_mob_effect"),
             RESET_SCORE(RESET_SCORE_CLASS, idRegistry.acquire(), "reset_score", NetProtocolRange.since(NetProtocol.v1_20_4)),
-            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
+            RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_2)),
+            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquire(), "resource_pack_pop", NetProtocolRange.since(NetProtocol.v1_20_4)),
+            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquire(), "resource_pack_push", NetProtocolRange.since(NetProtocol.v1_20_4)),
             RESPAWN(RESPAWN_CLASS, idRegistry.acquire(), "respawn"),
             SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, idRegistry.acquire(), "set_display_objective"),
             SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, idRegistry.acquire(), "set_objective"),
@@ -1343,6 +1252,7 @@ public enum PacketTypes implements PacketType {
             UPDATE_ENTITY_NBT(UPDATE_ENTITY_NBT_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_8_8)),
             UPDATE_HEALTH(UPDATE_HEALTH_CLASS, idRegistry.acquire(), "set_health"),
             UPDATE_SIGN(UPDATE_SIGN_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_9_2)),
+            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquire(), "update_tags", NetProtocolRange.since(NetProtocol.v1_20_2)),
             UPDATE_TIME(UPDATE_TIME_CLASS, idRegistry.acquire(), "set_time"),
             VEHICLE_MOVE(VEHICLE_MOVE_SERVER_CLASS, idRegistry.acquire(), "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
             VIEW_CENTRE(VIEW_CENTRE_CLASS, idRegistry.acquire(), "set_chunk_cache_center", NetProtocolRange.since(NetProtocol.v1_14)),
@@ -1415,7 +1325,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> CUSTOM_PAYLOAD_CLIENT_CLASS;
         private static Class<?> FINISH_CONFIGURATION_CLIENT_CLASS;
         private static Class<?> KEEP_ALIVE_CLIENT_CLASS;
-        private static Class<?> RESOURCE_PACK_STATUS_CLASS;
+        private static Class<?> RESOURCE_PACK_CLIENT_CLASS;
         private static Class<?> SELECT_KNOWN_PACKS_CLIENT_CLASS;
 
         static {
@@ -1424,7 +1334,7 @@ public enum PacketTypes implements PacketType {
                 CUSTOM_PAYLOAD_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundCustomPayloadPacket");
                 FINISH_CONFIGURATION_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundFinishConfigurationPacket");
                 KEEP_ALIVE_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundKeepAlivePacket");
-                RESOURCE_PACK_STATUS_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
+                RESOURCE_PACK_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 SELECT_KNOWN_PACKS_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundSelectKnownPacks");
@@ -1440,7 +1350,7 @@ public enum PacketTypes implements PacketType {
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
             FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquire(), "resource_pack", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, idRegistry.acquire(), "resource_pack", NetProtocolRange.since(NetProtocol.v1_20_2)),
             SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_CLIENT_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_5)),
             ;
 
@@ -1494,17 +1404,37 @@ public enum PacketTypes implements PacketType {
         }
 
         private static Class<?> COOKIE_REQUEST_CLASS;
+        private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
         private static Class<?> FINISH_CONFIGURATION_SERVER_CLASS;
+        private static Class<?> KEEP_ALIVE_SERVER_CLASS;
+        private static Class<?> KICK_DISCONNECT_CLASS;
+        private static Class<?> PING_CLASS;
+        private static Class<?> RESOURCE_PACK_SERVER_CLASS;
+        private static Class<?> RESOURCE_PACK_POP_CLASS;
+        private static Class<?> RESOURCE_PACK_PUSH_CLASS;
         private static Class<?> REGISTRY_DATA_CLASS;
         private static Class<?> RESET_CHAT_CLASS;
         private static Class<?> SELECT_KNOWN_PACKS_SERVER_CLASS;
         private static Class<?> UPDATE_ENABLED_FEATURES_CLASS;
+        private static Class<?> UPDATE_TAGS_CLASS;
 
         static {
+            if (protocolVersion.isEqual(NetProtocol.v1_20_2)) {
+                RESOURCE_PACK_SERVER_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPacket");
+            }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+                CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
                 FINISH_CONFIGURATION_SERVER_CLASS = Reflection.getClass("{configuration}.ClientboundFinishConfigurationPacket");
+                KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{common}.ClientboundKeepAlivePacket");
+                KICK_DISCONNECT_CLASS = Reflection.getClass("{common}.ClientboundDisconnectPacket");
+                PING_CLASS = Reflection.getClass("{common}.ClientboundPingPacket");
                 REGISTRY_DATA_CLASS = Reflection.getClass("{configuration}.ClientboundRegistryDataPacket");
                 UPDATE_ENABLED_FEATURES_CLASS = Reflection.getClass("{configuration}.ClientboundUpdateEnabledFeaturesPacket");
+                UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
+            }
+            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
+                RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
+                RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
@@ -1515,11 +1445,19 @@ public enum PacketTypes implements PacketType {
 
         public enum Server implements RangedPacketTypeEnum {
             COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_5)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
             FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            KICK_DISCONNECT(KICK_DISCONNECT_CLASS, idRegistry.acquire(), "disconnect", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            PING(PING_CLASS, idRegistry.acquire(), "ping", NetProtocolRange.since(NetProtocol.v1_20_2)),
             REGISTRY_DATA(REGISTRY_DATA_CLASS, idRegistry.acquire(), "registry_data", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.only(NetProtocol.v1_20_2)),
+            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquire(), "resource_pack_pop", NetProtocolRange.since(NetProtocol.v1_20_4)),
+            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquire(), "resource_pack_push", NetProtocolRange.since(NetProtocol.v1_20_4)),
             RESET_CHAT(RESET_CHAT_CLASS, idRegistry.acquire(), "reset_chat", NetProtocolRange.since(NetProtocol.v1_20_5)),
             SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_SERVER_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_5)),
             UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquire(), "update_enabled_features", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquire(), "update_tags", NetProtocolRange.since(NetProtocol.v1_20_2)),
             ;
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);

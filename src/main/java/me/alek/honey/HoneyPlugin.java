@@ -44,7 +44,7 @@ import me.alek.honey.storage.SQLManagerWrapper;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
-import me.alek.honey.tracker.RegistryMarkableHandleTracker;
+import me.alek.honey.tracker.RegistryHandleTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -270,7 +270,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup tracking
         serverThreadTracker = new ExecutionQueueProxy();
         packetNettyTracker = new WideTempQueuedHandleTracker();
-        checkHandleTracker = new RegistryMarkableHandleTracker<>();
+        checkHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
         registerChecks();

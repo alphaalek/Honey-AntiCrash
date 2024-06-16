@@ -12,28 +12,12 @@ public class NetProtocolRange {
         return new NetProtocolRange(NetProtocol.getOldest(), protocol);
     }
 
-    public static NetProtocolRange after(NetProtocol protocol) {
-        return new NetProtocolRange(protocol.getAfter(), NetProtocol.getLatest());
-    }
-
-    public static NetProtocolRange before(NetProtocol protocol) {
-        return new NetProtocolRange(NetProtocol.getOldest(), protocol.getBefore());
-    }
-
     public static NetProtocolRange between(NetProtocol protocol1, NetProtocol protocol2) {
         return new NetProtocolRange(protocol1, protocol2);
     }
 
-    public static NetProtocolRange betweenBefore(NetProtocol protocol1, NetProtocol protocol2) {
-        return new NetProtocolRange(protocol1, protocol2.getBefore());
-    }
-
-    public static NetProtocolRange betweenAfter(NetProtocol protocol1, NetProtocol protocol2) {
-        return new NetProtocolRange(protocol1.getAfter(), protocol2);
-    }
-
-    public static NetProtocolRange betweenWithout(NetProtocol protocol1, NetProtocol protocol2) {
-        return new NetProtocolRange(protocol1.getAfter(), protocol2.getBefore());
+    public static NetProtocolRange only(NetProtocol protocol) {
+        return new NetProtocolRange(protocol, protocol);
     }
 
     private final NetProtocol bound;

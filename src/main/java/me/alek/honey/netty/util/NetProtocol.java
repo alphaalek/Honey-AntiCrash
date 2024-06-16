@@ -90,7 +90,7 @@ public enum NetProtocol {
     }
 
     public boolean isEqual(NetProtocol target) {
-        return this == target;
+        return getProtocolVersion() == target.getProtocolVersion();
     }
 
     public NetProtocol getBefore() {
