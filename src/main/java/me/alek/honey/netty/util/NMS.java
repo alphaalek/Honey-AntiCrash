@@ -282,7 +282,7 @@ public class NMS {
 
     private static Class<Object> chatSerializerClass;
     public static Class<Object> getChatSerializerClass() {
-        return chatSerializerClass != null ? chatSerializerClass : (chatSerializerClass = getUnsureClass("{nms}.IChatBaseComponent$ChatSerializer"));
+        return chatSerializerClass != null ? chatSerializerClass : (chatSerializerClass = getUnsureClass("{nms}.IChatBaseComponent$ChatSerializer", "{nms}.network.chat.IChatBaseComponent$ChatSerializer"));
     }
 
     private static Class<Object> inventoryClickTypeClass;
