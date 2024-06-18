@@ -29,7 +29,7 @@ public class TrackCommand implements CommandImpl {
 
         switch (args[0]) {
             case "players":
-                WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getServerThreadTracker();
+                WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getExecutionQueueProxy();
 
                 if (stTracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));

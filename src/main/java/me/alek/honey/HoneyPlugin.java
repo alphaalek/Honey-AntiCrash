@@ -379,7 +379,6 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         checkHandleTracker.clear();
-        serverThreadTracker.reload();
 
         monitorManager.reload();
     }
@@ -430,7 +429,7 @@ public class HoneyPlugin implements HoneyAPI {
         return packetNettyTracker;
     }
 
-    public ExecutionQueueProxy getServerThreadTracker() {
+    public ExecutionQueueProxy getExecutionQueueProxy() {
         return serverThreadTracker;
     }
 

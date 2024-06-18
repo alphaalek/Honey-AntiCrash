@@ -111,11 +111,11 @@ public class ItemAnalysis {
         }
 
         if (callback != null) {
-            callback.addAction(context -> context.addPoint("Type", flaggedCheck.name()));
+            callback.addAction(context -> context.addPoint("Type", flaggedCheck.toString()));
         }
 
         if (ConfigurationOptions.PacketLogger.DEBUG) {
-            Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flaggedCheck.name());
+            Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flaggedCheck);
         }
 
         HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);

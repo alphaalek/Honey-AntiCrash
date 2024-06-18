@@ -14,7 +14,7 @@ public class DecayingWindowCounter {
     public DecayingWindowCounter(int... marks) {
         marks = sortMarks(marks);
         for (int i = 0; i < marks.length; i++) {
-            final long collectInterval = marks[i];
+            long collectInterval = marks[i];
             delegatedCounters.put(i, new DecayingListeningCounter(() -> collectInterval));
         }
         this.marks = marks;
@@ -37,6 +37,7 @@ public class DecayingWindowCounter {
             marked[index] = true;
             marks[i] = smallest;
         }
+
         return marks;
     }
 

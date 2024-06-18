@@ -19,7 +19,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
     private String getPacketTaskPercentage(Timespan timespan) {
         return NumberUtils.format(
-                (Math.min(1, HoneyPlugin.get().getServerThreadTracker().getTotal(timespan, true) / timespan.getNanoTimespan()) * 100), 1) + "%";
+                (Math.min(1, HoneyPlugin.get().getExecutionQueueProxy().getTotal(timespan, true) / timespan.getNanoTimespan()) * 100), 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {
@@ -31,7 +31,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
     @Override
     public String getMessage() {
-        HoneyPlugin.get().getServerThreadTracker().clearExceedingNodes(false, System.currentTimeMillis());
+        HoneyPlugin.get().getExecutionQueueProxy().clearExceedingNodes(false, System.currentTimeMillis());
 
         int packetRate;
         return "§6*§8TPS: §7" + TPSProvider.getTPS(Timespan.TEN_SECOND) + "§7, " + TPSProvider.getTPS(Timespan.FIFTEEN_SECOND) + "§8, "

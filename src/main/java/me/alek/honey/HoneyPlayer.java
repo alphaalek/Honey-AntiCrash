@@ -4,19 +4,16 @@ import io.netty.channel.Channel;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tickloop.TickloopHandler;
+import me.alek.honey.tickloop.postpone.PostponeCheck;
+import me.alek.honey.tickloop.postpone.checkimpl.*;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class HoneyPlayer {
 
@@ -49,12 +46,23 @@ public class HoneyPlayer {
     public boolean online = true;
     public boolean punished;
     public boolean updateHandlersLater;
+    public long packetIndex;
+    public long postponedPackets;
+    public long postponedLastTick;
     public HoneyPacketHandler packetHandler;
     public TempQueuedTracker timedQueuedTracker;
     public TempQueuedTracker serverThreadTimedQueuedTracker;
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
-    public final TickloopHandler tickloopHandler = new TickloopHandler();
     public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
+    public Queue<PostponeCheck> postponedChecks = new LinkedList<>(
+            new ArrayList<>(Arrays.asList(
+                    new PostponeRateIgnoreTerminator(),
+                    new PostponeRateCheck(),
+                    new PostponeRateAccelCheck(),
+                    new PostponeRateAccelQuotientCheck(),
+                    new PostponeMaxPerXTickCheck()
+            ))
+    );
 
     public HoneyPlayer(Player player) {
         this.player = player;

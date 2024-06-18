@@ -37,7 +37,7 @@ public class PlayerMonitorer implements ScheduledMonitorer {
 
     @Override
     public String getMessage() {
-        HoneyPlugin.get().getServerThreadTracker().clearExceedingNodes(player);
+        HoneyPlugin.get().getExecutionQueueProxy().clearExceedingNodes(player);
 
         return "§6*§8STQ: §8o.a.w.o.: §7" + getOfAverageWithout(Timespan.TEN_SECOND) + "%§8, §7" + getOfAverageWithout(Timespan.FIFTEEN_SECOND) + "%§8, "
                 + "o.h.s.t.: §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, §7" + getOfPacketTask(Timespan.FIFTEEN_SECOND) + "§8, "

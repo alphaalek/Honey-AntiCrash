@@ -23,7 +23,7 @@ public class PacketTaskHandler {
     private static final Object handleTaskLock = new Object();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
-    private static WrappedPacketTaskFuture<?> handledTask;
+    private static WrappedPacketTaskFuture handledTask;
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
@@ -35,10 +35,7 @@ public class PacketTaskHandler {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null
-                                || packet.isDumped()
-                                || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                                    && packet.getPlayer() != null
-                                    && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                                || packet.isDumped()) {
                             continue;
                         }
                         packet.dump();
@@ -47,6 +44,7 @@ public class PacketTaskHandler {
                                 && packet.getType() != PacketTypes.Play.Client.POSITION
                                 && packet.getType() != PacketTypes.Play.Client.POSITION_LOOK
                                 && packet.getType() != PacketTypes.Play.Client.GROUND
+                                && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
                                 && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
                             dumpThread(packet);
                         }
@@ -61,7 +59,7 @@ public class PacketTaskHandler {
         }, "honey-packet-task-handler").start();
     }
 
-    public static WrappedPacketTaskFuture<?> getHandledTask() {
+    public static WrappedPacketTaskFuture getHandledTask() {
         synchronized (handleTaskLock) {
             return handledTask;
         }
@@ -141,7 +139,7 @@ public class PacketTaskHandler {
         return handledTask.getPacket();
     }
 
-    public static <V> void registerTask(WrappedPacketTaskFuture<V> task){
+    public static void registerTask(WrappedPacketTaskFuture task){
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 

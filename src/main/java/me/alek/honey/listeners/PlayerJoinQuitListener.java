@@ -64,14 +64,12 @@ public class PlayerJoinQuitListener implements Listener {
         HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
 
         HoneyPlugin.get().getNettyPacketTracker().remove(player);
-        HoneyPlugin.get().getServerThreadTracker().remove(player);
+        HoneyPlugin.get().getExecutionQueueProxy().remove(player);
 
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
 
         player.leaveCallback.call(player);
         player.online = false;
         IDRegistry.PLAYERS.remove(player.registryID);
-
-        player.tickloopHandler.getPostponeHandler().unregister();
     }
 }

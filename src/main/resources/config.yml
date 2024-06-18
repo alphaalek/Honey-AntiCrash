@@ -133,23 +133,9 @@ postpone:
   # Note! Ticks and execution ticks are not the same in 1.14+ and will therefore be handled differently.
   max-postponed-execution-ticks: 100
 
-  # Max postponed packets retry amount.
-  max-retry: 30
-
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
   # (Set to -1 to disable.)
-
-  # Ignored packets for check max-queue-size
-  max-queue-size-ignored:
-    - "PacketPlayInFlying"
-    - "PacketPlayInLook"
-    - "PacketPlayInPosition"
-    - "PacketPlayInPositionLook"
-    - "PacketPlayInSetCreativeSlot"
-    - "PacketPlayInTransaction"
-    - "PacketPlayInWindowClick"
-    - "GROUND"
 
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
   rate-ignore-terminator: 10.0

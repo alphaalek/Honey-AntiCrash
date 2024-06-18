@@ -4,20 +4,23 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.concurrent.FutureTask;
 
-public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
+public class WrappedPacketTaskFuture extends FutureTask<Object> {
 
     private final PacketContainer<? extends WrappedPacket<?>> packet;
     private final int tickAdded;
     private boolean postponed;
     private long started;
+    private final long playerPacketIndex;
 
-    public WrappedPacketTaskFuture(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
+    public WrappedPacketTaskFuture(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded, long playerPacketIndex) {
         super(runnable, null);
         this.packet = packet;
         this.tickAdded = tickAdded;
+        this.playerPacketIndex = playerPacketIndex;
     }
 
     public HoneyPlayer getPlayer() {
@@ -44,12 +47,18 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         return tickAdded;
     }
 
+    public long getPlayerPacketIndex() {
+        return playerPacketIndex;
+    }
+
     @Override
     public void run() {
         if (getPlayer() != null && (!getPlayer().isOnlineWeak() || getPlayer().punished)) {
             super.set(null);
             return;
         }
+
+        Bukkit.getLogger().info("Executing " + playerPacketIndex);
 
         started = System.nanoTime();
         PacketTaskHandler.registerTask(this);
@@ -62,5 +71,10 @@ public class WrappedPacketTaskFuture<V> extends FutureTask<V> {
         packet.invokeServerCallback();
 
         PacketTaskHandler.unregisterTask(packet);
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" + packet.getPlayerName() + "," + playerPacketIndex + "," + tickAdded + "}";
     }
 }

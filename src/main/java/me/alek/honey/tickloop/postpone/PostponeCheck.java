@@ -12,7 +12,7 @@ import me.alek.honey.util.CallbackAction;
 public interface PostponeCheck {
 
     default ExecutionQueueProxy getTracker() {
-        return HoneyPlugin.get().getServerThreadTracker();
+        return HoneyPlugin.get().getExecutionQueueProxy();
     }
 
     default double millisToNanos(double millis) {

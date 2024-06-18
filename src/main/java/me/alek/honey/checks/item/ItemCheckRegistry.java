@@ -57,10 +57,6 @@ public enum ItemCheckRegistry {
         this(check, "", availableMaterials);
     }
 
-    ItemCheckRegistry(Supplier<ItemAnalysis.Check> check, String tag) {
-        this(check, tag, new Material[0]);
-    }
-
     ItemCheckRegistry(Supplier<ItemAnalysis.Check> check, String tag, Material... availableMaterials) {
         this.itemCheck = Optional.ofNullable(check).map(Supplier::get).orElse(null);
         this.tag = tag;
@@ -77,6 +73,11 @@ public enum ItemCheckRegistry {
 
     public String getTag() {
         return tag;
+    }
+
+    @Override
+    public String toString() {
+        return name().toLowerCase().replace("_", "-");
     }
 
 }

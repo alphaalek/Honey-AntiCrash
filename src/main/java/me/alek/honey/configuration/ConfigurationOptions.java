@@ -576,8 +576,6 @@ public class ConfigurationOptions {
         public static boolean ENABLED;
         public static int MAX_POSTPONED_PACKETS;
         public static int MAX_POSTPONED_TICKS;
-        public static int MAX_RETRY_AMOUNT;
-        public static List<String> MAX_QUEUE_SIZE_IGNORED;
         public static double RATE_IGNORE_TERMINATOR;
         public static double MAX_PER_X_TICK;
         public static double MAX_PER_X_AMOUNT;
@@ -591,18 +589,6 @@ public class ConfigurationOptions {
             ENABLED = file.getBoolean("postpone.enabled", true);
             MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets", 150);
             MAX_POSTPONED_TICKS = file.getInt("postpone.max-postponed-execution-ticks", 100);
-            MAX_RETRY_AMOUNT = file.getInt("postpone.max-retry", 30);
-            if (file.get("postpone.max-queue-size-ignored") == null) {
-                MAX_QUEUE_SIZE_IGNORED = Arrays.asList(
-                        "PacketPlayInFlying",
-                        "PacketPlayInLook",
-                        "PacketPlayInPosition",
-                        "PacketPlayInPositionLook",
-                        "PacketPlayInSetCreativeSlot",
-                        "PacketPlayInWindowClick");
-            } else {
-                MAX_QUEUE_SIZE_IGNORED = file.getStringList("max-queue-size-ignored");
-            }
             RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator", 10d);
             MAX_PER_X_TICK = file.getDouble("postpone.max-per-x-tick", 75d);
             MAX_PER_X_AMOUNT = file.getDouble("postpone.max-per-x-amount", 5);

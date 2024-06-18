@@ -237,7 +237,7 @@ public class NotificationService {
     }
 
     public void applyQuotients(HoneyPlayer player, CheckContextContainer.DevelopmentData developmentData) {
-        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getServerThreadTracker();
+        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
         WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
         String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
@@ -316,7 +316,7 @@ public class NotificationService {
             messageBuilder.append(" ").append(packetFilterPostponeFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> postponedSize)
-                            .offer(Placeholders.CURRENT_AMOUNT, () -> player.tickloopHandler.getPostponeHandler().getPostponedPacketsSize())
+                            .offer(Placeholders.CURRENT_AMOUNT, () -> player.postponedPackets)
                             .build()));
         }
         if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {

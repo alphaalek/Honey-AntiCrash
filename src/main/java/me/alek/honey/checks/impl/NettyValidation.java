@@ -9,7 +9,6 @@ import me.alek.honey.checks.types.PacketCheck;
 import me.alek.honey.checks.types.ViolationCheck;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
@@ -34,7 +33,6 @@ import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.NumberUtils;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,52 +57,6 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         return CheckVisitor.from(player,
                 /* new NettyA<>(), */ new NettyB<>(), /*  new NettyC<>(), */ new NettyH<>(), new NettyI<>() /*, new NettyJ<>() */);
     }
-
-    public static class NettyA<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
-
-        private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ExecutionQueueProxy tracker = HoneyPlugin.get().getServerThreadTracker();
-
-        @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            if (getSetting().isEnabled()) {
-                if (tracker.getPacketsInQueueExecution(player.uuid) > ConfigurationOptions.Netty.NettyA.MAX_PACKETS
-                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(packet.getType().getHoneyID())) {
-                    return Validation.inst().flag(1).build();
-                }
-
-                WrappedPacketTaskFuture<?> task = PacketTaskHandler.getHandledTask();
-                if (task != null && task.getPlayer().equals(player)
-                        && (System.nanoTime() - task.getStarted()) * PacketTaskHandler.TO_MILLIS_MULTIPLIER > ConfigurationOptions.Netty.NettyA.MAX_HANDLE
-                        && !tracker.ignoredPacketsInQueueExecutionSaver.hasID(task.getPacket().getType().getHoneyID())) {
-                    return Validation.inst().flag(1).build();
-                }
-            }
-
-            return Validation.PASS;
-        }
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "Netty.A";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Exceeds limit of packets in queue execution";
-        }
-
-        @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyA.class);
-        }
-    }
-
 
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
 
@@ -233,7 +185,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     public static class NettyC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getExecutionQueueProxy();
 
         private static final double IGNORE_RATE_5S = /* 7.5 */ 50 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
         private static final double RATE_5S = /* 85*/ 250 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
@@ -396,7 +348,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getServerThreadTracker();
+        private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getExecutionQueueProxy();
         private static final double[] timespanMultipliers = new double[]{1, 0.85, 0.75, 0.65};
         private static final double MIN_HSQ_ENTER = 0.1;
 

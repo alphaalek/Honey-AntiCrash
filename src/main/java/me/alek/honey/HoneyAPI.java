@@ -39,7 +39,7 @@ public interface HoneyAPI {
 
     WideTempQueuedHandleTracker getNettyPacketTracker();
 
-    ExecutionQueueProxy getServerThreadTracker();
+    ExecutionQueueProxy getExecutionQueueProxy();
 
     MarkableHandleTracker<Double, String> getCheckHandleTracker();
 

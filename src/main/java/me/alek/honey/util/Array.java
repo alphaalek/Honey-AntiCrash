@@ -71,7 +71,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public Array<T> from(int from) {
-        return from(from, size());
+        return from(from, data.length);
     }
 
     public Array<T> compact() {
@@ -117,6 +117,15 @@ public class Array<T> implements Iterable<T> {
         return Arrays.stream(data).toArray(func);
     }
 
+    public T poll(int index) {
+        T val = get(index);
+        if (has(index)) {
+            set(index, null);
+        }
+
+        return val;
+    }
+
     public T get(int index) {
         return get(index, null);
     }
@@ -126,11 +135,12 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T getLast() {
-        return get(size() - 1);
+        return isEmpty() ? null : get(data.length - 1);
     }
 
     public T get(int index, Supplier<T> or) {
-        if (index < 0) {
+        if (index < 0
+                || index >= data.length && or == null) {
             return null;
         }
 
@@ -163,7 +173,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized void add(T val) {
-        int index = size();
+        int index = data.length;
         resolve(index);
         data[index] = val;
     }
@@ -198,7 +208,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean isEmpty() {
-        return size() == 0;
+        return data.length == 0;
     }
 
     public synchronized boolean set(int index, T val) {
@@ -224,7 +234,7 @@ public class Array<T> implements Iterable<T> {
             return false;
         }
 
-        if (size() == 1) {
+        if (data.length == 1) {
             return Objects.equals(val, get(0));
         }
 
@@ -238,7 +248,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean removeLast() {
-        return remove(size() - 1);
+        return remove(data.length - 1);
     }
 
     @Override

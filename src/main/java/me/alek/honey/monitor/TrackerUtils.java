@@ -8,7 +8,7 @@ import me.alek.honey.util.NumberUtils;
 
 public class TrackerUtils {
 
-    private static final TrackerAccessor serverThreadTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getServerThreadTracker());
+    private static final TrackerAccessor serverThreadTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getExecutionQueueProxy());
     private static final TrackerAccessor nettyPacketTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getNettyPacketTracker());
 
     public static TrackerAccessor getServer() {
