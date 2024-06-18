@@ -18,11 +18,13 @@ import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
 
@@ -66,29 +68,36 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 
-    private final class DelegatedWrapper extends WrappedQueue<Object> {
-
-        private final IStructureModifier<Integer> tickStructureModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
+    public Supplier<Integer> getTickAccessor() {
+        IStructureModifier<Integer> tickStructureModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
                 .withInts().withTarget(NMS.getMinecraftServer());
-        private final int finalFields = (int) tickStructureModifier.getAccessors()
+        int finalFields = (int) tickStructureModifier.getAccessors()
                 .stream()
                 .filter(field -> Modifier.isFinal(field.getHandle().getModifiers()))
                 .count();
-        private final Supplier<Integer> tickAccessor = () -> {
+
+        return () -> {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
                 return tickStructureModifier.readField(null, "ticks", 0);
             } else {
                 return tickStructureModifier.readField(finalFields + 1);
             }
         };
+    }
+
+    private final class DelegatedWrapper extends WrappedQueue<Object> {
+
+        private final Supplier<Integer> tickAccessor = getTickAccessor();
+        private Class<?> tickTaskClass;
+        private ConstructorInvoker<?> tickTaskConstructor;
 
         private Array<WrappedPacketTaskFuture> submitQueue = new Array<>();
         private int currentPollIndex;
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
-        private Class<?> tickTaskClass;
-        private ConstructorInvoker<?> tickTaskConstructor;
+
         private long recentPollStart = -1;
         private double recentDeltaTime = -1;
+
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
 
@@ -173,7 +182,13 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             WrappedPacketTaskFuture task = submitQueue.poll(currentPollIndex++);
             recentPacket = Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPacket).orElse(null);
 
-            if (task != null && task.isPostponed()) {
+            recentPollStart = -1;
+            if (task == null) {
+                tickLoopExecutionDone();
+                return null;
+            }
+
+            if (task.isPostponed()) {
                 task.getPlayer().postponedPackets--;
             }
 
@@ -181,25 +196,24 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 recentPacket.setHandledByServer();
             }
 
-            int currentTick;
-            if (task == null && doneTicks != (currentTick = getCurrentTick())) {
-                tickLoopExecutionDone(currentTick);
-            } else if (task != null && shouldPostponeTask(task)) {
-                if (!shouldDropTask(task)) {
-                    task.getPlayer().postponedPackets++;
-                    task.setPostponed();
-                    submitQueue.set(currentPollIndex - 1, task);
+            recentPollStart = System.nanoTime();
 
-                    HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(task.getPlayer(), true, false);
-                }
-
-                recentPollStart = -1;
+            if (shouldDropTask(task)) {
                 return getEmptyTask();
             }
 
-            recentPollStart = System.nanoTime();
+            if (shouldPostponeTask(task)) {
+                HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(
+                        task.getPlayer(), !task.isPostponed(), false);
 
-            return task != null ? newTickTask(task, doneTicks) : null;
+                task.getPlayer().postponedPackets++;
+                task.setPostponed();
+                submitQueue.set(currentPollIndex - 1, task);
+
+                return getEmptyTask();
+            }
+
+            return newTickTask(task, doneTicks);
         }
 
         @Override
@@ -317,10 +331,11 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             recentPacket = null;
         }
 
-        private void tickLoopExecutionDone(int currentTick) {
+        private void tickLoopExecutionDone() {
             currentPollIndex = 0;
             recentPollStart = -1;
             submitQueue = submitQueue.compact();
+            Bukkit.getLogger().info(submitQueue.stream().map(WrappedPacketTaskFuture::getPlayerPacketIndex).collect(Collectors.toList()) + "");
 
             HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 
@@ -328,7 +343,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
             }
 
-            doneTicks = currentTick;
+            doneTicks = getCurrentTick();
             doneExecutionTicks++;
             executing = false;
         }
