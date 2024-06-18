@@ -7,6 +7,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -24,7 +25,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
 
@@ -192,13 +192,29 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 task.getPlayer().postponedPackets--;
             }
 
+            if (task.getPlayer().postponedLastTick != getCurrentExecutionTick()) {
+                task.getPlayer().postponedPacketsForTick = 0;
+                task.getPlayer().postponedLastTick = getCurrentExecutionTick();
+            }
+
             if (recentPacket != null) {
                 recentPacket.setHandledByServer();
             }
 
-            recentPollStart = System.nanoTime();
-
             if (shouldDropTask(task)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)) {
+                    submitQueue.set(currentPollIndex - 1, task);
+                    task = submitQueue.poll(findOtherTaskIndex());
+                }
+
+                if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
+                    HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: "
+                            + task.getPacket().getType() + ", "
+                            + task.getPlayer().packetHandler.getProtocolState(task.getPacket().getType().getBound()) + ", "
+                            + task.getPacket().getType().getBound() + ", "
+                            + task.getPacket().getPlayerName());
+                }
+
                 return getEmptyTask();
             }
 
@@ -207,18 +223,16 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                         task.getPlayer(), !task.isPostponed(), false);
 
                 task.getPlayer().postponedPackets++;
+                task.getPlayer().postponedPacketsForTick++;
                 task.setPostponed();
                 submitQueue.set(currentPollIndex - 1, task);
+                super.add(EMPTY_VALUE);
 
                 return getEmptyTask();
             }
 
+            recentPollStart = System.nanoTime();
             return newTickTask(task, doneTicks);
-        }
-
-        @Override
-        public int size() {
-            return submitQueue.size() + 1;
         }
 
         @Override
@@ -234,8 +248,11 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             }
 
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
-            if (packet == null || packet.isHandledByServer() ||
-                    packet.getPlayer() != null && ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+            if (packet == null
+                    || packet.isHandledByServer()
+                    || packet.getPlayer() == null
+                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                            && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
 
@@ -260,6 +277,31 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             return true;
         }
 
+        private boolean isPacketDroppable(PacketContainer<? extends WrappedPacket<?>> packet) {
+            return packet.getType() == PacketTypes.Play.Client.FLYING
+                    || packet.getType() == PacketTypes.Play.Client.POSITION
+                    || packet.getType() == PacketTypes.Play.Client.POSITION_LOOK
+                    || packet.getType() == PacketTypes.Play.Client.GROUND
+                    || packet.getType() == PacketTypes.Play.Client.BOAT_MOVE
+                    || packet.getType() == PacketTypes.Play.Client.VEHICLE_MOVE;
+        }
+
+        private int findOtherTaskIndex() {
+            WrappedPacketTaskFuture first = submitQueue.get(currentPollIndex - 1);
+            if (first.isPostponed() && isPacketDroppable(first.getPacket())) {
+                return currentPollIndex - 1;
+            }
+
+            for (int i = currentPollIndex; i < submitQueue.size(); i++) {
+                WrappedPacketTaskFuture task = submitQueue.get(i);
+                if (task != null && first.isPostponed() && isPacketDroppable(task.getPacket())) {
+                    return i;
+                }
+            }
+
+            return currentPollIndex - 1;
+        }
+
         private boolean shouldDropTask(WrappedPacketTaskFuture task) {
             return task.getPlayer().postponedPackets > ConfigurationOptions.Postpone.MAX_POSTPONED_PACKETS
                     || getCurrentExecutionTick() - task.getTickAdded() > ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS;
@@ -272,12 +314,8 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             }
 
             HoneyPlayer player = task.getPlayer();
-            if (player.postponedLastTick != getCurrentExecutionTick()) {
-                player.postponedPackets = 0;
-                player.postponedLastTick = getCurrentExecutionTick();
-            }
 
-            if (player.postponedPackets > 0) {
+            if (player.postponedPacketsForTick > 0) {
                 return true;
             }
 
@@ -286,6 +324,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             for (PostponeCheck check : task.getPlayer().postponedChecks) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
+                        Bukkit.getLogger().info(check + "");
                         postponed.call(true);
                         return true;
                     }
@@ -325,6 +364,11 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 // evaluate the difference in time
                 double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
 
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)
+                        && isPacketDroppable(recentPacket)) {
+                    deltaTime = Math.min(deltaTime, ConfigurationOptions.Postpone.MAX_POSITION_TIME_REGISTER * Timespan.MILLIS_TO_NANO_MULTIPLIER);
+                }
+
                 registerTime(recentPacket.getPlayer(), deltaTime);
             }
             recentDeltaTime = -1;
@@ -335,7 +379,6 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             currentPollIndex = 0;
             recentPollStart = -1;
             submitQueue = submitQueue.compact();
-            Bukkit.getLogger().info(submitQueue.stream().map(WrappedPacketTaskFuture::getPlayerPacketIndex).collect(Collectors.toList()) + "");
 
             HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 

@@ -127,11 +127,14 @@ postpone:
   enabled: true
 
   # Max postponed packets. If the amount of currently postponed packets exceeds this amount, the oldest ones will be cancelled.
-  max-postponed-packets: 150
+  max-postponed-packets: 75
 
   # Max execution ticks for postponed packets. If the amount of execution ticks a packet has been postponed exceeds this amount, it will be cancelled.
   # Note! Ticks and execution ticks are not the same in 1.14+ and will therefore be handled differently.
-  max-postponed-execution-ticks: 100
+  max-postponed-execution-ticks: 50
+
+  # Max time register (in millis) to server-thread tracking for position packets in versions <1.13.1 due to server-thread chunk generation.
+  max-position-time-register: 10
 
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
@@ -141,17 +144,17 @@ postpone:
   rate-ignore-terminator: 10.0
 
   # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
-  max-per-x-tick: 100.0
-  max-per-x-amount: 4
+  max-per-x-tick: 225.0
+  max-per-x-amount: 5
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.
-  max-rate-5s: 150.0
-  max-rate-10s: 125.0
+  max-rate-5s: 140.0
+  max-rate-10s: 90.0
 
-  # Max packet task rate accel (the previous second).
-  max-rate-accel: 200.0
+  # Max packet task rate accel (the current second).
+  max-rate-accel: 180.0
 
-  # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
+  # Max packet task rate accel quotient (the current second compared to rate of the rest of the interval)
   max-rate-accel-quotient: 12.5
   min-rate-5s-for-quotient: 32.5
 

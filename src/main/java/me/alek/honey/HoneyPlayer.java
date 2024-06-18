@@ -48,6 +48,7 @@ public class HoneyPlayer {
     public boolean updateHandlersLater;
     public long packetIndex;
     public long postponedPackets;
+    public long postponedPacketsForTick;
     public long postponedLastTick;
     public HoneyPacketHandler packetHandler;
     public TempQueuedTracker timedQueuedTracker;

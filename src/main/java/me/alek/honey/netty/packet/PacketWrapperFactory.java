@@ -27,6 +27,7 @@ public class PacketWrapperFactory {
         loadWrapper(PacketTypes.Play.Client.BLOCK_DIG, WrappedPlayInBlockDig::new);
         loadWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadWrapper(PacketTypes.Play.Client.CHAT, WrappedPlayInChat::new);
+        loadWrapper(PacketTypes.Play.Client.CHAT_COMMAND, WrappedPlayInChat::new);
         loadWrapper(PacketTypes.Play.Client.SET_CREATIVE_SLOT, WrappedPlayInSetCreativeSlot::new);
         loadWrapper(PacketTypes.Play.Client.HELD_ITEM_SLOT, WrappedPlayInHeldItemSlot::new);
         loadWrapper(PacketTypes.Play.Client.POSITION, WrappedPlayInPosition::new);
