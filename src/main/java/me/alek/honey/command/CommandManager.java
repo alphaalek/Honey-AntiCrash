@@ -70,7 +70,7 @@ public class CommandManager implements CommandExecutor {
                 disabledFeatures.append("Postpone, ");
             }
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED) {
-                disabledFeatures.append("No Bypass Permission, ");
+                disabledFeatures.append("No-Bypass Permission, ");
             }
             if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
                 disabledFeatures.append("Async Decoder, ");
@@ -99,7 +99,7 @@ public class CommandManager implements CommandExecutor {
             }
 
             if (disabledFeatures.length() > 0) {
-                sender.sendMessage("§8* §7Disabled features: §8" + disabledFeatures.substring(0, disabledFeatures.length() - 2));
+                sender.sendMessage("§c[*] §7Disabled features: §8" + disabledFeatures.substring(0, disabledFeatures.length() - 2));
                 sender.sendMessage("");
             }
         }

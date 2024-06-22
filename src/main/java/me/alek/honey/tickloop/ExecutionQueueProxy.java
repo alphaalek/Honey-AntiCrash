@@ -131,12 +131,8 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             return tickTaskConstructor.invoke(currentTick, runnable);
         }
 
-        private int getCurrentTick() {
-            return tickAccessor.get();
-        }
-
         private Object getEmptyTask() {
-            return newTickTask(new FutureTask<>(() -> null), getCurrentTick());
+            return newTickTask(new FutureTask<>(() -> null), tickAccessor.get());
         }
 
         @Override
@@ -251,7 +247,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             if (packet == null
                     || packet.isHandledByServer()
                     || packet.getPlayer() == null
-                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                    || ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
                             && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
@@ -308,13 +304,11 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
         }
 
         private boolean shouldPostponeTask(WrappedPacketTaskFuture task) {
-            if (!ConfigurationOptions.Postpone.ENABLED
-                    || task.getPlayer() == null) {
+            if (!ConfigurationOptions.Postpone.ENABLED) {
                 return false;
             }
 
             HoneyPlayer player = task.getPlayer();
-
             if (player.postponedPacketsForTick > 0) {
                 return true;
             }
@@ -324,7 +318,6 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             for (PostponeCheck check : task.getPlayer().postponedChecks) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
-                        Bukkit.getLogger().info(check + "");
                         postponed.call(true);
                         return true;
                     }
@@ -353,7 +346,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                     });
                 }
             } else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4) && !tickTaskClass.isInstance(otherTask)) {
-                otherTask = newTickTask((Runnable) otherTask, getCurrentTick());
+                otherTask = newTickTask((Runnable) otherTask, tickAccessor.get());
             }
 
             return (Runnable) otherTask;
@@ -386,7 +379,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                 HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
             }
 
-            doneTicks = getCurrentTick();
+            doneTicks = tickAccessor.get();
             doneExecutionTicks++;
             executing = false;
         }

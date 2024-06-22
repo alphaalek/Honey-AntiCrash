@@ -6,7 +6,11 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class WrappedPacketTaskFuture extends FutureTask<Object> {
 
@@ -57,8 +61,6 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
             super.set(null);
             return;
         }
-
-        Bukkit.getLogger().info("Executing " + playerPacketIndex);
 
         started = System.nanoTime();
         PacketTaskHandler.registerTask(this);

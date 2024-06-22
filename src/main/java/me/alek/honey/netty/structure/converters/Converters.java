@@ -163,6 +163,7 @@ public class Converters {
                         .withType(ByteBuf.class).withTarget(delegate)
                         .readField(0);
 
+                // copy
                 if (params.length > 0 && params[0].equals(true)) {
                     buf = Unpooled.copiedBuffer(buf);
                 }

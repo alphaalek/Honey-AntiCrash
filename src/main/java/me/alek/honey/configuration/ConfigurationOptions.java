@@ -447,6 +447,7 @@ public class ConfigurationOptions {
         public static int CLEAR_OLD_VIOLATIONS_TIMESTAMP;
         public static String PREFIX;
         public static boolean BYPASS_PERMISSION_ENABLED;
+        public static boolean BYPASS_PERMISSION_SERVER_THREAD_ENABLED;
         public static boolean HIDE_COMMAND_ENABLED;
         public static String HIDE_COMMAND_MESSAGE;
         public static String HIDE_BYPASS_PERMISSION;
@@ -462,6 +463,7 @@ public class ConfigurationOptions {
             HIDE_COMMAND_MESSAGE = file.getString("hide-command-message", "SPIGOT_DEFAULT");
             HIDE_BYPASS_PERMISSION = file.getString("hide-bypass-permission", "honey.hide.bypass");
             BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled", false);
+            BYPASS_PERMISSION_SERVER_THREAD_ENABLED = file.getBoolean("bypass-permission-serverthread-tracking", true);
             BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");
             NOTIFY_PERMISSION = file.getString("notify-permission", "honey.notify");
 

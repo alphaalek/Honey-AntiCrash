@@ -54,16 +54,6 @@ public class PostActions {
         packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, packet -> {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(packet.getChannel());
         });
-
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().<WrappedPlayInCustomPayload>addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {
-            ByteBuf serializer = packet.getPacket().getBuf();
-
-            if (serializer.refCnt() > 0) {
-                serializer.retain();
-            } else {
-                serializer.release();
-            }
-        });
     }
 
     public static String getNameFromLoginStart(PacketContainer<WrappedLoginInLoginStart> packet) {

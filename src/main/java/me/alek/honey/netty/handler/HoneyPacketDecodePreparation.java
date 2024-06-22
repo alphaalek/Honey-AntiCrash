@@ -133,7 +133,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
                 if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
-                        || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                        || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                                && player != null
+                                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                     if (exemptedIntervalThrottle != null) {
                         exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(earlyPacketContainer), null, 1, null, null, null, null, null);

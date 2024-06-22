@@ -48,6 +48,7 @@ hide-bypass-permission: "honey.hide.bypass"
 # Permission that ignore ALL Honey features.
 # It's only recommend to use this, if you are 100% sure, that players with this permission will never try to exploit your server.
 bypass-permission-enabled: false
+bypass-permission-serverthread-tracking: true
 bypass-permission: "honey.bypass"
 
 # Permission which can get notifications by violated players. Can be toggled on/off by /honey notifications.
@@ -144,7 +145,7 @@ postpone:
   rate-ignore-terminator: 10.0
 
   # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
-  max-per-x-tick: 225.0
+  max-per-x-tick: 250.0
   max-per-x-amount: 5
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.
@@ -152,7 +153,7 @@ postpone:
   max-rate-10s: 90.0
 
   # Max packet task rate accel (the current second).
-  max-rate-accel: 180.0
+  max-rate-accel: 185.0
 
   # Max packet task rate accel quotient (the current second compared to rate of the rest of the interval)
   max-rate-accel-quotient: 12.5
