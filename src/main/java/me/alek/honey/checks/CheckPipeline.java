@@ -10,13 +10,14 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class CheckPipeline<C extends HoneyValidation<?>> {
 
-    private final List<C> validations = new ArrayList<>();
+    private final List<C> validations = new LinkedList<>();
     private final HoneyPlayer player;
 
     public static <C extends HoneyValidation<?>> CheckPipeline<C> from(HoneyPlayer player, C... checks) {

@@ -65,10 +65,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.logging.Handler;
-import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -297,7 +293,7 @@ public class HoneyPlugin implements HoneyAPI {
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
 
 
-        ExceptionPrintFilter.inject();
+        ErrorPrintFilter.inject();
     }
 
     private void setupPacketLibrary() {
