@@ -77,7 +77,7 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
 
             // start to check this validation
             ResponseContainer defaultResponse = getResponseAndRegisterTimings(check, getResponse, setting);
-            List<ResponseContainer> responsesList = new ArrayList<>(defaultResponse.subContainers);
+            List<ResponseContainer> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
             // handle all the responses
