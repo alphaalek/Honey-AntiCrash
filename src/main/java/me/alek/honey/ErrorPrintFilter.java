@@ -10,26 +10,19 @@ import org.bukkit.plugin.Plugin;
 import java.util.Enumeration;
 import java.util.logging.*;
 
-public class ExceptionPrintFilter {
+public class ErrorPrintFilter {
 
     public static void inject() {
         Bukkit.getScheduler().scheduleSyncDelayedTask(HoneyPlugin.get().getPlugin(), () -> {
             Enumeration<String> loggerEnumerator = LogManager.getLogManager().getLoggerNames();
             while (loggerEnumerator.hasMoreElements()) {
                 Logger logger = LogManager.getLogManager().getLogger(loggerEnumerator.nextElement());
-
                 injectLogger(logger);
-
-                Bukkit.broadcastMessage(logger + " " + logger.getFilter());
             }
 
             for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
                 injectLogger(plugin.getLogger());
-
-                Bukkit.broadcastMessage(plugin.getLogger() + " " + plugin.getLogger().getFilter());
             }
-
-            Bukkit.broadcastMessage(Bukkit.getPluginManager().getPlugin("ViaVersion").getLogger() + " " + Bukkit.getPluginManager().getPlugin("ViaVersion").getLogger().getFilter());
         });
     }
 
