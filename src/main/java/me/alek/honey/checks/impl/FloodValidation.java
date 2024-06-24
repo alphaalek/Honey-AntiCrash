@@ -29,7 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 

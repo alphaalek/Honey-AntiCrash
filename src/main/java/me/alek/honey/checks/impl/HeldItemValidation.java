@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
+public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> {
 
     @Override
     public CheckPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getPipeline(HoneyPlayer player) {

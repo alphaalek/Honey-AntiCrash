@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBlockPlace> implements IPacketListener {
+public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBlockPlace> {
 
     @Override
     public ListenerPriority getPriority() {

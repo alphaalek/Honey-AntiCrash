@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBlockDig> implements IPacketListener {
+public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBlockDig> {
 
     @Override
     public CheckPipeline<PacketValidation<WrappedPlayInBlockDig>> getPipeline(HoneyPlayer player) {

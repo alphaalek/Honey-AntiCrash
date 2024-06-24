@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class NettyDecodeValidation extends AbstractDecodeListener implements IListener {
+public class NettyDecodeValidation extends AbstractDecodeListener {
 
     @Override
     public CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
@@ -44,11 +44,6 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         byteBuf.readerIndex(readerIndex);
 
         container.getStorage().putInt(accumulated);
-    }
-
-    @Override
-    public HoneyCheckType getCheckType() {
-        return HoneyCheckType.DECODE;
     }
 
     public static class NettyD implements DecodeValidation, ViolationValidation<ByteBuf> {

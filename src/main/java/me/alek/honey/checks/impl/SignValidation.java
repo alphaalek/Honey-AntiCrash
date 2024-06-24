@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckPipeline;
-import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketValidation;
@@ -19,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
+public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> {
 
     @Override
     public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getPipeline(HoneyPlayer player) {

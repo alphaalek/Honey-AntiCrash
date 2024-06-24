@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCustomPayload> implements IPacketListener {
+public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {

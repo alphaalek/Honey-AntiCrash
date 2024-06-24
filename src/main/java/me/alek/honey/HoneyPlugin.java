@@ -5,9 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
-import me.alek.honey.checks.HoneyCheckType;
 import me.alek.honey.checks.IListener;
-import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.Validations;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
@@ -322,20 +320,10 @@ public class HoneyPlugin implements HoneyAPI {
         }
     }
 
-    public <WP extends WrappedPacket<WP>> void registerChecks() {
+    public void registerChecks() {
         for (IListener check : Validations.getValidations()) {
-
-            if (check instanceof PacketAdapter) {
-                ListenerPriority priority = check.getPriority();
-                if (check.getCheckType() == HoneyCheckType.PACKET && check instanceof IPacketListener) {
-                    packetLibrary.addListeners((PacketAdapter<WP>) check, priority, ((IPacketListener) check).getPacketTypes());
-                }
-                if (check.getCheckType() == HoneyCheckType.DECODE) {
-                    packetLibrary.addDecodeListener((PacketAdapter<?>) check, priority);
-                }
-
-                check.load();
-            }
+            check.register(packetLibrary);
+            check.load();
         }
     }
 

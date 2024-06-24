@@ -6,7 +6,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.CheckPipeline;
-import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.PacketValidation;
@@ -22,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInEncryptionBegin> implements IPacketListener {
+public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInEncryptionBegin> {
 
     @Override
     public boolean requiresPlayer() {

@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindowClick> implements IPacketListener {
+public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindowClick> {
 
     @Override
     public CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> getPipeline(HoneyPlayer player) {

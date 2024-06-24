@@ -21,7 +21,7 @@ import org.bukkit.Location;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
 
     private static final Map<UUID, Float> lastYawMap = new HashMap<>();
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();

@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
-public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
+public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
     public static final NettyA STATIC_NETTY_A = new NettyA();
 
@@ -86,7 +86,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketValidation<WP>, IPacketListener, ViolationValidation<WP> {
+    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final List<PacketType> IGNORE = Collections.singletonList(PacketTypes.Play.Client.FLYING);

@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
+public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> {
 
     @Override
     public CheckPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getPipeline(HoneyPlayer player) {

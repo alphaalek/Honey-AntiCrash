@@ -5,7 +5,9 @@ import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.DecodeValidation;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
+import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
@@ -13,7 +15,7 @@ import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
-public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable {
+public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable<DecodeValidation>, IListener {
 
     private final Array<CheckPipeline<DecodeValidation>> visitors = new Array<>();
     private boolean initializedCheckInstances;
@@ -54,6 +56,11 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
             }
             return Validation.PASS;
         }, byteBuf, checkContextContainer, callback);
+    }
+
+    @Override
+    public void register(PacketLibrary library) {
+        library.addDecodeListener(this, getPriority());
     }
 
     public synchronized boolean hasInitializedCheckInstances() {

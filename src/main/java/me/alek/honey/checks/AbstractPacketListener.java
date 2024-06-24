@@ -6,15 +6,21 @@ import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.DecodeValidation;
 import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements IPacketListener, CheckVisitable<PacketValidation<WP>> {
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements IListener, CheckVisitable<PacketValidation<WP>> {
 
     private final Array<CheckPipeline<PacketValidation<WP>>> visitors = new Array<>();
     private boolean initializedCheckInstances;
@@ -29,6 +35,29 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         developmentData.addEmpty(); // description
         developmentData.addEmpty(); // STQ
         developmentData.addEmpty(); // NTQ
+    }
+
+    public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> visitors, CheckVisitable<C> visitable, HoneyPlayer player) {
+        return getCachedPipeline(visitors, visitable, player, player != null ? player.registryID : 0);
+    }
+
+    public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> visitors, CheckVisitable<C> visitable, HoneyPlayer player, int registryID) {
+        if (!visitable.requiresPlayer() && !visitors.has(registryID)
+                || visitable.requiresPlayer() && player != null && player.isOnlineWeak() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getPipeline(player)).getPlayer())) {
+            visitors.set(registryID, visitable.getPipeline(player));
+
+            if (player != null) {
+                player.leaveCallback.addAction(p -> visitors.remove(registryID));
+            }
+        }
+        visitable.setInitializedCheckInstances();
+
+        return visitors.get(registryID);
+    }
+
+    @Override
+    public void register(PacketLibrary library) {
+        library.addListeners(this, getPriority(), getPacketTypes());
     }
 
     @Override
@@ -60,6 +89,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
                 return check.check(player, packetContainer.getPacket(), checkContextContainer);
             } catch (Exception e) {
                 e.printStackTrace();
+                Bukkit.getLogger().severe("Failed to handle packet validation for packet " + packetContainer);
             }
             return Validation.PASS;
         }, new CancellablePacketImpl(packetContainer), checkContextContainer, callback);
@@ -67,26 +97,10 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }
 
+    public abstract Supplier<List<PacketType>> getPacketTypes();
+
     public synchronized CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
         return getCachedPipeline(visitors, this, player);
-    }
-
-    public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> visitors, CheckVisitable<C> visitable, HoneyPlayer player) {
-        return getCachedPipeline(visitors, visitable, player, player != null ? player.registryID : 0);
-    }
-
-    public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> visitors, CheckVisitable<C> visitable, HoneyPlayer player, int registryID) {
-        if (!visitable.requiresPlayer() && !visitors.has(registryID)
-                || visitable.requiresPlayer() && player != null && player.isOnlineWeak() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getPipeline(player)).getPlayer())) {
-            visitors.set(registryID, visitable.getPipeline(player));
-
-            if (player != null) {
-                player.leaveCallback.addAction(p -> visitors.remove(registryID));
-            }
-        }
-        visitable.setInitializedCheckInstances();
-
-        return visitors.get(registryID);
     }
 
     public void setInitializedCheckInstances() {

@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
+public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
 
     @Override
     public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline(HoneyPlayer player) {
