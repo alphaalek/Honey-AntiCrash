@@ -105,7 +105,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
     }
 
     @Override
-    public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) throws Exception {
+    public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) throws Exception {
         String message = packet.getMessage();
         if (!message.startsWith("/")) {
             return Validation.PASS;
@@ -138,8 +138,8 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player, this);
+    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline() {
+        return CheckPipeline.from(this);
     }
 
     @Override

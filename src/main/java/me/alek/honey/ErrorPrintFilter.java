@@ -1,8 +1,11 @@
 package me.alek.honey;
 
+import me.alek.honey.checks.Settings;
 import me.alek.honey.checks.impl.NettyValidation;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.InboundPacketFilter;
+import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -48,17 +51,21 @@ public class ErrorPrintFilter {
             }
 
             int length = getLength(record);
-            try {
 
-                NettyValidation.STATIC_NETTY_A.check(packet.getPlayer(), length, null);
-
-            } catch (Exception ex) {
-
-            }
+            Cancellable.Stated stated = new Cancellable.Stated();
+            NettyValidation.STATIC_INTS.doStream(packet.getPlayer(), (check, key) -> Settings.getSetting(check), check -> {
+                try {
+                    return check.validate(packet.getPlayer(), length, null);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Bukkit.getLogger().severe("Failed to handle packet validation for packet " + packet);
+                }
+                return Validation.PASS;
+            }, stated, null, null);
 
             Bukkit.broadcastMessage("Error log Length " + length + ", packet: " + packet.getPlayerName());
 
-            return true;
+            return !stated.isCancelled();
         };
     }
 

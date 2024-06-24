@@ -58,9 +58,8 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
+    public CheckPipeline<PacketValidation<WP>> getPipeline() {
+        return CheckPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 
     @Override
@@ -81,7 +80,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 return Validation.inst().flag().build();
             }
@@ -154,7 +153,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled() && !PacketTypes.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getHoneyID())) {
 
                 for (ItemStack item : packet.getContainer().getItems().readFieldValues()) {
@@ -194,7 +193,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
                 return Validation.inst().flag()
                         .withViolationKey(getKey(packet))

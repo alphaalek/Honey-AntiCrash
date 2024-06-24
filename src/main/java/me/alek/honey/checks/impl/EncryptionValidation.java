@@ -29,8 +29,8 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedLoginInEncryptionBegin>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player, new EncryptionA());
+    public CheckPipeline<PacketValidation<WrappedLoginInEncryptionBegin>> getPipeline() {
+        return CheckPipeline.from(new EncryptionA());
     }
 
     @Override
@@ -43,7 +43,7 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedLoginInEncryptionBegin packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedLoginInEncryptionBegin packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

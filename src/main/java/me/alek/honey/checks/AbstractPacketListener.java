@@ -3,7 +3,6 @@ package me.alek.honey.checks;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.DecodeValidation;
 import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.checks.types.PacketValidation;
 import me.alek.honey.netty.PacketLibrary;
@@ -17,7 +16,6 @@ import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements IListener, CheckVisitable<PacketValidation<WP>> {
@@ -43,8 +41,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> visitors, CheckVisitable<C> visitable, HoneyPlayer player, int registryID) {
         if (!visitable.requiresPlayer() && !visitors.has(registryID)
-                || visitable.requiresPlayer() && player != null && player.isOnlineWeak() && !player.punished && !player.equals(visitors.get(registryID, () -> visitable.getPipeline(player)).getPlayer())) {
-            visitors.set(registryID, visitable.getPipeline(player));
+                || visitable.requiresPlayer() && player != null && player.isOnlineWeak() && !player.punished && !visitors.has(registryID)) {
+            visitors.set(registryID, visitable.getPipeline());
 
             if (player != null) {
                 player.leaveCallback.addAction(p -> visitors.remove(registryID));
@@ -84,9 +82,9 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        getPipeline(player).doStream(player, packetContainer.getHandle(), (check, key) -> Settings.getSetting(player, check, key, packetContainer.getPacket()), check -> {
+        getPipeline(player).doStream(player, (check, key) -> Settings.getSetting(player, check, key, packetContainer.getPacket()), validation -> {
             try {
-                return check.check(player, packetContainer.getPacket(), checkContextContainer);
+                return validation.validate(player, packetContainer.getPacket(), checkContextContainer);
             } catch (Exception e) {
                 e.printStackTrace();
                 Bukkit.getLogger().severe("Failed to handle packet validation for packet " + packetContainer);

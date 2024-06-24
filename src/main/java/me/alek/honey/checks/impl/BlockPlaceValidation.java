@@ -28,13 +28,8 @@ import java.util.function.Supplier;
 public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBlockPlace> {
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.NORMAL;
-    }
-
-    @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> getPipeline(HoneyPlayer player) {
-        CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new CheckPipeline<>(player);
+    public CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> getPipeline() {
+        CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new CheckPipeline<>();
         visitor.register(new BlockInteractA());
         visitor.register(new BlockInteractB());
         visitor.register(new BlockInteractC());
@@ -96,7 +91,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
@@ -131,7 +126,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
@@ -164,7 +159,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 ItemStack item = packet.getItem();
                 if (item == null) {
@@ -206,7 +201,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 int placedBlockDirection = packet.getPlacedBlockDirection();
 

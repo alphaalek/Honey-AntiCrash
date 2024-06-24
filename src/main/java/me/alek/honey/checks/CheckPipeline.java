@@ -18,30 +18,17 @@ import java.util.function.Function;
 public class CheckPipeline<C extends HoneyValidation<?>> {
 
     private final List<C> validations = new LinkedList<>();
-    private final HoneyPlayer player;
 
-    public static <C extends HoneyValidation<?>> CheckPipeline<C> from(HoneyPlayer player, C... checks) {
-        CheckPipeline<C> pipeline = new CheckPipeline<>(player);
+    public static <C extends HoneyValidation<?>> CheckPipeline<C> from(C... checks) {
+        CheckPipeline<C> pipeline = new CheckPipeline<>();
         for (C check : checks) {
             pipeline.register(check);
         }
         return pipeline;
     }
 
-    public CheckPipeline(HoneyPlayer player) {
-        this.player = player;
-    }
-
-    public HoneyPlayer getPlayer() {
-        return player;
-    }
-
     public void register(C check) {
         validations.add(check);
-    }
-
-    public List<C> getValidations() {
-        return validations;
     }
 
     private ResponseContainer getResponseAndRegisterTimings(C check, Function<C, ResponseContainer> getResponse, ConfigurationOptions.VlSetting setting) {
@@ -59,10 +46,10 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
         return response;
     }
 
-    public void doStream(HoneyPlayer player, Object handle,
+    public void doStream(HoneyPlayer player,
                           BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
                           Function<C, ResponseContainer> getResponse,
-                          Cancellable cancellable, CheckContextContainer checkContextContainer, CallbackAction<ResponseContainer> callback) {
+                          Cancellable cancellable, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
         int skipping = 0;
         for (C check : validations) {
             if (skipping-- > 0) {
@@ -82,7 +69,7 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
 
             // handle all the responses
             boolean terminated = false;
-            CheckContextContainer.DevelopmentData developmentData = checkContextContainer.getDevelopmentData(check);
+            CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(check);
             for (ResponseContainer response : responsesList) {
                 if (response == null) {
                     continue;
@@ -120,7 +107,7 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
 
                     ResponseContainer finalResponse = response;
                     HoneyPlugin.get().getViolationService().flag(
-                            player, handle, cancellable, key, response.violationKey, response.flag,
+                            player, cancellable, key, response.violationKey, response.flag,
                             response.onPunish, () -> finalResponse.onViolation.accept(check), response.onFlag, check, setting, developmentData);
 
                     if (player.punished) {

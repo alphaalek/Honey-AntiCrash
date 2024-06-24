@@ -32,9 +32,8 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedLoginInLoginStart>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new LoginA(), new LoginB());
+    public CheckPipeline<PacketValidation<WrappedLoginInLoginStart>> getPipeline() {
+        return CheckPipeline.from(new LoginA(), new LoginB());
     }
 
     @Override
@@ -47,7 +46,7 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
             if (profile == null) {
                 return Validation.PASS;
@@ -83,7 +82,7 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
             ChannelPipeline pipeline = packet.getContainer().getChannel().pipeline();
             ChannelHandler handler = pipeline.get("packet_handler");
 

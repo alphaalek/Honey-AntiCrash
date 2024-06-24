@@ -7,6 +7,6 @@ import me.alek.honey.checks.response.ResponseContainer;
 
 public interface DecodeValidation extends HoneyValidation<ByteBuf> {
 
-    ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception;
+    ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception;
 
 }

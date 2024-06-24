@@ -61,9 +61,8 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new RotationA<>(), new RotationB<>(), new RotationC<>());
+    public CheckPipeline<PacketValidation<WP>> getPipeline() {
+        return CheckPipeline.from(new RotationA<>(), new RotationB<>(), new RotationC<>());
     }
 
     @Override
@@ -93,7 +92,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 final float pitch = packet.getPitch();
 
@@ -132,7 +131,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (packet.getYaw() == 0 || MovementValidation.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
@@ -175,7 +174,7 @@ public class RotationValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getYaw() != 0) {

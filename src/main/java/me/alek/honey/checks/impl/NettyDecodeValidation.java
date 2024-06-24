@@ -24,8 +24,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
 
     @Override
     public CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
+        return CheckPipeline.from(new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
     }
 
     private static void processByteBuf(ByteBuf byteBuf, CheckContextContainer container) {
@@ -51,7 +50,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             processByteBuf(byteBuf, container);
 
             int size = byteBuf.readableBytes();
@@ -89,7 +88,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 return Validation.inst().flag(container.getStorage().getInt(1)).build();
             }
@@ -122,7 +121,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 return Validation.inst().flag(container.getStorage().getInt(0)).build();
             }
@@ -155,7 +154,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 return Validation.inst().flag(container.getStorage().getInt(0)).build();
             }
@@ -197,7 +196,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         ).build();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) throws Exception {
             /*
             if (getSetting().isEnabled() && player != null) {
 
@@ -247,7 +246,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         private boolean waitingFlag;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 if (byteBuf.readableBytes() > getSetting().threshold) {
@@ -328,7 +327,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         private long lastFlag;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled() && byteBuf.readableBytes() > getSetting().threshold) {
                 long diff = System.currentTimeMillis() -
                         (lastFlag != 0 ? lastFlag : System.currentTimeMillis() - getSetting().min + 1);

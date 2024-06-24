@@ -34,9 +34,8 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInTabComplete>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new TabA(), new TabB(), new TabC());
+    public CheckPipeline<PacketValidation<WrappedPlayInTabComplete>> getPipeline() {
+        return CheckPipeline.from(new TabA(), new TabB(), new TabC());
     }
 
     @Override
@@ -64,7 +63,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         private static String[] prohibitedCommands;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
             String message = packet.getMessage();
             String label = message.split(" ")[0];
 
@@ -129,7 +128,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         }
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new Consumer<Integer>() {
                     @Override
@@ -175,7 +174,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         private static final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
                     if (!player.violationContext.getViolationDistributors().has(getID())) {

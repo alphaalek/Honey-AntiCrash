@@ -21,9 +21,8 @@ import java.util.function.Supplier;
 public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new HeldItemA(), new HeldItemB());
+    public CheckPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getPipeline() {
+        return CheckPipeline.from(new HeldItemA(), new HeldItemB());
     }
 
     @Override
@@ -36,7 +35,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int slot = packet.getSlot();
@@ -79,7 +78,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this));

@@ -17,6 +17,14 @@ public class Settings {
         return settingArray.get(check.getID(), () -> ConfigurationOptions.getVlSetting(settingClass));
     }
 
+    public static ConfigurationOptions.VlSetting getSetting(HoneyValidation<?> check) {
+        if (!check.isViolation()) {
+            return null;
+        }
+
+        return ((ViolationValidation<?>) check).getSetting();
+    }
+
     public static <WP extends WrappedPacket<WP>> ConfigurationOptions.VlSetting getSetting(HoneyPlayer player, HoneyValidation<?> check, ViolationService.HoneyKey key, WP packet) {
         if (!check.isViolation()) {
             return null;

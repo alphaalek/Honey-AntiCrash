@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player, new SignA());
+    public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getPipeline() {
+        return CheckPipeline.from(new SignA());
     }
 
     @Override
@@ -39,7 +39,7 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
         };
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
             List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
             for (JsonObject page : legacyChatComponentPages) {
                 if (!page.has("text")) {

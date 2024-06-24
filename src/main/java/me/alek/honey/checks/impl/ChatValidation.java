@@ -21,9 +21,8 @@ import java.util.function.Supplier;
 public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new ChatA(), new ChatB());
+    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline() {
+        return CheckPipeline.from(new ChatA(), new ChatB());
     }
 
     @Override
@@ -36,7 +35,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String message = packet.getMessage();
@@ -78,7 +77,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 int messageLength = packet.getMessage().length();

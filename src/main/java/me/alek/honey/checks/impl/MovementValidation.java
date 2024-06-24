@@ -93,9 +93,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
-        return CheckPipeline.from(player,
-                new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
+    public CheckPipeline<PacketValidation<WP>> getPipeline() {
+        return CheckPipeline.from(new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
                 new MovementF<>(), new MovementG<>(), new MovementH<>(), new MovementI<>(), new MovementJ<>());
     }
 
@@ -145,7 +144,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private boolean wasOnGround;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (!(packet.getType() == PacketTypes.Play.Client.FLYING || packet.getType() == PacketTypes.Play.Client.GROUND))
                 return Validation.PASS;
 
@@ -189,7 +188,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             final Location packetLoc = packet.getLocation();
             final Location lastKnownPacketLoc = container.getStorage().getLocation(0);
 
@@ -258,7 +257,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private Location lastFlaggedLocation;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
@@ -311,7 +310,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private WrappedChunkCoordIntPair lastChunk;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map and loading excessively chunks
             WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
@@ -360,7 +359,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 return Validation.inst().cancel().flag().build();
             }
@@ -441,7 +440,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private Direction[] lastDirectionFlow;
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().getLocation(0);
@@ -501,7 +500,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             return Validation.PASS;
         }
 
@@ -536,7 +535,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private double lastDeltaY;
 
         @Override
-        public synchronized ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public synchronized ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             ResponseContainer response = Validation.PASS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
                 double delta2D = container.getStorage().getDouble(0);
@@ -617,7 +616,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
                 return Validation.inst().flag().build();
@@ -651,7 +650,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 final double x = packet.getX();
                 final double y = packet.getY();

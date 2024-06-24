@@ -4,10 +4,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.DecodeValidation;
-import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
@@ -47,9 +45,9 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
             });
         });
 
-        getPipeline(player).doStream(player, null, (check, key) -> Settings.getSetting(player, check, null, null), check -> {
+        getPipeline(player).doStream(player, (check, key) -> Settings.getSetting(check), validation -> {
             try {
-                return check.check(player, byteBuf.buf(), checkContextContainer);
+                return validation.validate(player, byteBuf.buf(), checkContextContainer);
             } catch (Exception e) {
                 e.printStackTrace();
                 Bukkit.getLogger().severe("Failed to handle decode validation for packet sent by " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown"));
