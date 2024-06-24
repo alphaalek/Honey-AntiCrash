@@ -8,43 +8,17 @@ public class ContainerStorageTypes {
     private static final Map<Class<?>, Integer> INDICES = new HashMap<>();
     private static int index = 8;
 
+    public static int BOOLEAN = 0;
+    public static int STRING = 1;
+    public static int CHAR = 2;
+    public static int INT = 3;
+    public static int FLOAT = 4;
+    public static int BYTE = 5;
+    public static int DOUBLE = 6;
+    public static int LONG = 7;
+    public static int LOCATION = 8;
+
     public static int getIndex(Class<?> clazz) {
         return INDICES.computeIfAbsent(clazz, (d) -> ++index);
-    }
-
-    public static int getIndexForBoolean() {
-        return 0;
-    }
-
-    public static int getIndexForString() {
-        return 1;
-    }
-
-    public static int getIndexForChar() {
-        return 2;
-    }
-
-    public static int getIndexForInt() {
-        return 3;
-    }
-
-    public static int getIndexForFloat() {
-        return 4;
-    }
-
-    public static int getIndexForByte() {
-        return 5;
-    }
-
-    public static int getIndexForDouble() {
-        return 6;
-    }
-
-    public static int getIndexForLong() {
-        return 7;
-    }
-
-    public static int getIndexForLocation() {
-        return 8;
     }
 }

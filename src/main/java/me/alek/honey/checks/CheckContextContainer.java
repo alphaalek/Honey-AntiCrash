@@ -143,75 +143,75 @@ public class CheckContextContainer {
         private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
 
         public void putBoolean(boolean bool) {
-            put(ContainerStorageTypes.getIndexForBoolean(), bool);
+            put(ContainerStorageTypes.BOOLEAN, bool);
         }
 
         public void putString(String string) {
-            put(ContainerStorageTypes.getIndexForString(), string);
+            put(ContainerStorageTypes.STRING, string);
         }
 
         public void putChar(char character) {
-            put(ContainerStorageTypes.getIndexForChar(), character);
+            put(ContainerStorageTypes.CHAR, character);
         }
 
         public void putInt(int integer) {
-            put(ContainerStorageTypes.getIndexForInt(), integer);
+            put(ContainerStorageTypes.INT, integer);
         }
 
         public void putFloat(float floatValue) {
-            put(ContainerStorageTypes.getIndexForFloat(), floatValue);
+            put(ContainerStorageTypes.FLOAT, floatValue);
         }
 
         public void putByte(byte byteValue) {
-            put(ContainerStorageTypes.getIndexForByte(), byteValue);
+            put(ContainerStorageTypes.BYTE, byteValue);
         }
 
         public void putDouble(double doubleValue) {
-            put(ContainerStorageTypes.getIndexForDouble(), doubleValue);
+            put(ContainerStorageTypes.DOUBLE, doubleValue);
         }
 
         public void putLong(long longValue) {
-            put(ContainerStorageTypes.getIndexForLong(), longValue);
+            put(ContainerStorageTypes.LONG, longValue);
         }
 
         public void putLocation(Location location) {
-            put(ContainerStorageTypes.getIndexForLocation(), location);
+            put(ContainerStorageTypes.LOCATION, location);
         }
 
         public String getString(int index) {
-            return get(ContainerStorageTypes.getIndexForString(), index);
+            return get(ContainerStorageTypes.STRING, index);
         }
 
         public boolean getBoolean(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForBoolean(), false);
+            return getVal(index, ContainerStorageTypes.BOOLEAN, false);
         }
 
         public char getChar(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForChar(), ' ');
+            return getVal(index, ContainerStorageTypes.CHAR, ' ');
         }
 
         public int getInt(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForInt(), 0);
+            return getVal(index, ContainerStorageTypes.INT, 0);
         }
 
         public float getFloat(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForFloat(), 0f);
+            return getVal(index, ContainerStorageTypes.FLOAT, 0f);
         }
 
         public byte getByte(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForByte(), (byte) 0);
+            return getVal(index, ContainerStorageTypes.BYTE, (byte) 0);
         }
 
         public double getDouble(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForDouble(), 0d);
+            return getVal(index, ContainerStorageTypes.DOUBLE, 0d);
         }
 
         public long getLong(int index) {
-            return getVal(index, ContainerStorageTypes.getIndexForLong(), 0L);
+            return getVal(index, ContainerStorageTypes.LONG, 0L);
         }
 
         public Location getLocation(int index) {
-            return get(index, ContainerStorageTypes.getIndexForLocation());
+            return get(index, ContainerStorageTypes.LOCATION);
         }
 
         public synchronized <T> void put(int index, T value) {
