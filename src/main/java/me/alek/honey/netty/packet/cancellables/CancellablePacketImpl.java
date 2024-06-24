@@ -2,9 +2,9 @@ package me.alek.honey.netty.packet.cancellables;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.CancellablePacketObserver;
+import me.alek.honey.netty.packet.Cancellable;
 
-public class CancellablePacketImpl implements CancellablePacketObserver {
+public class CancellablePacketImpl implements Cancellable {
 
     private final PacketContainer<?> packetContainer;
 

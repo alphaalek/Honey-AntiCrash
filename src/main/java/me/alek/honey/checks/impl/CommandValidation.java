@@ -3,13 +3,13 @@ package me.alek.honey.checks.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.CheckPipeline;
 import me.alek.honey.checks.Settings;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.HoneyCheck;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.HoneyValidation;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
@@ -27,11 +27,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat> implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
+public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat> implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
     private static String getLabel(String command) {
         String label = command.split( " ")[0];
@@ -112,7 +111,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
             return Validation.PASS;
         }
 
-        BiConsumer<HoneyCheck, Runnable> onViolationConsumer = (check, onViolation) -> {
+        BiConsumer<HoneyValidation<?>, Runnable> onViolationConsumer = (check, onViolation) -> {
             if (onViolation != null) onViolation.run();
 
             String messageFormatted = "\"" + (message.length() > 25 ? message.substring(0, 25) + "[...]" : message) + "\"";
@@ -139,8 +138,8 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInChat> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player, this);
+    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player, this);
     }
 
     @Override

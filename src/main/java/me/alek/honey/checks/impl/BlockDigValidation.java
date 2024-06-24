@@ -4,11 +4,10 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -22,8 +21,8 @@ import java.util.function.Supplier;
 public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBlockDig> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInBlockDig> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player, new BlockInteractE());
+    public CheckPipeline<PacketValidation<WrappedPlayInBlockDig>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player, new BlockInteractE());
     }
 
     @Override
@@ -31,7 +30,7 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
         return () -> Collections.singletonList(PacketTypes.Play.Client.BLOCK_DIG);
     }
 
-    public static class BlockInteractE implements PacketCheck<WrappedPlayInBlockDig>, ViolationCheck {
+    public static class BlockInteractE implements PacketValidation<WrappedPlayInBlockDig>, ViolationValidation<WrappedPlayInBlockDig> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

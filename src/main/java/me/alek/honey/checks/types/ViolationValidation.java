@@ -2,7 +2,7 @@ package me.alek.honey.checks.types;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 
-public interface ViolationCheck extends HoneyCheck {
+public interface ViolationValidation<T> extends HoneyValidation<T> {
 
     ConfigurationOptions.VlSetting getSetting();
 

@@ -1040,19 +1040,10 @@ public class ConfigurationOptions {
     @Setting
     public static class Netty {
 
-        /* @Setting */
-        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.CHIPSTATE_THROTTLE)
+        @Setting
+        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
         public static class NettyA extends VlSetting {
 
-            public static int MAX_PACKETS;
-            public static double MAX_HANDLE;
-
-            /*
-            public static void load() {
-                MAX_PACKETS = file.getInt("netty.a.max-packets", 10);
-                MAX_HANDLE = file.getDouble("netty.a.max-handle", 25.0);
-            }
-            */
         }
 
         @Setting

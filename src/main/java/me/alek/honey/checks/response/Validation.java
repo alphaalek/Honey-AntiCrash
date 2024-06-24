@@ -1,6 +1,6 @@
 package me.alek.honey.checks.response;
 
-import me.alek.honey.checks.types.HoneyCheck;
+import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.services.ViolationService;
 
 import java.util.Arrays;
@@ -87,8 +87,8 @@ public class Validation {
         return this;
     }
 
-    public Validation onViolation(BiConsumer<HoneyCheck, Runnable> runnable) {
-        Consumer<HoneyCheck> priorOnViolation = responseContainer.onViolation;
+    public Validation onViolation(BiConsumer<HoneyValidation<?>, Runnable> runnable) {
+        Consumer<HoneyValidation<?>> priorOnViolation = responseContainer.onViolation;
         responseContainer.onViolation = check -> runnable.accept(check, priorOnViolation == null ? null : () -> priorOnViolation.accept(check));
         return this;
     }

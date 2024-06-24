@@ -1,6 +1,6 @@
 package me.alek.honey.checks.response;
 
-import me.alek.honey.checks.types.HoneyCheck;
+import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.services.ViolationService;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public class ResponseContainer implements Cloneable {
     public boolean terminate;
     public int skipIndices;
     public ViolationService.HoneyKey violationKey;
-    public Consumer<HoneyCheck> onViolation;
+    public Consumer<HoneyValidation<?>> onViolation;
     public Runnable onFlag;
     public Runnable onPunish;
     public double flag = -1;

@@ -5,11 +5,10 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
@@ -23,8 +22,8 @@ import java.util.function.Supplier;
 public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInSetCreativeSlot> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new CreativeA(), new CreativeB(), new CreativeC());
     }
 
@@ -33,7 +32,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
         return () -> Collections.singletonList(PacketTypes.Play.Client.SET_CREATIVE_SLOT);
     }
 
-    public static class CreativeA implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
+    public static class CreativeA implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -69,7 +68,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
         }
     }
 
-    public static class CreativeB implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
+    public static class CreativeB implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -111,7 +110,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
         }
     }
 
-    public static class CreativeC implements PacketCheck<WrappedPlayInSetCreativeSlot>, ViolationCheck {
+    public static class CreativeC implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

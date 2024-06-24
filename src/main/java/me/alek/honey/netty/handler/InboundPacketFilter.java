@@ -23,11 +23,11 @@ import java.util.List;
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> earlyPacketInitializer = new ThreadLocal<>();
+    public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
 
     public static PacketContainer<? extends WrappedPacket<?>> getEarlyInitializedPacket() {
-        PacketContainer<? extends WrappedPacket<?>> packet = earlyPacketInitializer.get();
-        earlyPacketInitializer.remove();
+        PacketContainer<? extends WrappedPacket<?>> packet = MARK.get();
+        MARK.remove();
         return packet;
     }
 
@@ -74,7 +74,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
-        earlyPacketInitializer.set(packetContainer);
+        MARK.set(packetContainer);
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
         CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);

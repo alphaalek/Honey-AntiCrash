@@ -69,7 +69,9 @@ validation.rotation.c=Buffer of rotation distance exceeded
 
 validation.sign.a=Illegal sign text
 
+validation.netty.a=Buffer of error print exceeded by packets
 validation.netty.b=Packet structure with illegal attributes
+validation.netty.c=Too long error print by packet
 validation.netty.d=Too big packet
 validation.netty.e=Buffer of packet size exceeded
 validation.netty.f=Buffer of accumulated packet size exceeded

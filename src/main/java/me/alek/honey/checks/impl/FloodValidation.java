@@ -4,9 +4,9 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.KeyedViolationCheck;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.KeyedViolationValidation;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -15,8 +15,8 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -58,8 +58,8 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 
@@ -78,7 +78,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         };
     }
 
-    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
         public ResponseContainer check(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
@@ -139,7 +139,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class FloodC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class FloodC<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final IDRegistry packetTypes = new IDRegistry();
@@ -189,7 +189,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, KeyedViolationCheck<WP> {
+    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, KeyedViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

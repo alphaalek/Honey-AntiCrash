@@ -32,8 +32,8 @@ public class PostActions {
         PacketLibrary packetLibrary = HoneyPlugin.get().getPacketLibrary();
         PacketProcessor packetProcessor = packetLibrary.getPacketProcessor();
 
-        packetProcessor.addPostAction(PacketTypes.Login.Client.LOGIN_START, packet -> {
-            String name = getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) packet);
+        packetProcessor.<WrappedLoginInLoginStart>addPostAction(PacketTypes.Login.Client.LOGIN_START, packet -> {
+            String name = getNameFromLoginStart(packet);
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {
@@ -53,6 +53,10 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, packet -> {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(packet.getChannel());
+        });
+
+        packetProcessor.<WrappedPlayInCustomPayload>addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {
+            packet.getPacket().getBuf().retain();
         });
     }
 

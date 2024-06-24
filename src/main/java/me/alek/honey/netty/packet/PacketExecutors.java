@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.item.ItemAnalysis;
@@ -66,7 +67,14 @@ public class PacketExecutors {
             }
 
             NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-            return handleBookEdit(packetContainer, item, nbt);
+            return () -> {
+                ByteBuf buf = packetContainer.getPacket().getBuf();
+                if (buf.refCnt() > 0) {
+                    buf.release();
+                }
+
+                handleBookEdit(packetContainer, item, nbt);
+            };
         }
 
         private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {

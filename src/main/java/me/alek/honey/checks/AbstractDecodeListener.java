@@ -2,14 +2,20 @@ package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.response.ResponseContainer;
+import me.alek.honey.checks.response.Validation;
+import me.alek.honey.checks.types.DecodeValidation;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
+
+import java.util.Optional;
 
 public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable {
 
-    private final Array<CheckVisitor<?>> visitors = new Array<>();
+    private final Array<CheckPipeline<DecodeValidation>> visitors = new Array<>();
     private boolean initializedCheckInstances;
 
     @Override
@@ -39,15 +45,23 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
             });
         });
 
-        getVisitor(player).check(player, byteBuf, checkContextContainer, callback);
+        getPipeline(player).doStream(player, null, (check, key) -> Settings.getSetting(player, check, null, null), check -> {
+            try {
+                return check.check(player, byteBuf.buf(), checkContextContainer);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Bukkit.getLogger().severe("Failed to handle decode validation for packet sent by " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown"));
+            }
+            return Validation.PASS;
+        }, byteBuf, checkContextContainer, callback);
     }
 
     public synchronized boolean hasInitializedCheckInstances() {
         return initializedCheckInstances;
     }
 
-    public synchronized CheckVisitor<?> getVisitor(HoneyPlayer player) {
-        return AbstractPacketListener.getCachedVisitor(visitors, this, player);
+    public synchronized CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
+        return AbstractPacketListener.getCachedPipeline(visitors, this, player);
     }
 
     public void setInitializedCheckInstances() {

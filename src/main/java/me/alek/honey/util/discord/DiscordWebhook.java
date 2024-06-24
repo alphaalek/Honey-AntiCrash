@@ -3,7 +3,7 @@ package me.alek.honey.util.discord;
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.types.HoneyCheck;
+import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 
 public class DiscordWebhook {
 
@@ -29,7 +28,7 @@ public class DiscordWebhook {
         SUBMIT_SERVICE.submit(() -> send0(message));
     }
 
-    public static void violation(HoneyPlayer player, HoneyCheck check, String context, CheckContextContainer.DevelopmentData dev) {
+    public static void violation(HoneyPlayer player, HoneyValidation<?> check, String context, CheckContextContainer.DevelopmentData dev) {
         EmbedObject object = new EmbedObject()
                 .setColor(Color.ORANGE)
                 .setImage("http://cravatar.eu/head/" + player.name + ".png")

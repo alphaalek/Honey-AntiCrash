@@ -5,8 +5,8 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInHeldItemSlot> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new HeldItemA(), new HeldItemB());
     }
 
@@ -31,7 +31,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
         return () -> Collections.singletonList(PacketTypes.Play.Client.HELD_ITEM_SLOT);
     }
 
-    public static class HeldItemA implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
+    public static class HeldItemA implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -74,7 +74,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
         }
     }
 
-    public static class HeldItemB implements PacketCheck<WrappedPlayInHeldItemSlot>, ViolationCheck {
+    public static class HeldItemB implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

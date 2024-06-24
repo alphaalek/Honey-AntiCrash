@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet;
 
-public interface CancellablePacketObserver {
+public interface Cancellable {
 
     void cancel();
 

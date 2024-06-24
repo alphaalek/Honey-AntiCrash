@@ -6,8 +6,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.DecodeCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.DecodeValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.services.ViolationService;
@@ -23,8 +23,8 @@ import java.util.function.Supplier;
 public class NettyDecodeValidation extends AbstractDecodeListener implements IListener {
 
     @Override
-    public CheckVisitor<?> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
     }
 
@@ -51,7 +51,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         return HoneyCheckType.DECODE;
     }
 
-    public static class NettyD implements DecodeCheck, ViolationCheck {
+    public static class NettyD implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -89,7 +89,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
     }
 
-    public static class NettyE implements DecodeCheck, ViolationCheck {
+    public static class NettyE implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -122,7 +122,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
     }
 
-    public static class NettyF implements DecodeCheck, ViolationCheck {
+    public static class NettyF implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -155,7 +155,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
     }
 
-    public static class NettyG implements DecodeCheck, ViolationCheck {
+    public static class NettyG implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -188,7 +188,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
     }
 
-    public static class NettyK implements DecodeCheck, ViolationCheck {
+    public static class NettyK implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getNettyPacketTracker();
@@ -245,7 +245,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
     }
 
-    public abstract static class AbstractCategorizedCheck implements DecodeCheck, ViolationCheck {
+    public abstract static class AbstractCategorizedCheck implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private final Map<Long, DecayingListeningCounter> sizeMap = new HashMap<>();
         private long lastFlag;
@@ -328,7 +328,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener implements ILi
         }
     }
 
-    public abstract static class AbstractFloodDecodeCheck implements DecodeCheck, ViolationCheck {
+    public abstract static class AbstractFloodDecodeCheck implements DecodeValidation, ViolationValidation<ByteBuf> {
 
         private long lastFlag;
 

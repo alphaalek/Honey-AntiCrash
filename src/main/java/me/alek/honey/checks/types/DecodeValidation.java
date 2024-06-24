@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.CheckContextContainer;
 import me.alek.honey.checks.response.ResponseContainer;
 
-public interface DecodeCheck extends HoneyCheck {
+public interface DecodeValidation extends HoneyValidation<ByteBuf> {
 
     ResponseContainer check(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception;
 

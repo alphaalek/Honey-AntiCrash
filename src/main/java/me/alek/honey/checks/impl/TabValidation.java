@@ -5,8 +5,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -34,8 +34,8 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInTabComplete> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WrappedPlayInTabComplete>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new TabA(), new TabB(), new TabC());
     }
 
@@ -58,7 +58,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         TabB.tabCompleteQueueMap.remove(player.uuid);
     }
 
-    public static class TabA implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
+    public static class TabA implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static String[] prohibitedCommands;
@@ -105,7 +105,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         }
     }
 
-    public static class TabB implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
+    public static class TabB implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final Map<UUID, Queue<Consumer<Integer>>> tabCompleteQueueMap = new HashMap<>();
@@ -167,7 +167,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
         }
     }
 
-    public static class TabC implements PacketCheck<WrappedPlayInTabComplete>, ViolationCheck {
+    public static class TabC implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static ConfigurationOptions.VlSetting labelSetting;

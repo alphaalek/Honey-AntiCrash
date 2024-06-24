@@ -6,8 +6,8 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -24,14 +24,14 @@ import java.util.function.Supplier;
 public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindowClick> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInWindowClick> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInWindowClick> visitor = new CheckVisitor<>(player);
-        visitor.visit(new WindowA());
-        visitor.visit(new WindowB());
+    public CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> getPipeline(HoneyPlayer player) {
+        CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> visitor = new CheckPipeline<>(player);
+        visitor.register(new WindowA());
+        visitor.register(new WindowB());
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-            visitor.visit(new WindowC());
+            visitor.register(new WindowC());
         }
-        visitor.visit(new WindowD());
+        visitor.register(new WindowD());
         return visitor;
     }
 
@@ -40,7 +40,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         return () -> Collections.singletonList(PacketTypes.Play.Client.WINDOW_CLICK);
     }
 
-    public static class WindowA implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+    public static class WindowA implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -87,7 +87,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         }
     }
 
-    public static class WindowB implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+    public static class WindowB implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -120,7 +120,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         }
     }
 
-    public static class WindowC implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+    public static class WindowC implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -156,7 +156,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
         }
     }
 
-    public static class WindowD implements PacketCheck<WrappedPlayInWindowClick>, ViolationCheck {
+    public static class WindowD implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

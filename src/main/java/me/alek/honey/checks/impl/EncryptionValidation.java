@@ -5,11 +5,11 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.CheckPipeline;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -30,8 +30,8 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
     }
 
     @Override
-    public CheckVisitor<WrappedLoginInEncryptionBegin> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player, new EncryptionA());
+    public CheckPipeline<PacketValidation<WrappedLoginInEncryptionBegin>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player, new EncryptionA());
     }
 
     @Override
@@ -39,7 +39,7 @@ public class EncryptionValidation extends AbstractPacketListener<WrappedLoginInE
         return () -> Collections.singletonList(PacketTypes.Login.Client.ENCRYPTION_BEGIN);
     }
 
-    public static class EncryptionA implements PacketCheck<WrappedLoginInEncryptionBegin> {
+    public static class EncryptionA implements PacketValidation<WrappedLoginInEncryptionBegin> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

@@ -1,10 +1,11 @@
 package me.alek.honey.checks;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.checks.types.HoneyValidation;
 
-public interface CheckVisitable {
+public interface CheckVisitable<T extends HoneyValidation<?>> {
 
-    CheckVisitor<?> getVisitor(HoneyPlayer player);
+    CheckPipeline<T> getPipeline(HoneyPlayer player);
 
     void setInitializedCheckInstances();
 

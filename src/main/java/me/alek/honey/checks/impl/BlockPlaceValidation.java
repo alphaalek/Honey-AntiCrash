@@ -5,8 +5,8 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -33,13 +33,13 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInBlockPlace> getVisitor(HoneyPlayer player) {
-        CheckVisitor<WrappedPlayInBlockPlace> visitor = new CheckVisitor<>(player);
-        visitor.visit(new BlockInteractA());
-        visitor.visit(new BlockInteractB());
-        visitor.visit(new BlockInteractC());
+    public CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> getPipeline(HoneyPlayer player) {
+        CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new CheckPipeline<>(player);
+        visitor.register(new BlockInteractA());
+        visitor.register(new BlockInteractB());
+        visitor.register(new BlockInteractC());
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            visitor.visit(new BlockInteractD());
+            visitor.register(new BlockInteractD());
         }
         return visitor;
     }
@@ -91,7 +91,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         return Validation.PASS;
     }
 
-    public static class BlockInteractA implements ViolationCheck, PacketCheck<WrappedPlayInBlockPlace> {
+    public static class BlockInteractA implements ViolationValidation<WrappedPlayInBlockPlace>, PacketValidation<WrappedPlayInBlockPlace> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -126,7 +126,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         }
     }
 
-    public static class BlockInteractB implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractB implements PacketValidation<WrappedPlayInBlockPlace>, ViolationValidation<WrappedPlayInBlockPlace> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -159,7 +159,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         }
     }
 
-    public static class BlockInteractC implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractC implements PacketValidation<WrappedPlayInBlockPlace>, ViolationValidation<WrappedPlayInBlockPlace> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -201,7 +201,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
         }
     }
 
-    public static class BlockInteractD implements PacketCheck<WrappedPlayInBlockPlace>, ViolationCheck {
+    public static class BlockInteractD implements PacketValidation<WrappedPlayInBlockPlace>, ViolationValidation<WrappedPlayInBlockPlace> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

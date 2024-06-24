@@ -5,8 +5,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -93,8 +93,8 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
                 new MovementF<>(), new MovementG<>(), new MovementH<>(), new MovementI<>(), new MovementJ<>());
     }
@@ -139,7 +139,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         return false;
     }
 
-    public static class MovementA<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementA<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private boolean wasOnGround;
@@ -182,7 +182,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementB<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementB<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final ViolationService.HoneyKey XZKey = ViolationService.HoneyKey.of(0, "2d");
@@ -252,7 +252,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementC<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementC<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private Location lastFlaggedLocation;
@@ -304,7 +304,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementD<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementD<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private WrappedChunkCoordIntPair lastChunkCameFrom;
@@ -355,7 +355,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementE<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementE<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -388,7 +388,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementF<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementF<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -496,7 +496,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementG<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementG<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -526,7 +526,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementH<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementH<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
@@ -612,7 +612,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementI<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementI<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -646,7 +646,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         }
     }
 
-    public static class MovementJ<WP extends WrappedPlayInFlying<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class MovementJ<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

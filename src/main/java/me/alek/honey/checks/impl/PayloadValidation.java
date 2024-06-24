@@ -6,11 +6,10 @@ import me.alek.honey.checks.*;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
@@ -46,8 +45,8 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     @Override
-    public CheckVisitor<WrappedPlayInCustomPayload> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WrappedPlayInCustomPayload>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD(), new PayloadE());
     }
 
@@ -56,7 +55,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         return () -> Collections.singletonList(PacketTypes.Play.Client.CUSTOM_PAYLOAD);
     }
 
-    public static class PayloadA implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+    public static class PayloadA implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -91,7 +90,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
     }
 
-    public static class PayloadB implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+    public static class PayloadB implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -124,7 +123,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
     }
 
-    public static class PayloadC implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+    public static class PayloadC implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -180,7 +179,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
     }
 
-    public static class PayloadD implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+    public static class PayloadD implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -222,7 +221,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         }
     }
 
-    public static class PayloadE implements PacketCheck<WrappedPlayInCustomPayload>, ViolationCheck {
+    public static class PayloadE implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

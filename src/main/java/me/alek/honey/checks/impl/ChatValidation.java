@@ -4,8 +4,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInChat> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new ChatA(), new ChatB());
     }
 
@@ -31,7 +31,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
         return () -> Collections.singletonList(PacketTypes.Play.Client.CHAT);
     }
 
-    public static class ChatA implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
+    public static class ChatA implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -73,7 +73,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> im
         }
     }
 
-    public static class ChatB implements PacketCheck<WrappedPlayInChat>, ViolationCheck {
+    public static class ChatB implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

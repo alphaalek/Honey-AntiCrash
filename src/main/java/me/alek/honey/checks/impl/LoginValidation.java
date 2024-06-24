@@ -5,11 +5,11 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.CheckPipeline;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -33,8 +33,8 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
     }
 
     @Override
-    public CheckVisitor<WrappedLoginInLoginStart> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WrappedLoginInLoginStart>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 new LoginA(), new LoginB());
     }
 
@@ -43,7 +43,7 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
         return () -> Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
     }
 
-    public static class LoginA implements PacketCheck<WrappedLoginInLoginStart> {
+    public static class LoginA implements PacketValidation<WrappedLoginInLoginStart> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -79,7 +79,7 @@ public class LoginValidation extends AbstractPacketListener<WrappedLoginInLoginS
         }
     }
 
-    public static class LoginB implements PacketCheck<WrappedLoginInLoginStart> {
+    public static class LoginB implements PacketValidation<WrappedLoginInLoginStart> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

@@ -206,6 +206,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
+        read(ctx, o);
+
+        InboundPacketFilter.MARK.remove();
+    }
+
+    public void read(ChannelHandlerContext ctx, Object o) {
         if (!ctx.channel().isOpen()) {
             return;
         }
@@ -222,7 +228,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.getEarlyInitializedPacket();
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.MARK.get();
         if (packetContainer != null) {
             packetContainer.getEventloopStateTimings().stopTimings();
         }
@@ -238,16 +244,15 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 || player == null
                 || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
-            return;
+        } else {
+            ByteBuf wrapped = Unpooled.buffer().writeBytes(byteBuf).retain();
+            byteBuf.release();
+
+            asyncDecoder.decode((s) -> {
+                if (player.isOnlineWeak() && !player.punished) {
+                    invokeRead(packetContainer, ctx, wrapped, nonRecycledList);
+                }
+            });
         }
-
-        ByteBuf wrappedBuffer = Unpooled.buffer().writeBytes(byteBuf).retain();
-        byteBuf.release();
-
-        asyncDecoder.decode((s) -> {
-            if (player.isOnlineWeak() && !player.punished) {
-                invokeRead(packetContainer, ctx, wrappedBuffer, nonRecycledList);
-            }
-        });
     }
 }

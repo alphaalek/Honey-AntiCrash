@@ -3,7 +3,7 @@ package me.alek.honey.checks.types;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.services.ViolationService;
 
-public interface KeyedViolationCheck<T> extends ViolationCheck {
+public interface KeyedViolationValidation<T> extends ViolationValidation<T> {
 
     default ConfigurationOptions.VlSetting getSetting() {
         throw new UnsupportedOperationException();

@@ -5,8 +5,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
-import me.alek.honey.checks.types.ViolationCheck;
+import me.alek.honey.checks.types.PacketValidation;
+import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -25,9 +25,6 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPosition;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPositionLook;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.tickloop.ExecutionQueueProxy;
-import me.alek.honey.tickloop.packet.PacketTaskHandler;
-import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
@@ -42,6 +39,8 @@ import java.util.function.Supplier;
 
 public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements IPacketListener {
 
+    public static final NettyA STATIC_NETTY_A = new NettyA();
+
     @Override
     public Supplier<List<PacketType>> getPacketTypes() {
         return () -> PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER);
@@ -53,12 +52,41 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player,
+    public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player,
                 /* new NettyA<>(), */ new NettyB<>(), /*  new NettyC<>(), */ new NettyH<>(), new NettyI<>() /*, new NettyJ<>() */);
     }
 
-    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketCheck<WP>, IPacketListener, ViolationCheck {
+    public static class NettyA implements ViolationValidation<Integer> {
+        private static final int id = IDRegistry.CHECKS.acquire();
+
+        @Override
+        public ResponseContainer check(HoneyPlayer player, Integer val, CheckContextContainer container) throws Exception {
+            return null;
+        }
+
+        @Override
+        public int getID() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return "Netty.A";
+        }
+
+        @Override
+        public String getDescription() {
+            return Lang.get("validation.netty.b");
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyA.class);
+        }
+    }
+
+    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketValidation<WP>, IPacketListener, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final List<PacketType> IGNORE = Collections.singletonList(PacketTypes.Play.Client.FLYING);
@@ -99,8 +127,8 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public CheckVisitor<WP> getVisitor(HoneyPlayer player) {
-            return CheckVisitor.from(player, this);
+        public CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
+            return CheckPipeline.from(player, this);
         }
 
         @Override
@@ -182,7 +210,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class NettyC<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class NettyC<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getExecutionQueueProxy();
@@ -269,7 +297,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class NettyH<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class NettyH<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -315,7 +343,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class NettyI<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class NettyI<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -345,7 +373,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
     }
 
-    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketCheck<WP>, ViolationCheck {
+    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final WideTempQueuedHandleTracker tracker = HoneyPlugin.get().getExecutionQueueProxy();

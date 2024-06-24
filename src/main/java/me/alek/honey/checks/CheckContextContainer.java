@@ -1,6 +1,6 @@
 package me.alek.honey.checks;
 
-import me.alek.honey.checks.types.HoneyCheck;
+import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.NumberUtils;
 import org.bukkit.Location;
@@ -19,7 +19,7 @@ public class CheckContextContainer {
         return storage;
     }
 
-    public DevelopmentData getDevelopmentData(HoneyCheck check) {
+    public DevelopmentData getDevelopmentData(HoneyValidation<?> check) {
         return developmentDataMap.get(check.getID(), DevelopmentData::new);
     }
 

@@ -4,11 +4,11 @@ import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.checks.AbstractPacketListener;
 import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.CheckVisitor;
+import me.alek.honey.checks.CheckPipeline;
 import me.alek.honey.checks.IPacketListener;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.PacketCheck;
+import me.alek.honey.checks.types.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -22,8 +22,8 @@ import java.util.function.Supplier;
 public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> implements IPacketListener {
 
     @Override
-    public CheckVisitor<WrappedPlayInUpdateSign> getVisitor(HoneyPlayer player) {
-        return CheckVisitor.from(player, new SignA());
+    public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getPipeline(HoneyPlayer player) {
+        return CheckPipeline.from(player, new SignA());
     }
 
     @Override
@@ -31,7 +31,7 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
         return () -> Collections.singletonList(PacketTypes.Play.Client.UPDATE_SIGN);
     }
 
-    public static class SignA implements PacketCheck<WrappedPlayInUpdateSign> {
+    public static class SignA implements PacketValidation<WrappedPlayInUpdateSign> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
