@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 
 public class LoggerService {
 
+    private static final int MAX_PACKET_LOGGING_DATA = 5000;
+
     private boolean enabled;
     private boolean detailed;
     private boolean debug;
@@ -144,7 +146,7 @@ public class LoggerService {
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
         if (player != null && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
-                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getHandle().getClass().getSimpleName()))) {
+                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getRaw().getClass().getSimpleName()))) {
             synchronized (this) {
                 Queue<PacketType> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
@@ -170,33 +172,26 @@ public class LoggerService {
         monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
-    public void dumpPackets(HoneyPlayer player, List<PacketContainer<?>> packets) {
-        if (packets.isEmpty()) {
-            return;
-        }
-        getLogger().info("Packet dump of " + packets.size() + " packets from " + player.name);
-
-        long time = System.currentTimeMillis();
-        for (PacketContainer<?> packet : packets) {
-            logPacket(packet, player.name, true, time, false);
-        }
-    }
-
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
         if (PacketTypes.isUnknown(packet.getType())) {
             return;
         }
 
-        getLogger().info("Auto dump for packet sent by " + packet.getPlayerName() + ": " + packet.getName()
-                + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) " + packet.getAll().readFieldEntries());
+        getLogger().info(
+                "Auto dump for packet sent by "
+                + packet.getPlayerName() + ": "
+                + packet.getType()
+                + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) "
+                + filterTooMuchData(packet.getAll().readFieldEntries()));
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
-        logPacket(packetContainer, playerName, this.detailed, 0, true);
+        logPacket(packetContainer, playerName, this.detailed, 0);
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime, boolean canIgnore) {
-        if (canIgnore && (ignoredPlayers.contains(playerName) || ignoredPackets.contains(packetContainer.getName()))) {
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime) {
+        if (ignoredPlayers.contains(playerName)
+                || ignoredPackets.contains(packetContainer.getRaw().getClass().getSimpleName())) {
             return;
         }
 
@@ -204,13 +199,33 @@ public class LoggerService {
         if (comparingTime > packetContainer.getTime()) {
             message.append("(" + (comparingTime - packetContainer.getTime()) + "ms ago): ");
         }
-        message.append(playerName + " sent " + packetContainer.getName());
+        message.append(playerName + " sent " + packetContainer.getType());
 
         if (detailed && !PacketTypes.isUnknown(packetContainer.getType())) {
-            message.append(": " + formatPacketEntries(packetContainer));
+            message.append(": " + filterTooMuchData(formatPacketEntries(packetContainer)));
         }
 
         getLogger().info(message.toString());
+    }
+
+    public String filterTooMuchData(Object data) {
+        if (ConfigurationOptions.PacketLogger.FILTER_TOO_MUCH_DATA
+                && data.toString().getBytes().length > MAX_PACKET_LOGGING_DATA) {
+            StringBuilder newData = new StringBuilder();
+            String source = data.toString();
+            int c = 0;
+            int i = 0;
+            while (c < MAX_PACKET_LOGGING_DATA) {
+                String str = String.valueOf(source.charAt(i++));
+                newData.append(str);
+                c += str.getBytes().length;
+            }
+
+            newData.append(" (?) Too much data (!)");
+            return newData.toString();
+        }
+
+        return data.toString();
     }
 
     public Map<String, Object> getPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
@@ -220,7 +235,9 @@ public class LoggerService {
 
         Map<String, Object> entries = new HashMap<>();
         for (Map.Entry<String, Object> entry : packet.getAll().readFieldEntries().entrySet()) {
-            if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS && entry.getValue() != null && entry.getValue().getClass().isArray()) {
+            if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS
+                    && entry.getValue() != null
+                    && entry.getValue().getClass().isArray()) {
                 entries.put(entry.getKey(), formatArray(entry.getValue()));
             } else {
                 entries.put(entry.getKey(), entry.getValue());

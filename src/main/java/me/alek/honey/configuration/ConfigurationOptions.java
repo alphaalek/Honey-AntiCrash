@@ -643,6 +643,7 @@ public class ConfigurationOptions {
 
         public static boolean ENABLED;
         public static boolean DETAILED;
+        public static boolean FILTER_TOO_MUCH_DATA;
         public static boolean EARLY;
         public static boolean DEBUG;
         public static boolean DEBUG_PACKETS_CANCELLED;
@@ -652,11 +653,12 @@ public class ConfigurationOptions {
 
         public static void load() {
             ENABLED = file.getBoolean("packet-logger.enabled", false);
-            DEBUG = file.getBoolean("packet-logger.debug-mode", false);
-            EARLY = file.getBoolean("packet-logger.early", false);
-            DEBUG_PACKETS_CANCELLED = file.getBoolean("packet-logger.debug-packets-cancelled", false);
-            FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays", true);
             DETAILED = file.getBoolean("packet-logger.detailed", true);
+            FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays", true);
+            FILTER_TOO_MUCH_DATA = file.getBoolean("packet-logger.filter-too-much-data", true);
+            EARLY = file.getBoolean("packet-logger.early", false);
+            DEBUG = file.getBoolean("packet-logger.debug-mode", false);
+            DEBUG_PACKETS_CANCELLED = file.getBoolean("packet-logger.debug-packets-cancelled", false);
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
         }

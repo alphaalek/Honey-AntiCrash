@@ -17,8 +17,11 @@ public class CancellableByteBuf implements Cancellable {
 
     @Override
     public void cancel() {
-        if (cancelled) return;
+        if (cancelled) {
+            return;
+        }
         cancelled = true;
+
         if (player != null && player.isOnlineDirect()) {
             HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
         }

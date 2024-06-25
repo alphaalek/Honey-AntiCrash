@@ -3,6 +3,7 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -49,7 +50,18 @@ public class HoneyPacketDecoder {
             if (byteBuf.isReadable()) {
                 int end = byteBuf.readerIndex();
                 int remaining = byteBuf.readableBytes();
-                throw new DecoderException("Found " + remaining + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet " + packet + ", " + state + " " + ReflectStructureCache.acquireStructure(packet.getClass()).withoutStatic().withTarget(packet).readFieldEntries());
+                throw new DecoderException(
+                        "Found " + remaining
+                                + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
+                                + PacketTypes.getPacketType(packet.getClass(), state) + ", "
+                                + state + " "
+                                + HoneyPlugin.get().getLoggerService().filterTooMuchData(
+                                        ReflectStructureCache.acquireStructure(packet.getClass())
+                                                .withoutStatic()
+                                                .withTarget(packet)
+                                                .readFieldEntries()
+                                )
+                );
             }
 
         } catch (CodecException ex) {

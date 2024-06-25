@@ -225,6 +225,9 @@ packet-logger:
   # Should the packet logger be detailed, which means it shows all the properties of each packet.
   detailed: true
 
+  # Should the logger cut down too much data for detailed logging.
+  filter-too-much-data: true
+
   # Players which the packet logger should ignore.
   ignored-players:
   # - Alek05

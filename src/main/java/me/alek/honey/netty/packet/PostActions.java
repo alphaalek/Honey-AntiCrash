@@ -33,7 +33,7 @@ public class PostActions {
         PacketProcessor packetProcessor = packetLibrary.getPacketProcessor();
 
         packetProcessor.<WrappedLoginInLoginStart>addPostAction(PacketTypes.Login.Client.LOGIN_START, packet -> {
-            String name = packet.getName();
+            String name = packet.getPacket().getName();
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {

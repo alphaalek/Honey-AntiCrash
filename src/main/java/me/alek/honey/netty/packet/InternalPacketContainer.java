@@ -136,13 +136,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public Object getHandle() {
+    public Object getRaw() {
         return this.raw;
-    }
-
-    @Override
-    public String getName() {
-        return this.raw.getClass().getSimpleName();
     }
 
     @Override

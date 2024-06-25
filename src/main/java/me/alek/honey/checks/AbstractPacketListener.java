@@ -38,12 +38,14 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> pipelines, CheckPipelineFactory<C> factory, HoneyPlayer player, int registryID) {
-        if (!pipelines.has(registryID) && !factory.requiresPlayer()
-                || factory.requiresPlayer() && player != null && player.isOnlineWeak() && !player.punished && !pipelines.has(registryID)) {
-            pipelines.set(registryID, factory.getNewPipeline());
+        if (!pipelines.has(registryID)) {
+            if (!factory.requiresPlayer()
+                    || player != null && player.isOnlineDirect() && !player.punished) {
+                pipelines.set(registryID, factory.getNewPipeline());
 
-            if (player != null) {
-                player.leaveCallback.addAction(p -> pipelines.remove(registryID));
+                if (player != null) {
+                    player.leaveCallback.addAction(p -> pipelines.remove(registryID));
+                }
             }
         }
 
@@ -56,9 +58,12 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     @Override
-    public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
-        CheckContextContainer checkContextContainer = new CheckContextContainer();
+    public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
+        if (requiresPlayer() && player == null) {
+            return;
+        }
 
+        CheckContextContainer checkContextContainer = new CheckContextContainer();
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         callback.addAction((response) -> {
             response.builder().onViolation((check, onViolation) -> {
@@ -74,8 +79,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             });
         });
 
-        if (requiresPlayer() && player == null
-                || !onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
+        if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
             return;
         }
 

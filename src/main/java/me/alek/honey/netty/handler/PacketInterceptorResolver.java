@@ -160,7 +160,7 @@ public class PacketInterceptorResolver {
                     prev.set(name);
 
                     ChannelHandler intercepted = ctx.pipeline().get(name);
-                    ((ChannelOutboundHandler)intercepted).write(ctx, packet.getHandle(), promise);
+                    ((ChannelOutboundHandler)intercepted).write(ctx, packet.getRaw(), promise);
 
                 } catch (Exception ignored) {
                     ignored.printStackTrace();
@@ -168,7 +168,7 @@ public class PacketInterceptorResolver {
             }
         });
 
-        pipeline.channel().writeAndFlush(packet.getHandle());
+        pipeline.channel().writeAndFlush(packet.getRaw());
 
         return handlers;
     }

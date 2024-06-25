@@ -19,15 +19,17 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
 
     @Override
     public void onByteBufDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
-        CheckContextContainer checkContextContainer = new CheckContextContainer();
+        if (requiresPlayer() && player == null) {
+            return;
+        }
 
         // cancel the decoding if the player is not even online
-        if (player != null
-                && byteBuf.buf().refCnt() < 1) {
+        if (player != null && byteBuf.buf().refCnt() < 1) {
             byteBuf.cancel();
             return;
         }
 
+        CheckContextContainer checkContextContainer = new CheckContextContainer();
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         int bytes = byteBuf.buf().readableBytes();
         callback.addAction(response -> {

@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
 import java.util.function.Consumer;
@@ -40,9 +39,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     String getPlayerName();
 
-    Object getHandle();
-
-    String getName();
+    Object getRaw();
 
     boolean isCancelled();
 
