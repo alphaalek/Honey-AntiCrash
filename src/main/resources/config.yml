@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.5.2
+#   + This configuration file is generated using version v2.5.3
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -23,7 +23,7 @@
 # Discord: https://discord.gg/veAtFHG65u
 #
 
-# Put your license key below
+# Enter your license key below
 license: ""
 
 ############################################################
@@ -405,14 +405,17 @@ commands:
 # |--- netty ---|
 netty:
   a:
-    enabled: false # moved to execution postpone check
+    enabled: true
+    vls-amount: 2
+    max-per-interval: 15000
+    interval: 500
 
   b:
     enabled: true
     vls-amount: 1
 
   c:
-    enabled: false # moved to execution postpone check
+    enabled: true
 
   d:
     enabled: true
@@ -602,24 +605,25 @@ rotation:
 
   b:
     enabled: true
-    threshold: 10000
+    threshold: 25000
+    min-vls: 3
     vls-amount: 5
 
   c:
     enabled: true
     clear-buffer: true
-    threshold: 22500
+    threshold: 100000
     decay: 400
-    decay-amount: 6000
-    vls-amount: 3
+    decay-amount: 10000
+    vls-amount: 2
 
 # |--- block interact ---|
 block-interact:
   a:
     enabled: true
     max: 100
-    min-vls: 3
-    vls-amount: 5
+    min-vls: 5
+    vls-amount: 8
 
   b:
     enabled: true
@@ -636,8 +640,8 @@ block-interact:
   e:
     enabled: true
     max: 100
-    min-vls: 3
-    vls-amount: 5
+    min-vls: 5
+    vls-amount: 8
 
 # |--- tab complete ---|
 tab-complete:
@@ -716,6 +720,7 @@ packet-flood:
     enabled: true
     max-per-interval: 285
     interval: 700
+    min-vls: 3
     vls-amount: 4
 
   # nbt
