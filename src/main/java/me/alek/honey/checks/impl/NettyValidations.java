@@ -73,7 +73,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         @Override
         public String getDescription() {
-            return Lang.get("validation.netty.b");
+            return Lang.get("validation.netty.a");
         }
 
         @Override
