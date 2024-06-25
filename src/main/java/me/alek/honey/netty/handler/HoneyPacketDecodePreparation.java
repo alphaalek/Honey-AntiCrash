@@ -12,7 +12,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.util.UnsafeChannelCloser;

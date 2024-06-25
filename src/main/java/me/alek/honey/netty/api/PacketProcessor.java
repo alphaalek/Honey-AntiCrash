@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutor;
-import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
@@ -20,7 +20,7 @@ public interface PacketProcessor {
 
     <WP extends WrappedPacket<WP>> void addPostAction(PacketType packetType, Consumer<PacketContainer<WP>> callback);
 
-    void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf);
+    void callDecode(HoneyPlayer player, CancellableByteBuf byteBuf);
 
     void removeListener(PacketAdapter<?> packetAdapter, PacketType... packetType);
 

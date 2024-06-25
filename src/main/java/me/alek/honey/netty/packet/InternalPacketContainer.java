@@ -77,16 +77,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String toString() {
-        if (type == null) {
+        if (this.type == null) {
             return Lang.get("unknown");
         }
 
-        return "Packet:{Type:" + type + ",Player:" + getPlayerName() + "}";
+        return "Packet:{Type:" + this.type + ",Player:" + getPlayerName() + "}";
     }
 
     @Override
     public PacketStateTimings getEventloopStateTimings() {
-        return eventLoopStateTracker;
+        return this.eventLoopStateTracker;
     }
 
     @Override
@@ -96,36 +96,36 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public void addServerCallbackAction(Consumer<PacketContainer<WP>> action) {
-        callbackAction.addAction(action);
+        this.callbackAction.addAction(action);
     }
 
     @Override
     public void invokeServerCallback() {
-        callbackAction.call(this);
+        this.callbackAction.call(this);
     }
 
     @Override
     public Channel getChannel() {
-        return channel;
+        return this.channel;
     }
     @Override
     public PacketType getType() {
-        return type;
+        return this.type;
     }
 
     @Override
     public PacketState getState() {
-        if (type == null) {
+        if (this.type == null) {
             return PacketState.UNKNOWN;
         }
 
-        return type.getState();
+        return this.type.getState();
     }
 
     @Override
     public PacketState getProtocolState() {
         if (player != null) {
-            return player.packetHandler.getProtocolState(type.getBound());
+            return this.player.packetHandler.getProtocolState(type.getBound());
         }
 
         try {
@@ -137,26 +137,30 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public Object getHandle() {
-        return raw;
+        return this.raw;
     }
 
     @Override
     public String getName() {
-        return raw.getClass().getSimpleName();
+        return this.raw.getClass().getSimpleName();
     }
 
     @Override
     public boolean isDumped() {
-        return dumped;
+        return this.dumped;
     }
 
     @Override
     public boolean isCancelled() {
-        return cancelled;
+        return this.cancelled;
     }
 
     @Override
     public void cancel() {
+        if (!this.cancelled && this.player != null && this.player.isOnlineDirect()) {
+            HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
+        }
+
         this.cancelled = true;
     }
 
@@ -193,21 +197,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public String getPlayerName() {
         if (type == PacketTypes.Login.Client.LOGIN_START) {
-            String name = PostActions.getNameFromLoginStart((PacketContainer<WrappedLoginInLoginStart>) this);
-
-            try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).setPlayerName(name);
-            } catch (MissingHandlerException ignored) {
-
-            }
-
-            return name;
+            return ((WrappedLoginInLoginStart)wrapped).getName();
         }
 
         try {
             return Optional.ofNullable(player).map(player -> player.name)
                     .orElse(Optional.ofNullable(
-                            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayerName())
+                                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayerName())
                             .orElse("Unknown"));
         } catch (MissingHandlerException ex) {
             return "Unknown";
@@ -219,11 +215,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params) {
-        if (structure == null) {
+        if (this.structure == null) {
             return null;
         }
 
-        return structure.withType(clazz, converter).withTarget(raw, params);
+        return this.structure.withType(clazz, converter).withTarget(this.raw, params);
     }
 
     @Override
@@ -267,17 +263,17 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public IStructureModifier<Object> getObjects() {
+    public IStructureModifier<Object> getObjectsOf() {
         return getModifier(Object.class);
     }
 
     @Override
     public IStructureModifier<Object> getAll() {
-        if (structure == null) {
+        if (this.structure == null) {
             return null;
         }
 
-        return (IStructureModifier<Object>) structure.withTarget(raw);
+        return (IStructureModifier<Object>) this.structure.withTarget(raw);
     }
 
     @Override
@@ -331,12 +327,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public <T> IStructureModifier<T> getObjects(Class<T> target) {
-        if (structure == null) {
-            return null;
-        }
-
-        return structure.withType(target).withTarget(raw);
+    public <T> IStructureModifier<T> getObjectsOf(Class<T> target) {
+        return getModifier(target);
     }
-
 }

@@ -12,7 +12,7 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -77,7 +77,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         MARK.set(packetContainer);
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
-        CancellableByteBufImpl cancellableByteBuf = new CancellableByteBufImpl(player, byteBuf);
+        CancellableByteBuf cancellableByteBuf = new CancellableByteBuf(player, byteBuf);
         packetProcessor.callDecode(player, cancellableByteBuf);
         packetContainer.getEventloopStateTimings().stopTimings();
 

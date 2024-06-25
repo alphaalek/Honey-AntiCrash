@@ -2,7 +2,7 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.IListener;
+import me.alek.honey.checks.BaseValidation;
 import me.alek.honey.checks.Validations;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.storage.SQLManagerWrapper;
@@ -15,10 +15,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class PlayerJoinQuitListener implements Listener {
 
     public static void onPostLoginSuccess(HoneyPlayer player) {
-        for (IListener check : Validations.getValidations()) {
-            if (check.hasInitializedCheckInstances()) {
-                check.setup(player);
-            }
+        for (BaseValidation check : Validations.getValidations()) {
+            check.setup(player);
         }
         HoneyPlugin.get().getNotificationService().setup(player);
 
@@ -54,10 +52,8 @@ public class PlayerJoinQuitListener implements Listener {
             player = HoneyPlayer.registerPlayer(event.getPlayer());
         }
 
-        for (IListener check : Validations.getValidations()) {
-            if (check.hasInitializedCheckInstances()) {
-                check.cleanup(player);
-            }
+        for (BaseValidation check : Validations.getValidations()) {
+            check.cleanup(player);
         }
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);

@@ -366,7 +366,7 @@ public class NotificationService {
                     .withTarget(null);
         }
         Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
-        packetContainer.getObjects(IchatBaseComponentClass).writeField(0, chatComponent);
+        packetContainer.getObjectsOf(IchatBaseComponentClass).writeField(0, chatComponent);
 
         try {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);

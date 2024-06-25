@@ -19,10 +19,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> {
+public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getNewPipeline() {
         return CheckPipeline.from(new CreativeA(), new CreativeB(), new CreativeC());
     }
 
@@ -40,7 +40,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
             if (getSetting().isEnabled()) {
 
                 if (player.player.getGameMode() != GameMode.CREATIVE) {
-                    return Validation.inst().cancel().flag().build();
+                    return Validation.validate().cancel().flag().build();
                 }
             }
             return Validation.PASS;
@@ -76,7 +76,7 @@ public class CreativeValidation extends AbstractPacketListener<WrappedPlayInSetC
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
-                    return Validation.inst().cancel().flag()
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 

@@ -41,7 +41,7 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
     }
 
     private Object[] getChatBaseComponents() {
-        return (Object[]) getContainer().getObjects(iChatBaseComponentArrayClass).readField(0);
+        return (Object[]) getContainer().getObjectsOf(iChatBaseComponentArrayClass).readField(0);
     }
 
     public List<JsonObject> getLegacyJsonPages() {

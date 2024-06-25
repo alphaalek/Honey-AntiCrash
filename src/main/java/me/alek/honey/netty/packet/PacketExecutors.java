@@ -26,6 +26,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
@@ -67,14 +68,18 @@ public class PacketExecutors {
             }
 
             NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-            return () -> {
-                ByteBuf buf = packetContainer.getPacket().getBuf();
-                if (buf.refCnt() > 0) {
-                    buf.release();
-                }
 
-                handleBookEdit(packetContainer, item, nbt);
-            };
+            Runnable edit = handleBookEdit(packetContainer, item, nbt);
+            return Optional.ofNullable(edit)
+                .map(r -> (Runnable) () -> {
+                    ByteBuf buf = packetContainer.getPacket().getBuf();
+                    if (buf.refCnt() > 0) {
+                        buf.release();
+                    }
+
+                    edit.run();
+                })
+                .orElse(null);
         }
 
         private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
@@ -97,8 +102,8 @@ public class PacketExecutors {
                         player.getInventory().setItem(player.getInventory().getHeldItemSlot(), i);
                     });
                 case "MC|BSign":
-                    if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null) ||
-                            !isValidAuthor(packetContainer.getPlayer(), nbt)) {
+                    if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)
+                            || !isValidAuthor(packetContainer.getPlayer(), nbt)) {
                         break;
                     }
 
@@ -112,6 +117,7 @@ public class PacketExecutors {
                                 ? nbt.getListOf("pages", NBTType.STRING)
                                 : new NBTList<>(NBTType.STRING);
                         if (!serializeTextComponents(pages)) {
+                            // TODO: actually serialize the components of the meta
                             break;
                         }
                     }

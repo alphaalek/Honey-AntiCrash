@@ -40,9 +40,7 @@ validation.window.b=Clicking on illegal item
 validation.window.c=Illegal lectern move
 validation.window.d=Negative click context values
 
-validation.encryption.a=Encryption response with invalid ping
 validation.login.a=Player name already online
-validation.login.b=Login start with invalid ping
 
 validation.flood.a=General packet flood limiter
 validation.flood.b=Packet flood for sudden spikes

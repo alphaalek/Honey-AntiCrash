@@ -2,11 +2,9 @@ package me.alek.honey.checks;
 
 import me.alek.honey.checks.types.HoneyValidation;
 
-public interface CheckVisitable<T extends HoneyValidation<?>> {
+public interface CheckPipelineFactory<T extends HoneyValidation<?>> {
 
-    CheckPipeline<T> getPipeline();
-
-    void setInitializedCheckInstances();
+    CheckPipeline<T> getNewPipeline();
 
     default boolean requiresPlayer() {
         return true;

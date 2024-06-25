@@ -18,10 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeldItemSlot> {
+public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHeldItemSlot> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getNewPipeline() {
         return CheckPipeline.from(new HeldItemA(), new HeldItemB());
     }
 
@@ -40,7 +40,7 @@ public class HeldItemValidation extends AbstractPacketListener<WrappedPlayInHeld
 
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
-                    return Validation.inst().cancel().flag().terminate()
+                    return Validation.validate().cancel().flag().terminate()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 

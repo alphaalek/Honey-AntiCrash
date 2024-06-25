@@ -123,7 +123,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
 
         ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
         WrappedPacket<WrappedPlayOutKickDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketTypes.Play.Server.KICK_DISCONNECT, player);
-        kickDisconnect.getContainer().getObjects(NMS.getIChatBaseComponentClass())
+        kickDisconnect.getContainer().getObjectsOf(NMS.getIChatBaseComponentClass())
                 .writeField(0, Reflection.getConstructor(Reflection.getClass("{nms}.ChatComponentText"), String.class).invoke(
                         Lang.get("kick.too.long.packet.handle")
                 ));

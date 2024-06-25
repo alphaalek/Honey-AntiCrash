@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class NettyDecodeValidation extends AbstractDecodeListener {
+public class NettyDecodeValidations extends AbstractDecodeListener {
 
     @Override
-    public CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
+    public CheckPipeline<DecodeValidation> getNewPipeline() {
         return CheckPipeline.from(new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
     }
 
@@ -57,7 +57,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
             container.getStorage().putInt(size);
 
             if (getSetting().isEnabled()) {
-                return Validation.inst().flag(size).build();
+                return Validation.validate().flag(size).build();
             }
             return Validation.PASS;
         }
@@ -90,7 +90,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         @Override
         public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return Validation.inst().flag(container.getStorage().getInt(1)).build();
+                return Validation.validate().flag(container.getStorage().getInt(1)).build();
             }
             return Validation.PASS;
         }
@@ -123,7 +123,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         @Override
         public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return Validation.inst().flag(container.getStorage().getInt(0)).build();
+                return Validation.validate().flag(container.getStorage().getInt(0)).build();
             }
             return Validation.PASS;
         }
@@ -156,7 +156,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
         @Override
         public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return Validation.inst().flag(container.getStorage().getInt(0)).build();
+                return Validation.validate().flag(container.getStorage().getInt(0)).build();
             }
             return Validation.PASS;
         }
@@ -190,9 +190,9 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
 
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(0, "ta");
         private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(1, "tt");
-        private final ResponseContainer success = Validation.inst().add(
-                Validation.inst().flag(0).withViolationKey(TAKey).build(),
-                Validation.inst().flag(0).withViolationKey(TTKey).build()
+        private final ResponseContainer success = Validation.validate().add(
+                Validation.validate().flag(0).withViolationKey(TAKey).build(),
+                Validation.validate().flag(0).withViolationKey(TTKey).build()
         ).build();
 
         @Override
@@ -276,7 +276,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
                 }
                 if (waitingFlag) {
                     waitingFlag = false;
-                    return Validation.inst().cancel().flag(getSetting().maxPerInterval).build();
+                    return Validation.validate().cancel().flag(getSetting().maxPerInterval).build();
                 }
             }
             return Validation.PASS;
@@ -335,7 +335,7 @@ public class NettyDecodeValidation extends AbstractDecodeListener {
                 lastFlag = System.currentTimeMillis();
 
                 if (diff > getSetting().min) {
-                    return Validation.inst().flag().build();
+                    return Validation.validate().flag().build();
                 }
             }
             return Validation.PASS;

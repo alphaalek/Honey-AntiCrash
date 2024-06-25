@@ -38,9 +38,9 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
-public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
+public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
-    public static final CheckPipeline<HoneyValidation<Integer>> STATIC_INTS = CheckPipeline.from(new NettyA());
+    public static final CheckPipeline<ViolationValidation.IntViolation> STATIC_INTS = CheckPipeline.from(new NettyA());
 
     @Override
     public Supplier<List<PacketType>> getPacketTypes() {
@@ -53,18 +53,13 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getPipeline() {
+    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
         return CheckPipeline.from(
                 /* new NettyA<>(), */ new NettyB<>(), /*  new NettyC<>(), */ new NettyH<>(), new NettyI<>() /*, new NettyJ<>() */);
     }
 
-    public static class NettyA implements ViolationValidation<Integer> {
+    public static class NettyA implements ViolationValidation.IntViolation {
         private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public ResponseContainer validate(HoneyPlayer player, Integer val, CheckContextContainer container) throws Exception {
-            return null;
-        }
 
         @Override
         public int getID() {
@@ -128,7 +123,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         }
 
         @Override
-        public CheckPipeline<PacketValidation<WP>> getPipeline() {
+        public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
             return CheckPipeline.from(this);
         }
 
@@ -160,10 +155,10 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     Object[] values = reader.read(packet.getContainer());
                     for (Object value : values) {
                         if (value instanceof Float && NumberUtils.isInvalid((float) value)) {
-                            return Validation.inst().cancel().flag().build();
+                            return Validation.validate().cancel().flag().build();
                         }
                         if (value instanceof Double && NumberUtils.isInfinite((double) value)) {
-                            return Validation.inst().cancel().flag().build();
+                            return Validation.validate().cancel().flag().build();
                         }
                     }
 
@@ -172,12 +167,12 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                 for (double value : packet.getContainer().getDoubles().readFieldValues()) {
                     if (NumberUtils.isInvalid(value)) {
-                        return Validation.inst().cancel().flag().build();
+                        return Validation.validate().cancel().flag().build();
                     }
                 }
                 for (float value : packet.getContainer().getFloats().readFieldValues()) {
                     if (NumberUtils.isInvalid(value)) {
-                        return Validation.inst().cancel().flag().build();
+                        return Validation.validate().cancel().flag().build();
                     }
                 }
             }
@@ -234,7 +229,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                 if (playerRate5S > RATE_5S
                         || tracker.getPlayerRate(player, Timespan.TEN_SECOND, true) > RATE_10S) {
-                    return Validation.inst().flag(1).onViolation((check, onViolation) -> {
+                    return Validation.validate().flag(1).onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Rate (5s)",
@@ -247,7 +242,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 if (playerRate5S > RATE_ACCEL_5S
                         && tracker.hasCollected(player, Timespan.FIVE_SECOND)
                         && tracker.getPlayerRateAccelerationQuotient(player, Timespan.FIVE_SECOND, false, true) > QUOTIENT_ACCEL_5S) {
-                    return Validation.inst().flag(1).onViolation((check, onViolation) -> {
+                    return Validation.validate().flag(1).onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel quotient (5s)",
@@ -258,7 +253,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                 }
 
                 if (tracker.getPlayerRateAcceleration(player, false, false) > RATE_ACCEL) {
-                    return Validation.inst().flag(1).onViolation((check, onViolation) -> {
+                    return Validation.validate().flag(1).onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
                         container.getDevelopmentData(this).addPoint("Accel",
@@ -268,7 +263,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     }).build();
                 }
 
-                return Validation.inst().flag(0).build();
+                return Validation.validate().flag(0).build();
             }
             return Validation.PASS;
         }
@@ -307,7 +302,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.DECODE);
 
             if (setting.isEnabled() && decodeTime > 0) {
-                return Validation.inst().flag(decodeTime)
+                return Validation.validate().flag(decodeTime)
                         .onViolation((check, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
@@ -384,10 +379,10 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         private final ViolationService.HoneyKey HSQKey = ViolationService.HoneyKey.of(0, "hsq");
         private final ViolationService.HoneyKey TAKey = ViolationService.HoneyKey.of(1,"ta");
         private final ViolationService.HoneyKey TTKey = ViolationService.HoneyKey.of(2,"tt");
-        private final ResponseContainer success = Validation.inst().add(
-                Validation.inst().flag(0).withViolationKey(HSQKey).build(),
-                Validation.inst().flag(0).withViolationKey(TAKey).build(),
-                Validation.inst().flag(0).withViolationKey(TTKey).build()
+        private final ResponseContainer success = Validation.validate().add(
+                Validation.validate().flag(0).withViolationKey(HSQKey).build(),
+                Validation.validate().flag(0).withViolationKey(TAKey).build(),
+                Validation.validate().flag(0).withViolationKey(TTKey).build()
         ).build();
 
         @Override
@@ -405,7 +400,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                         double hsq = tracker.getHalfServerThreadQuotient(player, timespan, true);
                         if ((trackerSize > 25 && hsq > 0.4 * multiplier) || (trackerSize > 10 && hsq > 0.5 * multiplier) || hsq > 0.55 * multiplier) {
-                            return Validation.inst().cancel().withViolationKey(HSQKey).flag(1)
+                            return Validation.validate().cancel().withViolationKey(HSQKey).flag(1)
                                     .onViolation((check, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
@@ -416,7 +411,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                         double ta = tracker.getTimeToAverageWithoutQuotient(player, timespan, true);
                         if ((trackerSize > 15 && ta > 15 * multiplier) || (trackerSize > 25 && ta > 12.5 * multiplier) || (trackerSize > 40 && ta > 10 * multiplier)) {
-                            return Validation.inst().cancel().withViolationKey(TAKey).flag(1)
+                            return Validation.validate().cancel().withViolationKey(TAKey).flag(1)
                                     .onViolation((check, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
@@ -430,7 +425,7 @@ public class NettyValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
 
                         double tt = tracker.getTimeToTotalQuotient(player, timespan, true);
                         if ((trackerSize > 15 && tt > 0.6 * multiplier) || (trackerSize > 25 && tt > 0.5 * multiplier)) {
-                            return Validation.inst().cancel().withViolationKey(TTKey).flag(1)
+                            return Validation.validate().cancel().withViolationKey(TTKey).flag(1)
                                     .onViolation((check, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 

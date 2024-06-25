@@ -12,7 +12,6 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.listener.PacketAdapter;
-import me.alek.honey.netty.packet.cancellables.CancellablePacketImpl;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
@@ -25,7 +24,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComplete> {
+public class TabValidations extends AbstractPacketListener<WrappedPlayInTabComplete> {
 
 
     @Override
@@ -34,13 +33,13 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInTabComplete>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInTabComplete>> getNewPipeline() {
         return CheckPipeline.from(new TabA(), new TabB(), new TabC());
     }
 
     @Override
     public void load() {
-        TabA.prohibitedCommands = CommandValidation.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
+        TabA.prohibitedCommands = CommandValidations.getRegisteredCommands(ConfigurationOptions.Commands.PROHIBITED_TAB_COMPLETE_COMMANDS);
 
         if (TabC.labelSetting != null) {
             TabC.labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
@@ -68,8 +67,8 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
             String label = message.split(" ")[0];
 
             for (String prohibitedCommand : prohibitedCommands) {
-                if (CommandValidation.match(prohibitedCommand, label)) {
-                    return Validation.inst().cancel().flag()
+                if (CommandValidations.match(prohibitedCommand, label)) {
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -139,7 +138,7 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
                 // and therefore will block this packet. I do this by just flagging with 0.
-                return Validation.inst().flag(0).build();
+                return Validation.validate().flag(0).build();
             }
 
             return Validation.PASS;
@@ -189,9 +188,9 @@ public class TabValidation extends AbstractPacketListener<WrappedPlayInTabComple
 
                 int label = packet.getMessage().indexOf(" ");
                 int total = packet.getMessage().length();
-                return Validation.inst().add(
-                        Validation.inst().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
-                        Validation.inst().flag(total).withViolationKey(totalKey).build()
+                return Validation.validate().add(
+                        Validation.validate().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
+                        Validation.validate().flag(total).withViolationKey(totalKey).build()
                 ).build();
             }
 

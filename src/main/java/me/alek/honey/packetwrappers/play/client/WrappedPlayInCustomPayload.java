@@ -1,7 +1,6 @@
 package me.alek.honey.packetwrappers.play.client;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -11,11 +10,9 @@ import me.alek.honey.netty.util.MethodInvoker;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCustomPayload> {
 
@@ -32,7 +29,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
             buf = Unpooled.buffer();
 
-            Object payload = getContainer().getObjects(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
+            Object payload = getContainer().getObjectsOf(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
             Object key;
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 Object payloadData = ReflectStructureCache.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
@@ -50,7 +47,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
             buf = getDataSerializer(false);
 
             if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_12_2)) {
-                Object key = getContainer().getObjects(NMS.getMinecraftKeyClass()).readField(0);
+                Object key = getContainer().getObjectsOf(NMS.getMinecraftKeyClass()).readField(0);
 
                 channel = key.toString();
             } else {

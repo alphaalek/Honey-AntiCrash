@@ -30,13 +30,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
+public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
 
     private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
-    public MovementValidation() {
+    public MovementValidations() {
         HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutPosition>() {
 
             @Override
@@ -93,7 +93,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getPipeline() {
+    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
         return CheckPipeline.from(new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
                 new MovementF<>(), new MovementG<>(), new MovementH<>(), new MovementI<>(), new MovementJ<>());
     }
@@ -154,10 +154,10 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 this.wasOnGround = packet.onGround();
 
                 if (packet.onGround() != wasOnGround) {
-                    return Validation.inst().terminate().flag().build();
+                    return Validation.validate().terminate().flag().build();
                 }
             }
-            return Validation.inst().terminate().build();
+            return Validation.validate().terminate().build();
         }
 
         @Override
@@ -208,7 +208,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 final double maxDistance = getSetting().max;
                 // 2d distance check
                 if (distance2d >= maxDistance && distance2d != 0) {
-                    return Validation.inst().cancel().flag().withViolationKey(XZKey)
+                    return Validation.validate().cancel().flag().withViolationKey(XZKey)
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -218,7 +218,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 }
                 // y distance check
                 if (distanceY >= maxDistance && distanceY != 0) {
-                    return Validation.inst().cancel().flag().withViolationKey(YKey)
+                    return Validation.validate().cancel().flag().withViolationKey(YKey)
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -277,7 +277,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 lastFlaggedLocation = packet.getLocation();
 
                 final double priorDistance = LocationUtils.calculate3DDistance(priorLocation, packet.getLocation());
-                return Validation.inst().flag(Math.min(10, priorDistance)).build();
+                return Validation.validate().flag(Math.min(10, priorDistance)).build();
             }
             return Validation.PASS;
         }
@@ -330,7 +330,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
             if (!getSetting().isEnabled() || equalsChunk || equalsPreviousChunk) {
                 return Validation.PASS.copy().skip(skip).build();
             }
-            return Validation.inst().flag().skip(skip).build();
+            return Validation.validate().flag().skip(skip).build();
         }
 
         @Override
@@ -361,7 +361,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         @Override
         public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-                return Validation.inst().cancel().flag().build();
+                return Validation.validate().cancel().flag().build();
             }
             return Validation.PASS;
         }
@@ -453,7 +453,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 if (priorVelocity != null && priorVelocity.length == velocity.length) {
 
                     int i = 0;
-                    final Validation builder = Validation.inst();
+                    final Validation builder = Validation.validate();
                     for (final Direction dir : velocity) {
 
                         final Axis axis = axisLookup.get(dir);
@@ -462,7 +462,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                         if (corr == Direction.STILL || dir == Direction.STILL) continue;
 
                         if (corr == axis.getOther(dir)) {
-                            builder.add(Validation.inst().flag().withViolationKey(
+                            builder.add(Validation.validate().flag().withViolationKey(
                                     ViolationService.HoneyKey.of(axis.ordinal(), axis.name().toLowerCase())).build());
                         }
                     }
@@ -546,12 +546,12 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 }
 
                 boolean hasPattern = false;
-                Validation builder = Validation.inst();
+                Validation builder = Validation.validate();
 
                 if (delta2D > 0.05) {
                     if (lastDelta2D == delta2D) {
                         builder.add(
-                                Validation.inst().flag()
+                                Validation.validate().flag()
                                         .withViolationKey(twoDKey)
                                         .build()
                         );
@@ -573,7 +573,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
 
                     if (lastDeltaY == deltaY) {
                         builder.add(
-                                Validation.inst().flag()
+                                Validation.validate().flag()
                                         .withViolationKey(YKey)
                                         .build()
                         );
@@ -619,7 +619,7 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
         public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
 
-                return Validation.inst().flag().build();
+                return Validation.validate().flag().build();
             }
             return Validation.PASS;
         }
@@ -657,16 +657,16 @@ public class MovementValidation<WP extends WrappedPlayInFlying<WP>> extends Abst
                 final double z = packet.getZ();
 
                 if (x > 3.0E7 || x < -3.0E7) {
-                    return Validation.inst().cancel().flag().build();
+                    return Validation.validate().cancel().flag().build();
                 }
                 if (z > 3.0E7 || z < -3.0E7) {
-                    return Validation.inst().cancel().flag().build();
+                    return Validation.validate().cancel().flag().build();
                 }
                 if (y < getSetting().min || y > getSetting().max) {
                     if (player.player.isDead())
-                        return Validation.inst().cancel().build();
+                        return Validation.validate().cancel().build();
 
-                    return Validation.inst().cancel().flag().onPunish(() -> {
+                    return Validation.validate().cancel().flag().onPunish(() -> {
                         double yPosFix = y;
                         if (y < getSetting().min) {
                             while (player.getWorld().getBlockAt((int) x, (int) yPosFix++, (int) z).getType() != Material.AIR || yPosFix < 0) {

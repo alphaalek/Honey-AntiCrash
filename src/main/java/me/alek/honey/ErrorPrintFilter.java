@@ -1,7 +1,7 @@
 package me.alek.honey;
 
 import me.alek.honey.checks.Settings;
-import me.alek.honey.checks.impl.NettyValidation;
+import me.alek.honey.checks.impl.NettyValidations;
 import me.alek.honey.checks.response.Validation;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.InboundPacketFilter;
@@ -53,7 +53,7 @@ public class ErrorPrintFilter {
             int length = getLength(record);
 
             Cancellable.Stated stated = new Cancellable.Stated();
-            NettyValidation.STATIC_INTS.doStream(packet.getPlayer(), (check, key) -> Settings.getSetting(check), check -> {
+            NettyValidations.STATIC_INTS.doStream(packet.getPlayer(), (check, key) -> Settings.getSetting(check), check -> {
                 try {
                     return check.validate(packet.getPlayer(), length, null);
                 } catch (Exception ex) {

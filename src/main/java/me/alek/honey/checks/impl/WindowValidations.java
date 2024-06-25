@@ -21,10 +21,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindowClick> {
+public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindowClick> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> getNewPipeline() {
         CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> visitor = new CheckPipeline<>();
         visitor.register(new WindowA());
         visitor.register(new WindowB());
@@ -54,7 +54,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
                     inventorySlots += 4; // armor slots
                 }
                 if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
-                    return Validation.inst().cancel().flag()
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -129,7 +129,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
             if (getSetting().isEnabled()) {
                 if (player.player.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getMode() == 1) {
-                    return Validation.inst().cancel().flag().build();
+                    return Validation.validate().cancel().flag().build();
                 }
             }
             return Validation.PASS;
@@ -166,7 +166,7 @@ public class WindowValidation extends AbstractPacketListener<WrappedPlayInWindow
 
                 if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {
                     HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
-                    return Validation.inst().flag().build();
+                    return Validation.validate().flag().build();
                 }
             }
             return Validation.PASS;

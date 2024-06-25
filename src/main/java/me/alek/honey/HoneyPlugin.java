@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
-import me.alek.honey.checks.IListener;
+import me.alek.honey.checks.BaseValidation;
 import me.alek.honey.checks.Validations;
 import me.alek.honey.checks.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
@@ -22,7 +22,6 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
@@ -30,7 +29,6 @@ import me.alek.honey.netty.util.FieldAccessor;
 import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.netty.util.Reflection;
-import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
@@ -321,7 +319,7 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public void registerChecks() {
-        for (IListener check : Validations.getValidations()) {
+        for (BaseValidation check : Validations.getValidations()) {
             check.register(packetLibrary);
             check.load();
         }
@@ -348,7 +346,7 @@ public class HoneyPlugin implements HoneyAPI {
         configuration.reload();
         Lang.load();
 
-        for (IListener check : Validations.getValidations()) {
+        for (BaseValidation check : Validations.getValidations()) {
             check.load();
         }
         ItemAnalysis.reload();

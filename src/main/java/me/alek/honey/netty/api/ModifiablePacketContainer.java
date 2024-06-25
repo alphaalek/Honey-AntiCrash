@@ -26,7 +26,7 @@ public interface ModifiablePacketContainer {
 
     IStructureModifier<String> getStrings();
 
-    IStructureModifier<Object> getObjects();
+    IStructureModifier<Object> getObjectsOf();
 
     IStructureModifier<Object> getAll();
 
@@ -50,7 +50,7 @@ public interface ModifiablePacketContainer {
 
     IStructureModifier<WrappedBlockPosition> getBlockPositions();
 
-    <T> IStructureModifier<T> getObjects(Class<T> target);
+    <T> IStructureModifier<T> getObjectsOf(Class<T> target);
 
     <T> IStructureModifier<T> getModifier(Class<T> clazz);
 

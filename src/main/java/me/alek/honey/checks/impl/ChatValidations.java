@@ -18,10 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
+public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
         return CheckPipeline.from(new ChatA(), new ChatB());
     }
 
@@ -40,11 +40,11 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
 
                 String message = packet.getMessage();
                 if (message.isEmpty()) {
-                    return Validation.inst().cancel().flag().terminate().build();
+                    return Validation.validate().cancel().flag().terminate().build();
                 }
                 for (char character : message.toCharArray()) {
                     if (character == Character.MIN_VALUE) {
-                        return Validation.inst().cancel().flag().terminate().build();
+                        return Validation.validate().cancel().flag().terminate().build();
                     }
                 }
             }
@@ -83,7 +83,7 @@ public class ChatValidation extends AbstractPacketListener<WrappedPlayInChat> {
                 int messageLength = packet.getMessage().length();
 
                 if (messageLength > (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11) ? 100 : 256)) {
-                    return Validation.inst().cancel().flag()
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 

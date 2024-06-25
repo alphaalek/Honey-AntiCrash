@@ -18,10 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBlockDig> {
+public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlockDig> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInBlockDig>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInBlockDig>> getNewPipeline() {
         return CheckPipeline.from(new BlockInteractE());
     }
 
@@ -41,7 +41,7 @@ public class BlockDigValidation extends AbstractPacketListener<WrappedPlayInBloc
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
                 if (blockPosition == null || blockPosition.getY() == -1) return Validation.PASS;
 
-                return BlockPlaceValidation.checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
+                return BlockPlaceValidations.checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
             }
             return Validation.PASS;
         }

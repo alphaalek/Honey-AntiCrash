@@ -43,7 +43,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             return getContainer().getInts().readField(3);
         }
-        Enum<?> enumConst = getContainer().getObjects(enumConstClass).readField(0);
+        Enum<?> enumConst = getContainer().getObjectsOf(enumConstClass).readField(0);
         return enumConst.ordinal();
     }
 

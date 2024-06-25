@@ -8,31 +8,31 @@ import java.util.function.Supplier;
 
 public enum Validations {
 
-    v1(FloodValidation::new),
-    v2(MovementValidation::new),
-    v3(HeldItemValidation::new),
-    v4(CreativeValidation::new),
-    v5(PayloadValidation::new),
-    v6(NettyValidation::new),
-    v7(NettyValidation.NettyB::new),
-    v8(NettyDecodeValidation::new),
-    v9(LoginValidation::new),
-    v10(SignValidation::new),
-    v11(BlockPlaceValidation::new),
-    v12(ChatValidation::new),
-    v13(EncryptionValidation::new),
-    v14(WindowValidation::new),
-    v15(RotationValidation::new),
-    v17(BlockDigValidation::new),
-    v18(TabValidation::new),
-    v19(CommandValidation::new),
+    v1(FloodValidations::new),
+    v2(MovementValidations::new),
+    v3(HeldItemValidations::new),
+    v4(CreativeValidations::new),
+    v5(PayloadValidations::new),
+    v6(NettyValidations::new),
+    v7(NettyValidations.NettyB::new),
+    v8(NettyDecodeValidations::new),
+    v9(LoginValidations::new),
+    v10(SignValidations::new),
+    v11(BlockPlaceValidations::new),
+    v12(ChatValidations::new),
+    v13(EncryptionValidations::new),
+    v14(WindowValidations::new),
+    v15(RotationValidations::new),
+    v17(BlockDigValidations::new),
+    v18(TabValidations::new),
+    v19(CommandValidations::new),
     ;
 
-    private static List<IListener> validations;
+    private static List<BaseValidation> validations;
 
-    public static synchronized List<IListener> getValidations() {
+    public static synchronized List<BaseValidation> getValidations() {
         if (validations == null) {
-            List<IListener> checkList = new ArrayList<>();
+            List<BaseValidation> checkList = new ArrayList<>();
             for (Validations check : Validations.values()) {
                 checkList.add(check.getCheck().get());
             }
@@ -41,13 +41,13 @@ public enum Validations {
         return validations;
     }
 
-    private final Supplier<IListener> validation;
+    private final Supplier<BaseValidation> validation;
 
-    Validations(Supplier<IListener> check) {
+    Validations(Supplier<BaseValidation> check) {
         this.validation = check;
     }
 
-    public Supplier<IListener> getCheck() {
+    public Supplier<BaseValidation> getCheck() {
         return validation;
     }
 }

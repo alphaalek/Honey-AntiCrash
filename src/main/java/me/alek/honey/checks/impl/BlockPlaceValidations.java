@@ -9,7 +9,6 @@ import me.alek.honey.checks.types.PacketValidation;
 import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -25,10 +24,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBlockPlace> {
+public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInBlockPlace> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> getNewPipeline() {
         CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new CheckPipeline<>();
         visitor.register(new BlockInteractA());
         visitor.register(new BlockInteractB());
@@ -48,7 +47,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         // check if the block position is close to the origin block position, just ignore this packet if it is
         final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
-        final Location lastPlayerLocation = MovementValidation.getLastLocationFor(player);
+        final Location lastPlayerLocation = MovementValidations.getLastLocationFor(player);
 
         if (blockPosition.distance(originLocation) < 10
                 && LocationUtils.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
@@ -57,24 +56,24 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
         // blocks in there
-        if (!MovementValidation.isChunkLoaded(blockPosition.toLocation(player.getWorld()))
+        if (!MovementValidations.isChunkLoaded(blockPosition.toLocation(player.getWorld()))
                 || blockPosition.isInvalid())
             // dont flag because it might just be server lag, just cancel it
-            return Validation.inst().cancel().build();
+            return Validation.validate().cancel().build();
 
         // checks distance between the player and the block placed
-        Location playerLocation = MovementValidation.getLastLocationFor(player);
+        Location playerLocation = MovementValidations.getLastLocationFor(player);
         if (playerLocation == null) playerLocation = player.getLocation();
 
         final double distance = blockPosition.distance(playerLocation);
 
         // the distance is higher than the recent client location
         if (distance == -1 ||
-                distance > maxDistance && !MovementValidation.isAnyLatelyTeleportationLocationsCloseTo(
+                distance > maxDistance && !MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
                         player, maxDistance, blockPosition::distance)) {
 
             // add the distance to the development data
-            return Validation.inst().cancel().flag()
+            return Validation.validate().cancel().flag()
                     .onViolation((check, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
@@ -169,7 +168,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
                 Material material = item.getType();
                 if (material == Material.PISTON_MOVING_PIECE
                         || material == Material.PISTON_EXTENSION) {
-                    return Validation.inst().cancel().flag().build();
+                    return Validation.validate().cancel().flag().build();
                 }
             }
             return Validation.PASS;
@@ -211,7 +210,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
 
                 CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
-                    return Validation.inst().cancel().flag()
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -220,7 +219,7 @@ public class BlockPlaceValidation extends AbstractPacketListener<WrappedPlayInBl
                             .build();
                 }
                 if (facingX < 0 || facingX > 1 || facingY < 0 || facingY > 1 || facingZ < 0 || facingZ > 1) {
-                    return Validation.inst().cancel().flag()
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 

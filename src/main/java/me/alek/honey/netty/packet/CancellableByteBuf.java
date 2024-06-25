@@ -1,17 +1,16 @@
-package me.alek.honey.netty.packet.cancellables;
+package me.alek.honey.netty.packet;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.packet.Cancellable;
 
-public class CancellableByteBufImpl implements Cancellable {
+public class CancellableByteBuf implements Cancellable {
 
     private final ByteBuf byteBuf;
     private final HoneyPlayer player;
     private boolean cancelled;
 
-    public CancellableByteBufImpl(HoneyPlayer player, ByteBuf byteBuf) {
+    public CancellableByteBuf(HoneyPlayer player, ByteBuf byteBuf) {
         this.player = player;
         this.byteBuf = byteBuf;
     }
@@ -20,8 +19,9 @@ public class CancellableByteBufImpl implements Cancellable {
     public void cancel() {
         if (cancelled) return;
         cancelled = true;
-        if (player != null && player.isOnlineDirect())
+        if (player != null && player.isOnlineDirect()) {
             HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
+        }
 
         if (byteBuf.refCnt() > 0) {
             byteBuf.release();

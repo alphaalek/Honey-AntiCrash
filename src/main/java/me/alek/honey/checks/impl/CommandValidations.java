@@ -30,7 +30,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat> implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
+public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat> implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
     private static String getLabel(String command) {
         String label = command.split( " ")[0];
@@ -120,7 +120,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
 
         for (String prohibitedCommand : prohibitedCommandsLiteral) {
             if (match(prohibitedCommand, message)) {
-                return Validation.inst().cancel().flag()
+                return Validation.validate().cancel().flag()
                         .onViolation(onViolationConsumer)
                         .build();
             }
@@ -128,7 +128,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
 
         for (String prohibitedCommand : prohibitedCommandsRegex) {
             if (matchRegex(prohibitedCommand, message)) {
-                return Validation.inst().cancel().flag()
+                return Validation.validate().cancel().flag()
                         .onViolation(onViolationConsumer)
                         .build();
             }
@@ -138,7 +138,7 @@ public class CommandValidation extends AbstractPacketListener<WrappedPlayInChat>
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
         return CheckPipeline.from(this);
     }
 

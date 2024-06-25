@@ -29,7 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
+public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
@@ -58,7 +58,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getPipeline() {
+    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
         return CheckPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 
@@ -82,7 +82,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         @Override
         public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
             if (getSetting().isEnabled()) {
-                return Validation.inst().flag().build();
+                return Validation.validate().flag().build();
             }
             return Validation.PASS;
         }
@@ -160,7 +160,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
                     NBTCompound nbt = NBTFactory.fromItem(item, false, true);
                     if (nbt != null && !nbt.isEmpty()) {
                         int elements = nbt.getRoot().getTotalElements();
-                        return Validation.inst().flag(elements).build();
+                        return Validation.validate().flag(elements).build();
                     }
                 }
             }
@@ -195,7 +195,7 @@ public class FloodValidation<WP extends WrappedPacket<WP>> extends AbstractPacke
         @Override
         public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
-                return Validation.inst().flag()
+                return Validation.validate().flag()
                         .withViolationKey(getKey(packet))
                         .build();
             }

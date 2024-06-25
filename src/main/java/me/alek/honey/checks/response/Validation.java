@@ -11,11 +11,11 @@ import java.util.function.Consumer;
 public class Validation {
 
     public static ResponseContainer PASS = Validation
-            .inst()
+            .validate()
             .pass()
             .build();
 
-    public static Validation inst() {
+    public static Validation validate() {
         return new Validation();
     }
 

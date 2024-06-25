@@ -6,20 +6,19 @@ import me.alek.honey.checks.response.Validation;
 import me.alek.honey.checks.types.DecodeValidation;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
-public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckVisitable<DecodeValidation>, IListener {
+public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckPipelineFactory<DecodeValidation>, BaseValidation {
 
-    private final Array<CheckPipeline<DecodeValidation>> visitors = new Array<>();
-    private boolean initializedCheckInstances;
+    private final Array<CheckPipeline<DecodeValidation>> pipelines = new Array<>();
 
     @Override
-    public void onByteBufDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
+    public void onByteBufDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
         CheckContextContainer checkContextContainer = new CheckContextContainer();
 
         // cancel the decoding if the player is not even online
@@ -61,15 +60,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
         library.addDecodeListener(this, getPriority());
     }
 
-    public synchronized boolean hasInitializedCheckInstances() {
-        return initializedCheckInstances;
-    }
-
     public synchronized CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
-        return AbstractPacketListener.getCachedPipeline(visitors, this, player);
-    }
-
-    public void setInitializedCheckInstances() {
-        initializedCheckInstances = true;
+        return AbstractPacketListener.getCachedPipeline(pipelines, this, player);
     }
 }

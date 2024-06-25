@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCustomPayload> {
+public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
@@ -45,7 +45,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInCustomPayload>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInCustomPayload>> getNewPipeline() {
         return CheckPipeline.from(new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD(), new PayloadE());
     }
 
@@ -62,7 +62,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (packet.getBuf().getClass().equals(EmptyByteBuf.class)) {
-                    return Validation.inst().cancel().flag().build();
+                    return Validation.validate().cancel().flag().build();
                 }
             }
             return Validation.PASS;
@@ -96,7 +96,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
         @Override
         public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-                return Validation.inst().flag(packet.getBuf().readableBytes()).build();
+                return Validation.validate().flag(packet.getBuf().readableBytes()).build();
             }
             return Validation.PASS;
         }
@@ -135,7 +135,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
-                        return Validation.inst().cancel().flag().onViolation((check, onViolation) -> {
+                        return Validation.validate().cancel().flag().onViolation((check, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
                             callback.call(container.getDevelopmentData(this));
@@ -144,7 +144,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
 
                     int nbtSize;
                     if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
-                        return Validation.inst().cancel().flag()
+                        return Validation.validate().cancel().flag()
                                 .onViolation((check, onViolation) -> {
                                     if (onViolation != null) onViolation.run();
 
@@ -192,7 +192,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                     ItemStack itemInHand = player.player.getItemInHand();
                     if (itemInHand.getType() == MaterialMappings.getType("writable-book")
                             || itemInHand.getType() == Material.WRITTEN_BOOK) {
-                        return Validation.inst().cancel().flag().build();
+                        return Validation.validate().cancel().flag().build();
                     }
                 }
             }
@@ -231,7 +231,7 @@ public class PayloadValidation extends AbstractPacketListener<WrappedPlayInCusto
                 String channel = packet.getChannel();
                 if (channel.equalsIgnoreCase("register") &&
                         player.player.getListeningPluginChannels().size() > getSetting().max) {
-                    return Validation.inst().cancel().flag()
+                    return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 

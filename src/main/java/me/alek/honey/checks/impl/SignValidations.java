@@ -18,10 +18,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSign> {
+public class SignValidations extends AbstractPacketListener<WrappedPlayInUpdateSign> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getPipeline() {
+    public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getNewPipeline() {
         return CheckPipeline.from(new SignA());
     }
 
@@ -43,18 +43,18 @@ public class SignValidation extends AbstractPacketListener<WrappedPlayInUpdateSi
             List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
             for (JsonObject page : legacyChatComponentPages) {
                 if (!page.has("text")) {
-                    return Validation.inst().cancel().punish().build();
+                    return Validation.validate().cancel().punish().build();
                 }
             }
 
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
-                    return Validation.inst().cancel().punish().build();
+                    return Validation.validate().cancel().punish().build();
                 }
 
                 for (String string : ILLEGAL_COMPONENT_STRINGS) {
                     if (line.toLowerCase().replace("\"", "").trim().contains(string)) {
-                        return Validation.inst().cancel().punish().build();
+                        return Validation.validate().cancel().punish().build();
                     }
                 }
             }

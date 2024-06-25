@@ -2,7 +2,7 @@ package me.alek.honey.netty.listener;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -25,7 +25,7 @@ public class PacketAdapter<WP extends WrappedPacket<WP>> {
 
     }
 
-    public void onByteBufDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
+    public void onByteBufDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
 
     }
 }

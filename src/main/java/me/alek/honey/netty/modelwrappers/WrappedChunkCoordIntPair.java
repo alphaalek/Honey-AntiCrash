@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.checks.impl.MovementValidation;
+import me.alek.honey.checks.impl.MovementValidations;
 import me.alek.honey.netty.util.FieldAccessor;
 import org.bukkit.World;
 
@@ -29,7 +29,7 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
 
         this.x = getModifier(int.class).readField(chunkCoordIntPairXCachedAccessor, "x", 0);
         this.y = getModifier(int.class).readField(chunkCoordIntPairYCachedAccessor, "z", 0);
-        this.loaded = (world) -> MovementValidation.isChunkLoaded(world, x, y);
+        this.loaded = (world) -> MovementValidations.isChunkLoaded(world, x, y);
     }
 
     @Override

@@ -10,7 +10,7 @@ import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.listener.PacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketExecutor;
-import me.alek.honey.netty.packet.cancellables.CancellableByteBufImpl;
+import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -52,7 +52,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             }, cancelled);
         }
 
-        public void callDecode(HoneyPlayer player, CancellableByteBufImpl buf) {
+        public void callDecode(HoneyPlayer player, CancellableByteBuf buf) {
             AtomicBoolean cancelled = new AtomicBoolean();
             callPipeline(packetAdapter -> {
                 try {
@@ -272,7 +272,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void callDecode(HoneyPlayer player, CancellableByteBufImpl byteBuf) {
+    public void callDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
         decodeEventBus.callDecode(player, byteBuf);
     }
 

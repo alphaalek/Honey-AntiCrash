@@ -33,7 +33,7 @@ public class PostActions {
         PacketProcessor packetProcessor = packetLibrary.getPacketProcessor();
 
         packetProcessor.<WrappedLoginInLoginStart>addPostAction(PacketTypes.Login.Client.LOGIN_START, packet -> {
-            String name = getNameFromLoginStart(packet);
+            String name = packet.getName();
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {
@@ -58,20 +58,5 @@ public class PostActions {
         packetProcessor.<WrappedPlayInCustomPayload>addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {
             packet.getPacket().getBuf().retain();
         });
-    }
-
-    public static String getNameFromLoginStart(PacketContainer<WrappedLoginInLoginStart> packet) {
-        ReflectStructure<?, ?> loginStartPacketReflectStructure = ReflectStructureCache.acquireStructure(packet.getHandle().getClass());
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_18_2)) {
-            IStructureModifier<WrappedGameProfile> gameProfileStructureModifier = loginStartPacketReflectStructure
-                    .withType(NMS.getGameProfileClass(), Converters.getGameProfileConverter())
-                    .withTarget(packet.getHandle());
-            WrappedGameProfile gameProfile = gameProfileStructureModifier.readField(0);
-            return gameProfile.getName();
-        } else {
-            IStructureModifier<String> stringStructureModifier = loginStartPacketReflectStructure
-                    .withStrings().withTarget(packet.getHandle());
-            return stringStructureModifier.readField(0);
-        }
     }
 }
