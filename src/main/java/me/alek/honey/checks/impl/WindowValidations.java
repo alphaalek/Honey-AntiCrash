@@ -125,7 +125,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (player.player.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getMode() == 1) {
@@ -161,7 +161,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {

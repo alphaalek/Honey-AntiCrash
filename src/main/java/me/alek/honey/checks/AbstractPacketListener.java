@@ -79,15 +79,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        getPipeline(player).doStream(player, (check, key) -> Settings.getSetting(player, check, key, packetContainer.getPacket()), validation -> {
-            try {
-                return validation.validate(player, packetContainer.getPacket(), checkContextContainer);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Bukkit.getLogger().severe("Failed to handle packet validation for packet " + packetContainer);
-            }
-            return Validation.PASS;
-        }, packetContainer, checkContextContainer, callback);
+        getPipeline(player).doStream(
+                player,
+                (validation, key) -> Settings.getSetting(player, validation, key, packetContainer.getPacket()),
+                validation -> validation.validate(player, packetContainer.getPacket(), checkContextContainer),
+                packetContainer, checkContextContainer, callback);
 
         onPostPacketReceive(player, packetContainer, checkContextContainer);
     }

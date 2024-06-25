@@ -7,6 +7,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.checks.Settings;
+import me.alek.honey.checks.impl.FloodValidations;
+import me.alek.honey.checks.response.Validation;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -16,6 +19,7 @@ import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 
@@ -24,12 +28,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
-
-    public static PacketContainer<? extends WrappedPacket<?>> getEarlyInitializedPacket() {
-        PacketContainer<? extends WrappedPacket<?>> packet = MARK.get();
-        MARK.remove();
-        return packet;
-    }
 
     private boolean hasCalledChannelInactive;
     private HoneyPlayer player;
@@ -74,6 +72,15 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
+
+        if (MARK.get() != null) {
+            Bukkit.broadcastMessage("Prev too early drop");
+            FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
+                    player,
+                    validation -> validation.validate(player, 1, null),
+                    packetContainer);
+        }
+
         MARK.set(packetContainer);
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 

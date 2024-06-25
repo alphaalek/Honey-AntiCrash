@@ -44,15 +44,11 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
             });
         });
 
-        getPipeline(player).doStream(player, (check, key) -> Settings.getSetting(check), validation -> {
-            try {
-                return validation.validate(player, byteBuf.buf(), checkContextContainer);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Bukkit.getLogger().severe("Failed to handle decode validation for packet sent by " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown"));
-            }
-            return Validation.PASS;
-        }, byteBuf, checkContextContainer, callback);
+        getPipeline(player).doStream(
+                player,
+                (validation, key) -> Settings.getSetting(validation),
+                validation -> validation.validate(player, byteBuf.buf(), checkContextContainer),
+                byteBuf, checkContextContainer, callback);
     }
 
     @Override

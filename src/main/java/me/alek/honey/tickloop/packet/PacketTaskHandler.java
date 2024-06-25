@@ -127,7 +127,7 @@ public class PacketTaskHandler {
             loggerService.getLogger().severe(dump);
 
             HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cThe server seems to be frozen after packet " + packet.getType() + " was sent by " + name + ". See the log for thread dump and more info."));
+                    + " §cThe server seems to be frozen after packet " + packet.getType() + " was sent by " + name + ". See the log for thread dump and more info.");
         }
     }
 

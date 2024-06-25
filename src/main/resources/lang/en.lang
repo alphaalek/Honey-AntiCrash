@@ -46,6 +46,7 @@ validation.flood.a=General packet flood limiter
 validation.flood.b=Packet flood for sudden spikes
 validation.flood.c=Packet flood for nbt bases
 validation.flood.d=Packet flood for specific packet type
+validation.flood.e=Flood for marked packets that ended too early
 
 validation.held.item.a=Switching to exceeding item slot
 validation.held.item.b=Switching to illegal item

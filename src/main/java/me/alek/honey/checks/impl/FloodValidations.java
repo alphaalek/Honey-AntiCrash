@@ -24,6 +24,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
+import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
@@ -31,19 +32,25 @@ import java.util.function.Supplier;
 
 public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
+    public static final CheckPipeline<ViolationValidation.IntViolation> TOO_EARLY_DROP_PIPELINE = CheckPipeline.from(new FloodE());
+
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
 
-        // return if the player is removing content from his inventory by using the clear all slots button in creative menu
-        if (packetContainer.getType() == PacketTypes.Play.Client.SET_CREATIVE_SLOT) {
+        // ignore set creative slot packets when players in creative mode clear their inventory
+        if (packetContainer.getType() == PacketTypes.Play.Client.SET_CREATIVE_SLOT
+                && player.player.getGameMode() == GameMode.CREATIVE) {
             int slot = ((WrappedPlayInSetCreativeSlot)packetContainer.getPacket()).getSlot();
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
 
             lastSetCreativeSlot.put(player.uuid, slot);
-            return prevSlot + 1 != slot;
+            if (prevSlot + 1 == slot) {
+                return false;
+            }
         }
+
         return true;
     }
 
@@ -80,7 +87,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 return Validation.validate().flag().build();
             }
@@ -153,8 +160,10 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
-            if (getSetting().isEnabled() && !PacketTypes.isUnknown(packet.getType()) && packetTypes.hasID(packet.getType().getHoneyID())) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+            if (getSetting().isEnabled()
+                    && !PacketTypes.isUnknown(packet.getType())
+                    && packetTypes.hasID(packet.getType().getHoneyID())) {
 
                 for (ItemStack item : packet.getContainer().getItems().readFieldValues()) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, true);
@@ -164,6 +173,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
                     }
                 }
             }
+
             return Validation.PASS;
         }
 
@@ -195,7 +205,8 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         @Override
         public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting(packet).isEnabled()) {
-                return Validation.validate().flag()
+                return Validation.validate()
+                        .flag()
                         .withViolationKey(getKey(packet))
                         .build();
             }
@@ -228,4 +239,28 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
     }
 
+    public static class FloodE implements ViolationValidation.IntViolation {
+
+        private static final int id = IDRegistry.CHECKS.acquire();
+
+        @Override
+        public int getID() {
+            return id;
+        }
+
+        @Override
+        public String getName() {
+            return "Flood.E";
+        }
+
+        @Override
+        public String getDescription() {
+            return Lang.get("validation.flood.d");
+        }
+
+        @Override
+        public ConfigurationOptions.VlSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodE.class);
+        }
+    }
 }

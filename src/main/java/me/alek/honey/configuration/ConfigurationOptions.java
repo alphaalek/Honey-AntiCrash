@@ -1351,5 +1351,11 @@ public class ConfigurationOptions {
 
             }
         }
+
+        @Setting
+        @Violation(prefixPaths = "packet-flood.e", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class FloodE extends VlSetting implements VlIntervalRequiredContentsSetting {
+
+        }
     }
 }

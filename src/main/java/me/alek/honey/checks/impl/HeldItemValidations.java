@@ -78,9 +78,8 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this));
             }
             return Validation.PASS;

@@ -105,7 +105,7 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     @Override
-    public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) throws Exception {
+    public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
         String message = packet.getMessage();
         if (!message.startsWith("/")) {
             return Validation.PASS;

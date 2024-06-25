@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.checks.*;
 import me.alek.honey.checks.response.ResponseContainer;
 import me.alek.honey.checks.response.Validation;
-import me.alek.honey.checks.types.HoneyValidation;
 import me.alek.honey.checks.types.PacketValidation;
 import me.alek.honey.checks.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -40,7 +39,7 @@ import java.util.function.Supplier;
 
 public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
-    public static final CheckPipeline<ViolationValidation.IntViolation> STATIC_INTS = CheckPipeline.from(new NettyA());
+    public static final CheckPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = CheckPipeline.from(new NettyA());
 
     @Override
     public Supplier<List<PacketType>> getPacketTypes() {
@@ -219,7 +218,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final double RATE_ACCEL = /*115 */ 350 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 double playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, false);
@@ -297,7 +296,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) throws Exception {
+        public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) {
             // evaluate the duration of decoding this packet
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.DECODE);
 
@@ -314,7 +313,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             return check0(packet, getSetting(), () -> container.getDevelopmentData(this));
         }
 
@@ -344,7 +343,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             return NettyH.check0(packet, getSetting(), () -> container.getDevelopmentData(this));
         }
 
@@ -386,7 +385,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         ).build();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 double preHsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND, false);

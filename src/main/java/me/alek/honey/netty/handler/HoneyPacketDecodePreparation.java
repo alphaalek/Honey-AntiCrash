@@ -137,7 +137,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                                 && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                     if (exemptedIntervalThrottle != null) {
-                        exemptedIntervalThrottle.flag(packet, new CancellablePacketImpl(earlyPacketContainer), null, 1, null, null, null, null, null);
+                        exemptedIntervalThrottle.flag(earlyPacketContainer, null, 1, null, null, null, null, null);
 
                         if (earlyPacketContainer.isCancelled()) {
                             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {

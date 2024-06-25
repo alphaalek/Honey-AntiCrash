@@ -730,6 +730,14 @@ packet-flood:
     interval: 800
     vls-amount: 3
 
+  # too early drop
+  e:
+    enabled: true
+    max-per-interval: 35
+    interval: 750
+    min-vls: 2
+    vls-amount: 3
+
   # specific
   d:
     # These are common settings, if you want anything other, you have to change it in the different

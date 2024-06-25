@@ -20,12 +20,11 @@ public enum Validations {
     v10(SignValidations::new),
     v11(BlockPlaceValidations::new),
     v12(ChatValidations::new),
-    v13(EncryptionValidations::new),
-    v14(WindowValidations::new),
-    v15(RotationValidations::new),
-    v17(BlockDigValidations::new),
-    v18(TabValidations::new),
-    v19(CommandValidations::new),
+    v13(WindowValidations::new),
+    v14(RotationValidations::new),
+    v15(BlockDigValidations::new),
+    v16(TabValidations::new),
+    v17(CommandValidations::new),
     ;
 
     private static List<BaseValidation> validations;

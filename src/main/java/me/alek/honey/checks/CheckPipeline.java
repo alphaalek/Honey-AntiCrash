@@ -46,6 +46,13 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
         return response;
     }
 
+    public void doStream(HoneyPlayer player, Function<C, ResponseContainer> getResponse, Cancellable cancellable) {
+        doStream(
+                player,
+                (validation, key) -> Settings.getSetting(validation),
+                getResponse, cancellable, null, null);
+    }
+
     public void doStream(HoneyPlayer player,
                           BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
                           Function<C, ResponseContainer> getResponse,

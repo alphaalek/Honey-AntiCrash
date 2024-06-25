@@ -13,7 +13,7 @@ public interface HoneyValidation<T> {
 
     String getDescription();
 
-    ResponseContainer validate(HoneyPlayer player, T type, CheckContextContainer container) throws Exception;
+    ResponseContainer validate(HoneyPlayer player, T type, CheckContextContainer container);
 
     default boolean isViolation() {
         return false;

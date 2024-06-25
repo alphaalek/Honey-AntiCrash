@@ -53,15 +53,11 @@ public class ErrorPrintFilter {
             int length = getLength(record);
 
             Cancellable.Stated stated = new Cancellable.Stated();
-            NettyValidations.STATIC_INTS.doStream(packet.getPlayer(), (check, key) -> Settings.getSetting(check), check -> {
-                try {
-                    return check.validate(packet.getPlayer(), length, null);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    Bukkit.getLogger().severe("Failed to handle packet validation for packet " + packet);
-                }
-                return Validation.PASS;
-            }, stated, null, null);
+            NettyValidations.PRINT_FILTER_PIPELINE.doStream(
+                    packet.getPlayer(),
+                    (validation, key) -> Settings.getSetting(validation),
+                    check -> check.validate(packet.getPlayer(), length, null),
+                    stated, null, null);
 
             Bukkit.broadcastMessage("Error log Length " + length + ", packet: " + packet.getPlayerName());
 

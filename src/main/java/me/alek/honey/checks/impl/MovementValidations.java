@@ -144,7 +144,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private boolean wasOnGround;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (!(packet.getType() == PacketTypes.Play.Client.FLYING || packet.getType() == PacketTypes.Play.Client.GROUND))
                 return Validation.PASS;
 
@@ -257,7 +257,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private Location lastFlaggedLocation;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
@@ -440,7 +440,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private Direction[] lastDirectionFlow;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 final Location priorLocation = container.getStorage().getLocation(0);
@@ -500,7 +500,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             return Validation.PASS;
         }
 
@@ -535,7 +535,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private double lastDeltaY;
 
         @Override
-        public synchronized ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public synchronized ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             ResponseContainer response = Validation.PASS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
                 double delta2D = container.getStorage().getDouble(0);
@@ -616,7 +616,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 return Validation.validate().flag().build();

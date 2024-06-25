@@ -127,13 +127,13 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer size) {
                         container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getHandle(), new CancellablePacketImpl(packet.getContainer()), key, null, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
+                        HoneyPlugin.get().getViolationService().flag(player, packet.getContainer(), null, key, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
                     }
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
@@ -173,7 +173,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         private static final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
                     if (!player.violationContext.getViolationDistributors().has(getID())) {

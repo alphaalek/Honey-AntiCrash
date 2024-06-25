@@ -35,7 +35,7 @@ public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockDig packet, CheckContextContainer container) throws Exception {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockDig packet, CheckContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();

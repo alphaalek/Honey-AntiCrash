@@ -20,7 +20,7 @@ public interface ViolationValidation<T> extends HoneyValidation<T> {
 
     interface IntViolation extends ViolationValidation<Integer> {
 
-        default ResponseContainer validate(HoneyPlayer player, Integer type, CheckContextContainer container) throws Exception {
+        default ResponseContainer validate(HoneyPlayer player, Integer type, CheckContextContainer container) {
             return Validation.validate().flag(type).build();
         }
     }
