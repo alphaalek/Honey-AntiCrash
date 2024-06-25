@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlockDig> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInBlockDig>> getNewPipeline() {
-        return CheckPipeline.from(new BlockInteractE());
+    public ValidationPipeline<PacketValidation<WrappedPlayInBlockDig>> getNewPipeline() {
+        return ValidationPipeline.from(new BlockInteractE());
     }
 
     @Override
@@ -35,7 +35,7 @@ public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockDig packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockDig packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();

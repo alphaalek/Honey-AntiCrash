@@ -62,20 +62,24 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
-        final Location currentLocation = packetContainer.getPacket().getLocation();
-        final Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+        Location currentLocation = packetContainer.getPacket().getLocation();
+        Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
         // check if the packet has any valid location to be checked, or just origin location
         // if it does, ignore this packet and avoid adding this location to the last packet location lookup
-        if (LocationUtils.compareLocation(currentLocation, originLocation)) return false;
+        if (LocationUtils.compareLocation(currentLocation, originLocation)) {
+            return false;
+        }
         lastPacketLocation.put(player.uuid, currentLocation);
 
         // check if the player has moved by checking if the last location is equal to the current location
-        if (LocationUtils.compare3DLocation(currentLocation, lastLocation)) return false;
+        if (LocationUtils.compare3DLocation(currentLocation, lastLocation)) {
+            return false;
+        }
 
         // share this last location with the pipeline, so the checks can take use of it
-        container.getStorage().putLocation(lastLocation);
+        container.putLocation(lastLocation);
 
         callback.addAction((response -> {
             response.builder().onViolation((check, onViolation) -> {
@@ -93,17 +97,15 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
-        return CheckPipeline.from(new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
+    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+        return ValidationPipeline.from(new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
                 new MovementF<>(), new MovementG<>(), new MovementH<>(), new MovementI<>(), new MovementJ<>());
     }
 
     @Override
     public void cleanup(HoneyPlayer player) {
-        final UUID uuid = player.uuid;
-
-        lastPacketLocation.remove(uuid);
-        lastTeleportationLocationMap.remove(uuid);
+        lastPacketLocation.remove(player.uuid);
+        lastTeleportationLocationMap.remove(player.uuid);
     }
 
     public static Location getLastLocationFor(HoneyPlayer player) {
@@ -111,8 +113,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     public static boolean isChunkLoaded(Location location) {
-        final int x = location.getBlockX() >> 4;
-        final int z = location.getBlockZ() >> 4;
+        int x = location.getBlockX() >> 4;
+        int z = location.getBlockZ() >> 4;
 
         return location.getWorld().isChunkLoaded(x, z);
     }
@@ -122,8 +124,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     public static synchronized WrappedChunkCoordIntPair getChunkAt(Location location) {
-        final int x = ((int) location.getX()) >> 4;
-        final int z = ((int) location.getZ()) >> 4;
+        int x = ((int) location.getX()) >> 4;
+        int z = ((int) location.getZ()) >> 4;
 
         return new WrappedChunkCoordIntPair(x, z, world -> isChunkLoaded(world, x, z));
     }
@@ -135,6 +137,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
             return distance != -1 && distance < diff;
         }
+
         return false;
     }
 
@@ -144,12 +147,13 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private boolean wasOnGround;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            if (!(packet.getType() == PacketTypes.Play.Client.FLYING || packet.getType() == PacketTypes.Play.Client.GROUND))
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+            if (packet.getType() != PacketTypes.Play.Client.FLYING
+                    && packet.getType() != PacketTypes.Play.Client.GROUND) {
                 return Validation.PASS;
+            }
 
             if (getSetting().isEnabled()) {
-
                 boolean wasOnGround = this.wasOnGround;
                 this.wasOnGround = packet.onGround();
 
@@ -157,6 +161,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                     return Validation.validate().terminate().flag().build();
                 }
             }
+
             return Validation.validate().terminate().build();
         }
 
@@ -188,21 +193,21 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
-            final Location packetLoc = packet.getLocation();
-            final Location lastKnownPacketLoc = container.getStorage().getLocation(0);
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+            Location packetLoc = packet.getLocation();
+            Location lastKnownPacketLoc = container.getLocation(0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
-                    (location) -> LocationUtils.calculate3DDistance(location, packetLoc))) {
+                    l -> LocationUtils.calculate3DDistance(l, packetLoc))) {
                 return Validation.PASS.copy().skip(3).build();
             }
 
-            final double distance2d = LocationUtils.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-            container.getStorage().putDouble(distance2d);
+            double distance2d = LocationUtils.calculate2DDistance(packetLoc, lastKnownPacketLoc);
+            container.putDouble(distance2d);
 
-            final double distanceY = LocationUtils.calculateYDistance(packetLoc, lastKnownPacketLoc);
-            container.getStorage().putDouble(distanceY);
+            double distanceY = LocationUtils.calculateYDistance(packetLoc, lastKnownPacketLoc);
+            container.putDouble(distanceY);
 
             if (getSetting().isEnabled()) {
                 final double maxDistance = getSetting().max;
@@ -257,26 +262,28 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private Location lastFlaggedLocation;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
-
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
-                if (player.player.getVelocity().getY() < -1.5)
+                if (player.player.getVelocity().getY() < -1.5) {
                     return Validation.PASS;
+                }
 
-                final Location priorLocation = container.getStorage().getLocation(0);
+                Location priorLocation = container.getLocation(0);
                 // return if it's the first location being sent
-                if (priorLocation == null) return Validation.PASS;
+                if (priorLocation == null) {
+                    return Validation.PASS;
+                }
 
                 // ignores packets close to the recent flag
-                if (lastFlaggedLocation != null) {
-                    if (LocationUtils.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1)
-                        return Validation.PASS;
+                if (lastFlaggedLocation != null
+                        && LocationUtils.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1) {
+                    return Validation.PASS;
                 }
                 lastFlaggedLocation = packet.getLocation();
 
-                final double priorDistance = LocationUtils.calculate3DDistance(priorLocation, packet.getLocation());
+                double priorDistance = LocationUtils.calculate3DDistance(priorLocation, packet.getLocation());
                 return Validation.validate().flag(Math.min(10, priorDistance)).build();
             }
             return Validation.PASS;
@@ -310,7 +317,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private WrappedChunkCoordIntPair lastChunk;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map and loading excessively chunks
             WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
@@ -359,7 +366,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 return Validation.validate().cancel().flag().build();
             }
@@ -440,37 +447,43 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private Direction[] lastDirectionFlow;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
-                final Location priorLocation = container.getStorage().getLocation(0);
-                if (priorLocation == null) return Validation.PASS;
+                Location priorLocation = container.getLocation(0);
+                if (priorLocation == null) {
+                    return Validation.PASS;
+                }
 
-                final Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
-                final Direction[] priorVelocity = lastDirectionFlow;
+                Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
+                Direction[] priorVelocity = lastDirectionFlow;
 
                 lastDirectionFlow = velocity;
-                if (priorVelocity != null && priorVelocity.length == velocity.length) {
-
+                if (priorVelocity != null
+                        && priorVelocity.length == velocity.length) {
                     int i = 0;
-                    final Validation builder = Validation.validate();
-                    for (final Direction dir : velocity) {
+                    Validation builder = Validation.validate();
+                    for (Direction dir : velocity) {
+                        Direction corr = priorVelocity[i++];
+                        if (corr == Direction.STILL
+                                || dir == Direction.STILL) {
+                            continue;
+                        }
 
-                        final Axis axis = axisLookup.get(dir);
-                        final Direction corr = priorVelocity[i++];
-
-                        if (corr == Direction.STILL || dir == Direction.STILL) continue;
-
+                        Axis axis = axisLookup.get(dir);
                         if (corr == axis.getOther(dir)) {
                             builder.add(Validation.validate().flag().withViolationKey(
                                     ViolationService.HoneyKey.of(axis.ordinal(), axis.name().toLowerCase())).build());
                         }
                     }
-                    final ResponseContainer response;
-                    if (!(response = builder.build()).subContainers.isEmpty())
+
+                    ResponseContainer response = builder.build();
+                    if (response.subContainers.isEmpty()) {
                         return response;
+                    }
                 }
             }
+
             return Validation.PASS;
         }
 
@@ -500,7 +513,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             return Validation.PASS;
         }
 
@@ -535,11 +548,11 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private double lastDeltaY;
 
         @Override
-        public synchronized ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public synchronized ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             ResponseContainer response = Validation.PASS.copy().skip(1).build();
             if (getSetting().isEnabled()) {
-                double delta2D = container.getStorage().getDouble(0);
-                double deltaY = container.getStorage().getDouble(1);
+                double delta2D = container.getDouble(0);
+                double deltaY = container.getDouble(1);
 
                 if (delta2D == 0 && deltaY == 0) {
                     return response;
@@ -616,7 +629,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 return Validation.validate().flag().build();
@@ -650,7 +663,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 final double x = packet.getX();
                 final double y = packet.getY();

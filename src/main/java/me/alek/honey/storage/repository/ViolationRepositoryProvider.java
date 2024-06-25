@@ -1,7 +1,7 @@
 package me.alek.honey.storage.repository;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.storage.ComponentBridge;
 import me.alek.honey.storage.QueryFactory;
 import me.alek.honey.storage.Repository;
@@ -29,7 +29,7 @@ public class ViolationRepositoryProvider implements Repository {
         );
     }
 
-    public void postViolation(ComponentBridge componentBridge, QueryFactory queryFactory, HoneyPlayer player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void postViolation(ComponentBridge componentBridge, QueryFactory queryFactory, HoneyPlayer player, String violationName, String context, ValidationContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         int playerId = componentBridge.getPlayerId(player.name);
 
         CompletableFuture<Boolean> insertFuture = queryFactory.runInsert(

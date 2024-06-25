@@ -32,12 +32,12 @@ import java.util.function.Supplier;
 
 public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
-    public static final CheckPipeline<ViolationValidation.IntViolation> TOO_EARLY_DROP_PIPELINE = CheckPipeline.from(new FloodE());
+    public static final ValidationPipeline<ViolationValidation.IntViolation> TOO_EARLY_DROP_PIPELINE = ValidationPipeline.from(new FloodE());
 
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
 
         // ignore set creative slot packets when players in creative mode clear their inventory
         if (packetContainer.getType() == PacketTypes.Play.Client.SET_CREATIVE_SLOT
@@ -65,8 +65,8 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
-        return CheckPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
+    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+        return ValidationPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 return Validation.validate().flag().build();
             }
@@ -160,7 +160,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()
                     && !PacketTypes.isUnknown(packet.getType())
                     && packetTypes.hasID(packet.getType().getHoneyID())) {
@@ -203,7 +203,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting(packet).isEnabled()) {
                 return Validation.validate()
                         .flag()

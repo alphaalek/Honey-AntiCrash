@@ -75,7 +75,7 @@ public class HoneyPlugin implements HoneyAPI {
     private Configuration configuration;
     private ExecutionQueueProxy serverThreadTracker;
     private WideTempQueuedHandleTracker packetNettyTracker;
-    private MarkableHandleTracker<Double, String> checkHandleTracker;
+    private MarkableHandleTracker<Double, String> validationHandleTracker;
     private CraftScheduledTPSTracker TPSTracker;
     private MonitorManager monitorManager;
     private boolean isLoaded;
@@ -266,10 +266,13 @@ public class HoneyPlugin implements HoneyAPI {
         // setup tracking
         serverThreadTracker = new ExecutionQueueProxy();
         packetNettyTracker = new WideTempQueuedHandleTracker();
-        checkHandleTracker = new RegistryHandleTracker<>();
+        validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
-        registerChecks();
+        for (BaseValidation validation : Validations.getValidations()) {
+            validation.register(packetLibrary);
+            validation.load();
+        }
         PacketExecutors.register();
         ItemAnalysis.reload();
 
@@ -318,13 +321,6 @@ public class HoneyPlugin implements HoneyAPI {
         }
     }
 
-    public void registerChecks() {
-        for (BaseValidation check : Validations.getValidations()) {
-            check.register(packetLibrary);
-            check.load();
-        }
-    }
-
     public void resetConfiguration() {
         File oldFile = new File(plugin.getDataFolder(), "old-config.yml");
         if (oldFile.exists()) {
@@ -346,8 +342,8 @@ public class HoneyPlugin implements HoneyAPI {
         configuration.reload();
         Lang.load();
 
-        for (BaseValidation check : Validations.getValidations()) {
-            check.load();
+        for (BaseValidation validation : Validations.getValidations()) {
+            validation.load();
         }
         ItemAnalysis.reload();
 
@@ -367,7 +363,7 @@ public class HoneyPlugin implements HoneyAPI {
             }
         }
 
-        checkHandleTracker.clear();
+        validationHandleTracker.clear();
 
         monitorManager.reload();
     }
@@ -422,8 +418,8 @@ public class HoneyPlugin implements HoneyAPI {
         return serverThreadTracker;
     }
 
-    public MarkableHandleTracker<Double, String> getCheckHandleTracker() {
-        return checkHandleTracker;
+    public MarkableHandleTracker<Double, String> getValidationHandleTracker() {
+        return validationHandleTracker;
     }
 
     public CraftScheduledTPSTracker getTPSTracker() {

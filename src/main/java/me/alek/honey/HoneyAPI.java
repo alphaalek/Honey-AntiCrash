@@ -41,7 +41,7 @@ public interface HoneyAPI {
 
     ExecutionQueueProxy getExecutionQueueProxy();
 
-    MarkableHandleTracker<Double, String> getCheckHandleTracker();
+    MarkableHandleTracker<Double, String> getValidationHandleTracker();
 
     CraftScheduledTPSTracker getTPSTracker();
 

@@ -27,8 +27,8 @@ import java.util.function.Supplier;
 public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInBlockPlace> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> getNewPipeline() {
-        CheckPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new CheckPipeline<>();
+    public ValidationPipeline<PacketValidation<WrappedPlayInBlockPlace>> getNewPipeline() {
+        ValidationPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new ValidationPipeline<>();
         visitor.register(new BlockInteractA());
         visitor.register(new BlockInteractB());
         visitor.register(new BlockInteractC());
@@ -43,7 +43,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         return () -> Collections.singletonList(PacketTypes.Play.Client.BLOCK_PLACE);
     }
 
-    public static ResponseContainer checkExceedingMaxDistance(HoneyPlayer player, WrappedBlockPosition blockPosition, int maxDistance, CheckContextContainer.DevelopmentData developmentData) {
+    public static ResponseContainer checkExceedingMaxDistance(HoneyPlayer player, WrappedBlockPosition blockPosition, int maxDistance, ValidationContextContainer.DevelopmentData developmentData) {
 
         // check if the block position is close to the origin block position, just ignore this packet if it is
         final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
@@ -90,7 +90,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
@@ -125,7 +125,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
@@ -158,7 +158,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 ItemStack item = packet.getItem();
                 if (item == null) {
@@ -200,7 +200,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationContextContainer container) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 int placedBlockDirection = packet.getPlacedBlockDirection();
 
@@ -208,7 +208,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
                 float facingY = packet.getFacingY();
                 float facingZ = packet.getFacingZ();
 
-                CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
+                ValidationContextContainer.DevelopmentData developmentData = container.getDevelopmentData(this);
                 if (placedBlockDirection < 0 || (placedBlockDirection > 5 && placedBlockDirection != 255)) {
                     return Validation.validate().cancel().flag()
                             .onViolation((check, onViolation) -> {

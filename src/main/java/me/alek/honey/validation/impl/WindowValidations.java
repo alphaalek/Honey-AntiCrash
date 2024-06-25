@@ -24,8 +24,8 @@ import java.util.function.Supplier;
 public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindowClick> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> getNewPipeline() {
-        CheckPipeline<PacketValidation<WrappedPlayInWindowClick>> visitor = new CheckPipeline<>();
+    public ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> getNewPipeline() {
+        ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> visitor = new ValidationPipeline<>();
         visitor.register(new WindowA());
         visitor.register(new WindowB());
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
@@ -45,7 +45,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getWindowSlot();
 
@@ -92,7 +92,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
             }
@@ -125,7 +125,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (player.player.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getMode() == 1) {
@@ -161,7 +161,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {

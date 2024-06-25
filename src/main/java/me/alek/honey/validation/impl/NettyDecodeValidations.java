@@ -23,13 +23,13 @@ import java.util.function.Supplier;
 public class NettyDecodeValidations extends AbstractDecodeListener {
 
     @Override
-    public CheckPipeline<DecodeValidation> getNewPipeline() {
-        return CheckPipeline.from(new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
+    public ValidationPipeline<DecodeValidation> getNewPipeline() {
+        return ValidationPipeline.from(new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
     }
 
-    private static void processByteBuf(ByteBuf byteBuf, CheckContextContainer container) {
+    private static void processByteBuf(ByteBuf byteBuf, ValidationContextContainer container) {
         if (byteBuf.readableBytes() == 0) {
-            container.getStorage().putInt(0);
+            container.putInt(0);
             return;
         }
 
@@ -42,7 +42,7 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
 
         byteBuf.readerIndex(readerIndex);
 
-        container.getStorage().putInt(accumulated);
+        container.putInt(accumulated);
     }
 
     public static class NettyD implements DecodeValidation, ViolationValidation<ByteBuf> {
@@ -50,11 +50,11 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, ValidationContextContainer container) {
             processByteBuf(byteBuf, container);
 
             int size = byteBuf.readableBytes();
-            container.getStorage().putInt(size);
+            container.putInt(size);
 
             if (getSetting().isEnabled()) {
                 return Validation.validate().flag(size).build();
@@ -88,9 +88,9 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
-                return Validation.validate().flag(container.getStorage().getInt(1)).build();
+                return Validation.validate().flag(container.getInt(1)).build();
             }
             return Validation.PASS;
         }
@@ -121,9 +121,9 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
-                return Validation.validate().flag(container.getStorage().getInt(0)).build();
+                return Validation.validate().flag(container.getInt(0)).build();
             }
             return Validation.PASS;
         }
@@ -154,9 +154,9 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
-                return Validation.validate().flag(container.getStorage().getInt(0)).build();
+                return Validation.validate().flag(container.getInt(0)).build();
             }
             return Validation.PASS;
         }
@@ -196,7 +196,7 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         ).build();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf packet, ValidationContextContainer container) {
             /*
             if (getSetting().isEnabled() && player != null) {
 
@@ -246,7 +246,7 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         private boolean waitingFlag;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (byteBuf.readableBytes() > getSetting().threshold) {
@@ -327,7 +327,7 @@ public class NettyDecodeValidations extends AbstractDecodeListener {
         private long lastFlag;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, ByteBuf byteBuf, ValidationContextContainer container) {
             if (getSetting().isEnabled() && byteBuf.readableBytes() > getSetting().threshold) {
                 long diff = System.currentTimeMillis() -
                         (lastFlag != 0 ? lastFlag : System.currentTimeMillis() - getSetting().min + 1);

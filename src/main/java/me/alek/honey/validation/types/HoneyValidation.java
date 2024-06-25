@@ -2,7 +2,7 @@ package me.alek.honey.validation.types;
 
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.validation.response.ResponseContainer;
 
 public interface HoneyValidation<T> {
@@ -13,7 +13,7 @@ public interface HoneyValidation<T> {
 
     String getDescription();
 
-    ResponseContainer validate(HoneyPlayer player, T type, CheckContextContainer container);
+    ResponseContainer validate(HoneyPlayer player, T type, ValidationContextContainer container);
 
     default boolean isViolation() {
         return false;

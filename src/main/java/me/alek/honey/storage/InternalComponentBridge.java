@@ -1,7 +1,7 @@
 package me.alek.honey.storage;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
@@ -76,7 +76,7 @@ public class InternalComponentBridge implements ComponentBridge {
         return !enabled || queryFactory.isConnectionClosed();
     }
 
-    public void postViolation(HoneyPlayer player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void postViolation(HoneyPlayer player, String violationName, String context, ValidationContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         if (checkInvalid()) return;
 
         repositoryCollection.violationRepository.postViolation(this, queryFactory, player, violationName, context, developmentData);

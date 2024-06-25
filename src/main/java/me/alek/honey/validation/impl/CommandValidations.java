@@ -2,8 +2,8 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.AbstractPacketListener;
-import me.alek.honey.validation.CheckContextContainer;
-import me.alek.honey.validation.CheckPipeline;
+import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.Settings;
 import me.alek.honey.validation.response.ResponseContainer;
 import me.alek.honey.validation.response.Validation;
@@ -105,7 +105,7 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     @Override
-    public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, CheckContextContainer container) {
+    public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationContextContainer container) {
         String message = packet.getMessage();
         if (!message.startsWith("/")) {
             return Validation.PASS;
@@ -138,8 +138,8 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
-        return CheckPipeline.from(this);
+    public ValidationPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
+        return ValidationPipeline.from(this);
     }
 
     @Override

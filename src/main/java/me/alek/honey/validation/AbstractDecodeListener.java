@@ -9,9 +9,9 @@ import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
-public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements CheckPipelineFactory<DecodeValidation>, BaseValidation {
+public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements ValidationPipelineFactory<DecodeValidation>, BaseValidation {
 
-    private final Array<CheckPipeline<DecodeValidation>> pipelines = new Array<>();
+    private final Array<ValidationPipeline<DecodeValidation>> pipelines = new Array<>();
 
     @Override
     public void onByteBufDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
@@ -25,13 +25,13 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
             return;
         }
 
-        CheckContextContainer checkContextContainer = new CheckContextContainer();
+        ValidationContextContainer validationContext = new ValidationContextContainer();
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         int bytes = byteBuf.buf().readableBytes();
         callback.addAction(response -> {
             response.builder().onViolation((check, onViolation) -> {
 
-                CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+                ValidationContextContainer.DevelopmentData defaultDevelopmentData = validationContext.getDefaultDevelopmentData();
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {
                     defaultDevelopmentData.addEmpty();
                     defaultDevelopmentData.addValue(" Buffer", bytes + " bytes");
@@ -45,8 +45,8 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
         getPipeline(player).doStream(
                 player,
                 (validation, key) -> Settings.getSetting(validation),
-                validation -> validation.validate(player, byteBuf.buf(), checkContextContainer),
-                byteBuf, checkContextContainer, callback);
+                validation -> validation.validate(player, byteBuf.buf(), validationContext),
+                byteBuf, validationContext, callback);
     }
 
     @Override
@@ -54,7 +54,7 @@ public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implemen
         library.addDecodeListener(this, getPriority());
     }
 
-    public synchronized CheckPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
+    public synchronized ValidationPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
         return AbstractPacketListener.getCachedPipeline(pipelines, this, player);
     }
 }

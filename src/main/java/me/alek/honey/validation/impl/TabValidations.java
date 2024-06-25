@@ -28,13 +28,13 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
 
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
         return packetContainer.getPacket().getMessage().startsWith("/");
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInTabComplete>> getNewPipeline() {
-        return CheckPipeline.from(new TabA(), new TabB(), new TabC());
+    public ValidationPipeline<PacketValidation<WrappedPlayInTabComplete>> getNewPipeline() {
+        return ValidationPipeline.from(new TabA(), new TabB(), new TabC());
     }
 
     @Override
@@ -62,7 +62,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         private static String[] prohibitedCommands;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationContextContainer container) {
             String message = packet.getMessage();
             String label = message.split(" ")[0];
 
@@ -127,7 +127,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new Consumer<Integer>() {
                     @Override
@@ -173,7 +173,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         private static final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
                     if (!player.violationContext.getViolationDistributors().has(getID())) {

@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
         String channel = packetContainer.getPacket().getChannel();
 
         callback.addAction(response -> {
@@ -45,8 +45,8 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInCustomPayload>> getNewPipeline() {
-        return CheckPipeline.from(new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD(), new PayloadE());
+    public ValidationPipeline<PacketValidation<WrappedPlayInCustomPayload>> getNewPipeline() {
+        return ValidationPipeline.from(new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD(), new PayloadE());
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 if (packet.getBuf().getClass().equals(EmptyByteBuf.class)) {
                     return Validation.validate().cancel().flag().build();
@@ -94,7 +94,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 return Validation.validate().flag(packet.getBuf().readableBytes()).build();
             }
@@ -127,13 +127,13 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 ItemStack item = packet.getBookChannelItemStack();
                 if (item != null) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-                    CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
+                    CallbackAction<ValidationContextContainer.DevelopmentData> callback = new CallbackAction<>();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
                         return Validation.validate().cancel().flag().onViolation((check, onViolation) -> {
                             if (onViolation != null) onViolation.run();
@@ -183,7 +183,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 String channel = packet.getChannel();
                 if (channel.equals("MC|BSign")
@@ -225,7 +225,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 String channel = packet.getChannel();

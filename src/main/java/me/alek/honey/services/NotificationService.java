@@ -2,7 +2,7 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.messages.MessageFormat;
 import me.alek.honey.messages.MessageOffer;
@@ -124,7 +124,7 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
+            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
                 MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
@@ -236,7 +236,7 @@ public class NotificationService {
         return message.substring(2, message.length());
     }
 
-    public void applyQuotients(HoneyPlayer player, CheckContextContainer.DevelopmentData developmentData) {
+    public void applyQuotients(HoneyPlayer player, ValidationContextContainer.DevelopmentData developmentData) {
         WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
         WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
@@ -385,7 +385,7 @@ public class NotificationService {
         }
     }
 
-    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationContextContainer.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineDirect() || player.punished) {
@@ -410,7 +410,7 @@ public class NotificationService {
 
         void notify(String notification);
 
-        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, CheckContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
 
         void warn(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey);
     }

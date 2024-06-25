@@ -2,8 +2,8 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.AbstractPacketListener;
-import me.alek.honey.validation.CheckContextContainer;
-import me.alek.honey.validation.CheckPipeline;
+import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.response.ResponseContainer;
 import me.alek.honey.validation.response.Validation;
 import me.alek.honey.validation.types.PacketValidation;
@@ -28,8 +28,8 @@ public class LoginValidations extends AbstractPacketListener<WrappedLoginInLogin
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedLoginInLoginStart>> getNewPipeline() {
-        return CheckPipeline.from(new LoginA());
+    public ValidationPipeline<PacketValidation<WrappedLoginInLoginStart>> getNewPipeline() {
+        return ValidationPipeline.from(new LoginA());
     }
 
     @Override
@@ -42,7 +42,7 @@ public class LoginValidations extends AbstractPacketListener<WrappedLoginInLogin
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedLoginInLoginStart packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedLoginInLoginStart packet, ValidationContextContainer container) {
             WrappedGameProfile profile = packet.getProfile();
             if (profile == null) {
                 return Validation.PASS;

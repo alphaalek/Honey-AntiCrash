@@ -56,7 +56,7 @@ public class TrackCommand implements CommandImpl {
 
                 break;
             case "checks":
-                MarkableHandleTracker<Double, String> checkTracker = HoneyPlugin.get().getCheckHandleTracker();
+                MarkableHandleTracker<Double, String> checkTracker = HoneyPlugin.get().getValidationHandleTracker();
 
                 if (checkTracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));

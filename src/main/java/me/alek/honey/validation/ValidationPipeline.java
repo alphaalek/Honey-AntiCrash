@@ -14,32 +14,32 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class CheckPipeline<C extends HoneyValidation<?>> {
+public class ValidationPipeline<C extends HoneyValidation<?>> {
 
     private final List<C> validations = new LinkedList<>();
 
-    public static <C extends HoneyValidation<?>> CheckPipeline<C> from(C... checks) {
-        CheckPipeline<C> pipeline = new CheckPipeline<>();
-        for (C check : checks) {
-            pipeline.register(check);
+    public static <C extends HoneyValidation<?>> ValidationPipeline<C> from(C... validationss) {
+        ValidationPipeline<C> pipeline = new ValidationPipeline<>();
+        for (C validation : validationss) {
+            pipeline.register(validation);
         }
         return pipeline;
     }
 
-    public void register(C check) {
-        validations.add(check);
+    public void register(C validation) {
+        validations.add(validation);
     }
 
-    private ResponseContainer getResponseAndRegisterTimings(C check, Function<C, ResponseContainer> getResponse, ConfigurationOptions.VlSetting setting) {
+    private ResponseContainer getResponseAndRegisterTimings(C validation, Function<C, ResponseContainer> getResponse, ConfigurationOptions.VlSetting setting) {
         long registryKey = -1;
         if (setting != null && setting.isEnabled()) {
-            registryKey = HoneyPlugin.get().getCheckHandleTracker().registerTimeStart(check.getName());
+            registryKey = HoneyPlugin.get().getValidationHandleTracker().registerTimeStart(validation.getName());
         }
 
-        ResponseContainer response = getResponse.apply(check);
+        ResponseContainer response = getResponse.apply(validation);
 
         if (setting != null && setting.isEnabled() && registryKey != -1) {
-            HoneyPlugin.get().getCheckHandleTracker().registerTimeStop(check.getName(), registryKey);
+            HoneyPlugin.get().getValidationHandleTracker().registerTimeStop(validation.getName(), registryKey);
         }
 
         return response;
@@ -53,29 +53,29 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
     }
 
     public void doStream(HoneyPlayer player,
-                          BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
-                          Function<C, ResponseContainer> getResponse,
-                          Cancellable cancellable, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+                         BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
+                         Function<C, ResponseContainer> getResponse,
+                         Cancellable cancellable, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
         int skipping = 0;
-        for (C check : validations) {
+        for (C validation : validations) {
             if (skipping-- > 0) {
                 continue;
             }
 
             // ---------------------
             // pre requisites
-            ViolationService.HoneyKey key = ViolationService.HoneyKey.of(check);
-            ConfigurationOptions.VlSetting setting = getSetting.apply(check, key);
+            ViolationService.HoneyKey key = ViolationService.HoneyKey.of(validation);
+            ConfigurationOptions.VlSetting setting = getSetting.apply(validation, key);
             // ---------------------
 
             // start to check this validation
-            ResponseContainer defaultResponse = getResponseAndRegisterTimings(check, getResponse, setting);
+            ResponseContainer defaultResponse = getResponseAndRegisterTimings(validation, getResponse, setting);
             List<ResponseContainer> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
             // handle all the responses
             boolean terminated = false;
-            CheckContextContainer.DevelopmentData developmentData = container.getDevelopmentData(check);
+            ValidationContextContainer.DevelopmentData developmentData = container.getDevelopmentData(validation);
             for (ResponseContainer response : responsesList) {
                 if (response == null) {
                     continue;
@@ -107,14 +107,14 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
                     response.builder().onViolation((c, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
-                        developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + check.getName() + " §8*");
-                        developmentData.setLine(5, check.getDescription());
+                        developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
+                        developmentData.setLine(5, validation.getDescription());
                     });
 
                     ResponseContainer finalResponse = response;
                     HoneyPlugin.get().getViolationService().flag(
                             player, cancellable, key, response.violationKey, response.flag,
-                            response.onPunish, () -> finalResponse.onViolation.accept(check), response.onFlag, check, setting, developmentData);
+                            response.onPunish, () -> finalResponse.onViolation.accept(validation), response.onFlag, validation, setting, developmentData);
 
                     if (player.punished) {
                         cancellable.cancel();
@@ -123,7 +123,7 @@ public class CheckPipeline<C extends HoneyValidation<?>> {
                 }
 
                 if (response.punish && player != null) {
-                    HoneyPlugin.get().getViolationService().punish(null, player, check, key);
+                    HoneyPlugin.get().getViolationService().punish(null, player, validation, key);
                     return;
                 }
 

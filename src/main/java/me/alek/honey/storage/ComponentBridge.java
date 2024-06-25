@@ -1,7 +1,7 @@
 package me.alek.honey.storage;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;
@@ -29,7 +29,7 @@ public interface ComponentBridge {
 
     boolean containsUUID(String UUID) throws SQLFactoryException;
 
-    void postViolation(HoneyPlayer player, String violationName, String context, CheckContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException;
+    void postViolation(HoneyPlayer player, String violationName, String context, ValidationContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException;
 
     List<ViolationEntry> getViolations(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException;
 

@@ -16,11 +16,11 @@ import org.bukkit.Bukkit;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements BaseValidation, CheckPipelineFactory<PacketValidation<WP>> {
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements BaseValidation, ValidationPipelineFactory<PacketValidation<WP>> {
 
-    private final Array<CheckPipeline<PacketValidation<WP>>> visitors = new Array<>();
+    private final Array<ValidationPipeline<PacketValidation<WP>>> visitors = new Array<>();
 
-    public static void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData) {
+    public static void applyCommonDevelopmentData(ValidationContextContainer.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
         developmentData.removeLastInternalData();
         developmentData.addEmpty();
@@ -32,11 +32,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         developmentData.addEmpty(); // NTQ
     }
 
-    public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> pipelines, CheckPipelineFactory<C> factory, HoneyPlayer player) {
+    public static synchronized <C extends HoneyValidation<?>> ValidationPipeline<C> getCachedPipeline(Array<ValidationPipeline<C>> pipelines, ValidationPipelineFactory<C> factory, HoneyPlayer player) {
         return getCachedPipeline(pipelines, factory, player, player != null ? player.registryID : 0);
     }
 
-    public static synchronized <C extends HoneyValidation<?>> CheckPipeline<C> getCachedPipeline(Array<CheckPipeline<C>> pipelines, CheckPipelineFactory<C> factory, HoneyPlayer player, int registryID) {
+    public static synchronized <C extends HoneyValidation<?>> ValidationPipeline<C> getCachedPipeline(Array<ValidationPipeline<C>> pipelines, ValidationPipelineFactory<C> factory, HoneyPlayer player, int registryID) {
         if (!pipelines.has(registryID)) {
             if (!factory.requiresPlayer()
                     || player != null && player.isOnlineDirect() && !player.punished) {
@@ -62,11 +62,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        CheckContextContainer checkContextContainer = new CheckContextContainer();
+        ValidationContextContainer validationContext = new ValidationContextContainer();
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         callback.addAction((response) -> {
             response.builder().onViolation((check, onViolation) -> {
-                CheckContextContainer.DevelopmentData defaultDevelopmentData = checkContextContainer.getDefaultDevelopmentData();
+                ValidationContextContainer.DevelopmentData defaultDevelopmentData = validationContext.getDefaultDevelopmentData();
 
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {
                     defaultDevelopmentData.addEmpty();
@@ -78,30 +78,30 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             });
         });
 
-        if (!onPrePacketReceive(player, packetContainer, checkContextContainer, callback)) {
+        if (!onPrePacketReceive(player, packetContainer, validationContext, callback)) {
             return;
         }
 
         getPipeline(player).doStream(
                 player,
                 (validation, key) -> Settings.getSetting(player, validation, key, packetContainer.getPacket()),
-                validation -> validation.validate(player, packetContainer.getPacket(), checkContextContainer),
-                packetContainer, checkContextContainer, callback);
+                validation -> validation.validate(player, packetContainer.getPacket(), validationContext),
+                packetContainer, validationContext, callback);
 
-        onPostPacketReceive(player, packetContainer, checkContextContainer);
+        onPostPacketReceive(player, packetContainer, validationContext);
     }
 
     public abstract Supplier<List<PacketType>> getPacketTypes();
 
-    public synchronized CheckPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
+    public synchronized ValidationPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
         return getCachedPipeline(visitors, this, player);
     }
 
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
         return true;
     }
 
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container) {
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container) {
 
     }
 }

@@ -3,8 +3,8 @@ package me.alek.honey.validation.impl;
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.AbstractPacketListener;
-import me.alek.honey.validation.CheckContextContainer;
-import me.alek.honey.validation.CheckPipeline;
+import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.response.ResponseContainer;
 import me.alek.honey.validation.response.Validation;
 import me.alek.honey.validation.types.PacketValidation;
@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 public class SignValidations extends AbstractPacketListener<WrappedPlayInUpdateSign> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInUpdateSign>> getNewPipeline() {
-        return CheckPipeline.from(new SignA());
+    public ValidationPipeline<PacketValidation<WrappedPlayInUpdateSign>> getNewPipeline() {
+        return ValidationPipeline.from(new SignA());
     }
 
     @Override
@@ -39,7 +39,7 @@ public class SignValidations extends AbstractPacketListener<WrappedPlayInUpdateS
         };
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, ValidationContextContainer container) {
             List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
             for (JsonObject page : legacyChatComponentPages) {
                 if (!page.has("text")) {

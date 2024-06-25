@@ -22,8 +22,8 @@ import java.util.function.Supplier;
 public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> {
 
     @Override
-    public CheckPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getNewPipeline() {
-        return CheckPipeline.from(new CreativeA(), new CreativeB(), new CreativeC());
+    public ValidationPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getNewPipeline() {
+        return ValidationPipeline.from(new CreativeA(), new CreativeB(), new CreativeC());
     }
 
     @Override
@@ -36,7 +36,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (player.player.getGameMode() != GameMode.CREATIVE) {
@@ -72,7 +72,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
@@ -114,7 +114,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));

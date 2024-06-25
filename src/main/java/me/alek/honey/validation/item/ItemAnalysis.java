@@ -2,7 +2,7 @@ package me.alek.honey.validation.item;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.validation.item.enums.AcceptStrategy;
 import me.alek.honey.validation.response.ResponseContainer;
 import me.alek.honey.validation.response.Validation;
@@ -74,8 +74,8 @@ public class ItemAnalysis {
         }
     }
 
-    public static ResponseContainer flagIf(HoneyPlayer player, ItemStack item, CheckContextContainer.DevelopmentData developmentData) {
-        CallbackAction<CheckContextContainer.DevelopmentData> callback = new CallbackAction<>();
+    public static ResponseContainer flagIf(HoneyPlayer player, ItemStack item, ValidationContextContainer.DevelopmentData developmentData) {
+        CallbackAction<ValidationContextContainer.DevelopmentData> callback = new CallbackAction<>();
         if (ItemAnalysis.checkItem(player, item, callback)) {
             return Validation.validate().cancel().flag().onViolation((check, onViolation) -> {
                 if (onViolation != null) onViolation.run();
@@ -87,7 +87,7 @@ public class ItemAnalysis {
         return Validation.PASS;
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction<CheckContextContainer.DevelopmentData> context) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction<ValidationContextContainer.DevelopmentData> context) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
                 || item == null || item.getType() == Material.AIR) {
             return false;
@@ -97,7 +97,7 @@ public class ItemAnalysis {
         return checkItem(player, item, nbt, context);
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction<CheckContextContainer.DevelopmentData> callback) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction<ValidationContextContainer.DevelopmentData> callback) {
         for (final String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer)
                     || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {

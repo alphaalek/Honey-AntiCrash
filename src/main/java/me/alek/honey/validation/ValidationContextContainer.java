@@ -9,15 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class CheckContextContainer {
+public class ValidationContextContainer {
 
-    private final SharedCheckPipelineStorage storage = new SharedCheckPipelineStorage();
     private final Array<DevelopmentData> developmentDataMap = new Array<>();
     private final DevelopmentData defaultDevelopmentData = new DevelopmentData();
-
-    public SharedCheckPipelineStorage getStorage() {
-        return storage;
-    }
 
     public DevelopmentData getDevelopmentData(HoneyValidation<?> check) {
         return developmentDataMap.get(check.getID(), DevelopmentData::new);
@@ -138,122 +133,119 @@ public class CheckContextContainer {
         }
     }
 
-    public static class SharedCheckPipelineStorage {
+    private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
 
-        private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
+    public void putBoolean(boolean bool) {
+        put(ContainerStorageTypes.BOOLEAN, bool);
+    }
 
-        public void putBoolean(boolean bool) {
-            put(ContainerStorageTypes.BOOLEAN, bool);
+    public void putString(String string) {
+        put(ContainerStorageTypes.STRING, string);
+    }
+
+    public void putChar(char character) {
+        put(ContainerStorageTypes.CHAR, character);
+    }
+
+    public void putInt(int integer) {
+        put(ContainerStorageTypes.INT, integer);
+    }
+
+    public void putFloat(float floatValue) {
+        put(ContainerStorageTypes.FLOAT, floatValue);
+    }
+
+    public void putByte(byte byteValue) {
+        put(ContainerStorageTypes.BYTE, byteValue);
+    }
+
+    public void putDouble(double doubleValue) {
+        put(ContainerStorageTypes.DOUBLE, doubleValue);
+    }
+
+    public void putLong(long longValue) {
+        put(ContainerStorageTypes.LONG, longValue);
+    }
+
+    public void putLocation(Location location) {
+        put(ContainerStorageTypes.LOCATION, location);
+    }
+
+    public String getString(int index) {
+        return get(ContainerStorageTypes.STRING, index);
+    }
+
+    public boolean getBoolean(int index) {
+        return getVal(index, ContainerStorageTypes.BOOLEAN, false);
+    }
+
+    public char getChar(int index) {
+        return getVal(index, ContainerStorageTypes.CHAR, ' ');
+    }
+
+    public int getInt(int index) {
+        return getVal(index, ContainerStorageTypes.INT, 0);
+    }
+
+    public float getFloat(int index) {
+        return getVal(index, ContainerStorageTypes.FLOAT, 0f);
+    }
+
+    public byte getByte(int index) {
+        return getVal(index, ContainerStorageTypes.BYTE, (byte) 0);
+    }
+
+    public double getDouble(int index) {
+        return getVal(index, ContainerStorageTypes.DOUBLE, 0d);
+    }
+
+    public long getLong(int index) {
+        return getVal(index, ContainerStorageTypes.LONG, 0L);
+    }
+
+    public Location getLocation(int index) {
+        return get(index, ContainerStorageTypes.LOCATION);
+    }
+
+    public synchronized <T> void put(int index, T value) {
+        ContainerStructure<T> structure = getStructure(index);
+        structure.add(value);
+    }
+
+    public <T> void put(Class<T> clazz, T value) {
+        put(ContainerStorageTypes.getIndex(clazz), value);
+    }
+
+    public <T> T getVal(int index, int typeIndex, T or) {
+        T val = get(index, typeIndex);
+        return val != null ? val : or;
+    }
+
+    public synchronized <T> T get(Class<T> clazz, int index) {
+        return get(index, ContainerStorageTypes.getIndex(clazz));
+    }
+
+    public synchronized <T> T get(int index, int typeIndex) {
+        ContainerStructure<T> structure = getStructure(typeIndex);
+        return structure.get(index);
+    }
+
+    public <T> ContainerStructure<T> getStructure(int index) {
+        return (ContainerStructure<T>) dataContextStorage.get(index, () -> new ContainerStructure<>());
+    }
+
+    public static final class ContainerStructure<T> {
+
+        private final Array<T> values = new Array<>();
+
+        public void add(T value) {
+            values.add(value);
         }
 
-        public void putString(String string) {
-            put(ContainerStorageTypes.STRING, string);
-        }
+        public T get(int index) {
+            if (!values.has(index)) return null;
 
-        public void putChar(char character) {
-            put(ContainerStorageTypes.CHAR, character);
-        }
-
-        public void putInt(int integer) {
-            put(ContainerStorageTypes.INT, integer);
-        }
-
-        public void putFloat(float floatValue) {
-            put(ContainerStorageTypes.FLOAT, floatValue);
-        }
-
-        public void putByte(byte byteValue) {
-            put(ContainerStorageTypes.BYTE, byteValue);
-        }
-
-        public void putDouble(double doubleValue) {
-            put(ContainerStorageTypes.DOUBLE, doubleValue);
-        }
-
-        public void putLong(long longValue) {
-            put(ContainerStorageTypes.LONG, longValue);
-        }
-
-        public void putLocation(Location location) {
-            put(ContainerStorageTypes.LOCATION, location);
-        }
-
-        public String getString(int index) {
-            return get(ContainerStorageTypes.STRING, index);
-        }
-
-        public boolean getBoolean(int index) {
-            return getVal(index, ContainerStorageTypes.BOOLEAN, false);
-        }
-
-        public char getChar(int index) {
-            return getVal(index, ContainerStorageTypes.CHAR, ' ');
-        }
-
-        public int getInt(int index) {
-            return getVal(index, ContainerStorageTypes.INT, 0);
-        }
-
-        public float getFloat(int index) {
-            return getVal(index, ContainerStorageTypes.FLOAT, 0f);
-        }
-
-        public byte getByte(int index) {
-            return getVal(index, ContainerStorageTypes.BYTE, (byte) 0);
-        }
-
-        public double getDouble(int index) {
-            return getVal(index, ContainerStorageTypes.DOUBLE, 0d);
-        }
-
-        public long getLong(int index) {
-            return getVal(index, ContainerStorageTypes.LONG, 0L);
-        }
-
-        public Location getLocation(int index) {
-            return get(index, ContainerStorageTypes.LOCATION);
-        }
-
-        public synchronized <T> void put(int index, T value) {
-            ContainerStructure<T> structure = getStructure(index);
-            structure.add(value);
-        }
-
-        public <T> void put(Class<T> clazz, T value) {
-            put(ContainerStorageTypes.getIndex(clazz), value);
-        }
-
-        public <T> T getVal(int index, int typeIndex, T or) {
-            T val = get(index, typeIndex);
-            return val != null ? val : or;
-        }
-
-        public synchronized <T> T get(Class<T> clazz, int index) {
-            return get(index, ContainerStorageTypes.getIndex(clazz));
-        }
-
-        public synchronized <T> T get(int index, int typeIndex) {
-            ContainerStructure<T> structure = getStructure(typeIndex);
-            return structure.get(index);
-        }
-
-        public <T> ContainerStructure<T> getStructure(int index) {
-            return (ContainerStructure<T>) dataContextStorage.get(index, () -> new ContainerStructure<>());
-        }
-
-        public static final class ContainerStructure<T> {
-
-            private final Array<T> values = new Array<>();
-
-            public void add(T value) {
-                values.add(value);
-            }
-
-            public T get(int index) {
-                if (!values.has(index)) return null;
-
-                return values.get(index);
-            }
+            return values.get(index);
         }
     }
 }

@@ -27,7 +27,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
     @Override
-    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, CheckContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
         Location location = packetContainer.getPacket().getLocation();
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
@@ -44,8 +44,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         if (location.getYaw() == lastYaw && location.getPitch() == lastPitch) return false;
 
-        container.getStorage().put(Validation.class, Validation.validate().flag(deltaYaw));
-        container.getStorage().put(Validation.class, Validation.validate().flag(deltaPitch));
+        container.put(Validation.class, Validation.validate().flag(deltaYaw));
+        container.put(Validation.class, Validation.validate().flag(deltaPitch));
 
         callback.addAction(responseCallback -> {
             responseCallback.builder().onViolation((check, onViolation) -> {
@@ -61,8 +61,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
-        return CheckPipeline.from(new RotationA<>(), new RotationB<>(), new RotationC<>());
+    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+        return ValidationPipeline.from(new RotationA<>(), new RotationB<>(), new RotationC<>());
     }
 
     @Override
@@ -92,7 +92,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
                 final float pitch = packet.getPitch();
 
@@ -131,7 +131,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (packet.getYaw() == 0 || MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
@@ -139,8 +139,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
             }
             if (getSetting().isEnabled()) {
                 return Validation.validate().add(
-                        container.getStorage().get(Validation.class, 0).withViolationKey(yawKey).build(),
-                        container.getStorage().get(Validation.class, 1).withViolationKey(pitchKey).build()
+                        container.get(Validation.class, 0).withViolationKey(yawKey).build(),
+                        container.get(Validation.class, 1).withViolationKey(pitchKey).build()
                 ).build();
             }
             return Validation.PASS;
@@ -174,13 +174,13 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 if (packet.getYaw() != 0) {
                     return Validation.validate().add(
-                            container.getStorage().get(Validation.class, 0).withViolationKey(yawKey).build(),
-                            container.getStorage().get(Validation.class, 1).withViolationKey(pitchKey).build()
+                            container.get(Validation.class, 0).withViolationKey(yawKey).build(),
+                            container.get(Validation.class, 1).withViolationKey(pitchKey).build()
                     ).build();
                 }
             }

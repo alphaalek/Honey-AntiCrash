@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 
 public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
-    public static final CheckPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = CheckPipeline.from(new NettyA());
+    public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA());
 
     @Override
     public Supplier<List<PacketType>> getPacketTypes() {
@@ -52,8 +52,8 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     }
 
     @Override
-    public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
-        return CheckPipeline.from(
+    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+        return ValidationPipeline.from(
                 /* new NettyA<>(), */ new NettyB<>(), /*  new NettyC<>(), */ new NettyH<>(), new NettyI<>() /*, new NettyJ<>() */);
     }
 
@@ -122,8 +122,8 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public CheckPipeline<PacketValidation<WP>> getNewPipeline() {
-            return CheckPipeline.from(this);
+        public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+            return ValidationPipeline.from(this);
         }
 
         @Override
@@ -146,7 +146,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 PacketReader<WP> reader = (PacketReader<WP>) READERS.get(packet.getType().getHoneyID());
@@ -218,7 +218,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final double RATE_ACCEL = /*115 */ 350 * Timespan.MILLIS_TO_NANO_MULTIPLIER;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 double playerRate5S = tracker.getPlayerRate(player, Timespan.FIVE_SECOND, false);
@@ -296,7 +296,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<CheckContextContainer.DevelopmentData> developmentDataSupplier) {
+        public static <WP extends WrappedPacket<WP>> ResponseContainer check0(WP packet, ConfigurationOptions.VlSetting setting, Supplier<ValidationContextContainer.DevelopmentData> developmentDataSupplier) {
             // evaluate the duration of decoding this packet
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.DECODE);
 
@@ -313,7 +313,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             return check0(packet, getSetting(), () -> container.getDevelopmentData(this));
         }
 
@@ -343,7 +343,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             return NettyH.check0(packet, getSetting(), () -> container.getDevelopmentData(this));
         }
 
@@ -385,7 +385,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         ).build();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, CheckContextContainer container) {
+        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
             if (getSetting().isEnabled()) {
 
                 double preHsq = tracker.getHalfServerThreadQuotient(player, Timespan.FIVE_SECOND, false);
@@ -442,7 +442,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
             return Validation.PASS;
         }
 
-        private void applyCommonDevelopmentData(CheckContextContainer.DevelopmentData developmentData, double multiplier, double hsq) {
+        private void applyCommonDevelopmentData(ValidationContextContainer.DevelopmentData developmentData, double multiplier, double hsq) {
             developmentData.addPoint("Multiplier", multiplier);
             developmentData.addPoint("h.s.q.", NumberUtils.format(hsq * 100, 2) + "%");
         }
