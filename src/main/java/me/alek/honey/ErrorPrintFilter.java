@@ -1,8 +1,7 @@
 package me.alek.honey;
 
-import me.alek.honey.checks.Settings;
-import me.alek.honey.checks.impl.NettyValidations;
-import me.alek.honey.checks.response.Validation;
+import me.alek.honey.validation.Settings;
+import me.alek.honey.validation.impl.NettyValidations;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.Cancellable;

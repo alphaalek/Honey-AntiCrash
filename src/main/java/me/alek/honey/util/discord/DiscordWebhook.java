@@ -2,8 +2,8 @@ package me.alek.honey.util.discord;
 
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.types.HoneyValidation;
+import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 
 import javax.net.ssl.HttpsURLConnection;

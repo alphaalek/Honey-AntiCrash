@@ -3,7 +3,7 @@ package me.alek.honey.netty.packet;
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.item.ItemAnalysis;
+import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;

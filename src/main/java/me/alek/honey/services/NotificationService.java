@@ -2,7 +2,7 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.validation.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.messages.MessageFormat;
 import me.alek.honey.messages.MessageOffer;

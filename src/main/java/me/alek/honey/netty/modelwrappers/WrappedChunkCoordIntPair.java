@@ -1,6 +1,6 @@
 package me.alek.honey.netty.modelwrappers;
 
-import me.alek.honey.checks.impl.MovementValidations;
+import me.alek.honey.validation.impl.MovementValidations;
 import me.alek.honey.netty.util.FieldAccessor;
 import org.bukkit.World;
 

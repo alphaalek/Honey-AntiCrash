@@ -1,7 +1,7 @@
 package me.alek.honey.storage.repository;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.validation.CheckContextContainer;
 import me.alek.honey.storage.ComponentBridge;
 import me.alek.honey.storage.QueryFactory;
 import me.alek.honey.storage.Repository;

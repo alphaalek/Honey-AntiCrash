@@ -2,8 +2,8 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.item.ItemCheckRegistry;
-import me.alek.honey.checks.item.enums.ConfiscationStrategy;
+import me.alek.honey.validation.item.ItemCheckRegistry;
+import me.alek.honey.validation.item.enums.ConfiscationStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import org.bukkit.Material;

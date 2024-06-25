@@ -3,7 +3,7 @@ package me.alek.honey.storage;
 import com.google.common.base.Strings;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.validation.CheckContextContainer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;

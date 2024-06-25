@@ -1,7 +1,7 @@
 package me.alek.honey.storage;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.checks.CheckContextContainer;
+import me.alek.honey.validation.CheckContextContainer;
 import me.alek.honey.storage.exceptions.SQLFactoryException;
 import me.alek.honey.storage.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.storage.model.PlayerEntry;

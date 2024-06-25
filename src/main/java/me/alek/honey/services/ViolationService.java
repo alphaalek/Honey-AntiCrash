@@ -2,8 +2,8 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.checks.CheckContextContainer;
-import me.alek.honey.checks.types.HoneyValidation;
+import me.alek.honey.validation.CheckContextContainer;
+import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.Cancellable;
