@@ -34,7 +34,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
-    private ViolationService.PacketIntervalThrottleHandler exemptedIntervalThrottle;
     private HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
@@ -136,18 +135,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                                 && player != null
                                 && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
-                    if (exemptedIntervalThrottle != null) {
-                        exemptedIntervalThrottle.flag(earlyPacketContainer, null, 1, null, null, null, null, null);
-
-                        if (earlyPacketContainer.isCancelled()) {
-                            if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-                                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + earlyPacketContainer.getType() + ", " + earlyPacketContainer.getPlayerName());
-                            }
-                            stopTimings(earlyPacketContainer);
-                            return;
-                        }
-                    }
-
                     ctx.fireChannelRead(packet);
                     stopTimings(earlyPacketContainer);
                     return;
@@ -234,8 +221,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         if (player == null && asyncDecoder.getPlayer() != null) {
             player = asyncDecoder.getPlayer();
-            exemptedIntervalThrottle = new ViolationService.PacketIntervalThrottleHandler(
-                    player, ConfigurationOptions.getFloodSettings().get(PacketTypes.Play.Client.TRANSACTION));
         }
 
         List<Object> nonRecycledList = new ArrayList<>();
