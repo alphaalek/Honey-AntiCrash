@@ -34,8 +34,7 @@ public class PacketTaskHandler {
                             && (System.nanoTime() - handledTask.getStarted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                        if (packet == null
-                                || packet.isDumped()) {
+                        if (packet == null || packet.isDumped()) {
                             continue;
                         }
                         packet.dump();
@@ -75,34 +74,34 @@ public class PacketTaskHandler {
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), Integer.MAX_VALUE);
         StackTraceElement[] elements = info.getStackTrace();
 
-        String prevElement = null;
+        String prev = null;
         int combined = 0;
         List<String> strings = new ArrayList<>();
+
+        // make the lines for this thread dump formatting
         for (StackTraceElement element : elements) {
-            boolean notMatch = false;
-            if (!element.toString().equals(prevElement)) {
+            if (!element.toString().equals(prev)) {
                 strings.add(element + "\n\t");
-                notMatch = true;
-            }
-            else combined++;
-
-            prevElement = element.toString();
-
-            if (notMatch) {
-                if (combined > 0) strings.add("[...] x" + combined + "\n\t");
-
+                if (combined > 0) {
+                    strings.add("[...] x" + combined + "\n\t");
+                }
                 combined = 0;
+            } else {
+                combined++;
             }
+
+            prev = element.toString();
         }
 
-        if (prevElement != null && combined > 0) {
-            strings.add(prevElement);
+        if (prev != null && combined > 0) {
+            strings.add(prev);
         }
 
         while (strings.size() > 50) {
             strings.remove(strings.size() - 1);
         }
 
+        // finally make the string to be dumped
         StringBuilder builder = new StringBuilder("Thread Dump:\n\t");
         for (String str : strings) {
             builder.append(str);
@@ -115,19 +114,20 @@ public class PacketTaskHandler {
         LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
         if (!dump.contains("PacketTaskHandler")) {
-            String name = packet != null ? packet.getPlayerName() : "Unknown";
+            String name = packet.getPlayerName();
 
-            if (packet != null && !PacketTypes.isUnknown(packet.getType())) {
+            if (!PacketTypes.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getHoneyID() + ", State: " + packet.getProtocolState());
                 loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");
             }
+
             loggerService.getLogger().severe(dump);
 
-            HoneyPlugin.get().getNotificationService().notify(ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX
-                    + " §cThe server seems to be frozen after a packet was sent by " + name + ". See the log for thread dump and more info."));
+            HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
+                    + " §cThe server seems to be frozen after packet " + packet.getType() + " was sent by " + name + ". See the log for thread dump and more info."));
         }
     }
 
@@ -152,12 +152,19 @@ public class PacketTaskHandler {
     public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
         packet.getEventloopStateTimings().stopTimings();
 
+        double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
         if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
-                && packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE) > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
+                && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
             HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
         }
 
-        // we have to make sure it's not an unmodifiable packet (made for some packet types in higher versions where packet mapping is not yet made)
+        if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                && packet.isDumped()) {
+            HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
+                    + " §cDone handling packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + millis + "ms)");
+        }
+
+        // we have to make sure it's not an unmapped packet
         if (!PacketTypes.isUnknown(packet.getType())) {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }

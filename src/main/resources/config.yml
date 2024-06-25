@@ -6,7 +6,7 @@
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
 #
 # Also remember, that false flags can occur, so it is not recommended to ban a player just after
-# some few violations shown in chat. (it can sometimes emerge at serverside or clientside lagspikes)
+# some few violations shown in chat. (it can sometimes emerge at client or server lagspikes)
 # That is exactly what this file is for. You should change the values you can see below if that's
 # what your server need. Everything is configurable, and every server is different. That's why
 # you have to set it up to match your server! If you have trouble doing this, I will gladly help you. :-)
