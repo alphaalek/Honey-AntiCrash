@@ -193,15 +193,15 @@ public class MonitorFlagParser {
         return parsed;
     }
 
-    public static Flags.RuntimeFlags getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
+    public static FlagRunner.RuntimeFlags getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
         Array<Object> elements = getMonitorFlagsAndOperators(args).as(Parsed::get);
 
-        Flags.Conditions conditions = new Flags.Conditions();
-        return new Flags.RuntimeFlags(Array.from(new Flags.Env(getFlagsWithin(elements, conditions), conditions)));
+        FlagRunner.Conditions conditions = new FlagRunner.Conditions();
+        return new FlagRunner.RuntimeFlags(Array.from(new FlagRunner.Env(getFlagsWithin(elements, conditions), conditions)));
     }
 
-    private static Array<Flags.Chipstate> getFlagsWithin(Array<Object> elements, Flags.Conditions conditions) {
-        Array<Flags.Chipstate> flags = new Array<>();
+    private static Array<FlagRunner.Chipstate> getFlagsWithin(Array<Object> elements, FlagRunner.Conditions conditions) {
+        Array<FlagRunner.Chipstate> flags = new Array<>();
         wrapLogicalANDs(elements);
         int chipstateIndex = 0;
 
@@ -209,25 +209,25 @@ public class MonitorFlagParser {
             Object elem = elements.get(i);
             if (elem instanceof MonitorFlag) {
                 chipstateIndex++;
-                Flags.Runtime runtime = new Flags.Runtime((MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) elem);
+                FlagRunner.Runtime runtime = new FlagRunner.Runtime((MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) elem);
                 flags.add(runtime);
             }
             if (elem.equals(LogicalOperator.NOT)) {
-                conditions.addCondition(new Flags.Condition(IDRegistry.from(chipstateIndex), flags, LogicalOperator.NOT));
+                conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex), flags, LogicalOperator.NOT));
             }
             else if (elem.equals(LogicalOperator.AND)) {
-                conditions.addCondition(new Flags.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.AND));
+                conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.AND));
             }
             else if (elem.equals(LogicalOperator.OR)) {
-                conditions.addCondition(new Flags.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.OR));
+                conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.OR));
             }
             else if (elem.equals(LogicalOperator.PARANTHESIS_START)) {
                 Array<Object> in = getElementsInParanthesis(elements.from(i));
                 i += in.size();
 
                 chipstateIndex++;
-                Flags.Conditions newChipstateConditions = new Flags.Conditions();
-                flags.add(new Flags.Env(getFlagsWithin(in, newChipstateConditions), newChipstateConditions));
+                FlagRunner.Conditions newChipstateConditions = new FlagRunner.Conditions();
+                flags.add(new FlagRunner.Env(getFlagsWithin(in, newChipstateConditions), newChipstateConditions));
             }
             else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
                 return flags;

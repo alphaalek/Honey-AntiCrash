@@ -2,8 +2,8 @@ package me.alek.honey.validation.types;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.ValidationContextContainer;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.configuration.ConfigurationOptions;
 
 public interface ViolationValidation<T> extends HoneyValidation<T> {

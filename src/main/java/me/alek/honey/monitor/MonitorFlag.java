@@ -96,7 +96,7 @@ public interface MonitorFlag<T> {
     interface NoAppendingMonitorFlag<F> extends MonitorFlag<F> {
 
         @Override
-        default void append(F input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
+        default void append(F input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
 
         }
     }
@@ -105,7 +105,7 @@ public interface MonitorFlag<T> {
 
     boolean test(T input);
 
-    void append(T input, Flags.Appendable appendable, List<Flags.AppendedData> data);
+    void append(T input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data);
 
     default String getWrongSyntaxMessage() {
         return "You have to choose an argument";
@@ -248,12 +248,12 @@ public interface MonitorFlag<T> {
 
         @Override
         public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
-            return state == PacketState.ANY || (input.getState().equals(state));
+            return state == PacketState.ANY || input.getState().equals(state);
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from(input.getProtocolState().name(), appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from(input.getState().name(), appendable));
         }
     }
 
@@ -275,8 +275,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from(HoneyPlugin.get().getLoggerService().formatPacketEntries(input), appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from(HoneyPlugin.get().getLoggerService().formatPacketEntries(input), appendable));
         }
     }
 
@@ -300,8 +300,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from(format(getState()) + "=" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms", appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from(format(getState()) + "=" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms", appendable));
         }
 
         public String format(EventloopState state) {
@@ -368,8 +368,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("ntq-oawo=" + TrackerUtils.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from("ntq-oawo=" + TrackerUtils.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -394,8 +394,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("ntq-ot=" + TrackerUtils.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from("ntq-ot=" + TrackerUtils.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -420,8 +420,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("stq-oawo=" + TrackerUtils.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from("stq-oawo=" + TrackerUtils.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -446,8 +446,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("stq-ot=" + TrackerUtils.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from("stq-ot=" + TrackerUtils.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
         }
     }
 
@@ -472,8 +472,8 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, Flags.Appendable appendable, List<Flags.AppendedData> data) {
-            data.add(Flags.AppendedData.from("stq-ohst=" + TrackerUtils.getServer().getOfPacketTaskFormatted(input.getPlayer(), Timespan.TEN_SECOND), appendable));
+        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+            data.add(FlagRunner.AppendedData.from("stq-ohst=" + TrackerUtils.getServer().getOfPacketTaskFormatted(input.getPlayer(), Timespan.TEN_SECOND), appendable));
         }
     }
 }

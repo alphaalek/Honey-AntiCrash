@@ -5,8 +5,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.AbstractPacketListener;
 import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.validation.ValidationPipeline;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -26,8 +26,8 @@ public class SignValidations extends AbstractPacketListener<WrappedPlayInUpdateS
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketTypes.Play.Client.UPDATE_SIGN);
+    public List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.UPDATE_SIGN);
     }
 
     public static class SignA implements PacketValidation<WrappedPlayInUpdateSign> {

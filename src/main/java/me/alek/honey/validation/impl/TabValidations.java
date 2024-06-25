@@ -3,15 +3,15 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
@@ -47,8 +47,8 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketTypes.Play.Client.TAB_COMPLETE);
+    public List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.TAB_COMPLETE);
     }
 
     @Override
@@ -123,7 +123,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
                     }
                 }
 
-            }, ListenerPriority.NORMAL, () -> PacketTypes.Play.Server.TAB_COMPLETE);
+            }, ListenerPriority.NORMAL, PacketTypes.Play.Server.TAB_COMPLETE);
         }
 
         @Override

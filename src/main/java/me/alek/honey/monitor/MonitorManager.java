@@ -99,7 +99,7 @@ public class MonitorManager {
         return monitorer;
     }
 
-    public void setupPacketMonitor(CommandSender sender, Flags.RuntimeFlags flags) {
+    public void setupPacketMonitor(CommandSender sender, FlagRunner.RuntimeFlags flags) {
         removeIfHasMonitor(sender, false);
 
         Monitorer monitorer = new PacketMonitorer<>(flags);

@@ -3,7 +3,7 @@ package me.alek.honey.validation.types;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.ValidationContextContainer;
-import me.alek.honey.validation.response.ResponseContainer;
+import me.alek.honey.validation.ResponseContainer;
 
 public interface HoneyValidation<T> {
 

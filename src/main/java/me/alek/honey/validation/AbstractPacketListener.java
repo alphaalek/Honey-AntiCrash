@@ -1,12 +1,11 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.response.ResponseContainer;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
@@ -91,7 +90,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         onPostPacketReceive(player, packetContainer, validationContext);
     }
 
-    public abstract Supplier<List<PacketType>> getPacketTypes();
+    public abstract List<PacketType> getPacketTypes();
 
     public synchronized ValidationPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
         return getCachedPipeline(visitors, this, player);

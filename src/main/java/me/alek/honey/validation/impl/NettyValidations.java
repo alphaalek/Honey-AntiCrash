@@ -3,8 +3,8 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -42,8 +42,8 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA());
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER);
+    public List<PacketType> getPacketTypes() {
+        return PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER);
     }
 
     @Override
@@ -127,22 +127,20 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public Supplier<List<PacketType>> getPacketTypes() {
-            return () -> {
-                List<PacketType> packetTypes = new ArrayList<>();
+        public List<PacketType> getPacketTypes() {
+            List<PacketType> packetTypes = new ArrayList<>();
 
-                BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
-                        !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
-                for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
-                    ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
-                    if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
-                        packetTypes.add(packetType);
-                    }
+            BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
+                    !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
+            for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
+                ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
+                if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
+                    packetTypes.add(packetType);
                 }
-                packetTypes.removeAll(IGNORE);
+            }
+            packetTypes.removeAll(IGNORE);
 
-                return packetTypes;
-            };
+            return packetTypes;
         }
 
         @Override

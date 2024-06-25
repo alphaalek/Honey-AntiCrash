@@ -1,15 +1,15 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.response.ResponseContainer;
+import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.validation.types.DecodeValidation;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
-public abstract class AbstractDecodeListener extends FuzzyPacketAdapter implements ValidationPipelineFactory<DecodeValidation>, BaseValidation {
+public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements ValidationPipelineFactory<DecodeValidation>, BaseValidation {
 
     private final Array<ValidationPipeline<DecodeValidation>> pipelines = new Array<>();
 

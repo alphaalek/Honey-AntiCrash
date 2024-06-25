@@ -3,7 +3,7 @@ package me.alek.honey.listeners;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 
 public class TabCompleteListener extends PacketAdapter<WrappedPlayOutTabComplete> {

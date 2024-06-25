@@ -3,8 +3,8 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -27,8 +27,8 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketTypes.Play.Client.SET_CREATIVE_SLOT);
+    public List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.SET_CREATIVE_SLOT);
     }
 
     public static class CreativeA implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {

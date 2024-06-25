@@ -1,4 +1,4 @@
-package me.alek.honey.netty.listener;
+package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
@@ -14,14 +14,6 @@ public class PacketAdapter<WP extends WrappedPacket<WP>> {
     }
 
     public void onPacketSend(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
-
-    }
-
-    public void onPacketCancel(HoneyPlayer player, PacketContainer<WP> packetContainer, PacketBound bound) {
-
-    }
-
-    public void onPacketError(HoneyPlayer player, PacketType packetType, PacketContainer<WP> packetContainer) {
 
     }
 

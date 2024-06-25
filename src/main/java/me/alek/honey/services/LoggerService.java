@@ -7,8 +7,8 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.FuzzyPacketAdapter;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -40,37 +40,41 @@ public class LoggerService {
     private final TempQueuedTracker packetRatePerQueueExecution = new TempQueuedTracker(false, false);
     private final AtomicInteger currentQueueExecutionPacket = new AtomicInteger(0);
 
+    private final class PacketLoggerHolder<WP extends WrappedPacket<WP>> {
 
-    private final FuzzyPacketAdapter packetLoggerListener = new FuzzyPacketAdapter() {
+        private final PacketAdapter<WP> packetLogger = new PacketAdapter<WP>() {
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public void onPacketReceive(HoneyPlayer player, PacketContainer packet) {
-            if (monitorManager.hasMonitorers()) {
-                // notify monitor observers
-                logToMonitors(player, packet);
+            @Override
+            @SuppressWarnings("unchecked")
+            public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
+                if (monitorManager.hasMonitorers()) {
+                    // notify monitor observers
+                    logToMonitors(player, packet);
 
-                if (player != null) {
-                    long time = System.currentTimeMillis();
-                    // register to packet rate
-                    synchronized (packetRate) {
-                        packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
-                                .count(time);
+                    if (player != null) {
+                        long time = System.currentTimeMillis();
+                        // register to packet rate
+                        synchronized (packetRate) {
+                            packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
+                                    .count(time);
+                        }
+                        totalPacketRate.count(time);
                     }
-                    totalPacketRate.count(time);
-                }
-            }
-
-            // log the packet
-            if (enabled) {
-                if (!packet.getState().equals(PacketState.PLAY) && !ConfigurationOptions.PacketLogger.EARLY) {
-                    return;
                 }
 
-                logPacket(packet, packet.getPlayerName());
+                // log the packet
+                if (enabled) {
+                    if (!packet.getState().equals(PacketState.PLAY) && !ConfigurationOptions.PacketLogger.EARLY) {
+                        return;
+                    }
+
+                    logPacket(packet, packet.getPlayerName());
+                }
             }
-        }
-    };
+        };
+    }
+
+    private final PacketLoggerHolder<? extends WrappedPacket<?>> holder = new PacketLoggerHolder<>();
 
     public LoggerService() {
         reload();
@@ -83,9 +87,9 @@ public class LoggerService {
         ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
         ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
-        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isFuzzyRegistered(packetLoggerListener);
+        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addFuzzyListeners(packetLoggerListener, ListenerPriority.LOWEST, () -> PacketTypes.getTypesAvailableForBound(PacketBound.SERVER));
+            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, ListenerPriority.LOWEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER));
         }
     }
 

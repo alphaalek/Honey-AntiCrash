@@ -2,8 +2,8 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.KeyedViolationValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
@@ -70,18 +70,17 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> {
-            Set<PacketType> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
-            List<PacketType> packetTypes = new ArrayList<>();
+    public List<PacketType> getPacketTypes() {
+        Set<PacketType> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
 
-            for (PacketType packetType : PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
-                if (floodSettings.contains(packetType)) {
-                    packetTypes.add(packetType);
-                }
+        List<PacketType> packetTypes = new ArrayList<>();
+        for (PacketType packetType : PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
+            if (floodSettings.contains(packetType)) {
+                packetTypes.add(packetType);
             }
-            return packetTypes;
-        };
+        }
+
+        return packetTypes;
     }
 
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {

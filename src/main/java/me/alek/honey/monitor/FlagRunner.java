@@ -10,7 +10,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class Flags {
+public class FlagRunner {
 
     public static class RuntimeFlags implements Iterable<Chipstate> {
 

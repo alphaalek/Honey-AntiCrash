@@ -5,8 +5,8 @@ import me.alek.honey.validation.AbstractPacketListener;
 import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.Settings;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
@@ -143,14 +143,12 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> {
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
-                return Collections.singletonList(PacketTypes.Play.Client.CHAT);
-            } else {
-                return Collections.singletonList(PacketTypes.Play.Client.CHAT_COMMAND);
-            }
-        };
+    public List<PacketType> getPacketTypes() {
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
+            return Collections.singletonList(PacketTypes.Play.Client.CHAT);
+        } else {
+            return Collections.singletonList(PacketTypes.Play.Client.CHAT_COMMAND);
+        }
     }
 
     @Override

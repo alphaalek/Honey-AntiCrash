@@ -3,9 +3,10 @@ package me.alek.honey.validation.impl;
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.DecodeValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class NettyDecodeValidations extends AbstractDecodeListener {
+public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends AbstractDecodeListener<WP> {
 
     @Override
     public ValidationPipeline<DecodeValidation> getNewPipeline() {

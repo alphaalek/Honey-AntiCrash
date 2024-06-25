@@ -4,8 +4,8 @@ import io.netty.buffer.EmptyByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -50,8 +50,8 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketTypes.Play.Client.CUSTOM_PAYLOAD);
+    public List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.CUSTOM_PAYLOAD);
     }
 
     public static class PayloadA implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {

@@ -3,7 +3,7 @@ package me.alek.honey.netty.api;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketType;

@@ -2,7 +2,6 @@ package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.response.ResponseContainer;
 import me.alek.honey.validation.types.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;

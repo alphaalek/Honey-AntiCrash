@@ -287,7 +287,7 @@ public class HoneyPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new TeleportListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
-        packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, () -> PacketTypes.Play.Server.TAB_COMPLETE);
+        packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
 

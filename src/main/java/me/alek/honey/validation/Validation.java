@@ -1,4 +1,4 @@
-package me.alek.honey.validation.response;
+package me.alek.honey.validation;
 
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.services.ViolationService;

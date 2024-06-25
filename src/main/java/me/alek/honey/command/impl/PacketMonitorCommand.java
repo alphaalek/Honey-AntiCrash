@@ -3,7 +3,7 @@ package me.alek.honey.command.impl;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.monitor.Flags;
+import me.alek.honey.monitor.FlagRunner;
 import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.MonitorFlagParser;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
@@ -19,7 +19,7 @@ public class PacketMonitorCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
 
         try {
-            Flags.RuntimeFlags flags = MonitorFlagParser.getMonitorFlags(args);
+            FlagRunner.RuntimeFlags flags = MonitorFlagParser.getMonitorFlags(args);
 
             if (flags.isEmpty()) {
                 sender.sendMessage(Lang.getFormatted("packetmonitor.min.flag.1"));

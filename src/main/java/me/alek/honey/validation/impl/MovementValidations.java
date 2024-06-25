@@ -3,15 +3,15 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -44,12 +44,12 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 lastTeleportationLocationMap.put(player.uuid, packetContainer.getPacket().getLocation());
             }
 
-        }, ListenerPriority.HIGHEST, () -> PacketTypes.Play.Server.POSITION);
+        }, ListenerPriority.HIGHEST, PacketTypes.Play.Server.POSITION);
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> Arrays.asList(
+    public List<PacketType> getPacketTypes() {
+        return Arrays.asList(
                 PacketTypes.Play.Client.POSITION,
                 PacketTypes.Play.Client.POSITION_LOOK,
                 PacketTypes.Play.Client.GROUND,

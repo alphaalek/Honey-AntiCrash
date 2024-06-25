@@ -9,10 +9,10 @@ import java.util.Optional;
 
 public class PacketMonitorer<WP extends WrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<? extends WrappedPacket<WP>>> {
 
-    private final Flags.RuntimeFlags flags;
+    private final FlagRunner.RuntimeFlags flags;
     private final MonitorSendAt sendAt;
 
-    public PacketMonitorer(Flags.RuntimeFlags flags) {
+    public PacketMonitorer(FlagRunner.RuntimeFlags flags) {
         this.flags = flags;
 
         boolean hasToBeAfterServerHandle = false;
@@ -40,13 +40,13 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
 
     @Override
     public String getMessage(PacketContainer<? extends WrappedPacket<WP>> input) {
-        List<Flags.AppendedData> data = new ArrayList<>();
+        List<FlagRunner.AppendedData> data = new ArrayList<>();
         if (!flags.process(input, data)) {
             return null;
         }
 
         StringBuilder dataMessage = new StringBuilder();
-        for (Flags.AppendedData d : data) {
+        for (FlagRunner.AppendedData d : data) {
             if (d.shouldAppend()) {
                 dataMessage.append("§8, §7").append(d.getData());
             }

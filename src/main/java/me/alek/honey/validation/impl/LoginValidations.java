@@ -4,8 +4,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.AbstractPacketListener;
 import me.alek.honey.validation.ValidationContextContainer;
 import me.alek.honey.validation.ValidationPipeline;
-import me.alek.honey.validation.response.ResponseContainer;
-import me.alek.honey.validation.response.Validation;
+import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.Validation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
@@ -33,8 +33,8 @@ public class LoginValidations extends AbstractPacketListener<WrappedLoginInLogin
     }
 
     @Override
-    public Supplier<List<PacketType>> getPacketTypes() {
-        return () -> Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
+    public List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
     }
 
     public static class LoginA implements PacketValidation<WrappedLoginInLoginStart> {

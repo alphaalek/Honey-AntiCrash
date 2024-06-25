@@ -6,8 +6,7 @@ import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.SpigotServerInjector;
-import me.alek.honey.netty.listener.FuzzyPacketAdapter;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -113,16 +112,12 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListener(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<PacketType> packetTypes) {
-        packetProcessor.addListener(adapter, priority, packetTypes.get());
+    public <WP extends WrappedPacket<WP>> void addListener(PacketAdapter<WP> adapter, ListenerPriority priority, PacketType packetType) {
+        packetProcessor.addListener(adapter, priority, packetType);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, Supplier<List<PacketType>> packetTypes) {
-        packetProcessor.addListener(adapter, priority, packetTypes.get());
-    }
-
-    public void addFuzzyListeners(FuzzyPacketAdapter adapter, ListenerPriority priority, Supplier<List<PacketType>> packetTypes) {
-        packetProcessor.addListener(adapter, priority, packetTypes.get());
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, List<PacketType> packetTypes) {
+        packetProcessor.addListener(adapter, priority, packetTypes);
     }
 
     public void addDecodeListener(PacketAdapter<?> adapter, ListenerPriority priority) {
@@ -137,23 +132,8 @@ public class PacketLibrary {
         packetProcessor.removeListener(adapter, packetTypes);
     }
 
-    @SuppressWarnings("unchecked")
-    public void removeFuzzyListener(FuzzyPacketAdapter adapter) {
-        removeListener(adapter);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void removeFuzzyListeners(FuzzyPacketAdapter adapter, List<PacketType> packetTypes) {
-        removeListeners(adapter, packetTypes);
-    }
-
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> adapter) {
         return packetProcessor.isRegistered(adapter);
-    }
-
-    @SuppressWarnings("unchecked")
-    public boolean isFuzzyRegistered(FuzzyPacketAdapter adapter) {
-        return isRegistered(adapter);
     }
 
     public boolean isEnabled() {

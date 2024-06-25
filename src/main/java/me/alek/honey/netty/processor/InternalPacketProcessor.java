@@ -7,7 +7,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
-import me.alek.honey.netty.listener.PacketAdapter;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.CancellableByteBuf;
@@ -249,15 +249,6 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
         return false;
-    }
-
-    public boolean hasListener(PacketType... packetTypes) {
-        for (PacketType packetType : packetTypes) {
-            if (!eventBusses.has(packetType.getHoneyID())) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override
