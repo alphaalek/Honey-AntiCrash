@@ -17,7 +17,7 @@ import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerJoinQuitListener;
 import me.alek.honey.listeners.TabCompleteListener;
 import me.alek.honey.listeners.TeleportListener;
-import me.alek.honey.metrics.Metrics;
+import me.alek.honey.util.Metrics;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;

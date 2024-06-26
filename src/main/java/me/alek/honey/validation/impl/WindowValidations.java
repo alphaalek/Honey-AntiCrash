@@ -21,7 +21,6 @@ import org.bukkit.event.inventory.InventoryType;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindowClick> {
 
@@ -52,7 +51,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
                 int slot = packet.getWindowSlot();
 
                 int inventorySlots = player.player.getOpenInventory().countSlots();
-                InventoryProcessor.Context ctx = Processors.INVENTORY.getContext(player);
+                InventoryProcessor.Emulator ctx = Processors.INVENTORY.getContext(player);
 
                 if (ctx.windowOpen) {
 

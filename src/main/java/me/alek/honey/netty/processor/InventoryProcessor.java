@@ -6,10 +6,10 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCloseWindow;
 
-public class InventoryProcessor<WP extends WrappedPacket<WP>> extends Processor<WP, InventoryProcessor.Context> {
+public class InventoryProcessor<WP extends WrappedPacket<WP>> extends Processor<WP, InventoryProcessor.Emulator> {
 
     public InventoryProcessor() {
-        super(Context::new);
+        super(Emulator::new);
         add(PacketTypes.Play.Client.CLOSE_WINDOW, this::handleCloseWindow);
 
     }
@@ -18,7 +18,7 @@ public class InventoryProcessor<WP extends WrappedPacket<WP>> extends Processor<
         getContext(player).windowOpen = false;
     }
 
-    public static class Context implements ProcessorContext {
+    public static class Emulator implements ProcessorContext {
 
         public boolean windowOpen;
 
