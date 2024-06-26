@@ -6,10 +6,10 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.util.ConstructorInvoker;
-import me.alek.honey.netty.util.ItemReflection;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.reflection.ConstructorInvoker;
+import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

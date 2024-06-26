@@ -2,9 +2,9 @@ package me.alek.honey.netty.codec;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.util.MethodInvoker;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.reflection.MethodInvoker;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;

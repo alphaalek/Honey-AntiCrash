@@ -4,6 +4,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.packetwrappers.play.client.*;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutChat;
@@ -39,6 +40,7 @@ public class PacketWrapperFactory {
         loadWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
         loadWrapper(PacketTypes.Play.Client.WINDOW_CLICK, WrappedPlayInWindowClick::new);
         loadWrapper(PacketTypes.Login.Client.LOGIN_START, WrappedLoginInLoginStart::new);
+        loadWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, WrappedHandshakeInSetProtocol::new);
 
         loadWrapper(PacketTypes.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);
         loadWrapper(PacketTypes.Play.Server.KICK_DISCONNECT, WrappedPlayOutKickDisconnect::new);

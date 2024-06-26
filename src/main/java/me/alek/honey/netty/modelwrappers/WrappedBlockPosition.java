@@ -1,7 +1,11 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.util.*;
+import me.alek.honey.util.reflection.ConstructorInvoker;
+import me.alek.honey.util.reflection.FieldAccessor;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.util.statics.MathHelper;
 import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.Location;
 import org.bukkit.World;

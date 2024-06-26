@@ -22,9 +22,7 @@ public class CancellableByteBuf implements Cancellable {
         }
         cancelled = true;
 
-        if (player != null && player.isOnlineDirect()) {
-            HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
-        }
+        HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
 
         if (byteBuf.refCnt() > 0) {
             byteBuf.release();

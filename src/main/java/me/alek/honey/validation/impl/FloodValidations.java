@@ -18,7 +18,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NMS;
+import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.services.ViolationService;
@@ -28,7 +28,6 @@ import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 

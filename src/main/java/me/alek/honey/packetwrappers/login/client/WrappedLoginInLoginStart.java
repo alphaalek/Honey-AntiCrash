@@ -2,7 +2,7 @@ package me.alek.honey.packetwrappers.login.client;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 public class WrappedLoginInLoginStart extends WrappedPacket<WrappedLoginInLoginStart> {

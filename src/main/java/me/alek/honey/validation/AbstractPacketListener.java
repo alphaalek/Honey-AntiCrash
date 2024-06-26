@@ -32,18 +32,16 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public static synchronized <C extends HoneyValidation<?>> ValidationPipeline<C> getCachedPipeline(Array<ValidationPipeline<C>> pipelines, ValidationPipelineFactory<C> factory, HoneyPlayer player) {
-        return getCachedPipeline(pipelines, factory, player, player != null ? player.registryID : 0);
+        return getCachedPipeline(pipelines, factory, player, player.registryID);
     }
 
     public static synchronized <C extends HoneyValidation<?>> ValidationPipeline<C> getCachedPipeline(Array<ValidationPipeline<C>> pipelines, ValidationPipelineFactory<C> factory, HoneyPlayer player, int registryID) {
         if (!pipelines.has(registryID)) {
             if (!factory.requiresPlayer()
-                    || player != null && player.isOnlineDirect() && !player.punished) {
+                    || player.isBukkitReady() && player.isOnlineDirect() && !player.punished) {
                 pipelines.set(registryID, factory.getNewPipeline());
 
-                if (player != null) {
-                    player.leaveCallback.addAction(p -> pipelines.remove(registryID));
-                }
+                player.leaveCallback.addAction(p -> pipelines.remove(registryID));
             }
         }
 
@@ -57,7 +55,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
     @Override
     public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) {
-        if (requiresPlayer() && player == null) {
+        if (requiresPlayer() && !player.isBukkitReady()) {
             return;
         }
 

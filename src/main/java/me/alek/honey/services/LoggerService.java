@@ -22,6 +22,7 @@ import me.alek.honey.util.statics.NumberUtils;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class LoggerService {
 
@@ -51,7 +52,7 @@ public class LoggerService {
                     // notify monitor observers
                     logToMonitors(player, packet);
 
-                    if (player != null) {
+                    if (player.isBukkitReady()) {
                         long time = System.currentTimeMillis();
                         // register to packet rate
                         synchronized (packetRate) {
@@ -89,7 +90,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, ListenerPriority.LOWEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER));
+            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, ListenerPriority.LOWEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
         }
     }
 
@@ -149,7 +150,7 @@ public class LoggerService {
     }
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
-        if (player != null && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
+        if (player.isBukkitReady() && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getRaw().getClass().getSimpleName()))) {
             synchronized (this) {
                 Queue<PacketType> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());

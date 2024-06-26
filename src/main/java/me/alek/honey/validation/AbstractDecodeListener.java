@@ -2,6 +2,8 @@ package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.validation.types.DecodeValidation;
 import me.alek.honey.netty.PacketLibrary;
@@ -9,13 +11,15 @@ import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 
+import java.util.stream.Collectors;
+
 public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements ValidationPipelineFactory<DecodeValidation>, BaseValidation {
 
     private final Array<ValidationPipeline<DecodeValidation>> pipelines = new Array<>();
 
     @Override
-    public void onByteBufDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
-        if (requiresPlayer() && player == null) {
+    public void onPacketDecode(HoneyPlayer player, PacketType type, CancellableByteBuf byteBuf) {
+        if (requiresPlayer() && !player.isBukkitReady()) {
             return;
         }
 
@@ -28,6 +32,7 @@ public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> exten
                 ValidationContextContainer.DevelopmentData defaultDevelopmentData = validationContext.getDefaultDevelopmentData();
                 if (defaultDevelopmentData.getDataSet().isEmpty()) {
                     defaultDevelopmentData.addEmpty();
+                    defaultDevelopmentData.addValue(" Packet", type + " (id: " + type.getMinecraftID().get() + ")");
                     defaultDevelopmentData.addValue(" Buffer", bytes + " bytes");
                     AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
                 }
@@ -45,7 +50,7 @@ public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> exten
 
     @Override
     public void register(PacketLibrary library) {
-        library.addDecodeListener(this, getPriority());
+        library.addListeners(this, getPriority(), PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
     }
 
     public synchronized ValidationPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {

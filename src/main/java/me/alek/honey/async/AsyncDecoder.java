@@ -6,10 +6,10 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.netty.util.Reflection;
-import me.alek.honey.netty.util.UnsafeChannelCloser;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
 
@@ -94,7 +94,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
                 return;
             }
 
-            if (player != null) {
+            if (player.isBukkitReady()) {
                 long time = System.currentTimeMillis() - lastHandledTask.get();
                 if (time > 200) {
                     HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());

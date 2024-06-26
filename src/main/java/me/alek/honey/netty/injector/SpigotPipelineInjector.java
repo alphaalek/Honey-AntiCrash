@@ -3,7 +3,6 @@ package me.alek.honey.netty.injector;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.async.WorkerPool;
@@ -12,8 +11,7 @@ import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NMS;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.reflection.NMS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +37,11 @@ public class SpigotPipelineInjector {
 
             ejectHandlersIfExists(channel);
 
-            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, debuggerName, new HoneyDebugger());
-            channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, filterName, new InboundPacketFilter());
-
             HoneyPacketHandler packetHandler = new HoneyPacketHandler(channel);
+
+            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, debuggerName, new HoneyDebugger(packetHandler.getPlayer()));
+            channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, filterName, new InboundPacketFilter(packetHandler));
+
             setupPreparationHandlers(channel, packetHandler);
             togglePreResolvedBounds(channel, new PreResolvedPacketHandler(packetHandler));
         }
@@ -93,6 +92,13 @@ public class SpigotPipelineInjector {
                     pipeline.addAfter(PacketInterceptorResolver.getEncoderPosition(pipeline), encoderName, encoder);
                 }
             }
+
+            if (channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null) {
+                InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
+
+                channel.pipeline().remove(filter);
+                channel.pipeline().addAfter(MinecraftHandlers.DECOMPRESS, HoneyPlugin.get().getPacketLibrary().getFilterName(), filter);
+            }
         }
     }
 
@@ -117,17 +123,6 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public void relocateFilter(Channel channel) {
-        synchronized (channel) {
-            if (channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null) {
-                InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
-
-                channel.pipeline().remove(filter);
-                channel.pipeline().addAfter(MinecraftHandlers.DECOMPRESS, HoneyPlugin.get().getPacketLibrary().getFilterName(), filter);
-            }
-        }
-    }
-
     public void forceResolving(HoneyPacketHandler packetHandler, Channel channel) {
         if (!PacketInterceptorResolver.isDecoderPositionResolved()
                 && packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.PLAY
@@ -142,7 +137,7 @@ public class SpigotPipelineInjector {
         }
     }
 
-    public boolean relocatePreparationHandlers(HoneyPlayer player, Channel channel) throws MissingHandlerException {
+    public boolean relocatePreparationHandlers(Channel channel) throws MissingHandlerException {
         HoneyPacketHandler packetHandler = getPacketHandler(channel);
 
         forceResolving(packetHandler, channel);
@@ -162,15 +157,6 @@ public class SpigotPipelineInjector {
             if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
                 return false;
             }
-        }
-
-        if (player != null && player.updateHandlersLater) {
-            try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().updatePlayer(player);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            player.updateHandlersLater = false;
         }
 
         ensureCorrectPipelineOrder(channel);
@@ -288,61 +274,6 @@ public class SpigotPipelineInjector {
 
         if (channel.pipeline().context(handler) == null) {
             channel.pipeline().addBefore(MinecraftHandlers.MANAGER, "pre-resolved-packet-handler", handler);
-        }
-    }
-
-    public void updatePlayer(HoneyPlayer player) throws MissingHandlerException {
-        Channel channel = player.channel;
-        if (channel == null) {
-            throw new MissingHandlerException("Channel");
-        }
-
-        synchronized (channel) {
-            InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
-            HoneyDebugger debugger = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDebugger(channel);
-            if (filter == null || debugger == null) {
-                throw new MissingHandlerException(filter + ", " + debugger);
-            }
-
-            filter.setPlayer(player);
-            debugger.setPlayer(player);
-
-            if (PacketInterceptorResolver.isDecoderPositionResolved()
-                    && !isConfigurationActive(channel.pipeline(), PacketBound.SERVER)) {
-                HoneyPacketDecodePreparation decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
-                if (decoder == null) {
-                    throw new MissingHandlerException("Decoder");
-                }
-
-                player.setPacketHandler(decoder.getPacketHandler());
-                decoder.getAsyncDecoder().setPlayer(player);
-            } else {
-                player.updateHandlersLater = true;
-            }
-
-            if (PacketInterceptorResolver.isEncoderPositionResolved()
-                    && !isConfigurationActive(channel.pipeline(), PacketBound.CLIENT)) {
-
-                HoneyPacketEncodePreparation encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
-                if (encoder == null) {
-                    throw new MissingHandlerException("Encoder");
-                }
-
-                player.setPacketHandler(encoder.getPacketHandler());
-                encoder.getAsyncDecoder().setPlayer(player);
-            } else {
-                player.updateHandlersLater = true;
-            }
-
-            ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
-            if (preResolvedPacketHandler != null) {
-                PreResolvedPacketHandler preResolvedPacketHandler0 = (PreResolvedPacketHandler) preResolvedPacketHandler;
-
-                HoneyPacketHandler packetHandler = preResolvedPacketHandler0.getPacketHandler();
-                player.setPacketHandler(packetHandler);
-
-                togglePreResolvedBounds(channel, preResolvedPacketHandler0);
-            }
         }
     }
 }

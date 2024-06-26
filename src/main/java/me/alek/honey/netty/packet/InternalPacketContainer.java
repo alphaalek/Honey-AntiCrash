@@ -17,10 +17,9 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.netty.util.NMS;
+import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
-import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
 import org.bukkit.inventory.ItemStack;
 
@@ -45,25 +44,20 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
-        this(rawPacket, type, player, channel);
-        init(rawPacket, postAction, type);
+        this(player, channel, type);
+        objectInitialized(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(Object rawPacket, PacketType packetType, HoneyPlayer player, Channel channel) {
-        this(player, channel);
-        this.raw = rawPacket;
-        this.type = packetType;
-    }
-
-    public InternalPacketContainer(HoneyPlayer player, Channel channel) {
+    public InternalPacketContainer(HoneyPlayer player, Channel channel, PacketType type) {
         this.player = player;
         this.channel = channel;
+        this.type = type;
     }
 
-    public void init(Object raw, CallbackAction<PacketContainer<WP>> postAction, PacketType packetType) {
+    public void objectInitialized(Object raw, CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
+        this.type = type;
         this.raw = raw;
         this.postAction = postAction;
-        this.type = packetType;
 
         if (!PacketTypes.isUnknown(type)
                 && type.getNmsClass().equals(raw.getClass())) {
@@ -124,15 +118,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public PacketState getProtocolState() {
-        if (player != null) {
-            return this.player.packetHandler.getProtocolState(type.getBound());
-        }
-
-        try {
-            return HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getProtocolState(type.getBound());
-        } catch (MissingHandlerException ex) {
-            return PacketState.UNKNOWN;
-        }
+        return this.player.packetHandler.getProtocolState(type.getBound());
     }
 
     @Override
@@ -152,7 +138,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public void cancel() {
-        if (!this.cancelled && this.player != null && this.player.isOnlineDirect()) {
+        if (!this.cancelled) {
             HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
         }
 

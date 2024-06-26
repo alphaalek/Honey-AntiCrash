@@ -1,6 +1,6 @@
 package me.alek.honey.validation.item;
 
-import me.alek.honey.netty.util.MaterialMappings;
+import me.alek.honey.util.MaterialMappings;
 import org.bukkit.Material;
 
 import java.util.Optional;

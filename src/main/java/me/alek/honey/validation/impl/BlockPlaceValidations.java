@@ -12,7 +12,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;

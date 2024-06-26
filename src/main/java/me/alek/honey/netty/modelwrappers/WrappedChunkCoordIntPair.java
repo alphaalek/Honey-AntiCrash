@@ -1,7 +1,7 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.validation.impl.MovementValidations;
-import me.alek.honey.netty.util.FieldAccessor;
+import me.alek.honey.util.reflection.FieldAccessor;
 import org.bukkit.World;
 
 import java.util.concurrent.atomic.AtomicReference;

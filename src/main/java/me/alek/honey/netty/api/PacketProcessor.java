@@ -20,7 +20,7 @@ public interface PacketProcessor {
 
     <WP extends WrappedPacket<WP>> void addPostAction(PacketType packetType, Consumer<PacketContainer<WP>> callback);
 
-    void callDecode(HoneyPlayer player, CancellableByteBuf byteBuf);
+    <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer);
 
     void removeListener(PacketAdapter<?> packetAdapter, PacketType... packetType);
 
@@ -28,16 +28,14 @@ public interface PacketProcessor {
 
     void addPacketExecutor(PacketType packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor);
 
-    <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer);
-
     void addListener(PacketAdapter<?> packetAdapter, ListenerPriority priority, PacketType... packetType);
 
     void addListener(PacketAdapter<?> packetAdapter, ListenerPriority priority, List<PacketType> packetType);
 
-    void addDecodeListener(PacketAdapter<?> packetAdapter, ListenerPriority priority);
-
     <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> packetAdapter);
 
-    void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer);
+    void callListeners(HoneyPlayer player, PacketContainer<?> packetContainer);
+
+    void callDecode(HoneyPlayer player, PacketType type, CancellableByteBuf byteBuf);
 }
 

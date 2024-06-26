@@ -1,5 +1,7 @@
 package me.alek.honey.netty.processor;
 
+import me.alek.honey.netty.processor.impl.HandshakeProcessor;
+import me.alek.honey.netty.processor.impl.InventoryProcessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
 
 public class Processors {
@@ -9,4 +11,8 @@ public class Processors {
     }
 
     public static final InventoryProcessor<? extends WrappedPacket<?>> INVENTORY = new InventoryProcessor<>();
+
+    static {
+        new HandshakeProcessor();
+    }
 }

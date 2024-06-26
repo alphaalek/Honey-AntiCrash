@@ -7,12 +7,9 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
-import me.alek.honey.netty.packet.PacketAdapter;
-import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.PacketExecutor;
-import me.alek.honey.netty.packet.CancellableByteBuf;
+import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.*;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
@@ -21,10 +18,10 @@ import org.bukkit.Bukkit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class InternalPacketProcessor implements PacketProcessor {
 
-    private final EventBus<?> decodeEventBus = new EventBus<>();
     private final Array<EventBus<? extends WrappedPacket<?>>> eventBusses = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
     private final Array<CallbackAction<PacketContainer<? extends WrappedPacket<?>>>> postActions = new Array<>();
@@ -35,45 +32,37 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer) {
-            AtomicBoolean cancelled = new AtomicBoolean();
             callPipeline(packetAdapter -> {
                 try {
-                    if (packetContainer.getType().getBound() == PacketBound.SERVER) {
+                    if (packetContainer.getType().getBound().equals(PacketBound.SERVER)) {
                         packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     } else {
                         packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
-                    Bukkit.getLogger().info("Error occurred in packet task: " + packetContainer.getPlayerName() + ", " + packetContainer.getType() + ", " + packetContainer.getState());
+                    Bukkit.getLogger().log(Level.SEVERE, "Error occurred in packet task: " + packetContainer.getPlayerName() + ", " + packetContainer.getType() + ", " + packetContainer.getState(), ex);
 
                     packetContainer.cancel();
                 }
-            }, cancelled);
+            });
         }
 
-        public void callDecode(HoneyPlayer player, CancellableByteBuf buf) {
-            AtomicBoolean cancelled = new AtomicBoolean();
+        public void callDecode(HoneyPlayer player, PacketType type, CancellableByteBuf buf) {
             callPipeline(packetAdapter -> {
                 try {
-                    packetAdapter.onByteBufDecode(player, buf);
+                    packetAdapter.onPacketDecode(player, type, buf);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
-                    Bukkit.getLogger().info("Error occurred in packet task: " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown") + ", " + buf.buf().readableBytes() + " bytes");
+                    Bukkit.getLogger().log(Level.SEVERE, "Error occurred in packet task: " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown") + ", " + buf.buf().readableBytes() + " bytes", ex);
 
                     buf.cancel();
                 }
-            }, cancelled);
+            });
         }
 
-        public void callPipeline(Consumer<PacketAdapter<WP>> consumer, AtomicBoolean cancelled) {
+        public void callPipeline(Consumer<PacketAdapter<WP>> consumer) {
             for (ListenerPriority priority : pipeline) {
                 for (PacketAdapter<WP> listener : priorityMap.get(priority)) {
                     consumer.accept(listener);
-
-                    if (cancelled.get()) {
-                        return;
-                    }
                 }
             }
         }
@@ -92,7 +81,6 @@ public class InternalPacketProcessor implements PacketProcessor {
             synchronized (priorityMap) {
                 synchronized (pipeline) {
                     for (ListenerPriority priority : new ArrayList<>(pipeline)) {
-
                         List<PacketAdapter<WP>> listeners = priorityMap.get(priority);
                         Iterator<PacketAdapter<WP>> listenerIterator = listeners.iterator();
                         while (listenerIterator.hasNext()) {
@@ -150,10 +138,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         public boolean isEmpty() {
             return priorityMap.isEmpty();
         }
-
-        public void clear() {
-            priorityMap.clear();
-        }
     }
 
     @Override
@@ -191,20 +175,20 @@ public class InternalPacketProcessor implements PacketProcessor {
         return null;
     }
 
-    @Override
-    public void addDecodeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority) {
-        decodeEventBus.addListener(packetAdapter, priority);
-    }
-
-    @Override
-    public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketType> packetTypes) {
-        for (PacketType packetType : packetTypes) {
+    private void addListener(Consumer<EventBus<? extends WrappedPacket<?>>> addToEventBus, List<PacketType> types) {
+        for (PacketType packetType : types) {
             if (packetType instanceof RangedPacketTypeEnum
                     && !NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
                 continue;
             }
-            eventBusses.get(packetType.getHoneyID(), EventBus::new).addListener(packetAdapter, priority);
+
+            addToEventBus.accept(eventBusses.get(packetType.getHoneyID(), EventBus::new));
         }
+    }
+
+    @Override
+    public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketType> types) {
+        addListener(bus -> bus.addListener(packetAdapter, priority), types);
     }
 
     @Override
@@ -240,38 +224,40 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketAdapter<WP> check) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketAdapter<WP> adapter) {
         for (List<PacketAdapter<WP2>> packetAdapters : bus.priorityMap.values()) {
-            for (PacketAdapter<WP2> packetAdapter : packetAdapters) {
-                if (packetAdapter == check) {
-                    return true;
-                }
+            if (packetAdapters.stream().anyMatch(a -> a.equals(adapter))) {
+                return true;
             }
         }
         return false;
     }
 
-    @Override
-    public void callListeners(HoneyPlayer player, Class<?> clazz, PacketContainer<?> packetContainer) {
+    private void call(PacketType type, Consumer<EventBus<? extends WrappedPacket<?>>> callToEventBus) {
         int id;
-        if (PacketTypes.isUnknown(packetContainer.getType())
-                || !eventBusses.has(id = packetContainer.getType().getHoneyID())) {
+        if (PacketTypes.isUnknown(type)
+                || !eventBusses.has(id = type.getHoneyID())) {
             return;
         }
 
-        eventBusses.get(id).callPacket(player, packetContainer);
+        callToEventBus.accept(eventBusses.get(id));
     }
 
     @Override
-    public void callDecode(HoneyPlayer player, CancellableByteBuf byteBuf) {
-        decodeEventBus.callDecode(player, byteBuf);
+    public void callListeners(HoneyPlayer player, PacketContainer<?> packetContainer) {
+        call(packetContainer.getType(), bus -> bus.callPacket(player, packetContainer));
+    }
+
+    @Override
+    public void callDecode(HoneyPlayer player, PacketType type, CancellableByteBuf buf) {
+        call(type, bus -> bus.callDecode(player, type, buf));
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                          Object packet, HoneyPlayer player, Channel channel,
                                                                                          CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
         if (packetContainer != null) {
-            packetContainer.init(packet, postAction, type);
+            packetContainer.objectInitialized(packet, postAction, type);
             return packetContainer;
         }
 
@@ -293,7 +279,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         try {
-            callListeners(player, packet.getClass(), packetContainer);
+            callListeners(player, packetContainer);
         } catch (Exception ex) {
             packetContainer.cancel();
         }
@@ -313,8 +299,8 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @SuppressWarnings("unchecked")
     public <WP extends WrappedPacket<WP>> CallbackAction<PacketContainer<WP>> getPostAction(PacketType type) {
-        return !PacketTypes.isUnknown(type)
-                ? (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(type.getHoneyID()) : null;
+        return PacketTypes.isUnknown(type)
+                ? null : (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(type.getHoneyID());
     }
 
     @Override
@@ -324,11 +310,8 @@ public class InternalPacketProcessor implements PacketProcessor {
             return;
         }
 
-        if (!postActions.has(packetType.getHoneyID())) {
-            postActions.set(packetType.getHoneyID(), new CallbackAction<>());
-        }
-
-        CallbackAction<PacketContainer<WP>> action = (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID());
+        CallbackAction<PacketContainer<WP>> action = (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID(), CallbackAction::new);
         action.addAction(callback);
     }
 }
+

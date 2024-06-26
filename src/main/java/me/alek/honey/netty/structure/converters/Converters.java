@@ -20,10 +20,10 @@ import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleListConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleMapConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleSetConverter;
-import me.alek.honey.netty.util.ConstructorInvoker;
-import me.alek.honey.netty.util.ItemReflection;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.reflection.ConstructorInvoker;
+import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 

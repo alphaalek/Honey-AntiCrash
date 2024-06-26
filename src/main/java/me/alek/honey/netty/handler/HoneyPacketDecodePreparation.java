@@ -1,7 +1,6 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
@@ -14,9 +13,10 @@ import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.util.UnsafeChannelCloser;
+import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -33,13 +33,14 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
-    private HoneyPlayer player;
+    private final HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
     public HoneyPacketDecodePreparation(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.asyncDecoder = asyncDecoder;
         this.packetHandler = packetHandler;
+        this.player = packetHandler.getPlayer();
         setupMethodInvoke(channel.pipeline());
     }
 
@@ -73,9 +74,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         packet.getEventloopStateTimings().stopTimings();
 
-        if (player != null) {
+        if (player.isBukkitReady()) {
             HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double)
-                      packet.getEventloopStateTimings().getTimeFor(EventloopState.HONEY_HANDLE)
+                    packet.getEventloopStateTimings().getTimeFor(EventloopState.HONEY_HANDLE)
                     + packet.getEventloopStateTimings().getTimeFor(EventloopState.IN_BETWEEN)
                     + packet.getEventloopStateTimings().getTimeFor(EventloopState.DECODE)
             );
@@ -112,9 +113,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
 
-                if (player != null) {
-                    player.punished = true;
-                }
+                player.punished = true;
                 if (earlyPacketContainer != null) {
                     stopTimings(earlyPacketContainer);
                 }
@@ -135,7 +134,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
                 if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                                && player != null
+                                && player.isBukkitReady()
                                 && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                     ctx.fireChannelRead(packet);
@@ -215,6 +214,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         ByteBuf byteBuf = (ByteBuf) o;
         if (byteBuf.readableBytes() == 0) {
+            ctx.fireChannelRead(byteBuf);
             return;
         }
 
@@ -223,13 +223,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             packetContainer.getEventloopStateTimings().stopTimings();
         }
 
-        if (player == null && asyncDecoder.getPlayer() != null) {
-            player = asyncDecoder.getPlayer();
-        }
-
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
-                || player == null
+                || !player.isBukkitReady()
                 || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
         } else {

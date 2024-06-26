@@ -22,7 +22,6 @@ import me.alek.honey.util.IDRegistry;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class TabValidations extends AbstractPacketListener<WrappedPlayInTabComplete> {
 
@@ -110,7 +109,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         private static final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(id);
 
         public TabB() {
-            HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutTabComplete>() {
+            HoneyPlugin.get().getPacketLibrary().addListeners(new PacketAdapter<WrappedPlayOutTabComplete>() {
 
                 @Override
                 public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
@@ -133,7 +132,9 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
                     @Override
                     public void accept(Integer size) {
                         container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
-                        HoneyPlugin.get().getViolationService().flag(player, packet.getContainer(), null, key, size, TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
+                        HoneyPlugin.get().getViolationService().flag(
+                                player, packet.getContainer(), key, null, size,
+                                TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
                     }
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,

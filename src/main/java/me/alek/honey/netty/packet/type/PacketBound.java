@@ -1,8 +1,8 @@
 package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.netty.handler.MinecraftHandlers;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 
 public enum PacketBound {
     SERVER,

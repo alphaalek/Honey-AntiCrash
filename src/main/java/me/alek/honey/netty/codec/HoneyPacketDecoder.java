@@ -7,13 +7,9 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.util.Array;
+import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.GameMode;
-
-import java.util.List;
 
 public class HoneyPacketDecoder {
 
@@ -37,7 +33,7 @@ public class HoneyPacketDecoder {
                     }
                     else if (packetType.equals(PacketTypes.Play.Client.SET_CREATIVE_SLOT)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
-                            && player != null && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
+                            && player.isBukkitReady() && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
                     } else {
                         applier.apply(LegacyCodec.createDefault(packetType));

@@ -8,10 +8,10 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.FieldAccessor;
-import me.alek.honey.netty.util.MethodInvoker;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.reflection.FieldAccessor;
+import me.alek.honey.util.reflection.MethodInvoker;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;

@@ -2,7 +2,7 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.processor.InventoryProcessor;
+import me.alek.honey.netty.processor.impl.InventoryProcessor;
 import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
@@ -14,7 +14,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.event.inventory.InventoryType;
@@ -51,7 +51,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
                 int slot = packet.getWindowSlot();
 
                 int inventorySlots = player.player.getOpenInventory().countSlots();
-                InventoryProcessor.Emulator ctx = Processors.INVENTORY.getContext(player);
+                InventoryProcessor.InventoryEmulator ctx = Processors.INVENTORY.getContext(player);
 
                 if (ctx.windowOpen) {
 

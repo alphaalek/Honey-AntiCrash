@@ -1,21 +1,12 @@
 package me.alek.honey.netty.packet;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 
@@ -45,14 +36,10 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, packet -> {
             try {
-                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packet.getPlayer(), packet.getChannel());
+                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packet.getChannel());
             } catch (MissingHandlerException ex) {
                 ex.printStackTrace();
             }
-        });
-
-        packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, packet -> {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocateFilter(packet.getChannel());
         });
 
         packetProcessor.<WrappedPlayInCustomPayload>addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, packet -> {

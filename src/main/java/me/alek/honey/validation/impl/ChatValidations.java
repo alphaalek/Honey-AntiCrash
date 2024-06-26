@@ -10,13 +10,12 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
 

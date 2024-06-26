@@ -7,7 +7,11 @@ import io.netty.buffer.ByteBufProcessor;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.*;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.ConstructorInvoker;
+import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 
 import java.io.IOException;
 import java.io.InputStream;

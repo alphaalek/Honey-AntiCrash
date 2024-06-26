@@ -92,15 +92,12 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                 if (response.cancelled) {
                     cancellable.cancel();
                 }
-                if (response.flag != -1 && player != null) {
+                if (response.flag != -1 && player.isBukkitReady()) {
                     if (setting == null) {
                         if (response.terminate) {
                             terminated = true;
                         }
                         continue;
-                    }
-                    if (response.onViolation == null && response.onPunish == null && response.onFlag == null) {
-                        response = response.copyWithoutPosts().build();
                     }
 
                     callback.call(response);
@@ -111,10 +108,9 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                         developmentData.setLine(5, validation.getDescription());
                     });
 
-                    ResponseContainer finalResponse = response;
                     HoneyPlugin.get().getViolationService().flag(
                             player, cancellable, key, response.violationKey, response.flag,
-                            response.onPunish, () -> finalResponse.onViolation.accept(validation), response.onFlag, validation, setting, developmentData);
+                            response.onPunish, () -> response.onViolation.accept(validation), response.onFlag, validation, setting, developmentData);
 
                     if (player.punished) {
                         cancellable.cancel();
@@ -122,7 +118,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                     }
                 }
 
-                if (response.punish && player != null) {
+                if (response.punish) {
                     HoneyPlugin.get().getViolationService().punish(null, player, validation, key);
                     return;
                 }

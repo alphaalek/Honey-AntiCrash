@@ -3,8 +3,12 @@ package me.alek.honey.packetwrappers.play.client;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.util.*;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.MethodInvoker;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 
 import java.util.ArrayList;
 import java.util.List;

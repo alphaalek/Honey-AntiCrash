@@ -7,7 +7,7 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NMS;
+import me.alek.honey.util.reflection.NMS;
 
 import java.util.ArrayList;
 import java.util.Collections;

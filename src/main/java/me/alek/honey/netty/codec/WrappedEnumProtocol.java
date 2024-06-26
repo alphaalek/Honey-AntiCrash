@@ -8,10 +8,10 @@ import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.MethodInvoker;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.reflection.MethodInvoker;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.Reflection;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;

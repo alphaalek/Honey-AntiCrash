@@ -7,6 +7,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
@@ -20,18 +24,20 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.List;
+import java.util.Map;
 
 @ChannelHandler.Sharable
-public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implements UpdatableChannel {
+public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
-    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
 
     private boolean hasCalledChannelInactive;
-    private HoneyPlayer player;
+    private final HoneyPlayer player;
+    private final HoneyPacketHandler packetHandler;
 
-    public void setPlayer(HoneyPlayer player) {
-        this.player = player;
+    public InboundPacketFilter(HoneyPacketHandler handler) {
+        this.packetHandler = handler;
+        this.player = handler.getPlayer();
     }
 
     public HoneyPlayer getPlayer() {
@@ -69,11 +75,23 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
+        if (!byteBuf.isReadable()) {
+            ctx.fireChannelRead(byteBuf);
+            return;
+        }
+
+        int id = new PacketDataSerializer(byteBuf).readVarInt();
+        byteBuf.resetReaderIndex();
+        PacketType type = packetHandler.getPacketType(PacketBound.SERVER, id);
+
+        Bukkit.getLogger().info("TYPE " + type + " " + id);
+
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel(), type);
 
         if (MARK.get() != null
-                && HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(ctx.channel()) != null) {
-            Bukkit.broadcastMessage("Early drop " + ctx.pipeline().toMap());
+                && HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(ctx.channel()) != null
+                && MARK.get().getType() != null) {
+            Bukkit.getLogger().info("Early drop " + ctx.pipeline().toMap());
             FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
                     player,
                     (validation, container) -> validation.validate(player, 1, container),
@@ -84,7 +102,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
         CancellableByteBuf cancellableByteBuf = new CancellableByteBuf(player, byteBuf);
-        packetProcessor.callDecode(player, cancellableByteBuf);
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callDecode(player, type, cancellableByteBuf);
         packetContainer.getEventloopStateTimings().stopTimings();
 
         if (!cancellableByteBuf.isCancelled()) {

@@ -123,7 +123,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         if (!hasBeenRelocated && !resolving) {
             try {
                 resolving = true;
-                hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packetHandler.getPlayer(), packetHandler.getChannel());
+                hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packetHandler.getChannel());
             } catch (MissingHandlerException ex) {
                 hasBeenRelocated = false;
             }

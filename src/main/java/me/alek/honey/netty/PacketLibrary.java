@@ -13,12 +13,12 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.processor.Processors;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class PacketLibrary {
 
@@ -115,20 +115,16 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListener(PacketAdapter<WP> adapter, ListenerPriority priority, PacketType packetType) {
-        packetProcessor.addListener(adapter, priority, packetType);
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, PacketType... type) {
+        packetProcessor.addListener(adapter, priority, type);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, List<PacketType> packetTypes) {
-        packetProcessor.addListener(adapter, priority, packetTypes);
-    }
-
-    public void addDecodeListener(PacketAdapter<?> adapter, ListenerPriority priority) {
-        packetProcessor.addDecodeListener(adapter, priority);
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, List<PacketType> types) {
+        packetProcessor.addListener(adapter, priority, types);
     }
 
     public <WP extends WrappedPacket<WP>> void removeListener(PacketAdapter<WP> adapter) {
-        removeListeners(adapter, PacketTypes.getTypesAvailable());
+        removeListeners(adapter, PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
     }
 
     public <WP extends WrappedPacket<WP>> void removeListeners(PacketAdapter<WP> adapter, List<PacketType> packetTypes) {

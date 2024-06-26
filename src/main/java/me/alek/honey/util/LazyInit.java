@@ -5,9 +5,8 @@ import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.List;
 import java.util.function.Supplier;

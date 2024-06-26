@@ -1,8 +1,8 @@
 package me.alek.honey.netty.packet.type;
 
-import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.netty.util.NetProtocolRange;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocolRange;
+import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
@@ -63,6 +63,9 @@ public enum PacketTypes implements PacketType {
             return;
         }
 
+        int id = type.getMinecraftID().get();
+        type.getState().getTypes()[type.getBound().ordinal()].set(id, type);
+
         packetFromStateLookup.computeIfAbsent(type.getState(), d -> new ArrayList<>())
                 .add(type);
         registeredPackets.computeIfAbsent(type.getNmsClass(), d -> new Array<>())
@@ -105,52 +108,23 @@ public enum PacketTypes implements PacketType {
             registerPacketDetails(configurationServer); }
     }
 
-    public static List<PacketType> getTypesAvailableFor(PacketState state, PacketBound bound) {
-        if (state == PacketState.UNKNOWN) {
-            return new ArrayList<>();
-        }
-
-        List<PacketType> types = new ArrayList<>();
-        for (PacketType type : packetFromStateLookup.get(state)) {
-
-            if (type.getBound().equals(bound)) {
-                if (type instanceof RangedPacketTypeEnum) {
-                    RangedPacketTypeEnum rangedPacketType = (RangedPacketTypeEnum) type;
-                    if (!NetProtocol.matchProtocol(rangedPacketType, NetProtocol.getProtocol())) {
-                        continue;
-                    }
-                }
-                types.add(type);
-            }
-        }
-
-        return types;
+    public static Array<PacketType> getTypesAvailableFor(PacketState state, PacketBound bound) {
+        return state.getTypes()[bound.ordinal()];
     }
 
-    public static List<PacketType> getTypesAvailableForState(PacketState state) {
-        List<PacketType> types = new ArrayList<>();
-        for (PacketBound bound : PacketBound.values()) {
+    public static Array<PacketType> getTypesAvailableForBound(PacketBound bound) {
+        Array<PacketType> types = new Array<>();
+        for (PacketState state : PacketState.values()) {
             types.addAll(getTypesAvailableFor(state, bound));
         }
         return types;
     }
 
-    public static List<PacketType> getTypesAvailableForBound(PacketBound bound) {
-        List<PacketType> types = new ArrayList<>();
-        for (PacketState state : PacketState.values()) {
-            if (state != PacketState.UNKNOWN && state != PacketState.ANY) {
-                types.addAll(getTypesAvailableFor(state, bound));
-            }
-        }
-        return types;
-    }
-
-    public static List<PacketType> getTypesAvailable() {
-        List<PacketType> types = new ArrayList<>();
+    public static Array<PacketType> getTypesAvailable() {
+        Array<PacketType> types = new Array<>();
         for (PacketBound bound : PacketBound.values()) {
             types.addAll(getTypesAvailableForBound(bound));
         }
-
         return types;
     }
 

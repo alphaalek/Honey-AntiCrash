@@ -36,7 +36,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
     public MovementValidations() {
-        HoneyPlugin.get().getPacketLibrary().addListener(new PacketAdapter<WrappedPlayOutPosition>() {
+        HoneyPlugin.get().getPacketLibrary().addListeners(new PacketAdapter<WrappedPlayOutPosition>() {
 
             @Override
             public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {

@@ -15,7 +15,7 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.util.MaterialMappings;
+import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
@@ -24,7 +24,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 

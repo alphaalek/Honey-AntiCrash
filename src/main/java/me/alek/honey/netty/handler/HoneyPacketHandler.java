@@ -12,10 +12,10 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 
 public class HoneyPacketHandler {
@@ -23,7 +23,7 @@ public class HoneyPacketHandler {
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
-    private volatile HoneyPlayer player;
+    private final HoneyPlayer player;
     private PacketState clientboundProtocolState = PacketState.HANDSHAKE;
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
@@ -32,15 +32,11 @@ public class HoneyPacketHandler {
 
     public HoneyPacketHandler(Channel channel) {
         this.channel = channel;
+        this.player = new HoneyPlayer(channel, this);
     }
 
     public Channel getChannel() {
         return channel;
-    }
-
-    public void setPlayer(HoneyPlayer player) {
-        this.player = player;
-        this.playerName = player.name;
     }
 
     public HoneyPlayer getPlayer() {
@@ -61,6 +57,10 @@ public class HoneyPacketHandler {
 
     public EmulatorCodec<Object, PacketDataSerializer> getProtocolCodec(PacketBound bound) {
         return bound == PacketBound.CLIENT ? clientboundProtocol : serverboundProtocol;
+    }
+
+    public PacketType getPacketType(PacketBound bound, int id) {
+        return getProtocolState(bound).getTypes()[bound.ordinal()].get(id);
     }
 
     public void updateProtocol(PacketBound bound) {

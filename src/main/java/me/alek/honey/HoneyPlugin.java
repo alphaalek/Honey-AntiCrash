@@ -25,18 +25,18 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.util.FieldAccessor;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
-import me.alek.honey.netty.util.Reflection;
+import me.alek.honey.util.reflection.FieldAccessor;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
-import me.alek.honey.storage.RepositoryProvider;
-import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.sql.RepositoryProvider;
+import me.alek.honey.sql.SQLManagerWrapper;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
@@ -287,7 +287,7 @@ public class HoneyPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new TeleportListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
-        packetLibrary.addListener(new TabCompleteListener(), ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
+        packetLibrary.addListeners(new TabCompleteListener(), ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
 

@@ -3,8 +3,8 @@ package me.alek.honey.netty.codec.disablednbtimpl;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.LegacyCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.util.NMS;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.protocol.NetProtocol;
 
 public class PacketPlayInWindowClick_WithoutNBT implements LegacyCodec {
 

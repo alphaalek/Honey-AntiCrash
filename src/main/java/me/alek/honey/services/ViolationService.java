@@ -2,14 +2,14 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.ValidationContextContainer;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.Cancellable;
-import me.alek.honey.netty.util.UnsafeChannelCloser;
+import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
+import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -45,12 +45,12 @@ public class ViolationService {
                         Runnable onPunish,
                         Runnable onViolation,
                         Runnable onFlag,
-                        HoneyValidation<?> check,
+                        HoneyValidation<?> validation,
                         ConfigurationOptions.VlSetting setting,
                         ValidationContextContainer.DevelopmentData developmentData
     ) {
         return getDistributor(player, limitsKey, setting)
-                .flag(honeyKey, cancellable, check, amount, onPunish, onViolation, onFlag, developmentData);
+                .flag(honeyKey, cancellable, validation, amount, onPunish, onViolation, onFlag, developmentData);
     }
 
     public boolean flag(HoneyPlayer player,
@@ -58,14 +58,14 @@ public class ViolationService {
                         HoneyKey limitsKey,
                         HoneyKey honeyKey,
                         double amount,
-                        HoneyValidation<?> check,
+                        HoneyValidation<?> validation,
                         ConfigurationOptions.VlSetting setting,
                         ValidationContextContainer.DevelopmentData developmentData
     ) {
-        return flag(player, cancellable, limitsKey, honeyKey, amount, null, null, null, check, setting, developmentData);
+        return flag(player, cancellable, limitsKey, honeyKey, amount, null, null, null, validation, setting, developmentData);
     }
 
-    public synchronized void punish(Runnable onPunish, HoneyPlayer player, HoneyValidation<?> check, HoneyKey honeyKey) {
+    public synchronized void punish(Runnable onPunish, HoneyPlayer player, HoneyValidation<?> validation, HoneyKey honeyKey) {
         if (onPunish != null) onPunish.run();
 
         if (player.punished) return;
@@ -76,10 +76,12 @@ public class ViolationService {
             }
         });
 
-        Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
+        if (player.isBukkitReady() && player.isOnlineDirect()) {
+            Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
+        }
 
-        if (check != null) {
-            HoneyPlugin.get().getNotificationService().warn(player, check.getName(), honeyKey);
+        if (validation != null && player.isBukkitReady()) {
+            HoneyPlugin.get().getNotificationService().warn(player, validation.getName(), honeyKey);
         }
 
         player.punished = true;
@@ -170,8 +172,8 @@ public class ViolationService {
             return new HoneyKey(key, identifier);
         }
 
-        public static HoneyKey of(HoneyValidation<?> check) {
-            return of(check.getID());
+        public static HoneyKey of(HoneyValidation<?> validation) {
+            return of(validation.getID());
         }
 
         public int getRegistryKey() {
@@ -315,14 +317,14 @@ public class ViolationService {
         }
 
         public boolean flag(HoneyKey key, Cancellable cancellable,
-                            HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
+                            HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag,
                             ValidationContextContainer.DevelopmentData developmentData) {
             AbstractPacketLimitHandler handler = getHandler(key);
             if (handler == null) {
                 return false;
             }
 
-            return handler.flag(cancellable, check, amount, onPunish, onViolation, onFlag, developmentData, key);
+            return handler.flag(cancellable, validation, amount, onPunish, onViolation, onFlag, developmentData, key);
         }
     }
 
@@ -349,19 +351,19 @@ public class ViolationService {
             return setting;
         }
 
-        public void doFormatStuff(HoneyValidation<?> check, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public void doFormatStuff(HoneyValidation<?> validation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (developmentData != null) {
                 HoneyPlugin.get().getNotificationService().applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
 
-            if (check != null) {
+            if (validation != null) {
                 HoneyPlugin.get().getNotificationService().notify(
-                        player, check.getName(), honeyKey, getSetting(), this, developmentData);
+                        player, validation.getName(), honeyKey, getSetting(), this, developmentData);
 
                 if (DiscordWebhook.enabled()) {
                     DiscordWebhook.violation(
-                            player, check,
+                            player, validation,
                             ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)),
                             developmentData);
                 }
@@ -371,7 +373,7 @@ public class ViolationService {
                     public void run() {
                         try {
                             HoneyPlugin.get().getSQLManager().postViolation(player,
-                                    check.getName() + (honeyKey != null && honeyKey.getIdentifier() != null ? " (" + honeyKey.getIdentifier() + ")" : ""),
+                                    validation.getName() + (honeyKey != null && honeyKey.getIdentifier() != null ? " (" + honeyKey.getIdentifier() + ")" : ""),
                                     ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)), developmentData);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -381,7 +383,7 @@ public class ViolationService {
             }
         }
 
-        public boolean violate(Cancellable cancellable, HoneyValidation<?> check, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean violate(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (System.currentTimeMillis() - lastViolationClear.get() >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
                 violations.set(0);
                 lastViolationClear.set(System.currentTimeMillis());
@@ -391,14 +393,14 @@ public class ViolationService {
             cancellable.cancel();
 
             if (violations.incrementAndGet() >= setting.minVls) {
-                doFormatStuff(check, developmentData, honeyKey);
+                doFormatStuff(validation, developmentData, honeyKey);
             }
 
             if (violations.get() < getSetting().vlsAmount) {
                 return false;
             }
 
-            INSTANCE.punish(onPunish, player, check, honeyKey);
+            INSTANCE.punish(onPunish, player, validation, honeyKey);
             return true;
         }
 
@@ -417,7 +419,7 @@ public class ViolationService {
             return violations.get();
         }
 
-        public abstract boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey);
+        public abstract boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey);
 
         public abstract PacketLimitHandlerType getType();
     }
@@ -429,7 +431,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (amount == 1) {
                 if (onFlag != null) onFlag.run();
                 cancellable.cancel();
@@ -456,7 +458,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Cancellable cancellable, HoneyValidation check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (amount < 1) {
                 notFlaggedLast = true;
                 flagged = false;
@@ -467,7 +469,7 @@ public class ViolationService {
 
                 if (amount >= 1) {
                     if (notFlaggedLast && !flagged) {
-                        violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+                        violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
                         flagged = true;
                     }
 
@@ -494,10 +496,10 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (onFlag != null) onFlag.run();
 
-            violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+            violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
             return true;
         }
 
@@ -516,12 +518,12 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (onFlag != null) onFlag.run();
 
             if ((this.amount = amount) < getSetting().threshold) return false;
 
-            violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+            violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
             return true;
         }
 
@@ -554,7 +556,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             hasDecayed = false;
             if (System.currentTimeMillis() - lastDecay > getSetting().decay) {
                 hasDecayed = true;
@@ -571,14 +573,14 @@ public class ViolationService {
             bufferIndexCopy = bufferIndex;
             if (getSetting().clearBuffer) this.bufferIndex = 0;
 
-            return handle(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+            return handle(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
         }
 
         public double getBufferIndex() {
             return bufferIndexCopy;
         }
 
-        public abstract boolean handle(Cancellable cancellable, HoneyValidation<?> check, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey);
+        public abstract boolean handle(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey);
 
     }
 
@@ -607,11 +609,11 @@ public class ViolationService {
         }
 
         @Override
-        public boolean handle(Cancellable cancellable, HoneyValidation<?> check, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean handle(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             cancellable.cancel();
 
             if (bufferIndex > getSetting().until && getSetting().isEnabled())
-                violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+                violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
             return true;
         }
     }
@@ -624,8 +626,8 @@ public class ViolationService {
         }
 
         @Override
-        public boolean handle(Cancellable cancellable, HoneyValidation<?> check, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
-            violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+        public boolean handle(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+            violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
             return true;
         }
 
@@ -652,7 +654,7 @@ public class ViolationService {
             intervalStart = System.currentTimeMillis();
         }
 
-        public boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (System.currentTimeMillis() - intervalStart >= getSetting().interval)
                 clearInterval();
 
@@ -669,7 +671,7 @@ public class ViolationService {
             flaggedCopy = flagged;
             if (getSetting().clearInterval) clearInterval();
 
-            violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+            violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
             return true;
         }
 
@@ -690,7 +692,7 @@ public class ViolationService {
         }
 
         @Override
-        public boolean flag(Cancellable cancellable, HoneyValidation<?> check, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
+        public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, Runnable onFlag, ValidationContextContainer.DevelopmentData developmentData, HoneyKey honeyKey) {
             if (!currentlyCancelling && onFlag != null) {
                 onFlag.run();
             }
@@ -707,7 +709,7 @@ public class ViolationService {
                 intervalStart = System.currentTimeMillis();
 
                 if (amount > getSetting().until && !currentlyCancelling) {
-                    violate(cancellable, check, onPunish, onViolation, developmentData, honeyKey);
+                    violate(cancellable, validation, onPunish, onViolation, developmentData, honeyKey);
                 }
                 currentlyCancelling = true;
                 return true;

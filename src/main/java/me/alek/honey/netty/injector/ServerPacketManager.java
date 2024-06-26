@@ -16,8 +16,6 @@ public class ServerPacketManager {
     }
 
     public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet) throws Exception {
-        if (player == null || player.channel == null) return;
-
         ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
 
         HoneyPacketEncodePreparation encoder = packetManager.getEncoder(player.channel);

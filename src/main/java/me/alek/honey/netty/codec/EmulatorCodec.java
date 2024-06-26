@@ -3,7 +3,7 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.util.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocol;
 
 public interface EmulatorCodec<T, B extends ByteBuf> {
 

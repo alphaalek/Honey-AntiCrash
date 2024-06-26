@@ -57,7 +57,7 @@ public class ErrorPrintFilter {
                     (validation, container) -> validation.validate(packet.getPlayer(), length, container),
                     stated);
 
-            Bukkit.broadcastMessage("Error log Length " + length + ", packet: " + packet.getPlayerName());
+            Bukkit.getLogger().info("Error log Length " + length + ", packet: " + packet.getPlayerName());
 
             return !stated.isCancelled();
         };

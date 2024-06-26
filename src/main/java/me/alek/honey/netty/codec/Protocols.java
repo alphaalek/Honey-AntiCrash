@@ -1,6 +1,6 @@
 package me.alek.honey.netty.codec;
 
-import me.alek.honey.netty.util.NMS;
+import me.alek.honey.util.reflection.NMS;
 
 public class Protocols {
 

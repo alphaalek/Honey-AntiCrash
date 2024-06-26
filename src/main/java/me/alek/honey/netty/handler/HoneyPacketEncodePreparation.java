@@ -36,12 +36,13 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
     private final AsyncDecoder asyncDecoder;
     private final HoneyPacketHandler packetHandler;
     private final Channel channel;
-    private HoneyPlayer player;
+    private final HoneyPlayer player;
 
     public HoneyPacketEncodePreparation(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
         this.channel = channel;
         this.asyncDecoder = asyncDecoder;
         this.packetHandler = packetHandler;
+        this.player = packetHandler.getPlayer();
     }
 
     public HoneyPacketHandler getPacketHandler() {
@@ -67,12 +68,8 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
-        if (player == null && asyncDecoder.getPlayer() != null) {
-            player = asyncDecoder.getPlayer();
-        }
-
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
-                || player == null
+                || !player.isBukkitReady()
                 || !PacketInterceptorResolver.hasDecoderHandler(ctx.pipeline())) {
             write0(ctx, msg, promise, false);
             return;

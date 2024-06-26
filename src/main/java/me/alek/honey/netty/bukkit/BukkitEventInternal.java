@@ -5,8 +5,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.listeners.PlayerJoinQuitListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.injector.SpigotPipelineInjector;
-import me.alek.honey.netty.util.NMS;
+import me.alek.honey.util.reflection.NMS;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,11 +32,12 @@ public class BukkitEventInternal implements Listener {
 
     private void handleChannel(Player player, Channel channel) {
         channel.eventLoop().execute(() -> {
-            HoneyPlayer honeyPlayer = HoneyPlayer.registerPlayer(player);
 
-            SpigotPipelineInjector injector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
+            HoneyPlayer honeyPlayer;
             try {
-                injector.updatePlayer(honeyPlayer);
+                honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
+                honeyPlayer.initBukkitPlayer(player);
+                HoneyPlayer.register(honeyPlayer, player);
             } catch (MissingHandlerException ex) {
                 ex.printStackTrace();
                 HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),

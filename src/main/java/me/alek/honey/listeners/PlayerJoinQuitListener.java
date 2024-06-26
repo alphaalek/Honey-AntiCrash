@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.BaseValidation;
 import me.alek.honey.validation.Validations;
 import me.alek.honey.services.NotificationService;
-import me.alek.honey.storage.SQLManagerWrapper;
+import me.alek.honey.sql.SQLManagerWrapper;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -49,7 +49,7 @@ public class PlayerJoinQuitListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
         if (player == null) {
-            player = HoneyPlayer.registerPlayer(event.getPlayer());
+            return;
         }
 
         for (BaseValidation check : Validations.getValidations()) {
