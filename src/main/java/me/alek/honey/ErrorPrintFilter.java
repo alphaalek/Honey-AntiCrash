@@ -54,9 +54,8 @@ public class ErrorPrintFilter {
             Cancellable.Stated stated = new Cancellable.Stated();
             NettyValidations.PRINT_FILTER_PIPELINE.doStream(
                     packet.getPlayer(),
-                    (validation, key) -> Settings.getSetting(validation),
-                    check -> check.validate(packet.getPlayer(), length, null),
-                    stated, null, null);
+                    (validation, container) -> validation.validate(packet.getPlayer(), length, container),
+                    stated);
 
             Bukkit.broadcastMessage("Error log Length " + length + ", packet: " + packet.getPlayerName());
 

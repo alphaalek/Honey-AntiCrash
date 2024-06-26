@@ -254,11 +254,14 @@ public class ViolationService {
         }
 
         public AbstractPacketLimitHandler getAnyPacketLimitHandler() {
-            if (packetLimitHandlerDelegateLookup.isEmpty()) return null;
+            if (packetLimitHandlerDelegateLookup.isEmpty()) {
+                return null;
+            }
 
-            return Arrays.stream(packetLimitHandlerDelegateLookup.toRealArray())
-                    .filter(Objects::nonNull)
-                    .map(o -> (AbstractPacketLimitHandler) o)
+            return Arrays.stream(
+                    packetLimitHandlerDelegateLookup
+                            .compact()
+                            .toRealArray(AbstractPacketLimitHandler[]::new))
                     .findAny()
                     .orElse(null);
         }
@@ -269,16 +272,11 @@ public class ViolationService {
 
         public AbstractPacketLimitHandler getPacketLimitHandler(HoneyKey key, boolean orJustAny) {
             AbstractPacketLimitHandler handler = packetLimitHandlerDelegateLookup.get(key.getRegistryKey());
-
             if (handler != null) {
                 return handler;
             }
 
-            if (orJustAny) {
-                return getAnyPacketLimitHandler();
-            }
-
-            return null;
+            return orJustAny ? getAnyPacketLimitHandler() : null;
         }
 
         public Array<AbstractPacketLimitHandler> getPacketLimitHandlers() {
@@ -286,7 +284,8 @@ public class ViolationService {
         }
 
         private AbstractPacketLimitHandler getHandler(HoneyKey key) {
-            if (packetLimitHandlerDelegateLookup.isEmpty() && cachedDefaultPacketLimitHandler == null) {
+            if (packetLimitHandlerDelegateLookup.isEmpty()
+                    && cachedDefaultPacketLimitHandler == null) {
                 return null;
             }
 

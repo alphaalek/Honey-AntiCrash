@@ -8,6 +8,7 @@ import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -17,11 +18,10 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
     private final List<C> validations = new LinkedList<>();
 
-    public static <C extends HoneyValidation<?>> ValidationPipeline<C> from(C... validationss) {
+    public static <C extends HoneyValidation<?>> ValidationPipeline<C> from(C... validations) {
         ValidationPipeline<C> pipeline = new ValidationPipeline<>();
-        for (C validation : validationss) {
-            pipeline.register(validation);
-        }
+        Arrays.stream(validations).forEach(pipeline::register);
+
         return pipeline;
     }
 
@@ -44,11 +44,12 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         return response;
     }
 
-    public void doStream(HoneyPlayer player, Function<C, ResponseContainer> getResponse, Cancellable cancellable) {
+    public void doStream(HoneyPlayer player, BiFunction<C, ValidationContextContainer, ResponseContainer> getResponse, Cancellable cancellable) {
+        ValidationContextContainer container = new ValidationContextContainer();
         doStream(
                 player,
                 (validation, key) -> Settings.getSetting(validation),
-                getResponse, cancellable, null, null);
+                (c) -> getResponse.apply(c, container), cancellable, container, new CallbackAction<>());
     }
 
     public void doStream(HoneyPlayer player,

@@ -2,6 +2,8 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.processor.InventoryProcessor;
+import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ResponseContainer;
@@ -50,6 +52,12 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
                 int slot = packet.getWindowSlot();
 
                 int inventorySlots = player.player.getOpenInventory().countSlots();
+                InventoryProcessor.Context ctx = Processors.INVENTORY.getContext(player);
+
+                if (ctx.windowOpen) {
+
+                }
+
                 if (player.player.getOpenInventory() != null && (player.player.getOpenInventory().getType() == InventoryType.CRAFTING && player.player.getInventory().getType() == InventoryType.PLAYER)) {
                     inventorySlots += 4; // armor slots
                 }

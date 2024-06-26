@@ -67,6 +67,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     private void stopTimings(PacketContainer<? extends WrappedPacket<?>> packet) {
+        if (packet.getEventloopStateTimings().getCurrentState() == EventloopState.NO_STATE) {
+            return;
+        }
+
         packet.getEventloopStateTimings().stopTimings();
 
         if (player != null) {
@@ -164,9 +168,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {
-                if (earlyPacketContainer != null) {
-                    stopTimings(earlyPacketContainer);
-                }
+            }
+
+            if (earlyPacketContainer != null) {
+                stopTimings(earlyPacketContainer);
             }
         }
     }
@@ -228,7 +233,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
             invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
         } else {
-            ByteBuf wrapped = Unpooled.buffer().writeBytes(byteBuf).retain();
+            ByteBuf wrapped = byteBuf.readBytes(byteBuf.readableBytes()).retain();
             byteBuf.release();
 
             asyncDecoder.decode((s) -> {

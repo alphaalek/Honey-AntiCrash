@@ -36,10 +36,12 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         return packetHandler;
     }
 
+    @SuppressWarnings("unchecked")
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Channel channel, Object msg, PacketBound bound) {
         switch (bound) {
             case SERVER:
-                PacketContainer<WP> packetContainer = new InternalPacketContainer<>(packetHandler.getPlayer(), channel);
+                PacketContainer<WP> packetContainer = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
+                InboundPacketFilter.MARK.remove();
                 return packetProcessor.read(channel, packetHandler.getPlayer(), packetHandler, msg, packetContainer);
             case CLIENT:
                 return packetProcessor.write(channel, packetHandler.getPlayer(), packetHandler, msg);

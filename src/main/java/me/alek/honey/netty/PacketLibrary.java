@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
+import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
@@ -62,6 +63,8 @@ public class PacketLibrary {
         }
 
         PostActions.setup();
+
+        Processors.dummyLoad();
     }
 
     public SpigotServerInjector getServerInjector() {

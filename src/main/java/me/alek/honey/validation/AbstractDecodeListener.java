@@ -19,12 +19,6 @@ public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        // cancel the decoding if the player is not even online
-        if (player != null && byteBuf.buf().refCnt() < 1) {
-            byteBuf.cancel();
-            return;
-        }
-
         ValidationContextContainer validationContext = new ValidationContextContainer();
         CallbackAction<ResponseContainer> callback = new CallbackAction<>();
         int bytes = byteBuf.buf().readableBytes();

@@ -272,7 +272,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                                                                                          CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
         if (packetContainer != null) {
             packetContainer.init(packet, postAction, type);
-
             return packetContainer;
         }
 
@@ -298,7 +297,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         } catch (Exception ex) {
             packetContainer.cancel();
         }
-        packetContainer.getEventloopStateTimings().stopTimings();
 
         return packetContainer;
     }

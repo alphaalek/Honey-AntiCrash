@@ -71,11 +71,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> implem
     public void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel());
 
-        if (MARK.get() != null) {
-            Bukkit.broadcastMessage("Prev too early drop");
+        if (MARK.get() != null
+                && HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(ctx.channel()) != null) {
+            Bukkit.broadcastMessage("Early drop " + ctx.pipeline().toMap());
             FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
                     player,
-                    validation -> validation.validate(player, 1, null),
+                    (validation, container) -> validation.validate(player, 1, container),
                     packetContainer);
         }
 
