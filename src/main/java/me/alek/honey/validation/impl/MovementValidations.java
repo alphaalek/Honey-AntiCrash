@@ -21,14 +21,13 @@ import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.LocationUtils;
+import me.alek.honey.util.statics.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
 

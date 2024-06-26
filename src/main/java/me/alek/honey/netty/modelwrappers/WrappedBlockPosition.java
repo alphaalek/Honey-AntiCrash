@@ -2,7 +2,7 @@ package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.util.*;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;

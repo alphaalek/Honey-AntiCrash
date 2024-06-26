@@ -16,8 +16,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
-import me.alek.honey.util.DecayingWindowCounter;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.counter.DecayingWindowCounter;
+import me.alek.honey.util.statics.NumberUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;

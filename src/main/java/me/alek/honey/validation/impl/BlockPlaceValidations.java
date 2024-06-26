@@ -15,14 +15,13 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.LocationUtils;
+import me.alek.honey.util.statics.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInBlockPlace> {
 

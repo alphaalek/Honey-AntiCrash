@@ -15,11 +15,10 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.LocationUtils;
+import me.alek.honey.util.statics.LocationUtils;
 import org.bukkit.Location;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
 

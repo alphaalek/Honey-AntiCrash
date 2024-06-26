@@ -1,12 +1,7 @@
 package me.alek.honey.packetwrappers.login.client;
 
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.util.NMS;
 import me.alek.honey.netty.util.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 

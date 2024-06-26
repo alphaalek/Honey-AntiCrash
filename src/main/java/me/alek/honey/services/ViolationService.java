@@ -9,7 +9,6 @@ import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.util.UnsafeChannelCloser;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.BungeeMessenger;
 import me.alek.honey.util.discord.DiscordWebhook;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,7 +17,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -78,7 +76,6 @@ public class ViolationService {
             }
         });
 
-        BungeeMessenger.sendPluginMessage(player.player, "kickPlayer", player.name, "Disconnected");
         Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
 
         if (check != null) {

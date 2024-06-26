@@ -16,7 +16,7 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.util.ItemReflection;
 import me.alek.honey.netty.util.NMS;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;

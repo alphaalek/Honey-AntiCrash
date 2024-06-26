@@ -1,4 +1,4 @@
-package me.alek.honey.util;
+package me.alek.honey.util.statics;
 
 public class NumberUtils {
 

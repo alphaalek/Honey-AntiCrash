@@ -1,5 +1,6 @@
-package me.alek.honey.util;
+package me.alek.honey.util.statics;
 
+import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.Location;
 
 public class LocationUtils {

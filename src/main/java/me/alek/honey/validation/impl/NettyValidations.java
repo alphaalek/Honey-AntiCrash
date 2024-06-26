@@ -29,7 +29,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

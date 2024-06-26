@@ -1,4 +1,4 @@
-package me.alek.honey.util;
+package me.alek.honey.util.counter;
 
 import java.util.HashMap;
 import java.util.Map;

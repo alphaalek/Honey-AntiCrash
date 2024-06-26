@@ -13,7 +13,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.util.DecayingListeningCounter;
+import me.alek.honey.util.counter.DecayingListeningCounter;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.ArrayList;

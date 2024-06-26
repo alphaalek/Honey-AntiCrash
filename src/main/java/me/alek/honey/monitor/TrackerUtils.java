@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 
 public class TrackerUtils {
 

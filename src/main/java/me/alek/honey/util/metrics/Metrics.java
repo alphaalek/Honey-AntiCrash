@@ -1,4 +1,4 @@
-package me.alek.honey.util;
+package me.alek.honey.util.metrics;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;

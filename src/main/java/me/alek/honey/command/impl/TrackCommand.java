@@ -10,7 +10,7 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.command.CommandSender;
 
 import java.text.DecimalFormat;

@@ -2,7 +2,7 @@ package me.alek.honey.validation;
 
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.Location;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package me.alek.honey.util;
+package me.alek.honey.util.counter;
 
 import java.util.Iterator;
 import java.util.LinkedList;

@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 
 public class PacketStateTimings {
 

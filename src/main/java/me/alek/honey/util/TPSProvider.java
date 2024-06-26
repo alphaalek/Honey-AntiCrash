@@ -3,6 +3,7 @@ package me.alek.honey.util;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.SparkTPSProvider;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.util.statics.NumberUtils;
 
 public class TPSProvider {
 

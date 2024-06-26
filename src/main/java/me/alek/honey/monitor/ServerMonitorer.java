@@ -2,7 +2,7 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.util.NumberUtils;
+import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.util.TPSProvider;
 
 public class ServerMonitorer implements ScheduledMonitorer {

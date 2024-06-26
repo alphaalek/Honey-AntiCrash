@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@FunctionalInterface
 public interface ChainSupplier<T> extends Supplier<T> {
 
     static <T> ChainSupplier<T> wrap(Supplier<T> supplier) {
