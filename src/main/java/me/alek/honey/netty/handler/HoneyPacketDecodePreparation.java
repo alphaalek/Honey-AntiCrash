@@ -15,7 +15,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -186,7 +186,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         ctx.fireChannelRead(packetContainer.getRaw());
 
-        CallbackAction postAction = packetContainer.getPost();
+        Callback postAction = packetContainer.getPost();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

@@ -17,7 +17,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.FieldAccessor;
@@ -317,7 +317,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             }
 
             Array<Object> pipelineData = new Array<>();
-            CallbackAction postponed = new CallbackAction();
+            Callback postponed = new Callback();
             for (PostponeCheck check : task.getPlayer().postponedChecks) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {

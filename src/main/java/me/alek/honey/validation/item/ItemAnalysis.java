@@ -9,8 +9,7 @@ import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.util.CallbackAction;
-import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -76,7 +75,7 @@ public class ItemAnalysis {
     }
 
     public static ValidationServiceContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
-        CallbackAction callback = new CallbackAction();
+        Callback callback = new Callback();
         if (ItemAnalysis.checkItem(player, item, callback)) {
             return ValidationServiceContext.Builder.validate().cancel().flag().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
@@ -88,7 +87,7 @@ public class ItemAnalysis {
         return ValidationServiceContext.PASS;
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction context) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, Callback context) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
                 || item == null
                 || item.getType() == Material.AIR) {
@@ -99,7 +98,7 @@ public class ItemAnalysis {
         return checkItem(player, item, nbt, context);
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction callback) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, Callback callback) {
         for (final String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer)
                     || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
@@ -113,7 +112,7 @@ public class ItemAnalysis {
         }
 
         if (callback != null) {
-            callback.addAction(CallbackAction.Action.<ValidationPipelineContext.DevelopmentData>as(context -> context.addPoint("Type", flaggedCheck.toString())));
+            callback.addAction(Callback.Action.<ValidationPipelineContext.DevelopmentData>from(context -> context.addPoint("Type", flaggedCheck.toString())));
         }
 
         if (ConfigurationOptions.PacketLogger.DEBUG) {

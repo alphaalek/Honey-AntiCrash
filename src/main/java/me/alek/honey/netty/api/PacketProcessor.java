@@ -8,10 +8,9 @@ import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public interface PacketProcessor {
 
@@ -19,7 +18,7 @@ public interface PacketProcessor {
 
     <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet);
 
-    void addPostAction(PacketType packetType, CallbackAction.Action callback);
+    void addPostAction(PacketType packetType, Callback.Action callback);
 
     <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer);
 

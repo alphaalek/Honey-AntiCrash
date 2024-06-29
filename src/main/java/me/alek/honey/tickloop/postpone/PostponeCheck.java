@@ -7,7 +7,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 public interface PostponeCheck {
 
@@ -19,5 +19,5 @@ public interface PostponeCheck {
         return Timespan.MILLIS_TO_NANO_MULTIPLIER * millis;
     }
 
-    boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction postponed) throws PostponeTerminationException;
+    boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException;
 }

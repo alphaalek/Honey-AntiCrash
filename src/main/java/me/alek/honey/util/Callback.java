@@ -6,11 +6,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class CallbackAction {
+public class Callback {
 
     public interface Action extends Predicate<Object[]> {
 
-        static <K> Action as(Consumer<K> val) {
+        static <K> Action from(Consumer<K> val) {
             return new Action() {
                 @Override
                 public boolean test(Object[] objects) {
@@ -24,7 +24,7 @@ public class CallbackAction {
             };
         }
 
-        static <K, V> Action as(BiConsumer<K, V> val) {
+        static <K, V> Action from(BiConsumer<K, V> val) {
             return new Action() {
                 @Override
                 public boolean test(Object[] objects) {
@@ -43,11 +43,11 @@ public class CallbackAction {
 
     private final List<Action> callbacks = new LinkedList<>();
 
-    public synchronized void addAction(Action callback) {
+    public void addAction(Action callback) {
         callbacks.add(callback);
     }
 
-    public synchronized void call(Object... data) {
+    public void call(Object... data) {
         if (isEmpty()) {
             return;
         }

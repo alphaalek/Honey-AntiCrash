@@ -8,11 +8,10 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Location;
@@ -25,7 +24,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
     @Override
-    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, Callback callback) {
         Location location = packetContainer.getPacket().getLocation();
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
@@ -50,7 +49,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         context.put(ValidationServiceContext.Builder.class,
                 ValidationServiceContext.Builder.validate().flag(deltaPitch));
 
-        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, responseCallback) -> {
+        callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, responseCallback) -> {
             responseCallback.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 

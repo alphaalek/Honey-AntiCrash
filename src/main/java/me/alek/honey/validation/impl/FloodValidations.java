@@ -21,7 +21,7 @@ import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
@@ -35,7 +35,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, Callback callback) {
 
         // ignore set creative slot packets when players in creative mode clear their inventory
         if (packetContainer.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION

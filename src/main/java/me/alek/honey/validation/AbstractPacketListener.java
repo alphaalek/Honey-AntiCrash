@@ -9,7 +9,7 @@ import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
 import java.util.List;
@@ -32,20 +32,17 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public static synchronized <C extends HoneyValidation<?>> ValidationPipeline<C> getCachedPipeline(Array<ValidationPipeline<C>> pipelines, ValidationPipelineFactory<C> factory, HoneyPlayer player) {
-        return getCachedPipeline(pipelines, factory, player, player.registryID);
-    }
-
-    public static synchronized <C extends HoneyValidation<?>> ValidationPipeline<C> getCachedPipeline(Array<ValidationPipeline<C>> pipelines, ValidationPipelineFactory<C> factory, HoneyPlayer player, int registryID) {
-        if (!pipelines.has(registryID)) {
+        int id = player.registryID;
+        if (!pipelines.has(id)) {
             if (!factory.requiresPlayer()
                     || player.isBukkitReady() && player.isOnlineDirect() && !player.punished) {
-                pipelines.set(registryID, factory.getNewPipeline());
+                pipelines.set(id, factory.getNewPipeline());
 
-                player.leaveCallback.addAction(CallbackAction.Action.as(p -> pipelines.remove(registryID)));
+                player.leaveCallback.addAction(Callback.Action.from(p -> pipelines.remove(id)));
             }
         }
 
-        return pipelines.get(registryID);
+        return pipelines.get(id);
     }
 
     @Override
@@ -59,34 +56,32 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        ValidationPipelineContext validationContext = new ValidationPipelineContext();
-        CallbackAction callback = new CallbackAction();
-        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, context) -> {
-            context.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
-                ValidationPipelineContext.DevelopmentData developmentData = validationContext.getDevelopmentData(keyInner);
-
-                developmentData.addEmpty();
-                developmentData.addValue(" Packet", packetContainer.getType() + " (id: " + packetContainer.getType().getMinecraftID().get() + ")");
-                developmentData.addValue(" Buffer", packetContainer.getByteSize() + " bytes");
-                AbstractPacketListener.applyCommonDevelopmentData(developmentData);
+        ValidationPipelineContext context = new ValidationPipelineContext();
+        Callback callback = new Callback();
+        callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, contextInner) -> {
+            contextInner.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
+                context.getDevelopmentData(keyInner).addEmpty();
+                context.getDevelopmentData(keyInner).addValue(" Packet", packetContainer.getType() + " (id: " + packetContainer.getType().getMinecraftID().get() + ")");
+                context.getDevelopmentData(keyInner).addValue(" Buffer", packetContainer.getByteSize() + " bytes");
+                AbstractPacketListener.applyCommonDevelopmentData(context.getDevelopmentData(keyInner));
 
                 if (onViolation != null) onViolation.run();
             });
         }));
 
-        if (!onPrePacketReceive(player, packetContainer, validationContext, callback)) {
+        if (!onPrePacketReceive(player, packetContainer, context, callback)) {
             return;
         }
 
         getPipeline(player).doStream(
                 player,
                 (validation, key) -> Settings.getSetting(player, validation, key, packetContainer.getPacket()),
-                validation -> validation.validate(player, packetContainer.getPacket(), validationContext),
-                packetContainer, validationContext, callback);
+                validation -> validation.validate(player, packetContainer.getPacket(), context),
+                packetContainer, context, callback);
 
         hasCalledCallback.remove();
 
-        onPostPacketReceive(player, packetContainer, validationContext);
+        onPostPacketReceive(player, packetContainer, context);
     }
 
     public abstract List<PacketType> getPacketTypes();
@@ -95,7 +90,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         return getCachedPipeline(visitors, this, player);
     }
 
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext container, CallbackAction callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext container, Callback callback) {
         return true;
     }
 

@@ -35,21 +35,21 @@ public class Settings {
             @SuppressWarnings("unchecked")
             KeyedViolationValidation<WP> keyedViolationCheck = (KeyedViolationValidation<WP>) violationCheck;
             ConfigurationOptions.VlSetting setting = keyedViolationCheck.getSetting(packet);
-            ViolationService.HoneyKey violationKey = keyedViolationCheck.getKey(packet);
+            ViolationService.HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
 
             ViolationService.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);
-            ViolationService.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(violationKey, false);
+            ViolationService.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(distributionKey, false);
 
             if (handler != null && handler.getSetting() == setting) {
                 return setting;
             }
 
             if (handler != null && handler.getSetting() != setting) {
-                distributor.setSetting(violationKey, setting);
+                distributor.setSetting(distributionKey, setting);
                 return setting;
             }
 
-            distributor.createHandler(violationKey, setting);
+            distributor.createHandler(distributionKey, setting);
             return setting;
         }
 

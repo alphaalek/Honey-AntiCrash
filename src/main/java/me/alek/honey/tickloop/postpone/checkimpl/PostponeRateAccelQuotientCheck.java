@@ -8,12 +8,12 @@ import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 public class PostponeRateAccelQuotientCheck implements PostponeCheck {
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction postponed) throws PostponeTerminationException {
+    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
         if (ConfigurationOptions.Postpone.MAX_RATE_ACCEL_QUOTIENT == -1) {
             return false;
         }

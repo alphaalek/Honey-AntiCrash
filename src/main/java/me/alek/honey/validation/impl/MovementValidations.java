@@ -14,11 +14,10 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Location;
@@ -60,7 +59,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, Callback callback) {
         Location currentLocation = packetContainer.getPacket().getLocation();
         Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
@@ -79,7 +78,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         // share this last location with the pipeline, so the checks can take use of it
         context.putLocation(lastLocation);
 
-        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, response) -> {
+        callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 

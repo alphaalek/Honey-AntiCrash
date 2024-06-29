@@ -6,7 +6,7 @@ import me.alek.honey.validation.types.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
@@ -57,13 +57,13 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         doStream(
                 player,
                 (validation, key) -> Settings.getSetting(validation),
-                (c) -> getResponse.apply(c, container), cancellable, container, new CallbackAction());
+                (c) -> getResponse.apply(c, container), cancellable, container, new Callback());
     }
 
     public void doStream(HoneyPlayer player,
                          BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
                          Function<C, ValidationServiceContext> getResponse,
-                         Cancellable cancellable, ValidationPipelineContext pipelineContext, CallbackAction callback) {
+                         Cancellable cancellable, ValidationPipelineContext pipelineContext, Callback callback) {
         int skipping = 0;
         for (C validation : validations) {
             if (skipping-- > 0) {
@@ -73,7 +73,6 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             // ---------------------
             // pre requisites
             ViolationService.HoneyKey distributionKey = ViolationService.HoneyKey.of(validation);
-            // TODO: different limit key?
             ConfigurationOptions.VlSetting setting = getSetting.apply(validation, distributionKey);
 
             // start to check this validation
@@ -95,7 +94,6 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                     continue;
                 }
                 if (context.cancelled) {
-                    Bukkit.getLogger().info("Cancel " + validation);
                     cancellable.cancel();
                 }
                 if (context.flag != -1 && player.isBukkitReady()) {

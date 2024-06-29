@@ -10,11 +10,9 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.Callback;
 
 import java.util.function.Function;
 
@@ -64,7 +62,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
         sending.run();
 
-        CallbackAction postAction = packetContainer.getPost();
+        Callback postAction = packetContainer.getPost();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

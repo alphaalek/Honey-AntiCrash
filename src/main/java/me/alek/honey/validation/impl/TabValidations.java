@@ -12,7 +12,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.PacketValidation;
@@ -25,7 +25,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
 
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, ValidationPipelineContext context, Callback callback) {
         return packetContainer.getPacket().getMessage().startsWith("/");
     }
 

@@ -9,12 +9,11 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Material;
@@ -26,10 +25,10 @@ import java.util.List;
 public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, ValidationPipelineContext context, Callback callback) {
         String channel = packetContainer.getPacket().getChannel();
 
-        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, response) -> {
+        callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
@@ -129,7 +128,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
                 ItemStack item = packet.getBookChannelItemStack();
                 if (item != null) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-                    CallbackAction callback = new CallbackAction();
+                    Callback callback = new Callback();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
                         return ValidationServiceContext.Builder.validate().cancel().flag().onViolation(ViolationKey.of(this), (key, onViolation) -> {
                             if (onViolation != null) onViolation.run();

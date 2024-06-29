@@ -11,7 +11,7 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 public class PacketFactory {
 
@@ -52,7 +52,7 @@ public class PacketFactory {
         return createNewPacket(type, player, serializer, player.channel, null);
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Channel channel, CallbackAction postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Channel channel, Callback postAction) {
         try {
             Object rawPacket;
             if (serializer == null) {
@@ -70,7 +70,7 @@ public class PacketFactory {
         return null;
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, HoneyPlayer player, Channel channel, Callback postAction) {
         return PacketWrapperFactory.initWrappedPacket(type, rawPacket, (PacketContainer<WP>) new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
     }
 

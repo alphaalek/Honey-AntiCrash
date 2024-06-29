@@ -12,7 +12,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 import java.lang.reflect.Method;
 import java.nio.channels.ClosedChannelException;
@@ -113,7 +113,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             ctx.write(msg);
         }
 
-        CallbackAction postAction = packetContainer.getPost();
+        Callback postAction = packetContainer.getPost();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

@@ -7,19 +7,19 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer, Cancellable {
 
     PacketStateTimings getEventloopStateTimings();
 
-    void objectInitialized(Object packet, CallbackAction postAction, PacketType type);
+    void objectInitialized(Object packet, Callback postAction, PacketType type);
 
     int getByteSize();
 
     long getTime();
 
-    void addServerCallbackAction(CallbackAction.Action action);
+    void addServerCallbackAction(Callback.Action action);
 
     void invokeServerCallback();
 
@@ -33,7 +33,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     WP getPacket();
 
-    CallbackAction getPost();
+    Callback getPost();
 
     HoneyPlayer getPlayer();
 

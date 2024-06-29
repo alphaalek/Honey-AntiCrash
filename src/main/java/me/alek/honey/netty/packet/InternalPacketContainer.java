@@ -19,7 +19,7 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.NMS;
 import org.bukkit.inventory.ItemStack;
 
@@ -32,7 +32,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private Object raw;
     private WP wrapped;
     private int byteSize;
-    private CallbackAction postAction;
+    private Callback postAction;
     private final HoneyPlayer player;
     private final Channel channel;
     private ReflectStructure<Object, ?> structure;
@@ -41,9 +41,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private boolean handledByServer;
     private final long time = System.currentTimeMillis();
     private final PacketStateTimings eventLoopStateTracker = new PacketStateTimings();
-    private final CallbackAction callbackAction = new CallbackAction();
+    private final Callback callbackAction = new Callback();
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction postAction, PacketType type) {
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Callback postAction, PacketType type) {
         this(player, channel, type, 0);
         objectInitialized(rawPacket, postAction, type);
     }
@@ -55,7 +55,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.byteSize = byteSize;
     }
 
-    public void objectInitialized(Object raw, CallbackAction postAction, PacketType type) {
+    public void objectInitialized(Object raw, Callback postAction, PacketType type) {
         this.type = type;
         this.raw = raw;
         this.postAction = postAction;
@@ -95,7 +95,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public void addServerCallbackAction(CallbackAction.Action action) {
+    public void addServerCallbackAction(Callback.Action action) {
         this.callbackAction.addAction(action);
     }
 
@@ -167,7 +167,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public CallbackAction getPost() {
+    public Callback getPost() {
         return postAction;
     }
 

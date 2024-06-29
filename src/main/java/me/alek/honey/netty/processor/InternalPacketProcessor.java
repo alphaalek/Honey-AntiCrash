@@ -12,7 +12,7 @@ import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
 import java.util.*;
@@ -23,7 +23,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private final Array<EventBus<? extends WrappedPacket<?>>> eventBusses = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
-    private final Array<CallbackAction> postActions = new Array<>();
+    private final Array<Callback> postActions = new Array<>();
 
     private static class EventBus<WP extends WrappedPacket<WP>> {
 
@@ -254,7 +254,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                          Object packet, HoneyPlayer player, Channel channel,
-                                                                                         CallbackAction postAction, PacketType type) {
+                                                                                         Callback postAction, PacketType type) {
         if (packetContainer != null) {
             packetContainer.objectInitialized(packet, postAction, type);
             return packetContainer;
@@ -268,7 +268,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(bound))
                 .orElse(null);
 
-        CallbackAction postAction = getPostAction(type);
+        Callback postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, type);
 
@@ -297,18 +297,18 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    public CallbackAction getPostAction(PacketType type) {
+    public Callback getPostAction(PacketType type) {
         return PacketTypes.isUnknown(type) ? null : postActions.get(type.getHoneyID());
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public synchronized void addPostAction(PacketType packetType, CallbackAction.Action callback) {
+    public synchronized void addPostAction(PacketType packetType, Callback.Action callback) {
         if (PacketTypes.isUnknown(packetType)) {
             return;
         }
 
-        CallbackAction action = postActions.get(packetType.getHoneyID(), CallbackAction::new);
+        Callback action = postActions.get(packetType.getHoneyID(), Callback::new);
         action.addAction(callback);
     }
 }
