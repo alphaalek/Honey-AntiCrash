@@ -7,13 +7,13 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 
@@ -134,7 +134,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 if (earlyPacketContainer.getType() == PacketTypes.Play.Client.WINDOW_CONFIRMATION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
                                 && player.isBukkitReady()
-                                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                                && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
                     ctx.fireChannelRead(packet);
                     stopTimings(earlyPacketContainer);

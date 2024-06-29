@@ -37,11 +37,11 @@ public class ConfiscationService {
                 confiscateLenient(item, nbt, check);
                 break;
             case STRICT:
-                player.player.getInventory().setContents(new ItemStack[0]);
-                player.player.getInventory().setArmorContents(new ItemStack[0]);
+                player.bukkit.getInventory().setContents(new ItemStack[0]);
+                player.bukkit.getInventory().setArmorContents(new ItemStack[0]);
                 break;
             case AVERAGE:
-                player.player.getInventory().remove(item);
+                player.bukkit.getInventory().remove(item);
                 item.setType(Material.AIR);
                 break;
         }

@@ -1053,8 +1053,8 @@ public class ConfigurationOptions {
     public static class Netty {
 
         @Setting
-        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
-        public static class NettyA extends VlSetting {
+        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
+        public static class NettyA extends VlSetting implements VlBufferOverflowRequiredContentsSetting {
 
         }
 
@@ -1064,9 +1064,9 @@ public class ConfigurationOptions {
 
         }
 
-        /* @Setting */
-        @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        public static class NettyC extends VlSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
+        @Setting
+        @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyC extends VlSetting implements VlSingleOverflowRequiredContentsSetting {
 
         }
 

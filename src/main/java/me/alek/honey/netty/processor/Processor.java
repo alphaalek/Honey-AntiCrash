@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -49,7 +50,7 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> {
                 getContext(type.getBound()).packetListeners.get(type.getHoneyID(), LinkedList::new);
         listeners.add(listener);
 
-        HoneyPlugin.get().getPacketLibrary().addListeners(this, ListenerPriority.NORMAL, type);
+        HoneyPlugin.get().getPacketLibrary().addListeners(this, ListenerPriority.HIGHEST, type);
     }
 
     public void addReader(PacketType type, PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener) {

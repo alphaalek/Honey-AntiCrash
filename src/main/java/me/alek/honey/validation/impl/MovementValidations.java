@@ -20,6 +20,7 @@ import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -210,7 +211,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 if (distance2d >= getSetting().max && distance2d != 0) {
                     builder.add(
                             ValidationServiceContext.Builder.validate().cancel().flag().withViolationKey(XZKey)
-                                    .onViolation(ViolationKey.of(this), (key, onViolation) -> {
+                                    .onViolation(ViolationKey.of(this, XZKey), (key, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
                                         context.getDevelopmentData(key).addPoint("2D Distance", distance2d);
@@ -222,7 +223,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 if (distanceY >= getSetting().max && distanceY != 0) {
                     builder.add(
                             ValidationServiceContext.Builder.validate().cancel().flag().withViolationKey(YKey)
-                                    .onViolation(ViolationKey.of(this), (key, onViolation) -> {
+                                    .onViolation(ViolationKey.of(this, YKey), (key, onViolation) -> {
                                         if (onViolation != null) onViolation.run();
 
                                         context.getDevelopmentData(key).addPoint("Y Distance", distanceY);
@@ -270,7 +271,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
             if (getSetting().isEnabled()) {
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
-                if (player.player.getVelocity().getY() < -1.5) {
+                if (player.bukkit.getVelocity().getY() < -1.5) {
                     return ValidationServiceContext.PASS;
                 }
 
@@ -472,21 +473,25 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
                 Direction[] priorVelocity = lastDirectionFlow;
                 lastDirectionFlow = velocity;
+                if (priorVelocity == null) {
+                    return ValidationServiceContext.PASS;
+                }
 
                 ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
-                if (priorVelocity != null
-                        && priorVelocity.length == velocity.length) {
-                    int i = 0;
-                    for (Direction dir : velocity) {
-                        Direction corr = priorVelocity[i++];
-                        if (corr == Direction.STILL || dir == Direction.STILL) {
-                            continue;
-                        }
+                for (int i = 0; i < 3; i++) {
+                    Direction dir = velocity[i];
+                    Direction corr = priorVelocity[i];
+                    if (corr == Direction.STILL || dir == Direction.STILL) {
+                        continue;
+                    }
 
-                        Axis axis = axisLookup.get(dir);
-                        if (corr == axis.getOther(dir)) {
-                            builder.add(ValidationServiceContext.Builder.validate().flag().withViolationKey(axis.getKey()).build());
-                        }
+                    Axis axis = axisLookup.get(dir);
+                    if (corr.equals(axis.getOther(dir))) {
+                        builder.add(
+                                ValidationServiceContext.Builder.validate().flag()
+                                        .withViolationKey(axis.getKey())
+                                        .build()
+                        );
                     }
                 }
 
@@ -570,7 +575,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
 
                 if (deltaY > 0.5) {
-                    Material material = player.player.getEyeLocation().getBlock().getType();
+                    Material material = player.bukkit.getEyeLocation().getBlock().getType();
                     if (material.name().contains("WATER")
                             || material.name().contains("LAVA")
                             || deltaY % 0.375 < 0.01) {
@@ -681,7 +686,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 }
 
                 if (y < getSetting().min || y > getSetting().max) {
-                    if (player.player.isDead()) {
+                    if (player.bukkit.isDead()) {
                         return ValidationServiceContext.Builder.validate().cancel().build();
                     }
 
@@ -698,7 +703,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                             }
                             yPosFix += 2;
                         }
-                        player.player.teleport(new Location(player.getWorld(), x, yPosFix, z));
+                        player.bukkit.teleport(new Location(player.getWorld(), x, yPosFix, z));
                     }).build();
                 }
             }

@@ -39,7 +39,7 @@ public class TrackCommand implements CommandImpl {
 
                 for (HoneyPlayer player : stTracker.getTrackersOrdered()) {
                     if (ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                            && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                            && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                         sender.sendMessage(Lang.getFormatted("track.no.data.bypass.permission", player.name));
                         continue;
                     }

@@ -189,9 +189,9 @@ public class NMS {
         return IMaterialClass != null ? IMaterialClass : (IMaterialClass = getUnsureClass("{nms}.world.level.IMaterial"));
     }
 
-    private static Class<Object> entityUseActionClass;
-    public static Class<Object> getEntityUseActionClass() {
-        return entityUseActionClass != null ? entityUseActionClass : (entityUseActionClass = getUnsureClass("{nms}.PacketPlayInUseEntity$EnumEntityUseAction", "{nms}.network.protocol.game.PacketPlayInUseEntity$EnumEntityUseAction"));
+    private static Class<Object> enumClientCommandActionClass;
+    public static Class<Object> getEnumClientCommandActionClass() {
+        return enumClientCommandActionClass != null ? enumClientCommandActionClass : (enumClientCommandActionClass = getUnsureClass("{nms}.PacketPlayInClientCommand$EnumClientCommand", "{nms}.network.protocol.game.PacketPlayInClientCommand$EnumClientCommand"));
     }
 
     private static Class<Object> vec3DClass;

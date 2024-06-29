@@ -242,7 +242,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     public Set<HoneyPlayer> getTrackers() {
         return trackerMap.keySet().stream()
                 .map(HoneyPlayer::getPlayer)
-                .filter(p -> p != null && p.player.isOnline())
+                .filter(p -> p != null && p.bukkit.isOnline())
                 .collect(Collectors.toSet());
     }
 

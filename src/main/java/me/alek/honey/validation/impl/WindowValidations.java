@@ -47,19 +47,21 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
+                // TODO: fix
+                /*
                 int slot = packet.getWindowSlot();
 
-                int inventorySlots = player.player.getOpenInventory().countSlots();
                 InventoryProcessor.InventoryEmulator ctx = Processors.INVENTORY.getContext(player);
 
-                if (ctx.windowOpen) {
-
+                if (!ctx.windowOpen) {
+                    return ValidationServiceContext.FLAG;
                 }
 
-                if (player.player.getOpenInventory() != null && (player.player.getOpenInventory().getType() == InventoryType.CRAFTING && player.player.getInventory().getType() == InventoryType.PLAYER)) {
+
+                if (player.bukkit.getOpenInventory() != null && (player.bukkit.getOpenInventory().getType() == InventoryType.CRAFTING && player.bukkit.getInventory().getType() == InventoryType.PLAYER)) {
                     inventorySlots += 4; // armor slots
                 }
-                if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
+                if (player.bukkit.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
                     return ValidationServiceContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
@@ -68,6 +70,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
                             })
                             .build();
                 }
+                */
             }
 
             return ValidationServiceContext.PASS;
@@ -135,7 +138,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                if (player.player.getOpenInventory().getType().name().equals("LECTERN")
+                if (player.bukkit.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getMode() == 1) {
                     return ValidationServiceContext.FLAG;
                 }

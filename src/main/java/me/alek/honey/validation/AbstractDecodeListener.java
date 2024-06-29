@@ -13,7 +13,7 @@ import me.alek.honey.util.Callback;
 
 import java.util.stream.Collectors;
 
-public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements ValidationPipelineFactory<DecodeValidation>, BaseValidation {
+public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements ValidationPipelineFactory<DecodeValidation>, BaseValidationContainer {
 
     private final Array<ValidationPipeline<DecodeValidation>> pipelines = new Array<>();
 
@@ -38,7 +38,7 @@ public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> exten
             });
         }));
 
-        getPipeline(player).doStream(
+        AbstractPacketListener.getCachedPipeline(pipelines, this, player).doStream(
                 player,
                 (validation, key) -> Settings.getSetting(validation),
                 validation -> validation.validate(player, byteBuf.buf(), context),
@@ -48,9 +48,5 @@ public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> exten
     @Override
     public void register(PacketLibrary library) {
         library.addListeners(this, getPriority(), PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
-    }
-
-    public synchronized ValidationPipeline<DecodeValidation> getPipeline(HoneyPlayer player) {
-        return AbstractPacketListener.getCachedPipeline(pipelines, this, player);
     }
 }

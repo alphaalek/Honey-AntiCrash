@@ -10,7 +10,7 @@ public class TabCompleteListener extends PacketAdapter<WrappedPlayOutTabComplete
 
     private boolean shouldBlockTabCompletion(HoneyPlayer player) {
         if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {
-            return !player.player.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION);
+            return !player.bukkit.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION);
         }
 
         return false;

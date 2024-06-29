@@ -7,10 +7,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.packetwrappers.play.client.*;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutChat;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutKickDisconnect;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import me.alek.honey.packetwrappers.play.server.*;
 import me.alek.honey.util.Array;
 
 public class PacketWrapperFactory {
@@ -43,7 +40,8 @@ public class PacketWrapperFactory {
         loadWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, WrappedHandshakeInSetProtocol::new);
 
         loadWrapper(PacketTypes.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);
-        loadWrapper(PacketTypes.Play.Server.DISCONNECT, WrappedPlayOutKickDisconnect::new);
+        loadWrapper(PacketTypes.Play.Server.DISCONNECT, WrappedPlayOutDisconnect::new);
+        loadWrapper(PacketTypes.Play.Server.OPEN_WINDOW, WrappedPlayOutOpenWindow::new);
         loadWrapper(PacketTypes.Play.Server.PLAYER_POSITION, WrappedPlayOutPosition::new);
         loadWrapper(PacketTypes.Play.Server.TAB_COMPLETE, WrappedPlayOutTabComplete::new);
     }

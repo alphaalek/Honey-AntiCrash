@@ -93,7 +93,8 @@ public class SpigotPipelineInjector {
                 }
             }
 
-            if (channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null) {
+            if (channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null
+                    && handlers.indexOf(MinecraftHandlers.DECOMPRESS) > handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())) {
                 InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
 
                 channel.pipeline().remove(filter);

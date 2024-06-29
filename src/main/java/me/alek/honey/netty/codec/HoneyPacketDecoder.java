@@ -33,7 +33,7 @@ public class HoneyPacketDecoder {
                     }
                     else if (packetType.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
-                            && player.isBukkitReady() && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
+                            && player.isBukkitReady() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
                     } else {
                         applier.apply(LegacyCodec.createDefault(packetType));

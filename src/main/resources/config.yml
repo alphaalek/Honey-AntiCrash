@@ -409,9 +409,10 @@ commands:
 netty:
   a:
     enabled: true
-    vls-amount: 2
-    max-per-interval: 15000
-    interval: 500
+    threshold: 25000
+    decay: 250
+    decay-amount: 2000
+    vls-amount: 1
 
   b:
     enabled: true
@@ -419,6 +420,8 @@ netty:
 
   c:
     enabled: true
+    vls-amount: 1
+    threshold: 5000
 
   d:
     enabled: true

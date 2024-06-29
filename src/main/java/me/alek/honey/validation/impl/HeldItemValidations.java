@@ -78,7 +78,7 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), ViolationKey.of(this), context);
+                return ItemAnalysis.flagIf(player, player.bukkit.getInventory().getItem(packet.getSlot()), ViolationKey.of(this), context);
             }
 
             return ValidationServiceContext.PASS;

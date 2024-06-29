@@ -14,7 +14,7 @@ import org.bukkit.Bukkit;
 
 import java.util.List;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements BaseValidation, ValidationPipelineFactory<PacketValidation<WP>> {
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
 
     private final Array<ValidationPipeline<PacketValidation<WP>>> visitors = new Array<>();
     private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();
@@ -73,7 +73,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        getPipeline(player).doStream(
+        getCachedPipeline(visitors, this, player).doStream(
                 player,
                 (validation, key) -> Settings.getSetting(player, validation, key, packetContainer.getPacket()),
                 validation -> validation.validate(player, packetContainer.getPacket(), context),
@@ -85,10 +85,6 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     public abstract List<PacketType> getPacketTypes();
-
-    public synchronized ValidationPipeline<PacketValidation<WP>> getPipeline(HoneyPlayer player) {
-        return getCachedPipeline(visitors, this, player);
-    }
 
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext container, Callback callback) {
         return true;

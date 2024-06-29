@@ -251,7 +251,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                     || packet.isHandledByServer()
                     || packet.getPlayer() == null
                     || ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                            && packet.getPlayer().player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                            && packet.getPlayer().bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
 

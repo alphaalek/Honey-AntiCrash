@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 
-public interface BaseValidation {
+public interface BaseValidationContainer {
 
     default void load() {}
 

@@ -85,7 +85,7 @@ public class PacketExecutors {
         }
 
         private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
-            Player player = packetContainer.getPlayer().player;
+            Player player = packetContainer.getPlayer().bukkit;
             ItemMeta meta = item.getItemMeta();
             switch (packetContainer.getPacket().getChannel()) {
                 case "MC|BEdit":

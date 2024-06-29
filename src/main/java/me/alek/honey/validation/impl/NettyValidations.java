@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
 
-    public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA());
+    public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA(), new NettyC());
 
     @Override
     public List<PacketType> getPacketTypes() {
@@ -203,14 +203,9 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
     }
 
-    public static class NettyC<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class NettyC implements ViolationValidation.IntViolation {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            return ValidationServiceContext.PASS;
-        }
 
         @Override
         public int getID() {
@@ -224,7 +219,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         @Override
         public String getDescription() {
-            return null;
+            return Lang.get("validation.netty.c");
         }
 
         @Override

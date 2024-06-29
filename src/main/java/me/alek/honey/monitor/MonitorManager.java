@@ -81,7 +81,7 @@ public class MonitorManager {
     public void removeFromMonitors(HoneyPlayer player) {
         monitorObservers.remove(getMonitorer(player));
         playerMonitorerMap.remove(player.uuid);
-        removeMonitor(player.player);
+        removeMonitor(player.bukkit);
     }
 
     public boolean hasMonitorers() {
@@ -110,7 +110,7 @@ public class MonitorManager {
 
     public void setupPlayerMonitor(CommandSender sender, HoneyPlayer player) {
         if (ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+                && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
             sender.sendMessage(Lang.getFormatted("monitor.start.bypass.permission.error", player.name));
             return;
         }

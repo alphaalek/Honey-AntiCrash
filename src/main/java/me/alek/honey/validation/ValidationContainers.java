@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public enum Validations {
-
+public enum ValidationContainers {
 
     v1(FloodValidations::new),
     v2(MovementValidations::new),
@@ -25,30 +24,28 @@ public enum Validations {
     v14(RotationValidations::new),
     v15(BlockDigValidations::new),
     v16(TabValidations::new),
-
     v17(CommandValidations::new),
     ;
 
-    private static List<BaseValidation> validations;
+    private static final List<BaseValidationContainer> validations = new ArrayList<>();
 
-    public static synchronized List<BaseValidation> getValidations() {
-        if (validations == null) {
-            List<BaseValidation> checkList = new ArrayList<>();
-            for (Validations check : Validations.values()) {
-                checkList.add(check.getCheck().get());
-            }
-            validations = checkList;
+    static {
+        for (ValidationContainers validation : ValidationContainers.values()) {
+            validations.add(validation.getValidationContainer().get());
         }
+    }
+
+    public static synchronized List<BaseValidationContainer> getValidations() {
         return validations;
     }
 
-    private final Supplier<BaseValidation> validation;
+    private final Supplier<BaseValidationContainer> validation;
 
-    Validations(Supplier<BaseValidation> check) {
+    ValidationContainers(Supplier<BaseValidationContainer> check) {
         this.validation = check;
     }
 
-    public Supplier<BaseValidation> getCheck() {
+    public Supplier<BaseValidationContainer> getValidationContainer() {
         return validation;
     }
 }

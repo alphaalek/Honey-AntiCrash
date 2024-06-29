@@ -6,8 +6,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.via.ViaProtocol;
-import me.alek.honey.validation.BaseValidation;
-import me.alek.honey.validation.Validations;
+import me.alek.honey.validation.BaseValidationContainer;
+import me.alek.honey.validation.print.PrintValidationBridge;
+import me.alek.honey.validation.ValidationContainers;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.compat.spark.SparkTPSProvider;
@@ -270,7 +271,7 @@ public class HoneyPlugin implements HoneyAPI {
         validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
-        for (BaseValidation validation : Validations.getValidations()) {
+        for (BaseValidationContainer validation : ValidationContainers.getValidations()) {
             validation.register(packetLibrary);
             validation.load();
         }
@@ -292,7 +293,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
 
-        ErrorPrintFilter.inject();
+        PrintValidationBridge.inject();
 
         ViaProtocol.values();
     }
@@ -344,7 +345,7 @@ public class HoneyPlugin implements HoneyAPI {
         configuration.reload();
         Lang.load();
 
-        for (BaseValidation validation : Validations.getValidations()) {
+        for (BaseValidationContainer validation : ValidationContainers.getValidations()) {
             validation.load();
         }
         ItemAnalysis.reload();

@@ -2,8 +2,8 @@ package me.alek.honey.listeners;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.BaseValidation;
-import me.alek.honey.validation.Validations;
+import me.alek.honey.validation.BaseValidationContainer;
+import me.alek.honey.validation.ValidationContainers;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.sql.SQLManagerWrapper;
 import me.alek.honey.util.IDRegistry;
@@ -15,12 +15,12 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class PlayerJoinQuitListener implements Listener {
 
     public static void onPostLoginSuccess(HoneyPlayer player) {
-        for (BaseValidation check : Validations.getValidations()) {
+        for (BaseValidationContainer check : ValidationContainers.getValidations()) {
             check.setup(player);
         }
         HoneyPlugin.get().getNotificationService().setup(player);
 
-        if (player.player.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
+        if (player.bukkit.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -52,12 +52,12 @@ public class PlayerJoinQuitListener implements Listener {
             return;
         }
 
-        for (BaseValidation check : Validations.getValidations()) {
+        for (BaseValidationContainer check : ValidationContainers.getValidations()) {
             check.cleanup(player);
         }
 
         HoneyPlugin.get().getLoggerService().removePacketData(player);
-        HoneyPlugin.get().getNotificationService().unsubscribe(player.player);
+        HoneyPlugin.get().getNotificationService().unsubscribe(player.bukkit);
 
         HoneyPlugin.get().getNettyPacketTracker().remove(player);
         HoneyPlugin.get().getExecutionQueueProxy().remove(player);

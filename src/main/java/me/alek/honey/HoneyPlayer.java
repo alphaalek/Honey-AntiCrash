@@ -38,7 +38,7 @@ public class HoneyPlayer {
     public final Channel channel;
     public final int registryID = IDRegistry.PLAYERS.acquire();
 
-    public Player player;
+    public Player bukkit;
     public UUID uuid;
     public String name;
 
@@ -70,17 +70,17 @@ public class HoneyPlayer {
     }
 
     public void initBukkitPlayer(Player player) {
-        this.player = player;
+        this.bukkit = player;
         this.uuid = player.getUniqueId();
         this.name = player.getName();
     }
 
     public boolean isBukkitReady() {
-        return this.player != null;
+        return this.bukkit != null;
     }
 
     public boolean isOnlineDirect() {
-        return player.isOnline();
+        return bukkit.isOnline();
     }
 
     public boolean isOnlineWeak() {
@@ -92,10 +92,10 @@ public class HoneyPlayer {
     }
 
     public Location getLocation() {
-        return player.getLocation();
+        return bukkit.getLocation();
     }
 
     public void sendMessage(String message) {
-        player.sendMessage(message);
+        bukkit.sendMessage(message);
     }
 }

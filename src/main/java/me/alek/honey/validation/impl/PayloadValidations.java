@@ -184,7 +184,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
                 String channel = packet.getChannel();
                 if (channel.equals("MC|BSign") || channel.equals("MC|BEdit")) {
 
-                    ItemStack itemInHand = player.player.getItemInHand();
+                    ItemStack itemInHand = player.bukkit.getItemInHand();
                     if (itemInHand.getType() != MaterialMappings.getType("writable-book")
                             && itemInHand.getType() != Material.WRITTEN_BOOK) {
                         return ValidationServiceContext.FLAG;
@@ -225,12 +225,12 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
             if (getSetting().isEnabled()) {
                 String channel = packet.getChannel();
                 if (channel.equalsIgnoreCase("register") &&
-                        player.player.getListeningPluginChannels().size() > getSetting().max) {
+                        player.bukkit.getListeningPluginChannels().size() > getSetting().max) {
                     return ValidationServiceContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                context.getDevelopmentData(key).addPoint("Plugin Channels", player.player.getListeningPluginChannels().size());
+                                context.getDevelopmentData(key).addPoint("Plugin Channels", player.bukkit.getListeningPluginChannels().size());
                             })
                             .build();
                 }

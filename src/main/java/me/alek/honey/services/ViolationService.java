@@ -67,6 +67,7 @@ public class ViolationService {
         if (onPunish != null) onPunish.run();
 
         if (player.punished) return;
+        player.punished = true;
 
         player.channel.eventLoop().execute(() -> {
             if (player.channel.isActive()) {
@@ -75,14 +76,12 @@ public class ViolationService {
         });
 
         if (player.isBukkitReady() && player.isOnlineDirect()) {
-            Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.player.kickPlayer("Disconnected"));
+            Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.bukkit.kickPlayer("Disconnected"));
         }
 
         if (validation != null && player.isBukkitReady()) {
             HoneyPlugin.get().getNotificationService().warn(player, validation.getName(), violationKey);
         }
-
-        player.punished = true;
     }
 
     public static class ViolationContext {
@@ -562,7 +561,8 @@ public class ViolationService {
         @Override
         public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             hasDecayed = false;
-            if (System.currentTimeMillis() - lastDecay > getSetting().decay) {
+            long diff = System.currentTimeMillis() - lastDecay;
+            while (bufferIndex > 0 && (diff -= getSetting().decay) > 0) {
                 hasDecayed = true;
                 lastDecay = System.currentTimeMillis();
                 decay();

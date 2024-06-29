@@ -36,7 +36,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                if (player.player.getGameMode() != GameMode.CREATIVE) {
+                if (player.bukkit.getGameMode() != GameMode.CREATIVE) {
                     return ValidationServiceContext.Builder.validate().cancel().flag().build();
                 }
             }
@@ -73,7 +73,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
-                if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
+                if (slot > (player.bukkit.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
                     return ValidationServiceContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();

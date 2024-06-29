@@ -101,7 +101,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             ReferenceCountUtil.retain(msg);
         }
 
-        PacketContainer<WP> packetContainer = packetProcessor.write(ctx.channel(), asyncDecoder.getPlayer(), packetHandler, msg);
+        PacketContainer<WP> packetContainer = packetProcessor.write(ctx.channel(), player, packetHandler, msg);
         if (!packetHandler.write(packetContainer)) {
             promise.setSuccess();
             return;

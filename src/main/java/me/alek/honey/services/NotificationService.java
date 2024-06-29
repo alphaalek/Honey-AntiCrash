@@ -76,8 +76,8 @@ public class NotificationService {
     }
 
     public void setup(HoneyPlayer player) {
-        if (hasNotifyPermission(player.player) && !isSubscribed(player.player) && !isUntoggled(player.player)) {
-            subscribe(player.player);
+        if (hasNotifyPermission(player.bukkit) && !isSubscribed(player.bukkit) && !isUntoggled(player.bukkit)) {
+            subscribe(player.bukkit);
         }
     }
 
@@ -131,20 +131,24 @@ public class NotificationService {
                         .build();
                 String message = getMessage(violationFormat, offer);
 
-                if (developmentData != null && observer instanceof Player) {
-                    StringBuilder hoverableTextBuilder = new StringBuilder();
-                    for (String dataSetEntry : developmentData.getDataSet()) {
-                        hoverableTextBuilder.append(dataSetEntry).append("\n");
-                    }
-                    String hoverableText = hoverableTextBuilder.substring(0, hoverableTextBuilder.length() - 1);
-
-                    TextComponent textComponentMessage = new TextComponent(message);
-                    textComponentMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverableText).create()));
-
-                    Player observerPlayer = (Player) observer;
-                    observerPlayer.spigot().sendMessage(textComponentMessage);
+                if (developmentData == null
+                        || developmentData.getDataSet().isEmpty()
+                        || !(observer instanceof Player)) {
+                    observer.sendMessage(message);
+                    return;
                 }
-                else observer.sendMessage(message);
+
+                StringBuilder hoverable = new StringBuilder();
+                for (String dataSetEntry : developmentData.getDataSet()) {
+                    hoverable.append(dataSetEntry).append("\n");
+                }
+                String text = hoverable.substring(0, hoverable.length() - 1);
+
+                TextComponent textComponentMessage = new TextComponent(message);
+                textComponentMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(text).create()));
+
+                Player observerPlayer = (Player) observer;
+                observerPlayer.spigot().sendMessage(textComponentMessage);
             }
 
             @Override
@@ -197,13 +201,13 @@ public class NotificationService {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
                     ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
-                    .withInts().withTarget(player.player);
+                    .withInts().withTarget(player.bukkit);
 
             return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
         IStructureModifier<Object> craftPlayerModifier =
                 ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
-                .withType(NMS.getEntityPlayerClass()).withTarget(player.player);
+                .withType(NMS.getEntityPlayerClass()).withTarget(player.bukkit);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod(null, "getHandle", 0);
 
@@ -352,7 +356,7 @@ public class NotificationService {
 
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            player.player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
+            player.bukkit.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
             return;
         }
 

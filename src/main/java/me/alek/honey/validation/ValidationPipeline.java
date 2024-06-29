@@ -62,8 +62,13 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
     public void doStream(HoneyPlayer player,
                          BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
-                         Function<C, ValidationServiceContext> getResponse,
-                         Cancellable cancellable, ValidationPipelineContext pipelineContext, Callback callback) {
+                         Function<C, ValidationServiceContext> getServiceContext,
+                         Cancellable cancellable, ValidationPipelineContext validationContext, Callback callback) {
+        if (player.punished) {
+            cancellable.cancel();
+            return;
+        }
+
         int skipping = 0;
         for (C validation : validations) {
             if (skipping-- > 0) {
@@ -76,7 +81,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             ConfigurationOptions.VlSetting setting = getSetting.apply(validation, distributionKey);
 
             // start to check this validation
-            ValidationServiceContext defaultResponse = getResponseAndRegisterTimings(validation, getResponse, setting);
+            ValidationServiceContext defaultResponse = getResponseAndRegisterTimings(validation, getServiceContext, setting);
             List<ValidationServiceContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
@@ -98,7 +103,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                 }
                 if (context.flag != -1 && player.isBukkitReady()) {
                     ViolationKey violationKey = new ViolationKey(validation, context.violationKey);
-                    ValidationPipelineContext.DevelopmentData developmentData = pipelineContext.getDevelopmentData(violationKey);
+                    ValidationPipelineContext.DevelopmentData developmentData = validationContext.getDevelopmentData(violationKey);
 
                     if (validation.isDefaultPipeline()) {
                         callback.call(violationKey, context);
