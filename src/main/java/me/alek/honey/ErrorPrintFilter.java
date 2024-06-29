@@ -1,11 +1,10 @@
 package me.alek.honey;
 
-import me.alek.honey.validation.Settings;
-import me.alek.honey.validation.impl.NettyValidations;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.validation.impl.NettyValidations;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
@@ -57,7 +56,7 @@ public class ErrorPrintFilter {
                     (validation, container) -> validation.validate(packet.getPlayer(), length, container),
                     stated);
 
-            Bukkit.getLogger().info("Error log Length " + length + ", packet: " + packet.getPlayerName());
+            // Bukkit.broadcastMessage("Error log Length " + length + ", packet: " + packet.getPlayerName());
 
             return !stated.isCancelled();
         };

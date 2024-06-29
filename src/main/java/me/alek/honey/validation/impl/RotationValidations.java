@@ -1,21 +1,20 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Location;
 
 import java.util.*;
@@ -26,7 +25,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
     @Override
-    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
         Location location = packetContainer.getPacket().getLocation();
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
@@ -41,21 +40,27 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         lastYawMap.put(player.uuid, location.getYaw());
         lastPitchMap.put(player.uuid, location.getPitch());
 
-        if (location.getYaw() == lastYaw && location.getPitch() == lastPitch) return false;
+        if (location.getYaw() == lastYaw
+                && location.getPitch() == lastPitch) {
+            return false;
+        }
 
-        container.put(Validation.class, Validation.validate().flag(deltaYaw));
-        container.put(Validation.class, Validation.validate().flag(deltaPitch));
+        context.put(ValidationServiceContext.Builder.class,
+                ValidationServiceContext.Builder.validate().flag(deltaYaw));
+        context.put(ValidationServiceContext.Builder.class,
+                ValidationServiceContext.Builder.validate().flag(deltaPitch));
 
-        callback.addAction(responseCallback -> {
-            responseCallback.builder().onViolation((check, onViolation) -> {
+        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, responseCallback) -> {
+            responseCallback.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
-                container.getDevelopmentData(check).addPoint("Yaw" , location.getYaw());
-                container.getDevelopmentData(check).addPoint("Pitch" , location.getPitch());
-                container.getDevelopmentData(check).addPoint("Delta yaw" , deltaYaw);
-                container.getDevelopmentData(check).addPoint("Delta pitch" , deltaPitch);
+                context.getDevelopmentData(keyInner).addPoint("Yaw" , location.getYaw());
+                context.getDevelopmentData(keyInner).addPoint("Pitch" , location.getPitch());
+                context.getDevelopmentData(keyInner).addPoint("Delta yaw" , deltaYaw);
+                context.getDevelopmentData(keyInner).addPoint("Delta pitch" , deltaPitch);
             });
-        });
+        }));
+
         return true;
     }
 
@@ -67,8 +72,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     @Override
     public List<PacketType> getPacketTypes() {
         return Arrays.asList(
-                PacketTypes.Play.Client.LOOK,
-                PacketTypes.Play.Client.POSITION_LOOK
+                PacketTypes.Play.Client.PLAYER_ROTATION,
+                PacketTypes.Play.Client.PLAYER_POS_AND_ROT
         );
     }
 
@@ -91,15 +96,15 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                final float pitch = packet.getPitch();
-
+                float pitch = packet.getPitch();
                 if (pitch < -90 || pitch > 90) {
-                    return Validation.validate().flag().build();
+                    return ValidationServiceContext.FLAG;
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -130,19 +135,21 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (packet.getYaw() == 0 || MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
-                return Validation.PASS.copy().terminate().build();
+                return ValidationServiceContext.PASS.copy().terminate().build();
             }
+
             if (getSetting().isEnabled()) {
-                return Validation.validate().add(
-                        container.get(Validation.class, 0).withViolationKey(yawKey).build(),
-                        container.get(Validation.class, 1).withViolationKey(pitchKey).build()
+                return ValidationServiceContext.Builder.validate().add(
+                        context.get(ValidationServiceContext.Builder.class, 0).withViolationKey(yawKey).build(),
+                        context.get(ValidationServiceContext.Builder.class, 1).withViolationKey(pitchKey).build()
                 ).build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -173,17 +180,17 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 if (packet.getYaw() != 0) {
-                    return Validation.validate().add(
-                            container.get(Validation.class, 0).withViolationKey(yawKey).build(),
-                            container.get(Validation.class, 1).withViolationKey(pitchKey).build()
+                    return ValidationServiceContext.Builder.validate().add(
+                            context.get(ValidationServiceContext.Builder.class, 0).withViolationKey(yawKey).build(),
+                            context.get(ValidationServiceContext.Builder.class, 1).withViolationKey(pitchKey).build()
                     ).build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

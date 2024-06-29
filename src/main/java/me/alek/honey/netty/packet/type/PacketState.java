@@ -1,8 +1,10 @@
 package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.util.Array;
+import org.apache.commons.lang.WordUtils;
 
 public enum PacketState {
+
     HANDSHAKE,
 
     PLAY,
@@ -21,6 +23,10 @@ public enum PacketState {
     private final Array<PacketType>[] types = (Array<PacketType>[]) new Array[]{
             new Array<>(), new Array<>()
     };
+
+    public String getName() {
+        return WordUtils.capitalize(name().toLowerCase());
+    }
 
     public Array<PacketType>[] getTypes() {
         return types;

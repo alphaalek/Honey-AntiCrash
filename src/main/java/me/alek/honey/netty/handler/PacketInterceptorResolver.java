@@ -76,7 +76,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketTypes.Play.Client.FLYING : PacketTypes.Play.Client.GROUND,
+        ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketTypes.Play.Client.PLAYER_MOVEMENT : PacketTypes.Play.Client.GROUND,
                 serializer -> serializer.writeBoolean(false));
 
         AtomicReference<String> prev = new AtomicReference<>();
@@ -130,7 +130,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.POSITION, serializer -> {
+        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.PLAYER_POSITION, serializer -> {
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
             serializer.writeDouble(Double.MAX_VALUE);
@@ -140,7 +140,7 @@ public class PacketInterceptorResolver {
             serializer.writeInt(0);
         }).copy();
         PacketContainer<WrappedPlayOutPosition> packet = PacketFactory.<WrappedPlayOutPosition>createWrappedPacket(
-                PacketTypes.Play.Server.POSITION, PacketFactory.createRawPacket(PacketTypes.Play.Server.POSITION, buf), null, pipeline.channel(), null).getContainer();
+                PacketTypes.Play.Server.PLAYER_POSITION, PacketFactory.createRawPacket(PacketTypes.Play.Server.PLAYER_POSITION, buf), null, pipeline.channel(), null).getContainer();
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, false, handler -> handler instanceof ChannelOutboundHandler,

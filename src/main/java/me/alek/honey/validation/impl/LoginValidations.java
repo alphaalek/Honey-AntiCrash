@@ -2,10 +2,9 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.AbstractPacketListener;
-import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationPipeline;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
@@ -18,7 +17,6 @@ import org.bukkit.entity.Player;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class LoginValidations extends AbstractPacketListener<WrappedLoginInLoginStart> {
 
@@ -42,19 +40,19 @@ public class LoginValidations extends AbstractPacketListener<WrappedLoginInLogin
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedLoginInLoginStart packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedLoginInLoginStart packet, ValidationPipelineContext context) {
             WrappedGameProfile profile = packet.getProfile();
             if (profile == null) {
-                return Validation.PASS;
+                return ValidationServiceContext.PASS;
             }
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.getName().equals(profile.getName())) {
-                    return Validation.validate().cancel().punish().build();
+                    return ValidationServiceContext.Builder.validate().cancel().build();
                 }
             }
 
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
         @Override

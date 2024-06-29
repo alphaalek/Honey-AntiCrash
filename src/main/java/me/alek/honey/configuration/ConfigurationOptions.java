@@ -810,6 +810,16 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class Sign {
+
+        @Setting
+        @Violation(prefixPaths = "sign.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class SignA extends VlSetting {
+
+        }
+    }
+
+    @Setting
     public static class WindowClick {
 
         @Setting
@@ -900,7 +910,7 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class Position {
+    public static class Movement {
 
         @Setting
         @Violation(prefixPaths = "position.a", packetHandler = PacketLimitHandlerType.INTERVAL)
@@ -1178,14 +1188,14 @@ public class ConfigurationOptions {
         @Setting
         public static class FloodD {
 
-            @Flood(PacketTypes.Play.Client.ABILITIES)
+            @Flood(PacketTypes.Play.Client.PLAYER_ABILITIES)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.abilities"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Abilities extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
-            @Flood(PacketTypes.Play.Client.ARM_ANIMATION)
+            @Flood(PacketTypes.Play.Client.ANIMATION)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.arm-animation"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class ArmAnimation extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1198,14 +1208,14 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.BLOCK_DIG)
+            @Flood(PacketTypes.Play.Client.PLAYER_DIGGING)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.block-dig"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class BlockDig extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
-            @Flood(PacketTypes.Play.Client.BLOCK_PLACE)
+            @Flood(PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.block-place"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class BlockPlace extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1227,7 +1237,7 @@ public class ConfigurationOptions {
             }
 
 
-            @Flood(PacketTypes.Play.Client.CHAT)
+            @Flood(PacketTypes.Play.Client.CHAT_MESSAGE)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.chat"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Chat extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1241,14 +1251,14 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.HELD_ITEM_SLOT)
+            @Flood(PacketTypes.Play.Client.HELD_ITEM_CHANGE)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.held-item-slot"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class HeldItemSlot extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
-            @Flood(PacketTypes.Play.Client.CONTAINER_BUTTON_CLICK)
+            @Flood(PacketTypes.Play.Client.CLICK_WINDOW_BUTTON)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.enchant-item"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class EnchantItem extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1269,21 +1279,21 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.LOOK)
+            @Flood(PacketTypes.Play.Client.PLAYER_ROTATION)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.look"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Look extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
-            @Flood(PacketTypes.Play.Client.FLYING)
+            @Flood(PacketTypes.Play.Client.PLAYER_MOVEMENT)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.flying"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Flying extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
-            @Flood(PacketTypes.Play.Client.SET_CREATIVE_SLOT)
+            @Flood(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.set-creative-slot"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class SetCreativeSlot extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1304,7 +1314,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood({PacketTypes.Play.Client.POSITION, PacketTypes.Play.Client.POSITION_LOOK})
+            @Flood({PacketTypes.Play.Client.PLAYER_POSITION, PacketTypes.Play.Client.PLAYER_POS_AND_ROT})
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.position"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Position extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1318,7 +1328,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.TRANSACTION)
+            @Flood(PacketTypes.Play.Client.WINDOW_CONFIRMATION)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.transaction"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Transaction extends VlSetting implements VlIntervalRequiredContentsSetting {
@@ -1339,14 +1349,14 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.USE_ENTITY)
+            @Flood(PacketTypes.Play.Client.INTERACT_ENTITY)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.use-entity"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class UseEntity extends VlSetting implements VlIntervalRequiredContentsSetting {
 
             }
 
-            @Flood(PacketTypes.Play.Client.WINDOW_CLICK)
+            @Flood(PacketTypes.Play.Client.CLICK_WINDOW)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.window-click"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class WindowClick extends VlSetting implements VlIntervalRequiredContentsSetting {

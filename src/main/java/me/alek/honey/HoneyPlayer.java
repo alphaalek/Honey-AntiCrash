@@ -8,7 +8,7 @@ import me.alek.honey.tickloop.postpone.checkimpl.*;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.protocol.ClientInfo;
+import me.alek.honey.util.ClientInfo;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -53,7 +53,7 @@ public class HoneyPlayer {
     public TempQueuedTracker timedQueuedTracker;
     public TempQueuedTracker serverThreadTimedQueuedTracker;
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
-    public final CallbackAction<HoneyPlayer> leaveCallback = new CallbackAction<>();
+    public final CallbackAction leaveCallback = new CallbackAction();
     public Queue<PostponeCheck> postponedChecks = new LinkedList<>(
             new ArrayList<>(Arrays.asList(
                     new PostponeRateIgnoreTerminator(),

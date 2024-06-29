@@ -2,23 +2,21 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketAdapter;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -27,7 +25,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
 
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
         return packetContainer.getPacket().getMessage().startsWith("/");
     }
 
@@ -61,24 +59,24 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         private static String[] prohibitedCommands;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
             String message = packet.getMessage();
             String label = message.split(" ")[0];
 
             for (String prohibitedCommand : prohibitedCommands) {
                 if (CommandValidations.match(prohibitedCommand, label)) {
-                    return Validation.validate().cancel().flag()
-                            .onViolation((check, onViolation) -> {
+                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 String messageFormatted = "\"" + (message.length() > 25 ? message.substring(0, 25) + "<...>" : message) + "\"";
-                                container.getDevelopmentData(this).addPoint("Message", messageFormatted);
+                                context.getDevelopmentData(key).addPoint("Message", messageFormatted);
                             })
                             .build();
                 }
             }
 
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -126,23 +124,24 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 tabCompleteQueueMap.computeIfAbsent(player.uuid, (d) -> new LinkedList<>()).add(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer size) {
-                        container.getDevelopmentData(TabB.this).addPoint("Suggestions Size", size);
+                        ViolationKey violationKey = ViolationKey.of(TabB.this);
+                        context.getDevelopmentData(violationKey).addPoint("Suggestions Size", size);
                         HoneyPlugin.get().getViolationService().flag(
                                 player, packet.getContainer(), key, null, size,
-                                TabB.this, getSetting(), container.getDevelopmentData(TabB.this));
+                                TabB.this, getSetting(), context.getDevelopmentData(violationKey));
                     }
                 });
                 // force the buffer throttle to check if the buffer has exceeded the threshold by previous response listeners,
                 // and therefore will block this packet. I do this by just flagging with 0.
-                return Validation.validate().flag(0).build();
+                return ValidationServiceContext.Builder.validate().flag(0).build();
             }
 
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -173,8 +172,9 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         private static final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(0, "total");
         private static final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
 
+
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
                     if (!player.violationContext.getViolationDistributors().has(getID())) {
@@ -189,13 +189,13 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
 
                 int label = packet.getMessage().indexOf(" ");
                 int total = packet.getMessage().length();
-                return Validation.validate().add(
-                        Validation.validate().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
-                        Validation.validate().flag(total).withViolationKey(totalKey).build()
+                return ValidationServiceContext.Builder.validate().add(
+                        ValidationServiceContext.Builder.validate().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
+                        ValidationServiceContext.Builder.validate().flag(total).withViolationKey(totalKey).build()
                 ).build();
             }
 
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
         @Override

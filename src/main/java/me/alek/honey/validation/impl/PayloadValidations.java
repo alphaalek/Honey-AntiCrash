@@ -1,24 +1,22 @@
 package me.alek.honey.validation.impl;
 
-import io.netty.buffer.EmptyByteBuf;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.util.MaterialMappings;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.MaterialMappings;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.item.ItemAnalysis;
+import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -28,17 +26,17 @@ import java.util.List;
 public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
         String channel = packetContainer.getPacket().getChannel();
 
-        callback.addAction(response -> {
-            response.builder().onViolation((check, onViolation) -> {
+        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, response) -> {
+            response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
-                container.getDevelopmentData(check).addPoint("Channel", channel);
-                container.getDevelopmentData(check).addPoint("Byte Buffer", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
+                context.getDevelopmentData(keyInner).addPoint("Channel", channel);
+                context.getDevelopmentData(keyInner).addPoint("Byte Buffer", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
             });
-        });
+        }));
 
         return true;
     }
@@ -58,13 +56,12 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
-            if (getSetting().isEnabled()) {
-                if (packet.getBuf().getClass().equals(EmptyByteBuf.class)) {
-                    return Validation.validate().cancel().flag().build();
-                }
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
+            if (getSetting().isEnabled() && !packet.getBuf().isReadable()) {
+                return ValidationServiceContext.FLAG;
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -93,11 +90,12 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return Validation.validate().flag(packet.getBuf().readableBytes()).build();
+                return ValidationServiceContext.Builder.validate().flag(packet.getBuf().readableBytes()).build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -126,34 +124,34 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 ItemStack item = packet.getBookChannelItemStack();
                 if (item != null) {
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-                    CallbackAction<ValidationContextContainer.DevelopmentData> callback = new CallbackAction<>();
+                    CallbackAction callback = new CallbackAction();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
-                        return Validation.validate().cancel().flag().onViolation((check, onViolation) -> {
+                        return ValidationServiceContext.Builder.validate().cancel().flag().onViolation(ViolationKey.of(this), (key, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
-                            callback.call(container.getDevelopmentData(this));
+                            callback.call(context.getDevelopmentData(key));
                         }).build();
                     }
 
                     int nbtSize;
                     if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
-                        return Validation.validate().cancel().flag()
-                                .onViolation((check, onViolation) -> {
+                        return ValidationServiceContext.Builder.validate().cancel().flag()
+                                .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                     if (onViolation != null) onViolation.run();
 
-                                    container.getDevelopmentData(this).addPoint("NBT Size", nbtSize);
+                                    context.getDevelopmentData(key).addPoint("NBT Size", nbtSize);
                                 })
                                 .build();
                     }
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -182,20 +180,20 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 String channel = packet.getChannel();
-                if (channel.equals("MC|BSign")
-                        || channel.equals("MC|BEdit")) {
+                if (channel.equals("MC|BSign") || channel.equals("MC|BEdit")) {
 
                     ItemStack itemInHand = player.player.getItemInHand();
-                    if (itemInHand.getType() == MaterialMappings.getType("writable-book")
-                            || itemInHand.getType() == Material.WRITTEN_BOOK) {
-                        return Validation.validate().cancel().flag().build();
+                    if (itemInHand.getType() != MaterialMappings.getType("writable-book")
+                            && itemInHand.getType() != Material.WRITTEN_BOOK) {
+                        return ValidationServiceContext.FLAG;
                     }
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -224,22 +222,22 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 String channel = packet.getChannel();
                 if (channel.equalsIgnoreCase("register") &&
                         player.player.getListeningPluginChannels().size() > getSetting().max) {
-                    return Validation.validate().cancel().flag()
-                            .onViolation((check, onViolation) -> {
+                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Plugin Channels", player.player.getListeningPluginChannels().size());
+                                context.getDevelopmentData(key).addPoint("Plugin Channels", player.player.getListeningPluginChannels().size());
                             })
                             .build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

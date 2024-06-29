@@ -83,6 +83,11 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
         checkHandleTimeMap.remove(key);
     }
 
+    @Override
+    public boolean has(T key) {
+        return checkHandleRegistry.containsKey(key);
+    }
+
     public double getTimeToAverageQuotient(T key) {
         return ((double)getCheckHandleTime(key)) / getAverage();
     }

@@ -2,7 +2,7 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.util.messages.MessageFormat;
 import me.alek.honey.util.messages.MessageOffer;
@@ -124,7 +124,7 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
+            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
                 MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
@@ -236,15 +236,15 @@ public class NotificationService {
         return message.substring(2, message.length());
     }
 
-    public void applyQuotients(HoneyPlayer player, ValidationContextContainer.DevelopmentData developmentData) {
+    public void applyQuotients(HoneyPlayer player, ValidationPipelineContext.DevelopmentData developmentData) {
         WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
         WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
-        String serverThreadPoint = formatPercentages(serverThreadHandleTracker.getStatistics(player));
-        String nettyThreadPoint = formatPercentages(nettyThreadHandleTracker.getStatistics(player));
+        String serverThreadPoint = serverThreadHandleTracker.has(player) ? formatPercentages(serverThreadHandleTracker.getStatistics(player)) : "No data!";
+        String nettyThreadPoint = nettyThreadHandleTracker.has(player) ? formatPercentages(nettyThreadHandleTracker.getStatistics(player)) : "No data!";
 
-        developmentData.setPoint(6, "STQ", serverThreadPoint);
-        developmentData.setPoint(7, "NTQ", nettyThreadPoint);
+        developmentData.setPoint(7, "STQ", serverThreadPoint);
+        developmentData.setPoint(8, "NTQ", nettyThreadPoint);
 
         developmentData.addInternalData("TPS=" + ChatColor.stripColor(TPSProvider.getTPS(Timespan.FIVE_SECOND)));
         developmentData.addInternalData("Ping=" + HoneyPlugin.get().getNotificationService().getPing(player));
@@ -389,7 +389,7 @@ public class NotificationService {
         }
     }
 
-    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationContextContainer.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineDirect() || player.punished) {
@@ -414,7 +414,7 @@ public class NotificationService {
 
         void notify(String notification);
 
-        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationContextContainer.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
 
         void warn(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey);
     }

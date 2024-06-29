@@ -2,8 +2,7 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.KeyedViolationValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
@@ -36,10 +35,10 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
 
         // ignore set creative slot packets when players in creative mode clear their inventory
-        if (packetContainer.getType() == PacketTypes.Play.Client.SET_CREATIVE_SLOT
+        if (packetContainer.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
                 && player.player.getGameMode() == GameMode.CREATIVE) {
             int slot = ((WrappedPlayInSetCreativeSlot)packetContainer.getPacket()).getSlot();
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
@@ -85,11 +84,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return Validation.validate().flag().build();
+                return ValidationServiceContext.Builder.validate().flag().build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
     }
 
@@ -158,7 +158,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
                     && !PacketTypes.isUnknown(packet.getType())
                     && packetTypes.hasID(packet.getType().getHoneyID())) {
@@ -167,12 +167,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
                     NBTCompound nbt = NBTFactory.fromItem(item, false, true);
                     if (nbt != null && !nbt.isEmpty()) {
                         int elements = nbt.getRoot().getTotalElements();
-                        return Validation.validate().flag(elements).build();
+                        return ValidationServiceContext.Builder.validate().flag(elements).build();
                     }
                 }
             }
 
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -201,14 +201,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting(packet).isEnabled()) {
-                return Validation.validate()
-                        .flag()
-                        .withViolationKey(getKey(packet))
-                        .build();
+                return ValidationServiceContext.Builder.validate().flag().withViolationKey(getKey(packet)).build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

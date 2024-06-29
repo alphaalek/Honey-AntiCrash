@@ -1,7 +1,11 @@
-package me.alek.honey.compat;
+package me.alek.honey.compat.spark;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.compat.ServiceProvider;
+import me.alek.honey.compat.ServiceValidator;
+import me.alek.honey.compat.UnsupportedCompatabilityException;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.util.LazyInit;
 import me.lucko.spark.api.Spark;
 import me.lucko.spark.api.statistic.StatisticWindow;
 import me.lucko.spark.api.statistic.types.DoubleStatistic;
@@ -12,17 +16,18 @@ public class SparkTPSProvider implements ServiceProvider<Spark> {
 
         public static final ServiceValidator VALIDATOR = new SparkValidator();
 
-        public boolean has() {
-            return HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("spark") != null;
+        public LazyInit<Boolean> find() {
+            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("spark") != null);
         }
     }
 
     public static final ServiceProvider<Spark> PROVIDER = new SparkTPSProvider();
+
     private static final Object registrationLock = new Object();
     private static Spark SPARK = null;
 
     public Spark get() {
-        if (!SparkValidator.VALIDATOR.has()) {
+        if (!SparkValidator.VALIDATOR.find().get()) {
             return null;
         }
 
@@ -41,7 +46,7 @@ public class SparkTPSProvider implements ServiceProvider<Spark> {
     }
 
     public static double getTPS(StatisticWindow.TicksPerSecond window) {
-        if (!SparkValidator.VALIDATOR.has()) {
+        if (!SparkValidator.VALIDATOR.find().get()) {
             throw new UnsupportedCompatabilityException();
         }
 

@@ -19,5 +19,5 @@ public interface PostponeCheck {
         return Timespan.MILLIS_TO_NANO_MULTIPLIER * millis;
     }
 
-    boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction<Boolean> postponed) throws PostponeTerminationException;
+    boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction postponed) throws PostponeTerminationException;
 }

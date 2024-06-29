@@ -11,28 +11,28 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.util.reflection.NMS;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private PacketType type;
     private Object raw;
     private WP wrapped;
-    private CallbackAction<PacketContainer<WP>> postAction;
+    private int byteSize;
+    private CallbackAction postAction;
     private final HoneyPlayer player;
     private final Channel channel;
     private ReflectStructure<Object, ?> structure;
@@ -41,20 +41,21 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private boolean handledByServer;
     private final long time = System.currentTimeMillis();
     private final PacketStateTimings eventLoopStateTracker = new PacketStateTimings();
-    private final CallbackAction<PacketContainer<WP>> callbackAction = new CallbackAction<>();
+    private final CallbackAction callbackAction = new CallbackAction();
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
-        this(player, channel, type);
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, CallbackAction postAction, PacketType type) {
+        this(player, channel, type, 0);
         objectInitialized(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(HoneyPlayer player, Channel channel, PacketType type) {
+    public InternalPacketContainer(HoneyPlayer player, Channel channel, PacketType type, int byteSize) {
         this.player = player;
         this.channel = channel;
         this.type = type;
+        this.byteSize = byteSize;
     }
 
-    public void objectInitialized(Object raw, CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
+    public void objectInitialized(Object raw, CallbackAction postAction, PacketType type) {
         this.type = type;
         this.raw = raw;
         this.postAction = postAction;
@@ -67,6 +68,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
             }
             this.wrapped = (WP) PacketFactory.createWrappedPacket(type, raw, this);
         }
+    }
+
+    @Override
+    public int getByteSize() {
+        return byteSize;
     }
 
     @Override
@@ -89,7 +95,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public void addServerCallbackAction(Consumer<PacketContainer<WP>> action) {
+    public void addServerCallbackAction(CallbackAction.Action action) {
         this.callbackAction.addAction(action);
     }
 
@@ -161,7 +167,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public CallbackAction<PacketContainer<WP>> getPost() {
+    public CallbackAction getPost() {
         return postAction;
     }
 

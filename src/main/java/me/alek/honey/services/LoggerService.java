@@ -218,15 +218,14 @@ public class LoggerService {
                 && data.toString().getBytes().length > MAX_PACKET_LOGGING_DATA) {
             StringBuilder newData = new StringBuilder();
             String source = data.toString();
-            int c = 0;
-            int i = 0;
+            int c = 0, i = 0;
             while (c < MAX_PACKET_LOGGING_DATA) {
                 String str = String.valueOf(source.charAt(i++));
                 newData.append(str);
                 c += str.getBytes().length;
             }
 
-            newData.append(" (?) Too much data (!)");
+            newData.append(" (!) Too much data (!)");
             return newData.toString();
         }
 

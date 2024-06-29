@@ -15,7 +15,7 @@ import org.bukkit.Bukkit;
 public class PostponeRateCheck implements PostponeCheck {
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction<Boolean> postponed) throws PostponeTerminationException {
+    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, CallbackAction postponed) throws PostponeTerminationException {
         if (ConfigurationOptions.Postpone.MAX_RATE_5S != -1
                 && (double) pipelineData.addAndGet(getTracker().getPlayerRate(player, Timespan.FIVE_SECOND, true)) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_5S)) {
             return true;

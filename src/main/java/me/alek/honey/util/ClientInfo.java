@@ -1,4 +1,6 @@
-package me.alek.honey.util.protocol;
+package me.alek.honey.util;
+
+import me.alek.honey.util.protocol.NetProtocol;
 
 public class ClientInfo {
 

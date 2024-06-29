@@ -2,26 +2,25 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
-import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -43,16 +42,16 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 lastTeleportationLocationMap.put(player.uuid, packetContainer.getPacket().getLocation());
             }
 
-        }, ListenerPriority.HIGHEST, PacketTypes.Play.Server.POSITION);
+        }, ListenerPriority.HIGHEST, PacketTypes.Play.Server.PLAYER_POSITION);
     }
 
     @Override
     public List<PacketType> getPacketTypes() {
         return Arrays.asList(
-                PacketTypes.Play.Client.POSITION,
-                PacketTypes.Play.Client.POSITION_LOOK,
+                PacketTypes.Play.Client.PLAYER_POSITION,
+                PacketTypes.Play.Client.PLAYER_POS_AND_ROT,
                 PacketTypes.Play.Client.GROUND,
-                PacketTypes.Play.Client.FLYING
+                PacketTypes.Play.Client.PLAYER_MOVEMENT
         );
     }
 
@@ -61,7 +60,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, CallbackAction callback) {
         Location currentLocation = packetContainer.getPacket().getLocation();
         Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
@@ -78,17 +77,17 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         // share this last location with the pipeline, so the checks can take use of it
-        container.putLocation(lastLocation);
+        context.putLocation(lastLocation);
 
-        callback.addAction((response -> {
-            response.builder().onViolation((check, onViolation) -> {
+        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, response) -> {
+            response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
                 final String x = format(currentLocation.getX());
                 final String y = format(currentLocation.getY());
                 final String z = format(currentLocation.getZ());
 
-                container.getDevelopmentData(check).addPoint("Position", x + ", " + y + ", " + z);
+                context.getDevelopmentData(keyInner).addPoint("Position", x + ", " + y + ", " + z);
             });
         }));
 
@@ -146,22 +145,20 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private boolean wasOnGround;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
-            if (packet.getType() != PacketTypes.Play.Client.FLYING
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+            if (packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
                     && packet.getType() != PacketTypes.Play.Client.GROUND) {
-                return Validation.PASS;
+                return ValidationServiceContext.PASS;
             }
 
             if (getSetting().isEnabled()) {
                 boolean wasOnGround = this.wasOnGround;
-                this.wasOnGround = packet.onGround();
-
-                if (packet.onGround() != wasOnGround) {
-                    return Validation.validate().terminate().flag().build();
+                if ((this.wasOnGround = packet.onGround()) != wasOnGround) {
+                    return ValidationServiceContext.Builder.validate().terminate().flag().build();
                 }
             }
 
-            return Validation.validate().terminate().build();
+            return ValidationServiceContext.Builder.validate().terminate().build();
         }
 
         @Override
@@ -181,7 +178,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionA.class);
         }
     }
 
@@ -192,46 +189,55 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
-            Location packetLoc = packet.getLocation();
-            Location lastKnownPacketLoc = container.getLocation(0);
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+            Location location = packet.getLocation();
+            Location lastKnownLocation = context.getLocation(0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(
                     player, 15,
-                    l -> LocationUtils.calculate3DDistance(l, packetLoc))) {
-                return Validation.PASS.copy().skip(3).build();
+                    l -> LocationUtils.calculate3DDistance(l, location))) {
+                return ValidationServiceContext.PASS.copy().skip(3).build();
             }
 
-            double distance2d = LocationUtils.calculate2DDistance(packetLoc, lastKnownPacketLoc);
-            container.putDouble(distance2d);
+            double distance2d = LocationUtils.calculate2DDistance(location, lastKnownLocation);
+            context.putDouble(distance2d);
 
-            double distanceY = LocationUtils.calculateYDistance(packetLoc, lastKnownPacketLoc);
-            container.putDouble(distanceY);
+            double distanceY = LocationUtils.calculateYDistance(location, lastKnownLocation);
+            context.putDouble(distanceY);
 
             if (getSetting().isEnabled()) {
-                final double maxDistance = getSetting().max;
-                // 2d distance check
-                if (distance2d >= maxDistance && distance2d != 0) {
-                    return Validation.validate().cancel().flag().withViolationKey(XZKey)
-                            .onViolation((check, onViolation) -> {
-                                if (onViolation != null) onViolation.run();
+                ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
 
-                                container.getDevelopmentData(this).addPoint("2D Distance", distance2d);
-                            })
-                            .build();
+                if (distance2d >= getSetting().max && distance2d != 0) {
+                    builder.add(
+                            ValidationServiceContext.Builder.validate().cancel().flag().withViolationKey(XZKey)
+                                    .onViolation(ViolationKey.of(this), (key, onViolation) -> {
+                                        if (onViolation != null) onViolation.run();
+
+                                        context.getDevelopmentData(key).addPoint("2D Distance", distance2d);
+                                    })
+                                    .build()
+                    );
                 }
-                // y distance check
-                if (distanceY >= maxDistance && distanceY != 0) {
-                    return Validation.validate().cancel().flag().withViolationKey(YKey)
-                            .onViolation((check, onViolation) -> {
-                                if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Y Distance", distanceY);
-                            })
-                            .build();
+                if (distanceY >= getSetting().max && distanceY != 0) {
+                    builder.add(
+                            ValidationServiceContext.Builder.validate().cancel().flag().withViolationKey(YKey)
+                                    .onViolation(ViolationKey.of(this), (key, onViolation) -> {
+                                        if (onViolation != null) onViolation.run();
+
+                                        context.getDevelopmentData(key).addPoint("Y Distance", distanceY);
+                                    })
+                                    .build()
+                    );
+                }
+
+                if (!builder.getContainer().subContainers.isEmpty()) {
+                    return builder.build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -251,7 +257,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionB.class);
         }
     }
 
@@ -261,31 +267,32 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private Location lastFlaggedLocation;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
                 if (player.player.getVelocity().getY() < -1.5) {
-                    return Validation.PASS;
+                    return ValidationServiceContext.PASS;
                 }
 
-                Location priorLocation = container.getLocation(0);
+                Location priorLocation = context.getLocation(0);
                 // return if it's the first location being sent
                 if (priorLocation == null) {
-                    return Validation.PASS;
+                    return ValidationServiceContext.PASS;
                 }
 
                 // ignores packets close to the recent flag
                 if (lastFlaggedLocation != null
                         && LocationUtils.calculate3DDistance(lastFlaggedLocation, packet.getLocation()) < 1) {
-                    return Validation.PASS;
+                    return ValidationServiceContext.PASS;
                 }
                 lastFlaggedLocation = packet.getLocation();
 
                 double priorDistance = LocationUtils.calculate3DDistance(priorLocation, packet.getLocation());
-                return Validation.validate().flag(Math.min(10, priorDistance)).build();
+                return ValidationServiceContext.Builder.validate().flag(Math.min(10, priorDistance)).build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -305,7 +312,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionC.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionC.class);
         }
     }
 
@@ -316,7 +323,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private WrappedChunkCoordIntPair lastChunk;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map and loading excessively chunks
             WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
@@ -333,10 +340,14 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
             // if the setting is disabled, we will just return SUCCESS
             // or if the player is in the same chunk as the last position or the same chunk as the previous chunk
             // the skip is for letting the next check in the check pipeline (Position.E), either flag or not flag
-            if (!getSetting().isEnabled() || equalsChunk || equalsPreviousChunk) {
-                return Validation.PASS.copy().skip(skip).build();
+            if (!getSetting().isEnabled()
+                    || equalsChunk
+                    || equalsPreviousChunk
+                    || lastChunkCameFrom == null) {
+                return ValidationServiceContext.PASS.copy().skip(skip).build();
             }
-            return Validation.validate().flag().skip(skip).build();
+
+            return ValidationServiceContext.Builder.validate().flag().skip(skip).build();
         }
 
         @Override
@@ -356,7 +367,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionD.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionD.class);
         }
     }
 
@@ -365,11 +376,12 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return Validation.validate().cancel().flag().build();
+                return ValidationServiceContext.Builder.validate().flag().build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -389,7 +401,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionE.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionE.class);
         }
     }
 
@@ -410,9 +422,14 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
             private final Direction opp1;
             private final Direction opp2;
+            private final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(ordinal(), name().toLowerCase());
 
             public Direction getOther(Direction dir) {
                 return (dir == opp1) ? opp2 : opp1;
+            }
+
+            public ViolationService.HoneyKey getKey() {
+                return key;
             }
 
             Axis(Direction opp1, Direction opp2) {
@@ -446,44 +463,40 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private Direction[] lastDirectionFlow;
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
-                Location priorLocation = container.getLocation(0);
+                Location priorLocation = context.getLocation(0);
                 if (priorLocation == null) {
-                    return Validation.PASS;
+                    return ValidationServiceContext.PASS;
                 }
 
                 Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation());
                 Direction[] priorVelocity = lastDirectionFlow;
-
                 lastDirectionFlow = velocity;
+
+                ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
                 if (priorVelocity != null
                         && priorVelocity.length == velocity.length) {
                     int i = 0;
-                    Validation builder = Validation.validate();
                     for (Direction dir : velocity) {
                         Direction corr = priorVelocity[i++];
-                        if (corr == Direction.STILL
-                                || dir == Direction.STILL) {
+                        if (corr == Direction.STILL || dir == Direction.STILL) {
                             continue;
                         }
 
                         Axis axis = axisLookup.get(dir);
                         if (corr == axis.getOther(dir)) {
-                            builder.add(Validation.validate().flag().withViolationKey(
-                                    ViolationService.HoneyKey.of(axis.ordinal(), axis.name().toLowerCase())).build());
+                            builder.add(ValidationServiceContext.Builder.validate().flag().withViolationKey(axis.getKey()).build());
                         }
                     }
+                }
 
-                    ResponseContainer response = builder.build();
-                    if (response.subContainers.isEmpty()) {
-                        return response;
-                    }
+                if (!builder.getContainer().subContainers.isEmpty()) {
+                    return builder.build();
                 }
             }
 
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -503,7 +516,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionF.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionF.class);
         }
     }
 
@@ -512,8 +525,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
-            return Validation.PASS;
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -533,11 +546,11 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionG.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionG.class);
         }
     }
 
-    public static class MovementH<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class MovementH<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP>{
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
@@ -547,59 +560,52 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private double lastDeltaY;
 
         @Override
-        public synchronized ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
-            ResponseContainer response = Validation.PASS.copy().skip(1).build();
+        public synchronized ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                double delta2D = container.getDouble(0);
-                double deltaY = container.getDouble(1);
-
+                double delta2D = context.getDouble(0);
+                double deltaY = context.getDouble(1);
                 if (delta2D == 0 && deltaY == 0) {
-                    return response;
+                    return ValidationServiceContext.PASS.copy().skip(1).build();
                 }
 
-                boolean hasPattern = false;
-                Validation builder = Validation.validate();
-
-                if (delta2D > 0.05) {
-                    if (lastDelta2D == delta2D) {
-                        builder.add(
-                                Validation.validate().flag()
-                                        .withViolationKey(twoDKey)
-                                        .build()
-                        );
-                        hasPattern = true;
-                    }
-                    lastDelta2D = delta2D;
-                }
+                ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
 
                 if (deltaY > 0.5) {
                     Material material = player.player.getEyeLocation().getBlock().getType();
-                    if (material.name().contains("WATER") || material.name().contains("LAVA") || deltaY % 0.375 < 0.01) {
-                        lastDeltaY = deltaY;
-                        if (hasPattern) {
-                            return builder.build();
-                        } else {
-                            return response;
-                        }
+                    if (material.name().contains("WATER")
+                            || material.name().contains("LAVA")
+                            || deltaY % 0.375 < 0.01) {
+                        return ValidationServiceContext.PASS.copy().skip(1).build();
                     }
 
                     if (lastDeltaY == deltaY) {
                         builder.add(
-                                Validation.validate().flag()
+                                ValidationServiceContext.Builder.validate().flag()
                                         .withViolationKey(YKey)
                                         .build()
                         );
-                        hasPattern = true;
                     }
                     lastDeltaY = deltaY;
                 }
 
-                if (hasPattern) {
+                if (delta2D > 0.05) {
+                    if (lastDelta2D == delta2D) {
+                        builder.add(
+                                ValidationServiceContext.Builder.validate().flag()
+                                        .withViolationKey(twoDKey)
+                                        .build()
+                        );
+                    }
+                    lastDelta2D = delta2D;
+                }
+
+
+                if (!builder.getContainer().subContainers.isEmpty()) {
                     return builder.build();
                 }
             }
 
-            return response;
+            return ValidationServiceContext.PASS.copy().skip(1).build();
         }
 
         @Override
@@ -619,7 +625,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionH.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionH.class);
         }
     }
 
@@ -628,12 +634,12 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
-                return Validation.validate().flag().build();
+                return ValidationServiceContext.Builder.validate().flag().build();
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -653,7 +659,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionI.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionI.class);
         }
     }
 
@@ -662,23 +668,25 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WP packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 final double x = packet.getX();
                 final double y = packet.getY();
                 final double z = packet.getZ();
 
-                if (x > 3.0E7 || x < -3.0E7) {
-                    return Validation.validate().cancel().flag().build();
+                if (x > 3.0E7
+                        || x < -3.0E7
+                        || z > 3.0E7
+                        || z < -3.0E7) {
+                    return ValidationServiceContext.Builder.validate().cancel().flag().build();
                 }
-                if (z > 3.0E7 || z < -3.0E7) {
-                    return Validation.validate().cancel().flag().build();
-                }
-                if (y < getSetting().min || y > getSetting().max) {
-                    if (player.player.isDead())
-                        return Validation.validate().cancel().build();
 
-                    return Validation.validate().cancel().flag().onPunish(() -> {
+                if (y < getSetting().min || y > getSetting().max) {
+                    if (player.player.isDead()) {
+                        return ValidationServiceContext.Builder.validate().cancel().build();
+                    }
+
+                    return ValidationServiceContext.Builder.validate().cancel().flag().onPunish(() -> {
                         double yPosFix = y;
                         if (y < getSetting().min) {
                             while (player.getWorld().getBlockAt((int) x, (int) yPosFix++, (int) z).getType() != Material.AIR || yPosFix < 0) {
@@ -695,7 +703,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                     }).build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -715,7 +724,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
         @Override
         public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Position.PositionJ.class);
+            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionJ.class);
         }
     }
 }

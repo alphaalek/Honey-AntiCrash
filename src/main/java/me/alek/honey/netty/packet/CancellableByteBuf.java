@@ -1,18 +1,19 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 
 public class CancellableByteBuf implements Cancellable {
 
-    private final ByteBuf byteBuf;
+    private final ByteBuf buf;
     private final HoneyPlayer player;
     private boolean cancelled;
 
     public CancellableByteBuf(HoneyPlayer player, ByteBuf byteBuf) {
         this.player = player;
-        this.byteBuf = byteBuf;
+        this.buf = byteBuf;
     }
 
     @Override
@@ -22,15 +23,16 @@ public class CancellableByteBuf implements Cancellable {
         }
         cancelled = true;
 
-        HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
-
-        if (byteBuf.refCnt() > 0) {
-            byteBuf.release();
+        buf.clear();
+        if (buf.refCnt() > 1) {
+            buf.release(buf.refCnt() - 1);
         }
+
+        HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
     }
 
     public ByteBuf buf() {
-        return byteBuf;
+        return buf;
     }
 
     @Override

@@ -33,6 +33,11 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
         }
     }
 
+    @Override
+    public boolean has(HoneyPlayer key) {
+        return trackerMap.containsKey(key.uuid);
+    }
+
     public TempQueuedTracker getPropertyTracker(HoneyPlayer player) {
         return player.timedQueuedTracker;
     }

@@ -4,7 +4,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.util.protocol.ClientInfo;
+import me.alek.honey.util.ClientInfo;
 
 public class WrappedHandshakeInSetProtocol extends WrappedPacket<WrappedHandshakeInSetProtocol> {
 

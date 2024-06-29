@@ -208,7 +208,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean isEmpty() {
-        return data.length == 0;
+        return compact().data.length == 0;
     }
 
     public synchronized boolean set(int index, T val) {
@@ -227,6 +227,17 @@ public class Array<T> implements Iterable<T> {
         resolveDown();
 
         return removed;
+    }
+
+    public synchronized boolean remove(T val) {
+        for (int i = 0; i < size(); i++) {
+            if (Objects.equals(get(i), val)) {
+                remove(i);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean contains(T val) {

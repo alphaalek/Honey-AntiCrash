@@ -2,8 +2,7 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -26,7 +25,7 @@ public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
 
     @Override
     public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.CHAT);
+        return Collections.singletonList(PacketTypes.Play.Client.CHAT_MESSAGE);
     }
 
     public static class ChatA implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
@@ -34,20 +33,21 @@ public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 String message = packet.getMessage();
                 if (message.isEmpty()) {
-                    return Validation.validate().cancel().flag().terminate().build();
+                    return ValidationServiceContext.Builder.validate().cancel().flag().terminate().build();
                 }
+
                 for (char character : message.toCharArray()) {
                     if (character == Character.MIN_VALUE) {
-                        return Validation.validate().cancel().flag().terminate().build();
+                        return ValidationServiceContext.Builder.validate().cancel().flag().terminate().build();
                     }
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -73,25 +73,25 @@ public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
 
     public static class ChatB implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
+        private static final int MAX = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11) ? 100 : 256;
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
-                int messageLength = packet.getMessage().length();
-
-                if (messageLength > (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11) ? 100 : 256)) {
-                    return Validation.validate().cancel().flag()
-                            .onViolation((check, onViolation) -> {
+                int length = packet.getMessage().length();
+                if (length > MAX) {
+                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Message length", messageLength);
+                                context.getDevelopmentData(key).addPoint("Message length", length);
                             })
                             .build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

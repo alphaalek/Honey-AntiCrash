@@ -2,8 +2,7 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -16,7 +15,6 @@ import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlockDig> {
 
@@ -27,7 +25,7 @@ public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlo
 
     @Override
     public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.BLOCK_DIG);
+        return Collections.singletonList(PacketTypes.Play.Client.PLAYER_DIGGING);
     }
 
     public static class BlockInteractE implements PacketValidation<WrappedPlayInBlockDig>, ViolationValidation<WrappedPlayInBlockDig> {
@@ -35,15 +33,17 @@ public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInBlockDig packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockDig packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
-                if (blockPosition == null || blockPosition.getY() == -1) return Validation.PASS;
+                if (blockPosition == null || blockPosition.getY() == -1) {
+                    return ValidationServiceContext.PASS;
+                }
 
-                return BlockPlaceValidations.checkExceedingMaxDistance(player, blockPosition, getSetting().max, container.getDevelopmentData(this));
+                return BlockPlaceValidations.checkExceedingMaxDistance(player, ViolationKey.of(this), blockPosition, getSetting().max, context);
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

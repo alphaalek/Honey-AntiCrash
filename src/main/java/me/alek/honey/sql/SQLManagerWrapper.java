@@ -3,7 +3,7 @@ package me.alek.honey.sql;
 import com.google.common.base.Strings;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.sql.exceptions.SQLFactoryException;
 import me.alek.honey.sql.exceptions.SQLPlayerNotFoundException;
@@ -153,7 +153,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         return componentBridge.getViolationsBefore(playerName, unixTime);
     }
 
-    public void postViolation(HoneyPlayer player, String violationName, String context, ValidationContextContainer.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
+    public void postViolation(HoneyPlayer player, String violationName, String context, ValidationPipelineContext.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
         componentBridge.postViolation(player, violationName, context, developmentData);
     }
 

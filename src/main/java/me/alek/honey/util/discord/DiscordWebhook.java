@@ -2,7 +2,7 @@ package me.alek.honey.util.discord;
 
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 
@@ -28,7 +28,7 @@ public class DiscordWebhook {
         SUBMIT_SERVICE.submit(() -> send0(message));
     }
 
-    public static void violation(HoneyPlayer player, HoneyValidation<?> check, String context, ValidationContextContainer.DevelopmentData dev) {
+    public static void violation(HoneyPlayer player, HoneyValidation<?> check, String context, ValidationPipelineContext.DevelopmentData dev) {
         EmbedObject object = new EmbedObject()
                 .setColor(Color.ORANGE)
                 .setImage("http://cravatar.eu/head/" + player.name + ".png")

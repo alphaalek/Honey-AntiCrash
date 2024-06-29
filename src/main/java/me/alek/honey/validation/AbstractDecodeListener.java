@@ -10,6 +10,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.validation.types.HoneyValidation;
 
 import java.util.stream.Collectors;
 
@@ -23,23 +24,22 @@ public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> exten
             return;
         }
 
-        ValidationContextContainer validationContext = new ValidationContextContainer();
-        CallbackAction<ResponseContainer> callback = new CallbackAction<>();
+        ValidationPipelineContext validationContext = new ValidationPipelineContext();
+        CallbackAction callback = new CallbackAction();
         int bytes = byteBuf.buf().readableBytes();
-        callback.addAction(response -> {
-            response.builder().onViolation((check, onViolation) -> {
 
-                ValidationContextContainer.DevelopmentData defaultDevelopmentData = validationContext.getDefaultDevelopmentData();
-                if (defaultDevelopmentData.getDataSet().isEmpty()) {
-                    defaultDevelopmentData.addEmpty();
-                    defaultDevelopmentData.addValue(" Packet", type + " (id: " + type.getMinecraftID().get() + ")");
-                    defaultDevelopmentData.addValue(" Buffer", bytes + " bytes");
-                    AbstractPacketListener.applyCommonDevelopmentData(defaultDevelopmentData);
-                }
+        callback.addAction(CallbackAction.Action.<ViolationKey, ValidationServiceContext>as((keyOuter, context) -> {
+            context.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
+                ValidationPipelineContext.DevelopmentData developmentData = validationContext.getDevelopmentData(keyInner);
+
+                developmentData.addEmpty();
+                developmentData.addValue(" Packet", type + " (id: " + type.getMinecraftID().get() + ")");
+                developmentData.addValue(" Buffer", bytes + " bytes");
+                AbstractPacketListener.applyCommonDevelopmentData(developmentData);
 
                 if (onViolation != null) onViolation.run();
             });
-        });
+        }));
 
         getPipeline(player).doStream(
                 player,

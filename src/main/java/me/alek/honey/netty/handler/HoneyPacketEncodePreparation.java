@@ -113,7 +113,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             ctx.write(msg);
         }
 
-        CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
+        CallbackAction postAction = packetContainer.getPost();
         if (postAction != null) {
             postAction.call(packetContainer);
         }
@@ -131,7 +131,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
                 return;
             }
 
-            write0(ctx, value, null, false);
+            write0(ctx, value, new DefaultChannelPromise(channel), false);
         } catch (Exception e) {
             e.printStackTrace();
         }

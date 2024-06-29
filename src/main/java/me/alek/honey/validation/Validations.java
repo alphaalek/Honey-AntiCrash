@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 public enum Validations {
 
+
     v1(FloodValidations::new),
     v2(MovementValidations::new),
     v3(HeldItemValidations::new),
@@ -24,6 +25,7 @@ public enum Validations {
     v14(RotationValidations::new),
     v15(BlockDigValidations::new),
     v16(TabValidations::new),
+
     v17(CommandValidations::new),
     ;
 

@@ -1,7 +1,7 @@
 package me.alek.honey.util;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.compat.SparkTPSProvider;
+import me.alek.honey.compat.spark.SparkTPSProvider;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.statics.NumberUtils;
 
@@ -9,7 +9,7 @@ public class TPSProvider {
 
     public static String getTPS(Timespan timespan) {
         double value = -1;
-        if (SparkTPSProvider.SparkValidator.VALIDATOR.has()) {
+        if (SparkTPSProvider.SparkValidator.VALIDATOR.find().get()) {
             value = SparkTPSProvider.getTPS(timespan);
         }
 

@@ -7,6 +7,8 @@ public interface HandleTracker<I extends Number, T> extends HoneyTracker {
 
     void remove(T key);
 
+    boolean has(T key);
+
     void registerTime(T key, I value);
 
     int getTrackerSize();

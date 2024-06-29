@@ -2,8 +2,8 @@ package me.alek.honey.validation.types;
 
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.ValidationContextContainer;
-import me.alek.honey.validation.ResponseContainer;
+import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.ValidationServiceContext;
 
 public interface HoneyValidation<T> {
 
@@ -13,9 +13,13 @@ public interface HoneyValidation<T> {
 
     String getDescription();
 
-    ResponseContainer validate(HoneyPlayer player, T type, ValidationContextContainer container);
+    ValidationServiceContext validate(HoneyPlayer player, T type, ValidationPipelineContext container);
 
     default boolean isViolation() {
         return false;
+    }
+
+    default boolean isDefaultPipeline() {
+        return true;
     }
 }

@@ -1,46 +1,29 @@
 package me.alek.honey.validation;
 
-import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.statics.NumberUtils;
+import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Optional;
 
-public class ValidationContextContainer {
+public class ValidationPipelineContext {
 
-    private final Array<DevelopmentData> developmentDataMap = new Array<>();
-    private final DevelopmentData defaultDevelopmentData = new DevelopmentData();
+    private final Array<Array<DevelopmentData>> developmentDataMap = new Array<>();
 
-    public DevelopmentData getDevelopmentData(HoneyValidation<?> check) {
-        return developmentDataMap.get(check.getID(), DevelopmentData::new);
+    public DevelopmentData getDevelopmentData(ViolationKey key) {
+        return developmentDataMap
+                .get(Optional.ofNullable(key.getKey()).map(ViolationService.HoneyKey::getRegistry).orElse(0), Array::new)
+                .get(key.getValidation().getID(), DevelopmentData::new);
     }
 
-    public DevelopmentData getDefaultDevelopmentData() {
-        return defaultDevelopmentData;
-    }
-
-    public class DevelopmentData {
+    public static class DevelopmentData {
 
         private final List<String> developmentDataSet = new ArrayList<>();
         private final List<String> internalData = new ArrayList<>();
-
-        public DevelopmentData() {
-            if (defaultDevelopmentData != null && defaultDevelopmentData != this) {
-                developmentDataSet.addAll(defaultDevelopmentData.developmentDataSet);
-                internalData.addAll(defaultDevelopmentData.internalData);
-            }
-        }
-
-        public void forDelegated(Consumer<DevelopmentData> run) {
-            if (defaultDevelopmentData == this && !developmentDataMap.isEmpty()) {
-                for (DevelopmentData developmentDataDelegate : developmentDataMap) {
-                    if (developmentDataDelegate != null) run.accept(developmentDataDelegate);
-                }
-            }
-        }
 
         public int size() {
             return developmentDataSet.size();
@@ -48,14 +31,10 @@ public class ValidationContextContainer {
 
         public void addInternalData(String data) {
             internalData.add(data);
-
-            forDelegated(d -> d.addInternalData(data));
         }
 
         public void removeLastInternalData() {
             internalData.remove(internalData.size() - 1);
-
-            forDelegated(DevelopmentData::removeLastInternalData);
         }
 
         public List<String> getInternalData() {
@@ -64,14 +43,10 @@ public class ValidationContextContainer {
 
         public void addText(String line) {
             developmentDataSet.add(line);
-
-            forDelegated(d -> d.addText(line));
         }
 
         public void setText(int index, String line) {
             developmentDataSet.set(index, line);
-
-            forDelegated(d -> d.setText(index, line));
         }
 
         public void addEmpty() {

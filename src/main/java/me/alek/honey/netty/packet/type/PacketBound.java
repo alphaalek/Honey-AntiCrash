@@ -15,6 +15,10 @@ public enum PacketBound {
         return this == SERVER ? MinecraftHandlers.DECODER : MinecraftHandlers.ENCODER;
     }
 
+    public String getName() {
+        return this == SERVER ? "Serverbound" : "Clientbound";
+    }
+
     public Enum<?> getNMSType() {
         return nmsEnum;
     }

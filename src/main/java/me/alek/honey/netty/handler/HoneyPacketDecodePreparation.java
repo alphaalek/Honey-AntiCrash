@@ -16,7 +16,6 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -132,7 +131,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             if (earlyPacketContainer != null) {
                 earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
-                if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
+                if (earlyPacketContainer.getType() == PacketTypes.Play.Client.WINDOW_CONFIRMATION
                         || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
                                 && player.isBukkitReady()
                                 && player.player.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
@@ -187,7 +186,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         ctx.fireChannelRead(packetContainer.getRaw());
 
-        CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
+        CallbackAction postAction = packetContainer.getPost();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

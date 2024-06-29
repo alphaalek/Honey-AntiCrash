@@ -64,7 +64,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
         sending.run();
 
-        CallbackAction<PacketContainer<WP>> postAction = packetContainer.getPost();
+        CallbackAction postAction = packetContainer.getPost();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

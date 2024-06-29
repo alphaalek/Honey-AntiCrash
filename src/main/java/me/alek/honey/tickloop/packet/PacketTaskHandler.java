@@ -10,7 +10,6 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
-import org.bukkit.ChatColor;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -39,9 +38,9 @@ public class PacketTaskHandler {
                         }
                         packet.dump();
 
-                        if (packet.getType() != PacketTypes.Play.Client.FLYING
-                                && packet.getType() != PacketTypes.Play.Client.POSITION
-                                && packet.getType() != PacketTypes.Play.Client.POSITION_LOOK
+                        if (packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
+                                && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
+                                && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_AND_ROT
                                 && packet.getType() != PacketTypes.Play.Client.GROUND
                                 && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
                                 && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {

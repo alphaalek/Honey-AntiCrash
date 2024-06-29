@@ -2,14 +2,15 @@ package me.alek.honey.validation.item;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.ValidationContextContainer;
+import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.ViolationKey;
 import me.alek.honey.validation.item.enums.AcceptStrategy;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.util.CallbackAction;
+import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -74,22 +75,23 @@ public class ItemAnalysis {
         }
     }
 
-    public static ResponseContainer flagIf(HoneyPlayer player, ItemStack item, ValidationContextContainer.DevelopmentData developmentData) {
-        CallbackAction<ValidationContextContainer.DevelopmentData> callback = new CallbackAction<>();
+    public static ValidationServiceContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
+        CallbackAction callback = new CallbackAction();
         if (ItemAnalysis.checkItem(player, item, callback)) {
-            return Validation.validate().cancel().flag().onViolation((check, onViolation) -> {
+            return ValidationServiceContext.Builder.validate().cancel().flag().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
-                callback.call(developmentData);
+                callback.call(context.getDevelopmentData(keyInner));
             }).build();
         }
 
-        return Validation.PASS;
+        return ValidationServiceContext.PASS;
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction<ValidationContextContainer.DevelopmentData> context) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, CallbackAction context) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
-                || item == null || item.getType() == Material.AIR) {
+                || item == null
+                || item.getType() == Material.AIR) {
             return false;
         }
 
@@ -97,7 +99,7 @@ public class ItemAnalysis {
         return checkItem(player, item, nbt, context);
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction<ValidationContextContainer.DevelopmentData> callback) {
+    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, CallbackAction callback) {
         for (final String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer)
                     || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
@@ -111,7 +113,7 @@ public class ItemAnalysis {
         }
 
         if (callback != null) {
-            callback.addAction(context -> context.addPoint("Type", flaggedCheck.toString()));
+            callback.addAction(CallbackAction.Action.<ValidationPipelineContext.DevelopmentData>as(context -> context.addPoint("Type", flaggedCheck.toString())));
         }
 
         if (ConfigurationOptions.PacketLogger.DEBUG) {

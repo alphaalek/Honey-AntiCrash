@@ -5,11 +5,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
+import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.validation.BaseValidation;
 import me.alek.honey.validation.Validations;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
-import me.alek.honey.compat.SparkTPSProvider;
+import me.alek.honey.compat.spark.SparkTPSProvider;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.lang.Lang;
@@ -247,7 +248,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         // setup tps tracker
-        if (!SparkTPSProvider.SparkValidator.VALIDATOR.has()) {
+        if (!SparkTPSProvider.SparkValidator.VALIDATOR.find().get()) {
             TPSTracker = new CraftScheduledTPSTracker();
         }
 
@@ -291,8 +292,9 @@ public class HoneyPlugin implements HoneyAPI {
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
 
-
         ErrorPrintFilter.inject();
+
+        ViaProtocol.values();
     }
 
     private void setupPacketLibrary() {

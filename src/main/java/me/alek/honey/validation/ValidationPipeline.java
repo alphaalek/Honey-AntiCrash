@@ -7,11 +7,14 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.CallbackAction;
+import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ValidationPipeline<C extends HoneyValidation<?>> {
@@ -29,13 +32,13 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         validations.add(validation);
     }
 
-    private ResponseContainer getResponseAndRegisterTimings(C validation, Function<C, ResponseContainer> getResponse, ConfigurationOptions.VlSetting setting) {
+    private ValidationServiceContext getResponseAndRegisterTimings(C validation, Function<C, ValidationServiceContext> getResponse, ConfigurationOptions.VlSetting setting) {
         long registryKey = -1;
         if (setting != null && setting.isEnabled()) {
             registryKey = HoneyPlugin.get().getValidationHandleTracker().registerTimeStart(validation.getName());
         }
 
-        ResponseContainer response = getResponse.apply(validation);
+        ValidationServiceContext response = getResponse.apply(validation);
 
         if (setting != null && setting.isEnabled() && registryKey != -1) {
             HoneyPlugin.get().getValidationHandleTracker().registerTimeStop(validation.getName(), registryKey);
@@ -44,18 +47,23 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         return response;
     }
 
-    public void doStream(HoneyPlayer player, BiFunction<C, ValidationContextContainer, ResponseContainer> getResponse, Cancellable cancellable) {
-        ValidationContextContainer container = new ValidationContextContainer();
+    private void clearPosts(ValidationServiceContext context) {
+        context.onViolation = null;
+        context.onPunish = null;
+    }
+
+    public void doStream(HoneyPlayer player, BiFunction<C, ValidationPipelineContext, ValidationServiceContext> getResponse, Cancellable cancellable) {
+        ValidationPipelineContext container = new ValidationPipelineContext();
         doStream(
                 player,
                 (validation, key) -> Settings.getSetting(validation),
-                (c) -> getResponse.apply(c, container), cancellable, container, new CallbackAction<>());
+                (c) -> getResponse.apply(c, container), cancellable, container, new CallbackAction());
     }
 
     public void doStream(HoneyPlayer player,
                          BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
-                         Function<C, ResponseContainer> getResponse,
-                         Cancellable cancellable, ValidationContextContainer container, CallbackAction<ResponseContainer> callback) {
+                         Function<C, ValidationServiceContext> getResponse,
+                         Cancellable cancellable, ValidationPipelineContext pipelineContext, CallbackAction callback) {
         int skipping = 0;
         for (C validation : validations) {
             if (skipping-- > 0) {
@@ -64,66 +72,60 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
             // ---------------------
             // pre requisites
-            ViolationService.HoneyKey key = ViolationService.HoneyKey.of(validation);
-            ConfigurationOptions.VlSetting setting = getSetting.apply(validation, key);
-            // ---------------------
+            ViolationService.HoneyKey distributionKey = ViolationService.HoneyKey.of(validation);
+            // TODO: different limit key?
+            ConfigurationOptions.VlSetting setting = getSetting.apply(validation, distributionKey);
 
             // start to check this validation
-            ResponseContainer defaultResponse = getResponseAndRegisterTimings(validation, getResponse, setting);
-            List<ResponseContainer> responsesList = new LinkedList<>(defaultResponse.subContainers);
+            ValidationServiceContext defaultResponse = getResponseAndRegisterTimings(validation, getResponse, setting);
+            List<ValidationServiceContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
             // handle all the responses
             boolean terminated = false;
-            ValidationContextContainer.DevelopmentData developmentData = container.getDevelopmentData(validation);
-            for (ResponseContainer response : responsesList) {
-                if (response == null) {
-                    continue;
+            for (ValidationServiceContext context : responsesList) {
+                if (context.skipIndices != 0) {
+                    skipping = context.skipIndices;
                 }
-                if (response.skipIndices != 0) {
-                    skipping = response.skipIndices;
-                }
-                if (response.success) {
-                    if (response.terminate) {
+                if (context.success) {
+                    if (context.terminate) {
                         terminated = true;
                     }
+                    clearPosts(context);
                     continue;
                 }
-                if (response.cancelled) {
+                if (context.cancelled) {
+                    Bukkit.getLogger().info("Cancel " + validation);
                     cancellable.cancel();
                 }
-                if (response.flag != -1 && player.isBukkitReady()) {
-                    if (setting == null) {
-                        if (response.terminate) {
-                            terminated = true;
-                        }
-                        continue;
+                if (context.flag != -1 && player.isBukkitReady()) {
+                    ViolationKey violationKey = new ViolationKey(validation, context.violationKey);
+                    ValidationPipelineContext.DevelopmentData developmentData = pipelineContext.getDevelopmentData(violationKey);
+
+                    if (validation.isDefaultPipeline()) {
+                        callback.call(violationKey, context);
+                        context.builder().onViolation(violationKey, (key, onViolation) -> {
+                            if (onViolation != null) onViolation.run();
+
+                            developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
+                            developmentData.setLine(6, validation.getDescription());
+                        });
                     }
 
-                    callback.call(response);
-                    response.builder().onViolation((c, onViolation) -> {
-                        if (onViolation != null) onViolation.run();
-
-                        developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
-                        developmentData.setLine(5, validation.getDescription());
-                    });
-
+                    Consumer<ViolationKey> onViolation = context.onViolation;
                     HoneyPlugin.get().getViolationService().flag(
-                            player, cancellable, key, response.violationKey, response.flag,
-                            response.onPunish, () -> response.onViolation.accept(validation), response.onFlag, validation, setting, developmentData);
-
-                    if (player.punished) {
-                        cancellable.cancel();
-                        return;
-                    }
+                            player, cancellable, distributionKey, context.violationKey, context.flag, context.onPunish,
+                            Optional.ofNullable(onViolation).map(o -> (Runnable) () -> o.accept(violationKey)).orElse(null),
+                            validation, setting, developmentData);
                 }
+                clearPosts(context);
 
-                if (response.punish) {
-                    HoneyPlugin.get().getViolationService().punish(null, player, validation, key);
+                if (player.punished) {
+                    cancellable.cancel();
                     return;
                 }
 
-                if (response.terminate) {
+                if (context.terminate) {
                     terminated = true;
                 }
             }

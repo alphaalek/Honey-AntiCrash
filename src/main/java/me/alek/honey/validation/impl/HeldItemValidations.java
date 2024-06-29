@@ -3,8 +3,7 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -16,7 +15,6 @@ import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHeldItemSlot> {
 
@@ -27,7 +25,7 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
 
     @Override
     public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.HELD_ITEM_SLOT);
+        return Collections.singletonList(PacketTypes.Play.Client.HELD_ITEM_CHANGE);
     }
 
     public static class HeldItemA implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {
@@ -35,21 +33,21 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
-                    return Validation.validate().cancel().flag().terminate()
-                            .onViolation((check, onViolation) -> {
+                    return ValidationServiceContext.Builder.validate().cancel().flag().terminate()
+                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Slot", slot);
+                                context.getDevelopmentData(key).addPoint("Slot", slot);
                             })
                             .build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -78,11 +76,12 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), container.getDevelopmentData(this));
+                return ItemAnalysis.flagIf(player, player.player.getInventory().getItem(packet.getSlot()), ViolationKey.of(this), context);
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

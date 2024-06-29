@@ -9,17 +9,17 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.CallbackAction;
 
-import java.util.function.Consumer;
-
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer, Cancellable {
 
     PacketStateTimings getEventloopStateTimings();
 
-    void objectInitialized(Object packet, CallbackAction<PacketContainer<WP>> postAction, PacketType type);
+    void objectInitialized(Object packet, CallbackAction postAction, PacketType type);
+
+    int getByteSize();
 
     long getTime();
 
-    void addServerCallbackAction(Consumer<PacketContainer<WP>> action);
+    void addServerCallbackAction(CallbackAction.Action action);
 
     void invokeServerCallback();
 
@@ -33,7 +33,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     WP getPacket();
 
-    CallbackAction<PacketContainer<WP>> getPost();
+    CallbackAction getPost();
 
     HoneyPlayer getPlayer();
 

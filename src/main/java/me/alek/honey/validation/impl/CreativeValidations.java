@@ -3,8 +3,7 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -17,7 +16,6 @@ import org.bukkit.GameMode;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> {
 
@@ -28,7 +26,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
 
     @Override
     public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.SET_CREATIVE_SLOT);
+        return Collections.singletonList(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION);
     }
 
     public static class CreativeA implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
@@ -36,14 +34,14 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
                 if (player.player.getGameMode() != GameMode.CREATIVE) {
-                    return Validation.validate().cancel().flag().build();
+                    return ValidationServiceContext.Builder.validate().cancel().flag().build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -72,20 +70,21 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot > (player.player.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
-                    return Validation.validate().cancel().flag()
-                            .onViolation((check, onViolation) -> {
+                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Slot", slot);
+                                context.getDevelopmentData(key).addPoint("Slot", slot);
                             })
                             .build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -114,12 +113,12 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
-                return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
+                return ItemAnalysis.flagIf(player, packet.getItem(), ViolationKey.of(this), context);
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

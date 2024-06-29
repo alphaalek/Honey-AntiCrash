@@ -22,16 +22,16 @@ public class HoneyPacketDecoder {
         try {
             if (EmulatorCodec.LEGACY) {
                 packet = protocol.decodeLegacy(byteBuf, state, (packetType, applier) -> {
-                    if (packetType.equals(PacketTypes.Play.Client.BLOCK_PLACE)
+                    if (packetType.equals(PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT)
                             && ConfigurationOptions.Decoder.DISABLE_NBT
                             && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                         applier.apply(DisabledNBTCodec.BLOCK_PLACE);
                     }
-                    else if (packetType.equals(PacketTypes.Play.Client.WINDOW_CLICK)
+                    else if (packetType.equals(PacketTypes.Play.Client.CLICK_WINDOW)
                             && ConfigurationOptions.Decoder.DISABLE_NBT) {
                         applier.apply(DisabledNBTCodec.WINDOW_CLICK);
                     }
-                    else if (packetType.equals(PacketTypes.Play.Client.SET_CREATIVE_SLOT)
+                    else if (packetType.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
                             && player.isBukkitReady() && !player.player.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything

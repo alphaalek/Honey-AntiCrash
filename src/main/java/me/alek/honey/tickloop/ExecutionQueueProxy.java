@@ -277,9 +277,9 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
         }
 
         private boolean isPacketDroppable(PacketContainer<? extends WrappedPacket<?>> packet) {
-            return packet.getType() == PacketTypes.Play.Client.FLYING
-                    || packet.getType() == PacketTypes.Play.Client.POSITION
-                    || packet.getType() == PacketTypes.Play.Client.POSITION_LOOK
+            return packet.getType() == PacketTypes.Play.Client.PLAYER_MOVEMENT
+                    || packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION
+                    || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_AND_ROT
                     || packet.getType() == PacketTypes.Play.Client.GROUND
                     || packet.getType() == PacketTypes.Play.Client.BOAT_MOVE
                     || packet.getType() == PacketTypes.Play.Client.VEHICLE_MOVE;
@@ -317,7 +317,7 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
             }
 
             Array<Object> pipelineData = new Array<>();
-            CallbackAction<Boolean> postponed = new CallbackAction<>();
+            CallbackAction postponed = new CallbackAction();
             for (PostponeCheck check : task.getPlayer().postponedChecks) {
                 try {
                     if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {

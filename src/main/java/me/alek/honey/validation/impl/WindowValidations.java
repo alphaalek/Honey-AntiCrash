@@ -6,8 +6,7 @@ import me.alek.honey.netty.processor.impl.InventoryProcessor;
 import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -38,7 +37,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
 
     @Override
     public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.WINDOW_CLICK);
+        return Collections.singletonList(PacketTypes.Play.Client.CLICK_WINDOW);
     }
 
     public static class WindowA implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
@@ -46,7 +45,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getWindowSlot();
 
@@ -61,16 +60,17 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
                     inventorySlots += 4; // armor slots
                 }
                 if (player.player.getOpenInventory() == null || slot > (inventorySlots - 1) || (slot < -1 && slot != -999)) {
-                    return Validation.validate().cancel().flag()
-                            .onViolation((check, onViolation) -> {
+                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                container.getDevelopmentData(this).addPoint("Slot", slot);
+                                context.getDevelopmentData(key).addPoint("Slot", slot);
                             })
                             .build();
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -99,11 +99,12 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, packet.getItem(), container.getDevelopmentData(this));
+                return ItemAnalysis.flagIf(player, packet.getItem(), ViolationKey.of(this), context);
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -132,14 +133,15 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (player.player.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getMode() == 1) {
-                    return Validation.validate().cancel().flag().build();
+                    return ValidationServiceContext.FLAG;
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -168,15 +170,18 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ResponseContainer validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationContextContainer container) {
+        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-
-                if (packet.getMode() < 0 || packet.getActionNumber() < 0 || packet.getWindowButton() < 0 || packet.getWindowId() < 0) {
+                if (packet.getMode() < 0
+                        || packet.getActionNumber() < 0
+                        || packet.getWindowButton() < 0
+                        || packet.getWindowId() < 0) {
                     HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
-                    return Validation.validate().flag().build();
+                    return ValidationServiceContext.FLAG;
                 }
             }
-            return Validation.PASS;
+
+            return ValidationServiceContext.PASS;
         }
 
         @Override

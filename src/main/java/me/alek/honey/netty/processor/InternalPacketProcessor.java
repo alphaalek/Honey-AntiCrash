@@ -16,7 +16,6 @@ import me.alek.honey.util.CallbackAction;
 import org.bukkit.Bukkit;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -24,7 +23,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private final Array<EventBus<? extends WrappedPacket<?>>> eventBusses = new Array<>();
     private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
-    private final Array<CallbackAction<PacketContainer<? extends WrappedPacket<?>>>> postActions = new Array<>();
+    private final Array<CallbackAction> postActions = new Array<>();
 
     private static class EventBus<WP extends WrappedPacket<WP>> {
 
@@ -177,8 +176,8 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private void addListener(Consumer<EventBus<? extends WrappedPacket<?>>> addToEventBus, List<PacketType> types) {
         for (PacketType packetType : types) {
-            if (packetType instanceof RangedPacketTypeEnum
-                    && !NetProtocol.matchProtocol((RangedPacketTypeEnum) packetType)) {
+            if (packetType instanceof RangedPacketType
+                    && !NetProtocol.matchProtocol((RangedPacketType) packetType)) {
                 continue;
             }
 
@@ -255,7 +254,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
                                                                                          Object packet, HoneyPlayer player, Channel channel,
-                                                                                         CallbackAction<PacketContainer<WP>> postAction, PacketType type) {
+                                                                                         CallbackAction postAction, PacketType type) {
         if (packetContainer != null) {
             packetContainer.objectInitialized(packet, postAction, type);
             return packetContainer;
@@ -269,7 +268,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(bound))
                 .orElse(null);
 
-        CallbackAction<PacketContainer<WP>> postAction = getPostAction(type);
+        CallbackAction postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, type);
 
@@ -298,19 +297,18 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    public <WP extends WrappedPacket<WP>> CallbackAction<PacketContainer<WP>> getPostAction(PacketType type) {
-        return PacketTypes.isUnknown(type)
-                ? null : (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(type.getHoneyID());
+    public CallbackAction getPostAction(PacketType type) {
+        return PacketTypes.isUnknown(type) ? null : postActions.get(type.getHoneyID());
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public synchronized  <WP extends WrappedPacket<WP>> void addPostAction(PacketType packetType, Consumer<PacketContainer<WP>> callback) {
+    public synchronized void addPostAction(PacketType packetType, CallbackAction.Action callback) {
         if (PacketTypes.isUnknown(packetType)) {
             return;
         }
 
-        CallbackAction<PacketContainer<WP>> action = (CallbackAction<PacketContainer<WP>>) (CallbackAction<?>) postActions.get(packetType.getHoneyID(), CallbackAction::new);
+        CallbackAction action = postActions.get(packetType.getHoneyID(), CallbackAction::new);
         action.addAction(callback);
     }
 }

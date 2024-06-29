@@ -1,12 +1,7 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.AbstractPacketListener;
-import me.alek.honey.validation.ValidationContextContainer;
-import me.alek.honey.validation.ValidationPipeline;
-import me.alek.honey.validation.Settings;
-import me.alek.honey.validation.ResponseContainer;
-import me.alek.honey.validation.Validation;
+import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
@@ -104,36 +99,36 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     @Override
-    public ResponseContainer validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationContextContainer container) {
+    public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {
         String message = packet.getMessage();
         if (!message.startsWith("/")) {
-            return Validation.PASS;
+            return ValidationServiceContext.PASS;
         }
 
-        BiConsumer<HoneyValidation<?>, Runnable> onViolationConsumer = (check, onViolation) -> {
+        BiConsumer<ViolationKey, Runnable> onViolationConsumer = (key, onViolation) -> {
             if (onViolation != null) onViolation.run();
 
             String messageFormatted = "\"" + (message.length() > 25 ? message.substring(0, 25) + "[...]" : message) + "\"";
-            container.getDevelopmentData(this).addPoint("Command", messageFormatted);
+            context.getDevelopmentData(key).addPoint("Command", messageFormatted);
         };
 
         for (String prohibitedCommand : prohibitedCommandsLiteral) {
             if (match(prohibitedCommand, message)) {
-                return Validation.validate().cancel().flag()
-                        .onViolation(onViolationConsumer)
+                return ValidationServiceContext.Builder.validate().cancel().flag()
+                        .onViolation(ViolationKey.of(this), onViolationConsumer)
                         .build();
             }
         }
 
         for (String prohibitedCommand : prohibitedCommandsRegex) {
             if (matchRegex(prohibitedCommand, message)) {
-                return Validation.validate().cancel().flag()
-                        .onViolation(onViolationConsumer)
+                return ValidationServiceContext.Builder.validate().cancel().flag()
+                        .onViolation(ViolationKey.of(this), onViolationConsumer)
                         .build();
             }
         }
 
-        return Validation.PASS;
+        return ValidationServiceContext.PASS;
     }
 
     @Override
@@ -144,7 +139,7 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     @Override
     public List<PacketType> getPacketTypes() {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
-            return Collections.singletonList(PacketTypes.Play.Client.CHAT);
+            return Collections.singletonList(PacketTypes.Play.Client.CHAT_MESSAGE);
         } else {
             return Collections.singletonList(PacketTypes.Play.Client.CHAT_COMMAND);
         }

@@ -678,6 +678,11 @@ set-creative-slot:
   c:
     enabled: true
 
+# |--- sign ---|
+sign:
+  a:
+    enabled: true
+
 # |--- chat ---|
 chat:
   a:

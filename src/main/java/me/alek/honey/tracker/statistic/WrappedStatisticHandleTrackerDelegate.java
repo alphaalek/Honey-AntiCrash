@@ -90,6 +90,11 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     }
 
     @Override
+    public boolean has(T key) {
+        return statisticProviders.containsKey(key);
+    }
+
+    @Override
     public void registerTime(T key, Double value) {
         handleTracker.registerTime(key, value);
     }
