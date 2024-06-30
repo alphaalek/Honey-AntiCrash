@@ -66,7 +66,7 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemA.class);
         }
     }
@@ -100,7 +100,7 @@ public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHel
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemB.class);
         }
     }

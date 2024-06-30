@@ -62,7 +62,7 @@ public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlo
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractE.class);
         }
     }

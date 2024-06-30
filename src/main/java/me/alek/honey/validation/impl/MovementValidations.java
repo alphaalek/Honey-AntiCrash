@@ -177,8 +177,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionA.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementA.class);
         }
     }
 
@@ -256,8 +256,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionB.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementB.class);
         }
     }
 
@@ -311,8 +311,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionC.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementC.class);
         }
     }
 
@@ -339,7 +339,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
             // if the setting is disabled, we will just return SUCCESS
             // or if the player is in the same chunk as the last position or the same chunk as the previous chunk
-            // the skip is for letting the next check in the check pipeline (Position.E), either flag or not flag
+            // the skip is for letting the next check in the check pipeline (Movement.E), either flag or not flag
             if (!getSetting().isEnabled()
                     || equalsChunk
                     || equalsPreviousChunk
@@ -366,8 +366,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionD.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementD.class);
         }
     }
 
@@ -400,8 +400,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionE.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementE.class);
         }
     }
 
@@ -519,8 +519,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionF.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementF.class);
         }
     }
 
@@ -549,8 +549,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionG.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementG.class);
         }
     }
 
@@ -628,8 +628,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionH.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementH.class);
         }
     }
 
@@ -662,8 +662,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionI.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementI.class);
         }
     }
 
@@ -727,8 +727,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Movement.PositionJ.class);
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return Settings.getSetting(this, ConfigurationOptions.Movement.MovementJ.class);
         }
     }
 }

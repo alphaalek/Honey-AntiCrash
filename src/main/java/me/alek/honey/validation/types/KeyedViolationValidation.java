@@ -5,7 +5,7 @@ import me.alek.honey.services.ViolationService;
 
 public interface KeyedViolationValidation<T> extends ViolationValidation<T> {
 
-    default ConfigurationOptions.VlSetting getSetting() {
+    default ConfigurationOptions.ViolationSetting getSetting() {
         throw new UnsupportedOperationException();
     }
 
@@ -15,5 +15,5 @@ public interface KeyedViolationValidation<T> extends ViolationValidation<T> {
 
     ViolationService.HoneyKey getKey(T val);
 
-    ConfigurationOptions.VlSetting getSetting(T val);
+    ConfigurationOptions.ViolationSetting getSetting(T val);
 }

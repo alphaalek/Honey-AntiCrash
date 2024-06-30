@@ -16,6 +16,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -231,10 +232,13 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             ByteBuf wrapped = byteBuf.readBytes(byteBuf.readableBytes()).retain();
             byteBuf.release();
 
+            PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
             asyncDecoder.decode((s) -> {
+                InboundPacketFilter.MARK.set(packet);
                 if (player.isOnlineWeak() && !player.punished) {
                     invokeRead(packetContainer, ctx, wrapped, nonRecycledList);
                 }
+                InboundPacketFilter.MARK.remove();
             });
         }
     }

@@ -66,7 +66,7 @@ public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Chat.ChatA.class);
         }
     }
@@ -110,7 +110,7 @@ public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Chat.ChatB.class);
         }
     }

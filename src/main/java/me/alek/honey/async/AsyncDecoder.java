@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 
 public class AsyncDecoder implements TaskSupplier<Object> {
 
-    private HoneyPlayer player;
+    private final HoneyPlayer player;
     private final WorkerPool<Object> workerPool;
     private ChainedCallable<Object> currentTask;
     public Worker<Object> worker;
@@ -28,14 +28,6 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     public AsyncDecoder(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
         this.workerPool = workerPool;
-    }
-
-    public AsyncDecoder(WorkerPool<Object> workerPool) {
-        this(null, workerPool);
-    }
-
-    public void setPlayer(HoneyPlayer player) {
-        this.player = player;
     }
 
     public HoneyPlayer getPlayer() {

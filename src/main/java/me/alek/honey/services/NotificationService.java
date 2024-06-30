@@ -124,7 +124,7 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(HoneyPlayer player, String type, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
+            public void notify(HoneyPlayer player, String type, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
                 MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
@@ -254,7 +254,7 @@ public class NotificationService {
         developmentData.addInternalData("Ping=" + HoneyPlugin.get().getNotificationService().getPing(player));
     }
 
-    public String formatNotification(ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
+    public String formatNotification(ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
         if (setting == null) {
             return "";
         }
@@ -393,7 +393,7 @@ public class NotificationService {
         }
     }
 
-    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
             if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineDirect() || player.punished) {
@@ -418,7 +418,7 @@ public class NotificationService {
 
         void notify(String notification);
 
-        void notify(HoneyPlayer player, String notification, ConfigurationOptions.VlSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
 
         void warn(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey);
     }

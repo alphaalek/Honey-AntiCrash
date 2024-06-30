@@ -84,11 +84,11 @@ public class CommandManager implements CommandExecutor {
 
             int disabledNettyChecks = 0;
             for (Class<?> clazz : ConfigurationOptions.Netty.class.getDeclaredClasses()) {
-                if (ConfigurationOptions.VlSetting.class.isAssignableFrom(clazz) && clazz.isAnnotationPresent(ConfigurationOptions.Setting.class)) {
+                if (ConfigurationOptions.ViolationSetting.class.isAssignableFrom(clazz) && clazz.isAnnotationPresent(ConfigurationOptions.Setting.class)) {
 
                     @SuppressWarnings("unchecked")
-                    Class<? extends ConfigurationOptions.VlSetting> vlSettingClass = (Class<? extends ConfigurationOptions.VlSetting>) clazz;
-                    ConfigurationOptions.VlSetting setting = ConfigurationOptions.getVlSetting(vlSettingClass);
+                    Class<? extends ConfigurationOptions.ViolationSetting> vlSettingClass = (Class<? extends ConfigurationOptions.ViolationSetting>) clazz;
+                    ConfigurationOptions.ViolationSetting setting = ConfigurationOptions.getVlSetting(vlSettingClass);
                     if (setting != null && !setting.isEnabled()) {
                         disabledNettyChecks++;
                     }

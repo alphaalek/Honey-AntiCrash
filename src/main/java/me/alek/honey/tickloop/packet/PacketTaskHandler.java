@@ -10,15 +10,16 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
+import me.alek.honey.util.statics.NumberUtils;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class PacketTaskHandler {
 
-    public static final double TO_MILLIS_MULTIPLIER = PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER;
     private static final Object handleTaskLock = new Object();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
@@ -30,13 +31,12 @@ public class PacketTaskHandler {
             while (HoneyPlugin.get().isRunning()) {
                 synchronized (handleTaskLock) {
                     if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                            && (System.nanoTime() - handledTask.getStarted()) * TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                            && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
                         if (packet == null || packet.isDumped()) {
                             continue;
                         }
-                        packet.dump();
 
                         if (packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
                                 && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
@@ -44,7 +44,7 @@ public class PacketTaskHandler {
                                 && packet.getType() != PacketTypes.Play.Client.GROUND
                                 && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
                                 && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
-                            dumpThread(packet);
+                            dump(packet);
                         }
                     }
                 }
@@ -108,15 +108,17 @@ public class PacketTaskHandler {
         return builder.toString();
     }
 
-    public static void dumpThread(PacketContainer<? extends WrappedPacket<?>> packet) {
+    public static void dump(PacketContainer<? extends WrappedPacket<?>> packet) {
         String dump = getThreadDump();
         LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
         if (!dump.contains("PacketTaskHandler")) {
+            packet.dump();
+
             String name = packet.getPlayerName();
 
             if (!PacketTypes.isUnknown(packet.getType())) {
-                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getHoneyID() + ", State: " + packet.getProtocolState());
+                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getMinecraftID().get() + ", State: " + packet.getProtocolState());
                 loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
             } else {
@@ -131,11 +133,7 @@ public class PacketTaskHandler {
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        if (handledTask == null) {
-            return null;
-        }
-
-        return handledTask.getPacket();
+        return Optional.ofNullable(handledTask).map(WrappedPacketTaskFuture::getPacket).orElse(null);
     }
 
     public static void registerTask(WrappedPacketTaskFuture task){
@@ -160,7 +158,7 @@ public class PacketTaskHandler {
         if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
                 && packet.isDumped()) {
             HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cDone handling packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + millis + "ms)");
+                    + " §cDone handling packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
         }
 
         // we have to make sure it's not an unmapped packet

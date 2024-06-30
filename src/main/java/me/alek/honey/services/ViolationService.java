@@ -32,7 +32,7 @@ public class ViolationService {
         }
     }
 
-    public ViolationDistributor getDistributor(HoneyPlayer player, HoneyKey violationKey, ConfigurationOptions.VlSetting setting) {
+    public ViolationDistributor getDistributor(HoneyPlayer player, HoneyKey violationKey, ConfigurationOptions.ViolationSetting setting) {
         return player.violationContext.getDistributor(violationKey, setting);
     }
 
@@ -44,7 +44,7 @@ public class ViolationService {
                         Runnable onPunish,
                         Runnable onViolation,
                         HoneyValidation<?> validation,
-                        ConfigurationOptions.VlSetting setting,
+                        ConfigurationOptions.ViolationSetting setting,
                         ValidationPipelineContext.DevelopmentData developmentData
     ) {
         return getDistributor(player, distributionKey, setting)
@@ -57,7 +57,7 @@ public class ViolationService {
                         HoneyKey violationKey,
                         double amount,
                         HoneyValidation<?> validation,
-                        ConfigurationOptions.VlSetting setting,
+                        ConfigurationOptions.ViolationSetting setting,
                         ValidationPipelineContext.DevelopmentData developmentData
     ) {
         return flag(player, cancellable, distributionKey, violationKey, amount, null, null, validation, setting, developmentData);
@@ -93,7 +93,7 @@ public class ViolationService {
             this.player = player;
         }
 
-        public ViolationDistributor getDistributor(HoneyKey key, ConfigurationOptions.VlSetting setting) {
+        public ViolationDistributor getDistributor(HoneyKey key, ConfigurationOptions.ViolationSetting setting) {
             return distributors.get(key.getRegistry(), () -> {
                 if (setting.keyedAnnotation != null) {
                     return new ViolationDistributor(player,
@@ -109,7 +109,7 @@ public class ViolationService {
             });
         }
 
-        public void setSetting(HoneyKey key, HoneyKey violationKey, ConfigurationOptions.VlSetting setting) {
+        public void setSetting(HoneyKey key, HoneyKey violationKey, ConfigurationOptions.ViolationSetting setting) {
             if (distributors.has(key.getRegistry())) {
                 distributors.get(key.getRegistry()).setSetting(violationKey, setting);
             }
@@ -128,7 +128,7 @@ public class ViolationService {
         }
     }
 
-    private static AbstractPacketLimitHandler generatePacketLimitHandler(PacketLimitHandlerType type, HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+    private static AbstractPacketLimitHandler generatePacketLimitHandler(PacketLimitHandlerType type, HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
         switch (type) {
             case SIMPLE:
                 return new PacketSimpleHandler(player, setting);
@@ -214,10 +214,10 @@ public class ViolationService {
 
     public static class KeyedViolationLookupGenerator {
 
-        private final ConfigurationOptions.VlSetting setting;
+        private final ConfigurationOptions.ViolationSetting setting;
         private final HoneyKey limitsKey;
 
-        public KeyedViolationLookupGenerator(HoneyKey limitsKey, ConfigurationOptions.VlSetting setting) {
+        public KeyedViolationLookupGenerator(HoneyKey limitsKey, ConfigurationOptions.ViolationSetting setting) {
             this.setting = setting;
             this.limitsKey = limitsKey;
         }
@@ -305,7 +305,7 @@ public class ViolationService {
             return getPacketLimitHandler(key, false);
         }
 
-        public AbstractPacketLimitHandler createHandler(HoneyKey key, ConfigurationOptions.VlSetting setting) {
+        public AbstractPacketLimitHandler createHandler(HoneyKey key, ConfigurationOptions.ViolationSetting setting) {
             if (packetLimitHandlerDelegateLookup.has(key.getRegistry())) {
                 return null;
             }
@@ -315,7 +315,7 @@ public class ViolationService {
             return handler;
         }
 
-        public void setSetting(HoneyKey key, ConfigurationOptions.VlSetting setting) {
+        public void setSetting(HoneyKey key, ConfigurationOptions.ViolationSetting setting) {
             AbstractPacketLimitHandler handler = getHandler(key);
             if (handler == null) {
                 return;
@@ -339,12 +339,12 @@ public class ViolationService {
     public static abstract class AbstractPacketLimitHandler {
 
         private final HoneyPlayer player;
-        private ConfigurationOptions.VlSetting setting;
+        private ConfigurationOptions.ViolationSetting setting;
 
         private long lastViolationClear;
         private int violations;
 
-        public AbstractPacketLimitHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public AbstractPacketLimitHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             this.player = player;
             this.setting = setting;
 
@@ -355,7 +355,7 @@ public class ViolationService {
             return player;
         }
 
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return setting;
         }
 
@@ -434,7 +434,7 @@ public class ViolationService {
 
     public static class PacketChipstateThrottleHandler extends AbstractPacketLimitHandler {
 
-        public PacketChipstateThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketChipstateThrottleHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -460,7 +460,7 @@ public class ViolationService {
         private boolean flagged;
         private double lastFlag;
 
-        public PacketTriggerThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketTriggerThrottleHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -498,7 +498,7 @@ public class ViolationService {
     public static class PacketSimpleHandler extends AbstractPacketLimitHandler {
 
 
-        public PacketSimpleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketSimpleHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -518,7 +518,7 @@ public class ViolationService {
 
         private double amount;
 
-        public PacketSingleOverflowHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketSingleOverflowHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -549,7 +549,7 @@ public class ViolationService {
         protected double bufferIndex;
 
 
-        public PacketBufferHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketBufferHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -592,7 +592,7 @@ public class ViolationService {
     public static class PacketBufferThrottleHandler extends PacketBufferHandler {
 
 
-        public PacketBufferThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketBufferThrottleHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -628,7 +628,7 @@ public class ViolationService {
     public static class PacketBufferOverflowHandler extends PacketBufferHandler {
 
 
-        public PacketBufferOverflowHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketBufferOverflowHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -651,7 +651,7 @@ public class ViolationService {
         private double flagged;
         public double flaggedCopy;
 
-        public PacketIntervalHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketIntervalHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 
@@ -699,7 +699,7 @@ public class ViolationService {
         private boolean currentlyCancelling;
         private long intervalStart = System.currentTimeMillis();
 
-        public PacketIntervalThrottleHandler(HoneyPlayer player, ConfigurationOptions.VlSetting setting) {
+        public PacketIntervalThrottleHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
         }
 

@@ -7,7 +7,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 
 public interface ViolationValidation<T> extends HoneyValidation<T> {
 
-    ConfigurationOptions.VlSetting getSetting();
+    ConfigurationOptions.ViolationSetting getSetting();
 
     default boolean isViolation() {
         return true;

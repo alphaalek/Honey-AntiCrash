@@ -1,10 +1,12 @@
 package me.alek.honey.validation.print;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.tickloop.packet.PacketTaskHandler;
 import me.alek.honey.validation.impl.NettyValidations;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -35,11 +37,14 @@ public class PrintValidationBridge {
             return Filter.Result.NEUTRAL;
         }
 
-        if (!Thread.currentThread().getName().startsWith("Netty")) {
-            return org.apache.logging.log4j.core.Filter.Result.NEUTRAL;
+        PacketContainer<? extends WrappedPacket<?>> packet = null;
+        if (Thread.currentThread().getName().startsWith("Netty")
+                || Thread.currentThread().getName().startsWith("honey-packet-decoder")) {
+            packet = InboundPacketFilter.MARK.get();
+        } else if (Thread.currentThread().getName().equals("Server Thread")) {
+            packet = PacketTaskHandler.getCurrentHandledPacket();
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
         if (packet == null) {
             return org.apache.logging.log4j.core.Filter.Result.NEUTRAL;
         }
@@ -47,9 +52,10 @@ public class PrintValidationBridge {
         handling.set(true);
 
         Cancellable.Stated stated = new Cancellable.Stated();
+        HoneyPlayer player = packet.getPlayer();
         NettyValidations.PRINT_FILTER_PIPELINE.doStream(
-                packet.getPlayer(),
-                (validation, container) -> validation.validate(packet.getPlayer(), length.get(), container),
+                player,
+                (validation, context) -> validation.validate(player, length.get(), context),
                 stated);
 
         handling.remove();

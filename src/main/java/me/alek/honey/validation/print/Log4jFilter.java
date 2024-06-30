@@ -11,14 +11,14 @@ import org.apache.logging.log4j.message.Message;
 public class Log4jFilter extends AbstractLifeCycle implements Filter {
 
     public static int getLength(String msg) {
-        return msg.getBytes().length;
+        return msg.length();
     }
 
     public static int getLength(Throwable throwable) {
         int length = 0;
 
         for (StackTraceElement trace : throwable.getStackTrace()) {
-            length += trace.toString().getBytes().length;
+            length += trace.toString().length();
         }
 
         return length;
@@ -26,7 +26,7 @@ public class Log4jFilter extends AbstractLifeCycle implements Filter {
 
     @Override
     public Result getOnMismatch() {
-        return Result.NEUTRAL;
+        return Result.DENY;
     }
 
     @Override

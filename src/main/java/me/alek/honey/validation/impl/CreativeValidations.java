@@ -60,7 +60,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeA.class);
         }
     }
@@ -103,7 +103,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeB.class);
         }
     }
@@ -137,7 +137,7 @@ public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSet
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Creative.CreativeC.class);
         }
     }

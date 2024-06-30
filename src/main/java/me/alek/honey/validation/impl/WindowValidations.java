@@ -2,8 +2,6 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.processor.impl.InventoryProcessor;
-import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -16,7 +14,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.event.inventory.InventoryType;
 
 import java.util.Collections;
 import java.util.List;
@@ -92,7 +89,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowA.class);
         }
     }
@@ -126,7 +123,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowB.class);
         }
     }
@@ -163,7 +160,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowC.class);
         }
     }
@@ -203,7 +200,7 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.WindowClick.WindowD.class);
         }
     }

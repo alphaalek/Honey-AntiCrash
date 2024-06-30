@@ -73,7 +73,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyD.class);
         }
     }
@@ -107,7 +107,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyE.class);
         }
     }
@@ -141,7 +141,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyF.class);
         }
     }
@@ -175,7 +175,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyG.class);
         }
     }
@@ -205,7 +205,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyK.class);
         }
     }
@@ -279,7 +279,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyL.class);
         }
 
@@ -315,7 +315,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
             return ValidationServiceContext.PASS;
         }
 
-        public abstract ConfigurationOptions.VlSetting getSetting();
+        public abstract ConfigurationOptions.ViolationSetting getSetting();
     }
 
     public static class NettyM extends AbstractFloodDecodeCheck {
@@ -338,7 +338,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyM.class);
         }
     }
@@ -363,7 +363,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyN.class);
         }
     }
@@ -378,9 +378,9 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
             private long recentKey;
             private ByteBuf lastByteBuf;
             private boolean begin = true;
-            private final Supplier<ConfigurationOptions.VlSetting> setting;
+            private final Supplier<ConfigurationOptions.ViolationSetting> setting;
 
-            public LocalCategorizedHandler(Supplier<ConfigurationOptions.VlSetting> setting) {
+            public LocalCategorizedHandler(Supplier<ConfigurationOptions.ViolationSetting> setting) {
                 this.setting = setting;
             }
 
@@ -425,7 +425,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyO.class);
         }
 

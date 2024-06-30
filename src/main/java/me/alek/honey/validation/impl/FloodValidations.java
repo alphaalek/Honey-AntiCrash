@@ -98,7 +98,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodA.class);
         }
 
@@ -123,7 +123,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodB.class);
         }
 
@@ -191,7 +191,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodC.class);
         }
     }
@@ -230,7 +230,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting(WP packet) {
+        public ConfigurationOptions.ViolationSetting getSetting(WP packet) {
             return ConfigurationOptions.getFloodSettings().get(packet.getType());
         }
     }
@@ -255,7 +255,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.PacketFlood.FloodE.class);
         }
     }

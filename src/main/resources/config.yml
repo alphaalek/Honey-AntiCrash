@@ -409,9 +409,9 @@ commands:
 netty:
   a:
     enabled: true
-    threshold: 25000
+    threshold: 45000
     decay: 250
-    decay-amount: 2000
+    decay-amount: 2500
     vls-amount: 1
 
   b:
@@ -421,7 +421,7 @@ netty:
   c:
     enabled: true
     vls-amount: 1
-    threshold: 5000
+    threshold: 10000
 
   d:
     enabled: true

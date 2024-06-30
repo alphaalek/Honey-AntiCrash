@@ -75,7 +75,7 @@ public class SignValidations extends AbstractPacketListener<WrappedPlayInUpdateS
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Sign.SignA.class);
         }
     }

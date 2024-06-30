@@ -7,7 +7,6 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -32,7 +31,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         validations.add(validation);
     }
 
-    private ValidationServiceContext getResponseAndRegisterTimings(C validation, Function<C, ValidationServiceContext> getResponse, ConfigurationOptions.VlSetting setting) {
+    private ValidationServiceContext getResponseAndRegisterTimings(C validation, Function<C, ValidationServiceContext> getResponse, ConfigurationOptions.ViolationSetting setting) {
         long registryKey = -1;
         if (setting != null && setting.isEnabled()) {
             registryKey = HoneyPlugin.get().getValidationHandleTracker().registerTimeStart(validation.getName());
@@ -61,7 +60,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
     }
 
     public void doStream(HoneyPlayer player,
-                         BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.VlSetting> getSetting,
+                         BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.ViolationSetting> getSetting,
                          Function<C, ValidationServiceContext> getServiceContext,
                          Cancellable cancellable, ValidationPipelineContext validationContext, Callback callback) {
         if (player.punished) {
@@ -78,7 +77,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             // ---------------------
             // pre requisites
             ViolationService.HoneyKey distributionKey = ViolationService.HoneyKey.of(validation);
-            ConfigurationOptions.VlSetting setting = getSetting.apply(validation, distributionKey);
+            ConfigurationOptions.ViolationSetting setting = getSetting.apply(validation, distributionKey);
 
             // start to check this validation
             ValidationServiceContext defaultResponse = getResponseAndRegisterTimings(validation, getServiceContext, setting);

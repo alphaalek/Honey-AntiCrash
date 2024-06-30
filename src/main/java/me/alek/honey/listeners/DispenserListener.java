@@ -4,6 +4,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
 
 public class DispenserListener implements Listener {
@@ -15,6 +16,15 @@ public class DispenserListener implements Listener {
 
         if (dispenser.getY() >= world.getMaxHeight() - 1 || dispenser.getY() < 0) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onBreak(BlockBreakEvent event) {
+        try {
+            Thread.sleep( 600);
+        } catch (Exception ex) {
+
         }
     }
 }

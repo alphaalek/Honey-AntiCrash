@@ -41,8 +41,8 @@ public enum ValidationContainers {
 
     private final Supplier<BaseValidationContainer> validation;
 
-    ValidationContainers(Supplier<BaseValidationContainer> check) {
-        this.validation = check;
+    ValidationContainers(Supplier<BaseValidationContainer> validation) {
+        this.validation = validation;
     }
 
     public Supplier<BaseValidationContainer> getValidationContainer() {

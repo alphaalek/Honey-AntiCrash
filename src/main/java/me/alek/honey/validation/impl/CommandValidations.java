@@ -2,7 +2,6 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -161,7 +160,7 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     @Override
-    public ConfigurationOptions.VlSetting getSetting() {
+    public ConfigurationOptions.ViolationSetting getSetting() {
         return Settings.getSetting(this, ConfigurationOptions.Commands.class);
     }
 }

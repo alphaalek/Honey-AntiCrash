@@ -4,7 +4,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -120,7 +119,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractA.class);
         }
     }
@@ -154,7 +153,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractB.class);
         }
     }
@@ -197,7 +196,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractC.class);
         }
     }
@@ -263,7 +262,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractD.class);
         }
     }

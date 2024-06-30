@@ -1,10 +1,8 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationServiceContext;
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -23,9 +21,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPosition;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInPositionLook;
-import me.alek.honey.services.ViolationService;
-import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.NumberUtils;
@@ -75,7 +70,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyA.class);
         }
     }
@@ -198,7 +193,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyB.class);
         }
     }
@@ -223,7 +218,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyC.class);
         }
     }
@@ -232,7 +227,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        public static <WP extends WrappedPacket<WP>> ValidationServiceContext check0(WP packet, ViolationKey key, ConfigurationOptions.VlSetting setting, ValidationPipelineContext context) {
+        public static <WP extends WrappedPacket<WP>> ValidationServiceContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.DECODE);
             if (setting.isEnabled() && decodeTime > 0) {
                 return ValidationServiceContext.Builder.validate().flag(decodeTime)
@@ -268,7 +263,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyH.class);
         }
     }
@@ -298,7 +293,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyI.class);
         }
     }
@@ -328,7 +323,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyJ.class);
         }
     }

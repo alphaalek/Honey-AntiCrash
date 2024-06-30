@@ -79,7 +79,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadA.class);
         }
     }
@@ -113,7 +113,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadB.class);
         }
     }
@@ -169,7 +169,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadC.class);
         }
     }
@@ -211,7 +211,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadD.class);
         }
     }
@@ -255,7 +255,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadE.class);
         }
     }

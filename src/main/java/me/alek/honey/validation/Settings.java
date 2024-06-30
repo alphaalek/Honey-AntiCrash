@@ -11,13 +11,13 @@ import me.alek.honey.util.Array;
 
 public class Settings {
 
-    private static final Array<ConfigurationOptions.VlSetting> settingArray = new Array<>();
+    private static final Array<ConfigurationOptions.ViolationSetting> settingArray = new Array<>();
 
-    public static ConfigurationOptions.VlSetting getSetting(HoneyValidation<?> check, Class<? extends ConfigurationOptions.VlSetting> settingClass) {
+    public static ConfigurationOptions.ViolationSetting getSetting(HoneyValidation<?> check, Class<? extends ConfigurationOptions.ViolationSetting> settingClass) {
         return settingArray.get(check.getID(), () -> ConfigurationOptions.getVlSetting(settingClass));
     }
 
-    public static ConfigurationOptions.VlSetting getSetting(HoneyValidation<?> check) {
+    public static ConfigurationOptions.ViolationSetting getSetting(HoneyValidation<?> check) {
         if (!check.isViolation()) {
             return null;
         }
@@ -25,7 +25,7 @@ public class Settings {
         return ((ViolationValidation<?>) check).getSetting();
     }
 
-    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.VlSetting getSetting(HoneyPlayer player, HoneyValidation<?> check, ViolationService.HoneyKey key, WP packet) {
+    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> check, ViolationService.HoneyKey key, WP packet) {
         if (!check.isViolation()) {
             return null;
         }
@@ -34,7 +34,7 @@ public class Settings {
         if (packet != null && violationCheck.isKeyed()) {
             @SuppressWarnings("unchecked")
             KeyedViolationValidation<WP> keyedViolationCheck = (KeyedViolationValidation<WP>) violationCheck;
-            ConfigurationOptions.VlSetting setting = keyedViolationCheck.getSetting(packet);
+            ConfigurationOptions.ViolationSetting setting = keyedViolationCheck.getSetting(packet);
             ViolationService.HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
 
             ViolationService.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);

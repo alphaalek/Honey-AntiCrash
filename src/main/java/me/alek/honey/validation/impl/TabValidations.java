@@ -95,7 +95,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabA.class);
         }
     }
@@ -160,7 +160,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabB.class);
         }
     }
@@ -168,7 +168,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
     public static class TabC implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static ConfigurationOptions.VlSetting labelSetting;
+        private static ConfigurationOptions.ViolationSetting labelSetting;
         private static final ViolationService.HoneyKey labelKey = ViolationService.HoneyKey.of(0, "total");
         private static final ViolationService.HoneyKey totalKey = ViolationService.HoneyKey.of(1, "label");
 
@@ -214,7 +214,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
 
         @Override
-        public ConfigurationOptions.VlSetting getSetting() {
+        public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.TabComplete.TabC.class);
         }
     }
