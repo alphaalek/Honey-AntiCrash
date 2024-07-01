@@ -14,9 +14,9 @@ import java.util.List;
 
 public interface PacketProcessor {
 
-    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet, PacketContainer<WP> earlyInitializedPacket);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket);
 
-    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet);
 
     void addPostAction(PacketType packetType, Callback.Action callback);
 

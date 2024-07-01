@@ -29,6 +29,7 @@ import java.util.logging.Level;
 @ChannelHandler.Sharable
 public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
+    public static final int VIA_VERSION_PASSTHROUGH_ID = 1000;
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue();
 
@@ -43,6 +44,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
         setupMethodInvoke(channel.pipeline());
+
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(channel);
+        } catch (Exception ex) {
+            channel.close();
+        }
     }
 
     public HoneyPacketHandler getPacketHandler() {
@@ -119,8 +126,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            Bukkit.getLogger().info("Decoded " + packet);
-
             byteBuf.release();
 
             if (packet == null) {
@@ -140,7 +145,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packetHandler, packet, earlyPacketContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packet, earlyPacketContainer);
 
             Runnable packetExecutorTask;
             if (!finalPacketContainer.isCancelled()) {

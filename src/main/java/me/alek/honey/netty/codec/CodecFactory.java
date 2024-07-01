@@ -3,6 +3,7 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.handler.HoneyPacketDecodePreparation;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -151,6 +152,9 @@ public class CodecFactory {
                     if (id < 0) {
                         throw new CodecException(id, "Bad Packet ID");
                     }
+                    if (id == HoneyPacketDecodePreparation.VIA_VERSION_PASSTHROUGH_ID) {
+                        return null;
+                    }
 
                     try {
                         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
@@ -172,6 +176,9 @@ public class CodecFactory {
                 int id = dataSerializer.readVarInt();
                 if (id < 0) {
                     throw new CodecException(id, "Bad Packet ID");
+                }
+                if (id == HoneyPacketDecodePreparation.VIA_VERSION_PASSTHROUGH_ID) {
+                    return null;
                 }
 
                 Object packet;

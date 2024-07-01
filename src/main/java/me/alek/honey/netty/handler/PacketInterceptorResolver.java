@@ -3,12 +3,14 @@ package me.alek.honey.netty.handler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
 import me.alek.honey.netty.packet.PacketFactory;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
@@ -45,7 +47,9 @@ public class PacketInterceptorResolver {
 
     public static String getDecoderPosition(ChannelPipeline pipeline) {
         if (decoderPosition == null) {
+            toggleResolving(pipeline.channel(), PacketBound.SERVER, true);
             decoderPosition = setupInterceptors(pipeline, false);
+            toggleResolving(pipeline.channel(), PacketBound.SERVER, false);
         }
 
         return decoderPosition;
@@ -53,10 +57,20 @@ public class PacketInterceptorResolver {
 
     public static String getEncoderPosition(ChannelPipeline pipeline) {
         if (encoderPosition == null) {
+            toggleResolving(pipeline.channel(), PacketBound.CLIENT, true);
             encoderPosition = setupInterceptors(pipeline, true);
+            toggleResolving(pipeline.channel(), PacketBound.CLIENT, false);
         }
 
         return encoderPosition;
+    }
+
+    private static void toggleResolving(Channel channel, PacketBound bound, boolean state) {
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).resolve(bound, state);
+        } catch (Exception ex) {
+            channel.close();
+        }
     }
 
     public static String setupInterceptors(ChannelPipeline pipeline, boolean isEncoder) {

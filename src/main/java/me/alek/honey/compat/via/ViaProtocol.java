@@ -11,6 +11,7 @@ import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,11 +84,11 @@ public enum ViaProtocol {
     private final Array<PacketType>[] serverboundMappings = (Array<PacketType>[]) new Array[PacketState.values().length];
     private final Array<PacketType>[] clientboundMappings = (Array<PacketType>[]) new Array[PacketState.values().length];
 
-    private static String getPackageBetween(NetProtocol lower, NetProtocol upper, boolean subPackage) {
+    private static String getPackageBetween(NetProtocol lower, NetProtocol upper, boolean legacySubPackage) {
         if (LegacyHolder.LEGACY) {
-            return "protocol" + upper + "to" + lower + (subPackage ? ".packet" : "");
+            return "protocol" + upper + "to" + lower + (legacySubPackage ? ".packet" : "");
         } else {
-            return "v" + lower + "to" + upper + ".packets";
+            return "v" + lower + "to" + upper + ".packet";
         }
     }
 
@@ -120,7 +121,7 @@ public enum ViaProtocol {
     }
 
 
-    public ViaProtocol getPreviousProtocol() {
+    private ViaProtocol getPreviousProtocol() {
         if (ordinal() == 0) {
             return this;
         }
@@ -140,15 +141,14 @@ public enum ViaProtocol {
             return getPreviousProtocol().getMappings(bound, state);
         }
 
+        Enum<?>[] defaultConstants = DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()];
         Arrays.stream(constants).forEach(c -> {
-            Enum<?>[] defaultConstants = DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()];
-            for (Enum<?> defaultConstant : defaultConstants) {
-                if (c.toString().equals(defaultConstant.toString())) {
-                    PacketType type = state.getTypes()[bound.ordinal()].get(defaultConstant.ordinal());
+            Arrays.stream(defaultConstants).forEach(dc -> {
+                if (c.toString().equals(dc.toString())) {
+                    PacketType type = state.getTypes()[bound.ordinal()].get(dc.ordinal());
                     types.set(c.ordinal(), type);
-                    break;
                 }
-            }
+            });
         });
 
         if (types.isEmpty()) {

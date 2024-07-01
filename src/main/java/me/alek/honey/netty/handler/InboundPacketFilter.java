@@ -2,16 +2,22 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaProtocol;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -23,7 +29,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
-import java.util.List;
+import java.util.*;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
@@ -75,12 +81,17 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
-        if (!buf.isReadable()) {
+        if (!buf.isReadable() || packetHandler.isResolving(PacketBound.SERVER)) {
             ctx.fireChannelRead(buf);
             return;
         }
 
-        int id = Types.VAR_INT.read(new PacketDataSerializer(buf));
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(getPlayer().channel);
+
+        packetHandler.handleEventloopProcesses(PacketBound.SERVER);
+
+        PacketDataSerializer serializer = new PacketDataSerializer(buf);
+        int id = Types.VAR_INT.read(serializer);
         buf.resetReaderIndex();
 
         PacketState state = packetHandler.getProtocolState(PacketBound.SERVER);
@@ -99,17 +110,14 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (viaProtocol.hasState(PacketBound.SERVER, state)) {
                 type = viaProtocol.getServerboundMappings(state).get(id);
             }
-        }
-
-        if (type == null) {
+        } else {
             type = packetHandler.getPacketType(PacketBound.SERVER, id);
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel(), type, buf.readableBytes());
 
-        if (MARK.get() != null
-                && HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(ctx.channel()) != null
-                && MARK.get().getType() != null) {
+        if (Optional.ofNullable(MARK.get()).map(PacketContainer::getType).isPresent()
+                && HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(ctx.channel()) != null) {
 
             FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
                     player,
@@ -129,8 +137,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         } else {
             list.add(Unpooled.buffer());
         }
-
-        Bukkit.getLogger().info("Filter " + type);
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.IN_BETWEEN);
     }

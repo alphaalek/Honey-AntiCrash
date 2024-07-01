@@ -16,9 +16,16 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 public class HoneyPacketHandler {
+
+    @SuppressWarnings("unchecked")
+    public static final ThreadLocal<Queue<Runnable>>[] EVENTLOOP_PROCESSES = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
@@ -29,6 +36,9 @@ public class HoneyPacketHandler {
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
     private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
     private String playerName = "Unknown";
+
+    private boolean resolvingClientbound;
+    private boolean resolvingServerbound;
 
     public HoneyPacketHandler(Channel channel) {
         this.channel = channel;
@@ -44,6 +54,7 @@ public class HoneyPacketHandler {
     }
 
     public void setPlayerName(String playerName) {
+        player.name = playerName;
         this.playerName = playerName;
     }
 
@@ -52,15 +63,27 @@ public class HoneyPacketHandler {
     }
 
     public PacketState getProtocolState(PacketBound bound) {
-        return bound == PacketBound.CLIENT ? clientboundProtocolState : serverboundProtocolState;
+        return bound.equals(PacketBound.CLIENT) ? clientboundProtocolState : serverboundProtocolState;
     }
 
     public EmulatorCodec<Object, PacketDataSerializer> getProtocolCodec(PacketBound bound) {
-        return bound == PacketBound.CLIENT ? clientboundProtocol : serverboundProtocol;
+        return bound.equals(PacketBound.CLIENT) ? clientboundProtocol : serverboundProtocol;
     }
 
     public PacketType getPacketType(PacketBound bound, int id) {
         return getProtocolState(bound).getTypes()[bound.ordinal()].get(id);
+    }
+
+    public void resolve(PacketBound bound, boolean state) {
+        if (bound.equals(PacketBound.CLIENT)) {
+            resolvingClientbound = state;
+        } else if (bound.equals(PacketBound.SERVER)) {
+            resolvingServerbound = state;
+        }
+    }
+
+    public boolean isResolving(PacketBound bound) {
+        return bound.equals(PacketBound.CLIENT) ? resolvingClientbound : resolvingServerbound;
     }
 
     public void updateProtocol(PacketBound bound) {
@@ -137,5 +160,18 @@ public class HoneyPacketHandler {
     public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
         protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
         return !isCancelled(packetContainer);
+    }
+
+    public void handleEventloopProcesses(PacketBound bound) {
+        Queue<Runnable> process = EVENTLOOP_PROCESSES[bound.ordinal()].get();
+        if (process == null) {
+            EVENTLOOP_PROCESSES[bound.ordinal()].set(new LinkedList<>());
+        }
+        if (process != null && !process.isEmpty()) {
+            Runnable ac;
+            while ((ac = process.poll()) != null) {
+                ac.run();
+            }
+        }
     }
 }

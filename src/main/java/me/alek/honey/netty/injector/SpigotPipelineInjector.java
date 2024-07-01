@@ -1,20 +1,37 @@
 package me.alek.honey.netty.injector;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.injector.PacketFilterManager;
+import com.comphenix.protocol.injector.netty.Injector;
+import com.comphenix.protocol.injector.netty.channel.InjectionFactory;
+import com.comphenix.protocol.injector.netty.channel.NettyChannelInjector;
+import com.comphenix.protocol.injector.netty.manager.NetworkManagerInjector;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.async.WorkerPool;
+import me.alek.honey.compat.protocollib.ProtocolLib;
+import me.alek.honey.compat.via.ViaHandlers;
+import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 public class SpigotPipelineInjector {
 
@@ -47,23 +64,35 @@ public class SpigotPipelineInjector {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void injectChannelProxy(Channel channel) throws MissingHandlerException {
         Object networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(channel);
-        if (networkManager == null || !NMS.getNetworkManagerClass().isInstance(networkManager)) {
+        if (networkManager == null
+                || !NMS.getNetworkManagerClass().isInstance(networkManager)) {
             throw new MissingHandlerException();
         }
 
         IStructureModifier<Channel> channelStructureModifier = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
                 .withType(Channel.class)
                 .withTarget(networkManager);
-
         Channel registeredChannel = channelStructureModifier.readField(0);
-        if (registeredChannel instanceof ChannelProxy) {
+        if (registeredChannel instanceof ChannelProxy
+                || ReflectStructureCache.acquireStructure(registeredChannel.getClass())
+                        .withTarget(registeredChannel)
+                        .readFieldValues()
+                        .stream()
+                        .anyMatch(p -> p instanceof ChannelProxy)) {
             return;
         }
 
-        ChannelProxy channelProxy = new ChannelProxy(registeredChannel);
-        channelStructureModifier.writeField(0, channelProxy);
+        ChannelProxy channelProxy = new ChannelProxy(channel);
+        if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
+                && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
+            ReflectStructureCache.acquireStructure(ProtocolLib.CHANNEL_PROXY)
+                    .withType(Channel.class).withTarget(registeredChannel).writeField(0, channelProxy);
+        } else {
+            channelStructureModifier.writeField(0, channelProxy);
+        }
     }
 
     public void ensureCorrectPipelineOrder(Channel channel) {
@@ -93,12 +122,25 @@ public class SpigotPipelineInjector {
                 }
             }
 
-            if (channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null
-                    && handlers.indexOf(MinecraftHandlers.DECOMPRESS) > handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())) {
+            if (
+                // inject filter after decompress
+                channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null
+                    && handlers.indexOf(MinecraftHandlers.DECOMPRESS) > handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())
+                ||
+                // inject filter before ViaVersion
+                channel.pipeline().get(ViaHandlers.DECODER) != null
+                    && handlers.indexOf(ViaHandlers.DECODER) < handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())
+            ) {
                 InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
 
                 channel.pipeline().remove(filter);
-                channel.pipeline().addAfter(MinecraftHandlers.DECOMPRESS, HoneyPlugin.get().getPacketLibrary().getFilterName(), filter);
+                if (channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null) {
+                    channel.pipeline().addAfter(MinecraftHandlers.DECOMPRESS, HoneyPlugin.get().getPacketLibrary().getFilterName(), filter);
+                } else if (channel.pipeline().get(MinecraftHandlers.SPLITTER) != null) {
+                    channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, HoneyPlugin.get().getPacketLibrary().getFilterName(), filter);
+                } else {
+                    channel.close();
+                }
             }
         }
     }
@@ -108,6 +150,7 @@ public class SpigotPipelineInjector {
         String encoderName = HoneyPlugin.get().getPacketLibrary().getEncoderName();
 
         AsyncDecoder asyncDecoder = new AsyncDecoder(packetHandler.getPlayer(), WorkerPool.ASYNC_PACKET_DECODER_POOL);
+        // TODO: use same decoder instance for decoder and encoder handler
 
         if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel) == null
                 && PacketInterceptorResolver.hasDecoderHandler(channel.pipeline())

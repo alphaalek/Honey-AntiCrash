@@ -43,6 +43,10 @@ public class HoneyPacketDecoder {
                 packet = protocol.decodeModern(byteBuf, state);
             }
 
+            if (packet == null) {
+                return null;
+            }
+
             if (byteBuf.isReadable()) {
                 int end = byteBuf.readerIndex();
                 int remaining = byteBuf.readableBytes();
@@ -59,7 +63,6 @@ public class HoneyPacketDecoder {
                                 )
                 );
             }
-
         } catch (CodecException ex) {
             throw new DecoderException("Failed to create packet with ID " + ex.getPacketID() + ", " + state);
         }

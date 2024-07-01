@@ -13,6 +13,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCustomPayload> {
@@ -70,7 +71,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
     }
 
     public ItemStack getBookChannelItemStack() {
-        return bookChannelItemStack.get();
+        return Optional.ofNullable(bookChannelItemStack).map(LazyInit::get).orElse(null);
     }
 
     public ByteBuf getBuf() {

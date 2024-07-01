@@ -1,6 +1,5 @@
 package me.alek.honey.netty.codec.types;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 
 public class VarInt implements Type<Integer, PacketDataSerializer> {

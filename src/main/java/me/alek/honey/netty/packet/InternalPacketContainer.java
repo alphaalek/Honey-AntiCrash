@@ -19,6 +19,7 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;

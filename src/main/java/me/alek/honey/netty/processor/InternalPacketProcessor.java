@@ -34,7 +34,6 @@ public class InternalPacketProcessor implements PacketProcessor {
             callPipeline(listener -> {
                 try {
                     if (packetContainer.getType().getBound().equals(PacketBound.SERVER)) {
-                        Bukkit.getLogger().info("Listen " + listener);
                         listener.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     } else {
                         listener.onPacketSend(player, (PacketContainer<WP>) packetContainer);
@@ -264,12 +263,19 @@ public class InternalPacketProcessor implements PacketProcessor {
         return new InternalPacketContainer<>(packet, player, channel, postAction, type);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, HoneyPacketHandler handler, PacketBound bound, Channel channel,
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Channel channel,
                                                                             Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(bound))
-                .orElse(null);
-
-        Bukkit.getLogger().info("Confirmed " + type);
+        PacketType type = null;
+        if (bound.equals(PacketBound.SERVER)) {
+            type = earlyInitializedPacket.getType();
+        }
+        if (type == null) {
+            Optional<PacketType> optionalType = PacketTypes.getPacketType(packet.getClass(), player.packetHandler.getProtocolState(bound));
+            if (!optionalType.isPresent()) {
+                return null;
+            }
+            type = optionalType.get();
+        }
 
         Callback postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
@@ -291,13 +297,13 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        return handleCommon(player, handler, PacketBound.SERVER, channel, packet, earlyInitializedPacket);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
+        return handleCommon(player, PacketBound.SERVER, channel, packet, earlyInitializedPacket);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, HoneyPacketHandler handler, Object packet) {
-        return handleCommon(player, handler, PacketBound.CLIENT, channel, packet, null);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet) {
+        return handleCommon(player, PacketBound.CLIENT, channel, packet, null);
     }
 
     @SuppressWarnings("unchecked")

@@ -13,6 +13,7 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
@@ -40,9 +41,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             case SERVER:
                 PacketContainer<WP> packetContainer = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
                 InboundPacketFilter.MARK.remove();
-                return packetProcessor.read(channel, packetHandler.getPlayer(), packetHandler, msg, packetContainer);
+                return packetProcessor.read(channel, packetHandler.getPlayer(), msg, packetContainer);
             case CLIENT:
-                return packetProcessor.write(channel, packetHandler.getPlayer(), packetHandler, msg);
+                return packetProcessor.write(channel, packetHandler.getPlayer(), msg);
         }
 
         throw new IllegalStateException();
@@ -89,6 +90,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
+        if (packetContainer == null) {
+            return;
+        }
         sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
     }
 
@@ -97,6 +101,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             ctx.write(msg, promise);
             return;
         }
+        packetHandler.handleEventloopProcesses(PacketBound.CLIENT);
         checkRelocation();
 
         if (!packetHandler.isPacket(msg)) {
@@ -114,6 +119,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
+        if (packetContainer == null) {
+            return;
+        }
         sendThroughPipeline(msg, packetContainer, packetHandler::write, () -> ctx.write(msg, promise));
     }
 

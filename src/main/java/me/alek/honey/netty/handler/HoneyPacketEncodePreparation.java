@@ -11,8 +11,10 @@ import me.alek.honey.async.AsyncDecoder;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 import java.nio.channels.ClosedChannelException;
@@ -68,6 +70,8 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
+        packetHandler.handleEventloopProcesses(PacketBound.CLIENT);
+
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
                 || !player.isBukkitReady()
                 || !PacketInterceptorResolver.hasDecoderHandler(ctx.pipeline())) {
@@ -101,7 +105,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             ReferenceCountUtil.retain(msg);
         }
 
-        PacketContainer<WP> packetContainer = packetProcessor.write(ctx.channel(), player, packetHandler, msg);
+        PacketContainer<WP> packetContainer = packetProcessor.write(ctx.channel(), player, msg);
         if (!packetHandler.write(packetContainer)) {
             promise.setSuccess();
             return;
