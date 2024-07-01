@@ -75,7 +75,7 @@ public class ViolationService {
             }
         });
 
-        if (player.isBukkitReady() && player.isOnlineDirect()) {
+        if (player.isBukkitReady() && player.isOnlineBukkit()) {
             Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.bukkit.kickPlayer("Disconnected"));
         }
 

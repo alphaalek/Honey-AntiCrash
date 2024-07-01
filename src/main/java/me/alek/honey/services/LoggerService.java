@@ -90,7 +90,7 @@ public class LoggerService {
 
         boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, ListenerPriority.LOWEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
+            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
         }
     }
 

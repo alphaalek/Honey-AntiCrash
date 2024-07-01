@@ -3,7 +3,7 @@ package me.alek.honey.monitor;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.statics.NumberUtils;
 
 public class TrackerUtils {
@@ -21,9 +21,9 @@ public class TrackerUtils {
 
     public static class TrackerAccessor {
 
-        private final WideTempQueuedHandleTracker tracker;
+        private final TempQueuedHandleTracker tracker;
 
-        public TrackerAccessor(WideTempQueuedHandleTracker tracker) {
+        public TrackerAccessor(TempQueuedHandleTracker tracker) {
             this.tracker = tracker;
         }
 

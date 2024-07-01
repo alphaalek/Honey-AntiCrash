@@ -733,7 +733,7 @@ public enum PacketTypes implements PacketType {
             UPDATE_SIGN(UPDATE_SIGN_CLASS, idRegistry.acquire(), "sign_update"),
             USE_ITEM(USE_ITEM_CLASS, idRegistry.acquire(), "use_item_on", NetProtocolRange.since(NetProtocol.v1_9)),
             VEHICLE_MOVE(VEHICLE_MOVE_CLASS, idRegistry.acquire(), "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
-            WINDOW_CONFIRMATION(TRANSACTION_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            TRANSACTION(TRANSACTION_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_16_5)),
             ;
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);

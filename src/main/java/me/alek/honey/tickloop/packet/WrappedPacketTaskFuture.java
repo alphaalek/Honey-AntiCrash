@@ -18,13 +18,12 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
     private final int tickAdded;
     private boolean postponed;
     private long started;
-    private final long playerPacketIndex;
+    private boolean done;
 
-    public WrappedPacketTaskFuture(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded, long playerPacketIndex) {
+    public WrappedPacketTaskFuture(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         super(runnable, null);
         this.packet = packet;
         this.tickAdded = tickAdded;
-        this.playerPacketIndex = playerPacketIndex;
     }
 
     public HoneyPlayer getPlayer() {
@@ -51,8 +50,8 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
         return tickAdded;
     }
 
-    public long getPlayerPacketIndex() {
-        return playerPacketIndex;
+    public boolean isDone() {
+        return done;
     }
 
     @Override
@@ -70,6 +69,7 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
             HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when running packet tick task.");
             ex.printStackTrace();
         }
+        done = true;
         packet.invokeServerCallback();
 
         PacketTaskHandler.unregisterTask(packet);
@@ -77,6 +77,6 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
 
     @Override
     public String toString() {
-        return "Task{" + packet.getPlayerName() + "," + playerPacketIndex + "," + tickAdded + "}";
+        return "Task{" + packet.getPlayerName() + "," + tickAdded + "}";
     }
 }

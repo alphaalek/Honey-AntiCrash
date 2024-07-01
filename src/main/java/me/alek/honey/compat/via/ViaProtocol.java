@@ -94,7 +94,8 @@ public enum ViaProtocol {
     public static ViaProtocol getViaProtocolFrom(NetProtocol protocol) {
         for (ViaProtocol viaProtocol : PROTOCOLS) {
             if (protocol.isNewerThanOrEqual(viaProtocol.getProtocol())
-                    && protocol.isOlderThan(viaProtocol.getProtocol().getAfter())) {
+                    && (protocol.isOlderThan(viaProtocol.getProtocol().getAfter())
+                        || protocol.getAfter().isEqual(viaProtocol.getProtocol()))) {
                 return viaProtocol;
             }
         }
@@ -112,7 +113,7 @@ public enum ViaProtocol {
     }
 
     public void load() {
-        for (PacketState state : states[0]) {
+        for (PacketState state : states[0].compact()) {
             this.serverboundMappings[state.ordinal()] = getMappings(PacketBound.SERVER, state);
             this.clientboundMappings[state.ordinal()] = getMappings(PacketBound.CLIENT, state);
         }

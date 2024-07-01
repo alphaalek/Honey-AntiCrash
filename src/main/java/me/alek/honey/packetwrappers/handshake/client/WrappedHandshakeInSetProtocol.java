@@ -5,6 +5,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.ClientInfo;
+import org.bukkit.Bukkit;
 
 public class WrappedHandshakeInSetProtocol extends WrappedPacket<WrappedHandshakeInSetProtocol> {
 

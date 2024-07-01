@@ -9,7 +9,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.command.CommandSender;
 
@@ -29,7 +29,7 @@ public class TrackCommand implements CommandImpl {
 
         switch (args[0]) {
             case "players":
-                WideTempQueuedHandleTracker stTracker = HoneyPlugin.get().getExecutionQueueProxy();
+                TempQueuedHandleTracker stTracker = HoneyPlugin.get().getExecutionQueueProxy();
 
                 if (stTracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));

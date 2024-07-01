@@ -17,7 +17,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.counter.DecayingListeningCounter;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.util.TPSProvider;
@@ -241,8 +241,8 @@ public class NotificationService {
     }
 
     public void applyQuotients(HoneyPlayer player, ValidationPipelineContext.DevelopmentData developmentData) {
-        WideTempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
-        WideTempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
+        TempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
+        TempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
         String serverThreadPoint = serverThreadHandleTracker.has(player) ? formatPercentages(serverThreadHandleTracker.getStatistics(player)) : "No data!";
         String nettyThreadPoint = nettyThreadHandleTracker.has(player) ? formatPercentages(nettyThreadHandleTracker.getStatistics(player)) : "No data!";
@@ -287,7 +287,7 @@ public class NotificationService {
     public void showPacketFilterActionBar(HoneyPlayer player, boolean increment, boolean incrementCancelled) {
         if (!ConfigurationOptions.Messages.PACKET_FILTER_ENABLED
                 || !player.isBukkitReady()
-                || !player.isOnlineDirect()) {
+                || !player.isOnlineBukkit()) {
             return;
         }
 
@@ -338,7 +338,7 @@ public class NotificationService {
     public void showQuarantinedAsyncWorker(HoneyPlayer player, long time) {
         if (!ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER_ENABLED
                 || !player.isBukkitReady()
-                || !player.isOnlineDirect()) {
+                || !player.isOnlineBukkit()) {
             return;
         }
 
@@ -396,7 +396,7 @@ public class NotificationService {
     public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
 
-            if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineDirect() || player.punished) {
+            if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineBukkit() || player.punished) {
                 continue;
             }
             observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, honeyKey);

@@ -1328,7 +1328,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.WINDOW_CONFIRMATION)
+            @Flood(PacketTypes.Play.Client.TRANSACTION)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.transaction"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Transaction extends ViolationSetting implements VlIntervalRequiredContentsSetting {

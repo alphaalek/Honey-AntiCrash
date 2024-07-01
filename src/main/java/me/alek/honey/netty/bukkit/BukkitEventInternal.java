@@ -27,26 +27,30 @@ public class BukkitEventInternal implements Listener {
             return;
         }
 
-        handleChannel(player, channel);
+        channel.eventLoop().execute(() -> {
+            HoneyPlayer honeyPlayer = handleChannel(player, channel);
+
+            Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
+                PlayerJoinQuitListener.onPostLoginSuccess(honeyPlayer);
+            });
+        });
     }
 
-    private void handleChannel(Player player, Channel channel) {
-        channel.eventLoop().execute(() -> {
+    private HoneyPlayer handleChannel(Player player, Channel channel) {
 
-            HoneyPlayer honeyPlayer;
-            try {
-                honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
-                honeyPlayer.initBukkitPlayer(player);
-                HoneyPlayer.register(honeyPlayer, player);
-            } catch (MissingHandlerException ex) {
-                ex.printStackTrace();
-                HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                        () -> player.kickPlayer("Broken pipe! " + ex.getMessage()));
-                return;
-            }
+        HoneyPlayer honeyPlayer = null;
+        try {
+            honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
+            honeyPlayer.initBukkitPlayer(player);
 
-            PlayerJoinQuitListener.onPostLoginSuccess(honeyPlayer);
-        });
+            HoneyPlayer.register(honeyPlayer, player);
+        } catch (MissingHandlerException ex) {
+            ex.printStackTrace();
+            HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
+                    () -> player.kickPlayer("Broken pipe! " + ex.getMessage()));
+        }
+
+        return honeyPlayer;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

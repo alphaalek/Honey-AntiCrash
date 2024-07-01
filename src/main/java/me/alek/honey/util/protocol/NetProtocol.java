@@ -59,7 +59,8 @@ public enum NetProtocol {
     public static NetProtocol getMajorFrom(int protocolVersion) {
         for (NetProtocol protocol : PROTOCOLS) {
             if (protocolVersion >= protocol.getProtocolVersion()
-                    && protocolVersion < protocol.getAfter().getProtocolVersion()) {
+                    && (protocolVersion < protocol.getAfter().getProtocolVersion()
+                        || protocol.getAfter().isEqual(protocol))) {
                 return protocol;
             }
         }

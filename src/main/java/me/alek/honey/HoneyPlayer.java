@@ -44,7 +44,6 @@ public class HoneyPlayer {
 
     public boolean online = true;
     public boolean punished;
-    public long packetIndex;
     public long postponedPackets;
     public long postponedPacketsForTick;
     public long postponedLastTick;
@@ -79,7 +78,7 @@ public class HoneyPlayer {
         return this.bukkit != null;
     }
 
-    public boolean isOnlineDirect() {
+    public boolean isOnlineBukkit() {
         return bukkit.isOnline();
     }
 
@@ -97,5 +96,10 @@ public class HoneyPlayer {
 
     public void sendMessage(String message) {
         bukkit.sendMessage(message);
+    }
+
+    @Override
+    public String toString() {
+        return packetHandler.getPlayerName();
     }
 }

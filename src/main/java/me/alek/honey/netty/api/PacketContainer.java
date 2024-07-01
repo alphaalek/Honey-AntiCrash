@@ -13,7 +13,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketStateTimings getEventloopStateTimings();
 
-    void objectInitialized(Object packet, Callback postAction, PacketType type);
+    void postDecode(Object packet, Callback postAction, PacketType type);
 
     int getByteSize();
 

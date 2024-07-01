@@ -3,11 +3,9 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -31,7 +29,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PacketType type;
     private Object raw;
     private WP wrapped;
-    private int byteSize;
+    private final int byteSize;
     private Callback postAction;
     private final HoneyPlayer player;
     private final Channel channel;
@@ -45,7 +43,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Callback postAction, PacketType type) {
         this(player, channel, type, 0);
-        objectInitialized(rawPacket, postAction, type);
+        postDecode(rawPacket, postAction, type);
     }
 
     public InternalPacketContainer(HoneyPlayer player, Channel channel, PacketType type, int byteSize) {
@@ -55,7 +53,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.byteSize = byteSize;
     }
 
-    public void objectInitialized(Object raw, Callback postAction, PacketType type) {
+    public void postDecode(Object raw, Callback postAction, PacketType type) {
         this.type = type;
         this.raw = raw;
         this.postAction = postAction;
@@ -77,11 +75,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String toString() {
-        if (this.type == null) {
-            return Lang.get("unknown");
-        }
-
-        return "Packet:{Type:" + this.type + ",Player:" + getPlayerName() + "}";
+        return "Packet:{Type:" + Optional.ofNullable(this.type).orElse(PacketTypes.UNKNOWN) + ",Player:" + getPlayerName() + "}";
     }
 
     @Override
@@ -183,18 +177,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String getPlayerName() {
-        if (type == PacketTypes.Login.Client.LOGIN_START) {
-            return ((WrappedLoginInLoginStart)wrapped).getName();
+        if (this.type == PacketTypes.Login.Client.LOGIN_START && this.wrapped != null) {
+            return ((WrappedLoginInLoginStart)this.wrapped).getName();
         }
 
-        try {
-            return Optional.ofNullable(player).map(player -> player.name)
-                    .orElse(Optional.ofNullable(
-                                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayerName())
-                            .orElse("Unknown"));
-        } catch (MissingHandlerException ex) {
-            return "Unknown";
-        }
+        return player.packetHandler.getPlayerName();
     }
 
     public <T> IStructureModifier<T> getModifier(Class<T> clazz) {

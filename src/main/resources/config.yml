@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.5.3
+#   + This configuration file is generated using version v2.6-b1
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -48,7 +48,7 @@ hide-bypass-permission: "honey.hide.bypass"
 # Permission that ignore ALL Honey features.
 # It's only recommend to use this, if you are 100% sure, that players with this permission will never try to exploit your server.
 bypass-permission-enabled: false
-bypass-permission-serverthread-tracking: true
+bypass-permission-serverthread-tracking: true # Recommended to have enabled for most servers.
 bypass-permission: "honey.bypass"
 
 # Permission which can get notifications by violated players. Can be toggled on/off by /honey notifications.
@@ -410,8 +410,8 @@ netty:
   a:
     enabled: true
     threshold: 45000
-    decay: 250
-    decay-amount: 2500
+    decay: 350
+    decay-amount: 3000
     vls-amount: 1
 
   b:
@@ -421,7 +421,7 @@ netty:
   c:
     enabled: true
     vls-amount: 1
-    threshold: 10000
+    threshold: 6250
 
   d:
     enabled: true

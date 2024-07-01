@@ -1,8 +1,6 @@
 package me.alek.honey.validation;
 
-import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.services.ViolationService;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Arrays;

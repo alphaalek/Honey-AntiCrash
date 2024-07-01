@@ -6,6 +6,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -21,7 +22,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
 
     private final String channel;
     private final ByteBuf buf;
-    private ItemStack bookChannelItemStack;
+    private LazyInit<ItemStack> bookChannelItemStack;
 
     public WrappedPlayInCustomPayload(Object rawPacket, PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
         super(rawPacket, packetContainer);
@@ -56,7 +57,8 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
 
             if (channel.equals("MC|BEdit") || channel.equals("MC|BSign")) {
                 try {
-                    bookChannelItemStack = Converters.getItemStackConverter().convertDelegate(getDataSerializer(true).readItemStack());
+                    bookChannelItemStack = new LazyInit<>(() ->
+                            Converters.getItemStackConverter().convertDelegate(getDataSerializer(true).readItemStack()));
                 } catch (Exception ignored) {
                 }
             }
@@ -68,7 +70,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
     }
 
     public ItemStack getBookChannelItemStack() {
-        return bookChannelItemStack;
+        return bookChannelItemStack.get();
     }
 
     public ByteBuf getBuf() {

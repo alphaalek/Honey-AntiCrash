@@ -9,6 +9,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.impl.FloodValidations;
@@ -79,7 +80,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             return;
         }
 
-        int id = new PacketDataSerializer(buf).readVarInt();
+        int id = Types.VAR_INT.read(new PacketDataSerializer(buf));
         buf.resetReaderIndex();
 
         PacketState state = packetHandler.getProtocolState(PacketBound.SERVER);
@@ -128,6 +129,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         } else {
             list.add(Unpooled.buffer());
         }
+
+        Bukkit.getLogger().info("Filter " + type);
 
         packetContainer.getEventloopStateTimings().startTimings(EventloopState.IN_BETWEEN);
     }

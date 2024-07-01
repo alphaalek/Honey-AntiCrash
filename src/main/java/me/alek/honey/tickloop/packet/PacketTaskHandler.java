@@ -30,7 +30,9 @@ public class PacketTaskHandler {
         new Thread(() -> {
             while (HoneyPlugin.get().isRunning()) {
                 synchronized (handleTaskLock) {
-                    if (handledTask != null && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                    if (handledTask != null
+                            && !handledTask.isDone()
+                            && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
                             && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
                         PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
@@ -69,7 +71,7 @@ public class PacketTaskHandler {
         }
     }
 
-    private static String getThreadDump() {
+    private static String formatThreadDump() {
         ThreadInfo info = ManagementFactory.getThreadMXBean().getThreadInfo(HoneyPlugin.get().getServerThread().getId(), Integer.MAX_VALUE);
         StackTraceElement[] elements = info.getStackTrace();
 
@@ -109,7 +111,7 @@ public class PacketTaskHandler {
     }
 
     public static void dump(PacketContainer<? extends WrappedPacket<?>> packet) {
-        String dump = getThreadDump();
+        String dump = formatThreadDump();
         LoggerService loggerService = HoneyPlugin.get().getLoggerService();
 
         if (!dump.contains("PacketTaskHandler")) {
@@ -128,7 +130,7 @@ public class PacketTaskHandler {
             loggerService.getLogger().severe(dump);
 
             HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cThe server seems to be frozen after packet " + packet.getType() + " was sent by " + name + ". See the log for thread dump and more info.");
+                    + " §cThe server seems to be frozen while processing packet " + packet.getType() + " sent by " + name + ". See the log for thread dump and more info.");
         }
     }
 
@@ -158,7 +160,7 @@ public class PacketTaskHandler {
         if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
                 && packet.isDumped()) {
             HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cDone handling packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
+                    + " §cServer is now done processing packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
         }
 
         // we have to make sure it's not an unmapped packet

@@ -15,8 +15,8 @@ public class UnsyncTempQueue {
     private final Deque<TimedNode<Double>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
-    private boolean collected;
     private final Predicate<Long> exceeds;
+    private boolean collected;
     private long total;
 
     public UnsyncTempQueue(Timespan timespan, boolean isFixed) {
@@ -67,8 +67,10 @@ public class UnsyncTempQueue {
         }
 
         if (isFixed) {
-            FIXED.add(amount);
-            total += (long) amount - (long) (double) FIXED.remove();
+            synchronized (this) {
+                FIXED.add(amount);
+                total += (long) amount - (long) (double) FIXED.remove();
+            }
         }
 
         if (!isFixed) {
@@ -89,7 +91,9 @@ public class UnsyncTempQueue {
             total += (long) (double) node.getValue();
 
             if (clearNode(node.getInsertionInstant())) {
-                TIMED.remove();
+                synchronized (this) {
+                    TIMED.remove();
+                }
             }
         }
     }
@@ -99,19 +103,21 @@ public class UnsyncTempQueue {
             return;
         }
 
-        TimedNode<Double> peekedNode = TIMED.peek();
-        if (peekedNode == null || !clearNode(peekedNode, time)) {
-            return;
-        }
-        TIMED.remove();
-
-        final Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
-        while (sampleNodeIterator.hasNext()) {
-            if (clearNode(sampleNodeIterator.next(), time)) {
-                sampleNodeIterator.remove();
-                continue;
+        synchronized (this) {
+            TimedNode<Double> peekedNode = TIMED.peek();
+            if (peekedNode == null || !clearNode(peekedNode, time)) {
+                return;
             }
-            break;
+            TIMED.remove();
+
+            final Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
+            while (sampleNodeIterator.hasNext()) {
+                if (clearNode(sampleNodeIterator.next(), time)) {
+                    sampleNodeIterator.remove();
+                    continue;
+                }
+                break;
+            }
         }
     }
 

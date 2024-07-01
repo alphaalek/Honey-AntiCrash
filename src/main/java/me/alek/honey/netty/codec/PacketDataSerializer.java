@@ -1,10 +1,9 @@
 package me.alek.honey.netty.codec;
 
-import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
-import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -52,29 +51,11 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public int readVarInt() {
-        byte b0;
-        int i = 0;
-        int j = 0;
-        do {
-            b0 = readByte();
-            i |= (b0 & Byte.MAX_VALUE) << j++ * 7;
-            if (j > 5)
-                throw new RuntimeException("VarInt too big");
-        } while ((b0 & 0x80) == 128);
-        return i;
+        return Types.VAR_INT.read(this);
     }
 
-    public long readVarLong() {
-        byte b0;
-        long i = 0L;
-        int j = 0;
-        do {
-            b0 = readByte();
-            i |= (long) (b0 & Byte.MAX_VALUE) << j++ * 7;
-            if (j > 10)
-                throw new RuntimeException("VarLong too big");
-        } while ((b0 & 0x80) == 128);
-        return i;
+    public ByteBuf writeVarInt(int val) {
+        return Types.VAR_INT.write(this, val);
     }
 
     public Object readItemStack() {
@@ -113,18 +94,11 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public String readString(int i) {
-        int j = this.readVarInt();
-        if (j > i * 4) {
-            throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + j + " > " + i * 4 + ")");
-        }
-        if (j < 0) {
-            throw new DecoderException("The received encoded string buffer length is less than zero! Weird string!");
-        }
-        String s = new String(this.readBytes(j).array(), Charsets.UTF_8);
-        if (s.length() > i) {
-            throw new DecoderException("The received string length is longer than maximum allowed (" + j + " > " + i + ")");
-        }
-        return s;
+        return Types.UTF8.read(this, i);
+    }
+
+    public ByteBuf writeString(String val) {
+        return Types.UTF8.write(this, val, Short.MAX_VALUE);
     }
 
     public int capacity() {

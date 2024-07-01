@@ -77,8 +77,14 @@ public enum Timespan {
         }
     }
 
-    public static class Used {
-        public static final Set<Timespan> USED_FOR_TRACKERS = new HashSet<>();
+    public static final Set<Timespan> USED_FOR_TRACKERS = new HashSet<>();
+
+    static {
+        for (Timespan timespan : Timespan.values()) {
+            if (timespan.isUsed()) {
+                USED_FOR_TRACKERS.add(timespan);
+            }
+        }
     }
 
     public static final double MILLIS_TO_NANO_MULTIPLIER = Math.pow(10, 6);
@@ -86,13 +92,15 @@ public enum Timespan {
     private final Map<HoneyTracker, TimespanContext> noIDContextMap = new HashMap<>();
     private final Array<TimespanContext> IDContext = new Array<>();
     private final int timespan;
+    private final boolean used;
 
     Timespan(int timespan, boolean used) {
         this.timespan = timespan;
+        this.used = used;
+    }
 
-        if (used) {
-            Used.USED_FOR_TRACKERS.add(this);
-        }
+    public boolean isUsed() {
+        return used;
     }
 
     public static void debug(CommandSender sender) {

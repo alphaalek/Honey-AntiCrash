@@ -15,7 +15,7 @@ import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
+public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
     private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
     private DelegatedWrapper executionQueue;
@@ -259,9 +259,8 @@ public class ExecutionQueueProxy extends WideTempQueuedHandleTracker {
                     new WrappedPacketTaskFuture(
                             (Runnable) value,
                             packet,
-                            ExecutionQueueProxy.this.getCurrentExecutionTick(),
-                            Optional.ofNullable(packet.getPlayer()).map(p -> p.packetIndex++).orElse(-1L)
-                    ));
+                            ExecutionQueueProxy.this.getCurrentExecutionTick())
+                    );
         }
 
         private boolean addPacketTask(WrappedPacketTaskFuture task) {

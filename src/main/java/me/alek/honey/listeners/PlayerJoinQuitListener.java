@@ -51,6 +51,7 @@ public class PlayerJoinQuitListener implements Listener {
         if (player == null) {
             return;
         }
+        player.online = false;
 
         for (BaseValidationContainer check : ValidationContainers.getValidations()) {
             check.cleanup(player);
@@ -65,7 +66,6 @@ public class PlayerJoinQuitListener implements Listener {
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(player);
 
         player.leaveCallback.call(player);
-        player.online = false;
         IDRegistry.PLAYERS.remove(player.registryID);
     }
 }

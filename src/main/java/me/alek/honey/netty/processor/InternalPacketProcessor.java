@@ -31,12 +31,13 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer) {
-            callPipeline(packetAdapter -> {
+            callPipeline(listener -> {
                 try {
                     if (packetContainer.getType().getBound().equals(PacketBound.SERVER)) {
-                        packetAdapter.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
+                        Bukkit.getLogger().info("Listen " + listener);
+                        listener.onPacketReceive(player, (PacketContainer<WP>) packetContainer);
                     } else {
-                        packetAdapter.onPacketSend(player, (PacketContainer<WP>) packetContainer);
+                        listener.onPacketSend(player, (PacketContainer<WP>) packetContainer);
                     }
                 } catch (Exception ex) {
                     Bukkit.getLogger().log(Level.SEVERE, "Error occurred in packet task: " + packetContainer.getPlayerName() + ", " + packetContainer.getType() + ", " + packetContainer.getState(), ex);
@@ -256,7 +257,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                                                                                          Object packet, HoneyPlayer player, Channel channel,
                                                                                          Callback postAction, PacketType type) {
         if (packetContainer != null) {
-            packetContainer.objectInitialized(packet, postAction, type);
+            packetContainer.postDecode(packet, postAction, type);
             return packetContainer;
         }
 
@@ -268,12 +269,15 @@ public class InternalPacketProcessor implements PacketProcessor {
         PacketType type = PacketTypes.getPacketType(packet.getClass(), handler.getProtocolState(bound))
                 .orElse(null);
 
+        Bukkit.getLogger().info("Confirmed " + type);
+
         Callback postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, type);
 
         if (PacketTypes.isUnknown(type)
-                || packetContainer.getState().equals(PacketState.PLAY) && packetContainer.getPlayer() == null) {
+                || packetContainer.getState().equals(PacketState.PLAY)
+                        && packetContainer.getPlayer() == null) {
             return packetContainer;
         }
 

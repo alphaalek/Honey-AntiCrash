@@ -12,7 +12,7 @@ import me.alek.honey.sql.SQLManagerWrapper;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
-import me.alek.honey.tracker.temp.WideTempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import org.bukkit.plugin.Plugin;
 
 public interface HoneyAPI {
@@ -37,7 +37,7 @@ public interface HoneyAPI {
 
     LoggerService getLoggerService();
 
-    WideTempQueuedHandleTracker getNettyPacketTracker();
+    TempQueuedHandleTracker getNettyPacketTracker();
 
     ExecutionQueueProxy getExecutionQueueProxy();
 

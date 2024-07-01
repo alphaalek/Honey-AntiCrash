@@ -28,7 +28,7 @@ public class HoneyPacketHandler {
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
     private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
-    private String playerName;
+    private String playerName = "Unknown";
 
     public HoneyPacketHandler(Channel channel) {
         this.channel = channel;

@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.logging.Level;
 
 @ChannelHandler.Sharable
 public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
@@ -84,10 +85,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     private void invokeRead(PacketContainer<? extends WrappedPacket<?>> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
+        if (!byteBuf.isReadable()) {
+            return;
+        }
+
         try {
-            if (earlyPacketContainer != null) {
-                earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.DECODE);
-            }
+            earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.DECODE);
 
             Object packet;
             try {
@@ -98,49 +101,43 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
 
                     if (list.isEmpty()) {
-                        if (earlyPacketContainer != null) {
-                            stopTimings(earlyPacketContainer);
-                        }
+                        stopTimings(earlyPacketContainer);
                         return;
                     }
                     packet = list.get(0);
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    ex.printStackTrace();
+                    Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + earlyPacketContainer.getByteSize() + " bytes", ex);
                 }
                 byteBuf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
 
                 player.punished = true;
-                if (earlyPacketContainer != null) {
-                    stopTimings(earlyPacketContainer);
-                }
+                stopTimings(earlyPacketContainer);
                 return;
             }
+
+            Bukkit.getLogger().info("Decoded " + packet);
 
             byteBuf.release();
 
             if (packet == null) {
-                if (earlyPacketContainer != null) {
-                    stopTimings(earlyPacketContainer);
-                }
+                stopTimings(earlyPacketContainer);
                 return;
             }
 
-            if (earlyPacketContainer != null) {
-                earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
+            earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
-                if (earlyPacketContainer.getType() == PacketTypes.Play.Client.WINDOW_CONFIRMATION
-                        || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                                && player.isBukkitReady()
-                                && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
+            if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
+                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                            && player.isBukkitReady()
+                            && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
 
-                    ctx.fireChannelRead(packet);
-                    stopTimings(earlyPacketContainer);
-                    return;
-                }
+                ctx.fireChannelRead(packet);
+                stopTimings(earlyPacketContainer);
+                return;
             }
 
             PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packetHandler, packet, earlyPacketContainer);
@@ -152,9 +149,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 packetExecutorTask = null;
             }
 
-            if (earlyPacketContainer != null) {
-                stopTimings(earlyPacketContainer);
-            }
+            stopTimings(earlyPacketContainer);
 
             if (ctx.channel().eventLoop().inEventLoop()) {
                 firePacketRead(ctx, finalPacketContainer, packetExecutorTask);
@@ -169,9 +164,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             } catch (Exception ignored) {
             }
 
-            if (earlyPacketContainer != null) {
-                stopTimings(earlyPacketContainer);
-            }
+            stopTimings(earlyPacketContainer);
         }
     }
 
@@ -219,9 +212,11 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.MARK.get();
-        if (packetContainer != null) {
-            packetContainer.getEventloopStateTimings().stopTimings();
+        if (packetContainer == null) {
+            return;
         }
+
+        packetContainer.getEventloopStateTimings().stopTimings();
 
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED

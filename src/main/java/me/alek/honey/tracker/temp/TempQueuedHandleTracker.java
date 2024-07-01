@@ -10,7 +10,7 @@ import me.alek.honey.util.IDRegistry;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, HoneyPlayer> {
+public class TempQueuedHandleTracker implements TimedHandleTracker<Double, HoneyPlayer> {
 
     private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
     private final TempQueuedTracker commonTracker = new TempQueuedTracker(false, false);
@@ -179,9 +179,9 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     }
 
     public double[] getStatistics(HoneyPlayer player) {
-        double[] statistics = new double[Timespan.Used.USED_FOR_TRACKERS.size()];
+        double[] statistics = new double[Timespan.USED_FOR_TRACKERS.size()];
         int i = 0;
-        for (Timespan timespan : Timespan.Used.USED_FOR_TRACKERS) {
+        for (Timespan timespan : Timespan.USED_FOR_TRACKERS) {
             statistics[i++] = getTimeToAverageWithoutQuotient(player, timespan, true);
         }
         return statistics;
@@ -242,7 +242,7 @@ public class WideTempQueuedHandleTracker implements TimedHandleTracker<Double, H
     public Set<HoneyPlayer> getTrackers() {
         return trackerMap.keySet().stream()
                 .map(HoneyPlayer::getPlayer)
-                .filter(p -> p != null && p.bukkit.isOnline())
+                .filter(p -> p != null && p.isOnlineBukkit())
                 .collect(Collectors.toSet());
     }
 
