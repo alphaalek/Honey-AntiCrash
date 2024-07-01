@@ -36,9 +36,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
 
-    private boolean hasCalledChannelInactive;
     private final HoneyPlayer player;
     private final HoneyPacketHandler packetHandler;
+    private boolean hasCalledChannelInactive;
     private ViaProtocol viaProtocol;
 
     public InboundPacketFilter(HoneyPacketHandler handler) {
@@ -85,8 +85,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             ctx.fireChannelRead(buf);
             return;
         }
-
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(getPlayer().channel);
 
         packetHandler.handleEventloopProcesses(PacketBound.SERVER);
 

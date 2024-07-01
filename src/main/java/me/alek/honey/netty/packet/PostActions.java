@@ -29,6 +29,7 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketTypes.Handshake.Client.SET_PROTOCOL, Callback.Action.<PacketContainer<WrappedHandshakeInSetProtocol>>from(packet -> {
             try {
+                // to wrap around ProtocolLib channel proxy
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(packet.getChannel());
             } catch (MissingHandlerException ex) {
                 packet.getChannel().close();
