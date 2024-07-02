@@ -119,9 +119,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         int id = Types.VAR_INT.read(serializer);
         buf.resetReaderIndex();
 
-        Bukkit.getLogger().info("Id " + id + " " + packetHandler.getProtocolState(PacketBound.SERVER).getTypes()[PacketBound.SERVER.ordinal()]);
-
-        Bukkit.getLogger().info(ctx.channel().pipeline().toMap() + "");
         PacketState state = packetHandler.getProtocolState(PacketBound.SERVER);
         PacketType type = null;
 

@@ -80,12 +80,9 @@ public class SpigotPipelineInjector {
         } else {
             channelStructureModifier.writeField(0, channelProxy);
         }
-
-        Bukkit.broadcastMessage("INJECTED CHANNEL PROXY!!!!!! " + channelStructureModifier.readField(0));
     }
 
     public void ensureCorrectPipelineOrder(Channel channel) {
-        Bukkit.getLogger().info("ENSURE CORRECT ORDER!!!!!!!!");
         if (!channel.eventLoop().inEventLoop()) {
             channel.eventLoop().execute(() -> ensureCorrectPipelineOrder(channel));
             return;
@@ -135,11 +132,7 @@ public class SpigotPipelineInjector {
                 } else {
                     channel.close();
                 }
-
-                Bukkit.getLogger().info("POST " + channel.pipeline().toMap());
             }
-
-            Bukkit.getLogger().info("POST NO MATTER WHAT " + channel.pipeline().toMap());
         }
     }
 

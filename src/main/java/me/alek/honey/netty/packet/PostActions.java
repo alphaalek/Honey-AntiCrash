@@ -39,7 +39,6 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketTypes.Login.Client.LOGIN_START, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
             String name = packet.getPacket().getName();
-            Bukkit.getLogger().info("NAME " + name);
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {

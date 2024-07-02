@@ -182,7 +182,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                 continue;
             }
 
-            Bukkit.getLogger().info("Adding " + packetType);
             addToEventBus.accept(eventBusses.get(packetType.getHoneyID(), EventBus::new));
         }
     }
@@ -280,7 +279,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         Callback postAction = getPostAction(type);
-        Bukkit.getLogger().info(packet + " " + packet.getClass() + " " + type + " " + type.getNmsClass() + " " +  player.packetHandler.getProtocolState(bound) + " " + postAction);
 
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, type);

@@ -111,7 +111,6 @@ public enum PacketTypes implements PacketType {
 
     private static void sortPacketDetails(PacketState state, PacketBound bound, PacketType[] types) {
         Array<PacketType> typesArray = new Array<>();
-        Bukkit.getLogger().info("SORTING " + state + " " + bound + " " + typesArray);
         for (PacketType type : types) {
             if (type instanceof RangedPacketType
                     && !NetProtocol.matchProtocol((RangedPacketType) type)) {
@@ -123,12 +122,9 @@ public enum PacketTypes implements PacketType {
                 continue;
             }
 
-            Bukkit.getLogger().info(type + " " + bound + " " + state + " " + type.getMinecraftID() + " " + type.getKeyName1_20_5());
             int id = type.getMinecraftID().get();
             typesArray.set(id, type);
         }
-
-        Bukkit.getLogger().info("Done " + typesArray);
 
         state.getTypes()[bound.ordinal()].clear();
         state.getTypes()[bound.ordinal()].addAll(typesArray);
@@ -163,7 +159,6 @@ public enum PacketTypes implements PacketType {
             }
         }
 
-        Bukkit.getLogger().info(id + " " + state + " " + bound + " " + getTypesAvailableFor(state, bound));
         return PacketTypes.UNKNOWN;
     }
 

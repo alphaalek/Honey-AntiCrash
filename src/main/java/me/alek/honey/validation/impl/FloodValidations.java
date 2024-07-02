@@ -150,12 +150,10 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         static {
             for (PacketType type : PacketTypes.getTypesAvailable()) {
-                Bukkit.getLogger().info(type + " " + type.getNmsClass());
-                if (type instanceof RangedPacketType) {
-                    Bukkit.getLogger().info("" + ((RangedPacketType)type).getRange().match(NetProtocol.getProtocol()));
-                }
-                if (!ReflectStructureCache.acquireStructure(type.getNmsClass()).withType(NMS.getItemStackClass())
-                        .getAccessors().isEmpty()) {
+                if (!ReflectStructureCache.acquireStructure(type.getNmsClass())
+                        .withType(NMS.getItemStackClass())
+                        .getAccessors()
+                        .isEmpty()) {
                     packetTypes.add(type.getHoneyID());
                 }
             }
