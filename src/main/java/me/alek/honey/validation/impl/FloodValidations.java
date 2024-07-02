@@ -1,6 +1,9 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.packet.type.*;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.KeyedViolationValidation;
@@ -12,10 +15,6 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -23,6 +22,7 @@ import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
@@ -71,14 +71,14 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     public List<PacketType> getPacketTypes() {
         Set<PacketType> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
 
-        List<PacketType> packetTypes = new ArrayList<>();
+        List<PacketType> types = new ArrayList<>();
         for (PacketType packetType : PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
             if (floodSettings.contains(packetType)) {
-                packetTypes.add(packetType);
+                types.add(packetType);
             }
         }
 
-        return packetTypes;
+        return types;
     }
 
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
@@ -149,10 +149,14 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final IDRegistry packetTypes = new IDRegistry();
 
         static {
-            for (PacketType packetType : PacketTypes.getTypesAvailable()) {
-                if (!ReflectStructureCache.acquireStructure(packetType.getNmsClass()).withType(NMS.getItemStackClass())
+            for (PacketType type : PacketTypes.getTypesAvailable()) {
+                Bukkit.getLogger().info(type + " " + type.getNmsClass());
+                if (type instanceof RangedPacketType) {
+                    Bukkit.getLogger().info("" + ((RangedPacketType)type).getRange().match(NetProtocol.getProtocol()));
+                }
+                if (!ReflectStructureCache.acquireStructure(type.getNmsClass()).withType(NMS.getItemStackClass())
                         .getAccessors().isEmpty()) {
-                    packetTypes.add(packetType.getHoneyID());
+                    packetTypes.add(type.getHoneyID());
                 }
             }
         }

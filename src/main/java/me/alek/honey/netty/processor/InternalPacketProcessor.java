@@ -182,6 +182,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 continue;
             }
 
+            Bukkit.getLogger().info("Adding " + packetType);
             addToEventBus.accept(eventBusses.get(packetType.getHoneyID(), EventBus::new));
         }
     }
@@ -267,7 +268,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Channel channel,
                                                                             Object packet, PacketContainer<WP> earlyInitializedPacket) {
         PacketType type = null;
-        if (bound.equals(PacketBound.SERVER)) {
+        if (bound.equals(PacketBound.SERVER) && earlyInitializedPacket != null) {
             type = earlyInitializedPacket.getType();
         }
         if (type == null) {
@@ -279,6 +280,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         Callback postAction = getPostAction(type);
+        Bukkit.getLogger().info(packet + " " + packet.getClass() + " " + type + " " + type.getNmsClass() + " " +  player.packetHandler.getProtocolState(bound) + " " + postAction);
+
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, type);
 

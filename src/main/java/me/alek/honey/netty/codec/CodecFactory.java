@@ -140,7 +140,7 @@ public class CodecFactory {
                     ? WrappedEnumProtocol.getEnumProtocolDelegate(PacketBound.SERVER, state)
                     : null;
 
-            private final EmulatorCodec<Object, ByteBuf> wrappedStreamCodec = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)
+            private final EmulatorCodec<Object, ByteBuf> wrappedStreamCodec = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)
                     ? createFromStreamCodec1_20_5(getStreamCodec1_20_5(PacketBound.SERVER, state), Unpooled::buffer)
                     : null;
 

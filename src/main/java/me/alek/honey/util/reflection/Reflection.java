@@ -290,31 +290,35 @@ public class Reflection {
 
     public static <T> FieldAccessor<T> getNullableField(Class<?> target, String name, Class<?> type) {
         for (Field field : target.getDeclaredFields()) {
-            if (!((name == null || field.getName().equals(name))
-                    && (type == null || field.getType().equals(type)))) {
+            if (name != null && !field.getName().equals(name)) {
+                continue;
+            } else if (type != null && !field.getType().equals(type)) {
                 continue;
             }
+
             return new FieldAccessor<>(field);
         }
         if (target.getSuperclass() != null) {
             return getNullableField(target.getSuperclass(), name, type);
         }
+
         return null;
     }
 
     public static <T> FieldAccessor<T> getNullableField(Class<?> target, int index, Class<?> type) {
         int currentIndex = 0;
         for (Field field : target.getDeclaredFields()) {
-
             if (field.getType() == type) {
                 if (currentIndex++ == index) {
                     return new FieldAccessor<>(field);
                 }
             }
         }
+
         if (target.getSuperclass() != null) {
             return getNullableField(target.getSuperclass(), index, type);
         }
+
         return null;
     }
 
@@ -326,25 +330,26 @@ public class Reflection {
             }
             return new FieldAccessor<>(field);
         }
+
         if (target.getSuperclass() != null) {
             return getNullableFieldAssignableFrom(target.getSuperclass(), name, type);
         }
+
         return null;
     }
 
     public static <T> FieldAccessor<T> getNullableFieldAssignableFrom(Class<?> target, int index, Class<?> type) {
         int currentIndex = 0;
         for (Field field : target.getDeclaredFields()) {
-
-            if (type.isAssignableFrom(field.getType())) {
-                if (currentIndex++ == index) {
-                    return new FieldAccessor<>(field);
-                }
+            if (type.isAssignableFrom(field.getType()) && currentIndex++ == index) {
+                return new FieldAccessor<>(field);
             }
         }
+
         if (target.getSuperclass() != null) {
             return getNullableFieldAssignableFrom(target.getSuperclass(), index, type);
         }
+
         return null;
     }
 
@@ -353,15 +358,21 @@ public class Reflection {
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, String name, Class<?>... types) {
+        if (types.length == 0) {
+            return getNullableField(target, name, null);
+        }
+
         for (Class<?> type : types) {
             FieldAccessor<T> accessor = getNullableField(target, name, type);
             if (accessor != null) {
                 return accessor;
             }
         }
+
         if (target.getSuperclass() != null) {
             return getField(target.getSuperclass(), name, types);
         }
+
         throw new RuntimeException("Reflection error (field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
     }
 

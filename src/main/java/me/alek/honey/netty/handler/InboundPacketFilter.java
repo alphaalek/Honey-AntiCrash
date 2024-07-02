@@ -17,7 +17,9 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -30,11 +32,24 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
+    public static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
+
+    private static Object getPaperCompressionEnabledEvent() {
+        try {
+            Class<?> eventClass = Reflection.getClass("io.papermc.paper.network.ConnectionEvent");
+            Bukkit.broadcastMessage(Arrays.stream(Reflection.getDeclaredFields(eventClass)).map(FieldAccessor::new).map(FieldAccessor::getName).collect(Collectors.toList()) + "");
+            return Reflection.getField(eventClass, "COMPRESSION_THRESHOLD_SET").get(null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
 
     private final HoneyPlayer player;
     private final HoneyPacketHandler packetHandler;
@@ -80,6 +95,18 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     }
 
     @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
+        super.userEventTriggered(ctx, event);
+
+        Bukkit.broadcastMessage("RECEIVED EVENT " + event);
+
+        if (event.equals(PAPER_COMPRESSION_ENABLED_EVENT)) {
+            // let ViaVersion inject their handlers first
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+        }
+    }
+
+    @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
         if (!buf.isReadable() || packetHandler.isResolving(PacketBound.SERVER)) {
             ctx.fireChannelRead(buf);
@@ -92,6 +119,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         int id = Types.VAR_INT.read(serializer);
         buf.resetReaderIndex();
 
+        Bukkit.getLogger().info("Id " + id + " " + packetHandler.getProtocolState(PacketBound.SERVER).getTypes()[PacketBound.SERVER.ordinal()]);
+
+        Bukkit.getLogger().info(ctx.channel().pipeline().toMap() + "");
         PacketState state = packetHandler.getProtocolState(PacketBound.SERVER);
         PacketType type = null;
 

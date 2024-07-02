@@ -5,7 +5,7 @@ import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncDecoder;
+import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
@@ -33,13 +33,13 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue();
 
-    private final AsyncDecoder async;
+    private final AsyncPacketStream async;
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public HoneyPacketDecodePreparation(Channel channel, AsyncDecoder async, HoneyPacketHandler packetHandler) {
+    public HoneyPacketDecodePreparation(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
         this.async = async;
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
@@ -50,7 +50,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         return packetHandler;
     }
 
-    public AsyncDecoder getAsync() {
+    public AsyncPacketStream getAsync() {
         return async;
     }
 

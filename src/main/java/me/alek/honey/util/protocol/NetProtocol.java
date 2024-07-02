@@ -26,7 +26,7 @@ public enum NetProtocol {
 
     UNKNOWN(-1);
 
-    private static NetProtocol PROTOCOL_CACHE;
+    private static NetProtocol PROTOCOL;
     private static final List<NetProtocol> PROTOCOLS = new ArrayList<>();
 
     static {
@@ -69,15 +69,15 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getProtocol() {
-        if (PROTOCOL_CACHE == null) {
-            PROTOCOL_CACHE = acquireProtocol();
+        if (PROTOCOL == null) {
+            PROTOCOL = acquireProtocol();
         }
 
-        if (PROTOCOL_CACHE == NetProtocol.UNKNOWN) {
+        if (PROTOCOL == NetProtocol.UNKNOWN) {
             throw new RuntimeException("Could not get server version!");
         }
 
-        return PROTOCOL_CACHE;
+        return PROTOCOL;
     }
 
     @Override
@@ -106,8 +106,8 @@ public enum NetProtocol {
     }
 
     public boolean isBetween(NetProtocol target1, NetProtocol target2) {
-        return (isOlderThanOrEqual(target1) && isNewerThanOrEqual(target2))
-                || (isOlderThanOrEqual(target2) && isNewerThanOrEqual(target1));
+        return isOlderThanOrEqual(target1) && isNewerThanOrEqual(target2)
+                || isOlderThanOrEqual(target2) && isNewerThanOrEqual(target1);
     }
 
     public boolean isEqual(NetProtocol target) {
@@ -144,7 +144,7 @@ public enum NetProtocol {
     }
 
     public static boolean matchProtocol(RangedPacketType rangedPacketType) {
-         return matchProtocol(rangedPacketType, PROTOCOL_CACHE);
+         return matchProtocol(rangedPacketType, PROTOCOL);
     }
 
     public static NetProtocol getLatest() {

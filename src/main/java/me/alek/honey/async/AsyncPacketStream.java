@@ -16,7 +16,7 @@ import me.alek.honey.packetwrappers.play.server.WrappedPlayOutDisconnect;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-public class AsyncDecoder implements TaskSupplier<Object> {
+public class AsyncPacketStream implements TaskSupplier<Object> {
 
     private final HoneyPlayer player;
     private final WorkerPool<Object> workerPool;
@@ -25,7 +25,7 @@ public class AsyncDecoder implements TaskSupplier<Object> {
     private boolean unregistered;
     private final AtomicLong lastHandledTask = new AtomicLong();
 
-    public AsyncDecoder(HoneyPlayer player, WorkerPool<Object> workerPool) {
+    public AsyncPacketStream(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
         this.workerPool = workerPool;
     }

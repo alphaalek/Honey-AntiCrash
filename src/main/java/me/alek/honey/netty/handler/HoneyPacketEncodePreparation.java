@@ -7,13 +7,14 @@ import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncDecoder;
+import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 import java.nio.channels.ClosedChannelException;
@@ -34,12 +35,12 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         }
     }
 
-    private final AsyncDecoder async;
+    private final AsyncPacketStream async;
     private final HoneyPacketHandler packetHandler;
     private final Channel channel;
     private final HoneyPlayer player;
 
-    public HoneyPacketEncodePreparation(Channel channel, AsyncDecoder async, HoneyPacketHandler packetHandler) {
+    public HoneyPacketEncodePreparation(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
         this.channel = channel;
         this.async = async;
         this.packetHandler = packetHandler;
@@ -50,7 +51,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         return packetHandler;
     }
 
-    public AsyncDecoder getAsync() {
+    public AsyncPacketStream getAsync() {
         return async;
     }
 

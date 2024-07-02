@@ -42,7 +42,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     public static WrappedEnumProtocol getEnumProtocolDelegate(PacketBound bound, PacketState state) {
         Object enumProtocol = getEnumProtocol(state);
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)
-                || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
             return new WrappedEnumProtocol(enumProtocol, bound);
         }
 
@@ -65,7 +65,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         super(handle);
         this.bound = bound;
 
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
             classToIdMap = null;
             getPacketIdModifier = null;
         }

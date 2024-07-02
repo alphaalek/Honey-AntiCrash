@@ -13,6 +13,7 @@ import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import org.bukkit.Bukkit;
 
 public class PostActions {
 
@@ -38,6 +39,7 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketTypes.Login.Client.LOGIN_START, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
             String name = packet.getPacket().getName();
+            Bukkit.getLogger().info("NAME " + name);
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {

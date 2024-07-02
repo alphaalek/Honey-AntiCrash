@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncDecoder;
+import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.protocollib.ProtocolLib;
 import me.alek.honey.compat.via.ViaHandlers;
@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +80,12 @@ public class SpigotPipelineInjector {
         } else {
             channelStructureModifier.writeField(0, channelProxy);
         }
+
+        Bukkit.broadcastMessage("INJECTED CHANNEL PROXY!!!!!! " + channelStructureModifier.readField(0));
     }
 
     public void ensureCorrectPipelineOrder(Channel channel) {
+        Bukkit.getLogger().info("ENSURE CORRECT ORDER!!!!!!!!");
         if (!channel.eventLoop().inEventLoop()) {
             channel.eventLoop().execute(() -> ensureCorrectPipelineOrder(channel));
             return;
@@ -131,7 +135,11 @@ public class SpigotPipelineInjector {
                 } else {
                     channel.close();
                 }
+
+                Bukkit.getLogger().info("POST " + channel.pipeline().toMap());
             }
+
+            Bukkit.getLogger().info("POST NO MATTER WHAT " + channel.pipeline().toMap());
         }
     }
 
@@ -142,9 +150,9 @@ public class SpigotPipelineInjector {
         HoneyPacketDecodePreparation decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
         HoneyPacketEncodePreparation encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
 
-        AsyncDecoder async;
+        AsyncPacketStream async;
         if (decoder == null && encoder == null) {
-            async = new AsyncDecoder(packetHandler.getPlayer(), WorkerPool.ASYNC_PACKET_DECODER_POOL);
+            async = new AsyncPacketStream(packetHandler.getPlayer(), WorkerPool.ASYNC_PACKET_DECODER_POOL);
         } else {
             if (decoder != null) {
                 async = decoder.getAsync();

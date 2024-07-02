@@ -7,6 +7,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -36,6 +37,7 @@ public class LazyInit<T> {
                 List<Object> codecs = ReflectStructureCache.acquireStructure(streamCodec.getClass())
                         .<List<Object>>withWeakType(List.class).withTarget(streamCodec)
                         .readField(0);
+                // Bukkit.getLogger().info("Codecs " + codecs);
                 int i = 0;
                 for (Object codec : codecs) {
                     Object packetType = ReflectStructureCache.acquireStructure(codec.getClass())
@@ -45,7 +47,7 @@ public class LazyInit<T> {
                             .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
                             .readField(0);
 
-                    PacketType typeFromCodec = PacketTypes.getTypeFromMinecraftKey(minecraftKey);
+                    PacketType typeFromCodec = PacketTypes.getTypeFromMinecraftKey(type.getState(), type.getBound(), minecraftKey);
                     if (typeFromCodec.equals(type)) {
                         return i;
                     }
@@ -57,7 +59,7 @@ public class LazyInit<T> {
 
                 return enumProtocol.getPacketId(type.getNmsClass());
             }
-            return null;
+            return -1;
         });
     }
 }
