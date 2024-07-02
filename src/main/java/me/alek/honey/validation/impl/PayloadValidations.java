@@ -1,5 +1,6 @@
 package me.alek.honey.validation.impl;
 
+import io.netty.buffer.EmptyByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
@@ -56,7 +57,7 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && !packet.getBuf().isReadable()) {
+            if (getSetting().isEnabled() && packet.getBuf() instanceof EmptyByteBuf) {
                 return ValidationServiceContext.FLAG;
             }
 

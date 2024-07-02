@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 
 public class WrappedPacketTaskFuture extends FutureTask<Object> {
 
@@ -56,7 +57,7 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
 
     @Override
     public void run() {
-        if (getPlayer() != null && (!getPlayer().isOnlineWeak() || getPlayer().punished)) {
+        if (!getPlayer().isOnlineWeak() || getPlayer().punished) {
             super.set(null);
             return;
         }
@@ -66,8 +67,7 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
         try {
             super.run();
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when running packet tick task.");
-            ex.printStackTrace();
+            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when running packet tick task.", ex);
         }
         done = true;
         packet.invokeServerCallback();

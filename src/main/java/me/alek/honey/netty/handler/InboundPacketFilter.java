@@ -119,7 +119,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
                     player,
-                    (validation, container) -> validation.validate(player, 1, container),
+                    (validation, context) -> validation.validate(player, 1, context),
                     packetContainer);
         }
 

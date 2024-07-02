@@ -11,6 +11,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.util.statics.NumberUtils;
+import org.bukkit.Bukkit;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -47,11 +48,17 @@ public class PacketTaskHandler {
                                 && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
                                 && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
                             dump(packet);
+
+                            if (handledTask != null
+                                    && handledTask.getPacket().equals(packet)
+                                    && handledTask.isDone()) {
+                                dumpHeavyPacket(packet);
+                            }
                         }
                     }
                 }
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(1);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -84,7 +91,7 @@ public class PacketTaskHandler {
             if (!element.toString().equals(prev)) {
                 strings.add(element + "\n\t");
                 if (combined > 0) {
-                    strings.add("[...] x" + combined + "\n\t");
+                    strings.add("[...] recursive " + combined + "x\n\t");
                 }
                 combined = 0;
             } else {
@@ -117,20 +124,23 @@ public class PacketTaskHandler {
         if (!dump.contains("PacketTaskHandler")) {
             packet.dump();
 
-            String name = packet.getPlayerName();
-
             if (!PacketTypes.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getMinecraftID().get() + ", State: " + packet.getProtocolState());
-                loggerService.getLogger().severe("Sent by: " + name);
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");
             }
+            loggerService.getLogger().severe("Sent by: " + packet.getPlayerName());
 
             loggerService.getLogger().severe(dump);
 
-            HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cThe server seems to be frozen while processing packet " + packet.getType() + " sent by " + name + ". See the log for thread dump and more info.");
+            HoneyPlugin.get().getNotificationService().notify(
+                    HoneyPlugin.get().getNotificationService().getPrefix()
+                    + " §cThe server seems to be frozen while processing packet "
+                    + Optional.of(packet.getType()).orElse(PacketTypes.UNKNOWN)
+                    + " sent by " + packet.getPlayerName()
+                    + ". See the log for thread dump and more info."
+            );
         }
     }
 
@@ -151,17 +161,7 @@ public class PacketTaskHandler {
     public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
         packet.getEventloopStateTimings().stopTimings();
 
-        double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
-        if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
-                && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
-            HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
-        }
-
-        if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                && packet.isDumped()) {
-            HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cServer is now done processing packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
-        }
+        dumpHeavyPacket(packet);
 
         // we have to make sure it's not an unmapped packet
         if (!PacketTypes.isUnknown(packet.getType())) {
@@ -171,6 +171,20 @@ public class PacketTaskHandler {
         synchronized (handleTaskLock) {
             lastHandledPacket = packet;
             handledTask = null;
+        }
+    }
+
+    private static void dumpHeavyPacket(PacketContainer<? extends WrappedPacket<?>> packet) {
+        double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
+        if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
+                && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
+            HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
+        }
+
+        if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                && packet.isDumped()) {
+            HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
+                    + " §cThe server (server thread) is done processing packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
         }
     }
 }

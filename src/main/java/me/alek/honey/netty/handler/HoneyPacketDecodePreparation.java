@@ -33,31 +33,25 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue();
 
-    private final AsyncDecoder asyncDecoder;
+    private final AsyncDecoder async;
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public HoneyPacketDecodePreparation(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
-        this.asyncDecoder = asyncDecoder;
+    public HoneyPacketDecodePreparation(Channel channel, AsyncDecoder async, HoneyPacketHandler packetHandler) {
+        this.async = async;
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
         setupMethodInvoke(channel.pipeline());
-
-        try {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(channel);
-        } catch (Exception ex) {
-            channel.close();
-        }
     }
 
     public HoneyPacketHandler getPacketHandler() {
         return packetHandler;
     }
 
-    public AsyncDecoder getAsyncDecoder() {
-        return asyncDecoder;
+    public AsyncDecoder getAsync() {
+        return async;
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
@@ -233,7 +227,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             byteBuf.release();
 
             PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
-            asyncDecoder.decode((s) -> {
+            async.decode((s) -> {
                 InboundPacketFilter.MARK.set(packet);
                 if (player.isOnlineWeak() && !player.punished) {
                     invokeRead(packetContainer, ctx, wrapped, nonRecycledList);

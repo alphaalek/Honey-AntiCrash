@@ -249,7 +249,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
             if (packet == null
                     || packet.isHandledByServer()
-                    || packet.getPlayer() == null
+                    || !packet.getPlayer().isBukkitReady()
                     || ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
                             && packet.getPlayer().bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
@@ -355,17 +355,14 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         }
 
         private void handleTimings() {
-            if (recentPacket.getPlayer() != null && recentPacket.getPlayer().isOnlineWeak()) {
-                // evaluate the difference in time
-                double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
-
-                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)
-                        && isPacketDroppable(recentPacket)) {
-                    deltaTime = Math.min(deltaTime, ConfigurationOptions.Postpone.MAX_POSITION_TIME_REGISTER * Timespan.MILLIS_TO_NANO_MULTIPLIER);
-                }
-
-                registerTime(recentPacket.getPlayer(), deltaTime);
+            // evaluate the difference in time
+            double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)
+                    && isPacketDroppable(recentPacket)) {
+                deltaTime = Math.min(deltaTime, ConfigurationOptions.Postpone.MAX_POSITION_TIME_REGISTER * Timespan.MILLIS_TO_NANO_MULTIPLIER);
             }
+            registerTime(recentPacket.getPlayer(), deltaTime);
+
             recentDeltaTime = -1;
             recentPacket = null;
         }

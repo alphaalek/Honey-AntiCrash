@@ -147,7 +147,8 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
-        if (PacketTypes.isUnknown(packetContainer.getType()) || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
+        if (PacketTypes.isUnknown(packetContainer.getType())
+                || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
             return null;
         }
 
@@ -283,7 +284,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         if (PacketTypes.isUnknown(type)
                 || packetContainer.getState().equals(PacketState.PLAY)
-                        && packetContainer.getPlayer() == null) {
+                        && !packetContainer.getPlayer().isBukkitReady()) {
             return packetContainer;
         }
 

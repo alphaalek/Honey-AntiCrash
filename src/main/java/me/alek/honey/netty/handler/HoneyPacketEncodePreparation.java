@@ -14,7 +14,6 @@ import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
 import java.nio.channels.ClosedChannelException;
@@ -35,14 +34,14 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         }
     }
 
-    private final AsyncDecoder asyncDecoder;
+    private final AsyncDecoder async;
     private final HoneyPacketHandler packetHandler;
     private final Channel channel;
     private final HoneyPlayer player;
 
-    public HoneyPacketEncodePreparation(Channel channel, AsyncDecoder asyncDecoder, HoneyPacketHandler packetHandler) {
+    public HoneyPacketEncodePreparation(Channel channel, AsyncDecoder async, HoneyPacketHandler packetHandler) {
         this.channel = channel;
-        this.asyncDecoder = asyncDecoder;
+        this.async = async;
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
     }
@@ -51,8 +50,8 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         return packetHandler;
     }
 
-    public AsyncDecoder getAsyncDecoder() {
-        return asyncDecoder;
+    public AsyncDecoder getAsync() {
+        return async;
     }
 
     @Override
@@ -79,7 +78,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
-        asyncDecoder.prependDecode((s) -> {
+        async.prependDecode((s) -> {
             if (player.isOnlineWeak() && !player.punished) {
                 try {
                     ChannelPromise asyncPromise;

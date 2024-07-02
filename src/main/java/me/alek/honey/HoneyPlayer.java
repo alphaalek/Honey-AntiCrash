@@ -42,7 +42,7 @@ public class HoneyPlayer {
     public UUID uuid;
     public String name;
 
-    public boolean online = true;
+    public boolean online = false;
     public boolean punished;
     public long postponedPackets;
     public long postponedPacketsForTick;
@@ -72,6 +72,7 @@ public class HoneyPlayer {
         this.bukkit = player;
         this.uuid = player.getUniqueId();
         this.name = player.getName();
+        this.online = true;
     }
 
     public boolean isBukkitReady() {
