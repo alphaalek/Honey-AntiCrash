@@ -30,28 +30,10 @@ public class PacketTaskHandler {
     static {
         new Thread(() -> {
             while (HoneyPlugin.get().isRunning()) {
-                if (handledTask != null
-                        && !handledTask.isDone()
-                        && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                        && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                run();
 
-                    PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                    if (packet == null || packet.isDumped()) {
-                        continue;
-                    }
-
-                    if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_1)
-                            || packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
-                                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
-                                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_AND_ROT
-                                    && packet.getType() != PacketTypes.Play.Client.GROUND
-                                    && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
-                                    && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
-                        dump(packet);
-                    }
-                }
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(10);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -59,16 +41,39 @@ public class PacketTaskHandler {
         }, "honey-packet-task-handler").start();
     }
 
-    public static WrappedPacketTaskFuture getHandledTask() {
+    private static synchronized void run() {
+        if (handledTask != null
+                && !handledTask.isDone()
+                && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+
+            PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
+            if (packet == null || packet.isDumped()) {
+                return;
+            }
+
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_1)
+                    || packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
+                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
+                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_AND_ROT
+                    && packet.getType() != PacketTypes.Play.Client.GROUND
+                    && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
+                    && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
+                dump(packet);
+            }
+        }
+    }
+
+    public static synchronized WrappedPacketTaskFuture getHandledTask() {
         return handledTask;
+    }
+
+    public static synchronized PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
+        return Optional.ofNullable(handledTask).map(WrappedPacketTaskFuture::getPacket).orElse(null);
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getLastHandledPacket() {
         return lastHandledPacket;
-    }
-
-    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        return Optional.ofNullable(handledTask).map(WrappedPacketTaskFuture::getPacket).orElse(null);
     }
 
     private static String formatThreadDump() {
@@ -137,28 +142,16 @@ public class PacketTaskHandler {
         }
     }
 
-    public static void registerTask(WrappedPacketTaskFuture task){
+    public static synchronized void registerTask(WrappedPacketTaskFuture task){
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 
         handledTask = task;
     }
 
-    public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
+    public static synchronized void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
         packet.getEventloopStateTimings().stopTimings();
 
-        dumpHeavyPacket(packet);
-
-        // we have to make sure it's not an unmapped packet
-        if (!PacketTypes.isUnknown(packet.getType())) {
-            monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
-        }
-
-        lastHandledPacket = packet;
-        handledTask = null;
-    }
-
-    private static void dumpHeavyPacket(PacketContainer<? extends WrappedPacket<?>> packet) {
         double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
         if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
                 && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
@@ -170,5 +163,13 @@ public class PacketTaskHandler {
             HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
                     + " §cThe server (server thread) is done processing packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
         }
+
+        // we have to make sure it's not an unmapped packet
+        if (!PacketTypes.isUnknown(packet.getType())) {
+            monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+        }
+
+        lastHandledPacket = packet;
+        handledTask = null;
     }
 }

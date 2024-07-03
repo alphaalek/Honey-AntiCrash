@@ -6,6 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.via.ViaProtocol;
+import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.print.PrintValidationBridge;
 import me.alek.honey.validation.ValidationContainers;
@@ -105,9 +106,8 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
-        isUsingOldVersion = !version.equals(this.latestVersion);
-
-        if (!plugin.getDescription().getVersion().equals(version)) {
+        if (new LibraryVersion(plugin.getDescription().getVersion()).isOlderThan(new LibraryVersion(this.latestVersion))) {
+            isUsingOldVersion = true;
             try {
                 PluginDescriptionFile descriptionFile = plugin.getDescription();
                 FieldAccessor<String> versionField = Reflection.getField(descriptionFile.getClass(), "version", String.class);
@@ -117,6 +117,8 @@ public class HoneyPlugin implements HoneyAPI {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+        } else {
+            isUsingOldVersion = false;
         }
     }
 

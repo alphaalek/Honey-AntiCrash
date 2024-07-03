@@ -108,7 +108,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     packet = list.get(0);
                 }
             } catch (Throwable ex) {
-                ex.printStackTrace();
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
                     Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + earlyPacketContainer.getByteSize() + " bytes", ex);
                 }
