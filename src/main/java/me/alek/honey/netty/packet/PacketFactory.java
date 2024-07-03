@@ -7,13 +7,19 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.ConstructorInvoker;
+import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class PacketFactory {
+
+    private static final AtomicReference<MethodInvoker<Void>> serializerApplyInvokerCache = new AtomicReference<>();
 
     public static Object createRawPacket(PacketType type) {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
@@ -29,14 +35,24 @@ public class PacketFactory {
         return null;
     }
 
-    public static Object createRawPacket(PacketType type, ByteBuf serializer) {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
+    public static Object createPacket(PacketType type, ByteBuf serializer) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)
+                && !serializer.isReadable()) {
             return createRawPacket(type);
         }
 
+        Object packetSerializer = new PacketDataSerializer(serializer).getSerializer();
+
         try {
-            return new ConstructorInvoker<>(type.getNmsClass(), NMS.getPacketDataSerializerClass())
-                    .invoke(new PacketDataSerializer(serializer).getSerializer());
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
+                Object raw = createRawPacket(type);
+                ReflectStructureCache.acquireStructure(type.getNmsClass())
+                        .withTarget(raw).invokeMethod(serializerApplyInvokerCache, 0, packetSerializer);
+                return raw;
+            } else {
+                return new ConstructorInvoker<>(type.getNmsClass(), NMS.getPacketDataSerializerClass())
+                        .invoke(packetSerializer);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -55,10 +71,10 @@ public class PacketFactory {
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Channel channel, Callback postAction) {
         try {
             Object rawPacket;
-            if (serializer == null) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 rawPacket = createRawPacket(type);
             } else {
-                rawPacket = createRawPacket(type, serializer);
+                rawPacket = createPacket(type, serializer);
             }
 
             return createWrappedPacket(type, rawPacket, player, channel, postAction);

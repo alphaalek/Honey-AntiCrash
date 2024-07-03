@@ -35,6 +35,10 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         return packetHandler;
     }
 
+    public boolean streams(PacketBound bound) {
+        return bound.equals(PacketBound.SERVER) ? read : write;
+    }
+
     @SuppressWarnings("unchecked")
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Channel channel, Object msg, PacketBound bound) {
         switch (bound) {
@@ -89,11 +93,15 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
-        if (packetContainer == null) {
-            return;
+        try {
+            PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
+            if (packetContainer == null) {
+                return;
+            }
+            sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
     }
 
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {

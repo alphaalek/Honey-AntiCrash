@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
@@ -13,7 +13,8 @@ import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutPosition;
+import me.alek.honey.netty.structure.ReflectStructureCache;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,11 +113,11 @@ public class PacketInterceptorResolver {
                     prev.set(name);
 
                     ChannelHandler intercepted = ctx.pipeline().get(name);
-                    if (intercepted != null && !name.equals("via-decoder"))
-                        ((ChannelInboundHandler)intercepted).channelRead(ctx, byteBuf.copy());
-                    else
+                    if (intercepted != null && !name.equals(ViaHandlers.DECODER)) {
+                        ((ChannelInboundHandler) intercepted).channelRead(ctx, byteBuf.copy());
+                    } else {
                         ctx.fireChannelRead(o);
-
+                    }
                 } catch (Exception ignored) {
                     ignored.printStackTrace();
                 }
@@ -124,6 +125,7 @@ public class PacketInterceptorResolver {
 
             @Override
             public void handlerRemoved(ChannelHandlerContext ctx) {
+                // to do nothing
             }
 
         });
@@ -153,8 +155,7 @@ public class PacketInterceptorResolver {
             serializer.writeShort(0);
             serializer.writeInt(0);
         }).copy();
-        PacketContainer<WrappedPlayOutPosition> packet = PacketFactory.<WrappedPlayOutPosition>createWrappedPacket(
-                PacketTypes.Play.Server.PLAYER_POSITION, PacketFactory.createRawPacket(PacketTypes.Play.Server.PLAYER_POSITION, buf), null, pipeline.channel(), null).getContainer();
+        Object raw = PacketFactory.createPacket(PacketTypes.Play.Server.PLAYER_POSITION, buf);
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, false, handler -> handler instanceof ChannelOutboundHandler,
@@ -170,19 +171,23 @@ public class PacketInterceptorResolver {
                     position.set(prev.get() != null ? prev.get() : name);
                     return;
                 }
+
                 try {
                     prev.set(name);
 
                     ChannelHandler intercepted = ctx.pipeline().get(name);
-                    ((ChannelOutboundHandler)intercepted).write(ctx, packet.getRaw(), promise);
-
+                    if (intercepted != null && !name.equals(ViaHandlers.ENCODER)) {
+                        ((ChannelOutboundHandler) intercepted).write(ctx, raw, promise);
+                    } else {
+                        ctx.write(raw, promise);
+                    }
                 } catch (Exception ignored) {
                     ignored.printStackTrace();
                 }
             }
         });
 
-        pipeline.channel().writeAndFlush(packet.getRaw());
+        pipeline.channel().writeAndFlush(raw);
 
         return handlers;
     }

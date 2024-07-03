@@ -13,6 +13,7 @@ import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -22,6 +23,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CodecFactory {
+
+    public static final int VIA_VERSION_PASSTHROUGH_ID = 1000;
 
     public static Object getProtocolInfo1_20_5(PacketBound bound, PacketState state) {
         Class<Object> protocolInfoClass = NMS.getProtocolInfoClass();
@@ -146,16 +149,19 @@ public class CodecFactory {
 
             @Override
             public Object decodeModern(ByteBuf buf, PacketState state) throws CodecException {
-                if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
-                    PacketDataSerializer dataSerializer = new PacketDataSerializer(buf);
-                    int id = dataSerializer.readVarInt();
-                    if (id < 0) {
-                        throw new CodecException(id, "Bad Packet ID");
-                    }
-                    if (id == HoneyPacketDecodePreparation.VIA_VERSION_PASSTHROUGH_ID) {
-                        return null;
-                    }
+                int index = buf.readerIndex();
 
+                PacketDataSerializer dataSerializer = new PacketDataSerializer(buf);
+                int id = dataSerializer.readVarInt();
+
+                if (id < 0) {
+                    throw new CodecException(id, "Bad Packet ID");
+                }
+                if (id == VIA_VERSION_PASSTHROUGH_ID) {
+                    return decodeModern(buf.skipBytes(16).readBytes(buf.readableBytes()), state);
+                }
+
+                if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
                     try {
                         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                             return enumProtocol.createModernPacket1_20_1(PacketBound.SERVER, dataSerializer, id);
@@ -166,6 +172,7 @@ public class CodecFactory {
                         throw new CodecException(id, ex);
                     }
                 } else {
+                    buf.readerIndex(index);
                     return wrappedStreamCodec.decodeModern(buf, state);
                 }
             }
@@ -177,8 +184,8 @@ public class CodecFactory {
                 if (id < 0) {
                     throw new CodecException(id, "Bad Packet ID");
                 }
-                if (id == HoneyPacketDecodePreparation.VIA_VERSION_PASSTHROUGH_ID) {
-                    return null;
+                if (id == VIA_VERSION_PASSTHROUGH_ID) {
+                    return decodeLegacy(buf.skipBytes(16).readBytes(buf.readableBytes()), state, codec);
                 }
 
                 Object packet;

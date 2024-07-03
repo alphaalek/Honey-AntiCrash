@@ -9,6 +9,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 
 public class HoneyPacketDecoder {

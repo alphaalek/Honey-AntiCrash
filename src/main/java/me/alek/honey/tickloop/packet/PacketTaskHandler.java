@@ -10,6 +10,7 @@ import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.Bukkit;
 
@@ -21,7 +22,6 @@ import java.util.Optional;
 
 public class PacketTaskHandler {
 
-    private static final Object handleTaskLock = new Object();
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     private static WrappedPacketTaskFuture handledTask;
@@ -30,31 +30,24 @@ public class PacketTaskHandler {
     static {
         new Thread(() -> {
             while (HoneyPlugin.get().isRunning()) {
-                synchronized (handleTaskLock) {
-                    if (handledTask != null
-                            && !handledTask.isDone()
-                            && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                            && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                if (handledTask != null
+                        && !handledTask.isDone()
+                        && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                        && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
-                        PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-                        if (packet == null || packet.isDumped()) {
-                            continue;
-                        }
+                    PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
+                    if (packet == null || packet.isDumped()) {
+                        continue;
+                    }
 
-                        if (packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
-                                && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
-                                && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_AND_ROT
-                                && packet.getType() != PacketTypes.Play.Client.GROUND
-                                && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
-                                && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
-                            dump(packet);
-
-                            if (handledTask != null
-                                    && handledTask.getPacket().equals(packet)
-                                    && handledTask.isDone()) {
-                                dumpHeavyPacket(packet);
-                            }
-                        }
+                    if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_1)
+                            || packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
+                                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
+                                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_AND_ROT
+                                    && packet.getType() != PacketTypes.Play.Client.GROUND
+                                    && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
+                                    && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
+                        dump(packet);
                     }
                 }
                 try {
@@ -67,15 +60,15 @@ public class PacketTaskHandler {
     }
 
     public static WrappedPacketTaskFuture getHandledTask() {
-        synchronized (handleTaskLock) {
-            return handledTask;
-        }
+        return handledTask;
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getLastHandledPacket() {
-        synchronized (handleTaskLock) {
-            return lastHandledPacket;
-        }
+        return lastHandledPacket;
+    }
+
+    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
+        return Optional.ofNullable(handledTask).map(WrappedPacketTaskFuture::getPacket).orElse(null);
     }
 
     private static String formatThreadDump() {
@@ -144,18 +137,11 @@ public class PacketTaskHandler {
         }
     }
 
-    public static PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        return Optional.ofNullable(handledTask).map(WrappedPacketTaskFuture::getPacket).orElse(null);
-    }
-
     public static void registerTask(WrappedPacketTaskFuture task){
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 
-        synchronized (handleTaskLock) {
-            lastHandledPacket = null;
-            handledTask = task;
-        }
+        handledTask = task;
     }
 
     public static void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
@@ -168,10 +154,8 @@ public class PacketTaskHandler {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }
 
-        synchronized (handleTaskLock) {
-            lastHandledPacket = packet;
-            handledTask = null;
-        }
+        lastHandledPacket = packet;
+        handledTask = null;
     }
 
     private static void dumpHeavyPacket(PacketContainer<? extends WrappedPacket<?>> packet) {

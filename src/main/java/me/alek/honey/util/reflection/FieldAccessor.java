@@ -24,7 +24,7 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
             return (T) field.get(object);
         } catch (Exception ex) {
             ex.printStackTrace();
-            throw new RuntimeException("Reflection error (field get): " + field.getName() + " " + ex.getMessage());
+            throw new RuntimeException("Reflection error (field get): " + field.getName(), ex);
         }
     }
 

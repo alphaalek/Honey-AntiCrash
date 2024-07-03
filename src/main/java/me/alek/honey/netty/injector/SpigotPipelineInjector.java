@@ -42,11 +42,11 @@ public class SpigotPipelineInjector {
 
             HoneyPacketHandler packetHandler = new HoneyPacketHandler(channel);
 
-            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, debuggerName, new HoneyDebugger(packetHandler.getPlayer()));
-            channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, filterName, new InboundPacketFilter(packetHandler));
-
             setupPreparationHandlers(channel, packetHandler);
             togglePreResolvedBounds(channel, new PreResolvedPacketHandler(packetHandler));
+
+            channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, filterName, new InboundPacketFilter(packetHandler));
+            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, debuggerName, new HoneyDebugger(packetHandler.getPlayer()));
         }
     }
 
@@ -158,7 +158,6 @@ public class SpigotPipelineInjector {
 
         if (decoder == null
                 && PacketInterceptorResolver.hasDecoderHandler(channel.pipeline())
-                && packetHandler.getProtocolState(PacketBound.SERVER).equals(PacketState.PLAY)
                 && !isConfigurationActive(channel.pipeline(), PacketBound.SERVER)) {
             channel.pipeline().addBefore(PacketInterceptorResolver.getDecoderPosition(channel.pipeline()), decoderName,
                     new HoneyPacketDecodePreparation(channel, async, packetHandler));
@@ -166,7 +165,6 @@ public class SpigotPipelineInjector {
 
         if (encoder == null
                 && PacketInterceptorResolver.hasEncoderHandler(channel.pipeline())
-                && packetHandler.getProtocolState(PacketBound.CLIENT).equals(PacketState.PLAY)
                 && !isConfigurationActive(channel.pipeline(), PacketBound.CLIENT)) {
             channel.pipeline().addAfter(PacketInterceptorResolver.getEncoderPosition(channel.pipeline()), encoderName,
                     new HoneyPacketEncodePreparation(channel, async, packetHandler));
@@ -188,21 +186,20 @@ public class SpigotPipelineInjector {
     }
 
     public boolean relocatePreparationHandlers(Channel channel) throws MissingHandlerException {
-        HoneyPacketHandler packetHandler = getPacketHandler(channel);
-
         ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
         if (preResolvedPacketHandler != null) {
             togglePreResolvedBounds(channel, (PreResolvedPacketHandler) preResolvedPacketHandler);
         }
 
         if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
-            setupPreparationHandlers(channel, packetHandler);
+            setupPreparationHandlers(channel, getPacketHandler(channel));
 
             if (preResolvedPacketHandler != null) {
                 togglePreResolvedBounds(channel, (PreResolvedPacketHandler) preResolvedPacketHandler);
             }
 
             if (!HoneyPlugin.get().getPacketLibrary().getPacketManager().bothPreparationHandlerExists(channel)) {
+                ensureCorrectPipelineOrder(channel);
                 return false;
             }
         }

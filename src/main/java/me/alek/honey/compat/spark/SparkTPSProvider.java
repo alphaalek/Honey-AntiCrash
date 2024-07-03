@@ -17,7 +17,8 @@ public class SparkTPSProvider implements ServiceProvider<Spark> {
         public static final ServiceValidator VALIDATOR = new SparkValidator();
 
         public LazyInit<Boolean> find() {
-            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("spark") != null);
+            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("spark") != null
+                    && HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("spark").isEnabled());
         }
     }
 

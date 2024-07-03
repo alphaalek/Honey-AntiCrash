@@ -13,7 +13,7 @@ public class ConstructorInvoker<T> {
         try {
             return clazz.getDeclaredConstructor(params);
         } catch (Exception ex) {
-            throw new RuntimeException("Reflection error (constructor): name: " + clazz.getName() + ", params: " + Arrays.toString(params) + ", message: " + ex.getMessage());
+            throw new RuntimeException("Reflection error (constructor): name: " + clazz.getName() + ", params: " + Arrays.toString(params), ex);
         }
     }
 

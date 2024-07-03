@@ -59,14 +59,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.raw = raw;
         this.postAction = postAction;
 
-        if (!PacketTypes.isUnknown(type)
-                && type.getNmsClass().equals(raw.getClass())) {
-            this.structure = ReflectStructureCache.acquireStructure(type);
-            if (this.structure.isStaticFieldsAllowed()) {
-                this.structure.withoutStatic();
-            }
-            this.wrapped = (WP) PacketFactory.createWrappedPacket(type, raw, this);
+        if (PacketTypes.isUnknown(type)
+                || !type.getNmsClass().equals(raw.getClass())) {
+            throw new IllegalStateException("Unknown type " + raw + " " + type + " " + Optional.ofNullable(type).map(PacketType::getNmsClass).orElse(null));
         }
+
+        this.structure = ReflectStructureCache.acquireStructure(type);
+        if (this.structure.isStaticFieldsAllowed()) {
+            this.structure.withoutStatic();
+        }
+        this.wrapped = (WP) PacketFactory.createWrappedPacket(type, raw, this);
     }
 
     @Override

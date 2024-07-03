@@ -68,7 +68,7 @@ public class Reflection {
             }
         }
 
-        throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + name);
+        throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + name + " " + Arrays.toString(superClass.getDeclaredClasses()));
     }
 
     public static Class<?> getSubClass(Class<?> superClass, int i) {

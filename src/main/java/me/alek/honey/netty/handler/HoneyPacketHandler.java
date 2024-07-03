@@ -1,15 +1,20 @@
 package me.alek.honey.netty.handler;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.compat.via.ViaProtocol;
+import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -19,6 +24,8 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 
 
@@ -31,6 +38,7 @@ public class HoneyPacketHandler {
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
     private final HoneyPlayer player;
+    private ViaProtocol viaProtocol;
     private PacketState clientboundProtocolState = PacketState.HANDSHAKE;
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
@@ -86,36 +94,73 @@ public class HoneyPacketHandler {
         return bound.equals(PacketBound.CLIENT) ? resolvingClientbound : resolvingServerbound;
     }
 
-    public void updateProtocol(PacketBound bound) {
-        if (bound == null) {
-            updateProtocol(PacketBound.SERVER);
-            updateProtocol(PacketBound.CLIENT);
-            return;
-        }
+    public void updateProtocol(PacketState previous, PacketBound bound) {
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_6)) {
+            if (bound.equals(PacketBound.SERVER)
+                    && ConfigurationOptions.Decoder.USE_DEFAULT) {
+                return;
+            }
 
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_6)
-                && channel.pipeline().get("pre-resolved-packet-handler") == null
-                && !ConfigurationOptions.Decoder.USE_DEFAULT) {
-            Attribute<Object> protocolAttribute = channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, bound));
-            protocolAttribute.set(WrappedEnumProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
+            if (previous.equals(PacketState.HANDSHAKE)
+                    || bound.equals(PacketBound.SERVER)) {
+                updateProtocolAttributeKey(bound);
+            } else {
+                EVENTLOOP_PROCESSES[bound.ordinal()].get().add(() -> {
+                    updateProtocolAttributeKey(bound);
+                });
+            }
         }
     }
 
+    private void updateProtocolAttributeKey(PacketBound bound) {
+        Attribute<Object> protocolAttribute = channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, bound));
+        protocolAttribute.set(WrappedEnumProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
+    }
+
     public void setProtocolState(PacketBound bound, PacketState state) {
-        if (bound == PacketBound.SERVER) {
+        if (!PacketBound.CLIENT.equals(bound)) {
+            PacketState previous = getProtocolState(PacketBound.SERVER);
             serverboundProtocolState = state;
-            serverboundProtocol = CodecFactory.createInboundCodec(getProtocolState(PacketBound.SERVER));
-        } else if (bound == PacketBound.CLIENT) {
+            serverboundProtocol = CodecFactory.createInboundCodec(state);
+            updateProtocol(previous, PacketBound.SERVER);
+        }
+        if (!PacketBound.SERVER.equals(bound)) {
+            PacketState previous = getProtocolState(PacketBound.CLIENT);
             clientboundProtocolState = state;
-            clientboundProtocol = CodecFactory.createOutboundCodec(getProtocolState(PacketBound.CLIENT));
-        } else {
-            serverboundProtocolState = state;
-            clientboundProtocolState = state;
-            serverboundProtocol = CodecFactory.createInboundCodec(getProtocolState(PacketBound.SERVER));
-            clientboundProtocol = CodecFactory.createOutboundCodec(getProtocolState(PacketBound.CLIENT));
+            clientboundProtocol = CodecFactory.createOutboundCodec(state);
+            updateProtocol(previous, PacketBound.CLIENT);
+        }
+    }
+
+    public PacketType getPacketType(ByteBuf buf) {
+        int index = buf.readerIndex();
+        PacketDataSerializer serializer = new PacketDataSerializer(buf);
+        int id = Types.VAR_INT.read(serializer);
+        buf.readerIndex(index);
+
+        PacketState state = getProtocolState(PacketBound.SERVER);
+        PacketType type = null;
+
+        // check if the client major version is not the same as the server
+        // if it is not the same, then we will acquire the packet type with ViaVersion
+        if (ViaProtocol.ViaValidator.VALIDATOR.find().get()
+                && state != PacketState.HANDSHAKE // client-info (handshake SET_PROTOCOL) has been called
+                && !player.clientInfo.getMajorProtocol().equals(NetProtocol.getProtocol())) {
+
+            if (viaProtocol == null) {
+                viaProtocol = ViaProtocol.getViaProtocolFrom(player.clientInfo.getMajorProtocol());
+            }
+
+            if (viaProtocol.hasState(PacketBound.SERVER, state)) {
+                type = viaProtocol.getServerboundMappings(state).get(id);
+            }
         }
 
-        updateProtocol(bound);
+        if (type == null) {
+            type = getPacketType(PacketBound.SERVER, id);
+        }
+
+        return type;
     }
 
     public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {

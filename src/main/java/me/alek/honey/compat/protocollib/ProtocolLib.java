@@ -24,7 +24,8 @@ public class ProtocolLib {
         public static final ServiceValidator VALIDATOR = new ProtocolLibValidator();
 
         public LazyInit<Boolean> find() {
-            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ProtocolLib") != null);
+            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ProtocolLib") != null
+                    && HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ProtocolLib").isEnabled());
         }
     }
 }

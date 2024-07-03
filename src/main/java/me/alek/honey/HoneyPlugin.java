@@ -294,8 +294,6 @@ public class HoneyPlugin implements HoneyAPI {
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
 
         PrintValidationBridge.inject();
-
-        ViaProtocol.values();
     }
 
     private void setupPacketLibrary() {

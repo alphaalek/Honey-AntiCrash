@@ -29,25 +29,27 @@ public class BukkitEventInternal implements Listener {
 
         channel.eventLoop().execute(() -> {
             HoneyPlayer honeyPlayer = handleChannel(player, channel);
-
-            Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
-                PlayerJoinQuitListener.onPostLoginSuccess(honeyPlayer);
-            });
+            if (honeyPlayer != null) {
+                // the initialization of this HoneyPlayer was successful
+                Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
+                    PlayerJoinQuitListener.onPostLoginSuccess(honeyPlayer);
+                });
+            }
         });
     }
 
     private HoneyPlayer handleChannel(Player player, Channel channel) {
 
-        HoneyPlayer honeyPlayer = null;
+        HoneyPlayer honeyPlayer;
         try {
             honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
             honeyPlayer.initBukkitPlayer(player);
 
             HoneyPlayer.register(honeyPlayer, player);
         } catch (MissingHandlerException ex) {
-            ex.printStackTrace();
             HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                    () -> player.kickPlayer("Broken pipe! " + ex.getMessage()));
+                    () -> player.kickPlayer("Broken pipe! Try reconnecting."));
+            return null;
         }
 
         return honeyPlayer;

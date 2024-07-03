@@ -18,22 +18,31 @@ import org.bukkit.Bukkit;
 public class ProtocolSwapHandler {
 
     public void swapProtocolIfNeeded(PacketContainer<? extends WrappedPacket<?>> packet) {
-        if (packet.getType() == PacketTypes.Login.Server.LOGIN_SUCCESS) {
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
-                for (PacketBound bound : PacketBound.values()) {
-                    HoneyPacketHandler.EVENTLOOP_PROCESSES[bound.ordinal()].get().add(() -> setProtocolState(packet.getChannel(), PacketState.PLAY, bound));
-                }
-            } else {
-                setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.CLIENT);
+        // login -> play (server -> client) (legacy)
+        if (packet.getType() == PacketTypes.Login.Server.LOGIN_SUCCESS
+                && NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
+            for (PacketBound bound : PacketBound.values()) {
+                HoneyPacketHandler.EVENTLOOP_PROCESSES[bound.ordinal()].get().add(() -> setProtocolState(packet.getChannel(), PacketState.PLAY, bound));
             }
+        // login -> configuration (client -> server)
+        } else if (packet.getType() == PacketTypes.Login.Client.LOGIN_ACKNOWLEDGED) {
+            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, null);
+
+        // configuration -> play (server -> client)
         } else if (packet.getType() == PacketTypes.Configuration.Server.FINISH_CONFIGURATION) {
             setProtocolState(packet.getChannel(), PacketState.PLAY, PacketBound.CLIENT);
-        } else if (packet.getType() == PacketTypes.Login.Client.LOGIN_ACKNOWLEDGED) {
-            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
-        } else if (packet.getType() == PacketTypes.Play.Client.CONFIGURATION_ACKNOWLEDGED) {
-            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
+        // configuration -> play (client -> server)
         } else if (packet.getType() == PacketTypes.Configuration.Client.FINISH_CONFIGURATION) {
             setProtocolState(packet.getChannel(), PacketState.PLAY, PacketBound.SERVER);
+
+        // play -> configuration (server -> client)
+        } else if (packet.getType() == PacketTypes.Play.Server.START_CONFIGURATION) {
+            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.CLIENT);
+        // play -> configuration (client -> server)
+        } else if (packet.getType() == PacketTypes.Play.Client.CONFIGURATION_START_ACKNOWLEDGED) {
+            setProtocolState(packet.getChannel(), PacketState.CONFIGURATION, PacketBound.SERVER);
+
+        // handshake -> status/login (client -> server)
         } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
             JavaConverter<Enum<?>, WrappedEnumProtocol> converter = Converters.getEnumProtocolConverter();
             int packetStateOrdinal;
@@ -43,7 +52,7 @@ public class ProtocolSwapHandler {
             } else {
                 Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
                 int clientIntentOrdinal = ((Enum<?>)clientIntent).ordinal();
-                packetStateOrdinal = clientIntentOrdinal == 0 ? /* STATUS */ 2 : /* LOGIN */ 3;
+                packetStateOrdinal = clientIntentOrdinal == 0 ? /* status */ 2 : /* login */ 3;
            }
             PacketState packetState = PacketState.values()[packetStateOrdinal];
             setProtocolState(packet.getChannel(), packetState, null);

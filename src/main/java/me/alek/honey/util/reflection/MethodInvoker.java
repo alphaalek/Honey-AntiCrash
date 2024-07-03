@@ -19,8 +19,7 @@ public class MethodInvoker<T> implements IReflectionMember<T> {
         try {
             return invokeWithException(instance, parameters);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Reflection error (method invoke): " + method.getName() + " " + ex.getMessage());
+            throw new RuntimeException("Reflection error (method invoke): " + method.getName(), ex);
         }
     }
 

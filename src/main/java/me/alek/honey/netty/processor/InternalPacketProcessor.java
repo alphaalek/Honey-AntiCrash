@@ -15,6 +15,7 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
+import javax.annotation.processing.SupportedOptions;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -30,6 +31,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         private final EnumMap<ListenerPriority, List<PacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
+        @SuppressWarnings("unchecked")
         public void callPacket(HoneyPlayer player, PacketContainer<?> packetContainer) {
             callPipeline(listener -> {
                 try {
@@ -270,7 +272,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         if (bound.equals(PacketBound.SERVER) && earlyInitializedPacket != null) {
             type = earlyInitializedPacket.getType();
         }
-        if (type == null) {
+        if (PacketTypes.isUnknown(type)
+                // check if the packet has been rewritten and the type has changed by ViaVersion
+                || !type.getNmsClass().equals(packet.getClass())) {
             Optional<PacketType> optionalType = PacketTypes.getPacketType(packet.getClass(), player.packetHandler.getProtocolState(bound));
             if (!optionalType.isPresent()) {
                 return null;
@@ -279,7 +283,6 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         Callback postAction = getPostAction(type);
-
         PacketContainer<WP> packetContainer = initializePacketContainer(
                 earlyInitializedPacket, packet, player, channel, postAction, type);
 

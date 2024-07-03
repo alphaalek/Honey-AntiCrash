@@ -58,7 +58,6 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (!ctx.channel().isOpen()) {
-            promise.setFailure(new ClosedChannelException());
             return;
         }
         if (!packetHandler.isPacket(msg)) {
@@ -111,11 +110,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
-        if (promise != null) {
-            ctx.write(msg, promise);
-        } else {
-            ctx.write(msg);
-        }
+        ctx.write(msg, promise);
 
         Callback postAction = packetContainer.getPost();
         if (postAction != null) {

@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public enum PacketTypes implements PacketType {
     UNKNOWN;
@@ -122,12 +123,25 @@ public enum PacketTypes implements PacketType {
                 continue;
             }
 
+
             int id = type.getMinecraftID().get();
+            if (id == -1) {
+                Bukkit.getLogger().severe("Unknown ID: " + id + ", " + type);
+            }
             typesArray.set(id, type);
         }
 
         state.getTypes()[bound.ordinal()].clear();
         state.getTypes()[bound.ordinal()].addAll(typesArray);
+
+        if (typesArray.compact().size() != typesArray.size()) {
+            List<Integer> indices = typesArray.streamNodes()
+                    .filter(Array.ImmutableArrayNode::isNull)
+                    .map(Array.ImmutableArrayNode::getIndex)
+                    .collect(Collectors.toList());
+            Bukkit.getLogger().severe("Done registering (state: " + state + ", bound: " + bound + " protocol) but found missing packet-type indices: " + indices);
+            Bukkit.getLogger().severe(typesArray.toString());
+        }
     }
 
     public static Array<PacketType> getTypesAvailableFor(PacketState state, PacketBound bound) {
@@ -579,7 +593,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> COOKIE_RESPONSE_CLASS;
         private static Class<?> CHUNK_BATCH_RECEIVED_CLASS;
         private static Class<?> CLIENT_INFORMATION_CLASS;
-        private static Class<?> CONFIGURATION_ACKNOWLEDGED_CLASS;
+        private static Class<?> CONFIGURATION_START_ACKNOWLEDGED_CLASS;
         private static Class<?> CONTAINER_SLOT_STATE_CHANGED_CLASS;
         private static Class<?> DEBUG_SAMPLE_SUBSCRIPTION_CLASS;
         private static Class<?> DIFFICULTY_CHANGE_CLASS;
@@ -593,8 +607,8 @@ public enum PacketTypes implements PacketType {
         private static Class<?> PLAYER_POSITION_CLASS;
         private static Class<?> PLAYER_POSITION_AND_ROTATION_CLASS;
         private static Class<?> PICK_ITEM_CLASS;
-        private static Class<?> PING_CLIENT_CLASS;
-        private static Class<?> PONG_CLIENT_CLASS;
+        private static Class<?> PING_REQUEST_CLASS;
+        private static Class<?> PONG_RESPONSE_CLASS;
         private static Class<?> RECIPE_DISPLAYED_CLASS;
         private static Class<?> RECIPE_SETTINGS_CLASS;
         private static Class<?> UPDATE_COMMAND_BLOCK_CLASS;
@@ -613,9 +627,9 @@ public enum PacketTypes implements PacketType {
             if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 TRANSACTION_CLASS = Reflection.getClass("{play}.PacketPlayInTransaction");
                 PLAYER_MOVEMENT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying");
-                PLAYER_POSITION_CLASS = Reflection.getSubClass(PLAYER_MOVEMENT_CLASS, "PacketPlayInPosition");
-                PLAYER_POSITION_AND_ROTATION_CLASS = Reflection.getSubClass(PLAYER_MOVEMENT_CLASS, "PacketPlayInPositionLook");
-                PLAYER_ROTATION_CLASS = Reflection.getSubClass(PLAYER_MOVEMENT_CLASS, "PacketPlayInLook");
+                PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
+                PLAYER_POSITION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPosition");
+                PLAYER_POSITION_AND_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_9)) {
                 VEHICLE_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInVehicleMove");
@@ -656,7 +670,7 @@ public enum PacketTypes implements PacketType {
                 PLAYER_POSITION_AND_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
-                PONG_CLIENT_CLASS = Reflection.getUnsureClass("{play}.ServerboundPongPacket", "{common}.ServerboundPongPacket");
+                PONG_RESPONSE_CLASS = Reflection.getUnsureClass("{play}.ServerboundPongPacket", "{common}.ServerboundPongPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19)) {
                 CHAT_COMMAND_CLASS = Reflection.getClass("{play}.ServerboundChatCommandPacket");
@@ -673,7 +687,8 @@ public enum PacketTypes implements PacketType {
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CHUNK_BATCH_RECEIVED_CLASS = Reflection.getClass("{play}.ServerboundChunkBatchReceivedPacket");
                 CLIENT_INFORMATION_CLASS = Reflection.getClass("{common}.ServerboundClientInformationPacket");
-                CONFIGURATION_ACKNOWLEDGED_CLASS = Reflection.getClass("{play}.ServerboundConfigurationAcknowledgedPacket");
+                CONFIGURATION_START_ACKNOWLEDGED_CLASS = Reflection.getClass("{play}.ServerboundConfigurationAcknowledgedPacket");
+                PING_REQUEST_CLASS = Reflection.getUnsureClass("{status}.PacketStatusInPing", "{ping}.ServerboundPingRequestPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
                 CONTAINER_SLOT_STATE_CHANGED_CLASS = Reflection.getClass("{play}.ServerboundContainerSlotStateChangedPacket");
@@ -682,7 +697,6 @@ public enum PacketTypes implements PacketType {
                 CHAT_COMMAND_SIGNED_CLASS = Reflection.getClass("{play}.ServerboundChatCommandSignedPacket");
                 COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
                 DEBUG_SAMPLE_SUBSCRIPTION_CLASS = Reflection.getClass("{play}.ServerboundDebugSampleSubscriptionPacket");
-                PING_CLIENT_CLASS = Reflection.getClass("{ping}.ServerboundPingRequestPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
                 CLIENT_SETTINGS_CLASS = Reflection.getClass("{play}.PacketPlayInSettings");
@@ -710,7 +724,7 @@ public enum PacketTypes implements PacketType {
             CLIENT_COMMAND(CLIENT_COMMAND_CLASS, idRegistry.acquire(), "client_command"),
             CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CLOSE_WINDOW(CLOSE_WINDOW_CLASS, idRegistry.acquire(), "container_close"),
-            CONFIGURATION_ACKNOWLEDGED(CONFIGURATION_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "configuration_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CONFIGURATION_START_ACKNOWLEDGED(CONFIGURATION_START_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "configuration_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, idRegistry.acquire(), "container_slot_state_changed", NetProtocolRange.since(NetProtocol.v1_20_4)),
             COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquire(), "custom_payload"),
@@ -728,8 +742,8 @@ public enum PacketTypes implements PacketType {
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), "keep_alive"),
             PLAYER_ROTATION(PLAYER_ROTATION_CLASS, idRegistry.acquire(), "move_player_rot"),
             PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquire(), "pick_item", NetProtocolRange.since(NetProtocol.v1_13)),
-            PING(PING_CLIENT_CLASS, idRegistry.acquire(), "ping_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            PONG(PONG_CLIENT_CLASS, idRegistry.acquire(), "pong", NetProtocolRange.since(NetProtocol.v1_17)),
+            PING(PING_REQUEST_CLASS, idRegistry.acquire(), "ping_request", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            PONG(PONG_RESPONSE_CLASS, idRegistry.acquire(), "pong", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_POSITION(PLAYER_POSITION_CLASS, idRegistry.acquire(), "move_player_pos"),
             PLAYER_POS_AND_ROT(PLAYER_POSITION_AND_ROTATION_CLASS, idRegistry.acquire(), "move_player_pos_rot"),
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquire(), "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
@@ -818,10 +832,13 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> CLOSE_WINDOW_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutCloseWindow");
         private static final Class<?> COLLECT_ITEM_CLASS = Reflection.getClass("{play}.PacketPlayOutCollect");
         private static final Class<?> CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutCustomPayload", "{common}.ClientboundCustomPayloadPacket");;
+        private static final Class<?> ENTITY_MOVE_LOOK_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
         private static final Class<?> ENTITY_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity");
+        private static final Class<?> ENTITY_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity$PacketPlayOutRelEntityMove");
         private static final Class<?> ENTITY_DESTROY_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityDestroy");
         private static final Class<?> ENTITY_EFFECT_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityEffect");
         private static final Class<?> ENTITY_EQUIPMENT_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityEquipment");
+        private static final Class<?> ENTITY_LOOK_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity$PacketPlayOutEntityLook");
         private static final Class<?> ENTITY_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityHeadRotation");
         private static final Class<?> ENTITY_METADATA_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityMetadata");
         private static final Class<?> ENTITY_STATUS_CLASS = Reflection.getClass("{play}.PacketPlayOutEntityStatus");
@@ -880,11 +897,11 @@ public enum PacketTypes implements PacketType {
         private static Class<?> COMMANDS_CLASS;
         private static Class<?> COOKIE_REQUEST_CLASS;
         private static Class<?> CUSTOM_CHAT_COMPLETIONS_CLASS;
+        private static Class<?> CUSTOM_SOUND_EFFECT_CLASS;
         private static Class<?> DAMAGE_EVENT_CLASS;
         private static Class<?> DEBUG_SAMPLE_CLASS;
         private static Class<?> DELETE_CHAT_MESSAGE_CLASS;
         private static Class<?> DISGUISED_CHAT_CLASS;
-        private static Class<?> ENTITY_LOOK_CLASS;
         private static Class<?> ENTITY_SOUND_CLASS;
         private static Class<?> HURT_ANIMATION_CLASS;
         private static Class<?> INITIALIZE_BORDER_CLASS;
@@ -899,8 +916,8 @@ public enum PacketTypes implements PacketType {
         private static Class<?> OPEN_BOOK_CLASS;
         private static Class<?> OPEN_WINDOW_HORSE_CLASS;
         private static Class<?> OPEN_WINDOW_MERCHANT_CLASS;
-        private static Class<?> PING_SERVER_CLASS;
-        private static Class<?> PONG_SERVER_CLASS;
+        private static Class<?> PING_CLASS;
+        private static Class<?> PONG_CLASS;
         private static Class<?> PLAYER_CHAT_CLASS;
         private static Class<?> PLAYER_CHAT_HEADER_CLASS;
         private static Class<?> PLAYER_COMBAT_END_CLASS;
@@ -913,8 +930,6 @@ public enum PacketTypes implements PacketType {
         private static Class<?> RECIPE_UPDATE_CLASS;
         private static Class<?> RECIPES_CLASS;
         private static Class<?> RESET_SCORE_CLASS;
-        private static Class<?> ENTITY_MOVE_LOOK_CLASS;
-        private static Class<?> ENTITY_MOVE_CLASS;
         private static Class<?> RESOURCE_PACK_SEND_CLASS;
         private static Class<?> RESOURCE_PACK_POP_CLASS;
         private static Class<?> RESOURCE_PACK_PUSH_CLASS;
@@ -962,6 +977,9 @@ public enum PacketTypes implements PacketType {
                 UPDATE_ENTITY_NBT_CLASS = Reflection.getClass("{play}.PacketPlayOutUpdateEntityNBT");
                 SET_COMPRESSION_CLASS = Reflection.getClass("{play}.PacketPlayOutSetCompression");
             }
+            if (protocolVersion.isBetween(NetProtocol.v1_9, NetProtocol.v1_19_2)) {
+                CUSTOM_SOUND_EFFECT_CLASS = Reflection.getClass("{play}.PacketPlayOutCustomSoundEffect");
+            }
             if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_9_2)) {
                 UPDATE_SIGN_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutUpdateSign");
             }
@@ -973,9 +991,6 @@ public enum PacketTypes implements PacketType {
             }
             if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 COMBAT_EVENT_CLASS = Reflection.getClass("{play}.PacketPlayOutCombatEvent");
-                ENTITY_LOOK_CLASS = Reflection.getSubClass(ENTITY_CLASS, "PacketPlayOutEntityLook");
-                ENTITY_MOVE_CLASS = Reflection.getSubClass(ENTITY_CLASS, "PacketPlayOutRelEntityMove");
-                ENTITY_MOVE_LOOK_CLASS = Reflection.getSubClass(ENTITY_CLASS, "PacketPlayOutRelEntityMoveLook");
                 TRANSACTION_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutTransaction");
                 TITLE_CLASS = Reflection.getClass("{play}.PacketPlayOutTitle");
                 WORLD_BORDER_CLASS = Reflection.getClass("{play}.PacketPlayOutWorldBorder");
@@ -1027,14 +1042,11 @@ public enum PacketTypes implements PacketType {
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_17)) {
                 CLEAR_TITLES_CLASS = Reflection.getClass("{play}.ClientboundClearTitlesPacket");
-                ENTITY_LOOK_CLASS = Reflection.getClass( "{play}.PacketPlayOutEntity$PacketPlayOutEntityLook");
                 INITIALIZE_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
-                PING_SERVER_CLASS = Reflection.getUnsureClass("{play}.ClientboundPingPacket", "{common}.ClientboundPingPacket");
+                PING_CLASS = Reflection.getUnsureClass("{play}.ClientboundPingPacket", "{common}.ClientboundPingPacket");
                 PLAYER_COMBAT_END_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatEndPacket");
                 PLAYER_COMBAT_ENTER_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatEnterPacket");
                 PLAYER_COMBAT_KILL_CLASS = Reflection.getClass("{play}.ClientboundPlayerCombatKillPacket");
-                ENTITY_MOVE_CLASS = Reflection.getClass( "{play}.PacketPlayOutEntity$PacketPlayOutRelEntityMove");
-                ENTITY_MOVE_LOOK_CLASS = Reflection.getClass("{play}.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
                 SET_ACTION_BAR_TEXT_CLASS = Reflection.getClass("{play}.ClientboundSetActionBarTextPacket");
                 WORLD_BORDER_CENTER_CLASS = Reflection.getClass("{play}.ClientboundSetBorderCenterPacket");
                 WORLD_BORDER_LERP_SIZE_CLASS = Reflection.getClass("{play}.ClientboundSetBorderLerpSizePacket");
@@ -1082,6 +1094,7 @@ public enum PacketTypes implements PacketType {
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_4)) {
                 BUNDLE_CLASS = Reflection.getClass("{play}.ClientboundBundlePacket");
+                BUNDLE_DELIMITER_CLASS = Reflection.getUnsureClass("{play}.ClientboundBundleDelimiterPacket", "{nms}.network.protocol.BundleDelimiterPacket");
                 CHUNKS_BIOMES_CLASS = Reflection.getClass("{play}.ClientboundChunksBiomesPacket");
                 DAMAGE_EVENT_CLASS = Reflection.getClass("{play}.ClientboundDamageEventPacket");
                 HURT_ANIMATION_CLASS = Reflection.getClass("{play}.ClientboundHurtAnimationPacket");
@@ -1090,6 +1103,7 @@ public enum PacketTypes implements PacketType {
                 CHUNK_BATCH_FINISHED_CLASS = Reflection.getClass("{play}.ClientboundChunkBatchFinishedPacket");
                 CHUNK_BATCH_START_CLASS = Reflection.getClass("{play}.ClientboundChunkBatchStartPacket");
                 START_CONFIGURATION_CLASS = Reflection.getClass("{play}.ClientboundStartConfigurationPacket");
+                PONG_CLASS = Reflection.getUnsureClass("{status}.PacketStatusOutPong", "{ping}.ClientboundPongResponsePacket");
                 UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
@@ -1100,10 +1114,8 @@ public enum PacketTypes implements PacketType {
                 TICKING_STEP_CLASS = Reflection.getClass("{play}.ClientboundTickingStepPacket");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
-                BUNDLE_DELIMITER_CLASS = Reflection.getClass("{play}.ClientboundBundleDelimiterPacket");
                 COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
                 DEBUG_SAMPLE_CLASS = Reflection.getClass("{play}.ClientboundDebugSamplePacket");
-                PONG_SERVER_CLASS = Reflection.getClass("{ping}.ClientboundPongResponsePacket");
                 PROJECTILE_POWER_CLASS = Reflection.getClass("{play}.ClientboundProjectilePowerPacket");
                 STORE_COOKIE_CLASS = Reflection.getClass("{common}.ClientboundStoreCookiePacket");
                 TRANSFER_CLASS = Reflection.getClass("{common}.ClientboundTransferPacket");
@@ -1132,7 +1144,7 @@ public enum PacketTypes implements PacketType {
             BLOCK_CHANGED_ACK(BLOCK_CHANGED_ACK_CLASS, idRegistry.acquire(), "block_changed_ack", NetProtocolRange.since(NetProtocol.v1_19)),
             BOSS(BOSS_CLASS, idRegistry.acquire(), "boss_event", NetProtocolRange.since(NetProtocol.v1_9)),
             BUNDLE(BUNDLE_CLASS, idRegistry.acquire(), "bundle", NetProtocolRange.since(NetProtocol.v1_19_4)),
-            BUNDLE_DELIMITER(BUNDLE_DELIMITER_CLASS, idRegistry.acquire(), "bundle_delimiter", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            BUNDLE_DELIMITER(BUNDLE_DELIMITER_CLASS, idRegistry.acquire(), "bundle_delimiter", NetProtocolRange.since(NetProtocol.v1_19_4)),
             CAMERA(CAMERA_CLASS, idRegistry.acquire(), "set_camera"),
             CHAT_PREVIEW(CHAT_PREVIEW_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
             CHUNK_BATCH_FINISHED(CHUNK_BATCH_FINISHED_CLASS, idRegistry.acquire(), "chunk_batch_finished", NetProtocolRange.since(NetProtocol.v1_20_2)),
@@ -1146,16 +1158,17 @@ public enum PacketTypes implements PacketType {
             COMMANDS(COMMANDS_CLASS, idRegistry.acquire(), "commands", NetProtocolRange.since(NetProtocol.v1_13)),
             CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, idRegistry.acquire(), "custom_chat_completions", NetProtocolRange.since(NetProtocol.v1_19_1)),
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_payload"),
+            CUSTOM_SOUND_EFFECT(CUSTOM_SOUND_EFFECT_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_9, NetProtocol.v1_19_2)),
             DAMAGE_EVENT(DAMAGE_EVENT_CLASS, idRegistry.acquire(), "damage_event", NetProtocolRange.since(NetProtocol.v1_19_4)),
             DEBUG_SAMPLE(DEBUG_SAMPLE_CLASS, idRegistry.acquire(), "debug_sample", NetProtocolRange.since(NetProtocol.v1_20_6)),
             DELETE_CHAT_MESSAGE(DELETE_CHAT_MESSAGE_CLASS, idRegistry.acquire(), "delete_chat", NetProtocolRange.since(NetProtocol.v1_19_1)),
             DISGUISED_CHAT(DISGUISED_CHAT_CLASS, idRegistry.acquire(), "disguised_chat", NetProtocolRange.since(NetProtocol.v1_19_3)),
-            ENTITY(ENTITY_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_4)),
             ENTITY_DESTROY(ENTITY_DESTROY_CLASS, idRegistry.acquire(), "remove_entities"),
             ENTITY_EFFECT(ENTITY_EFFECT_CLASS, idRegistry.acquire(), "update_mob_effect"),
             ENTITY_EQUIPMENT(ENTITY_EQUIPMENT_CLASS, idRegistry.acquire(), "set_equipment"),
             ENTITY_ROTATION(ENTITY_ROTATION_CLASS, idRegistry.acquire(), "rotate_head"),
             ENTITY_LOOK(ENTITY_LOOK_CLASS, idRegistry.acquire(), "move_entity_rot"),
+            ENTITY(ENTITY_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_16_5)),
             ENTITY_METADATA(ENTITY_METADATA_CLASS, idRegistry.acquire(), "set_entity_data"),
             ENTITY_MOVE(ENTITY_MOVE_CLASS, idRegistry.acquire(), "move_entity_pos"),
             ENTITY_MOVE_LOOK(ENTITY_MOVE_LOOK_CLASS, idRegistry.acquire(), "move_entity_pos_rot"),
@@ -1188,7 +1201,7 @@ public enum PacketTypes implements PacketType {
             OPEN_WINDOW(OPEN_WINDOW_CLASS, idRegistry.acquire(), "open_screen"),
             OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, idRegistry.acquire(), "horse_screen_open", NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, idRegistry.acquire(), "merchant_offers", NetProtocolRange.since(NetProtocol.v1_14)),
-            PING(PING_SERVER_CLASS, idRegistry.acquire(), "ping", NetProtocolRange.since(NetProtocol.v1_17)),
+            PING(PING_CLASS, idRegistry.acquire(), "ping", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_CHAT(PLAYER_CHAT_CLASS, idRegistry.acquire(), "player_chat"),
             PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, idRegistry.acquire(), "player_combat_end", NetProtocolRange.since(NetProtocol.v1_17)),
@@ -1198,7 +1211,7 @@ public enum PacketTypes implements PacketType {
             PLAYER_INFO_REMOVE(PLAYER_INFO_REMOVE_CLASS, idRegistry.acquire(), "player_info_remove", NetProtocolRange.since(NetProtocol.v1_19_3)),
             PLAYER_INFO_UPDATE(PLAYER_INFO_UPDATE_CLASS, idRegistry.acquire(), "player_info_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
             TAB_LIST(TAB_LIST_CLASS, idRegistry.acquire(), "tab_list"),
-            PONG(PONG_SERVER_CLASS, idRegistry.acquire(), "pong_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            PONG(PONG_CLASS, idRegistry.acquire(), "pong_response", NetProtocolRange.since(NetProtocol.v1_20_2)),
             PLAYER_POSITION(PLAYER_POSITION_SERVER_CLASS, idRegistry.acquire(), "player_position"),
             PROJECTILE_POWER(PROJECTILE_POWER_CLASS, idRegistry.acquire(), "projectile_power", NetProtocolRange.since(NetProtocol.v1_20_6)),
             RECIPE_UPDATE(RECIPE_UPDATE_CLASS, idRegistry.acquire(), "update_recipes", NetProtocolRange.since(NetProtocol.v1_13)),

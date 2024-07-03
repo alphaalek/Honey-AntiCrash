@@ -9,6 +9,7 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -60,20 +61,16 @@ public enum ViaProtocol {
     }
 
     private static final String PACKAGE = "com.viaversion.viaversion";
-    private static final List<ViaProtocol> PROTOCOLS;
 
     static {
-        PROTOCOLS = Arrays.asList(ViaProtocol.values());
-        Collections.reverse(PROTOCOLS);
-
         ViaProtocol defaultProtocol = getViaProtocolFrom(NetProtocol.getProtocol());
         for (PacketBound bound : PacketBound.values()) {
             for (PacketState state : defaultProtocol.getUnsortedStates()[bound.ordinal()]) {
-                DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()] = defaultProtocol.getEnumConstants(defaultProtocol.packageName, bound, state);
+                DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()] = defaultProtocol.getEnumConstants(bound, state);
             }
         }
 
-        for (ViaProtocol protocol : PROTOCOLS) {
+        for (ViaProtocol protocol : values()) {
             protocol.load();
         }
     }
@@ -93,10 +90,9 @@ public enum ViaProtocol {
     }
 
     public static ViaProtocol getViaProtocolFrom(NetProtocol protocol) {
-        for (ViaProtocol viaProtocol : PROTOCOLS) {
-            if (protocol.isNewerThanOrEqual(viaProtocol.getProtocol())
-                    && (protocol.isOlderThan(viaProtocol.getProtocol().getAfter())
-                        || protocol.getAfter().isEqual(viaProtocol.getProtocol()))) {
+        for (ViaProtocol viaProtocol : values()) {
+            NetProtocolRange range = NetProtocolRange.between(viaProtocol.getProtocol(), viaProtocol.getNextProtocol().getProtocol().getBefore());
+            if (range.match(protocol) || viaProtocol.ordinal() == values().length - 1) {
                 return viaProtocol;
             }
         }
@@ -126,21 +122,28 @@ public enum ViaProtocol {
             return this;
         }
 
-        return PROTOCOLS.get(PROTOCOLS.size() - ordinal());
+        return values()[ordinal() - 1];
+    }
+
+    public ViaProtocol getNextProtocol() {
+        if (ordinal() == values().length - 1) {
+            return this;
+        }
+
+        return values()[ordinal() + 1];
     }
 
     private Array<PacketType> getMappings(PacketBound bound, PacketState state) {
         Array<PacketType> types = new Array<>();
 
-        Enum<?>[] constants = getEnumConstants(packageName, bound, state);
-        if (!states[bound.ordinal()].contains(state)) {
-            if (!getPreviousProtocol().hasState(bound, state)) {
+        if (!hasState(bound, state)) {
+            if (this.equals(ViaProtocol.v1_8)) {
                 return types;
             }
-
             return getPreviousProtocol().getMappings(bound, state);
         }
 
+        Enum<?>[] constants = getEnumConstants(bound, state);
         Enum<?>[] defaultConstants = DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()];
         Arrays.stream(constants).forEach(c -> {
             Arrays.stream(defaultConstants).forEach(dc -> {
@@ -152,25 +155,24 @@ public enum ViaProtocol {
         });
 
         if (types.isEmpty()) {
-            if (!getPreviousProtocol().hasState(bound, state)) {
-                return types;
-            }
-
             return getPreviousProtocol().getMappings(bound, state);
         }
 
         return types;
     }
 
-    public Enum<?>[] getEnumConstants(String packageName, PacketBound bound, PacketState state) {
+    public Enum<?>[] getEnumConstants(PacketBound bound, PacketState state) {
         try {
             String className = bound.getName() + (state.equals(PacketState.PLAY) ? "" : state.getName()) + "Packets" + protocol.toString();
             Class<Enum<?>> clazz = (Class<Enum<?>>) Reflection.getClass(PACKAGE + ".protocols." + packageName + "." + className);
-            Thread.sleep(10);
 
             return clazz.getEnumConstants();
         } catch (Exception ex) {
             states[bound.ordinal()].remove(state);
+        }
+
+        if (getPreviousProtocol().hasState(bound, state)) {
+            return getPreviousProtocol().getEnumConstants(bound, state);
         }
 
         return new Enum[0];
@@ -181,11 +183,7 @@ public enum ViaProtocol {
     }
 
     public boolean hasState(PacketBound bound, PacketState state) {
-        switch (bound) {
-            case CLIENT: return clientboundMappings[state.ordinal()] != null;
-            case SERVER: return serverboundMappings[state.ordinal()] != null;
-            default: return false;
-        }
+        return states[bound.ordinal()].contains(state);
     }
 
     public Array<PacketState>[] getUnsortedStates() {
@@ -205,7 +203,8 @@ public enum ViaProtocol {
         public static final ServiceValidator VALIDATOR = new ViaValidator();
 
         public LazyInit<Boolean> find() {
-            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion") != null);
+            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion") != null
+                    && HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion").isEnabled());
         }
     }
 }

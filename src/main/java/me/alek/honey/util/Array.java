@@ -3,6 +3,7 @@ package me.alek.honey.util;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -10,6 +11,28 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Array<T> implements Iterable<T> {
+
+    public static class ImmutableArrayNode<T> {
+        private final T data;
+        private final int index;
+
+        public ImmutableArrayNode(T data, int index) {
+            this.data = data;
+            this.index = index;
+        }
+
+        public T getVal() {
+            return data;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public boolean isNull() {
+            return data == null;
+        }
+    }
 
     private Object[] data = new Object[0];
 
@@ -64,6 +87,11 @@ public class Array<T> implements Iterable<T> {
 
     public Stream<T> stream() {
         return Arrays.stream((T[]) data);
+    }
+
+    public Stream<ImmutableArrayNode<T>> streamNodes() {
+        AtomicInteger count = new AtomicInteger();
+        return stream().map(d -> new ImmutableArrayNode<>(d, count.getAndIncrement()));
     }
 
     public Array<T> from(int from, int to) {

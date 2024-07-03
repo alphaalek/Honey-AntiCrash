@@ -138,13 +138,8 @@ public enum NetProtocol {
         return protocol;
     }
 
-    public static boolean matchProtocol(RangedPacketType rangedPacketType, NetProtocol protocol) {
-        NetProtocolRange range = rangedPacketType.getRange();
-        return range.match(protocol);
-    }
-
-    public static boolean matchProtocol(RangedPacketType rangedPacketType) {
-         return matchProtocol(rangedPacketType, PROTOCOL);
+    public static boolean matchProtocol(RangedPacketType range) {
+         return range.getRange().match(PROTOCOL);
     }
 
     public static NetProtocol getLatest() {

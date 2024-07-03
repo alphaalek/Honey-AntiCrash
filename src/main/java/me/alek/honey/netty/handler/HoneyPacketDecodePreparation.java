@@ -12,6 +12,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.packetwrappers.WrappedPacket;
@@ -29,7 +30,6 @@ import java.util.logging.Level;
 @ChannelHandler.Sharable
 public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
-    public static final int VIA_VERSION_PASSTHROUGH_ID = 1000;
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue();
 
@@ -85,8 +85,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void invokeRead(PacketContainer<? extends WrappedPacket<?>> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list)  {
-        if (!byteBuf.isReadable()) {
+    private void invokeRead(PacketContainer<? extends WrappedPacket<?>> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf buf, List<Object> list)  {
+        if (!buf.isReadable()) {
             return;
         }
 
@@ -96,10 +96,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    packet = HoneyPacketDecoder.decodePacket(player, packetHandler.getProtocolState(PacketBound.SERVER), packetHandler.getProtocolCodec(PacketBound.SERVER), byteBuf);
+                    packet = HoneyPacketDecoder.decodePacket(player, packetHandler.getProtocolState(PacketBound.SERVER), packetHandler.getProtocolCodec(PacketBound.SERVER), buf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
-                    Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, byteBuf, list});
+                    Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, buf, list});
 
                     if (list.isEmpty()) {
                         stopTimings(earlyPacketContainer);
@@ -108,10 +108,11 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     packet = list.get(0);
                 }
             } catch (Throwable ex) {
+                ex.printStackTrace();
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
                     Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + earlyPacketContainer.getByteSize() + " bytes", ex);
                 }
-                byteBuf.release();
+                buf.release();
 
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
 
@@ -120,7 +121,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            byteBuf.release();
+            buf.release();
 
             if (packet == null) {
                 stopTimings(earlyPacketContainer);
@@ -204,15 +205,18 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        ByteBuf byteBuf = (ByteBuf) o;
-        if (byteBuf.readableBytes() == 0) {
-            ctx.fireChannelRead(byteBuf);
+        ByteBuf buf = (ByteBuf) o;
+        if (buf.readableBytes() == 0) {
+            ctx.fireChannelRead(buf);
             return;
         }
 
         PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.MARK.get();
         if (packetContainer == null) {
-            return;
+            // this packet is not sent by the client (because it was not received by the filter),
+            // but instead invoked by some plugin (most likely ViaVersion)
+            packetContainer = new InternalPacketContainer<>(player, ctx.channel(), packetHandler.getPacketType(buf), buf.readableBytes());
+            InboundPacketFilter.MARK.set(packetContainer);
         }
 
         packetContainer.getEventloopStateTimings().stopTimings();
@@ -221,17 +225,21 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
                 || !player.isBukkitReady()
                 || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
-            invokeRead(packetContainer, ctx, byteBuf, nonRecycledList);
+            if (!player.punished && (!player.isBukkitReady() || player.isOnlineWeak())) {
+                invokeRead(packetContainer, ctx, buf, nonRecycledList);
+            }
         } else {
-            ByteBuf wrapped = byteBuf.readBytes(byteBuf.readableBytes()).retain();
-            byteBuf.release();
+            ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
+            buf.release();
 
             PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
             async.decode((s) -> {
                 InboundPacketFilter.MARK.set(packet);
+
                 if (player.isOnlineWeak() && !player.punished) {
-                    invokeRead(packetContainer, ctx, wrapped, nonRecycledList);
+                    invokeRead(packet, ctx, wrapped, nonRecycledList);
                 }
+
                 InboundPacketFilter.MARK.remove();
             });
         }
