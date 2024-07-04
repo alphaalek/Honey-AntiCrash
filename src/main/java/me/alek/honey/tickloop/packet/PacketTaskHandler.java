@@ -47,7 +47,9 @@ public class PacketTaskHandler {
                 && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
             PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
-            if (packet == null || packet.isDumped()) {
+            if (packet == null
+                    || packet.isDumped()
+                    || packet.getPlayer().bypassServerThreadTracking()) {
                 return;
             }
 
@@ -151,16 +153,18 @@ public class PacketTaskHandler {
     public static synchronized void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
         packet.getEventloopStateTimings().stopTimings();
 
-        double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
-        if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
-                && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
-            HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
-        }
+        if (!packet.getPlayer().bypassServerThreadTracking()) {
+            double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
+            if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
+                    && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
+                HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
+            }
 
-        if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                && packet.isDumped()) {
-            HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
-                    + " §cThe server (server thread) is done processing packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
+            if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
+                    && packet.isDumped()) {
+                HoneyPlugin.get().getNotificationService().notify(HoneyPlugin.get().getNotificationService().getPrefix()
+                        + " §cThe server (server thread) is done processing packet " + packet.getType() + " by " + packet.getPlayerName() + ". (Took " + NumberUtils.format(millis, 2) + "ms)");
+            }
         }
 
         // we have to make sure it's not an unmapped packet

@@ -108,7 +108,6 @@ monitor.executor.service.shutdown.error=Monitor executor service did not shutdow
 monitor.executor.service.shutdown.exception=Exception occurred when shutting down monitor executor service!
 monitor.stopping={prefix} §cStopping %s.
 monitor.stop.no.active={prefix} §7You do not currently monitor anything.
-monitor.start.bypass.permission.error=§cCan't start player monitor on %s, because the player has bypass permission.
 monitor.start={prefix} §7Started %s. Use /honey monitor stop if you want to stop the monitoring.
 monitor.name.player=player monitor of %s
 
@@ -139,7 +138,6 @@ reload.end={prefix} §7Reload done.
 
 track.no.data={prefix} §cNo data!
 track.players={prefix} §7Sending information about the server thread occupation by players...
-track.no.data.bypass.permission=§e%s: §cNo data because the player has bypass permission!
 track.average=Average
 track.checks={prefix} §7Sending information about the work of checks...
 

@@ -1,6 +1,7 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
@@ -9,7 +10,6 @@ import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.ClientInfo;
-import me.alek.honey.validation.ValidationServiceContext;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -89,6 +89,16 @@ public class HoneyPlayer {
         Material material = bukkit.getEyeLocation().getBlock().getType();
         return material.name().contains("WATER")
                 || material.name().contains("LAVA");
+    }
+
+    public boolean bypassServerThreadTracking() {
+        return ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
+                && isBukkitReady() && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+    }
+
+    public boolean bypassEverything() {
+        return ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                && isBukkitReady() && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
     }
 
     public boolean isOnlineBukkit() {

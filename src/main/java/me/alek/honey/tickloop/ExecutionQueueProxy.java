@@ -247,12 +247,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 return false;
             }
 
-            if (!packet.getPlayer().isBukkitReady()
-                    || ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                            && packet.getPlayer().bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-                return super.add(value);
-            }
-
             return addPacketTask(
                     new WrappedPacketTask(
                             (Runnable) value,
@@ -304,11 +298,12 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         }
 
         private boolean shouldPostponeTask(WrappedPacketTask task) {
-            if (!ConfigurationOptions.Postpone.ENABLED) {
+            HoneyPlayer player = task.getPlayer();
+            if (!ConfigurationOptions.Postpone.ENABLED
+                    || player.bypassServerThreadTracking()) {
                 return false;
             }
 
-            HoneyPlayer player = task.getPlayer();
             if (player.postponedPacketsForTick > 0) {
                 return true;
             }

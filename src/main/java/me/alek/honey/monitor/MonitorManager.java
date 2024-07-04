@@ -109,12 +109,6 @@ public class MonitorManager {
     }
 
     public void setupPlayerMonitor(CommandSender sender, HoneyPlayer player) {
-        if (ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-            sender.sendMessage(Lang.getFormatted("monitor.start.bypass.permission.error", player.name));
-            return;
-        }
-
         if (removeIfHasMonitor(sender, false) == getMonitorer(player)) {
             return;
         }

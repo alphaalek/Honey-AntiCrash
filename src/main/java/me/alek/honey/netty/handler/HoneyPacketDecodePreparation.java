@@ -130,10 +130,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
 
             if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
-                    || ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                            && player.isBukkitReady()
-                            && player.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
-
+                    || player.bypassEverything()) {
                 ctx.fireChannelRead(packet);
                 stopTimings(earlyPacketContainer);
                 return;
