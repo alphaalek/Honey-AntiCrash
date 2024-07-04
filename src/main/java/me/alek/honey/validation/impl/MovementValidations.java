@@ -232,7 +232,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                     );
                 }
 
-                if (!builder.getContainer().subContainers.isEmpty()) {
+                if (!builder.build().subContainers.isEmpty()) {
                     return builder.build();
                 }
             }
@@ -495,7 +495,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                     }
                 }
 
-                if (!builder.getContainer().subContainers.isEmpty()) {
+                if (!builder.build().subContainers.isEmpty()) {
                     return builder.build();
                 }
             }
@@ -569,47 +569,40 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 double delta2D = context.getDouble(0);
                 double deltaY = context.getDouble(1);
                 if (delta2D == 0 && deltaY == 0) {
-                    return ValidationServiceContext.PASS.copy().skip(1).build();
+                    return ValidationServiceContext.PASS;
+                }
+                if (player.isInLiquid() || deltaY % 0.375 < Math.pow(10, -3)) {
+                    return ValidationServiceContext.PASS;
                 }
 
                 ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
 
-                if (deltaY > 0.5) {
-                    Material material = player.bukkit.getEyeLocation().getBlock().getType();
-                    if (material.name().contains("WATER")
-                            || material.name().contains("LAVA")
-                            || deltaY % 0.375 < 0.01) {
-                        return ValidationServiceContext.PASS.copy().skip(1).build();
-                    }
-
-                    if (lastDeltaY == deltaY) {
-                        builder.add(
-                                ValidationServiceContext.Builder.validate().flag()
-                                        .withViolationKey(YKey)
-                                        .build()
-                        );
-                    }
-                    lastDeltaY = deltaY;
+                if (lastDeltaY == deltaY && deltaY > 0) {
+                    builder.add(
+                            context.put(ValidationServiceContext.class,
+                                    ValidationServiceContext.Builder.validate().flag()
+                                            .withViolationKey(YKey)
+                                            .build()
+                            )
+                    );
+                }
+                if (lastDelta2D == delta2D && delta2D > 0) {
+                    builder.add(
+                            context.put(ValidationServiceContext.class,
+                                    ValidationServiceContext.Builder.validate().flag()
+                                            .withViolationKey(twoDKey)
+                                            .build()
+                            )
+                    );
                 }
 
-                if (delta2D > 0.05) {
-                    if (lastDelta2D == delta2D) {
-                        builder.add(
-                                ValidationServiceContext.Builder.validate().flag()
-                                        .withViolationKey(twoDKey)
-                                        .build()
-                        );
-                    }
-                    lastDelta2D = delta2D;
-                }
+                lastDeltaY = deltaY;
+                lastDelta2D = delta2D;
 
-
-                if (!builder.getContainer().subContainers.isEmpty()) {
-                    return builder.build();
-                }
+                return builder.build();
             }
 
-            return ValidationServiceContext.PASS.copy().skip(1).build();
+            return ValidationServiceContext.PASS;
         }
 
         @Override
@@ -640,7 +633,21 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag().build();
+                ValidationServiceContext.Builder builder = ValidationServiceContext.Builder.validate();
+                int i = 0;
+                for (;;) {
+                    ValidationServiceContext flagContext = context.get(ValidationServiceContext.class, i++);
+                    if (flagContext != null) {
+                        builder.add(flagContext);
+                        continue;
+                    }
+
+                    if (builder.build().subContainers.isEmpty()) {
+                        return ValidationServiceContext.PASS;
+                    }
+
+                    return builder.build();
+                }
             }
 
             return ValidationServiceContext.PASS;

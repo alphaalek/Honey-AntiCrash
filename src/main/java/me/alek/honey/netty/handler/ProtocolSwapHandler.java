@@ -1,19 +1,25 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
+import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ProtocolSwapHandler {
 
@@ -44,21 +50,18 @@ public class ProtocolSwapHandler {
 
         // handshake -> status/login (client -> server)
         } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
-            JavaConverter<Enum<?>, WrappedEnumProtocol> converter = Converters.getEnumProtocolConverter();
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), converter, PacketBound.SERVER).readField(0);
+                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), Converters.getEnumProtocolConverter(), PacketBound.SERVER)
+                        .readField(0);
                 packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
             } else {
                 Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
-                int clientIntentOrdinal = ((Enum<?>)clientIntent).ordinal();
-                packetStateOrdinal = clientIntentOrdinal == 0 ? /* status */ 2 : /* login */ 3;
-           }
+                packetStateOrdinal = ((Enum<?>)clientIntent).ordinal() == 0 ? /* status */ 2 : /* login */ 3;
+            }
             PacketState packetState = PacketState.values()[packetStateOrdinal];
             setProtocolState(packet.getChannel(), packetState, null);
         }
-
-        // TODO: handle configuration pipeline
     }
 
     private void setProtocolState(Channel channel, PacketState state, PacketBound bound)  {

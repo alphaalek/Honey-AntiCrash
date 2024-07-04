@@ -317,6 +317,10 @@ public class ReflectStructure<T, C> {
         return withSpecificType(boolean.class, null, true);
     }
 
+    public ReflectStructure<Void, Void> withVoids() {
+        return withSpecificType(void.class, null, true);
+    }
+
     public ReflectStructure<String, String> withStrings() {
         return withSpecificType(String.class, null, true);
     }

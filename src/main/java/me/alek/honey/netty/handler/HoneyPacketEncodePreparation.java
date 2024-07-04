@@ -60,6 +60,9 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         if (!player.isStreamActive()) {
             return;
         }
+
+        packetHandler.handleEventloopProcesses(PacketBound.CLIENT);
+
         if (!packetHandler.isPacket(msg)) {
             if (!packetHandler.handleNonPacket(msg)) {
                 promise.setSuccess();
@@ -68,8 +71,6 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             ctx.write(msg, promise);
             return;
         }
-
-        packetHandler.handleEventloopProcesses(PacketBound.CLIENT);
 
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
                 || !player.isBukkitReady()

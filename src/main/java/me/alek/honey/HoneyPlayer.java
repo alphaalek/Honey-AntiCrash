@@ -9,7 +9,9 @@ import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.ClientInfo;
+import me.alek.honey.validation.ValidationServiceContext;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -81,6 +83,12 @@ public class HoneyPlayer {
 
     public boolean isBukkitReady() {
         return this.bukkit != null;
+    }
+
+    public boolean isInLiquid() {
+        Material material = bukkit.getEyeLocation().getBlock().getType();
+        return material.name().contains("WATER")
+                || material.name().contains("LAVA");
     }
 
     public boolean isOnlineBukkit() {

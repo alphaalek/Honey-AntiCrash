@@ -64,10 +64,6 @@ public class ValidationServiceContext implements Cloneable {
             this.responseContainer = container;
         }
 
-        public ValidationServiceContext getContainer() {
-            return responseContainer;
-        }
-
         public Builder(ValidationServiceContext container, List<ValidationServiceContext> subContainers) {
             this(container);
             this.responseContainer.subContainers = subContainers;

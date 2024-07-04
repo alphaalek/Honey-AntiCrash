@@ -110,40 +110,49 @@ public class ValidationPipelineContext {
 
     private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
 
-    public void putBoolean(boolean bool) {
+    public boolean putBoolean(boolean bool) {
         put(ContainerStorageTypes.BOOLEAN, bool);
+        return bool;
     }
 
-    public void putString(String string) {
+    public String putString(String string) {
         put(ContainerStorageTypes.STRING, string);
+        return string;
     }
 
-    public void putChar(char character) {
+    public char putChar(char character) {
         put(ContainerStorageTypes.CHAR, character);
+        return character;
     }
 
-    public void putInt(int integer) {
+    public int putInt(int integer) {
         put(ContainerStorageTypes.INT, integer);
+        return integer;
     }
 
-    public void putFloat(float floatValue) {
+    public float putFloat(float floatValue) {
         put(ContainerStorageTypes.FLOAT, floatValue);
+        return floatValue;
     }
 
-    public void putByte(byte byteValue) {
+    public byte putByte(byte byteValue) {
         put(ContainerStorageTypes.BYTE, byteValue);
+        return byteValue;
     }
 
-    public void putDouble(double doubleValue) {
+    public double putDouble(double doubleValue) {
         put(ContainerStorageTypes.DOUBLE, doubleValue);
+        return doubleValue;
     }
 
-    public void putLong(long longValue) {
+    public long putLong(long longValue) {
         put(ContainerStorageTypes.LONG, longValue);
+        return longValue;
     }
 
-    public void putLocation(Location location) {
+    public Location putLocation(Location location) {
         put(ContainerStorageTypes.LOCATION, location);
+        return location;
     }
 
     public String getString(int index) {
@@ -182,13 +191,15 @@ public class ValidationPipelineContext {
         return get(index, ContainerStorageTypes.LOCATION);
     }
 
-    public synchronized <T> void put(int index, T value) {
+    public synchronized <T> T put(int index, T value) {
         ContainerStructure<T> structure = getStructure(index);
         structure.add(value);
+        return value;
     }
 
-    public <T> void put(Class<T> clazz, T value) {
+    public <T> T put(Class<T> clazz, T value) {
         put(ContainerStorageTypes.getIndex(clazz), value);
+        return value;
     }
 
     public <T> T getVal(int index, int typeIndex, T or) {

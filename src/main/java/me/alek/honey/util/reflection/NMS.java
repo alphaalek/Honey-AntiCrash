@@ -296,6 +296,11 @@ public class NMS {
         return clientIntentClass != null ? clientIntentClass : (clientIntentClass = getUnsureClass("{nms}.network.protocol.handshake.ClientIntent"));
     }
 
+    private static Class<Object> protocolSwapHandlerClass;
+    public static Class<Object> getProtocolSwapHandlerClass() {
+        return protocolSwapHandlerClass != null ? protocolSwapHandlerClass : (protocolSwapHandlerClass = getUnsureClass("{nms}.network.ProtocolSwapHandler"));
+    }
+
     private static Class<Object> gamePacketTypesClass;
     public static Class<Object> getGamePacketTypesClass() {
         return gamePacketTypesClass != null ? gamePacketTypesClass : (gamePacketTypesClass = getUnsureClass("{play}.GamePacketTypes"));
