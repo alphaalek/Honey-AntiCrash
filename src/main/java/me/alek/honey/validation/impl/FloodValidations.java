@@ -35,12 +35,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, Callback callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
 
         // ignore set creative slot packets when players in creative mode clear their inventory
-        if (packetContainer.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
+        if (packet.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
                 && player.bukkit.getGameMode() == GameMode.CREATIVE) {
-            int slot = ((WrappedPlayInSetCreativeSlot)packetContainer.getPacket()).getSlot();
+            int slot = ((WrappedPlayInSetCreativeSlot) packet.getPacket()).getSlot();
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
 
             lastSetCreativeSlot.put(player.uuid, slot);

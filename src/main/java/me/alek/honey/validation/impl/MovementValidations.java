@@ -60,8 +60,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, Callback callback) {
-        Location currentLocation = packetContainer.getPacket().getLocation();
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
+        Location currentLocation = packet.getPacket().getLocation();
         Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
         // check if the packet has any valid location to be checked, or just origin location

@@ -26,15 +26,15 @@ import java.util.List;
 public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCustomPayload> {
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packetContainer, ValidationPipelineContext context, Callback callback) {
-        String channel = packetContainer.getPacket().getChannel();
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packet, ValidationPipelineContext context, Callback callback) {
+        String channel = packet.getPacket().getChannel();
 
         callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
                 context.getDevelopmentData(keyInner).addPoint("Channel", channel);
-                context.getDevelopmentData(keyInner).addPoint("Byte Buffer", packetContainer.getPacket().getBuf().readableBytes() + " bytes");
+                context.getDevelopmentData(keyInner).addPoint("Byte Buffer", packet.getPacket().getBuf().readableBytes() + " bytes");
             });
         }));
 

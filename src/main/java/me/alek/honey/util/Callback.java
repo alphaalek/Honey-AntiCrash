@@ -53,7 +53,9 @@ public class Callback {
         }
 
         for (Action callback : callbacks) {
-            callback.call(data);
+            if (callback.test(data)) {
+                callback.call(data);
+            }
         }
     }
 

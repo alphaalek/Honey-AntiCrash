@@ -24,7 +24,8 @@ public enum ValidationContainers {
     v14(RotationValidations::new),
     v15(BlockDigValidations::new),
     v16(TabValidations::new),
-    v17(CommandValidations::new),
+    v17(TabValidations.ClientboundTabValidations::new),
+    v18(CommandValidations::new),
     ;
 
     private static final List<BaseValidationContainer> validations = new ArrayList<>();

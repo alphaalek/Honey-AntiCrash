@@ -25,8 +25,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
     @Override
-    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer, ValidationPipelineContext context, Callback callback) {
-        Location location = packetContainer.getPacket().getLocation();
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
+        Location location = packet.getPacket().getLocation();
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
         }
