@@ -12,7 +12,6 @@ import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.statics.NumberUtils;
-import org.bukkit.Bukkit;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -24,7 +23,7 @@ public class PacketTaskHandler {
 
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
-    private static WrappedPacketTaskFuture handledTask;
+    private static WrappedPacketTask handledTask;
     private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
 
     static {
@@ -33,7 +32,7 @@ public class PacketTaskHandler {
                 run();
 
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(5);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -64,12 +63,12 @@ public class PacketTaskHandler {
         }
     }
 
-    public static synchronized WrappedPacketTaskFuture getHandledTask() {
+    public static synchronized WrappedPacketTask getHandledTask() {
         return handledTask;
     }
 
     public static synchronized PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
-        return Optional.ofNullable(handledTask).map(WrappedPacketTaskFuture::getPacket).orElse(null);
+        return Optional.ofNullable(handledTask).map(WrappedPacketTask::getPacket).orElse(null);
     }
 
     public static PacketContainer<? extends WrappedPacket<?>> getLastHandledPacket() {
@@ -142,7 +141,7 @@ public class PacketTaskHandler {
         }
     }
 
-    public static synchronized void registerTask(WrappedPacketTaskFuture task){
+    public static synchronized void registerTask(WrappedPacketTask task){
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
 

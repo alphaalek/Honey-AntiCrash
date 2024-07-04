@@ -256,7 +256,33 @@ public class LoggerService {
         if (entries.isEmpty()) {
             return "<empty>";
         }
-        return entries.toString();
+
+        Iterator<Map.Entry<String, Object>> i = entries.entrySet().iterator();
+        if (!i.hasNext()) {
+            return "{}";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        for (;;) {
+            Map.Entry<String, Object> e = i.next();
+            sb.append(e.getKey());
+            sb.append('=');
+            try {
+                sb.append(e.getValue());
+            } catch (Exception ex) {
+                sb.append("null");
+            }
+
+            if (!i.hasNext()) {
+                sb.append('}');
+                break;
+            }
+
+            sb.append(',').append(' ');
+        }
+
+        return sb.toString();
     }
 
     private String formatArray(Object val) {

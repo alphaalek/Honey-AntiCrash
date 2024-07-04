@@ -193,7 +193,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     public void read(ChannelHandlerContext ctx, Object o) {
-        if (!ctx.channel().isOpen()) {
+        if (!player.isStreamActive()) {
             return;
         }
         if (!(o instanceof ByteBuf)) {
@@ -224,9 +224,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
                 || !player.isBukkitReady()
                 || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
-            if (!player.punished && (!player.isBukkitReady() || player.isOnlineWeak())) {
-                invokeRead(packetContainer, ctx, buf, nonRecycledList);
-            }
+            invokeRead(packetContainer, ctx, buf, nonRecycledList);
         } else {
             ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
             buf.release();
@@ -235,7 +233,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             async.decode((s) -> {
                 InboundPacketFilter.MARK.set(packet);
 
-                if (player.isOnlineWeak() && !player.punished) {
+                if (player.isStreamActive()) {
                     invokeRead(packet, ctx, wrapped, nonRecycledList);
                 }
 

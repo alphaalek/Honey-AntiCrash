@@ -35,7 +35,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         int id = player.registryID;
         if (!pipelines.has(id)) {
             if (!factory.requiresPlayer()
-                    || player.isBukkitReady() && player.isOnlineBukkit() && !player.punished) {
+                    || player.isBukkitReady() && player.isStreamActive()) {
                 pipelines.set(id, factory.getNewPipeline());
 
                 player.leaveCallback.addAction(Callback.Action.from(p -> pipelines.remove(id)));

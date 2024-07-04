@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBufProcessor;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
@@ -31,11 +32,11 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     private final ByteBuf handle;
-    private final Object serializer;
+    private final LazyInit<Object> serializer;
 
     public PacketDataSerializer(ByteBuf byteBufHandle) {
         this.handle = byteBufHandle;
-        this.serializer = toNMSSerializer(byteBufHandle);
+        this.serializer = new LazyInit<>(() -> toNMSSerializer(byteBufHandle));
     }
 
     public ByteBuf getBuf() {
@@ -43,7 +44,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public Object getSerializer() {
-        return serializer;
+        return serializer.get();
     }
 
     public Object readBlockPosition() {

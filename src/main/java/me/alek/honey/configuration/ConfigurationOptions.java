@@ -1215,7 +1215,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT)
+            @Flood(PacketTypes.Play.Client.BLOCK_PLACE)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.block-place"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class BlockPlace extends ViolationSetting implements VlIntervalRequiredContentsSetting {

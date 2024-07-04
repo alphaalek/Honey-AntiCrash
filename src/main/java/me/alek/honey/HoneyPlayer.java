@@ -75,16 +75,16 @@ public class HoneyPlayer {
         this.online = true;
     }
 
+    public boolean isStreamActive() {
+        return !punished && (!isBukkitReady() || online) && channel.isOpen();
+    }
+
     public boolean isBukkitReady() {
         return this.bukkit != null;
     }
 
     public boolean isOnlineBukkit() {
         return bukkit.isOnline();
-    }
-
-    public boolean isOnlineWeak() {
-        return online;
     }
 
     public World getWorld() {

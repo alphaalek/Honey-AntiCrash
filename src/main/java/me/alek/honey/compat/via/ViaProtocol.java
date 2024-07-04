@@ -202,9 +202,12 @@ public enum ViaProtocol {
 
         public static final ServiceValidator VALIDATOR = new ViaValidator();
 
+        private final LazyInit<Boolean> find = new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion") != null
+                && HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion").isEnabled());
+
+        @Override
         public LazyInit<Boolean> find() {
-            return new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion") != null
-                    && HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion").isEnabled());
+            return find;
         }
     }
 }

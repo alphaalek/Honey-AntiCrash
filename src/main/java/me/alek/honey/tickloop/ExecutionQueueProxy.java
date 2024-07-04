@@ -10,7 +10,7 @@ import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.tickloop.packet.WrappedPacketTaskFuture;
+import me.alek.honey.tickloop.packet.WrappedPacketTask;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
@@ -94,7 +94,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         private Class<?> tickTaskClass;
         private ConstructorInvoker<?> tickTaskConstructor;
 
-        private Array<WrappedPacketTaskFuture> submitQueue = new Array<>();
+        private Array<WrappedPacketTask> submitQueue = new Array<>();
         private int currentPollIndex;
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
 
@@ -178,8 +178,8 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 handleTimings();
             }
 
-            WrappedPacketTaskFuture task = submitQueue.poll(currentPollIndex++);
-            recentPacket = Optional.ofNullable(task).map(WrappedPacketTaskFuture::getPacket).orElse(null);
+            WrappedPacketTask task = submitQueue.poll(currentPollIndex++);
+            recentPacket = Optional.ofNullable(task).map(WrappedPacketTask::getPacket).orElse(null);
 
             recentPollStart = -1;
             if (task == null) {
@@ -194,10 +194,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             if (task.getPlayer().postponedLastTick != getCurrentExecutionTick()) {
                 task.getPlayer().postponedPacketsForTick = 0;
                 task.getPlayer().postponedLastTick = getCurrentExecutionTick();
-            }
-
-            if (recentPacket != null) {
-                recentPacket.setHandledByServer();
             }
 
             if (shouldDropTask(task)) {
@@ -247,23 +243,25 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             }
 
             PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
-            if (packet == null
-                    || packet.isHandledByServer()
-                    || !packet.getPlayer().isBukkitReady()
+            if (packet == null || !packet.getPlayer().isStreamActive()) {
+                return false;
+            }
+
+            if (!packet.getPlayer().isBukkitReady()
                     || ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
                             && packet.getPlayer().bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION)) {
                 return super.add(value);
             }
 
             return addPacketTask(
-                    new WrappedPacketTaskFuture(
+                    new WrappedPacketTask(
                             (Runnable) value,
                             packet,
                             ExecutionQueueProxy.this.getCurrentExecutionTick())
                     );
         }
 
-        private boolean addPacketTask(WrappedPacketTaskFuture task) {
+        private boolean addPacketTask(WrappedPacketTask task) {
             if (super.isEmpty()) {
                 // add it two times if it's empty, so we always have one extra element to stop tracking of the last packet task
                 super.add(EMPTY_VALUE);
@@ -285,13 +283,13 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         }
 
         private int findOtherTaskIndex() {
-            WrappedPacketTaskFuture first = submitQueue.get(currentPollIndex - 1);
+            WrappedPacketTask first = submitQueue.get(currentPollIndex - 1);
             if (first.isPostponed() && isPacketDroppable(first.getPacket())) {
                 return currentPollIndex - 1;
             }
 
             for (int i = currentPollIndex; i < submitQueue.size(); i++) {
-                WrappedPacketTaskFuture task = submitQueue.get(i);
+                WrappedPacketTask task = submitQueue.get(i);
                 if (task != null && first.isPostponed() && isPacketDroppable(task.getPacket())) {
                     return i;
                 }
@@ -300,12 +298,12 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             return currentPollIndex - 1;
         }
 
-        private boolean shouldDropTask(WrappedPacketTaskFuture task) {
+        private boolean shouldDropTask(WrappedPacketTask task) {
             return task.getPlayer().postponedPackets > ConfigurationOptions.Postpone.MAX_POSTPONED_PACKETS
                     || getCurrentExecutionTick() - task.getTickAdded() > ConfigurationOptions.Postpone.MAX_POSTPONED_TICKS;
         }
 
-        private boolean shouldPostponeTask(WrappedPacketTaskFuture task) {
+        private boolean shouldPostponeTask(WrappedPacketTask task) {
             if (!ConfigurationOptions.Postpone.ENABLED) {
                 return false;
             }

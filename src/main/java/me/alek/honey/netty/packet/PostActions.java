@@ -79,9 +79,5 @@ public class PostActions {
                 packet.getChannel().close();
             }
         }));
-
-        packetProcessor.addPostAction(PacketTypes.Play.Client.CUSTOM_PAYLOAD, Callback.Action.<PacketContainer<WrappedPlayInCustomPayload>>from(packet -> {
-            packet.getPacket().getBuf().retain();
-        }));
     }
 }

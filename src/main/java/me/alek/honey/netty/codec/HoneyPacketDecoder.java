@@ -9,7 +9,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 
 public class HoneyPacketDecoder {
@@ -23,7 +22,7 @@ public class HoneyPacketDecoder {
         try {
             if (EmulatorCodec.LEGACY) {
                 packet = protocol.decodeLegacy(byteBuf, state, (packetType, applier) -> {
-                    if (packetType.equals(PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT)
+                    if (packetType.equals(PacketTypes.Play.Client.BLOCK_PLACE)
                             && ConfigurationOptions.Decoder.DISABLE_NBT
                             && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                         applier.apply(DisabledNBTCodec.BLOCK_PLACE);

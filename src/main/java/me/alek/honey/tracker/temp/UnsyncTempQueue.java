@@ -58,7 +58,9 @@ public class UnsyncTempQueue {
     public Deque<TimedNode<Double>> asTimedQueue() {
         if (isFixed) throw new UnsupportedOperationException();
 
-        return TIMED;
+        synchronized (this) {
+            return TIMED;
+        }
     }
 
     public void add(double amount) {
@@ -85,7 +87,9 @@ public class UnsyncTempQueue {
 
         if (!isFixed) {
             if (node.getValue() > 0) {
-                TIMED.add(node);
+                synchronized (this) {
+                    TIMED.add(node);
+                }
             }
 
             total += (long) (double) node.getValue();
@@ -105,12 +109,13 @@ public class UnsyncTempQueue {
 
         synchronized (this) {
             TimedNode<Double> peekedNode = TIMED.peek();
-            if (peekedNode == null || !clearNode(peekedNode, time)) {
+            if (peekedNode == null
+                    || !clearNode(peekedNode, time)) {
                 return;
             }
             TIMED.remove();
 
-            final Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
+            Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
             while (sampleNodeIterator.hasNext()) {
                 if (clearNode(sampleNodeIterator.next(), time)) {
                     sampleNodeIterator.remove();

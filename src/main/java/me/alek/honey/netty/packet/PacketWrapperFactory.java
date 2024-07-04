@@ -22,7 +22,7 @@ public class PacketWrapperFactory {
 
     public static void loadWrappers() {
         loadWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);
-        loadWrapper(PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT, WrappedPlayInBlockPlace::new);
+        loadWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadWrapper(PacketTypes.Play.Client.CHAT_MESSAGE, WrappedPlayInChat::new);
         loadWrapper(PacketTypes.Play.Client.CHAT_COMMAND, WrappedPlayInChat::new);
         loadWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, WrappedPlayInSetCreativeSlot::new);

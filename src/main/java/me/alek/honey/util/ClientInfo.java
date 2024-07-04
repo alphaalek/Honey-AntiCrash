@@ -13,7 +13,7 @@ public class ClientInfo {
         this.protocolVersion = protocolVersion;
         this.majorProtocol = NetProtocol.getMajorFrom(protocolVersion);
         if (majorProtocol == null) {
-            throw new IllegalStateException("Could not get major protocol from protocol version " + protocolVersion);
+            throw new IllegalArgumentException("Could not get major protocol from protocol version " + protocolVersion);
         }
     }
 

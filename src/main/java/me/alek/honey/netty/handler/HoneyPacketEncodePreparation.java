@@ -57,7 +57,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (!ctx.channel().isOpen()) {
+        if (!player.isStreamActive()) {
             return;
         }
         if (!packetHandler.isPacket(msg)) {
@@ -79,7 +79,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         }
 
         async.prependDecode((s) -> {
-            if (player.isOnlineWeak() && !player.punished) {
+            if (player.isStreamActive()) {
                 try {
                     ChannelPromise asyncPromise;
                     if (!promise.isDone()) {

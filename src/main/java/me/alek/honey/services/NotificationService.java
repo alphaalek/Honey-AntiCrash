@@ -395,18 +395,19 @@ public class NotificationService {
 
     public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
-
-            if (!hasNotifyPermission(observer.getKey()) || !player.isOnlineBukkit() || player.punished) {
+            if (!hasNotifyPermission(observer.getKey())
+                    || !player.isStreamActive()) {
                 continue;
             }
+
             observer.getValue().notify(player, notification, setting, packetLimitHandler, developmentData, honeyKey);
         }
     }
 
     public void warn(HoneyPlayer player, String warning, ViolationService.HoneyKey honeyKey) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
-
-            if (!hasNotifyPermission(observer.getKey()) || player.punished) {
+            if (!hasNotifyPermission(observer.getKey())
+                    || !player.isStreamActive()) {
                 continue;
             }
 

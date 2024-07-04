@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class LibraryVersion {
 
-    private final int[] versionIntArray;
+    private int[] versionIntArray;
 
     public LibraryVersion(final int... version) {
         this.versionIntArray = version;
@@ -16,7 +16,16 @@ public class LibraryVersion {
         int length = versionIntegers.length;
         this.versionIntArray = new int[length];
         for (int i = 0; i < length; i++) {
-            versionIntArray[i] = Integer.parseInt(versionIntegers[i]);
+            versionIntArray[i] = Integer.parseInt(versionIntegers[i].split("-")[0]);
+        }
+
+        if (version.contains("-b")) {
+            int[] copy = versionIntArray;
+            this.versionIntArray = new int[copy.length + 1];
+            System.arraycopy(copy, 0, this.versionIntArray, 0, copy.length);
+
+            int val = Integer.parseInt(version.split("-b")[1]);
+            this.versionIntArray[copy.length] = val;
         }
     }
 

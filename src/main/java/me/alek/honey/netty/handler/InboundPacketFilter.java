@@ -96,13 +96,16 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         super.userEventTriggered(ctx, event);
 
         if (event.equals(PAPER_COMPRESSION_ENABLED_EVENT)) {
-            // let ViaVersion inject their handlers first by calling the event to the pipeline
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
         }
     }
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
+        if (!player.isStreamActive()) {
+            return;
+        }
+
         if (!buf.isReadable() || packetHandler.isResolving(PacketBound.SERVER)) {
             ctx.fireChannelRead(buf);
             return;

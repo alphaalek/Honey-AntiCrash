@@ -5,11 +5,9 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.PacketReader;
-import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
@@ -17,68 +15,85 @@ import me.alek.honey.util.Array;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 public class Processor<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> {
 
-    public static class BoundContext<WP extends WrappedPacket<WP>> {
-
-        private final Array<List<BiConsumer<HoneyPlayer, PacketContainer<WP>>>> packetListeners = new Array<>();
-
-    }
-
-    public static class ReaderInfo {
+    public static class ReaderInfo<B, T> {
 
         private static final BiConsumer<HoneyPlayer, Throwable> DEFAULT_THROWABLE_DEBUGGER = (player, thrown) -> {
             HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Error occurred in processor for packet sent by " + player, thrown);
         };
 
-        private final PacketReader.Buf<PacketDataSerializer> reader;
-        private final BiConsumer<HoneyPlayer, Object[]> listener;
+        private final Function<B, T> reader;
+        private final BiConsumer<HoneyPlayer, T> listener;
         private final BiConsumer<HoneyPlayer, Throwable> onException;
 
-        public ReaderInfo(PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
-            this.reader = reader;
+        public ReaderInfo(Function<B, T> get, BiConsumer<HoneyPlayer, T> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
+            this.reader = get;
             this.listener = listener;
             this.onException = onException;
         }
 
-        public ReaderInfo(PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener) {
-            this(reader, listener, DEFAULT_THROWABLE_DEBUGGER);
+        public ReaderInfo(Function<B, T> get, BiConsumer<HoneyPlayer, T> listener) {
+            this(get, listener, DEFAULT_THROWABLE_DEBUGGER);
         }
     }
 
-    private final Array<List<ReaderInfo>> packetReaders = new Array<>();
-    private final BoundContext<? extends WrappedPacket<?>>[] contexts = (BoundContext<? extends WrappedPacket<?>>[]) new BoundContext[]{new BoundContext<>(), new BoundContext<>()};
+    private final Array<List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>>> packetListeners = new Array<>();
+    private final Array<List<ReaderInfo<PacketDataSerializer, Object[]>>> packetReaders = new Array<>();
 
     @SuppressWarnings("unchecked")
-    public BoundContext<WP> getContext(PacketBound bound) {
-        return (BoundContext<WP>) contexts[bound.ordinal()];
-    }
+    public <T extends WrappedPacket<T>> void addListener(PacketType type, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
+        List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>> readerInfos = packetListeners.get(type.getHoneyID(), LinkedList::new);
 
-    @SuppressWarnings("unchecked")
-    public <T extends WrappedPacket<T>> void addListener(PacketType type, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {
-        List<BiConsumer<HoneyPlayer, PacketContainer<T>>> listeners = (List<BiConsumer<HoneyPlayer, PacketContainer<T>>>) (List<?>)
-                getContext(type.getBound()).packetListeners.get(type.getHoneyID(), LinkedList::new);
-        listeners.add(listener);
+        ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info;
+        if (onException != null) {
+            info = new ReaderInfo<>(
+                    p -> p,
+                    (BiConsumer<HoneyPlayer, PacketContainer<WP>>) (BiConsumer<?, ?>) listener,
+                    onException);
+        } else {
+            info = new ReaderInfo<>(
+                    p -> p,
+                    (BiConsumer<HoneyPlayer, PacketContainer<WP>>) (BiConsumer<?, ?>) listener);
+        }
+        readerInfos.add(info);
 
         HoneyPlugin.get().getPacketLibrary().addListeners(this, ListenerPriority.HIGHEST, type);
     }
 
-    public void addReader(PacketType type, PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener) {
-        List<ReaderInfo> readerInfos = packetReaders.get(type.getHoneyID(), LinkedList::new);
-        readerInfos.add(new ReaderInfo(reader, listener));
+    public <T extends WrappedPacket<T>> void addListener(PacketType type, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {
+        addListener(type, listener, null);
+    }
+
+    public void addReader(PacketType type, PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
+        List<ReaderInfo<PacketDataSerializer, Object[]>> readerInfos = packetReaders.get(type.getHoneyID(), LinkedList::new);
+        ReaderInfo<PacketDataSerializer, Object[]> info;
+        if (onException != null) {
+            info = new ReaderInfo<>(reader::read, listener, onException);
+        } else {
+            info = new ReaderInfo<>(reader::read, listener);
+        }
+        readerInfos.add(info);
 
         HoneyPlugin.get().getPacketLibrary().addListeners(this, ListenerPriority.NORMAL, type);
     }
 
-    public void handle(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        if (getContext(packet.getType().getBound()).packetListeners.has(packet.getType().getHoneyID())) {
+    public void addReader(PacketType type, PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener) {
+        addReader(type, reader, listener, null);
+    }
 
-            for (BiConsumer<HoneyPlayer, PacketContainer<WP>> listener :
-                    getContext(packet.getType().getBound()).packetListeners.get(packet.getType().getHoneyID())) {
-                listener.accept(player, packet);
+    public void handle(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
+        if (packetListeners.has(packet.getType().getHoneyID())) {
+
+            for (ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
+                try {
+                    info.listener.accept(player, packet);
+                } catch (Exception ex) {
+                    info.onException.accept(player, ex);
+                }
             }
         }
     }
@@ -96,10 +111,9 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> {
             PacketDataSerializer serializer = new PacketDataSerializer(buf.buf());
             serializer.readVarInt();
 
-            for (ReaderInfo info : packetReaders.get(type.getHoneyID())) {
+            for (ReaderInfo<PacketDataSerializer, Object[]> info : packetReaders.get(type.getHoneyID())) {
                 try {
-                    Object[] data = info.reader.read(serializer);
-                    info.listener.accept(player, data);
+                    info.listener.accept(player, info.reader.apply(serializer));
                 } catch (Exception ex) {
                     info.onException.accept(player, ex);
                 }

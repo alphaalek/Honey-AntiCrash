@@ -37,7 +37,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private ReflectStructure<Object, ?> structure;
     private boolean cancelled;
     private boolean dumped;
-    private boolean handledByServer;
     private final long time = System.currentTimeMillis();
     private final PacketStateTimings eventLoopStateTracker = new PacketStateTimings();
     private final Callback callbackAction = new Callback();
@@ -151,16 +150,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void dump() {
         this.dumped = true;
-    }
-
-    @Override
-    public boolean isHandledByServer() {
-        return handledByServer;
-    }
-
-    @Override
-    public void setHandledByServer() {
-        this.handledByServer = true;
     }
 
     @Override

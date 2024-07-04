@@ -38,7 +38,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
 
     @Override
     public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT);
+        return Collections.singletonList(PacketTypes.Play.Client.BLOCK_PLACE);
     }
 
     public static ValidationServiceContext checkExceedingMaxDistance(HoneyPlayer player, ViolationKey key, WrappedBlockPosition blockPosition, int maxDistance, ValidationPipelineContext context) {
@@ -130,7 +130,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 return ItemAnalysis.flagIf(player, packet.getItem(), ViolationKey.of(this), context);
             }
 
@@ -164,7 +164,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 ItemStack item = packet.getItem();
                 if (item == null) {
                     return ValidationServiceContext.PASS;
@@ -208,7 +208,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
-                    && packet.getType() == PacketTypes.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+                    && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 int placedBlockDirection = packet.getPlacedBlockDirection();
 
                 float facingX = packet.getFacingX();

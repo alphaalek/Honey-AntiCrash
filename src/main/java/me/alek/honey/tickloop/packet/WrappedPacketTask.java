@@ -4,16 +4,11 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
-public class WrappedPacketTaskFuture extends FutureTask<Object> {
+public class WrappedPacketTask extends FutureTask<Object> {
 
     private final PacketContainer<? extends WrappedPacket<?>> packet;
     private final int tickAdded;
@@ -21,7 +16,7 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
     private long started;
     private boolean done;
 
-    public WrappedPacketTaskFuture(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
+    public WrappedPacketTask(Runnable runnable, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         super(runnable, null);
         this.packet = packet;
         this.tickAdded = tickAdded;
@@ -57,7 +52,7 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
 
     @Override
     public void run() {
-        if (!getPlayer().isOnlineWeak() || getPlayer().punished) {
+        if (!getPlayer().isStreamActive()) {
             super.set(null);
             return;
         }
@@ -67,16 +62,11 @@ public class WrappedPacketTaskFuture extends FutureTask<Object> {
         try {
             super.run();
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when running packet tick task.", ex);
+            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when processing packet task.", ex);
         }
         done = true;
         packet.invokeServerCallback();
 
         PacketTaskHandler.unregisterTask(packet);
-    }
-
-    @Override
-    public String toString() {
-        return "Task{" + packet.getPlayerName() + "," + tickAdded + "}";
     }
 }

@@ -63,7 +63,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                          BiFunction<C, ViolationService.HoneyKey, ConfigurationOptions.ViolationSetting> getSetting,
                          Function<C, ValidationServiceContext> getServiceContext,
                          Cancellable cancellable, ValidationPipelineContext validationContext, Callback callback) {
-        if (player.punished) {
+        if (!player.isStreamActive()) {
             cancellable.cancel();
             return;
         }
@@ -122,7 +122,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                 }
                 clearPosts(context);
 
-                if (player.punished) {
+                if (!player.isStreamActive()) {
                     cancellable.cancel();
                     return;
                 }

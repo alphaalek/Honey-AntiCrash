@@ -9,7 +9,7 @@ import me.alek.honey.util.ClientInfo;
 public class HandshakeProcessor extends Processor<WrappedHandshakeInSetProtocol> {
 
     public HandshakeProcessor() {
-        addReader(PacketTypes.Handshake.Client.SET_PROTOCOL, new WrappedHandshakeInSetProtocol.Reader(), this::handleClientIntent);
+        addReader(PacketTypes.Handshake.Client.SET_PROTOCOL, new WrappedHandshakeInSetProtocol.Reader(), this::handleClientIntent, (p, t) -> p.channel.close());
     }
 
     public void handleClientIntent(HoneyPlayer player, Object[] data) {

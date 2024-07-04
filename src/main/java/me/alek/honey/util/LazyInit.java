@@ -37,7 +37,6 @@ public class LazyInit<T> {
                 List<Object> codecs = ReflectStructureCache.acquireStructure(streamCodec.getClass())
                         .<List<Object>>withWeakType(List.class).withTarget(streamCodec)
                         .readField(0);
-                // Bukkit.getLogger().info("Codecs " + codecs);
                 int i = 0;
                 for (Object codec : codecs) {
                     Object packetType = ReflectStructureCache.acquireStructure(codec.getClass())
@@ -53,7 +52,6 @@ public class LazyInit<T> {
                     }
                     i++;
                 }
-
             } else {
                 WrappedEnumProtocol enumProtocol = WrappedEnumProtocol.getEnumProtocolDelegate(type.getBound(), type.getState());
 

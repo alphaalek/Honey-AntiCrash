@@ -563,7 +563,7 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> PLAYER_ABILITIES_CLASS = Reflection.getClass("{play}.PacketPlayInAbilities");
         private static final Class<?> ANIMATION_CLASS = Reflection.getClass("{play}.PacketPlayInArmAnimation");
         private static final Class<?> PLAYER_DIGGING_CLASS = Reflection.getClass("{play}.PacketPlayInBlockDig");
-        private static final Class<?> PLAYER_BLOCK_PLACEMENT_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
+        private static final Class<?> BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
         private static final Class<?> CHAT_MESSAGE_CLASS = Reflection.getClass("{play}.PacketPlayInChat");
         private static final Class<?> CLIENT_COMMAND_CLASS = Reflection.getClass("{play}.PacketPlayInClientCommand");
         private static final Class<?> CLOSE_WINDOW_CLASS = Reflection.getClass("{play}.PacketPlayInCloseWindow");
@@ -712,7 +712,7 @@ public enum PacketTypes implements PacketType {
             BOOK_EDIT(BOOK_EDIT_CLASS, idRegistry.acquire(), "edit_book", NetProtocolRange.since(NetProtocol.v1_13)),
             SET_BEACON_EFFECT(SET_BEACON_EFFECT_CLASS, idRegistry.acquire(), "set_beacon", NetProtocolRange.since(NetProtocol.v1_13)),
             PLAYER_DIGGING(PLAYER_DIGGING_CLASS, idRegistry.acquire(), "player_action"),
-            PLAYER_BLOCK_PLACEMENT(PLAYER_BLOCK_PLACEMENT_CLASS, idRegistry.acquire(), "use_item"),
+            BLOCK_PLACE(BLOCK_PLACE_CLASS, idRegistry.acquire(), "use_item"),
             BOAT_MOVE(BOAT_MOVE_CLASS, idRegistry.acquire(), "paddle_boat", NetProtocolRange.since(NetProtocol.v1_9)),
             CHAT_MESSAGE(CHAT_MESSAGE_CLASS, idRegistry.acquire(), "chat"),
             CHAT_ACKNOWLEDGED(CHAT_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "chat_ack", NetProtocolRange.since(NetProtocol.v1_19_1)),
