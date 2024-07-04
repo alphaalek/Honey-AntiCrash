@@ -1,12 +1,12 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + You are currently using the version 2.3.2
+#   + This configuration file is generated using version v2.6-b1
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
 #
 # Also remember, that false flags can occur, so it is not recommended to ban a player just after
-# some few violations shown in chat. (it can sometimes emerge at serverside or clientside lagspikes)
+# some few violations shown in chat. (it can sometimes emerge at client or server lagspikes)
 # That is exactly what this file is for. You should change the values you can see below if that's
 # what your server need. Everything is configurable, and every server is different. That's why
 # you have to set it up to match your server! If you have trouble doing this, I will gladly help you. :-)
@@ -23,7 +23,7 @@
 # Discord: https://discord.gg/veAtFHG65u
 #
 
-# Put your license key below
+# Enter your license key below
 license: ""
 
 ############################################################
@@ -46,8 +46,9 @@ hide-command-message: SPIGOT_DEFAULT
 hide-bypass-permission: "honey.hide.bypass"
 
 # Permission that ignore ALL Honey features.
-# I only recommend to use this, if you are 100% sure, that the player's with the permission will never try to exploit your server.
+# It's only recommend to use this, if you are 100% sure, that players with this permission will never try to exploit your server.
 bypass-permission-enabled: false
+bypass-permission-serverthread-tracking: true # Recommended to have enabled for most servers.
 bypass-permission: "honey.bypass"
 
 # Permission which can get notifications by violated players. Can be toggled on/off by /honey notifications.
@@ -57,6 +58,26 @@ notify-permission: "honey.notify"
 # You can see here how to get a key: https://pastebin.com/doc_api
 # OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
 pastebin-developer-key: ""
+
+# Discord webhook for notifications at player violations
+webhook:
+  # The webhook URL. Set to empty string to disable.
+  url: ""
+
+  # Should the embed notification contain detailed data.
+  detailed: true
+
+
+# Own decoder settings
+decoder:
+  # Should the default decoder be enabled.
+  use-default: false
+
+  # Should nbt decode for PacketPlayInBlockPlace (versions < 1.9) & PacketPlayInWindowClick (versions < 1.17) be disabled
+  disable-nbt: true
+
+  # Should PacketPlayInSetCreativeSlot packets not be decoded if the player is not in creative mode.
+  disable-creative-slot-for-non-creative: true
 
 
 # Formatting for messages sent by Honey
@@ -70,10 +91,13 @@ messages:
   # Punish
   punish: "%prefix% &7%player% was kicked for &e%check%&7."
 
+  # Enable feature information for base command.
+  base-command-feature-infos: true
+
   # Inbound packet filter action bar for cancelled and postponed packets.
   packet-filter-action-bar:
     # Should the action bar be shown or not.
-    enabled: true
+    enabled: false
 
     # If more than this amount of packets have been cancelled in the last 5 seconds, the action bar will be shown for cancelling.
     min-cancelled: 5
@@ -92,7 +116,7 @@ messages:
     enabled: true
 
     # If the player's async worker has been quarantined for longer time than this (in millis), the action bar will be shown for quarantined.
-    min-quarantined: 100
+    min-quarantined: 250
 
     # The action bar message.
     message: "&cAsync worker moved to quarantine... (%time%ms)"
@@ -104,88 +128,66 @@ postpone:
   enabled: true
 
   # Max postponed packets. If the amount of currently postponed packets exceeds this amount, the oldest ones will be cancelled.
-  max-postponed-packets: 150
+  max-postponed-packets: 75
 
-  # Max postponed packet ticks. If the amount of ticks a packet has been postponed exceeds this amount, it will be cancelled.
-  max-postponed-ticks: 100
+  # Max execution ticks for postponed packets. If the amount of execution ticks a packet has been postponed exceeds this amount, it will be cancelled.
+  # Note! Ticks and execution ticks are not the same in 1.14+ and will therefore be handled differently.
+  max-postponed-execution-ticks: 50
 
-  # Max postponed packets retry amount.
-  max-retry: 30
+  # Max time register (in millis) to server-thread tracking for position packets in versions <1.13.1 due to server-thread chunk generation.
+  max-position-time-register: 10
 
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
   # (Set to -1 to disable.)
 
-  # Max execution queue size.
-  max-queue-size: 15
-
-  # Ignored packets for check max-queue-size
-  max-queue-size-ignored:
-    - "PacketPlayInFlying"
-    - "PacketPlayInLook"
-    - "PacketPlayInPosition"
-    - "PacketPlayInPositionLook"
-    - "PacketPlayInSetCreativeSlot"
-    - "PacketPlayInTransaction"
-    - "PacketPlayInWindowClick"
-
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
   rate-ignore-terminator: 10.0
 
   # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
-  max-per-x-tick: 75.0
+  max-per-x-tick: 250.0
   max-per-x-amount: 5
 
   # Max packet task handle rate per second in an interval of 5 and 10 seconds.
-  max-rate-5s: 150.0
-  max-rate-10s: 125.0
+  max-rate-5s: 140.0
+  max-rate-10s: 90.0
 
-  # Max packet task rate accel (the previous second).
-  max-rate-accel: 200.0
+  # Max packet task rate accel (the current second).
+  max-rate-accel: 185.0
 
-  # Max packet task rate accel quotient (the previous second compared to rate of the rest of the interval)
+  # Max packet task rate accel quotient (the current second compared to rate of the rest of the interval)
   max-rate-accel-quotient: 12.5
   min-rate-5s-for-quotient: 32.5
 
 
 # Packet dump
 packet-dump:
-  # Should packet dump for check violations be enabled or not.
-  enabled: false
-
-  # Packets which the packet dump should ignore. Only counts for packet dump where all packets are dumped independent of the type related to that violation.
-  # E.g. violations of position checks will still dump position packets even though you have added it below.
-  # (PacketPlayInKeepAlive is ignored as default, and you can't change that)
-  filter-all:
-    - "PacketPlayInFlying"
-  # - "PacketPlayInLook"
-  # - "PacketPlayInPosition"
-  # - "PacketPlayInPositionLook"
 
   heavy-packet:
     # Should packet dump for heavy handled packets be enabled.
     enabled: true
 
-    # Min main thread handle time for packet to be dumped in log.
-    min-server-handle: 25
+    # Min main thread handle time (in millis) for packet to be dumped in log.
+    min-server-handle: 150
 
   server-thread-dump:
     # Should server thread dump for heavy handled packets be enabled.
     enabled: true
 
-    # Min main thread handle time for thread to be dumped in log.
+    # Min main thread handle time (in millis) for thread to be dumped in log.
+    # Setting a value below 50 millis doesn't work very well, and it is also not recommended.
     min-server-handle: 750
 
 
 # Asynchronous packet decoder
 async-decoder:
   # Should the async decoder be enabled.
-  enabled: true
+  enabled: false
 
   # If you edit the values below, you will have to restart the server for the changes to be applied.
 
   # Minimum of worker threads to be used for packet decoding. At urgency relocation there will be created more worker threads.
-  min-worker-threads: 4
+  min-worker-threads: NETTY_DEFAULT
 
   # Minimum packet decode time (in millis), before a worker is quarantined.
   min-time-for-quarantine: 15.0
@@ -211,7 +213,6 @@ monitor:
 
 # packet logger
 packet-logger:
-
   # Should the packet logger be enabled or not.
   enabled: false
 
@@ -223,6 +224,9 @@ packet-logger:
 
   # Should the packet logger be detailed, which means it shows all the properties of each packet.
   detailed: true
+
+  # Should the logger cut down too much data for detailed logging.
+  filter-too-much-data: true
 
   # Players which the packet logger should ignore.
   ignored-players:
@@ -240,7 +244,7 @@ packet-logger:
   debug-packets-cancelled: false
 
 
-# MySQL settings for storage
+# MySQL/mariadb settings for storage
 mysql:
   # Should storing of data in mysql database be enabled
   enabled: false
@@ -276,9 +280,10 @@ item-analysis:
 
     # What strategy should be used when an illegal item is found. You can choose between the following:
 
+    # - nothing: Nothing will be confiscated.
     # - lenient: The invalidity is being removed, for example the pages in a book will be removed if it exceeds the limit.
     # - average: The item will be confiscated. It will be removed from existence and can't be obtained again.
-    # - strict: The whole inventory will be removed. I do not recommend to use this.
+    # - strict:  The whole inventory will be removed. I do not recommend to use this.
     confiscation-strategy: "average"
 
     # Player's which the item-analysis should ignore.
@@ -313,13 +318,16 @@ item-analysis:
   # May items not have attribute modifiers. Can be bugged through creative mode.
   disable-attribute-modifiers: false
 
+  # May books have translation components as pages.
+  disable-book-no-text-components: true
+
   # NBT
   nbt:
     # How many bytes may the NBT of an item have.
     max-nbt-length: 17500
 
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 1250Så d
+    max-nbt-string-length: 1250
 
     # How many bytes may the NBT of a firework have. This is also for firework charges.
     max-firework-nbt-length: 2500
@@ -366,26 +374,22 @@ commands:
 
   # Attempt to execute commands that starts with the following strings will be blocked, but only if it is registered on the server.
   prohibited-commands:
-    # spigot
-    - "/skill"
 
-    # permissions ex
-    - "/pex promote"
-    - "/pex demote"
-    - "/promote"
-    - "/demote"
+    literal:
+      # spigot
+      - "/skill"
 
-    # world edit
-    - "//calc"
-    - "//calculate"
-    - "//solve"
-    - "//eval"
-    - "//evaluate"
+      # world edit
+      - "//calc"
+      - "//calculate"
+      - "//solve"
+      - "//eval"
+      - "//evaluate"
 
-    # multiverse
-    - "/mv ^(."
-    - "/mvhelp ^(."
-    - "/mv help ^(."
+    # Note, that if snakeyaml (Bukkit's YAML parser) has trouble parsing strings when adding regex commands, use single quotes instead of double quotes.
+    regex:
+      # multiverse
+      - '\/(multiverse-core:)?mv(h|help| help)? [^a-zA-Z0-9]'
 
   # Fallback prefixes that also will be checked for at the commands above. (if they exist on the server)
   # Could e.g. be if someone types '/multiverse-core:mv help ^'
@@ -404,13 +408,20 @@ commands:
 # |--- netty ---|
 netty:
   a:
-    enabled: false # moved to execution postpone check
+    enabled: true
+    threshold: 45000
+    decay: 350
+    decay-amount: 3000
+    vls-amount: 1
 
   b:
     enabled: true
+    vls-amount: 1
 
   c:
-    enabled: false # moved to execution postpone check
+    enabled: true
+    vls-amount: 1
+    threshold: 6250
 
   d:
     enabled: true
@@ -423,7 +434,7 @@ netty:
     threshold: 32500
     decay: 650
     decay-amount: 7500
-    vls-amount: 3
+    vls-amount: 1
 
   f:
     enabled: true
@@ -461,8 +472,8 @@ netty:
 
   l:
     enabled: true # size categorized
-    min: 50
-    max: 100
+    min: 50 # difference in received packets. Should be min. this to get into a category
+    max: 100 # difference in delta packet timespans. Can be max. this to get into the compared entry
     interval: 3000
     threshold: 3000
     max-per-interval: 20
@@ -470,7 +481,7 @@ netty:
 
   m:
     enabled: true # size flood
-    min: 50
+    min: 50 # difference in received packets. Should be min. this to flag
     interval: 3000
     threshold: 5000
     max-per-interval: 14
@@ -478,7 +489,7 @@ netty:
 
   n:
     enabled: true # size flood
-    min: 40
+    min: 40 # difference in received packets. Should be min. this to flag
     clear-interval: true
     interval: 7500
     threshold: 3000
@@ -487,9 +498,8 @@ netty:
 
   o:
     enabled: true # timed categorized
-    min: 50 # difference in received packets. Should be min. this to get into a category at all
-    max: 50 # difference in delta packet timespans. Can be max. this to get into the compared entry
-            # that means the min. and max. values are not checking for the same thing
+    min: 50 # difference in received packets. Should be min. this to get into a category
+    max: 75 # difference in delta packet timespans. Can be max. this to get into the compared entry
     interval: 4000
     threshold: 2500
     max-per-interval: 14
@@ -535,8 +545,9 @@ position:
     vls-amount: 3
 
   b:
-    enabled: false
+    enabled: true
     max: 30
+    min-vls: 3
     vls-amount: 5
 
   c:
@@ -600,25 +611,25 @@ rotation:
 
   b:
     enabled: true
-    threshold: 10000
+    threshold: 25000
+    min-vls: 3
     vls-amount: 5
 
   c:
     enabled: true
     clear-buffer: true
-    threshold: 22500
-    decay: 750
-    decay-amount: 6000
-    vls-amount: 3
+    threshold: 100000
+    decay: 400
+    decay-amount: 10000
+    vls-amount: 2
 
 # |--- block interact ---|
 block-interact:
   a:
     enabled: true
     max: 100
-    max-per-interval: 3
-    interval: 1000
-    vls-amount: 5
+    min-vls: 5
+    vls-amount: 8
 
   b:
     enabled: true
@@ -635,9 +646,8 @@ block-interact:
   e:
     enabled: true
     max: 100
-    max-per-interval: 3
-    interval: 1000
-    vls-amount: 5
+    min-vls: 5
+    vls-amount: 8
 
 # |--- tab complete ---|
 tab-complete:
@@ -669,6 +679,11 @@ set-creative-slot:
     vls-amount: 3
 
   c:
+    enabled: true
+
+# |--- sign ---|
+sign:
+  a:
     enabled: true
 
 # |--- chat ---|
@@ -716,7 +731,23 @@ packet-flood:
     enabled: true
     max-per-interval: 285
     interval: 700
+    min-vls: 3
     vls-amount: 4
+
+  # nbt
+  c:
+    enabled: true
+    max-per-interval: 2048
+    interval: 800
+    vls-amount: 3
+
+  # too early drop
+  e:
+    enabled: true
+    max-per-interval: 35
+    interval: 750
+    min-vls: 2
+    vls-amount: 3
 
   # specific
   d:
@@ -724,6 +755,7 @@ packet-flood:
     # sections below dedicated to that packet. they are higher priority than these common settings.
     enabled: true
     vls-amount: 5
+    min-vls: 3
     interval: 1000
 
     # abilities
@@ -740,6 +772,7 @@ packet-flood:
     auto-recipe:
       max-per-interval: 15
       vls-amount: 3
+      min-vls: 1
 
     # block dig
     block-dig:
@@ -774,6 +807,7 @@ packet-flood:
     custom-payload:
       max-per-interval: 50
       vls-amount: 3
+      min-vls: 1
 
     # enchant item
     enchant-item:
@@ -786,7 +820,8 @@ packet-flood:
 
     # flying
     flying:
-      max-per-interval: 235
+      interval: 1250
+      max-per-interval: 300
       vls-amount: 10
 
     # held item slot
@@ -831,8 +866,8 @@ packet-flood:
 
     # transaction
     transaction:
-      max-per-interval: 450 # You shouldn't lower this!
-      until: 500
+      max-per-interval: 450 # You shouldn't lower this! (this is used as common packet flood for bypass permission players)
+      interval: 500
 
     # update sign
     update-sign:
