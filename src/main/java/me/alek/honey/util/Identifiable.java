@@ -1,4 +1,4 @@
-package me.alek.honey;
+package me.alek.honey.util;
 
 public interface Identifiable {
 

@@ -1,6 +1,6 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.Identifiable;
+import me.alek.honey.util.Identifiable;
 
 public class TimedNode<T> implements Identifiable {
 

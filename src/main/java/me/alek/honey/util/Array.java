@@ -1,6 +1,5 @@
 package me.alek.honey.util;
 
-import me.alek.honey.Identifiable;
 import org.apache.commons.lang.Validate;
 
 import java.util.Arrays;

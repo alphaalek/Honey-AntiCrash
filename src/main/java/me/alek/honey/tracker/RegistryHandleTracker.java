@@ -1,7 +1,7 @@
 package me.alek.honey.tracker;
 
 import com.google.common.collect.Sets;
-import me.alek.honey.Identifiable;
+import me.alek.honey.util.Identifiable;
 import me.alek.honey.util.Array;
 
 import java.util.ArrayList;
