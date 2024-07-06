@@ -1,5 +1,6 @@
 package me.alek.honey.tickloop;
 
+import com.google.common.util.concurrent.Runnables;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -95,7 +96,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         };
     }
 
-    private final class DelegatedWrapper extends WrappedQueue<Object> {
+    private final class DelegatedWrapper extends WrappedSynchronizedQueue<Object> {
 
         private final Supplier<Integer> tickAccessor = getTickAccessor();
         private Class<?> tickTaskClass;
@@ -112,13 +113,16 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         private final Object EMPTY_TICK_TASK;
 
         public DelegatedWrapper(final Queue<Object> delegate) {
-            super(delegate);
-            EMPTY_TICK_TASK = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14) ? null :
-                    (tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class))
-                            .invoke(Integer.MAX_VALUE - 3, (Runnable) () -> {
-                            });
+            super(new LinkedList<>(delegate));
 
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
+                tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class);
+            }
+
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_18)) {
+                EMPTY_TICK_TASK = tickTaskConstructor.invoke(0, Runnables.doNothing());
+            } else {
+                EMPTY_TICK_TASK = null;
                 tickTaskConstructor = null;
             }
         }
@@ -160,25 +164,20 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
         @Override
         public Object remove() {
-            Object poll;
-            if ((poll = poll()) != null) {
-                return poll;
-            }
-
-            return EMPTY_TICK_TASK;
+            return poll();
         }
 
         @Override
         public synchronized Object poll() {
             executing = true;
-            Object otherTask;
-            if ((otherTask = super.poll()) != null && otherTask != EMPTY_VALUE) {
+            Object poll = super.poll();
+            if (poll != null && poll != EMPTY_VALUE) {
                 if (recentPollStart != -1) {
                     recentDeltaTime = getDeltaTime();
                 }
                 recentPollStart = -1;
 
-                return getOtherTask(otherTask);
+                return getOtherTask(poll);
             }
 
             if (recentPollStart != -1 && recentPacket != null) {
