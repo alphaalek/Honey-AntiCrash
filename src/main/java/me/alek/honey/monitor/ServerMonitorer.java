@@ -5,6 +5,8 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.util.TPSProvider;
 
+import java.io.IOException;
+
 public class ServerMonitorer implements ScheduledMonitorer {
 
     @Override

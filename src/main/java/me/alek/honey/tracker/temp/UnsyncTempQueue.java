@@ -3,19 +3,26 @@ package me.alek.honey.tracker.temp;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 
+import java.io.Serializable;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-public class UnsyncTempQueue {
+public class UnsyncTempQueue implements Serializable {
+
+    public interface Filter extends Predicate<Long>, Serializable {
+
+    }
+
+    private static final long serialVersionUID = 13688663619933788L;
 
     private final Queue<Double> FIXED = new LinkedList<>();
     private final Deque<TimedNode<Double>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
-    private final Predicate<Long> exceeds;
+    private final Filter exceeds;
     private boolean collected;
     private long total;
 
@@ -23,7 +30,7 @@ public class UnsyncTempQueue {
         this(diff -> diff > timespan.getNanoTimespan(), isFixed);
     }
 
-    public UnsyncTempQueue(Predicate<Long> exceeds, boolean isFixed) {
+    public UnsyncTempQueue(Filter exceeds, boolean isFixed) {
         this.exceeds = exceeds;
         this.isFixed = isFixed;
     }

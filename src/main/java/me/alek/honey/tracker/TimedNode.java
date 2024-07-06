@@ -1,6 +1,10 @@
 package me.alek.honey.tracker;
 
-public class TimedNode<T> {
+import java.io.Serializable;
+
+public class TimedNode<T> implements Serializable {
+
+    private static final long serialVersionUID = 1210079567439681068L;
 
     public TimedNode(T value, long identifier, long insertionInstant) {
         this.value = value;

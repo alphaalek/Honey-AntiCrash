@@ -13,28 +13,13 @@ import java.net.URI;
 import java.net.URL;
 import java.security.SecureClassLoader;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @NoSessionEncryption
 public class InMemoryCompiler {
 
-    public static class IMCSourceCode {
-
-        public final String fullClassName;
-        public final String sourceCode;
-
-        public IMCSourceCode(final String fullClassName, final String sourceCode) {
-
-            this.fullClassName = fullClassName;
-            this.sourceCode = sourceCode;
-        }
-    }
-
-    private final Supplier<CompilerFeedback> compile;
-    private final JavaFileManager fileManager;
-    private InMemoryCompiler instanceUsed;
-
-    public File downloadToolsJar() {
+    public static File downloadToolsJar() {
         String javaPath = System.getProperty("java.home");
 
         File file = new File(javaPath + File.separator + "lib");
@@ -95,25 +80,57 @@ public class InMemoryCompiler {
         return null;
     }
 
+    public static class IMCSourceCode {
+
+        public final String fullClassName;
+        public final String sourceCode;
+
+        public IMCSourceCode(final String fullClassName, final String sourceCode) {
+
+            this.fullClassName = fullClassName;
+            this.sourceCode = sourceCode;
+        }
+    }
+
+    private final Supplier<CompilerFeedback> compile;
+    private final JavaFileManager fileManager;
+    private InMemoryCompiler instanceUsed;
+
+    private static final Function<String, String> DECRYPT = new Function<String, String>() {
+        @Override
+        public String apply(String s) {
+            SecretKeySpec spec = new SecretKeySpec("MN@+zUQfbfEypXVKtHwkgYnGt-%8nSJ5".getBytes(), "AES");
+            try {
+                Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.DECRYPT_MODE, spec);
+
+                return new String(cipher.doFinal(Base64.getDecoder().decode(s.getBytes())));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return "";
+            }
+        }
+    };
+
     public InMemoryCompiler get() {
         return instanceUsed;
     }
 
-    public InMemoryCompiler(final List<IMCSourceCode> classSourceCodes) {
+    public InMemoryCompiler(final List<IMCSourceCode> classSourceCodes, boolean decrypted) {
         instanceUsed = this;
 
-        boolean modifiedRemotely = false;
         try {
             Class<?> inMemoryCompilerClass = Class.forName(InMemoryCompiler.class.getName());
             Class<?> IMCSourceCodeClass = Class.forName(InMemoryCompiler.IMCSourceCode.class.getName());
 
-            if (!InMemoryCompiler.class.equals(inMemoryCompilerClass) || !InMemoryCompiler.IMCSourceCode.class.equals(IMCSourceCodeClass)) {
-                modifiedRemotely = true;
+            if (!InMemoryCompiler.class.equals(inMemoryCompilerClass)
+                    || !InMemoryCompiler.IMCSourceCode.class.equals(IMCSourceCodeClass)) {
+                throw new RuntimeException("Compiler classes has been modified remotely!");
             }
-        } catch (Exception ignored) {
-        }
-        if (modifiedRemotely) {
-            throw new RuntimeException("Compiler classes has been modified remotely!");
+        } catch (Exception ex) {
+            if (ex instanceof RuntimeException) {
+                throw ((RuntimeException)ex);
+            }
         }
 
         final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -121,16 +138,17 @@ public class InMemoryCompiler {
             File file;
             try {
                 file = downloadToolsJar();
-
             } catch (Exception ex) {
                 throw new RuntimeException("No JDK was found!", ex);
             }
+
             if (file != null && file.exists()) {
                 fileManager = null;
                 compile = null;
-                instanceUsed = new InMemoryCompiler(classSourceCodes);
+                instanceUsed = new InMemoryCompiler(classSourceCodes, decrypted);
                 return;
             }
+
             throw new RuntimeException("No JDK was found!");
         }
 
@@ -145,7 +163,9 @@ public class InMemoryCompiler {
 
                     @Override
                     protected Class<?> findClass(final String className) throws ClassNotFoundException {
-                        if (!byteStreams.containsKey(className)) return super.findClass(className);
+                        if (!byteStreams.containsKey(className)) {
+                            return super.findClass(className);
+                        }
 
                         final byte[] b = byteStreams.get(className).getBytes();
                         return super.defineClass(className, b, 0, b.length);
@@ -165,19 +185,9 @@ public class InMemoryCompiler {
             final List<JavaFileObject> files = new ArrayList<>();
             for (IMCSourceCode classSourceCode : classSourceCodes) {
                 try {
-                    String sourceCode;
-                    SecretKeySpec spec = new SecretKeySpec("MN@+zUQfbfEypXVKtHwkgYnGt-%8nSJ5".getBytes(), "AES");
-                    try {
-                        Cipher cipher = Cipher.getInstance("AES");
-                        cipher.init(Cipher.DECRYPT_MODE, spec);
+                    String source = decrypted ? DECRYPT.apply(classSourceCode.sourceCode) : classSourceCode.sourceCode;
 
-                        sourceCode = new String(cipher.doFinal(Base64.getDecoder().decode(classSourceCode.sourceCode.getBytes())));
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        continue;
-                    }
-
-                    final SimpleJavaFileObject sjfo = new StringJavaClass(classSourceCode.fullClassName, sourceCode);
+                    final SimpleJavaFileObject sjfo = new StringJavaClass(classSourceCode.fullClassName, source);
                     files.add(sjfo);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -190,6 +200,7 @@ public class InMemoryCompiler {
                 final JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, files);
                 return new CompilerFeedback(task.call(), diagnostics);
             }
+
             return null;
         };
     }

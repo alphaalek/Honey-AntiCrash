@@ -3,6 +3,7 @@ package me.alek.honey.lang;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.session.NoSessionEncryption;
+import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.util.HashMap;
@@ -38,7 +39,6 @@ public class Lang {
         defaultMessages.clear();
 
         String language = HoneyPlugin.get().getPlugin().getConfig().getString("lang");
-
         try {
             JarFile jar = new JarFile(new File(Lang.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
 

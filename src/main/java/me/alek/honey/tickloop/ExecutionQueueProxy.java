@@ -14,8 +14,8 @@ import me.alek.honey.tickloop.packet.WrappedPacketTask;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -23,22 +23,23 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 import java.util.function.Supplier;
 
 public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
-    private final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = HoneyPacketHandler.getPacketSendMarker();
-    private DelegatedWrapper executionQueue;
-    private boolean executing;
-    private int doneTicks;
-    private int doneExecutionTicks;
+    private transient DelegatedWrapper executionQueue;
+    private transient boolean executing;
+    private transient int doneTicks;
+    private transient int doneExecutionTicks;
 
     public ExecutionQueueProxy() {
-        inject();
+        // empty constructor
     }
 
     public void inject() {
@@ -57,6 +58,12 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
+        Bukkit.getLogger().info("INJECTED " + ExecutionQueueProxy.class.getClassLoader() + " " + WrappedPacketTask.class.getClassLoader());
+    }
+
+    public int getCurrentExecutionTick() {
+        return doneExecutionTicks + (executing ? 1 : 0);
     }
 
     public Queue<Object> getExecutionQueue() {
@@ -227,7 +234,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             }
 
             recentPollStart = System.nanoTime();
-            return newTickTask(task, doneTicks);
+            return newTickTask(task.getPacketTask(), doneTicks);
         }
 
         @Override
@@ -242,13 +249,13 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 return super.add(value);
             }
 
-            PacketContainer<? extends WrappedPacket<?>> packet = packetSendMarker.get();
+            PacketContainer<? extends WrappedPacket<?>> packet = HoneyPacketHandler.getPacketSendMarker().get();
             if (packet == null || !packet.getPlayer().isStreamActive()) {
                 return false;
             }
 
             return addPacketTask(
-                    new WrappedPacketTask(
+                    WrappedPacketTask.create(
                             (Runnable) value,
                             packet,
                             ExecutionQueueProxy.this.getCurrentExecutionTick())
@@ -375,10 +382,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             doneExecutionTicks++;
             executing = false;
         }
-    }
-
-    public int getCurrentExecutionTick() {
-        return doneExecutionTicks + (executing ? 1 : 0);
     }
 
     @Override

@@ -2,16 +2,18 @@ package me.alek.honey.tracker.temp;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.tracker.TimedHandleTracker;
+import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.IDRegistry;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TempQueuedHandleTracker implements TimedHandleTracker<Double, HoneyPlayer> {
+public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double, HoneyPlayer>, Serializable {
 
+    private static final long serialVersionUID = 5271105682200147230L;
     private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
     private final TempQueuedTracker commonTracker = new TempQueuedTracker(false, false);
 
@@ -111,7 +113,7 @@ public class TempQueuedHandleTracker implements TimedHandleTracker<Double, Honey
         return getExceedingTimedNode(getTracker(player), timespan);
     }
 
-    private double getEndedNode(HoneyPlayer player, Timespan timespan, boolean update, boolean last) {
+    private Double getEndedNode(HoneyPlayer player, Timespan timespan, boolean update, boolean last) {
         Deque<TimedNode<Double>> queue = getTracker(player).getQueue(timespan).asTimedQueue();
         TimedNode<Double> node;
         if (last) {
@@ -121,49 +123,50 @@ public class TempQueuedHandleTracker implements TimedHandleTracker<Double, Honey
         }
 
         if (node == null) {
-            return 0;
+            return 0d;
         }
 
         if (update && System.nanoTime() > node.getInsertionInstant() + timespan.getNanoTimespan()) {
-            return 0;
+            return 0d;
         }
 
         return node.getValue();
     }
 
-    public double getRecentNode(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Double getRecentNode(HoneyPlayer player, Timespan timespan, boolean update) {
         return getEndedNode(player, timespan, update, false);
     }
 
-    public double getOldestNode(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Double getOldestNode(HoneyPlayer player, Timespan timespan, boolean update) {
         return getEndedNode(player, timespan, update, true);
     }
 
-    public double getHalfServerThreadQuotient(HoneyPlayer player, Timespan timespan, boolean update) {
-        return getPlayerTotal(player, timespan, update) / timespan.getNanoTimespan() * 2;
+    public Double getOfTotalQuotient(HoneyPlayer player, Timespan timespan, boolean update) {
+        return getPlayerTotal(player, timespan, update) / timespan.getNanoTimespan();
     }
 
-    public double getPlayerRate(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Double getPlayerRate(HoneyPlayer player, Timespan timespan, boolean update) {
         return getPlayerTotal(player, timespan, update) / timespan.getTimespan();
     }
 
-    public double getPlayerRateAcceleration(HoneyPlayer player, boolean average, boolean update) {
+    public Double getPlayerRateAcceleration(HoneyPlayer player, boolean average, boolean update) {
         return getPlayerRate(player, average ? Timespan.TWO_SECOND : Timespan.ONE_SECOND, update);
     }
 
-    public double getPlayerRateAccelerationQuotient(HoneyPlayer player, Timespan timespan, boolean average, boolean update) {
+    public Double getPlayerRateAccelerationQuotient(HoneyPlayer player, Timespan timespan, boolean average, boolean update) {
         double accel = getPlayerRateAcceleration(player, average, update);
 
         double deltaTotal = getPlayerTotal(player, timespan, update) - accel;
         if (deltaTotal == 0) {
-            return 0;
+            return 0d;
         }
         double delta = timespan.getTimespan() - 1;
 
         return accel / (deltaTotal / delta);
     }
 
-    public double getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
+    @Override
+    public Double getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
         long time = 0;
         TempQueuedTracker tracker = getTracker(player);
         if (update) {
@@ -178,8 +181,8 @@ public class TempQueuedHandleTracker implements TimedHandleTracker<Double, Honey
         return total;
     }
 
-    public double[] getStatistics(HoneyPlayer player) {
-        double[] statistics = new double[Timespan.USED_FOR_TRACKERS.size()];
+    public Double[] getStatistics(HoneyPlayer player) {
+        Double[] statistics = new Double[Timespan.USED_FOR_TRACKERS.size()];
         int i = 0;
         for (Timespan timespan : Timespan.USED_FOR_TRACKERS) {
             statistics[i++] = getTimeToAverageWithoutQuotient(player, timespan, true);
@@ -188,27 +191,27 @@ public class TempQueuedHandleTracker implements TimedHandleTracker<Double, Honey
     }
 
     @Override
-    public double getTimeToAverageQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
+    public Double getTimeToAverageQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
         return Math.max(0, getPlayerTotal(key, timespan, update) / getAverage(timespan));
     }
 
     @Override
-    public double getTimeToAverageWithoutQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
+    public Double getTimeToAverageWithoutQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
         double playerTotal = getPlayerTotal(key, timespan, update);
         return Math.max(0, playerTotal / getAverageWithout(timespan, playerTotal, update));
     }
 
     @Override
-    public double getTimeToTotalQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
+    public Double getTimeToTotalQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
         return Math.max(0, getPlayerTotal(key, timespan, update) / getTotal(timespan, update));
     }
 
     @Override
-    public double getAverage(Timespan timespan) {
+    public Double getAverage(Timespan timespan) {
         return getTotal(timespan, true) / getTrackerSize();
     }
 
-    public double getAverageWithout(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Double getAverageWithout(HoneyPlayer player, Timespan timespan, boolean update) {
         return getAverageWithout(timespan, getPlayerTotal(player, timespan, update), update);
     }
 
@@ -220,7 +223,7 @@ public class TempQueuedHandleTracker implements TimedHandleTracker<Double, Honey
         return (getTotal(timespan, update) - playerTotal) / (getTrackerSize() - 1);
     }
 
-    public double getTotal(Timespan timespan, boolean update) {
+    public Double getTotal(Timespan timespan, boolean update) {
         if (update) {
             commonTracker.clearExceedingNodes(timespan, System.nanoTime());
         }

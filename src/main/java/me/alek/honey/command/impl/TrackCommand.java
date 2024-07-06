@@ -4,12 +4,11 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.tracker.MarkableHandleTracker;
+import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.command.CommandSender;
 
@@ -28,24 +27,24 @@ public class TrackCommand implements CommandImpl {
 
         switch (args[0]) {
             case "players":
-                TempQueuedHandleTracker stTracker = HoneyPlugin.get().getExecutionQueueProxy();
-                if (stTracker.getTrackerSize() == 0) {
+                TimedHandleTracker<Double, HoneyPlayer> tracker = HoneyPlugin.get().getExecutionQueueProxy();
+                if (tracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));
                     return;
                 }
 
                 sender.sendMessage(Lang.getFormatted("track.players"));
-                for (HoneyPlayer player : stTracker.getTrackersOrdered()) {
-                    double fiveSeconds = stTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND, true);
-                    double tenSeconds = stTracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, true);
-                    double fifteenSeconds = stTracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND, true);
-                    double thirtySeconds = stTracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE, true);
+                for (HoneyPlayer player : tracker.getTrackersOrdered()) {
+                    double fiveSeconds = tracker.getTimeToAverageWithoutQuotient(player, Timespan.FIVE_SECOND, true);
+                    double tenSeconds = tracker.getTimeToAverageWithoutQuotient(player, Timespan.TEN_SECOND, true);
+                    double fifteenSeconds = tracker.getTimeToAverageWithoutQuotient(player, Timespan.FIFTEEN_SECOND, true);
+                    double thirtySeconds = tracker.getTimeToAverageWithoutQuotient(player, Timespan.HALF_MINUTE, true);
 
                     sender.sendMessage("§e" + player.name + ": §7" + FORMATTER.format(fiveSeconds * 100) + "% §8(5s) §7" + FORMATTER.format(tenSeconds * 100) + "% §8(10s) §7" + FORMATTER.format(fifteenSeconds * 100) + "% §8(15s) §7" + FORMATTER.format(thirtySeconds * 100) + "% §8(30s) §7");
                 }
 
                 sender.sendMessage("§f");
-                sender.sendMessage("§7Average: " + format(stTracker.getAverage(Timespan.FIVE_SECOND)) + " §8(5s) §7" + "§7" + format(stTracker.getAverage(Timespan.TEN_SECOND)) + " §8(10s) §7" + format(stTracker.getAverage(Timespan.FIFTEEN_SECOND)) + " §8(15s) §7" + format(stTracker.getAverage(Timespan.HALF_MINUTE)) + " §8(30s)");
+                sender.sendMessage("§7Average: " + format(tracker.getAverage(Timespan.FIVE_SECOND)) + " §8(5s) §7" + "§7" + format(tracker.getAverage(Timespan.TEN_SECOND)) + " §8(10s) §7" + format(tracker.getAverage(Timespan.FIFTEEN_SECOND)) + " §8(15s) §7" + format(tracker.getAverage(Timespan.HALF_MINUTE)) + " §8(30s)");
 
                 break;
             case "checks":

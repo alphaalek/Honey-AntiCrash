@@ -5,14 +5,22 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
+import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.tracker.Timespan;
+import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 
+import java.io.IOException;
+
 public interface PostponeCheck {
 
-    default ExecutionQueueProxy getTracker() {
+    default TimedManualHandleTracker<Double, HoneyPlayer> getTracker() {
         return HoneyPlugin.get().getExecutionQueueProxy();
+    }
+
+    default int getCurrentExecutionTick() {
+        return HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick();
     }
 
     default double millisToNanos(double millis) {

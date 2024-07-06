@@ -2,6 +2,7 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.util.messages.MessageFormat;
@@ -230,7 +231,7 @@ public class NotificationService {
         return "§8(" + ping + "ms§7/" + tps + "tps§8)§7";
     }
 
-    private String formatPercentages(double[] percentages) {
+    private String formatPercentages(Double[] percentages) {
         StringBuilder message = new StringBuilder();
 
         for (double percentage : percentages) {
@@ -241,8 +242,8 @@ public class NotificationService {
     }
 
     public void applyQuotients(HoneyPlayer player, ValidationPipelineContext.DevelopmentData developmentData) {
-        TempQueuedHandleTracker serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
-        TempQueuedHandleTracker nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
+        TimedManualHandleTracker<Double, HoneyPlayer> serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
+        TimedManualHandleTracker<Double, HoneyPlayer> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
         String serverThreadPoint = serverThreadHandleTracker.has(player) ? formatPercentages(serverThreadHandleTracker.getStatistics(player)) : "No data!";
         String nettyThreadPoint = nettyThreadHandleTracker.has(player) ? formatPercentages(nettyThreadHandleTracker.getStatistics(player)) : "No data!";

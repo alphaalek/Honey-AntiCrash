@@ -5,8 +5,11 @@ import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.IDRegistry;
 
-public class TempQueuedTracker implements HoneyTracker {
+import java.io.Serializable;
 
+public class TempQueuedTracker implements HoneyTracker, Serializable {
+
+    private static final long serialVersionUID = 6503996538475745027L;
     protected final UnsyncTempQueue[] tickDurationQueues = new UnsyncTempQueue[Timespan.values().length];
     private final int id;
     private final boolean fixed;

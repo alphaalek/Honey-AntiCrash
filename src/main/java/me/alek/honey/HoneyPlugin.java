@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
-import me.alek.honey.compat.via.ViaProtocol;
+import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.print.PrintValidationBridge;
@@ -40,7 +40,6 @@ import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.sql.RepositoryProvider;
 import me.alek.honey.sql.SQLManagerWrapper;
-import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.RegistryHandleTracker;
@@ -94,6 +93,7 @@ public class HoneyPlugin implements HoneyAPI {
         this.plugin = plugin;
         INSTANCE = this;
 
+        Bukkit.getLogger().info(this + " " + INSTANCE + " " + get() + " " + getClass().getClassLoader());
         plugin.saveDefaultConfig();
         Lang.load();
 
@@ -269,6 +269,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         // setup tracking
         serverThreadTracker = new ExecutionQueueProxy();
+        serverThreadTracker.inject();
         packetNettyTracker = new TempQueuedHandleTracker();
         validationHandleTracker = new RegistryHandleTracker<>();
 
@@ -279,6 +280,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
         PacketExecutors.register();
         ItemAnalysis.reload();
+        PrintValidationBridge.inject();
 
         // setup commands
         commandManager = new CommandManager(plugin);
@@ -294,8 +296,6 @@ public class HoneyPlugin implements HoneyAPI {
         packetLibrary.addListeners(new TabCompleteListener(), ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
-
-        PrintValidationBridge.inject();
     }
 
     private void setupPacketLibrary() {

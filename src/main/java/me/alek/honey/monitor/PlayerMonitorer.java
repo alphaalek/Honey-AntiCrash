@@ -1,7 +1,6 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.tracker.Timespan;
 
@@ -24,20 +23,20 @@ public class PlayerMonitorer implements ScheduledMonitorer {
     }
 
     private double getOfAverageWithout(Timespan timespan) {
-        return TrackerUtils.getServer().getOfAverageWithout(player, timespan);
+        return TrackerCollection.getServer().getOfAverageWithout(player, timespan);
     }
 
     private double getOfTotal(Timespan timespan) {
-        return TrackerUtils.getServer().getOfTotal(player, timespan);
+        return TrackerCollection.getServer().getOfTotal(player, timespan);
     }
 
     private String getOfPacketTask(Timespan timespan) {
-        return TrackerUtils.getServer().getOfPacketTaskFormatted(player, timespan);
+        return TrackerCollection.getServer().getOfPacketTaskFormatted(player, timespan);
     }
 
     @Override
     public String getMessage() {
-        HoneyPlugin.get().getExecutionQueueProxy().clearExceedingNodes(player);
+        TrackerCollection.getServer().clearExceedingNodes(player);
 
         return "§6*§8STQ: §8o.a.w.o.: §7" + getOfAverageWithout(Timespan.TEN_SECOND) + "%§8, §7" + getOfAverageWithout(Timespan.FIFTEEN_SECOND) + "%§8, "
                 + "o.h.s.t.: §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, §7" + getOfPacketTask(Timespan.FIFTEEN_SECOND) + "§8, "

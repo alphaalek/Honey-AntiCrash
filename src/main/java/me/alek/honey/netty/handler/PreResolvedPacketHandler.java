@@ -105,8 +105,6 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        Bukkit.getLogger().info(msg.getClass() + "");
-
         if (resolving) {
             ctx.write(msg, promise);
             return;

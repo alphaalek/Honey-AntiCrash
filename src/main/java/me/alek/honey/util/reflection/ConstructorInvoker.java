@@ -42,8 +42,7 @@ public class ConstructorInvoker<T> {
         try {
             return constructor.newInstance(params);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Reflection error (constructor invoke): constructor: " + constructor + ", params: " + Arrays.toString(params) + ", message: " + ex.getMessage());
+            throw new RuntimeException("Reflection error (constructor invoke): " + constructor + ", params: " + Arrays.toString(params), ex);
         }
     }
 

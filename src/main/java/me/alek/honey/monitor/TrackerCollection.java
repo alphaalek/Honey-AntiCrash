@@ -2,11 +2,11 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
 import me.alek.honey.util.statics.NumberUtils;
 
-public class TrackerUtils {
+public class TrackerCollection {
 
     private static final TrackerAccessor serverThreadTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getExecutionQueueProxy());
     private static final TrackerAccessor nettyPacketTrackerAccessor = new TrackerAccessor(HoneyPlugin.get().getNettyPacketTracker());
@@ -21,9 +21,9 @@ public class TrackerUtils {
 
     public static class TrackerAccessor {
 
-        private final TempQueuedHandleTracker tracker;
+        private final TimedManualHandleTracker<Double, HoneyPlayer> tracker;
 
-        public TrackerAccessor(TempQueuedHandleTracker tracker) {
+        public TrackerAccessor(TimedManualHandleTracker<Double, HoneyPlayer> tracker) {
             this.tracker = tracker;
         }
 
@@ -40,7 +40,7 @@ public class TrackerUtils {
         }
 
         public double getOfPacketTask(HoneyPlayer player, Timespan timespan) {
-            return NumberUtils.format(tracker.getHalfServerThreadQuotient(player, timespan, true) * 100, 1);
+            return NumberUtils.format(tracker.getOfTotalQuotient(player, timespan, true) * 100, 1);
         }
 
         public String getOfPacketTaskFormatted(HoneyPlayer player, Timespan timespan) {
