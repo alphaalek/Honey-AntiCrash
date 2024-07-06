@@ -6,6 +6,7 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.util.reflection.*;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -90,20 +91,29 @@ public class ReflectStructure<T, C> {
     }
 
     public synchronized ReflectStructure<T, C> withoutStatic() {
+        if (this.withStatic) {
+            this.withStatic = false;
+            resetIf(this::disallowedMember);
+        }
         this.withStatic = false;
-        resetIf(this::disallowedMember);
         return this;
     }
 
     public synchronized ReflectStructure<T, C> withoutSuperClass() {
+        if (this.withSuperClass) {
+            this.withSuperClass = false;
+            resetIf(this::disallowedClass);
+        }
         this.withSuperClass = false;
-        resetIf(this::disallowedClass);
         return this;
     }
 
     public synchronized ReflectStructure<T, C> without(Class<?> handle) {
+        if (!this.disallowClasses.contains(handle)) {
+            this.disallowClasses.add(handle);
+            resetIf(this::disallowedClass);
+        }
         this.disallowClasses.add(handle);
-        resetIf(this::disallowedClass);
         return this;
     }
 
@@ -619,6 +629,11 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Class<?>... params) {
+            return getMethod(methodReference, name, index, () -> params);
+        }
+
+        @Override
         public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Supplier<Class<?>[]> params) {
             MethodInvoker<O> cachedInvoker;
             if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
@@ -626,8 +641,9 @@ public class ReflectStructure<T, C> {
             }
 
             AtomicInteger index = new AtomicInteger();
+            Class<?>[] paramClasses = params.get();
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (matchParams(params.get(), getWrapperClasses(invoker.getHandle().getParameterTypes()))
+                if (matchParams(paramClasses, getWrapperClasses(invoker.getHandle().getParameterTypes()))
                         && filter.test(index, invoker)) {
 
                     if (methodReference != null) {
@@ -639,6 +655,11 @@ public class ReflectStructure<T, C> {
             }
 
             return null;
+        }
+
+        @Override
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Class<?>... params) {
+            return getMethod(methodReference, filter, () -> params);
         }
 
         public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Supplier<Class<?>[]> params) {
@@ -662,6 +683,11 @@ public class ReflectStructure<T, C> {
             }
 
             return (MethodInvoker<C>) invoker;
+        }
+
+        @Override
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Class<?>... params) {
+            return getMethod(methodReference, index, () -> params);
         }
 
         private boolean matchParams(Class<?>[] params, Class<?>[] methodParams) {

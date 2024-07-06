@@ -59,8 +59,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
-        Bukkit.getLogger().info("INJECTED " + ExecutionQueueProxy.class.getClassLoader() + " " + WrappedPacketTask.class.getClassLoader());
     }
 
     public int getCurrentExecutionTick() {

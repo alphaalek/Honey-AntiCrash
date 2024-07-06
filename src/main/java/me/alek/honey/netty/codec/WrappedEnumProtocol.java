@@ -12,6 +12,7 @@ import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -68,8 +69,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
             classToIdMap = null;
             getPacketIdModifier = null;
-        }
-        else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_15)) {
+        } else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_15)) {
             Object protocolRegistry;
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 protocolRegistry = ReflectStructureCache.acquireStructure(handle.getClass())

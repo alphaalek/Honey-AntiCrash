@@ -93,7 +93,6 @@ public class HoneyPlugin implements HoneyAPI {
         this.plugin = plugin;
         INSTANCE = this;
 
-        Bukkit.getLogger().info(this + " " + INSTANCE + " " + get() + " " + getClass().getClassLoader());
         plugin.saveDefaultConfig();
         Lang.load();
 
