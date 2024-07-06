@@ -151,10 +151,14 @@ public class Array<T> implements Iterable<T> {
     public T poll(int index) {
         T val = get(index);
         if (has(index)) {
-            set(index, null);
+            remove(index);
         }
 
         return val;
+    }
+
+    public T poll() {
+        return poll(data.length - 1);
     }
 
     public T get(int index) {

@@ -7,16 +7,16 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.checkimpl.*;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
-import me.alek.honey.util.Callback;
-import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.ClientInfo;
-import me.alek.honey.util.Identifiable;
+import me.alek.honey.util.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class HoneyPlayer implements Identifiable {
 
@@ -56,14 +56,18 @@ public class HoneyPlayer implements Identifiable {
     public TempQueuedTracker serverThreadTimedQueuedTracker;
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
     public final Callback leaveCallback = new Callback();
-    public Queue<PostponeCheck> postponedChecks = new LinkedList<>(
-            new ArrayList<>(Arrays.asList(
-                    new PostponeRateIgnoreTerminator(),
-                    new PostponeRateCheck(),
-                    new PostponeRateAccelCheck(),
-                    new PostponeRateAccelQuotientCheck(),
-                    new PostponeMaxPerXTickCheck()
-            ))
+
+    public EnhancedInitialIterator<PostponeCheck> postponedChecks = new EnhancedInitialIterator<>(
+            new LinkedList<>(
+                new ArrayList<>(Arrays.asList(
+                        new PostponeRateIgnoreTerminator(),
+                        new PostponeRateCheck(),
+                        new PostponeRateAccelCheck(),
+                        new PostponeRateAccelQuotientCheck(),
+                        new PostponeMaxPerXTickCheck()
+                ))
+            ),
+            i -> new LazyInit<>(() -> ((LinkedList<PostponeCheck>)i).peek())
     );
 
     public HoneyPlayer(Channel channel, HoneyPacketHandler handler) {

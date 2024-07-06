@@ -18,5 +18,4 @@ public class DispenserListener implements Listener {
             event.setCancelled(true);
         }
     }
-
 }
