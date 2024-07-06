@@ -56,11 +56,11 @@ public class TrackCommand implements CommandImpl {
                 }
 
                 sender.sendMessage(Lang.getFormatted("track.checks"));
-                for (HoneyValidation<?> trackName : checkTracker.getTrackersOrdered()) {
-                    double timeToTotalQuotient = checkTracker.getTimeToTotalQuotient(trackName);
-                    double timeToAverageQuotient = checkTracker.getAverageTimePerToAverageQuotient(trackName);
+                for (HoneyValidation<?> validation : checkTracker.getTrackersOrdered()) {
+                    double timeToTotalQuotient = checkTracker.getTimeToTotalQuotient(validation);
+                    double timeToAverageQuotient = checkTracker.getAverageTimePerToAverageQuotient(validation);
 
-                    sender.sendMessage("§e" + trackName + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(time of total)§7, " + FORMATTER.format(timeToAverageQuotient * 100) + "% §8(avg. time/op.)");
+                    sender.sendMessage("§e" + validation.getName() + ": §7" + FORMATTER.format(timeToTotalQuotient * 100) + "% §8(time of total)§7, " + FORMATTER.format(timeToAverageQuotient * 100) + "% §8(avg. time/op.)");
                 }
                 break;
             default:

@@ -26,7 +26,7 @@ public class TimedNode<T> implements Identifiable {
         return value;
     }
 
-    public int getId() {
+    public int getID() {
         return identifier;
     }
 

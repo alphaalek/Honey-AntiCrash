@@ -22,8 +22,8 @@ public class RegistryHandleTracker<T extends Identifiable> implements MarkableHa
     private long totalTime;
 
     public synchronized List<TimedNode<T>> getRegistryTracking(T key) {
-        keys.set(key.getId(), key);
-        return handleRegistry.get(key.getId(), ArrayList::new);
+        keys.set(key.getID(), key);
+        return handleRegistry.get(key.getID(), ArrayList::new);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class RegistryHandleTracker<T extends Identifiable> implements MarkableHa
             this.key = 0;
         }
 
-        return node.getId();
+        return node.getID();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class RegistryHandleTracker<T extends Identifiable> implements MarkableHa
         TimedNode<T> trackedNode = null;
         for (int i = 0; i < tracking.size() && trackedNode == null; i++) {
             TimedNode<T> node = tracking.get(i);
-            if (node.getId() == registryKey) {
+            if (node.getID() == registryKey) {
                 trackedNode = node;
                 tracking.remove(node);
             }
@@ -119,7 +119,7 @@ public class RegistryHandleTracker<T extends Identifiable> implements MarkableHa
 
     @Override
     public Set<T> getTrackers() {
-        return Sets.newHashSet(keys);
+        return Sets.newHashSet(keys.compact());
     }
 
     @Override

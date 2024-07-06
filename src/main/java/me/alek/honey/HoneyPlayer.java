@@ -123,7 +123,7 @@ public class HoneyPlayer implements Identifiable {
     }
 
     @Override
-    public int getId() {
+    public int getID() {
         return registryID;
     }
 }

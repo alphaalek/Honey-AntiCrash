@@ -107,7 +107,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public Array<T> compact() {
-        return Array.from(stream().filter(Objects::nonNull).toArray());
+        return without(Objects::isNull);
     }
 
     private void resolve(int index) {
@@ -163,7 +163,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(Identifiable identifiable) {
-        return get(identifiable.getId(), null);
+        return get(identifiable.getID(), null);
     }
 
     public T getFirst() {
@@ -200,7 +200,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(Identifiable identifiable, Supplier<T> or) {
-        return get(identifiable.getId(), or);
+        return get(identifiable.getID(), or);
     }
 
     public T getOr(int index, Supplier<T> or) {
@@ -213,7 +213,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T getOr(Identifiable identifiable, Supplier<T> or) {
-        return getOr(identifiable, or);
+        return getOr(identifiable.getID(), or);
     }
 
     public synchronized void move(int start, int by) {
@@ -267,7 +267,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(Identifiable identifiable) {
-        return has(identifiable.getId());
+        return has(identifiable.getID());
     }
 
     public void clear() {
@@ -292,7 +292,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean set(Identifiable identifiable, T val) {
-        return set(identifiable.getId(), val);
+        return set(identifiable.getID(), val);
     }
 
     public synchronized boolean remove(int index) {
@@ -305,7 +305,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean remove(Identifiable identifiable) {
-        return remove(identifiable.getId());
+        return remove(identifiable.getID());
     }
 
     public synchronized boolean remove(T val) {

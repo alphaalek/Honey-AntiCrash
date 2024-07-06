@@ -13,6 +13,7 @@ public class LibraryVersion {
 
     public LibraryVersion(final String version) {
         String[] versionIntegers = version.split("\\.");
+
         int length = versionIntegers.length;
         this.versionIntArray = new int[length];
         for (int i = 0; i < length; i++) {
@@ -33,6 +34,7 @@ public class LibraryVersion {
         int localLength = versionIntArray.length;
         int oppositeLength = version.versionIntArray.length;
         int length = Math.max(localLength, oppositeLength);
+
         for (int i = 0; i < length; i++) {
             int localInteger = i < localLength ? versionIntArray[i] : 0;
             int oppositeInteger = i < oppositeLength ? version.versionIntArray[i] : 0;
@@ -42,6 +44,7 @@ public class LibraryVersion {
                 return -1;
             }
         }
+
         return 0;
     }
 
