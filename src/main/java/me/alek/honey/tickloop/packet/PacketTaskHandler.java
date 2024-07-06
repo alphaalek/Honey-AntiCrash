@@ -8,7 +8,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.EventloopState;
 import me.alek.honey.netty.packet.PacketStateTimings;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.statics.NumberUtils;

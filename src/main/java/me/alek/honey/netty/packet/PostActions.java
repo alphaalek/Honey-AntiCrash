@@ -10,13 +10,11 @@ import me.alek.honey.netty.handler.PreResolvedPacketHandler;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.packetwrappers.login.client.WrappedLoginInLoginStart;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
 
 public class PostActions {
 

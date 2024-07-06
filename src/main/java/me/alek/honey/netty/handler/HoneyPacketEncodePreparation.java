@@ -12,12 +12,10 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
-import java.nio.channels.ClosedChannelException;
 
 @ChannelHandler.Sharable
 public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter {

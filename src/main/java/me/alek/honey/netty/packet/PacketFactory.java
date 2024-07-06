@@ -12,7 +12,7 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 
 import java.util.concurrent.atomic.AtomicReference;

@@ -9,7 +9,7 @@ import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 
 import java.util.LinkedList;

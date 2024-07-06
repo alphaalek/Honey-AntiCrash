@@ -10,8 +10,8 @@ import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.netty.UnsafeChannelCloser;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutDisconnect;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutDisconnect;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;

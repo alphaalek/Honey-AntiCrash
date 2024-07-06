@@ -12,7 +12,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInChat;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;

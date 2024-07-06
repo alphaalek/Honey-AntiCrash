@@ -2,23 +2,12 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.compat.via.ViaProtocol;
-import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.util.Callback;
-import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
@@ -28,11 +17,9 @@ import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {

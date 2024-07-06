@@ -2,8 +2,6 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.type.*;
-import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.KeyedViolationValidation;
@@ -17,12 +15,11 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 

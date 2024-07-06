@@ -14,7 +14,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.List;

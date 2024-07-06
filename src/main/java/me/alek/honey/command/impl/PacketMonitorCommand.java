@@ -8,7 +8,7 @@ import me.alek.honey.monitor.MonitorFlag;
 import me.alek.honey.monitor.MonitorFlagParser;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.command.CommandSender;
 
 import java.util.Optional;

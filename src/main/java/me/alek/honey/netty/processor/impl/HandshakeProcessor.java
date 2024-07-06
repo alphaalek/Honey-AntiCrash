@@ -3,7 +3,7 @@ package me.alek.honey.netty.processor.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.processor.Processor;
-import me.alek.honey.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
+import me.alek.honey.netty.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.util.ClientInfo;
 
 public class HandshakeProcessor extends Processor<WrappedHandshakeInSetProtocol> {

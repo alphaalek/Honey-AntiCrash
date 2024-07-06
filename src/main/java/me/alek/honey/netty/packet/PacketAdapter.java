@@ -3,7 +3,7 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class PacketAdapter<WP extends WrappedPacket<WP>> {
 

@@ -6,16 +6,14 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
-import javax.annotation.processing.SupportedOptions;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;

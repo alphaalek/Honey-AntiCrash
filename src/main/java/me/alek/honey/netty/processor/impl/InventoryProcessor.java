@@ -5,14 +5,12 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.processor.Emulator;
 import me.alek.honey.netty.processor.ProcessorEmulator;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInClientCommand;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInCloseWindow;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInWindowClick;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutOpenWindow;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInClientCommand;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCloseWindow;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutOpenWindow;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 
 public class InventoryProcessor<WP extends WrappedPacket<WP>> extends ProcessorEmulator<WP, InventoryProcessor.InventoryEmulator> {
 

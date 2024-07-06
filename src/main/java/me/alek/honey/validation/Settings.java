@@ -5,7 +5,7 @@ import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.KeyedViolationValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Array;
 

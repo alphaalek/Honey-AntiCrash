@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.validation.types.DecodeValidation;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.packet.CancellableByteBuf;

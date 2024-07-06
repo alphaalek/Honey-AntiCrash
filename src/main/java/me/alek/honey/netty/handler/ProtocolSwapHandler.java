@@ -1,25 +1,17 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.WrappedEnumProtocol;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
-
-import java.util.concurrent.atomic.AtomicReference;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class ProtocolSwapHandler {
 

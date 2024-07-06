@@ -6,7 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.reflection.MethodInvoker;
 import org.bukkit.Bukkit;
 

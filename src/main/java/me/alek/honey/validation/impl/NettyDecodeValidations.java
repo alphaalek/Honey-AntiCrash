@@ -2,7 +2,7 @@ package me.alek.honey.validation.impl;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.DecodeValidation;

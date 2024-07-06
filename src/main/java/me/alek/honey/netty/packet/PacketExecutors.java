@@ -17,7 +17,7 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

@@ -1,14 +1,13 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;

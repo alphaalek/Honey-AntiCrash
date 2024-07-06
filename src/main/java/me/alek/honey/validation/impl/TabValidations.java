@@ -1,16 +1,13 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInTabComplete;
-import me.alek.honey.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInTabComplete;
+import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
@@ -19,7 +16,6 @@ import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class TabValidations extends AbstractPacketListener<WrappedPlayInTabComplete> {
 

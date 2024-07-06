@@ -9,7 +9,7 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.MaterialMappings;

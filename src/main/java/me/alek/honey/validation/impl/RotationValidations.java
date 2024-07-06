@@ -6,7 +6,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.packetwrappers.play.client.WrappedPlayInFlying;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
@@ -14,7 +14,6 @@ import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.util.*;

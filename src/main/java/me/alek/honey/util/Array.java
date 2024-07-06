@@ -3,6 +3,7 @@ package me.alek.honey.util;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -160,6 +161,18 @@ public class Array<T> implements Iterable<T> {
 
     public T getFirst() {
         return get(0);
+    }
+
+    public Optional<T> getIfSet(int index) {
+        if (index < 0 || index >= data.length) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable((T) data[index]);
+    }
+
+    public Optional<T> getFirstIfSet() {
+        return getIfSet(0);
     }
 
     public T getLast() {

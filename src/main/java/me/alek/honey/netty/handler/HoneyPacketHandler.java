@@ -2,12 +2,10 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaProtocol;
-import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.CodecFactory;
@@ -20,12 +18,9 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.LinkedList;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Queue;
 
 

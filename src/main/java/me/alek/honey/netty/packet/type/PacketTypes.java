@@ -195,9 +195,8 @@ public enum PacketTypes implements PacketType {
     public static Optional<PacketType> getPacketType(Class<?> clazz, PacketState state) {
         return getPacketTypes(clazz)
                 .compact()
-                .stream()
-                .filter(s -> s.getState().equals(state))
-                .findAny();
+                .with(s -> s.getState().equals(state))
+                .getFirstIfSet();
     }
 
     public static Array<PacketType> getPacketTypes(Class<?> clazz) {
