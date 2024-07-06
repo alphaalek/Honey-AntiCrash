@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 public interface IStructureModifier<T> {
 
@@ -38,11 +39,11 @@ public interface IStructureModifier<T> {
 
     <O> T readField(AtomicReference<FieldAccessor<O>> fieldReference, BiPredicate<AtomicInteger, FieldAccessor<?>> filter);
 
-    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Class<?>... params);
+    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Supplier<Class<?>[]> params);
 
-    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Class<?>... params);
+    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Supplier<Class<?>[]> params);
 
-    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Class<?>... params);
+    <O> MethodInvoker<T> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Supplier<Class<?>[]> params);
 
     <O> T invokeMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params);
 

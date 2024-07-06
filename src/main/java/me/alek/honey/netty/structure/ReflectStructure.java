@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class ReflectStructure<T, C> {
 
@@ -592,7 +593,7 @@ public class ReflectStructure<T, C> {
 
         @Override
         public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Object... params) throws Exception {
-            return invoke((MethodInvoker<T>) getMethod(methodReference, filter, getParamClasses(params)), params);
+            return invoke((MethodInvoker<T>) getMethod(methodReference, filter, () -> getParamClasses(params)), params);
         }
 
         @Override
@@ -612,12 +613,13 @@ public class ReflectStructure<T, C> {
             return false;
         }
 
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Class<?>... params) {
+        @Override
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Supplier<Class<?>[]> params) {
             return getMethod(methodReference, (i, invoker) -> invoker.getName().equals(name) && i.getAndIncrement() == index, params);
         }
 
         @Override
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Class<?>... params) {
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, BiPredicate<AtomicInteger, MethodInvoker<?>> filter, Supplier<Class<?>[]> params) {
             MethodInvoker<O> cachedInvoker;
             if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
                 return (MethodInvoker<C>) cachedInvoker;
@@ -625,7 +627,7 @@ public class ReflectStructure<T, C> {
 
             AtomicInteger index = new AtomicInteger();
             for (MethodInvoker<T> invoker : ACQUIRED_INVOKERS.values()) {
-                if (matchParams(params, getWrapperClasses(invoker.getHandle().getParameterTypes()))
+                if (matchParams(params.get(), getWrapperClasses(invoker.getHandle().getParameterTypes()))
                         && filter.test(index, invoker)) {
 
                     if (methodReference != null) {
@@ -639,7 +641,7 @@ public class ReflectStructure<T, C> {
             return null;
         }
 
-        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Class<?>... params) {
+        public <O> MethodInvoker<C> getMethod(AtomicReference<MethodInvoker<O>> methodReference, int index, Supplier<Class<?>[]> params) {
             MethodInvoker<O> cachedInvoker;
             if (methodReference != null && (cachedInvoker = methodReference.get()) != null) {
                 return (MethodInvoker<C>) cachedInvoker;
@@ -651,7 +653,7 @@ public class ReflectStructure<T, C> {
 
             @SuppressWarnings("unchecked")
             MethodInvoker<O> invoker = (MethodInvoker<O>) ACQUIRED_INVOKERS.get(index);
-            if (!matchParams(params, getWrapperClasses(invoker.getHandle().getParameterTypes()))) {
+            if (!matchParams(params.get(), getWrapperClasses(invoker.getHandle().getParameterTypes()))) {
                 return null;
             }
 
@@ -690,12 +692,12 @@ public class ReflectStructure<T, C> {
 
         @Override
         public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, int index, Object... params) throws Exception {
-            return invoke((MethodInvoker<T>) getMethod(methodReference, index, getParamClasses(params)), params);
+            return invoke((MethodInvoker<T>) getMethod(methodReference, index, () -> getParamClasses(params)), params);
         }
 
         @Override
         public <O> C invokeMethodWithException(AtomicReference<MethodInvoker<O>> methodReference, String name, int index, Object... params) throws Exception {
-            return invoke((MethodInvoker<T>) getMethod(methodReference, name, index, getParamClasses(params)), params);
+            return invoke((MethodInvoker<T>) getMethod(methodReference, name, index, () -> getParamClasses(params)), params);
         }
 
         @Override
