@@ -32,15 +32,15 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
     }
 
     private ValidationServiceContext getResponseAndRegisterTimings(C validation, Function<C, ValidationServiceContext> getResponse, ConfigurationOptions.ViolationSetting setting) {
-        long registryKey = -1;
+        int registryKey = -1;
         if (setting != null && setting.isEnabled()) {
-            registryKey = HoneyPlugin.get().getValidationHandleTracker().registerTimeStart(validation.getName());
+            registryKey = HoneyPlugin.get().getValidationHandleTracker().registerTimeStart(validation);
         }
 
         ValidationServiceContext response = getResponse.apply(validation);
 
         if (setting != null && setting.isEnabled() && registryKey != -1) {
-            HoneyPlugin.get().getValidationHandleTracker().registerTimeStop(validation.getName(), registryKey);
+            HoneyPlugin.get().getValidationHandleTracker().registerTimeStop(validation, registryKey);
         }
 
         return response;

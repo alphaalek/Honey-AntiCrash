@@ -13,6 +13,7 @@ import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
+import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.plugin.Plugin;
 
 public interface HoneyAPI {
@@ -41,7 +42,7 @@ public interface HoneyAPI {
 
     ExecutionQueueProxy getExecutionQueueProxy();
 
-    MarkableHandleTracker<Double, String> getValidationHandleTracker();
+    MarkableHandleTracker<Double, HoneyValidation<?>> getValidationHandleTracker();
 
     CraftScheduledTPSTracker getTPSTracker();
 

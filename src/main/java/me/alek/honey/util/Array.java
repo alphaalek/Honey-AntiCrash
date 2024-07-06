@@ -1,5 +1,8 @@
 package me.alek.honey.util;
 
+import me.alek.honey.Identifiable;
+import org.apache.commons.lang.Validate;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
@@ -81,9 +84,9 @@ public class Array<T> implements Iterable<T> {
     public <R> Array<R> as(Function<? super T, ? extends R> mapper) {
         return Array.from(
                 with(Objects::nonNull)
-                        .stream()
-                        .map(mapper)
-                        .toArray(Object[]::new));
+                .stream()
+                .map(mapper)
+                .toArray(Object[]::new));
     }
 
     public Stream<T> stream() {
@@ -159,12 +162,16 @@ public class Array<T> implements Iterable<T> {
         return get(index, null);
     }
 
+    public T get(Identifiable identifiable) {
+        return get(identifiable.getId(), null);
+    }
+
     public T getFirst() {
         return get(0);
     }
 
     public Optional<T> getIfSet(int index) {
-        if (index < 0 || index >= data.length) {
+        if (!has(index)) {
             return Optional.empty();
         }
 
@@ -180,8 +187,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(int index, Supplier<T> or) {
-        if (index < 0
-                || index >= data.length && or == null) {
+        if (!has(index) && or == null) {
             return null;
         }
 
@@ -191,6 +197,23 @@ public class Array<T> implements Iterable<T> {
         }
 
         return (T) data[index];
+    }
+
+    public T get(Identifiable identifiable, Supplier<T> or) {
+        return get(identifiable.getId(), or);
+    }
+
+    public T getOr(int index, Supplier<T> or) {
+        if (!has(index)) {
+            Validate.notNull(or);
+            return or.get();
+        }
+
+        return get(index);
+    }
+
+    public T getOr(Identifiable identifiable, Supplier<T> or) {
+        return getOr(identifiable, or);
     }
 
     public synchronized void move(int start, int by) {
@@ -235,9 +258,16 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(int index) {
-        if (index >= data.length) return false; // avoid resolving
+        if (index < 0
+                || index >= data.length) {
+            return false; // avoid resolving
+        }
 
         return data[index] != null;
+    }
+
+    public boolean has(Identifiable identifiable) {
+        return has(identifiable.getId());
     }
 
     public void clear() {
@@ -249,7 +279,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean isEmpty() {
-        return compact().data.length == 0;
+        return data.length == 0;
     }
 
     public synchronized boolean set(int index, T val) {
@@ -261,6 +291,10 @@ public class Array<T> implements Iterable<T> {
         return present;
     }
 
+    public synchronized boolean set(Identifiable identifiable, T val) {
+        return set(identifiable.getId(), val);
+    }
+
     public synchronized boolean remove(int index) {
         if (index >= data.length || index < 0) return false;
 
@@ -268,6 +302,10 @@ public class Array<T> implements Iterable<T> {
         resolveDown();
 
         return removed;
+    }
+
+    public synchronized boolean remove(Identifiable identifiable) {
+        return remove(identifiable.getId());
     }
 
     public synchronized boolean remove(T val) {

@@ -1,18 +1,16 @@
 package me.alek.honey.tracker;
 
-import java.io.Serializable;
+import me.alek.honey.Identifiable;
 
-public class TimedNode<T> implements Serializable {
+public class TimedNode<T> implements Identifiable {
 
-    private static final long serialVersionUID = 1210079567439681068L;
-
-    public TimedNode(T value, long identifier, long insertionInstant) {
+    public TimedNode(T value, int identifier, long insertionInstant) {
         this.value = value;
         this.identifier = identifier;
         this.insertionInstant = insertionInstant;
     }
 
-    public TimedNode(T value, long identifier) {
+    public TimedNode(T value, int identifier) {
         this(value, identifier, System.nanoTime());
     }
 
@@ -21,14 +19,14 @@ public class TimedNode<T> implements Serializable {
     }
 
     private final T value;
-    private final long identifier;
+    private final int identifier;
     private final long insertionInstant;
 
     public T getValue() {
         return value;
     }
 
-    public long getID() {
+    public int getId() {
         return identifier;
     }
 

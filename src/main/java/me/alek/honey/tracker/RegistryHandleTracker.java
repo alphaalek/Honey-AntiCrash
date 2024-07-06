@@ -1,37 +1,46 @@
 package me.alek.honey.tracker;
 
-import java.util.*;
+import com.google.common.collect.Sets;
+import me.alek.honey.Identifiable;
+import me.alek.honey.util.Array;
 
-public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T> {
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+
+public class RegistryHandleTracker<T extends Identifiable> implements MarkableHandleTracker<Double, T> {
 
     private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
 
-    private final Map<T, Long> checkHandleTimeMap = new HashMap<>();
-    private final Map<T, Integer> checkHandleIndexMap = new HashMap<>();
-    private final Map<T, List<TimedNode<T>>> checkHandleRegistry = new HashMap<>();
-    private long key;
+    private final Array<Long> handleTime = new Array<>();
+    private final Array<Integer> handleIndices = new Array<>();
+    private final Array<List<TimedNode<T>>> handleRegistry = new Array<>();
+    private final Array<T> keys = new Array<>();
+    private int key;
     private long totalIndex;
     private long totalTime;
 
     public synchronized List<TimedNode<T>> getRegistryTracking(T key) {
-        return checkHandleRegistry.computeIfAbsent(key, (d) -> new ArrayList<>());
+        keys.set(key.getId(), key);
+        return handleRegistry.get(key.getId(), ArrayList::new);
     }
 
     @Override
-    public synchronized long registerTimeStart(T key) {
+    public synchronized int registerTimeStart(T key) {
         List<TimedNode<T>> tracking = getRegistryTracking(key);
 
         TimedNode<T> node;
         tracking.add(node = new TimedNode<>(key, this.key++));
-        if (this.key == Long.MAX_VALUE) {
+        if (this.key == Integer.MAX_VALUE) {
             this.key = 0;
         }
 
-        return node.getID();
+        return node.getId();
     }
 
     @Override
-    public synchronized void registerTimeStop(T key, long registryKey) {
+    public synchronized void registerTimeStop(T key, int registryKey) {
         List<TimedNode<T>> tracking = getRegistryTracking(key);
         if (tracking.isEmpty()) {
             return;
@@ -40,7 +49,7 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
         TimedNode<T> trackedNode = null;
         for (int i = 0; i < tracking.size() && trackedNode == null; i++) {
             TimedNode<T> node = tracking.get(i);
-            if (node.getID() == registryKey) {
+            if (node.getId() == registryKey) {
                 trackedNode = node;
                 tracking.remove(node);
             }
@@ -50,11 +59,11 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
         }
 
         long deltaHandleTime = System.nanoTime() - trackedNode.getInsertionInstant();
-        checkHandleIndexMap.put(key, checkHandleIndexMap.getOrDefault(key, 0) + 1);
-        checkHandleTimeMap.put(key, checkHandleTimeMap.getOrDefault(key, 0L) + deltaHandleTime);
+        handleIndices.set(key, getHandleIndices(key) + 1);
+        handleTime.set(key, getHandleTime(key) + deltaHandleTime);
         totalIndex++;
         totalTime += deltaHandleTime;
-        if (totalTime > Long.MAX_VALUE - FROM_LONG_MAX_BEFORE_RESET) {
+        if (totalTime == Long.MAX_VALUE) {
             totalTime = totalTime / totalIndex;
             totalIndex = 1;
         }
@@ -62,7 +71,7 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
 
     @Override
     public double getAverageTimePer(T key) {
-        return ((double)getCheckHandleTime(key)) / getCheckHandleIndex(key);
+        return ((double) getHandleTime(key)) / getHandleIndices(key);
     }
 
     @Override
@@ -70,38 +79,34 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
         return getAverageTimePer(key) / (((double)totalTime) / totalIndex);
     }
 
-    public long getCheckHandleTime(T key) {
-        return checkHandleTimeMap.getOrDefault(key, 0L);
+    public long getHandleTime(T key) {
+        return handleTime.getOr(key, () -> 0L);
     }
 
-    public int getCheckHandleIndex(T key) {
-        return checkHandleIndexMap.getOrDefault(key, 0);
+    public int getHandleIndices(T key) {
+        return handleIndices.getOr(key, () -> 0);
     }
 
     @Override
     public void remove(T key) {
-        checkHandleTimeMap.remove(key);
+        handleTime.remove(key);
     }
 
     @Override
     public boolean has(T key) {
-        return checkHandleRegistry.containsKey(key);
+        return handleRegistry.has(key);
     }
 
     public double getTimeToAverageQuotient(T key) {
-        return ((double)getCheckHandleTime(key)) / getAverage();
+        return ((double) getHandleTime(key)) / getAverage();
     }
 
     public double getTimeToTotalQuotient(T key) {
-        return ((double)getCheckHandleTime(key)) / getTotal();
-    }
-
-    public Set<T> getTrackerNames() {
-        return checkHandleTimeMap.keySet();
+        return ((double) getHandleTime(key)) / getTotal();
     }
 
     public int getTrackerSize() {
-        return checkHandleTimeMap.size();
+        return handleTime.size();
     }
 
     public double getAverage() {
@@ -114,17 +119,16 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
 
     @Override
     public Set<T> getTrackers() {
-        return checkHandleTimeMap.keySet();
+        return Sets.newHashSet(keys);
     }
 
     @Override
     public List<T> getTrackersOrdered() {
         List<T> trackersList = new ArrayList<>(getTrackers());
         trackersList.sort(new Comparator<T>() {
-
             @Override
             public int compare(T o1, T o2) {
-                return Double.compare(getCheckHandleTime(o1), getCheckHandleTime(o2));
+                return Double.compare(getHandleTime(o1), getHandleTime(o2));
             }
         });
         return trackersList;
@@ -132,9 +136,9 @@ public class RegistryHandleTracker<T> implements MarkableHandleTracker<Double, T
 
     @Override
     public void clear() {
-        checkHandleTimeMap.clear();
-        checkHandleRegistry.clear();
-        checkHandleIndexMap.clear();
+        handleTime.clear();
+        handleRegistry.clear();
+        handleIndices.clear();
         totalTime = 0;
         totalIndex = 0;
         key = 0;

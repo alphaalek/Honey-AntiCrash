@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class HoneyPlayer {
+public class HoneyPlayer implements Identifiable {
 
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
 
@@ -120,5 +120,10 @@ public class HoneyPlayer {
     @Override
     public String toString() {
         return packetHandler.getPlayerName();
+    }
+
+    @Override
+    public int getId() {
+        return registryID;
     }
 }

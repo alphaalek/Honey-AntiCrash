@@ -12,6 +12,7 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +62,7 @@ public class PacketDataSerializer extends ByteBuf {
 
     public Object readItemStack() {
         return ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
-                .withType(NMS.getItemStackClass()).withTarget(serializer)
+                .withType(NMS.getItemStackClass()).withTarget(getSerializer())
                 .invokeMethod(null, 0);
     }
 
@@ -77,7 +78,7 @@ public class PacketDataSerializer extends ByteBuf {
         }
 
         Object nbt = ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(serializer)
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
                 .invokeMethod(null, 0);
         Object item = ItemReflection.getItemFromId(itemId);
         if (item == null) {

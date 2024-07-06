@@ -13,26 +13,26 @@ public class Settings {
 
     private static final Array<ConfigurationOptions.ViolationSetting> settingArray = new Array<>();
 
-    public static ConfigurationOptions.ViolationSetting getSetting(HoneyValidation<?> check, Class<? extends ConfigurationOptions.ViolationSetting> settingClass) {
-        return settingArray.get(check.getID(), () -> ConfigurationOptions.getVlSetting(settingClass));
+    public static ConfigurationOptions.ViolationSetting getSetting(ViolationValidation<?> validation, Class<? extends ConfigurationOptions.ViolationSetting> settingClass) {
+        return settingArray.get(validation.getID(), () -> ConfigurationOptions.getVlSetting(settingClass));
     }
 
-    public static ConfigurationOptions.ViolationSetting getSetting(HoneyValidation<?> check) {
-        if (!check.isViolation()) {
+    public static ConfigurationOptions.ViolationSetting getSetting(HoneyValidation<?> validation) {
+        if (!validation.isViolation()) {
             return null;
         }
 
-        return ((ViolationValidation<?>) check).getSetting();
+        return ((ViolationValidation<?>) validation).getSetting();
     }
 
-    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> check, ViolationService.HoneyKey key, WP packet) {
-        if (!check.isViolation()) {
+    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> validation, ViolationService.HoneyKey key, WP packet) {
+        if (!validation.isViolation()) {
             return null;
         }
 
-        ViolationValidation<?> violationCheck = (ViolationValidation<?>) check;
+        ViolationValidation<?> violationCheck = (ViolationValidation<?>) validation;
         if (packet != null && violationCheck.isKeyed()) {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings("unvalidationed")
             KeyedViolationValidation<WP> keyedViolationCheck = (KeyedViolationValidation<WP>) violationCheck;
             ConfigurationOptions.ViolationSetting setting = keyedViolationCheck.getSetting(packet);
             ViolationService.HoneyKey distributionKey = keyedViolationCheck.getKey(packet);

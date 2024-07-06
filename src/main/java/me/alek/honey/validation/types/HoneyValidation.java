@@ -2,10 +2,11 @@ package me.alek.honey.validation.types;
 
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.Identifiable;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationServiceContext;
 
-public interface HoneyValidation<T> {
+public interface HoneyValidation<T> extends Identifiable {
 
     int getID();
 

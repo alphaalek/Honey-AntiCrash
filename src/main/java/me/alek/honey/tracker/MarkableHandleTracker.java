@@ -8,9 +8,9 @@ public interface MarkableHandleTracker<I extends Number, T> extends StatedHandle
         throw new UnsupportedOperationException();
     }
 
-    long registerTimeStart(T key);
+    int registerTimeStart(T key);
 
-    void registerTimeStop(T key, long registryKey);
+    void registerTimeStop(T key, int registryKey);
 
     double getAverageTimePer(T key);
 

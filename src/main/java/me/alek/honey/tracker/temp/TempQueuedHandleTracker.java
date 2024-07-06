@@ -11,9 +11,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double, HoneyPlayer>, Serializable {
+public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double, HoneyPlayer> {
 
-    private static final long serialVersionUID = 5271105682200147230L;
     private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
     private final TempQueuedTracker commonTracker = new TempQueuedTracker(false, false);
 

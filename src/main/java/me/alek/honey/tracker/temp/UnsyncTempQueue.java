@@ -10,19 +10,13 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-public class UnsyncTempQueue implements Serializable {
-
-    public interface Filter extends Predicate<Long>, Serializable {
-
-    }
-
-    private static final long serialVersionUID = 13688663619933788L;
+public class UnsyncTempQueue {
 
     private final Queue<Double> FIXED = new LinkedList<>();
     private final Deque<TimedNode<Double>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
-    private final Filter exceeds;
+    private final Predicate<Long> exceeds;
     private boolean collected;
     private long total;
 
@@ -30,7 +24,7 @@ public class UnsyncTempQueue implements Serializable {
         this(diff -> diff > timespan.getNanoTimespan(), isFixed);
     }
 
-    public UnsyncTempQueue(Filter exceeds, boolean isFixed) {
+    public UnsyncTempQueue(Predicate<Long> exceeds, boolean isFixed) {
         this.exceeds = exceeds;
         this.isFixed = isFixed;
     }
@@ -151,7 +145,6 @@ public class UnsyncTempQueue implements Serializable {
         }
 
         final long diff = time - node.getInsertionInstant();
-
         if (exceeds.test(diff)) {
             total -= (long) (double) node.getValue();
             collected = true;

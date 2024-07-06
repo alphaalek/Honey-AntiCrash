@@ -10,6 +10,7 @@ import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.statics.NumberUtils;
+import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.command.CommandSender;
 
 import java.text.DecimalFormat;
@@ -48,14 +49,14 @@ public class TrackCommand implements CommandImpl {
 
                 break;
             case "checks":
-                MarkableHandleTracker<Double, String> checkTracker = HoneyPlugin.get().getValidationHandleTracker();
+                MarkableHandleTracker<Double, HoneyValidation<?>> checkTracker = HoneyPlugin.get().getValidationHandleTracker();
                 if (checkTracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));
                     return;
                 }
 
                 sender.sendMessage(Lang.getFormatted("track.checks"));
-                for (String trackName : checkTracker.getTrackersOrdered()) {
+                for (HoneyValidation<?> trackName : checkTracker.getTrackersOrdered()) {
                     double timeToTotalQuotient = checkTracker.getTimeToTotalQuotient(trackName);
                     double timeToAverageQuotient = checkTracker.getAverageTimePerToAverageQuotient(trackName);
 
