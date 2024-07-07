@@ -11,9 +11,12 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.chain.ChainSupplier;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import org.bukkit.Bukkit;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -22,9 +25,10 @@ import java.util.logging.Level;
 public class PacketTaskProvider {
 
     public static final Array<PacketTaskProvider> PROVIDERS = new Array<>();
+    private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
 
-    private static Factory<Runnable> factory;
     private static final AtomicReference<MethodInvoker<Runnable>> factoryInvokerCache = new AtomicReference<>();
+    private static Factory<Runnable> factory;
 
     static {
         try {
@@ -33,7 +37,7 @@ public class PacketTaskProvider {
 
             Class<?> factoryClass = honeyClassLoader.loadClass(PacketTaskFactory.class.getName());
 
-            Object factory = factoryClass.getDeclaredConstructor().newInstance();
+            Object factory = factoryClass.getDeclaredConstructor(boolean.class).newInstance(MODERN);
             PacketTaskProvider.factory = createModuleContextFactory(factory);
 
         } catch (Exception ex) {
@@ -66,7 +70,7 @@ public class PacketTaskProvider {
         };
     }
 
-    private final Array<Recyclable<Runnable>> recyclables = new Array<>();
+    private final Queue<Recyclable<Runnable>> recyclables = new LinkedList<>();
 
     public static PacketTaskProvider getProvider(HoneyPlayer player) {
         return PROVIDERS.get(player,

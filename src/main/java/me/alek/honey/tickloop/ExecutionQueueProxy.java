@@ -115,12 +115,12 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
                 tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class);
-            }
-
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_18)) {
                 EMPTY_TICK_TASK = tickTaskConstructor.invoke(0, Runnables.doNothing());
             } else {
                 EMPTY_TICK_TASK = null;
+            }
+
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
                 tickTaskConstructor = null;
             }
         }
@@ -162,7 +162,12 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
         @Override
         public Object remove() {
-            return poll();
+            Object polled = poll();
+            if (polled != null) {
+                return polled;
+            }
+
+            return EMPTY_TICK_TASK;
         }
 
         @Override

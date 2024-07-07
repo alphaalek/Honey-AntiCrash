@@ -1,15 +1,15 @@
 package me.alek.honey.tickloop.packet;
 
-import me.alek.honey.util.protocol.NetProtocol;
-
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
 
-    public PacketTaskFactory() {
-        // empty constructor
+    private final boolean modern;
+
+    public PacketTaskFactory(boolean modern) {
+        this.modern = modern;
     }
 
     @Override
@@ -19,7 +19,7 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
                            AtomicReference<Runnable> post,
                            AtomicReference<Consumer<Throwable>> catcher) {
         PacketTaskAdapter packetTask = new PacketTaskAdapter(task, check, pre, post, catcher);
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
+        if (modern) {
             return packetTask;
         } else {
             return new PacketTaskAdapter.TaskWrapper1_13_2<>(packetTask);
