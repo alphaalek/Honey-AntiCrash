@@ -8,99 +8,101 @@ import java.net.SocketAddress;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class PipelineProxy implements ChannelPipeline {
 
     private final ChannelPipeline delegate;
     private final Channel channel;
-    private final SpigotPipelineInjector spigotPipelineInjector = HoneyPlugin.get().getPacketLibrary().getPipelineInjector();
+    private final Consumer<Channel> proxy;
 
-    public PipelineProxy(ChannelPipeline delegate) {
+    public PipelineProxy(ChannelPipeline delegate, Consumer<Channel> proxy) {
         this.channel = delegate.channel();
         this.delegate = delegate;
+        this.proxy = proxy;
     }
 
     @Override
     public ChannelPipeline addFirst(String s, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addFirst(s, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addFirst(EventExecutorGroup eventExecutorGroup, String s, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addFirst(eventExecutorGroup, s, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addLast(String s, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addLast(s, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addLast(EventExecutorGroup eventExecutorGroup, String s, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addLast(eventExecutorGroup, s, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addBefore(String s, String s1, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addBefore(s, s1, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addBefore(EventExecutorGroup eventExecutorGroup, String s, String s1, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addBefore(eventExecutorGroup, s, s1, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addAfter(String s, String s1, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addAfter(s, s1, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addAfter(EventExecutorGroup eventExecutorGroup, String s, String s1, ChannelHandler channelHandler) {
         ChannelPipeline pipeline = delegate.addAfter(eventExecutorGroup, s, s1, channelHandler);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addFirst(ChannelHandler... channelHandlers) {
         ChannelPipeline pipeline = delegate.addFirst(channelHandlers);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addFirst(EventExecutorGroup eventExecutorGroup, ChannelHandler... channelHandlers) {
         ChannelPipeline pipeline = delegate.addFirst(eventExecutorGroup, channelHandlers);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addLast(ChannelHandler... channelHandlers) {
         ChannelPipeline pipeline = delegate.addLast(channelHandlers);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 
     @Override
     public ChannelPipeline addLast(EventExecutorGroup eventExecutorGroup, ChannelHandler... channelHandlers) {
         ChannelPipeline pipeline = delegate.addFirst(eventExecutorGroup, channelHandlers);
-        spigotPipelineInjector.ensureCorrectPipelineOrder(channel);
+        proxy.accept(channel);
         return pipeline;
     }
 

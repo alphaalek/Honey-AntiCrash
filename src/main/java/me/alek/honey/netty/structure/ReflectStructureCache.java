@@ -15,7 +15,7 @@ public class ReflectStructureCache {
         return PACKET_STRUCTURE_CACHE.get(packetType.getHoneyID(), () -> new ReflectStructure<>(packetType.getNmsClass()));
     }
 
-    public static synchronized ReflectStructure<Object, Object> acquireStructure(Class<?> clazz) {
-        return WRAPPER_STRUCTURE_CACHE.computeIfAbsent(clazz, wrapperClass -> new ReflectStructure<>(clazz));
+    public static synchronized <T> ReflectStructure<Object, T> acquireStructure(Class<?> clazz) {
+        return (ReflectStructure<Object, T>) WRAPPER_STRUCTURE_CACHE.computeIfAbsent(clazz, wrapperClass -> new ReflectStructure<>(clazz));
     }
 }

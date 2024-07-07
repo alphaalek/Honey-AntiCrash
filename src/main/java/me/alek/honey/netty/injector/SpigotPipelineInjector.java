@@ -13,13 +13,17 @@ import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.util.Provider;
+import me.alek.honey.util.RemoteClasses;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SpigotPipelineInjector {
+
+    private final Provider.ProviderTwoInput<ChannelProxy, Channel, Consumer<Channel>> channelProxyRemoteProvider = RemoteClasses.create(null, new ChannelProxyProvider());
 
     public void injectChannel(Channel channel) {
         synchronized (channel) {
@@ -58,10 +62,10 @@ public class SpigotPipelineInjector {
             throw new MissingHandlerException();
         }
 
-        IStructureModifier<Channel> channelStructureModifier = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
-                .withType(Channel.class)
+        IStructureModifier<Object> channelStructureModifier = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
+                .withWeakType(Channel.class)
                 .withTarget(networkManager);
-        Channel registeredChannel = channelStructureModifier.readField(0);
+        Channel registeredChannel = (Channel) channelStructureModifier.readField(0);
         if (registeredChannel instanceof ChannelProxy
                 || ReflectStructureCache.acquireStructure(registeredChannel.getClass())
                         .withTarget(registeredChannel)
@@ -71,11 +75,11 @@ public class SpigotPipelineInjector {
             return;
         }
 
-        ChannelProxy channelProxy = new ChannelProxy(channel);
+        Object channelProxy = channelProxyRemoteProvider.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
         if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
                 && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
             ReflectStructureCache.acquireStructure(ProtocolLib.CHANNEL_PROXY)
-                    .withType(Channel.class).withTarget(registeredChannel)
+                    .withWeakType(Channel.class).withTarget(registeredChannel)
                     .writeField(0, channelProxy);
         } else {
             channelStructureModifier.writeField(0, channelProxy);

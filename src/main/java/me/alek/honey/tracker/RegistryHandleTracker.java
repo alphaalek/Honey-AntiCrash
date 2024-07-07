@@ -11,8 +11,6 @@ import java.util.Set;
 
 public class RegistryHandleTracker<T extends Identifiable> implements MarkableHandleTracker<Double, T> {
 
-    private static final int FROM_LONG_MAX_BEFORE_RESET = (int) Math.pow(10, 6);
-
     private final Array<Long> handleTime = new Array<>();
     private final Array<Integer> handleIndices = new Array<>();
     private final Array<List<TimedNode<T>>> handleRegistry = new Array<>();

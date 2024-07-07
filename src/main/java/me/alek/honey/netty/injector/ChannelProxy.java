@@ -7,18 +7,21 @@ import io.netty.util.AttributeKey;
 import org.bukkit.Bukkit;
 
 import java.net.SocketAddress;
+import java.util.function.Consumer;
 
 public class ChannelProxy implements Channel {
 
     private final Channel delegate;
+    private final Consumer<Channel> pipelineProxy;
 
-    public ChannelProxy(Channel delegate) {
+    public ChannelProxy(Channel delegate, Consumer<Channel> pipelineProxy) {
         this.delegate = delegate;
+        this.pipelineProxy = pipelineProxy;
     }
 
     @Override
     public ChannelPipeline pipeline() {
-        return new PipelineProxy(this.delegate.pipeline());
+        return new PipelineProxy(this.delegate.pipeline(), this.pipelineProxy);
     }
 
     @Override
