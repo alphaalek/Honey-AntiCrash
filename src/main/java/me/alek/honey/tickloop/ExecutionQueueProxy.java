@@ -25,6 +25,7 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -187,7 +188,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 handleTimings();
             }
 
-            WrappedPacketTask task = submitQueue.poll(currentPollIndex++);
+            WrappedPacketTask task = submitQueue.poll(currentPollIndex++, false);
             recentPacket = Optional.ofNullable(task).map(WrappedPacketTask::getPacket).orElse(null);
 
             recentPollStart = -1;
@@ -205,10 +206,11 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 task.getPlayer().postponedLastTick = getCurrentExecutionTick();
             }
 
+            int i = currentPollIndex - 1;
             if (shouldDropTask(task)) {
                 if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)) {
-                    submitQueue.set(currentPollIndex - 1, task);
-                    task = submitQueue.poll(findOtherTaskIndex());
+                    submitQueue.set(i, task);
+                    task = submitQueue.poll(findOtherTaskIndex(), false);
                 }
 
                 if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
@@ -229,7 +231,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 task.getPlayer().postponedPackets++;
                 task.getPlayer().postponedPacketsForTick++;
                 task.postpone();
-                submitQueue.set(currentPollIndex - 1, task);
+                submitQueue.set(i, task);
                 super.add(EMPTY_VALUE);
 
                 return getEmptyTask();
@@ -260,8 +262,9 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                     PacketTaskProvider.getProvider(packet.getPlayer()).create(
                             (Runnable) value,
                             packet,
-                            ExecutionQueueProxy.this.getCurrentExecutionTick())
-                    );
+                            ExecutionQueueProxy.this.getCurrentExecutionTick()
+                    )
+            );
         }
 
         private boolean addPacketTask(WrappedPacketTask task) {
@@ -287,13 +290,16 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
         private int findOtherTaskIndex() {
             WrappedPacketTask first = submitQueue.get(currentPollIndex - 1);
-            if (first.isPostponed() && isPacketDroppable(first.getPacket())) {
+            if (first.isPostponed()
+                    && isPacketDroppable(first.getPacket())) {
                 return currentPollIndex - 1;
             }
 
             for (int i = currentPollIndex; i < submitQueue.size(); i++) {
                 WrappedPacketTask task = submitQueue.get(i);
-                if (task != null && first.isPostponed() && isPacketDroppable(task.getPacket())) {
+                if (task != null
+                        && first.isPostponed()
+                        && isPacketDroppable(task.getPacket())) {
                     return i;
                 }
             }
@@ -339,7 +345,8 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 return null;
             }
 
-            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14_4) && !(otherTask instanceof FutureTask)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_14_4)
+                    && !(otherTask instanceof FutureTask)) {
                 if (otherTask instanceof Callable) {
                     otherTask = new FutureTask<>((Callable<?>) otherTask);
                 } else {
@@ -349,7 +356,8 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                         return null;
                     });
                 }
-            } else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4) && !tickTaskClass.isInstance(otherTask)) {
+            } else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4)
+                    && !tickTaskClass.isInstance(otherTask)) {
                 otherTask = newTickTask((Runnable) otherTask, tickAccessor.get());
             }
 

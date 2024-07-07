@@ -3,10 +3,7 @@ package me.alek.honey.util;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -107,7 +104,18 @@ public class Array<T> implements Iterable<T> {
     }
 
     public Array<T> compact() {
-        return without(Objects::isNull);
+        return with(Objects::nonNull);
+    }
+
+    public Array<T> compact(Iterable<Integer> collector) {
+        Array<T> array = new Array<>();
+
+        Iterator<Integer> itr = collector.iterator();
+        int i = 0;
+        while (itr.hasNext()) {
+            array.set(i++, get(itr.next()));
+        }
+        return array;
     }
 
     private void resolve(int index) {
@@ -131,7 +139,13 @@ public class Array<T> implements Iterable<T> {
         for (int i = data.length - 1; i >= 0; i--) {
             if (data[i] != null) {
                 last = i;
+                break;
             }
+        }
+
+        if (last == -1) {
+            data = new Object[0];
+            return;
         }
 
         Object[] copy = new Object[last + 1];
@@ -147,17 +161,25 @@ public class Array<T> implements Iterable<T> {
         return Arrays.stream(data).toArray(func);
     }
 
-    public T poll(int index) {
+    public T poll(int index, boolean resolve) {
         T val = get(index);
         if (has(index)) {
-            remove(index);
+            remove(index, resolve);
         }
 
         return val;
     }
 
+    public T poll(int index) {
+        return poll(index, true);
+    }
+
+    public T poll(boolean resolve) {
+        return poll(data.length - 1, resolve);
+    }
+
     public T poll() {
-        return poll(data.length - 1);
+        return poll(true);
     }
 
     public T get(int index) {
@@ -307,12 +329,18 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean remove(int index) {
+        return remove(index, true);
+    }
+
+    public synchronized boolean remove(int index, boolean resolve) {
         if (!has(index)) {
             return false;
         }
 
         boolean removed = set(index, null);
-        resolveDown();
+        if (resolve) {
+            resolveDown();
+        }
 
         return removed;
     }
@@ -321,15 +349,19 @@ public class Array<T> implements Iterable<T> {
         return remove(identifiable.get());
     }
 
-    public synchronized boolean remove(T val) {
+    public synchronized boolean remove(T val, boolean resolve) {
         for (int i = 0; i < size(); i++) {
             if (Objects.equals(get(i), val)) {
-                remove(i);
+                remove(i, resolve);
                 return true;
             }
         }
 
         return false;
+    }
+
+    public synchronized boolean remove(T val) {
+        return remove(val, true);
     }
     
     public T removeAndGet(Identifiable identifiable) {
@@ -366,8 +398,12 @@ public class Array<T> implements Iterable<T> {
         return false;
     }
 
+    public synchronized boolean removeLast(boolean resolve) {
+        return remove(data.length - 1, resolve);
+    }
+
     public synchronized boolean removeLast() {
-        return remove(data.length - 1);
+        return removeLast(true);
     }
 
     @Override

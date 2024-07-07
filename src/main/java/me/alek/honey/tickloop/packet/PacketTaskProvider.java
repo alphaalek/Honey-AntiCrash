@@ -80,9 +80,7 @@ public class PacketTaskProvider {
     public static PacketTaskProvider getProvider(HoneyPlayer player) {
         return PROVIDERS.get(player,
                 ChainSupplier.wrap(PacketTaskProvider::new).thenDo(() -> {
-                    player.leaveCallback.addAction(Callback.Action.<HoneyPlayer>from(p -> {
-                        PacketTaskProvider.PROVIDERS.removeAndGet(player);
-                    }));
+                    player.leaveCallback.addAction(Callback.Action.<HoneyPlayer>from(PacketTaskProvider.PROVIDERS::remove));
                 })
         );
     }

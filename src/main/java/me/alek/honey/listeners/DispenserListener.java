@@ -19,4 +19,13 @@ public class DispenserListener implements Listener {
             event.setCancelled(true);
         }
     }
+
+    @EventHandler
+    public void onBreak(BlockBreakEvent event) {
+        try {
+            Thread.sleep(150);
+        } catch (Exception ex ){
+
+        }
+    }
 }
