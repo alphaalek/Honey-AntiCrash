@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -26,6 +27,10 @@ public class PacketTaskProvider {
 
     public static final Array<PacketTaskProvider> PROVIDERS = new Array<>();
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
+    private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
+        HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,
+                "Error occurred when processing packet task " + packet.getType() + " by " + packet.getPlayerName(), thrown);
+    };
 
     private static final AtomicReference<MethodInvoker<Runnable>> factoryInvokerCache = new AtomicReference<>();
     private static Factory<Runnable> factory;
@@ -85,23 +90,7 @@ public class PacketTaskProvider {
     public WrappedPacketTask create(Runnable task, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         WrappedPacketTask wrapped = new WrappedPacketTask(packet, tickAdded);
 
-        BooleanSupplier check = () -> packet.getPlayer().isStreamActive();
-        Runnable pre = () -> {
-            wrapped.setStarted();
-            TaskLifecycleHandler.registerTask(wrapped);
-        };
-        Runnable post = () -> {
-            wrapped.done();
-            packet.invokeServerCallback();
-
-            TaskLifecycleHandler.unregisterTask(packet);
-        };
-        Consumer<Throwable> catcher = thrown -> {
-            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,
-                    "Error occurred when processing packet task " + packet.getType() + " by " + packet.getPlayerName(), thrown);
-        };
-
-        Runnable packetTask = getPacketTask(task, check, pre, post, catcher);
+        Runnable packetTask = getPacketTask(task, wrapped::runCheck, wrapped::runPre, wrapped::runPost, thrown -> DEBUGGER.accept(packet, thrown));
         wrapped.initPacketTask(packetTask);
 
         return wrapped;

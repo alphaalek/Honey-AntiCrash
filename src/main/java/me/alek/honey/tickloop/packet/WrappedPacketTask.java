@@ -20,6 +20,22 @@ public class WrappedPacketTask {
         this.tickAdded = tickAdded;
     }
 
+    public boolean runCheck() {
+        return packet.getPlayer().isStreamActive();
+    }
+
+    public void runPre() {
+        this.started = System.nanoTime();
+        TaskLifecycleHandler.registerTask(this);
+    }
+
+    public void runPost() {
+        this.done = true;
+        packet.invokeServerCallback();
+
+        TaskLifecycleHandler.unregisterTask(packet);
+    }
+
     public void initPacketTask(Runnable packetTask) {
         this.packetTask = packetTask;
     }
@@ -36,10 +52,6 @@ public class WrappedPacketTask {
         return packetTask;
     }
 
-    public void setStarted() {
-        started = System.nanoTime();
-    }
-
     public long getStarted() {
         return started;
     }
@@ -54,10 +66,6 @@ public class WrappedPacketTask {
 
     public int getTickAdded() {
         return tickAdded;
-    }
-
-    public void done() {
-        done = true;
     }
 
     public boolean isDone() {

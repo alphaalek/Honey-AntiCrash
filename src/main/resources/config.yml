@@ -837,7 +837,7 @@ packet-flood:
 
     # look
     look:
-      max-per-interval: 65
+      max-per-interval: 85
       interval: 700
       vls-amount: 10
 
