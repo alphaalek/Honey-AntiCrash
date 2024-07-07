@@ -1,41 +1,42 @@
 package me.alek.honey.tickloop.packet;
 
 import com.google.common.util.concurrent.Callables;
-import me.alek.honey.util.chain.ChainSupplier;
-import org.bukkit.Bukkit;
 
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class PacketTaskAdapter implements Runnable {
 
-    public static class PacketTaskWrapper1_13_2 extends FutureTask<Object> {
+    public static class TaskWrapper1_13_2<T> extends FutureTask<T> {
 
         private final PacketTaskAdapter task;
 
-        public PacketTaskWrapper1_13_2(PacketTaskAdapter task) {
+        public TaskWrapper1_13_2(PacketTaskAdapter task) {
             super(Callables.returning(null));
             this.task = task;
-
-            task.check.set(ChainSupplier.wrap(task.check.get()).thenDoIf(p -> !p, () -> super.set(null)));
         }
 
         @Override
         public void run() {
             this.task.run();
         }
+
+        @Override
+        public T get() {
+            return null;
+        }
     }
 
     private final AtomicReference<Runnable> task;
-    private final AtomicReference<Supplier<Boolean>> check;
+    private final AtomicReference<BooleanSupplier> check;
     private final AtomicReference<Runnable> pre;
     private final AtomicReference<Runnable> post;
     private final AtomicReference<Consumer<Throwable>> catcher;
 
     public PacketTaskAdapter(AtomicReference<Runnable> task,
-                             AtomicReference<Supplier<Boolean>> check,
+                             AtomicReference<BooleanSupplier> check,
                              AtomicReference<Runnable> pre,
                              AtomicReference<Runnable> post,
                              AtomicReference<Consumer<Throwable>> catcher) {
@@ -48,9 +49,7 @@ public class PacketTaskAdapter implements Runnable {
 
     @Override
     public void run() {
-        Bukkit.getLogger().info("Running");
-
-        if (!check.get().get()) {
+        if (!check.get().getAsBoolean()) {
             return;
         }
 

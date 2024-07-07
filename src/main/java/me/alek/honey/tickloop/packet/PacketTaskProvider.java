@@ -9,19 +9,16 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.Identifiable;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.chain.ChainSupplier;
 import me.alek.honey.util.reflection.MethodInvoker;
 import org.bukkit.Bukkit;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
-@SuppressWarnings("unchecked")
 public class PacketTaskProvider {
 
     public static final Array<PacketTaskProvider> PROVIDERS = new Array<>();
@@ -49,7 +46,7 @@ public class PacketTaskProvider {
     interface Factory<T> {
 
         T create(AtomicReference<Runnable> task,
-                 AtomicReference<Supplier<Boolean>> check,
+                 AtomicReference<BooleanSupplier> check,
                  AtomicReference<Runnable> pre,
                  AtomicReference<Runnable> post,
                  AtomicReference<Consumer<Throwable>> catcher);
@@ -57,7 +54,7 @@ public class PacketTaskProvider {
 
     interface Recyclable<T> {
 
-        T recycle(Runnable task, Supplier<Boolean> check, Runnable pre, Runnable post, Consumer<Throwable> catcher);
+        T recycle(Runnable task, BooleanSupplier check, Runnable pre, Runnable post, Consumer<Throwable> catcher);
     }
 
     private static Factory<Runnable> createModuleContextFactory(Object factory) {
@@ -69,13 +66,7 @@ public class PacketTaskProvider {
         };
     }
 
-    private final IDRegistry ids = new IDRegistry();
-    private final Array<ProviderUnsafe> unsafeWindows = new Array<>();
     private final Array<Recyclable<Runnable>> recyclables = new Array<>();
-
-    public Array<ProviderUnsafe> getUnsafeWindows() {
-        return unsafeWindows;
-    }
 
     public static PacketTaskProvider getProvider(HoneyPlayer player) {
         return PROVIDERS.get(player,
@@ -90,7 +81,7 @@ public class PacketTaskProvider {
     public WrappedPacketTask create(Runnable task, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         WrappedPacketTask wrapped = new WrappedPacketTask(packet, tickAdded);
 
-        Supplier<Boolean> check = () -> packet.getPlayer().isStreamActive();
+        BooleanSupplier check = () -> packet.getPlayer().isStreamActive();
         Runnable pre = () -> {
             wrapped.setStarted();
             TaskLifecycleHandler.registerTask(wrapped);
@@ -112,7 +103,7 @@ public class PacketTaskProvider {
         return wrapped;
     }
 
-    public Runnable getPacketTask(Runnable task, Supplier<Boolean> check, Runnable pre, Runnable post, Consumer<Throwable> catcher) {
+    public Runnable getPacketTask(Runnable task, BooleanSupplier check, Runnable pre, Runnable post, Consumer<Throwable> catcher) {
         Recyclable<Runnable> recyclable = recyclables.poll();
         if (recyclable != null) {
             return recyclable.recycle(task, check, pre, post, catcher);
@@ -121,30 +112,29 @@ public class PacketTaskProvider {
         return createPacketTask(task, check, pre, post, catcher);
     }
 
-    public Runnable createPacketTask(Runnable task, Supplier<Boolean> check, Runnable pre, Runnable post, Consumer<Throwable> catcher) {
-        int id = ids.acquire();
+    public Runnable createPacketTask(Runnable task, BooleanSupplier check, Runnable pre, Runnable post, Consumer<Throwable> catcher) {
+        AtomicReference<Runnable> taskProvider = new AtomicReference<>(task);
+        AtomicReference<BooleanSupplier> checkProvider = new AtomicReference<>(check);
+        AtomicReference<Runnable> preProvider = new AtomicReference<>(pre);
+        AtomicReference<Runnable> postProvider = new AtomicReference<>(post);
+        AtomicReference<Consumer<Throwable>> catcherProvider = new AtomicReference<>(catcher);
 
-        AtomicReference<Runnable> taskProvider = registerTask(id, task);
-        AtomicReference<Supplier<Boolean>> checkProvider = registerCheck(id, check);
-        AtomicReference<Runnable> preProvider = registerPre(id, pre);
-        AtomicReference<Runnable> postProvider = registerPost(id, post);
-        AtomicReference<Consumer<Throwable>> catcherProvider = registerCatcher(id, catcher);
+        Runnable packetTask = factory.create(taskProvider, checkProvider, preProvider, postProvider, catcherProvider);
+        injectRecyclablePost(packetTask, taskProvider, checkProvider, preProvider, postProvider, catcherProvider);
 
-        injectRecyclablePost(task, taskProvider, checkProvider, preProvider, postProvider, catcherProvider);
-
-        return factory.create(taskProvider, checkProvider, preProvider, postProvider, catcherProvider);
+        return packetTask;
     }
 
     private void injectRecyclablePost(Runnable taskAdapter,
                                       AtomicReference<Runnable> taskProvider,
-                                      AtomicReference<Supplier<Boolean>> checkProvider,
+                                      AtomicReference<BooleanSupplier> checkProvider,
                                       AtomicReference<Runnable> preProvider,
                                       AtomicReference<Runnable> postProvider,
                                       AtomicReference<Consumer<Throwable>> catcherProvider) {
         postProvider.set(ChainRunnable.wrap(postProvider.get()).thenDo(() -> {
             recyclables.add(new Recyclable<Runnable>() {
                 @Override
-                public Runnable recycle(Runnable task, Supplier<Boolean> check, Runnable pre, Runnable post, Consumer<Throwable> catcher) {
+                public Runnable recycle(Runnable task, BooleanSupplier check, Runnable pre, Runnable post, Consumer<Throwable> catcher) {
                     taskProvider.set(task);
                     checkProvider.set(check);
                     preProvider.set(pre);
@@ -156,35 +146,5 @@ public class PacketTaskProvider {
                 }
             });
         }));
-    }
-
-    public <T> AtomicReference<T> setUnsafeProvider(int id, TaskLifecycleState state, T val) {
-        return (AtomicReference<T>) unsafeWindows.get(id, ProviderUnsafe::new).jobProviders
-                .setAndGet(Identifiable.of(state), new AtomicReference<>(val));
-    }
-
-    public AtomicReference<Runnable> registerTask(int id, Runnable task) {
-        return setUnsafeProvider(id, TaskLifecycleState.TASK, task);
-    }
-
-    public AtomicReference<Supplier<Boolean>> registerCheck(int id, Supplier<Boolean> check) {
-        return setUnsafeProvider(id, TaskLifecycleState.CHECK, check);
-    }
-
-    public AtomicReference<Runnable> registerPre(int id, Runnable pre) {
-        return setUnsafeProvider(id, TaskLifecycleState.PRE, pre);
-    }
-
-    public AtomicReference<Runnable> registerPost(int id, Runnable post) {
-        return setUnsafeProvider(id, TaskLifecycleState.POST, post);
-    }
-
-    public AtomicReference<Consumer<Throwable>> registerCatcher(int id, Consumer<Throwable> catcher) {
-        return setUnsafeProvider(id, TaskLifecycleState.CATCH, catcher);
-    }
-
-    public static class ProviderUnsafe {
-
-        private final Array<AtomicReference<?>> jobProviders = new Array<>();
     }
 }

@@ -1,6 +1,7 @@
 package me.alek.honey.util;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -121,23 +122,21 @@ public class Array<T> implements Iterable<T> {
         }
     }
 
-    private void resolveDown() {
-        synchronized (this) {
-            if (data[data.length - 1] != null) {
-                return;
-            }
-
-            int last = 0;
-            for (int i = data.length - 1; i >= 0; i--) {
-                if (data[i] != null) {
-                    last = i;
-                }
-            }
-
-            Object[] copy = new Object[last + 1];
-            System.arraycopy(data, 0, copy, 0, copy.length);
-            data = copy;
+    private synchronized void resolveDown() {
+        if (isEmpty() || getLast() != null) {
+            return;
         }
+
+        int last = -1;
+        for (int i = data.length - 1; i >= 0; i--) {
+            if (data[i] != null) {
+                last = i;
+            }
+        }
+
+        Object[] copy = new Object[last + 1];
+        System.arraycopy(data, 0, copy, 0, copy.length);
+        data = copy;
     }
 
     public Object[] toRealArray() {
@@ -318,7 +317,7 @@ public class Array<T> implements Iterable<T> {
         return removed;
     }
 
-    public synchronized boolean remove(Identifiable identifiable) {
+    public boolean remove(Identifiable identifiable) {
         return remove(identifiable.get());
     }
 
@@ -333,7 +332,7 @@ public class Array<T> implements Iterable<T> {
         return false;
     }
     
-    public synchronized T removeAndGet(Identifiable identifiable) {
+    public T removeAndGet(Identifiable identifiable) {
         return removeAndGet(identifiable.get());
     }
     
