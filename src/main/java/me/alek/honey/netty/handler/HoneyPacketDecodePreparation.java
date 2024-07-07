@@ -11,7 +11,7 @@ import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
-import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -70,7 +70,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     private void stopTimings(PacketContainer<? extends WrappedPacket<?>> packet) {
-        if (packet.getEventloopStateTimings().getCurrentState() == EventloopState.NO_STATE) {
+        if (packet.getEventloopStateTimings().getCurrentState() == LifecycleState.NO_STATE) {
             return;
         }
 
@@ -78,9 +78,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         if (player.isBukkitReady()) {
             HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double)
-                    packet.getEventloopStateTimings().getTimeFor(EventloopState.HONEY_HANDLE)
-                    + packet.getEventloopStateTimings().getTimeFor(EventloopState.IN_BETWEEN)
-                    + packet.getEventloopStateTimings().getTimeFor(EventloopState.DECODE)
+                    packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
+                    + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
+                    + packet.getEventloopStateTimings().getTimeFor(LifecycleState.DECODE)
             );
         }
     }
@@ -91,7 +91,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
 
         try {
-            earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.DECODE);
+            earlyPacketContainer.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
 
             Object packet;
             try {
@@ -127,7 +127,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            earlyPacketContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
+            earlyPacketContainer.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
             if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
                     || player.bypassEverything()) {

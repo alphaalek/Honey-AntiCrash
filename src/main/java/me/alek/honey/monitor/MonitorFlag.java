@@ -3,7 +3,7 @@ package me.alek.honey.monitor;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -304,19 +304,19 @@ public interface MonitorFlag<T> {
             data.add(FlagRunner.AppendedData.from(format(getState()) + "=" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms", appendable));
         }
 
-        public String format(EventloopState state) {
+        public String format(LifecycleState state) {
             return state.toString().toLowerCase().replaceAll("_", "-");
         }
 
-        public abstract EventloopState getState();
+        public abstract LifecycleState getState();
     }
 
     @FlagAnnotation(Flag.DECODE)
     class DecodeTimingsFlag extends TimingsFlag {
 
         @Override
-        public EventloopState getState() {
-            return EventloopState.DECODE;
+        public LifecycleState getState() {
+            return LifecycleState.DECODE;
         }
     }
 
@@ -324,8 +324,8 @@ public interface MonitorFlag<T> {
     class InBetweenFlag extends TimingsFlag {
 
         @Override
-        public EventloopState getState() {
-            return EventloopState.IN_BETWEEN;
+        public LifecycleState getState() {
+            return LifecycleState.IN_BETWEEN;
         }
     }
 
@@ -333,8 +333,8 @@ public interface MonitorFlag<T> {
     class HoneyHandleTimingsFlag extends TimingsFlag {
 
         @Override
-        public EventloopState getState() {
-            return EventloopState.HONEY_HANDLE;
+        public LifecycleState getState() {
+            return LifecycleState.HONEY_HANDLE;
         }
     }
 
@@ -342,8 +342,8 @@ public interface MonitorFlag<T> {
     class ServerHandleTimingsFlag extends TimingsFlag {
 
         @Override
-        public EventloopState getState() {
-            return EventloopState.SERVER_HANDLE;
+        public LifecycleState getState() {
+            return LifecycleState.SERVER_HANDLE;
         }
     }
 

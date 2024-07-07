@@ -6,7 +6,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.tickloop.packet.PacketTaskHandler;
+import me.alek.honey.tickloop.packet.TaskLifecycleHandler;
 import me.alek.honey.validation.impl.NettyValidations;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -42,7 +42,7 @@ public class PrintValidationBridge {
                 || Thread.currentThread().getName().startsWith("honey-packet-decoder")) {
             packet = InboundPacketFilter.MARK.get();
         } else if (Thread.currentThread().getName().equals("Server Thread")) {
-            packet = PacketTaskHandler.getCurrentHandledPacket();
+            packet = TaskLifecycleHandler.getCurrentHandledPacket();
         }
 
         if (packet == null) {

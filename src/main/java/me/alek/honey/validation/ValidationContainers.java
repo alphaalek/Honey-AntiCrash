@@ -32,21 +32,21 @@ public enum ValidationContainers {
 
     static {
         for (ValidationContainers validation : ValidationContainers.values()) {
-            validations.add(validation.getValidationContainer().get());
+            validations.add(validation.getValidationContainer());
         }
     }
 
-    public static synchronized List<BaseValidationContainer> getValidations() {
+    public static List<BaseValidationContainer> getValidations() {
         return validations;
     }
 
-    private final Supplier<BaseValidationContainer> validation;
+    private final BaseValidationContainer validation;
 
     ValidationContainers(Supplier<BaseValidationContainer> validation) {
-        this.validation = validation;
+        this.validation = validation.get();
     }
 
-    public Supplier<BaseValidationContainer> getValidationContainer() {
+    public BaseValidationContainer getValidationContainer() {
         return validation;
     }
 }

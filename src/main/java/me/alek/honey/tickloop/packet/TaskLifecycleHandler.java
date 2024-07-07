@@ -5,8 +5,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.EventloopState;
-import me.alek.honey.netty.packet.PacketStateTimings;
+import me.alek.honey.netty.packet.LifecycleState;
+import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.services.LoggerService;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PacketTaskHandler {
+public class TaskLifecycleHandler {
 
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
@@ -37,14 +37,14 @@ public class PacketTaskHandler {
                     ex.printStackTrace();
                 }
             }
-        }, "honey-packet-task-handler").start();
+        }, "honey-task-lifecycle-handler").start();
     }
 
     private static synchronized void run() {
         if (handledTask != null
                 && !handledTask.isDone()
                 && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
-                && (System.nanoTime() - handledTask.getStarted()) * PacketStateTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
+                && (System.nanoTime() - handledTask.getStarted()) * PacketLifecycleTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
             PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
             if (packet == null
@@ -145,7 +145,7 @@ public class PacketTaskHandler {
 
     public static synchronized void registerTask(WrappedPacketTask task){
         PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
-        packet.getEventloopStateTimings().startTimings(EventloopState.SERVER_HANDLE);
+        packet.getEventloopStateTimings().startTimings(LifecycleState.SERVER_HANDLE);
 
         handledTask = task;
     }
@@ -154,7 +154,7 @@ public class PacketTaskHandler {
         packet.getEventloopStateTimings().stopTimings();
 
         if (!packet.getPlayer().bypassServerThreadTracking()) {
-            double millis = packet.getEventloopStateTimings().getTimeForMillis(EventloopState.SERVER_HANDLE);
+            double millis = packet.getEventloopStateTimings().getTimeForMillis(LifecycleState.SERVER_HANDLE);
             if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
                     && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
                 HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);

@@ -2,22 +2,22 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.util.statics.NumberUtils;
 
-public class PacketStateTimings {
+public class PacketLifecycleTimings {
 
     public static final double NANOS_TO_MILLIS_MULTIPLIER = Math.pow(10, -6);
-    private static final int LENGTH = EventloopState.values().length;
+    private static final int LENGTH = LifecycleState.values().length;
 
     private final long[] times = new long[LENGTH];
-    private EventloopState currentState = EventloopState.NO_STATE;
+    private LifecycleState currentState = LifecycleState.NO_STATE;
     private long currentStateStart;
     private long totalTime;
 
-    public void startTimings(EventloopState state) {
+    public void startTimings(LifecycleState state) {
         startTimings(state, System.nanoTime());
     }
 
-    public synchronized void startTimings(EventloopState state, long time) {
-        if (currentState != EventloopState.NO_STATE) {
+    public synchronized void startTimings(LifecycleState state, long time) {
+        if (currentState != LifecycleState.NO_STATE) {
             stopTimings();
         }
 
@@ -30,7 +30,7 @@ public class PacketStateTimings {
     }
 
     public synchronized void stopTimings(long time) {
-        if (currentState == EventloopState.NO_STATE) {
+        if (currentState == LifecycleState.NO_STATE) {
             return;
         }
 
@@ -38,22 +38,22 @@ public class PacketStateTimings {
         times[currentState.ordinal()] = getTimeFor(currentState) + deltaTime;
         totalTime += deltaTime;
 
-        currentState = EventloopState.NO_STATE;
+        currentState = LifecycleState.NO_STATE;
     }
 
     public long getTotalTime() {
         return totalTime;
     }
 
-    public long getTimeFor(EventloopState state) {
+    public long getTimeFor(LifecycleState state) {
         return times[state.ordinal()];
 }
 
-    public double getTimeForMillis(EventloopState state) {
+    public double getTimeForMillis(LifecycleState state) {
         return toMillis(getTimeFor(state));
     }
 
-    public double getTimeForMillisFormatted(EventloopState state) {
+    public double getTimeForMillisFormatted(LifecycleState state) {
         return NumberUtils.format(getTimeForMillis(state), 2);
     }
 
@@ -61,7 +61,7 @@ public class PacketStateTimings {
         return ((double)value) * NANOS_TO_MILLIS_MULTIPLIER;
     }
 
-    public EventloopState getCurrentState() {
+    public LifecycleState getCurrentState() {
         return currentState;
     }
 }

@@ -7,7 +7,7 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -186,7 +186,7 @@ public class LoggerService {
                 "Auto dump for packet sent by "
                 + packet.getPlayerName() + ": "
                 + packet.getType()
-                + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(EventloopState.SERVER_HANDLE) + "ms) "
+                + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(LifecycleState.SERVER_HANDLE) + "ms) "
                 + filterTooMuchData(packet.getAll().readFieldEntries()));
     }
 

@@ -27,8 +27,8 @@ public class EnhancedInitialIterator<T> implements Iterable<T> {
 
             @Override
             public boolean hasNext() {
-                if (!hasCalledInitial && initial.get() != null) {
-                    return true;
+                if (!hasCalledInitial) {
+                    return initial.get() != null;
                 }
 
                 return itr.get().hasNext();

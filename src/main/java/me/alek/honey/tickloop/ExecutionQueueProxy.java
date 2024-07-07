@@ -7,10 +7,11 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
-import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.tickloop.packet.PacketTaskProvider;
 import me.alek.honey.tickloop.packet.WrappedPacketTask;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
@@ -129,7 +130,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         }
 
         private double getDeltaTimeExact(PacketContainer<? extends WrappedPacket<?>> packet) {
-            double timings = packet.getEventloopStateTimings().getTimeFor(EventloopState.SERVER_HANDLE);
+            double timings = packet.getEventloopStateTimings().getTimeFor(LifecycleState.SERVER_HANDLE);
 
             return timings != 0 ? timings : getDeltaTime();
         }
@@ -222,7 +223,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
                 task.getPlayer().postponedPackets++;
                 task.getPlayer().postponedPacketsForTick++;
-                task.setPostponed();
+                task.postpone();
                 submitQueue.set(currentPollIndex - 1, task);
                 super.add(EMPTY_VALUE);
 
@@ -251,7 +252,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             }
 
             return addPacketTask(
-                    WrappedPacketTask.create(
+                    PacketTaskProvider.getProvider(packet.getPlayer()).create(
                             (Runnable) value,
                             packet,
                             ExecutionQueueProxy.this.getCurrentExecutionTick())

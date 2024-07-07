@@ -8,8 +8,6 @@ import me.alek.honey.validation.ValidationServiceContext;
 
 public interface HoneyValidation<T> extends Identifiable {
 
-    int getID();
-
     String getName();
 
     String getDescription();

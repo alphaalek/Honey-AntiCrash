@@ -37,7 +37,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private boolean cancelled;
     private boolean dumped;
     private final long time = System.currentTimeMillis();
-    private final PacketStateTimings eventLoopStateTracker = new PacketStateTimings();
+    private final PacketLifecycleTimings eventLoopStateTracker = new PacketLifecycleTimings();
     private final Callback callbackAction = new Callback();
 
     public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Callback postAction, PacketType type) {
@@ -80,7 +80,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public PacketStateTimings getEventloopStateTimings() {
+    public PacketLifecycleTimings getEventloopStateTimings() {
         return this.eventLoopStateTracker;
     }
 

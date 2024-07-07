@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packet;
 
-public enum EventloopState {
+public enum LifecycleState {
 
     NO_STATE,
 

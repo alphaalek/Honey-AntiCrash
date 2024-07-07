@@ -9,7 +9,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -228,7 +228,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         private static final int id = IDRegistry.CHECKS.acquire();
 
         public static <WP extends WrappedPacket<WP>> ValidationServiceContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
-            double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(EventloopState.DECODE);
+            double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(LifecycleState.DECODE);
             if (setting.isEnabled() && decodeTime > 0) {
                 return ValidationServiceContext.Builder.validate().flag(decodeTime)
                         .onViolation(key, (keyInner, onViolation) -> {

@@ -3,7 +3,7 @@ package me.alek.honey.netty.api;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.Cancellable;
-import me.alek.honey.netty.packet.PacketStateTimings;
+import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -11,7 +11,7 @@ import me.alek.honey.util.Callback;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer, Cancellable {
 
-    PacketStateTimings getEventloopStateTimings();
+    PacketLifecycleTimings getEventloopStateTimings();
 
     void postDecode(Object packet, Callback postAction, PacketType type);
 

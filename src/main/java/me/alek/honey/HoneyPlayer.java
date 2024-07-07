@@ -3,15 +3,20 @@ package me.alek.honey;
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
+import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
+import me.alek.honey.sql.SQLManagerWrapper;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
 import me.alek.honey.tickloop.postpone.checkimpl.*;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.*;
+import me.alek.honey.validation.BaseValidationContainer;
+import me.alek.honey.validation.ValidationContainers;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -21,6 +26,7 @@ import java.util.function.Supplier;
 public class HoneyPlayer implements Identifiable {
 
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
+    private static final Array<HoneyPlayer> PLAYERS = new Array<>();
 
     public static void register(HoneyPlayer honeyPlayer, Player player) {
         HONEY_PLAYER_LOOKUP.put(player.getUniqueId(), honeyPlayer);
@@ -28,10 +34,6 @@ public class HoneyPlayer implements Identifiable {
 
     public static HoneyPlayer getPlayer(UUID uuid) {
         return HONEY_PLAYER_LOOKUP.get(uuid);
-    }
-
-    public static void removePlayer(UUID uuid) {
-        HONEY_PLAYER_LOOKUP.remove(uuid);
     }
 
     public static Collection<HoneyPlayer> getAllPlayers() {
@@ -71,8 +73,30 @@ public class HoneyPlayer implements Identifiable {
     );
 
     public HoneyPlayer(Channel channel, HoneyPacketHandler handler) {
+        PLAYERS.set(registryID, this);
         this.channel = channel;
         this.packetHandler = handler;
+    }
+
+    public void remove() {
+        online = false;
+
+        for (BaseValidationContainer validationContainer : ValidationContainers.getValidations()) {
+            validationContainer.cleanup(this);
+        }
+
+        HoneyPlugin.get().getLoggerService().removePacketData(this);
+        HoneyPlugin.get().getNotificationService().unsubscribe(bukkit);
+
+        HoneyPlugin.get().getNettyPacketTracker().remove(this);
+        HoneyPlugin.get().getExecutionQueueProxy().remove(this);
+
+        HoneyPlugin.get().getMonitorManager().removeFromMonitors(this);
+
+        leaveCallback.call(this);
+        HONEY_PLAYER_LOOKUP.remove(uuid);
+        PLAYERS.remove(registryID);
+        IDRegistry.PLAYERS.remove(registryID);
     }
 
     public void initBukkitPlayer(Player player) {
@@ -80,6 +104,35 @@ public class HoneyPlayer implements Identifiable {
         this.uuid = player.getUniqueId();
         this.name = player.getName();
         this.online = true;
+
+        for (BaseValidationContainer validationContainer : ValidationContainers.getValidations()) {
+            validationContainer.setup(this);
+        }
+        HoneyPlugin.get().getNotificationService().setup(this);
+
+        if (bukkit.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.sendMessage(NotificationService.PREFIX + " §7Found an update: v" + HoneyPlugin.get().getLatestVersion() + ". Download:");
+                    player.sendMessage("§ahttps://builtbybit.com/resources/honey-anti-crash-anti-packet-exploit.40905/");
+                }
+            }.runTaskLater(HoneyPlugin.get().getPlugin(), 40L);
+        }
+
+        SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (sqlHandler.isEnabled()) {
+                    try {
+                        sqlHandler.preparePlayer(HoneyPlayer.this);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        };
     }
 
     public boolean isStreamActive() {

@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.ChainSupplier;
+import me.alek.honey.util.chain.ChainSupplier;
 
 import java.util.function.Supplier;
 

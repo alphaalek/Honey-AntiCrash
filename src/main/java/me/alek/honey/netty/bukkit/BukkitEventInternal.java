@@ -3,10 +3,8 @@ package me.alek.honey.netty.bukkit;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.listeners.PlayerJoinQuitListener;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,32 +25,20 @@ public class BukkitEventInternal implements Listener {
             return;
         }
 
-        channel.eventLoop().execute(() -> {
-            HoneyPlayer honeyPlayer = handleChannel(player, channel);
-            if (honeyPlayer != null) {
-                // the initialization of this HoneyPlayer was successful
-                Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
-                    PlayerJoinQuitListener.onPostLoginSuccess(honeyPlayer);
-                });
-            }
-        });
+        channel.eventLoop().execute(() -> handleChannel(player, channel));
     }
 
-    private HoneyPlayer handleChannel(Player player, Channel channel) {
+    private void handleChannel(Player player, Channel channel) {
 
-        HoneyPlayer honeyPlayer;
         try {
-            honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
+            HoneyPlayer honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
             honeyPlayer.initBukkitPlayer(player);
 
             HoneyPlayer.register(honeyPlayer, player);
         } catch (MissingHandlerException ex) {
             HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
                     () -> player.kickPlayer("Broken pipe! Try reconnecting."));
-            return null;
         }
-
-        return honeyPlayer;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -68,7 +54,10 @@ public class BukkitEventInternal implements Listener {
     }
 
     protected void unregister(Player player) {
-        HoneyPlayer.removePlayer(player.getUniqueId());
+        HoneyPlayer honeyPlayer = HoneyPlayer.getPlayer(player.getUniqueId());
+        if (honeyPlayer != null) {
+            honeyPlayer.remove();
+        }
         NMS.removeChannelLookup(player.getName());
     }
 }

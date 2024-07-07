@@ -166,7 +166,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(Identifiable identifiable) {
-        return get(identifiable.getID(), null);
+        return get(identifiable.get(), null);
     }
 
     public T getFirst() {
@@ -203,7 +203,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(Identifiable identifiable, Supplier<T> or) {
-        return get(identifiable.getID(), or);
+        return get(identifiable.get(), or);
     }
 
     public T getOr(int index, Supplier<T> or) {
@@ -216,7 +216,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T getOr(Identifiable identifiable, Supplier<T> or) {
-        return getOr(identifiable.getID(), or);
+        return getOr(identifiable.get(), or);
     }
 
     public synchronized void move(int start, int by) {
@@ -270,7 +270,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(Identifiable identifiable) {
-        return has(identifiable.getID());
+        return has(identifiable.get());
     }
 
     public void clear() {
@@ -285,6 +285,15 @@ public class Array<T> implements Iterable<T> {
         return data.length == 0;
     }
 
+    public T setAndGet(int index, T val) {
+        set(index, val);
+        return get(index);
+    }
+
+    public T setAndGet(Identifiable identifiable, T val) {
+        return setAndGet(identifiable.get(), val);
+    }
+
     public synchronized boolean set(int index, T val) {
         resolve(index);
 
@@ -295,11 +304,13 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean set(Identifiable identifiable, T val) {
-        return set(identifiable.getID(), val);
+        return set(identifiable.get(), val);
     }
 
     public synchronized boolean remove(int index) {
-        if (index >= data.length || index < 0) return false;
+        if (!has(index)) {
+            return false;
+        }
 
         boolean removed = set(index, null);
         resolveDown();
@@ -308,7 +319,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean remove(Identifiable identifiable) {
-        return remove(identifiable.getID());
+        return remove(identifiable.get());
     }
 
     public synchronized boolean remove(T val) {
@@ -320,6 +331,22 @@ public class Array<T> implements Iterable<T> {
         }
 
         return false;
+    }
+    
+    public synchronized T removeAndGet(Identifiable identifiable) {
+        return removeAndGet(identifiable.get());
+    }
+    
+    public synchronized T removeAndGet(int index) {
+        if (!has(index)) {
+            return null;
+        }
+
+        T val = get(index);
+        set(index, null);
+        resolveDown();
+
+        return val;
     }
 
     public boolean contains(T val) {

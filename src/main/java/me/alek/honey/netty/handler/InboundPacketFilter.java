@@ -12,7 +12,7 @@ import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.netty.packet.EventloopState;
+import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -113,7 +113,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
 
         MARK.set(packetContainer);
-        packetContainer.getEventloopStateTimings().startTimings(EventloopState.HONEY_HANDLE);
+        packetContainer.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
         CancellableByteBuf cancellableByteBuf = new CancellableByteBuf(player, buf);
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callDecode(player, type, cancellableByteBuf);
@@ -125,6 +125,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             list.add(Unpooled.buffer());
         }
 
-        packetContainer.getEventloopStateTimings().startTimings(EventloopState.IN_BETWEEN);
+        packetContainer.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
     }
 }
