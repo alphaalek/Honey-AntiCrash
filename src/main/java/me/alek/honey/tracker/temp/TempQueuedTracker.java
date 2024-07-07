@@ -58,11 +58,13 @@ public class TempQueuedTracker implements HoneyTracker {
         if (tickDurationQueues.length < timespan.ordinal()) {
             setup();
         }
+
         UnsyncTempQueue queue = tickDurationQueues[timespan.ordinal()];
         if (timespan.getQueue(this).equals(queue)) {
             return queue;
         }
         setup();
+
         return getQueue(timespan);
     }
 

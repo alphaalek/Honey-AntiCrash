@@ -14,7 +14,8 @@ public class DispenserListener implements Listener {
         Block dispenser = event.getBlock();
         World world = dispenser.getWorld();
 
-        if (dispenser.getY() >= world.getMaxHeight() - 1 || dispenser.getY() < 0) {
+        if (dispenser.getY() >= world.getMaxHeight() - 1
+                || dispenser.getY() < 0) {
             event.setCancelled(true);
         }
     }
