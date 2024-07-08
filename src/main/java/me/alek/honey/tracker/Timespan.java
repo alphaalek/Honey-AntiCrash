@@ -9,7 +9,6 @@ import java.util.*;
 
 public enum Timespan {
     ONE_SECOND(1, false),
-    TWO_SECOND(2, false),
     FIVE_SECOND(5, true),
     TEN_SECOND(10, true),
     FIFTEEN_SECOND(15, true),
@@ -87,8 +86,8 @@ public enum Timespan {
         }
     }
 
-    public static final double MILLIS_TO_NANO_MULTIPLIER = Math.pow(10, 6);
-    public static final double TO_NANO_MULTIPLIER = Math.pow(10, 9);
+    public static final long MILLIS_TO_NANO_MULTIPLIER = (long) Math.pow(10, 6);
+    public static final long TO_NANO_MULTIPLIER = (long) Math.pow(10, 9);
     private final Map<HoneyTracker, TimespanContext> noIDContextMap = new HashMap<>();
     private final Array<TimespanContext> IDContext = new Array<>();
     private final int timespan;

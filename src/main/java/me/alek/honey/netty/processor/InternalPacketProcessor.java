@@ -162,9 +162,9 @@ public class InternalPacketProcessor implements PacketProcessor {
             PacketExecutor<WP> castedExecutor = (PacketExecutor<WP>) executor;
 
             if (castedExecutor.test(packetContainer)) {
-                double start = System.nanoTime();
+                long start = System.nanoTime();
                 Runnable runnable = castedExecutor.getTask(packetContainer);
-                double end = System.nanoTime();
+                long end = System.nanoTime();
 
                 if (runnable != null) {
                     HoneyPlugin.get().getExecutionQueueProxy().registerTime(packetContainer.getPlayer(), end - start);

@@ -163,9 +163,7 @@ public class Array<T> implements Iterable<T> {
 
     public T poll(int index, boolean resolve) {
         T val = get(index);
-        if (has(index)) {
-            remove(index, resolve);
-        }
+        remove(index, resolve);
 
         return val;
     }

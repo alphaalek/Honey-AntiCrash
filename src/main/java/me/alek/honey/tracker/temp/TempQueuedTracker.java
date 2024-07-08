@@ -36,17 +36,17 @@ public class TempQueuedTracker implements HoneyTracker {
         }
     }
 
-    public void add(double amount) {
+    public void add(long amount) {
         add(new TimedNode<>(amount));
     }
 
-    public void add(TimedNode<Double> node) {
+    public void add(TimedNode<Long> node) {
         for (UnsyncTempQueue queue : tickDurationQueues) {
             queue.add(node);
         }
     }
 
-    public double getTotal(Timespan timespan) {
+    public long getTotal(Timespan timespan) {
         return getQueue(timespan).getTotal();
     }
 

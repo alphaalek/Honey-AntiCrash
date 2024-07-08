@@ -43,7 +43,6 @@ public interface LegacyCodec {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = method.invokeWithArguments(new Object[]{raw, serializer.getSerializer()});
                 } catch (Throwable ex) {
-                    ex.printStackTrace();
                     throw new CodecException(packetId, "Failed to apply serializer for packet " + packetId + ", " + type + ", " + type.getState());
                 }
             }

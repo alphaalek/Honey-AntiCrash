@@ -77,8 +77,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         packet.getEventloopStateTimings().stopTimings();
 
         if (player.isBukkitReady()) {
-            HoneyPlugin.get().getNettyPacketTracker().registerTime(player, (double)
-                    packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
+            HoneyPlugin.get().getNettyPacketTracker().registerTime(player,
+                      packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
                     + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
                     + packet.getEventloopStateTimings().getTimeFor(LifecycleState.DECODE)
             );

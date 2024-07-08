@@ -28,7 +28,7 @@ public class TrackCommand implements CommandImpl {
 
         switch (args[0]) {
             case "players":
-                TimedHandleTracker<Double, HoneyPlayer> tracker = HoneyPlugin.get().getExecutionQueueProxy();
+                TimedHandleTracker<Long, Double, HoneyPlayer> tracker = HoneyPlugin.get().getExecutionQueueProxy();
                 if (tracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));
                     return;

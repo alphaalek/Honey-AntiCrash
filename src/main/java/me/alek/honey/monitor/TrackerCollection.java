@@ -21,9 +21,9 @@ public class TrackerCollection {
 
     public static class TrackerAccessor {
 
-        private final TimedManualHandleTracker<Double, HoneyPlayer> tracker;
+        private final TimedManualHandleTracker<Long, Double, HoneyPlayer> tracker;
 
-        public TrackerAccessor(TimedManualHandleTracker<Double, HoneyPlayer> tracker) {
+        public TrackerAccessor(TimedManualHandleTracker<Long, Double, HoneyPlayer> tracker) {
             this.tracker = tracker;
         }
 

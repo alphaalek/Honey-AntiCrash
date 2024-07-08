@@ -192,7 +192,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
 
         @Override
         public String getDescription() {
-            return Lang.get("validation-block-c");
+            return Lang.get("validation.block.c");
         }
 
         @Override
@@ -258,7 +258,7 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
 
         @Override
         public String getDescription() {
-            return Lang.get("validation-block-d");
+            return Lang.get("validation.block.d");
         }
 
         @Override

@@ -22,7 +22,7 @@ public class PostponeMaxPerXTickCheck implements PostponeCheck {
             return false;
         }
 
-        double recentNode = getTracker().getRecentNode(player, Timespan.ONE_SECOND, true);
+        long recentNode = getTracker().getRecentNode(player, Timespan.ONE_SECOND, true);
         int tick = getCurrentExecutionTick();
         tickTracker.add(new TimedNode<>(recentNode, -1, tick));
         tickTracker.clearExceedingNodes(tick);

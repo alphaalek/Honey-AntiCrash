@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double, HoneyPlayer> {
+public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, Double, HoneyPlayer> {
 
     private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
     private final TempQueuedTracker commonTracker = new TempQueuedTracker(false, false);
@@ -83,10 +83,10 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
     }
 
     @Override
-    public synchronized void registerTime(HoneyPlayer key, Double value) {
+    public synchronized void registerTime(HoneyPlayer key, Long value) {
         if (value <= 0) return;
 
-        TimedNode<Double> node = new TimedNode<>(value);
+        TimedNode<Long> node = new TimedNode<>(value);
         getTracker(key).add(node);
         commonTracker.add(node);
     }
@@ -95,8 +95,8 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
         return getTracker(player).getQueue(timespan).isCollected();
     }
 
-    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan, long time) {
-        TimedNode<Double> node = tracker.getQueue(timespan).asTimedQueue().peek();
+    private long getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan, long time) {
+        TimedNode<Long> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
         if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (time - node.getInsertionInstant()))))) {
             return node.getValue() - diff;
@@ -104,17 +104,17 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
         return 0;
     }
 
-    private double getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
+    private long getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
         return getExceedingTimedNode(tracker, timespan, System.nanoTime());
     }
 
-    private double getExceedingTimedNode(HoneyPlayer player, Timespan timespan) {
+    private long getExceedingTimedNode(HoneyPlayer player, Timespan timespan) {
         return getExceedingTimedNode(getTracker(player), timespan);
     }
 
-    private Double getEndedNode(HoneyPlayer player, Timespan timespan, boolean update, boolean last) {
-        Deque<TimedNode<Double>> queue = getTracker(player).getQueue(timespan).asTimedQueue();
-        TimedNode<Double> node;
+    private Long getEndedNode(HoneyPlayer player, Timespan timespan, boolean update, boolean last) {
+        Deque<TimedNode<Long>> queue = getTracker(player).getQueue(timespan).asTimedQueue();
+        TimedNode<Long> node;
         if (last) {
             node = queue.peekLast();
         } else {
@@ -122,57 +122,56 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
         }
 
         if (node == null) {
-            return 0d;
+            return 0L;
         }
 
         if (update && System.nanoTime() > node.getInsertionInstant() + timespan.getNanoTimespan()) {
-            return 0d;
+            return 0L;
         }
 
         return node.getValue();
     }
 
-    public Double getRecentNode(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Long getRecentNode(HoneyPlayer player, Timespan timespan, boolean update) {
         return getEndedNode(player, timespan, update, false);
     }
 
-    public Double getOldestNode(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Long getOldestNode(HoneyPlayer player, Timespan timespan, boolean update) {
         return getEndedNode(player, timespan, update, true);
     }
 
     public Double getOfTotalQuotient(HoneyPlayer player, Timespan timespan, boolean update) {
-        return getPlayerTotal(player, timespan, update) / timespan.getNanoTimespan();
+        return ((double) getPlayerTotal(player, timespan, update)) / timespan.getNanoTimespan();
     }
 
     public Double getPlayerRate(HoneyPlayer player, Timespan timespan, boolean update) {
-        return getPlayerTotal(player, timespan, update) / timespan.getTimespan();
+        return ((double) getPlayerTotal(player, timespan, update)) / timespan.getTimespan();
     }
 
-    public Double getPlayerRateAcceleration(HoneyPlayer player, boolean average, boolean update) {
-        return getPlayerRate(player, average ? Timespan.TWO_SECOND : Timespan.ONE_SECOND, update);
+    public Double getPlayerRateAcceleration(HoneyPlayer player, boolean update) {
+        return getPlayerRate(player, Timespan.ONE_SECOND, update);
     }
 
-    public Double getPlayerRateAccelerationQuotient(HoneyPlayer player, Timespan timespan, boolean average, boolean update) {
-        double accel = getPlayerRateAcceleration(player, average, update);
+    public Double getPlayerRateAccelerationQuotient(HoneyPlayer player, Timespan timespan, boolean update) {
+        double accel = getPlayerRateAcceleration(player, update);
 
         double deltaTotal = getPlayerTotal(player, timespan, update) - accel;
         if (deltaTotal == 0) {
             return 0d;
         }
-        double delta = timespan.getTimespan() - 1;
 
-        return accel / (deltaTotal / delta);
+        return accel / (deltaTotal / (timespan.getTimespan() - 1));
     }
 
     @Override
-    public Double getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
+    public Long getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
         long time = 0;
         TempQueuedTracker tracker = getTracker(player);
         if (update) {
             tracker.clearExceedingNodes(timespan, time = System.nanoTime());
         }
 
-        double total = tracker.getTotal(timespan);
+        long total = tracker.getTotal(timespan);
         if (update) {
             total -= getExceedingTimedNode(tracker, timespan, time);
         }
@@ -180,8 +179,8 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
         return total;
     }
 
-    public Double[] getStatistics(HoneyPlayer player) {
-        Double[] statistics = new Double[Timespan.USED_FOR_TRACKERS.size()];
+    public double[] getStatistics(HoneyPlayer player) {
+        double[] statistics = new double[Timespan.USED_FOR_TRACKERS.size()];
         int i = 0;
         for (Timespan timespan : Timespan.USED_FOR_TRACKERS) {
             statistics[i++] = getTimeToAverageWithoutQuotient(player, timespan, true);
@@ -196,25 +195,25 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
 
     @Override
     public Double getTimeToAverageWithoutQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
-        double playerTotal = getPlayerTotal(key, timespan, update);
+        long playerTotal = getPlayerTotal(key, timespan, update);
         return Math.max(0, playerTotal / getAverageWithout(timespan, playerTotal, update));
     }
 
     @Override
     public Double getTimeToTotalQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
-        return Math.max(0, getPlayerTotal(key, timespan, update) / getTotal(timespan, update));
+        return (double) Math.max(0, getPlayerTotal(key, timespan, update) / getTotal(timespan, update));
     }
 
     @Override
     public Double getAverage(Timespan timespan) {
-        return getTotal(timespan, true) / getTrackerSize();
+        return (double) getTotal(timespan, true) / getTrackerSize();
     }
 
-    public Double getAverageWithout(HoneyPlayer player, Timespan timespan, boolean update) {
+    public double getAverageWithout(HoneyPlayer player, Timespan timespan, boolean update) {
         return getAverageWithout(timespan, getPlayerTotal(player, timespan, update), update);
     }
 
-    public double getAverageWithout(Timespan timespan, double playerTotal, boolean update) {
+    public double getAverageWithout(Timespan timespan, long playerTotal, boolean update) {
         if (getTrackerSize() == 1) {
             return playerTotal;
         }
@@ -222,12 +221,12 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Double,
         return (getTotal(timespan, update) - playerTotal) / (getTrackerSize() - 1);
     }
 
-    public Double getTotal(Timespan timespan, boolean update) {
+    public Long getTotal(Timespan timespan, boolean update) {
         if (update) {
             commonTracker.clearExceedingNodes(timespan, System.nanoTime());
         }
 
-        double total = commonTracker.getTotal(timespan);
+        long total = commonTracker.getTotal(timespan);
         if (update) {
             total -= getExceedingTimedNode(commonTracker, timespan);
         }

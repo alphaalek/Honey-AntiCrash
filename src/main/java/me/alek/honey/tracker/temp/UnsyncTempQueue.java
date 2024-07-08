@@ -12,8 +12,8 @@ import java.util.function.Predicate;
 
 public class UnsyncTempQueue {
 
-    private final Queue<Double> FIXED = new LinkedList<>();
-    private final Deque<TimedNode<Double>> TIMED = new LinkedList<>();
+    private final Queue<Long> FIXED = new LinkedList<>();
+    private final Deque<TimedNode<Long>> TIMED = new LinkedList<>();
 
     private final boolean isFixed;
     private final Predicate<Long> exceeds;
@@ -33,7 +33,7 @@ public class UnsyncTempQueue {
         return total;
     }
 
-    public void prepareFixed(Timespan timespan, int amount, double defaultValue) {
+    public void prepareFixed(Timespan timespan, int amount, long defaultValue) {
         if (!isFixed) throw new UnsupportedOperationException();
 
         for (int i = 0; i < amount; i++) {
@@ -50,13 +50,13 @@ public class UnsyncTempQueue {
         return isFixed ? FIXED.size() : TIMED.size();
     }
 
-    public Queue<Double> asFixedQueue() {
+    public Queue<Long> asFixedQueue() {
         if (!isFixed) throw new UnsupportedOperationException();
 
         return FIXED;
     }
 
-    public Deque<TimedNode<Double>> asTimedQueue() {
+    public Deque<TimedNode<Long>> asTimedQueue() {
         if (isFixed) throw new UnsupportedOperationException();
 
         synchronized (this) {
@@ -64,7 +64,7 @@ public class UnsyncTempQueue {
         }
     }
 
-    public void add(double amount) {
+    public void add(long amount) {
         if (amount <= 0) {
             return;
         }
@@ -81,22 +81,20 @@ public class UnsyncTempQueue {
         }
     }
 
-    public void add(TimedNode<Double> node) {
+    public void add(TimedNode<Long> node) {
         if (isFixed) {
             add(node.getValue());
         }
 
         if (!isFixed) {
-            if (node.getValue() > 0) {
-                synchronized (this) {
+            synchronized (this) {
+                if (node.getValue() > 0) {
                     TIMED.add(node);
                 }
-            }
 
-            total += (long) (double) node.getValue();
+                total += node.getValue();
 
-            if (clearNode(node.getInsertionInstant())) {
-                synchronized (this) {
+                if (clearNode(node.getInsertionInstant())) {
                     TIMED.remove();
                 }
             }
@@ -109,14 +107,14 @@ public class UnsyncTempQueue {
         }
 
         synchronized (this) {
-            TimedNode<Double> peekedNode = TIMED.peek();
+            TimedNode<Long> peekedNode = TIMED.peek();
             if (peekedNode == null
                     || !clearNode(peekedNode, time)) {
                 return;
             }
             TIMED.remove();
 
-            Iterator<TimedNode<Double>> sampleNodeIterator = TIMED.iterator();
+            Iterator<TimedNode<Long>> sampleNodeIterator = TIMED.iterator();
             while (sampleNodeIterator.hasNext()) {
                 if (clearNode(sampleNodeIterator.next(), time)) {
                     sampleNodeIterator.remove();
@@ -132,21 +130,21 @@ public class UnsyncTempQueue {
     }
 
     private boolean clearNode(long time) {
-        TimedNode<Double> oldestNode = TIMED.peek();
+        TimedNode<Long> oldestNode = TIMED.peek();
         if (oldestNode != null) {
             return clearNode(oldestNode, time);
         }
         return false;
     }
 
-    private boolean clearNode(TimedNode<Double> node, long time) {
+    private boolean clearNode(TimedNode<Long> node, long time) {
         if (isFixed) {
             return false;
         }
 
         final long diff = time - node.getInsertionInstant();
         if (exceeds.test(diff)) {
-            total -= (long) (double) node.getValue();
+            total -= node.getValue();
             collected = true;
             return true;
         }

@@ -578,7 +578,7 @@ public class ConfigurationOptions {
         public static boolean ENABLED;
         public static int MAX_POSTPONED_PACKETS;
         public static int MAX_POSTPONED_TICKS;
-        public static double MAX_POSITION_TIME_REGISTER;
+        public static long MAX_POSITION_TIME_REGISTER;
         public static double RATE_IGNORE_TERMINATOR;
         public static double MAX_PER_X_TICK;
         public static double MAX_PER_X_AMOUNT;
@@ -592,7 +592,7 @@ public class ConfigurationOptions {
             ENABLED = file.getBoolean("postpone.enabled", true);
             MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets", 150);
             MAX_POSTPONED_TICKS = file.getInt("postpone.max-postponed-execution-ticks", 100);
-            MAX_POSITION_TIME_REGISTER = file.getDouble("max-position-time-register", 10d);
+            MAX_POSITION_TIME_REGISTER = file.getLong("max-position-time-register", 10L);
             RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator", 10d);
             MAX_PER_X_TICK = file.getDouble("postpone.max-per-x-tick", 75d);
             MAX_PER_X_AMOUNT = file.getDouble("postpone.max-per-x-amount", 5);

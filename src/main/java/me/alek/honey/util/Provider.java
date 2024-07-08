@@ -42,4 +42,15 @@ public interface Provider<T, P extends Provider<T, P>> {
             return (i1, i2) -> structure.invokeMethod(cache, 0, i1, i2);
         }
     }
+
+    interface ProviderGenericInput<T> extends Provider<T, ProviderGenericInput<T>> {
+
+        T get(Array<Object> array);
+
+        default <O> ProviderGenericInput<T> adaptRemote(AtomicReference<MethodInvoker<O>> cache, Object other) {
+            IStructureModifier<T> structure = ReflectStructureCache.<T>acquireStructure(other.getClass())
+                    .withTarget(other);
+            return array -> structure.invokeMethod(cache, 0, array);
+        }
+    }
 }

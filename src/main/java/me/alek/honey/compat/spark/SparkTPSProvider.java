@@ -66,7 +66,6 @@ public class SparkTPSProvider implements ServiceProvider<Spark> {
     public static StatisticWindow.TicksPerSecond fromTimespan(Timespan timespan) {
         switch (timespan) {
             case ONE_SECOND:
-            case TWO_SECOND:
             case FIVE_SECOND:
                 return StatisticWindow.TicksPerSecond.SECONDS_5;
             case TEN_SECOND:

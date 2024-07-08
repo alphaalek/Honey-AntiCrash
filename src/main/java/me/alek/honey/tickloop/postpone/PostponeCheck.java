@@ -11,7 +11,7 @@ import me.alek.honey.util.Callback;
 
 public interface PostponeCheck {
 
-    default TimedManualHandleTracker<Double, HoneyPlayer> getTracker() {
+    default TimedManualHandleTracker<Long, Double, HoneyPlayer> getTracker() {
         return HoneyPlugin.get().getExecutionQueueProxy();
     }
 

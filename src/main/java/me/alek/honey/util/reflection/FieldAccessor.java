@@ -23,7 +23,6 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
         try {
             return (T) field.get(object);
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw new RuntimeException("Reflection error (field get): " + field.getName(), ex);
         }
     }
@@ -52,9 +51,8 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
         try {
             field.set(object, value);
         } catch (Exception ex) {
-            ex.printStackTrace();
             throw new RuntimeException("Reflection error (field set): name: " + field.getName() + " value: " + value.getClass().getSimpleName()
-                    + " instance: " + object.getClass().getSimpleName() + " message: " + ex.getMessage());
+                    + " instance: " + object.getClass().getSimpleName(), ex);
         }
     }
 

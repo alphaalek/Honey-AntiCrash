@@ -25,7 +25,6 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -106,7 +105,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
 
         private long recentPollStart = -1;
-        private double recentDeltaTime = -1;
+        private long recentDeltaTime = -1;
 
         private final Object EMPTY_VALUE = new Object();
         private final Object EMPTY_TICK_TASK;
@@ -126,12 +125,12 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             }
         }
 
-        private double getDeltaTime() {
+        private long getDeltaTime() {
             return System.nanoTime() - recentPollStart;
         }
 
-        private double getDeltaTimeExact(PacketContainer<? extends WrappedPacket<?>> packet) {
-            double timings = packet.getEventloopStateTimings().getTimeFor(LifecycleState.SERVER_HANDLE);
+        private long getDeltaTimeExact(PacketContainer<? extends WrappedPacket<?>> packet) {
+            long timings = packet.getEventloopStateTimings().getTimeFor(LifecycleState.SERVER_HANDLE);
 
             return timings != 0 ? timings : getDeltaTime();
         }
@@ -208,11 +207,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
             int i = currentPollIndex - 1;
             if (shouldDropTask(task)) {
-                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)) {
-                    submitQueue.set(i, task);
-                    task = submitQueue.poll(findOtherTaskIndex(), false);
-                }
-
                 if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
                     HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: "
                             + task.getPacket().getType() + ", "
@@ -279,32 +273,13 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             return true;
         }
 
-        private boolean isPacketDroppable(PacketContainer<? extends WrappedPacket<?>> packet) {
+        private boolean hasPacketCap(PacketContainer<? extends WrappedPacket<?>> packet) {
             return packet.getType() == PacketTypes.Play.Client.PLAYER_MOVEMENT
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_AND_ROT
                     || packet.getType() == PacketTypes.Play.Client.GROUND
                     || packet.getType() == PacketTypes.Play.Client.BOAT_MOVE
                     || packet.getType() == PacketTypes.Play.Client.VEHICLE_MOVE;
-        }
-
-        private int findOtherTaskIndex() {
-            WrappedPacketTask first = submitQueue.get(currentPollIndex - 1);
-            if (first.isPostponed()
-                    && isPacketDroppable(first.getPacket())) {
-                return currentPollIndex - 1;
-            }
-
-            for (int i = currentPollIndex; i < submitQueue.size(); i++) {
-                WrappedPacketTask task = submitQueue.get(i);
-                if (task != null
-                        && first.isPostponed()
-                        && isPacketDroppable(task.getPacket())) {
-                    return i;
-                }
-            }
-
-            return currentPollIndex - 1;
         }
 
         private boolean shouldDropTask(WrappedPacketTask task) {
@@ -366,9 +341,9 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
         private void handleTimings() {
             // evaluate the difference in time
-            double deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
+            long deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)
-                    && isPacketDroppable(recentPacket)) {
+                    && hasPacketCap(recentPacket)) {
                 deltaTime = Math.min(deltaTime, ConfigurationOptions.Postpone.MAX_POSITION_TIME_REGISTER * Timespan.MILLIS_TO_NANO_MULTIPLIER);
             }
             registerTime(recentPacket.getPlayer(), deltaTime);

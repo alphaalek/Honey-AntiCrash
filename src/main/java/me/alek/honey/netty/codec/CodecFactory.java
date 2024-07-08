@@ -199,16 +199,17 @@ public class CodecFactory {
                     throw new CodecException(id, "Bad Packet ID");
                 }
 
-                Optional<PacketType> type = PacketTypes.getPacketType(packet.getClass(), state);
-                if (!type.isPresent()) {
+                Optional<PacketType> typeOptional = PacketTypes.getPacketType(packet.getClass(), state);
+                if (!typeOptional.isPresent()) {
                     throw new CodecException(id, "Wrong protocol state");
                 }
 
-                codec.accept(type.get(), new LegacyCodec.Applier() {
+                PacketType type = typeOptional.get();
+                codec.accept(type, new LegacyCodec.Applier() {
                     @Override
                     public void apply(LegacyCodec codec) throws CodecException {
                         codec.apply(packet,
-                                ReflectStructureCache.acquireStructure(packet.getClass())
+                                ReflectStructureCache.acquireStructure(type.getNmsClass())
                                         .withoutStatic().withTarget(packet),
                                 dataSerializer);
                     }

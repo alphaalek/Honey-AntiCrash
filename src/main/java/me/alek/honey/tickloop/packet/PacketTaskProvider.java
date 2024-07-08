@@ -9,6 +9,8 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructureCache;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
+import me.alek.honey.util.Provider;
+import me.alek.honey.util.RemoteClasses;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.chain.ChainSupplier;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -33,22 +35,14 @@ public class PacketTaskProvider {
     };
 
     private static final AtomicReference<MethodInvoker<Runnable>> factoryInvokerCache = new AtomicReference<>();
+    private static final Provider.ProviderGenericInput<PacketTaskFactory> factoryProvider = RemoteClasses.create(factoryInvokerCache, new PacketTaskFactoryProvider());
     private static Factory<Runnable> factory;
 
     static {
         try {
-            HoneyClassLoader honeyClassLoader = HoneyClassLoader.get();
-            Thread.currentThread().setContextClassLoader(honeyClassLoader);
-
-            Class<?> factoryClass = honeyClassLoader.loadClass(PacketTaskFactory.class.getName());
-
-            Object factory = factoryClass.getDeclaredConstructor(boolean.class).newInstance(MODERN);
-            PacketTaskProvider.factory = createModuleContextFactory(factory);
-
+            factory = factoryProvider.get(Array.from(MODERN));
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to setup packet task env", ex);
-        } finally {
-            Thread.currentThread().setContextClassLoader(WrappedPacketTask.class.getClassLoader());
         }
     }
 
@@ -64,15 +58,6 @@ public class PacketTaskProvider {
     interface Recyclable<T> {
 
         T recycle(Runnable task, BooleanSupplier check, Runnable pre, Runnable post, Consumer<Throwable> catcher);
-    }
-
-    private static Factory<Runnable> createModuleContextFactory(Object factory) {
-        IStructureModifier<?> structure = ReflectStructureCache.acquireStructure(factory.getClass())
-                .withTarget(factory);
-
-        return (task, check, pre, post, catcher) -> {
-            return (Runnable) structure.invokeMethod(factoryInvokerCache, 0, task, check, pre, post, catcher);
-        };
     }
 
     private final Queue<Recyclable<Runnable>> recyclables = new LinkedList<>();

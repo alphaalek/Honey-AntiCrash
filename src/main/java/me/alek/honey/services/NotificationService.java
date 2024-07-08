@@ -230,7 +230,7 @@ public class NotificationService {
         return "§8(" + ping + "ms§7/" + tps + "tps§8)§7";
     }
 
-    private String formatPercentages(Double[] percentages) {
+    private String formatPercentages(double[] percentages) {
         StringBuilder message = new StringBuilder();
 
         for (double percentage : percentages) {
@@ -241,8 +241,8 @@ public class NotificationService {
     }
 
     public void applyQuotients(HoneyPlayer player, ValidationPipelineContext.DevelopmentData developmentData) {
-        TimedManualHandleTracker<Double, HoneyPlayer> serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
-        TimedManualHandleTracker<Double, HoneyPlayer> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
+        TimedManualHandleTracker<Long, Double, HoneyPlayer> serverThreadHandleTracker = HoneyPlugin.get().getExecutionQueueProxy();
+        TimedManualHandleTracker<Long, Double, HoneyPlayer> nettyThreadHandleTracker = HoneyPlugin.get().getNettyPacketTracker();
 
         String serverThreadPoint = serverThreadHandleTracker.has(player) ? formatPercentages(serverThreadHandleTracker.getStatistics(player)) : "No data!";
         String nettyThreadPoint = nettyThreadHandleTracker.has(player) ? formatPercentages(nettyThreadHandleTracker.getStatistics(player)) : "No data!";

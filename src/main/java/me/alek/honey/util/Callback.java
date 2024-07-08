@@ -59,7 +59,7 @@ public class Callback {
         }
     }
 
-    public boolean isEmpty() {
+    public boolean isEmpty(){
         return callbacks.isEmpty();
     }
 }
