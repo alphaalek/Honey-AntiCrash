@@ -6,7 +6,7 @@ import me.alek.honey.util.reflection.MethodInvoker;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RemoteClasses {
+public class RemoteProviderFactory {
 
     public static <O, T, P extends Provider<T, P>> P createWithException(AtomicReference<MethodInvoker<O>> cache, Provider<T, P> provider) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Class<?> clazz = HoneyClassLoader.get().loadClass(provider.getClass().getName());

@@ -9,7 +9,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
@@ -40,7 +40,7 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     public static String[] getRegisteredCommands(List<String> commands) {
-        IStructureModifier<CommandMap> craftServerModifier = ReflectStructureCache.acquireStructure(NMS.getCraftServerClass())
+        IStructureModifier<CommandMap> craftServerModifier = CachedReflectStructureProvider.acquireStructure(NMS.getCraftServerClass())
                 .withType(CommandMap.class)
                 .withTarget(Bukkit.getServer());
         CommandMap commandMap = craftServerModifier.readField(0);

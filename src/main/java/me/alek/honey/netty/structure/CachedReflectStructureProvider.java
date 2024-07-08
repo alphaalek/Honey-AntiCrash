@@ -6,7 +6,7 @@ import me.alek.honey.util.Array;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ReflectStructureCache {
+public class CachedReflectStructureProvider {
 
     public static Array<ReflectStructure<Object, Object>> PACKET_STRUCTURE_CACHE = new Array<>();
     public static Map<Class<?>, ReflectStructure<Object, Object>> WRAPPER_STRUCTURE_CACHE = new ConcurrentHashMap<>();

@@ -16,7 +16,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInPosition;
@@ -127,7 +127,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
             BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
                     !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
             for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
-                ReflectStructure<Object, ?> structure = ReflectStructureCache.acquireStructure(packetType);
+                ReflectStructure<Object, ?> structure = CachedReflectStructureProvider.acquireStructure(packetType);
                 if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
                     packetTypes.add(packetType);
                 }

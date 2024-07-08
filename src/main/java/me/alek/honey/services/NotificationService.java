@@ -12,7 +12,7 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -191,7 +191,7 @@ public class NotificationService {
     public int getTPS() {
         Object minecraftServer = NMS.getMinecraftServer();
 
-        IStructureModifier<double[]> minecraftServerModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
+        IStructureModifier<double[]> minecraftServerModifier = CachedReflectStructureProvider.acquireStructure(NMS.getMinecraftServerClass())
                 .withType(double[].class).withTarget(minecraftServer);
 
         return (int) minecraftServerModifier.readField(0)[0];
@@ -200,19 +200,19 @@ public class NotificationService {
     public int getPing(HoneyPlayer player) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
-                    ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
+                    CachedReflectStructureProvider.acquireStructure(NMS.getCraftPlayerClass())
                     .withInts().withTarget(player.bukkit);
 
             return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
         IStructureModifier<Object> craftPlayerModifier =
-                ReflectStructureCache.acquireStructure(NMS.getCraftPlayerClass())
+                CachedReflectStructureProvider.acquireStructure(NMS.getCraftPlayerClass())
                 .withType(NMS.getEntityPlayerClass()).withTarget(player.bukkit);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod(null, "getHandle", 0);
 
         IStructureModifier<Integer> entityPlayerModifier =
-                ReflectStructureCache.acquireStructure(entityPlayer.getClass())
+                CachedReflectStructureProvider.acquireStructure(entityPlayer.getClass())
                 .withInts().withTarget(entityPlayer);
 
         return entityPlayerModifier.readField(null, "ping", 0);
@@ -369,7 +369,7 @@ public class NotificationService {
             IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
         }
         if (chatSerializer == null) {
-            chatSerializer = ReflectStructureCache.acquireStructure(NMS.getChatSerializerClass())
+            chatSerializer = CachedReflectStructureProvider.acquireStructure(NMS.getChatSerializerClass())
                     .withType(IchatBaseComponentClass)
                     .withTarget(null);
         }

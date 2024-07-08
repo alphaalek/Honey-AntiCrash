@@ -13,7 +13,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
@@ -147,7 +147,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         static {
             for (PacketType type : PacketTypes.getTypesAvailable()) {
-                if (!ReflectStructureCache.acquireStructure(type.getNmsClass())
+                if (!CachedReflectStructureProvider.acquireStructure(type.getNmsClass())
                         .withType(NMS.getItemStackClass())
                         .getAccessors()
                         .isEmpty()) {

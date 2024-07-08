@@ -18,6 +18,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@SuppressWarnings("unchecked")
 public class ReflectStructure<T, C> {
 
     private static final Map<Class<?>, Class<?>> WRAPPER_CLASSES = new HashMap<Class<?>, Class<?>>(){{
@@ -31,7 +32,7 @@ public class ReflectStructure<T, C> {
     }};
 
     public static Object copyStructure(Object from, Object to) {
-        ReflectStructure<Object, Object> structure = ReflectStructureCache.acquireStructure(from.getClass())
+        ReflectStructure<Object, Object> structure = CachedReflectStructureProvider.acquireStructure(from.getClass())
                 .withoutStatic().without(NMS.getCraftMetaItemClass());
 
         Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)
@@ -223,12 +224,10 @@ public class ReflectStructure<T, C> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<Integer, FieldAccessor<T>> getAcquiredAccessors(Class<?> type) {
         return (Map<Integer, FieldAccessor<T>>) getAcquired(type, new HashMap<Integer, FieldAccessor<T>>(), DEFAULT_ACCESSORS);
     }
 
-    @SuppressWarnings("unchecked")
     private Map<Integer, MethodInvoker<T>> getAcquiredInvokers(Class<?> type) {
         return (Map<Integer, MethodInvoker<T>>) getAcquired(type, new HashMap<Integer, MethodInvoker<T>>(), DEFAULT_INVOKERS);
     }
@@ -253,17 +252,14 @@ public class ReflectStructure<T, C> {
         return acquired;
     }
 
-    @SuppressWarnings("unchecked")
     private <R extends IReflectionMember<?>> R castReflectionMember(IReflectionMember<?> member) {
         return (R) member;
     }
 
-    @SuppressWarnings("unchecked")
     public <R> ReflectStructure<R, R> withWeakType(Class<?> clazz) {
         return (ReflectStructure<R, R>) withType(clazz);
     }
 
-    @SuppressWarnings("unchecked")
     public <R> ReflectStructure<R, R> withWeakTypeWithoutCache(Class<?> clazz) {
         return (ReflectStructure<R, R>) withTypeWithoutCache(clazz);
     }
@@ -356,6 +352,7 @@ public class ReflectStructure<T, C> {
         return new StructureModifier(handle, converter, params);
     }
 
+    @SuppressWarnings("unchecked")
     private class StructureModifier implements IStructureModifier<C> {
 
         private final Object handle;
@@ -491,7 +488,6 @@ public class ReflectStructure<T, C> {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <K, V, R> C readFieldAndApplyMapping(int index) {
             if (!hasField(index)) {
                 return null;
@@ -672,7 +668,6 @@ public class ReflectStructure<T, C> {
                 return null;
             }
 
-            @SuppressWarnings("unchecked")
             MethodInvoker<O> invoker = (MethodInvoker<O>) ACQUIRED_INVOKERS.get(index);
             if (!matchParams(params.get(), getWrapperClasses(invoker.getHandle().getParameterTypes()))) {
                 return null;
@@ -701,6 +696,7 @@ public class ReflectStructure<T, C> {
                 }
 
                 if (!methodParams[i].isAssignableFrom(params[i])) {
+                    Bukkit.getLogger().info("Doesn't match " + methodParams[i] + " " + params[i]);
                     return false;
                 }
             }

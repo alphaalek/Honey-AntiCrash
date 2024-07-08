@@ -15,7 +15,7 @@ import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleListConverter;
 import me.alek.honey.netty.structure.converters.dedicated.SimpleMapConverter;
@@ -71,7 +71,7 @@ public class Converters {
                     return null;
                 }
 
-                ReflectStructure<Object, ?> blockPositionStructure = ReflectStructureCache.acquireStructure(NMS.getBaseBlockPositionClass());
+                ReflectStructure<Object, ?> blockPositionStructure = CachedReflectStructureProvider.acquireStructure(NMS.getBaseBlockPositionClass());
                 IStructureModifier<Integer> intStructure = blockPositionStructure.withInts().withTarget(delegate);
                 if (intStructure.fieldSize() < 3) {
                     throw new RuntimeException("Reflection error");
@@ -106,7 +106,7 @@ public class Converters {
                     return null;
                 }
 
-                ReflectStructure<Object, ?> vec3DModifier = ReflectStructureCache.acquireStructure(NMS.getVec3DClass());
+                ReflectStructure<Object, ?> vec3DModifier = CachedReflectStructureProvider.acquireStructure(NMS.getVec3DClass());
                 IStructureModifier<Double> doubleModifier = vec3DModifier.withDoubles().withTarget(delegate);
 
                 if (doubleModifier.fieldSize() < 3) {
@@ -159,7 +159,7 @@ public class Converters {
         return new JavaConverter<Object, PacketDataSerializer>() {
             @Override
             public PacketDataSerializer convertDelegate(Object delegate, Object... params) {
-                ByteBuf buf = ReflectStructureCache.acquireStructure(NMS.getPacketDataSerializerClass())
+                ByteBuf buf = CachedReflectStructureProvider.acquireStructure(NMS.getPacketDataSerializerClass())
                         .withType(ByteBuf.class).withTarget(delegate)
                         .readField(0);
 

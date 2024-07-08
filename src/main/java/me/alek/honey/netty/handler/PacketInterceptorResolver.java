@@ -13,8 +13,6 @@ import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;

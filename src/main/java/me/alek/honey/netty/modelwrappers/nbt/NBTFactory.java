@@ -3,7 +3,7 @@ package me.alek.honey.netty.modelwrappers.nbt;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -28,7 +28,7 @@ public class NBTFactory {
         }
 
         NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES);
-        ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(nmsItem.getClass());
+        ReflectStructure<Object, ?> reflectStructure = CachedReflectStructureProvider.acquireStructure(nmsItem.getClass());
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root, null, forceCreation))
                 .withTarget(nmsItem);
@@ -77,7 +77,7 @@ public class NBTFactory {
         if (handle == null) {
             return null;
         }
-        return ReflectStructureCache.acquireStructure(handle.getClass());
+        return CachedReflectStructureProvider.acquireStructure(handle.getClass());
     }
 
     @SuppressWarnings("unchecked")
@@ -86,7 +86,7 @@ public class NBTFactory {
             return NBTType.UNKNOWN;
         }
 
-        IStructureModifier<Byte> byteModifier = ReflectStructureCache.acquireStructure(NMS.getNBTTagListClass())
+        IStructureModifier<Byte> byteModifier = CachedReflectStructureProvider.acquireStructure(NMS.getNBTTagListClass())
                 .withType(byte.class)
                 .withTarget(handle);
         byte typeId = byteModifier.readField(0);
@@ -129,7 +129,7 @@ public class NBTFactory {
             return NBTType.UNKNOWN;
         }
 
-        ReflectStructure<Object, ?> reflectStructure = ReflectStructureCache.acquireStructure(NMS.getNBTBaseClass());
+        ReflectStructure<Object, ?> reflectStructure = CachedReflectStructureProvider.acquireStructure(NMS.getNBTBaseClass());
         IStructureModifier<Byte> structureModifier = reflectStructure
                 .withType(byte.class)
                 .withTarget(handle);

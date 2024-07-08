@@ -6,9 +6,8 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +32,7 @@ public class SpigotServerInjector {
         if (serverConnectionListAccessor == null) {
             Object serverConnection = NMS.getServerConnection();
 
-            serverConnectionListAccessor = ReflectStructureCache.acquireStructure(NMS.getServerConnectionClass())
+            serverConnectionListAccessor = CachedReflectStructureProvider.acquireStructure(NMS.getServerConnectionClass())
                     .<List<?>>withWeakType(List.class).withTarget(serverConnection);
         }
         if (serverConnectionListAccessor == null) return null;

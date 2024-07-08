@@ -9,7 +9,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.packet.PacketTaskProvider;
 import me.alek.honey.tickloop.packet.WrappedPacketTask;
@@ -38,10 +38,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
     private transient boolean executing;
     private transient int doneTicks;
     private transient int doneExecutionTicks;
-
-    public ExecutionQueueProxy() {
-        // empty constructor
-    }
 
     public void inject() {
         Class<?> queueHolderClass = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)
@@ -78,7 +74,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
     }
 
     public Supplier<Integer> getTickAccessor() {
-        IStructureModifier<Integer> tickStructureModifier = ReflectStructureCache.acquireStructure(NMS.getMinecraftServerClass())
+        IStructureModifier<Integer> tickStructureModifier = CachedReflectStructureProvider.acquireStructure(NMS.getMinecraftServerClass())
                 .withInts().withTarget(NMS.getMinecraftServer());
         int finalFields = (int) tickStructureModifier.getAccessors()
                 .stream()
@@ -101,6 +97,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         private ConstructorInvoker<?> tickTaskConstructor;
 
         private Array<WrappedPacketTask> submitQueue = new Array<>();
+        private final Queue<Integer> collector = new LinkedList<>();
         private int currentPollIndex;
         private PacketContainer<? extends WrappedPacket<?>> recentPacket;
 
@@ -226,6 +223,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 task.getPlayer().postponedPacketsForTick++;
                 task.postpone();
                 submitQueue.set(i, task);
+                collector.add(i);
                 super.add(EMPTY_VALUE);
 
                 return getEmptyTask();
@@ -253,7 +251,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
             }
 
             return addPacketTask(
-                    PacketTaskProvider.getProvider(packet.getPlayer()).create(
+                    PacketTaskProvider.PROVIDER.create(
                             (Runnable) value,
                             packet,
                             ExecutionQueueProxy.this.getCurrentExecutionTick()
@@ -355,7 +353,8 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         private void tickLoopExecutionDone() {
             currentPollIndex = 0;
             recentPollStart = -1;
-            submitQueue = submitQueue.compact();
+            submitQueue = submitQueue.compact(collector);
+            collector.clear();
 
             HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
 

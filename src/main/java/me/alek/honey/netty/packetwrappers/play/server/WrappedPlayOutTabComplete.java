@@ -4,7 +4,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.util.reflection.NMS;
@@ -23,7 +23,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
     }
 
     private ReflectStructure<Object, ?> getSuggestionsStructure() {
-        return ReflectStructureCache.acquireStructure(NMS.getSuggestionsClass());
+        return CachedReflectStructureProvider.acquireStructure(NMS.getSuggestionsClass());
     }
 
     private WrappedSuggestions getWrappedSuggestionsObject() {

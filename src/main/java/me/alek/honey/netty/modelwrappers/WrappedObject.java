@@ -2,7 +2,7 @@ package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 
 public abstract class WrappedObject<T> {
@@ -14,7 +14,7 @@ public abstract class WrappedObject<T> {
         this.handle = handle;
 
         if (handle != null) {
-            this.reflectStructure = ReflectStructureCache.acquireStructure(handle.getClass());
+            this.reflectStructure = CachedReflectStructureProvider.acquireStructure(handle.getClass());
         }
     }
 

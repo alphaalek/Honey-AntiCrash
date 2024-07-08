@@ -1,16 +1,10 @@
 package me.alek.honey.tickloop.packet;
 
-import me.alek.honey.HoneyClassLoader;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.structure.ReflectStructureCache;
-import me.alek.honey.util.Array;
-import me.alek.honey.util.Callback;
-import me.alek.honey.util.Provider;
-import me.alek.honey.util.RemoteClasses;
+import me.alek.honey.util.*;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.chain.ChainSupplier;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -27,20 +21,27 @@ import java.util.logging.Level;
 
 public class PacketTaskProvider {
 
-    public static final Array<PacketTaskProvider> PROVIDERS = new Array<>();
+    public static final PacketTaskProvider PROVIDER = new PacketTaskProvider();
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
     private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
         HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,
                 "Error occurred when processing packet task " + packet.getType() + " by " + packet.getPlayerName(), thrown);
     };
 
-    private static final AtomicReference<MethodInvoker<Runnable>> factoryInvokerCache = new AtomicReference<>();
-    private static final Provider.ProviderGenericInput<PacketTaskFactory> factoryProvider = RemoteClasses.create(factoryInvokerCache, new PacketTaskFactoryProvider());
+    private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
+    private static final Provider.ProviderOneInput<PacketTaskFactory, Boolean> factoryProvider = RemoteProviderFactory.create(null, new PacketTaskFactory.Provider());
     private static Factory<Runnable> factory;
 
     static {
         try {
-            factory = factoryProvider.get(Array.from(MODERN));
+            Object remoteFactory = factoryProvider.get(MODERN);
+            PacketTaskProvider.factory = RemoteProviderAdapter.<Factory<Runnable>, Runnable>adapt(remoteFactory, factoryInvokerCache, PacketTaskFactory::isFactoryMethod,
+                    provider -> {
+                        return (task, check, pre, post, catcher) -> {
+                            return provider.get(new Object[]{task, check, pre, post, catcher});
+                        };
+                    }
+            );
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to setup packet task env", ex);
         }
@@ -61,14 +62,6 @@ public class PacketTaskProvider {
     }
 
     private final Queue<Recyclable<Runnable>> recyclables = new LinkedList<>();
-
-    public static PacketTaskProvider getProvider(HoneyPlayer player) {
-        return PROVIDERS.get(player,
-                ChainSupplier.wrap(PacketTaskProvider::new).thenDo(() -> {
-                    player.leaveCallback.addAction(Callback.Action.<HoneyPlayer>from(PacketTaskProvider.PROVIDERS::remove));
-                })
-        );
-    }
 
     public WrappedPacketTask create(Runnable task, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
         WrappedPacketTask wrapped = new WrappedPacketTask(packet, tickAdded);

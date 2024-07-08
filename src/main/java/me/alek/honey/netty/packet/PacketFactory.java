@@ -7,7 +7,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
@@ -46,7 +46,7 @@ public class PacketFactory {
         try {
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 Object raw = createRawPacket(type);
-                ReflectStructureCache.acquireStructure(type.getNmsClass())
+                CachedReflectStructureProvider.acquireStructure(type.getNmsClass())
                         .withTarget(raw).invokeMethod(serializerApplyInvokerCache, 0, packetSerializer);
                 return raw;
             } else {

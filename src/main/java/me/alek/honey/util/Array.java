@@ -1,7 +1,6 @@
 package me.alek.honey.util;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -153,7 +152,7 @@ public class Array<T> implements Iterable<T> {
         data = copy;
     }
 
-    public Object[] toRealArray() {
+    public Object[] getHandle() {
         return data;
     }
 

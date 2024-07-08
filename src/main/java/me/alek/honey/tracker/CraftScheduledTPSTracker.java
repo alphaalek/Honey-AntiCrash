@@ -3,11 +3,10 @@ package me.alek.honey.tracker;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.spark.SparkTPSProvider;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
-import me.lucko.spark.api.SparkProvider;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -41,7 +40,7 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
         BukkitTask task = scheduler.runTaskTimer(plugin, (Runnable) runnable, delay, period);
         // clean up new tail
         craftTaskTailReference.set(initialTail);
-        ReflectStructure<BukkitTask, BukkitTask> taskStructure = ReflectStructureCache.acquireStructure(task.getClass())
+        ReflectStructure<BukkitTask, BukkitTask> taskStructure = CachedReflectStructureProvider.acquireStructure(task.getClass())
                 .<BukkitTask>withWeakType(task.getClass());
 
         taskStructure.withTarget(initialTail)

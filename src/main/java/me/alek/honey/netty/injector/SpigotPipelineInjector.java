@@ -12,9 +12,9 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.Provider;
-import me.alek.honey.util.RemoteClasses;
+import me.alek.honey.util.RemoteProviderFactory;
 import me.alek.honey.util.reflection.NMS;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 
 public class SpigotPipelineInjector {
 
-    private final Provider.ProviderTwoInput<ChannelProxy, Channel, Consumer<Channel>> channelProxyRemoteProvider = RemoteClasses.create(null, new ChannelProxyProvider());
+    private final Provider.ProviderTwoInput<ChannelProxy, Channel, Consumer<Channel>> channelProxyRemoteProvider = RemoteProviderFactory.create(null, new ChannelProxyProvider());
 
     public void injectChannel(Channel channel) {
         synchronized (channel) {
@@ -62,12 +62,12 @@ public class SpigotPipelineInjector {
             throw new MissingHandlerException();
         }
 
-        IStructureModifier<Object> channelStructureModifier = ReflectStructureCache.acquireStructure(NMS.getNetworkManagerClass())
+        IStructureModifier<Object> channelStructureModifier = CachedReflectStructureProvider.acquireStructure(NMS.getNetworkManagerClass())
                 .withWeakType(Channel.class)
                 .withTarget(networkManager);
         Channel registeredChannel = (Channel) channelStructureModifier.readField(0);
         if (registeredChannel instanceof ChannelProxy
-                || ReflectStructureCache.acquireStructure(registeredChannel.getClass())
+                || CachedReflectStructureProvider.acquireStructure(registeredChannel.getClass())
                         .withTarget(registeredChannel)
                         .readFieldValues()
                         .stream()
@@ -78,7 +78,7 @@ public class SpigotPipelineInjector {
         Object channelProxy = channelProxyRemoteProvider.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
         if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
                 && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
-            ReflectStructureCache.acquireStructure(ProtocolLib.CHANNEL_PROXY)
+            CachedReflectStructureProvider.acquireStructure(ProtocolLib.CHANNEL_PROXY)
                     .withWeakType(Channel.class).withTarget(registeredChannel)
                     .writeField(0, channelProxy);
         } else {

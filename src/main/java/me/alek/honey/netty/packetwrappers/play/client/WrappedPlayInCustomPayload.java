@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.reflection.MethodInvoker;
@@ -34,13 +34,13 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
             Object payload = getContainer().getObjectsOf(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
             Object key;
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                Object payloadData = ReflectStructureCache.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
+                Object payloadData = CachedReflectStructureProvider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
                         .withoutStatic().withTarget(payload).invokeMethod(payloadDataCustomPayloadCache, 0);
 
-                key = ReflectStructureCache.acquireStructure(payloadData.getClass())
+                key = CachedReflectStructureProvider.acquireStructure(payloadData.getClass())
                         .withType(NMS.getMinecraftKeyClass()).withTarget(payloadData).invokeMethod(minecraftKeyCustomPayloadCache, 0);
             } else {
-                key = ReflectStructureCache.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
+                key = CachedReflectStructureProvider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
                         .withType(NMS.getMinecraftKeyClass()).withTarget(payload).invokeMethod(minecraftKeyCustomPayloadCache, 0);
             }
 

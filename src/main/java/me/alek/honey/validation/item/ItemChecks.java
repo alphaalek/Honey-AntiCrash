@@ -11,7 +11,7 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
 import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
-import me.alek.honey.netty.structure.ReflectStructureCache;
+import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.util.reflection.ItemReflection;
@@ -526,7 +526,7 @@ public class ItemChecks {
             MapView mapView = Bukkit.getMap(item.getDurability());
             if (mapView == null) return false;
 
-            MapConverter<Object, Object, WrappedRenderData> renderCache = ReflectStructureCache.acquireStructure(mapView.getClass())
+            MapConverter<Object, Object, WrappedRenderData> renderCache = CachedReflectStructureProvider.acquireStructure(mapView.getClass())
                     .withWeakType(Map.class, Converters.getMapConverterOf(WrappedRenderData.class, Converters.getRenderDataConverter(), false))
                     .withTarget(mapView)
                     .readFieldAndApplyMapping(0);

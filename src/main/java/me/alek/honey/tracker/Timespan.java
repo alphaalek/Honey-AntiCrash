@@ -106,7 +106,7 @@ public enum Timespan {
         for (Timespan timespan : Timespan.values()) {
             sender.sendMessage("Timespan " + timespan);
             sender.sendMessage("No ids: " + timespan.noIDContextMap.size());
-            sender.sendMessage("Ids: " + Arrays.stream(timespan.IDContext.toRealArray()).filter(Objects::nonNull).count());
+            sender.sendMessage("Ids: " + Arrays.stream(timespan.IDContext.getHandle()).filter(Objects::nonNull).count());
             sender.sendMessage("Ids: " + timespan.IDContext);
         }
     }
