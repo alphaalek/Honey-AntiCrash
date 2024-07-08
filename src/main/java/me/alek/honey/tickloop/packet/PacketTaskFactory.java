@@ -25,11 +25,11 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
                            AtomicReference<Runnable> pre,
                            AtomicReference<Runnable> post,
                            AtomicReference<Consumer<Throwable>> catcher) {
-        PacketTaskAdapter packetTask = new PacketTaskAdapter(task, check, pre, post, catcher);
+        PacketTask packetTask = new PacketTask(task, check, pre, post, catcher);
         if (modern) {
             return packetTask;
         } else {
-            return new PacketTaskAdapter.TaskWrapper1_13_2<>(packetTask);
+            return new PacketTask.TaskWrapper1_13_2<>(packetTask);
         }
     }
 

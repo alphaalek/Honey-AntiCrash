@@ -1,12 +1,12 @@
 package me.alek.honey.tickloop.packet;
 
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.util.*;
+import me.alek.honey.util.Provider;
+import me.alek.honey.util.RemoteProviderAdapter;
+import me.alek.honey.util.RemoteProviderFactory;
 import me.alek.honey.util.chain.ChainRunnable;
-import me.alek.honey.util.chain.ChainSupplier;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import org.bukkit.Bukkit;
@@ -22,6 +22,7 @@ import java.util.logging.Level;
 public class PacketTaskProvider {
 
     public static final PacketTaskProvider PROVIDER = new PacketTaskProvider();
+    private static final int MIN_PACKETS_PER_PLAYER = 10;
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
     private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
         HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,

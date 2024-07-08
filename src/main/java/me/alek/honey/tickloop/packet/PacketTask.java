@@ -7,13 +7,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-public class PacketTaskAdapter implements Runnable {
+public class PacketTask implements Runnable {
 
     public static class TaskWrapper1_13_2<T> extends FutureTask<T> {
 
-        private final PacketTaskAdapter task;
+        private final PacketTask task;
 
-        public TaskWrapper1_13_2(PacketTaskAdapter task) {
+        public TaskWrapper1_13_2(PacketTask task) {
             super(Callables.returning(null));
             this.task = task;
         }
@@ -35,11 +35,11 @@ public class PacketTaskAdapter implements Runnable {
     private final AtomicReference<Runnable> post;
     private final AtomicReference<Consumer<Throwable>> catcher;
 
-    public PacketTaskAdapter(AtomicReference<Runnable> task,
-                             AtomicReference<BooleanSupplier> check,
-                             AtomicReference<Runnable> pre,
-                             AtomicReference<Runnable> post,
-                             AtomicReference<Consumer<Throwable>> catcher) {
+    public PacketTask(AtomicReference<Runnable> task,
+                      AtomicReference<BooleanSupplier> check,
+                      AtomicReference<Runnable> pre,
+                      AtomicReference<Runnable> post,
+                      AtomicReference<Consumer<Throwable>> catcher) {
         this.task = task;
         this.check = check;
         this.pre = pre;
