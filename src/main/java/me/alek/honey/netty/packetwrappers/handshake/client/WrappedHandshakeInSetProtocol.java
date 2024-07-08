@@ -12,10 +12,6 @@ public class WrappedHandshakeInSetProtocol extends WrappedPacket<WrappedHandshak
         super(rawPacket, packetContainer);
     }
 
-    public ClientInfo getClientInfo() {
-        return new ClientInfo(getContainer().getInts().readField(0), getContainer().getStrings().readField(0));
-    }
-
     public static class Reader implements PacketReader.Buf<PacketDataSerializer> {
 
         @Override

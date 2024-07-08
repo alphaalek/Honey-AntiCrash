@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-public class RemoteProviderAdapter {
+public class RemoteProviderMethodAdapter {
 
     @SuppressWarnings("unchecked")
     public static <T, C> T adapt(Object handle,

@@ -9,6 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+
 public class MonitorCommand implements CommandImpl {
 
     @Override
@@ -17,7 +19,6 @@ public class MonitorCommand implements CommandImpl {
             sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey monitor <server/player name>");
             return;
         }
-
         if (args[0].equalsIgnoreCase("server")) {
             HoneyPlugin.get().getMonitorManager().setupServerMonitor(sender);
             return;
@@ -26,13 +27,13 @@ public class MonitorCommand implements CommandImpl {
             HoneyPlugin.get().getMonitorManager().removeIfHasMonitor(sender, true);
             return;
         }
-        Player target = Bukkit.getPlayerExact(args[0]);
-        HoneyPlayer targetHoneyPlayer;
-        if (target == null || !target.isOnline() || (targetHoneyPlayer = HoneyPlayer.getPlayer(target.getUniqueId())) == null) {
-            sender.sendMessage(Lang.getFormatted("monitor.unknown.player"));
+        Optional<HoneyPlayer> target = getPlayerBy(args[0]);
+        if (!target.isPresent()) {
+            sender.sendMessage(Lang.getFormatted("unknown.player"));
             return;
         }
-        HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, targetHoneyPlayer);
+
+        HoneyPlugin.get().getMonitorManager().setupPlayerMonitor(sender, target.get());
     }
 
     @Override

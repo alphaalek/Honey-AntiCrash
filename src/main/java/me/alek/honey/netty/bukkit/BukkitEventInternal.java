@@ -21,7 +21,7 @@ public class BukkitEventInternal implements Listener {
 
         Channel channel = NMS.getChannel(player.getName());
         if (channel == null) {
-            player.kickPlayer("No channel lookup found!");
+            player.kickPlayer("No channel lookup found! Try reconnecting.");
             return;
         }
 

@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.Provider;
+import me.alek.honey.util.ProviderAdapter;
 import me.alek.honey.util.RemoteProviderFactory;
 import me.alek.honey.util.reflection.NMS;
 import org.bukkit.Bukkit;
@@ -24,7 +25,7 @@ import java.util.function.Consumer;
 
 public class SpigotPipelineInjector {
 
-    private final Provider.ProviderTwoInput<ChannelProxy, Channel, Consumer<Channel>> channelProxyRemoteProvider = RemoteProviderFactory.create(null, new ChannelProxyProvider());
+    private final Provider.ProviderTwoInput<ChannelProxy, Channel, Consumer<Channel>> channelProxyRemoteProvider = RemoteProviderFactory.create(null, ChannelProxyProvider.class, new ChannelProxyProvider().adapter());
 
     public void injectChannel(Channel channel) {
         synchronized (channel) {

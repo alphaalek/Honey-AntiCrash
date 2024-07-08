@@ -44,6 +44,7 @@ public class CommandManager implements CommandExecutor {
         registerCommand(new PasteLogsCommand());
         registerCommand(new TrackCommand());
         registerCommand(new MonitorCommand());
+        registerCommand(new PlayerInfoCommand());
         registerCommand(new PacketMonitorCommand());
     }
 

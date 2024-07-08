@@ -1,60 +1,45 @@
 package me.alek.honey.util;
 
-import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
-import me.alek.honey.util.reflection.MethodInvoker;
+public interface Provider<T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> {
 
-import java.util.concurrent.atomic.AtomicReference;
+    A adapter();
 
-public interface Provider<T, P extends Provider<T, P>> {
-
-    <O> P adaptRemote(AtomicReference<MethodInvoker<O>> cache, Object other);
-
-    interface ProviderNoInput<T> extends Provider<T, ProviderNoInput<T>> {
+    interface ProviderNoInput<T> extends Provider<T, ProviderNoInput<T>, ProviderAdapter.ProviderNoInput<T>> {
 
         T get();
 
-        default <O> ProviderNoInput<T> adaptRemote(AtomicReference<MethodInvoker<O>> cache, Object other) {
-            IStructureModifier<T> structure = CachedReflectStructureProvider.<T>acquireStructure(other.getClass())
-                    .withTarget(other);
-            return () -> structure.invokeMethod(cache, 0);
+        default ProviderAdapter.ProviderNoInput<T> adapter() {
+            return new ProviderAdapter.ProviderNoInput<T>() {
+            };
         }
     }
 
-    interface ProviderOneInput<T, I1> extends Provider<T, ProviderOneInput<T, I1>> {
+    interface ProviderOneInput<T, I1> extends Provider<T, ProviderOneInput<T, I1>, ProviderAdapter.ProviderOneInput<T, I1>> {
 
         T get(I1 i1);
 
-        default <O> ProviderOneInput<T, I1> adaptRemote(AtomicReference<MethodInvoker<O>> cache, Object other) {
-            IStructureModifier<T> structure = CachedReflectStructureProvider.<T>acquireStructure(other.getClass())
-                    .withTarget(other);
-            return i1 -> structure.invokeMethod(cache, 0, i1);
+        default ProviderAdapter.ProviderOneInput<T, I1> adapter() {
+            return new ProviderAdapter.ProviderOneInput<T, I1>() {
+            };
         }
     }
 
-    interface ProviderTwoInput<T, I1, I2> extends Provider<T, ProviderTwoInput<T, I1, I2>> {
+    interface ProviderTwoInput<T, I1, I2> extends Provider<T, ProviderTwoInput<T, I1, I2>, ProviderAdapter.ProviderTwoInput<T, I1, I2>> {
 
         T get(I1 i1, I2 i2);
 
-        default <O> ProviderTwoInput<T, I1, I2> adaptRemote(AtomicReference<MethodInvoker<O>> cache, Object other) {
-            IStructureModifier<T> structure = CachedReflectStructureProvider.<T>acquireStructure(other.getClass())
-                    .withTarget(other);
-            return (i1, i2) -> structure.invokeMethod(cache, 0, i1, i2);
+        default ProviderAdapter.ProviderTwoInput<T, I1, I2> adapter() {
+            return new ProviderAdapter.ProviderTwoInput<T, I1, I2>() {
+            };
         }
     }
 
-    interface ProviderGenericInput<T> extends Provider<T, ProviderGenericInput<T>> {
+    interface ProviderGenericInput<T> extends Provider<T, ProviderGenericInput<T>, ProviderAdapter.ProviderGenericInput<T>> {
 
         T get(Object[] array);
 
-        default <O> ProviderGenericInput<T> adaptRemote(AtomicReference<MethodInvoker<O>> cache, Object other) {
-            IStructureModifier<T> structure = CachedReflectStructureProvider.<T>acquireStructure(other.getClass())
-                    .withTarget(other);
-
-            return array -> {
-                // we need to cast to an Object to ensure the method interprets the varags correctly
-
-                return structure.invokeMethod(cache, 0, (Object) array);
+        default ProviderAdapter.ProviderGenericInput<T> adapter() {
+            return new ProviderAdapter.ProviderGenericInput<T>() {
             };
         }
     }

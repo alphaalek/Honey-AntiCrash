@@ -95,6 +95,7 @@ command.desc.notify=Toggle notifications on/off for you.
 command.desc.pastelogs=Paste the violation logs of a player.
 command.desc.reload=Reloads the configuration.
 command.desc.track=Track performance of checks and players.
+command.desc.info=Lookup basic information of players.
 
 command.outdated=§c(Outdated! Latest: %s)
 command.byline=§6Honey %s. Made by Alek05. %s
@@ -103,7 +104,8 @@ command.no.console={prefix} §cThis command can not be used by the console.
 command.no.permission={prefix} §cYou do not have permission to use this command!
 command.cooldown={prefix} §cYou have cooldown on this command. Wait %s.
 
-monitor.unknown.player={prefix} §cYou have to choose a valid player name.
+unknown.player={prefix} §cYou have to choose a valid player name.
+
 monitor.executor.service.shutdown.error=Monitor executor service did not shutdown successfully!
 monitor.executor.service.shutdown.exception=Exception occurred when shutting down monitor executor service!
 monitor.stopping={prefix} §cStopping %s.

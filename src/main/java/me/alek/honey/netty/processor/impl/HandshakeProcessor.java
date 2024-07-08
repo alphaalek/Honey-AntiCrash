@@ -13,6 +13,6 @@ public class HandshakeProcessor extends Processor<WrappedHandshakeInSetProtocol>
     }
 
     public void handleClientIntent(HoneyPlayer player, Object[] data) {
-        player.clientInfo = new ClientInfo((int) data[0], (String) data[1]);
+        player.clientInfo = new ClientInfo((int) data[0]);
     }
 }

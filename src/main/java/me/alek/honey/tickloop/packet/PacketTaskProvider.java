@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Provider;
-import me.alek.honey.util.RemoteProviderAdapter;
+import me.alek.honey.util.RemoteProviderMethodAdapter;
 import me.alek.honey.util.RemoteProviderFactory;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -30,13 +30,13 @@ public class PacketTaskProvider {
     };
 
     private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
-    private static final Provider.ProviderOneInput<PacketTaskFactory, Boolean> factoryProvider = RemoteProviderFactory.create(null, new PacketTaskFactory.Provider());
+    private static final Provider.ProviderOneInput<PacketTaskFactory, Boolean> factoryProvider = RemoteProviderFactory.create(null, PacketTaskFactory.Provider.class, new PacketTaskFactory.Provider().adapter());
     private static Factory<Runnable> factory;
 
     static {
         try {
             Object remoteFactory = factoryProvider.get(MODERN);
-            PacketTaskProvider.factory = RemoteProviderAdapter.<Factory<Runnable>, Runnable>adapt(remoteFactory, factoryInvokerCache, PacketTaskFactory::isFactoryMethod,
+            PacketTaskProvider.factory = RemoteProviderMethodAdapter.<Factory<Runnable>, Runnable>adapt(remoteFactory, factoryInvokerCache, PacketTaskFactory::isFactoryMethod,
                     provider -> {
                         return (task, check, pre, post, catcher) -> {
                             return provider.get(new Object[]{task, check, pre, post, catcher});

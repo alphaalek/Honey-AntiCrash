@@ -66,7 +66,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
         }
     }
 
-    private PacketDataSerializer getDataSerializer(boolean copy) {
+    public PacketDataSerializer getDataSerializer(boolean copy) {
         return getContainer().getDataSerializers(copy).readField(0);
     }
 
