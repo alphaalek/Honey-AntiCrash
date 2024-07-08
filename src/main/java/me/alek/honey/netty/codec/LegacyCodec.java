@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.logging.Level;
 
 public interface LegacyCodec {
 
@@ -34,8 +35,7 @@ public interface LegacyCodec {
                     try {
                         return MethodHandles.lookup().unreflect(invoker.getHandle());
                     } catch (IllegalAccessException ex) {
-                        ex.printStackTrace();
-                        Bukkit.getLogger().severe("Failed to create legacy serializer lookup for packet " + packetId + ", " + type + ", " + type.getState());
+                        Bukkit.getLogger().log(Level.SEVERE, "Failed to create legacy serializer lookup for packet " + packetId + ", " + type + ", " + type.getState(), ex);
                         return null;
                     }
                 });

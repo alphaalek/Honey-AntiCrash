@@ -8,12 +8,14 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class MonitorManager {
 
@@ -45,7 +47,7 @@ public class MonitorManager {
                     }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE, "Error occurred for monitor tick", ex);
             }
         }, 0L, ConfigurationOptions.Monitor.MESSAGE_INTERVAL, TimeUnit.MILLISECONDS);
     }

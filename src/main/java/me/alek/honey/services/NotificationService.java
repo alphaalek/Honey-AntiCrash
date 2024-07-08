@@ -124,10 +124,15 @@ public class NotificationService {
             }
 
             @Override
-            public void notify(HoneyPlayer player, String type, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey) {
+            public void notify(HoneyPlayer player,
+                               String type,
+                               ConfigurationOptions.ViolationSetting setting,
+                               ViolationService.AbstractPacketLimitHandler packetLimitHandler,
+                               ValidationPipelineContext.DevelopmentData developmentData,
+                               ViolationService.HoneyKey honeyKey) {
                 MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
-                        .offer(Placeholders.CONTEXT, () -> formatNotification(setting, packetLimitHandler))
+                        .offer(Placeholders.CONTEXT, packetLimitHandler::format)
                         .build();
                 String message = getMessage(violationFormat, offer);
 
@@ -188,15 +193,6 @@ public class NotificationService {
         untoggledlist.remove(observer);
     }
 
-    public int getTPS() {
-        Object minecraftServer = NMS.getMinecraftServer();
-
-        IStructureModifier<double[]> minecraftServerModifier = CachedReflectStructureProvider.acquireStructure(NMS.getMinecraftServerClass())
-                .withType(double[].class).withTarget(minecraftServer);
-
-        return (int) minecraftServerModifier.readField(0)[0];
-    }
-
     public int getPing(HoneyPlayer player) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
@@ -252,36 +248,6 @@ public class NotificationService {
 
         developmentData.addInternalData("TPS=" + ChatColor.stripColor(TPSProvider.getTPS(Timespan.FIVE_SECOND)));
         developmentData.addInternalData("Ping=" + HoneyPlugin.get().getNotificationService().getPing(player));
-    }
-
-    public String formatNotification(ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler) {
-        if (setting == null) {
-            return "";
-        }
-        if (packetLimitHandler instanceof ViolationService.PacketIntervalHandler) {
-            ViolationService.PacketIntervalHandler packetIntervalHandler = (ViolationService.PacketIntervalHandler) packetLimitHandler;
-            return "§7flags: §e" + packetIntervalHandler.flaggedCopy + "§7/§e" + setting.maxPerInterval + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls, §e"
-                    + (setting.interval < 1000 ? setting.interval + "§7ms" : ((double)setting.interval)/1000 + "§7s");
-        }
-        else if (packetLimitHandler instanceof ViolationService.PacketIntervalThrottleHandler) {
-            ViolationService.PacketIntervalThrottleHandler packetIntervalThrottleHandler = (ViolationService.PacketIntervalThrottleHandler) packetLimitHandler;
-            return "§7flags: §e" + ((int) packetIntervalThrottleHandler.getAmount()) + "§7/§e" + packetLimitHandler.getSetting().threshold + "§7/§e"
-                    + packetLimitHandler.getSetting().until + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
-        }
-        else if (packetLimitHandler instanceof ViolationService.PacketBufferThrottleHandler) {
-            ViolationService.PacketBufferThrottleHandler packetBufferThrottleHandler = (ViolationService.PacketBufferThrottleHandler) packetLimitHandler;
-            return "§7buffer: §e" + ((int) packetBufferThrottleHandler.bufferIndexCopy) + "§7/§e" + setting.until + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
-        }
-        else if (packetLimitHandler instanceof ViolationService.PacketBufferOverflowHandler) {
-            ViolationService.PacketBufferOverflowHandler packetBufferOverflowHandler = (ViolationService.PacketBufferOverflowHandler) packetLimitHandler;
-            return "§7buffer: §e" + ((int) packetBufferOverflowHandler.bufferIndexCopy) + "§7/§e" + setting.threshold +
-                    "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
-        }
-        else if (packetLimitHandler instanceof ViolationService.PacketSingleOverflowHandler) {
-            ViolationService.PacketSingleOverflowHandler packetSingleOverflowHandler = (ViolationService.PacketSingleOverflowHandler) packetLimitHandler;
-            return "§7flags: §e" + ((int) packetSingleOverflowHandler.getAmount()) + "§7/§e" + setting.threshold + "§7, §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
-        }
-        return "§7flags: §e" + packetLimitHandler.getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
     }
 
     public void showPacketFilterActionBar(HoneyPlayer player, boolean increment, boolean incrementCancelled) {

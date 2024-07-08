@@ -371,7 +371,7 @@ public class ViolationService {
             if (DiscordWebhook.enabled()) {
                 DiscordWebhook.violation(
                         player, validation,
-                        ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)),
+                        ChatColor.stripColor(AbstractPacketLimitHandler.this.format()),
                         developmentData);
             }
 
@@ -381,7 +381,7 @@ public class ViolationService {
                     try {
                         HoneyPlugin.get().getSQLManager().postViolation(player,
                                 validation.getName() + (violationKey != null && violationKey.getIdentifier() != null ? " (" + violationKey.getIdentifier() + ")" : ""),
-                                ChatColor.stripColor(HoneyPlugin.get().getNotificationService().formatNotification(setting, AbstractPacketLimitHandler.this)), developmentData);
+                                ChatColor.stripColor(AbstractPacketLimitHandler.this.format()), developmentData);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -425,6 +425,10 @@ public class ViolationService {
 
         public int getViolations() {
             return violations;
+        }
+
+        public String format() {
+            return "§7flags: §e" + getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
         }
 
         public abstract boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey);
@@ -523,6 +527,11 @@ public class ViolationService {
         }
 
         @Override
+        public String format() {
+            return "§7flags: §e" + amount + "§7/§e" + getSetting().threshold + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
+        }
+
+        @Override
         public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             if ((this.amount = amount) < getSetting().threshold) return false;
 
@@ -533,10 +542,6 @@ public class ViolationService {
         @Override
         public PacketLimitHandlerType getType() {
             return PacketLimitHandlerType.SINGLE_OVERFLOW;
-        }
-
-        public double getAmount() {
-            return amount;
         }
     }
 
@@ -591,9 +596,14 @@ public class ViolationService {
 
     public static class PacketBufferThrottleHandler extends PacketBufferHandler {
 
-
         public PacketBufferThrottleHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
+        }
+
+        @Override
+        public String format() {
+            return "§7buffer: §e" + bufferIndexCopy + "§7/§e" + getSetting().until + "§7/§e" + getSetting().threshold + "§7, §e"
+                    + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
         @Override
@@ -627,9 +637,14 @@ public class ViolationService {
 
     public static class PacketBufferOverflowHandler extends PacketBufferHandler {
 
-
         public PacketBufferOverflowHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
+        }
+
+        @Override
+        public String format() {
+            return "§7buffer: §e" + bufferIndexCopy + "§7/§e" + getSetting().threshold +
+                    "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
         @Override
@@ -653,6 +668,12 @@ public class ViolationService {
 
         public PacketIntervalHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             super(player, setting);
+        }
+
+        @Override
+        public String format() {
+            return "§7flags: §e" + flaggedCopy + "§7/§e" + getSetting().maxPerInterval + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls, §e"
+                    + (getSetting().interval < 1000 ? getSetting().interval + "§7ms" : ((double)getSetting().interval)/1000 + "§7s");
         }
 
         private synchronized void clearInterval() {
@@ -704,6 +725,12 @@ public class ViolationService {
         }
 
         @Override
+        public String format() {
+            return "§7flags: §e" + amount + "§7/§e" + getSetting().threshold + "§7/§e"
+                    + getSetting().until + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
+        }
+
+        @Override
         public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             if (currentlyCancelling) {
                 if (System.currentTimeMillis() - intervalStart > getSetting().interval) {
@@ -731,10 +758,6 @@ public class ViolationService {
         @Override
         public PacketLimitHandlerType getType() {
             return PacketLimitHandlerType.INTERVAL_THROTTLE;
-        }
-
-        public double getAmount() {
-            return amount;
         }
     }
 }

@@ -117,7 +117,6 @@ public class PacketInterceptorResolver {
                         ctx.fireChannelRead(o);
                     }
                 } catch (Exception ignored) {
-                    ignored.printStackTrace();
                 }
             }
 
@@ -180,7 +179,6 @@ public class PacketInterceptorResolver {
                         ctx.write(raw, promise);
                     }
                 } catch (Exception ignored) {
-                    ignored.printStackTrace();
                 }
             }
         });
@@ -197,7 +195,6 @@ public class PacketInterceptorResolver {
         List<String> names = pipeline.names();
         Collections.reverse(names);
         for (String name : names) {
-
             ChannelHandler handler;
             if (pipeline.context(name) == null
                     || !accept.test(handler = pipeline.context(name).handler())) {
@@ -222,6 +219,7 @@ public class PacketInterceptorResolver {
             }
             prevName = name;
         }
+
         return wrappedHandlers;
     }
 

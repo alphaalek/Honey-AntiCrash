@@ -572,8 +572,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(methodReference, filter, params);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+                throw new RuntimeException("Reflection error (method invoke)", ex);
             }
         }
 
@@ -582,8 +581,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(methodReference, index, params);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+                throw new RuntimeException("Reflection error (method invoke)", ex);
             }
         }
 
@@ -592,8 +590,7 @@ public class ReflectStructure<T, C> {
             try {
                 return invokeMethodWithException(methodReference, name, index, params);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException("Reflection error (method invoke): " + ex.getMessage());
+                throw new RuntimeException("Reflection error (method invoke)", ex);
             }
         }
 

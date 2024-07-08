@@ -64,6 +64,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.logging.Level;
 
 public class HoneyPlugin implements HoneyAPI {
 
@@ -186,8 +187,7 @@ public class HoneyPlugin implements HoneyAPI {
 
             return connection;
         } catch (IOException ex) {
-            ex.printStackTrace();
-            Bukkit.getLogger().severe(Lang.get("license.connection.error"));
+            Bukkit.getLogger().log(Level.SEVERE, Lang.get("license.connection.error"), ex);
         }
 
         return null;
@@ -204,8 +204,7 @@ public class HoneyPlugin implements HoneyAPI {
             Bukkit.getLogger().info(new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine());
 
         } catch (Exception ex) {
-            ex.printStackTrace();
-            Bukkit.getLogger().severe(Lang.get("license.connection.error"));
+            Bukkit.getLogger().log(Level.SEVERE, Lang.get("license.connection.error"), ex);
         }
         throw new InvalidLicenseException();
     }
@@ -316,8 +315,7 @@ public class HoneyPlugin implements HoneyAPI {
                 Session.sessionDecrypterClass.getDeclaredMethod("checkShutdown", boolean.class, boolean.class)
                         .invoke(null, false, true);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                getLoggerService().getLogger().severe(Lang.get("failed.shutdown.session.error"));
+                getLoggerService().getLogger().log(Level.SEVERE, Lang.get("failed.shutdown.session.error"), ex);
             }
 
             getLoggerService().getLogger().info(Lang.get("unloaded"));

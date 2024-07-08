@@ -64,8 +64,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             decodeInvoker = MethodHandles.lookup().unreflect(method);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Failed to setup packet decoder environment!");
+            throw new RuntimeException("Failed to setup packet decoder environment!", ex);
         }
     }
 

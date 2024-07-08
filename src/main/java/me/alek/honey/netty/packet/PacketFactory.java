@@ -16,6 +16,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 public class PacketFactory {
 
@@ -79,8 +80,7 @@ public class PacketFactory {
 
             return createWrappedPacket(type, rawPacket, player, channel, postAction);
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when creating packet for type " + type);
-            ex.printStackTrace();
+            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when creating packet for type " + type, ex);
         }
 
         return null;

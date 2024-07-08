@@ -2,12 +2,14 @@ package me.alek.honey.sql;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.sql.exceptions.SQLFactoryException;
+import org.bukkit.Bukkit;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 public class AsyncQueryFactory implements QueryFactory {
 
@@ -51,8 +53,7 @@ public class AsyncQueryFactory implements QueryFactory {
                 return statement;
 
             } catch (Exception ex) {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("SQL ERROR: (STATEMENT) " + query + " " + Arrays.toString(values));
-                ex.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE, "SQL ERROR: (STATEMENT) " + query + " " + Arrays.toString(values), ex);
             }
             throw new SQLFactoryException();
         });
@@ -64,8 +65,7 @@ public class AsyncQueryFactory implements QueryFactory {
                 return statement.executeQuery();
 
             } catch (Exception ex) {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("SQL ERROR: (QUERY) " + query + " " + Arrays.toString(values));
-                ex.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE, "SQL ERROR: (QUERY) " + query + " " + Arrays.toString(values), ex);
             }
             throw new SQLFactoryException();
         });
@@ -78,8 +78,7 @@ public class AsyncQueryFactory implements QueryFactory {
 
                 return rows > 0;
             } catch (Exception ex) {
-                HoneyPlugin.get().getLoggerService().getLogger().severe("SQL ERROR: (INSERT) " + query + " " + Arrays.toString(values));
-                ex.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE, "SQL ERROR: (INSERT) " + query + " " + Arrays.toString(values), ex);
             }
             throw new SQLFactoryException();
         });

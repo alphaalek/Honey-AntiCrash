@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import java.util.logging.Level;
 
 public class ItemAnalysis {
 
@@ -159,8 +160,7 @@ public class ItemAnalysis {
                 return getRegistryFrom(checker);
             }
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred at item analysis check");
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Error occurred at item analysis check", ex);
         }
         return null;
     }

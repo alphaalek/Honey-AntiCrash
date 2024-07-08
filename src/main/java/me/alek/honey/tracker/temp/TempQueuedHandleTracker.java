@@ -190,18 +190,29 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, D
 
     @Override
     public Double getTimeToAverageQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
-        return Math.max(0, getPlayerTotal(key, timespan, update) / getAverage(timespan));
+        double average = getAverage(timespan);
+        if (average == 0) {
+            return 0d;
+        }
+
+        return getPlayerTotal(key, timespan, update) / average;
     }
 
     @Override
     public Double getTimeToAverageWithoutQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
         long playerTotal = getPlayerTotal(key, timespan, update);
-        return Math.max(0, playerTotal / getAverageWithout(timespan, playerTotal, update));
+
+        return playerTotal / getAverageWithout(timespan, playerTotal, update);
     }
 
     @Override
     public Double getTimeToTotalQuotient(HoneyPlayer key, Timespan timespan, boolean update) {
-        return (double) Math.max(0, getPlayerTotal(key, timespan, update) / getTotal(timespan, update));
+        long total = getTotal(timespan, update);
+        if (total == 0) {
+            return 0d;
+        }
+
+        return ((double) getPlayerTotal(key, timespan, update)) / total;
     }
 
     @Override

@@ -16,6 +16,7 @@ import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.util.Provider;
 import me.alek.honey.util.RemoteProviderFactory;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +77,7 @@ public class SpigotPipelineInjector {
         }
 
         Object channelProxy = channelProxyRemoteProvider.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
+
         if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
                 && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
             CachedReflectStructureProvider.acquireStructure(ProtocolLib.CHANNEL_PROXY)

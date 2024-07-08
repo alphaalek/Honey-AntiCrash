@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 
 @NoSessionEncryption
 public class Lang {
@@ -84,8 +85,7 @@ public class Lang {
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
-            HoneyPlugin.get().getPlugin().getLogger().info("Failed to load messages for language file " + name);
+            HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Failed to load messages for language file " + name, ex);
         }
     }
 }

@@ -39,7 +39,7 @@ public class PlayerMonitorer implements ScheduledMonitorer {
         TrackerCollection.getServer().clearExceedingNodes(player);
 
         return "§6*§8STQ: §8o.a.w.o.: §7" + getOfAverageWithout(Timespan.TEN_SECOND) + "%§8, §7" + getOfAverageWithout(Timespan.FIFTEEN_SECOND) + "%§8, "
-                + "o.h.s.t.: §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, §7" + getOfPacketTask(Timespan.FIFTEEN_SECOND) + "§8, "
+                + "o.s.t.: §7" + getOfPacketTask(Timespan.TEN_SECOND) + "§8, §7" + getOfPacketTask(Timespan.FIFTEEN_SECOND) + "§8, "
                 + "o.t.: §7" + getOfTotal(Timespan.TEN_SECOND) + "%§8, §7" + getOfTotal(Timespan.FIFTEEN_SECOND) + "%";
     }
 }

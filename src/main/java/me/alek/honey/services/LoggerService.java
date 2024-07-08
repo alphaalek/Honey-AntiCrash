@@ -18,6 +18,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -137,7 +138,12 @@ public class LoggerService {
     }
 
     public double getPacketRatePerQueueExecution(Timespan timespan) {
-        return packetRatePerQueueExecution.getTotal(timespan) / packetRatePerQueueExecution.getLength(timespan);
+        int length = packetRatePerQueueExecution.getLength(timespan);
+        if (length == 0) {
+            return 0;
+        }
+
+        return packetRatePerQueueExecution.getTotal(timespan) / length;
     }
 
     public void registerQueueExecutionPacket() {

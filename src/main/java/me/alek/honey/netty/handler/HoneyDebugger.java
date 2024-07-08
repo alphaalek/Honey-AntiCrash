@@ -9,6 +9,7 @@ import me.alek.honey.netty.UnsafeChannelCloser;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
@@ -56,8 +57,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_BROKEN_PIPE)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
                 && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe("DEBUG: Exception was caught in a channel handler:" + (channelClosed ? " (Closed Channel)" : ""));
-            throwable.printStackTrace();
+            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "DEBUG: Exception was caught in a channel handler:" + (channelClosed ? " (Closed Channel)" : ""), throwable);
         }
     }
 }

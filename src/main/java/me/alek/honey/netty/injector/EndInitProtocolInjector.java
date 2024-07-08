@@ -5,6 +5,8 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.UnsafeChannelCloser;
 import org.bukkit.Bukkit;
 
+import java.util.logging.Level;
+
 public class EndInitProtocolInjector {
 
     public static class Initializer_v1_8 extends ChannelInitializer<Channel> {
@@ -35,8 +37,7 @@ public class EndInitProtocolInjector {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
-            Bukkit.getLogger().info("Error occurred when initializing channel.");
+            Bukkit.getLogger().log(Level.SEVERE, "Error occurred when initializing channel.", ex);
 
             if (channel.pipeline().context(handler) != null) {
                 channel.pipeline().remove(handler);

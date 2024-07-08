@@ -193,6 +193,8 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 return null;
             }
 
+            HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
+
             if (task.isPostponed()) {
                 task.getPlayer().postponedPackets--;
             }

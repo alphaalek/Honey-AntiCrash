@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class IsolatorWorkerWrapper<T> implements Worker<T> {
@@ -27,8 +28,7 @@ public class IsolatorWorkerWrapper<T> implements Worker<T> {
             this.worker = worker.getDeclaredConstructor(WorkerPool.class, Worker.class)
                     .newInstance(workerPool, this);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Failed to initialize isolator worker wrapper");
+            throw new RuntimeException("Failed to initialize isolator worker wrapper", ex);
         }
     }
 
@@ -45,8 +45,7 @@ public class IsolatorWorkerWrapper<T> implements Worker<T> {
         try {
             currentTask.call();
         } catch (Exception ex) {
-            ex.printStackTrace();
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when executing task.");
+            Bukkit.getLogger().log(Level.SEVERE, "Error occurred when executing task.", ex);
         }
         recentTaskStart = 0;
         worker.postCall();

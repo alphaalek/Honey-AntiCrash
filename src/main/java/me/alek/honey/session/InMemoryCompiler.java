@@ -15,6 +15,7 @@ import java.security.SecureClassLoader;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 @NoSessionEncryption
 public class InMemoryCompiler {
@@ -63,15 +64,13 @@ public class InMemoryCompiler {
                         error.append(reader.readLine());
                     }
                 } catch (IOException ex2) {
-                    ex2.printStackTrace();
-                    Bukkit.getLogger().severe("Failed to read error stream.");
+                    Bukkit.getLogger().log(Level.SEVERE, "Failed to read error stream.", ex2);
                 }
 
                 try {
                     reader.close();
                 } catch (IOException ex2) {
-                    ex2.printStackTrace();
-                    Bukkit.getLogger().severe("Failed to close error stream reader.");
+                    Bukkit.getLogger().log(Level.SEVERE, "Failed to close error stream reader.", ex2);
                 }
             }
             Bukkit.getLogger().severe("Failed to connect to license servers: " + error);
