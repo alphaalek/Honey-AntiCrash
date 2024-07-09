@@ -156,7 +156,7 @@ public class Array<T> implements Iterable<T> {
         return data;
     }
 
-    public T[] toRealArray(IntFunction<T[]> func) {
+    public T[] getHandle(IntFunction<T[]> func) {
         return Arrays.stream(data).toArray(func);
     }
 

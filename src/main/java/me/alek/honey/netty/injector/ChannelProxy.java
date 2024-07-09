@@ -192,6 +192,12 @@ public class ChannelProxy implements Channel {
 
     @Override
     public Channel flush() {
+        try {
+            Thread.sleep(5);
+        } catch (Exception ex) {
+
+        }
+
         return this.delegate.flush();
     }
 

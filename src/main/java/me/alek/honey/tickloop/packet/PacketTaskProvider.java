@@ -21,6 +21,7 @@ import java.util.logging.Level;
 public class PacketTaskProvider {
 
     public static final PacketTaskProvider PROVIDER = new PacketTaskProvider();
+
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
     private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
         HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,
@@ -28,19 +29,16 @@ public class PacketTaskProvider {
     };
 
     private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
-    private static final Provider.ProviderOneInput<PacketTaskFactory, Boolean> factoryProvider = RemoteProviderFactory.create(
-            null,
-            PacketTaskFactory.Provider.class,
-            ReflectStructure.allowAllBi(),
-            ProviderAdapter.getOneInput()
-    );
+    private static final Provider.ProviderOneInput<Factory<Runnable>, Boolean> factoryProvider = ProviderAdapter.<Factory<Runnable>, Boolean>getWithOneInput()
+            .adaptRemote(null, ReflectStructure.biAllowAll(), RemoteProviderUtils.getNewProviderWithException(PacketTaskFactory.Provider.class));
+
     private static Factory<Runnable> factory;
 
     static {
         try {
             Object remoteFactory = factoryProvider.get(MODERN);
 
-            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = ProviderAdapter.<Runnable>getGenericInput()
+            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = ProviderAdapter.<Runnable>getWithGenericInput()
                     .adaptRemote(factoryInvokerCache, PacketTaskFactory::isFactoryMethod, remoteFactory);
 
             PacketTaskFactory.Adapter adapter = new PacketTaskFactory.Adapter(factoryMethodProvider);

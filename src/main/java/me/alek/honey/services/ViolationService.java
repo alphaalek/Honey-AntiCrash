@@ -268,7 +268,7 @@ public class ViolationService {
             return Arrays.stream(
                     packetLimitHandlerDelegateLookup
                             .compact()
-                            .toRealArray(AbstractPacketLimitHandler[]::new))
+                            .getHandle(AbstractPacketLimitHandler[]::new))
                     .findAny()
                     .orElse(null);
         }

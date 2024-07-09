@@ -1,5 +1,6 @@
 package me.alek.honey.tickloop.packet;
 
+import me.alek.honey.util.Provider;
 import me.alek.honey.util.reflection.MethodInvoker;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -7,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
+public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable>, Provider.ProviderNoInput<Runnable> {
 
     public static boolean isFactoryMethod(AtomicInteger index, MethodInvoker<?> invoker) {
         return invoker.getName().equals("create");
@@ -33,6 +34,11 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
         }
     }
 
+    @Override
+    public Runnable get() {
+        return null;
+    }
+
     public static class Provider implements me.alek.honey.util.Provider.ProviderOneInput<PacketTaskFactory, Boolean> {
 
         @Override
@@ -43,16 +49,16 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
 
     public static class Adapter implements me.alek.honey.util.Provider.ProviderNoInput<PacketTaskProvider.Factory<Runnable>> {
 
-        private final ProviderGenericInput<Runnable> factoryProvider;
+        private final ProviderGenericInput<Runnable> provider;
 
-        public Adapter(ProviderGenericInput<Runnable> factoryProvider) {
-            this.factoryProvider = factoryProvider;
+        public Adapter(ProviderGenericInput<Runnable> provider) {
+            this.provider = provider;
         }
 
         @Override
         public PacketTaskProvider.Factory<Runnable> get() {
             return (task, check, pre, post, catcher) -> {
-                return factoryProvider.get(new Object[]{task, check, pre, post, catcher});
+                return provider.get(new Object[]{task, check, pre, post, catcher});
             };
         }
     }

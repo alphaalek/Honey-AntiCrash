@@ -7,13 +7,8 @@ import me.alek.honey.util.reflection.MethodInvoker;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
-import java.util.function.Supplier;
 
 public interface ProviderAdapter<T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> {
-
-    static <T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> A get(Supplier<A> supplier) {
-        return supplier.get();
-    }
 
     default IStructureModifier<T> getStructure(Object other) {
         return CachedReflectStructureProvider.<T>acquireStructure(other.getClass())
@@ -61,28 +56,31 @@ public interface ProviderAdapter<T, P extends Provider<T, P, A>, A extends Provi
                                                                  Object other) {
             IStructureModifier<T> structure = getStructure(other);
             return array -> {
-                // we need to cast to an Object to ensure the method interprets the varags correctly
-                return structure.invokeMethod(cache, filter, (Object) array);
+                return structure.invokeMethod(cache, filter, array);
             };
         }
     }
 
-    static <T> ProviderAdapter<T, Provider.ProviderNoInput<T>, ProviderAdapter.ProviderNoInput<T>> getNoInput() {
+    static <T> ProviderAdapter<T, Provider.ProviderNoInput<T>, ProviderAdapter.ProviderNoInput<T>> getWithNoInput() {
+
         return new ProviderAdapter.ProviderNoInput<T>() {
         };
     }
 
-    static <T, I1> ProviderAdapter<T, Provider.ProviderOneInput<T, I1>, ProviderAdapter.ProviderOneInput<T, I1>> getOneInput() {
+    static <T, I1> ProviderAdapter<T, Provider.ProviderOneInput<T, I1>, ProviderAdapter.ProviderOneInput<T, I1>> getWithOneInput() {
+
         return new ProviderAdapter.ProviderOneInput<T, I1>() {
         };
     }
 
-    static <T, I1, I2> ProviderAdapter<T, Provider.ProviderTwoInput<T, I1, I2>, ProviderAdapter.ProviderTwoInput<T, I1, I2>> getTwoInput() {
+    static <T, I1, I2> ProviderAdapter<T, Provider.ProviderTwoInput<T, I1, I2>, ProviderAdapter.ProviderTwoInput<T, I1, I2>> getWithTwoInput() {
+
         return new ProviderAdapter.ProviderTwoInput<T, I1, I2>() {
         };
     }
 
-    static <T> ProviderAdapter<T, Provider.ProviderGenericInput<T>, ProviderAdapter.ProviderGenericInput<T>> getGenericInput() {
+    static <T> ProviderAdapter<T, Provider.ProviderGenericInput<T>, ProviderAdapter.ProviderGenericInput<T>> getWithGenericInput() {
+
         return new ProviderAdapter.ProviderGenericInput<T>() {
         };
     }

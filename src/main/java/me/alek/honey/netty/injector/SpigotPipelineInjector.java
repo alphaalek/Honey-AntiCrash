@@ -3,6 +3,7 @@ package me.alek.honey.netty.injector;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import me.alek.honey.HoneyClassLoader;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.async.WorkerPool;
@@ -15,7 +16,8 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Provider;
-import me.alek.honey.util.RemoteProviderFactory;
+import me.alek.honey.util.ProviderAdapter;
+import me.alek.honey.util.RemoteProviderUtils;
 import me.alek.honey.util.reflection.NMS;
 
 import java.util.ArrayList;
@@ -24,11 +26,10 @@ import java.util.function.Consumer;
 
 public class SpigotPipelineInjector {
 
-    private final Provider.ProviderTwoInput<ChannelProxy, Channel, Consumer<Channel>> channelProxyRemoteProvider = RemoteProviderFactory.create(
-            null,
-            ChannelProxyProvider.class,
-            ReflectStructure.allowAllBi(),
-            ProviderAdapterWrapper.cast(ProviderAdapterWrapper.getTwoInput()));
+    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = ProviderAdapter.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
+            .adaptRemote(null, ReflectStructure.biAllowAll(), RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
+    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = ProviderAdapter.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
+            .adaptRemote(null, ReflectStructure.biAllowAll(), channelProxyRemoteFactoryProvider.get());
 
     public void injectChannel(Channel channel) {
         synchronized (channel) {
@@ -71,16 +72,18 @@ public class SpigotPipelineInjector {
                 .withWeakType(Channel.class)
                 .withTarget(networkManager);
         Channel registeredChannel = (Channel) channelStructureModifier.readField(0);
-        if (registeredChannel instanceof ChannelProxy
+        /*
+        if (isChannelProxy(registeredChannel)
                 || CachedReflectStructureProvider.acquireStructure(registeredChannel.getClass())
                         .withTarget(registeredChannel)
                         .readFieldValues()
                         .stream()
-                        .anyMatch(p -> p instanceof ChannelProxy)) {
+                        .anyMatch(this::isChannelProxy)) {
             return;
         }
+        */
 
-        Object channelProxy = channelProxyRemoteProvider.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
+        Object channelProxy = channelProxyRemoteFactory.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
 
         if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
                 && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
