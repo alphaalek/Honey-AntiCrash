@@ -21,6 +21,14 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public class ReflectStructure<T, C> {
 
+    public static <A> Predicate<A> allowAll() {
+        return (a) -> true;
+    }
+
+    public static <A, B> BiPredicate<A, B> allowAllBi() {
+        return (a, b) -> true;
+    }
+
     private static final Map<Class<?>, Class<?>> WRAPPER_CLASSES = new HashMap<Class<?>, Class<?>>(){{
         put(int.class, Integer.class);
         put(double.class, Double.class);

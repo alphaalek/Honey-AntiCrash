@@ -40,4 +40,20 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
             return new PacketTaskFactory(modern);
         }
     }
+
+    public static class Adapter implements me.alek.honey.util.Provider.ProviderNoInput<PacketTaskProvider.Factory<Runnable>> {
+
+        private final ProviderGenericInput<Runnable> factoryProvider;
+
+        public Adapter(ProviderGenericInput<Runnable> factoryProvider) {
+            this.factoryProvider = factoryProvider;
+        }
+
+        @Override
+        public PacketTaskProvider.Factory<Runnable> get() {
+            return (task, check, pre, post, catcher) -> {
+                return factoryProvider.get(new Object[]{task, check, pre, post, catcher});
+            };
+        }
+    }
 }

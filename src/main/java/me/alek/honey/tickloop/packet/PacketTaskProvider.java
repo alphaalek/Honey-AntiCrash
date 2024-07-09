@@ -3,9 +3,8 @@ package me.alek.honey.tickloop.packet;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.util.Provider;
-import me.alek.honey.util.RemoteProviderMethodAdapter;
-import me.alek.honey.util.RemoteProviderFactory;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.util.*;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
@@ -22,7 +21,6 @@ import java.util.logging.Level;
 public class PacketTaskProvider {
 
     public static final PacketTaskProvider PROVIDER = new PacketTaskProvider();
-    private static final int MIN_PACKETS_PER_PLAYER = 10;
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
     private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
         HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,
@@ -30,25 +28,30 @@ public class PacketTaskProvider {
     };
 
     private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
-    private static final Provider.ProviderOneInput<PacketTaskFactory, Boolean> factoryProvider = RemoteProviderFactory.create(null, PacketTaskFactory.Provider.class, new PacketTaskFactory.Provider().adapter());
+    private static final Provider.ProviderOneInput<PacketTaskFactory, Boolean> factoryProvider = RemoteProviderFactory.create(
+            null,
+            PacketTaskFactory.Provider.class,
+            ReflectStructure.allowAllBi(),
+            ProviderAdapter.getOneInput()
+    );
     private static Factory<Runnable> factory;
 
     static {
         try {
             Object remoteFactory = factoryProvider.get(MODERN);
-            PacketTaskProvider.factory = RemoteProviderMethodAdapter.<Factory<Runnable>, Runnable>adapt(remoteFactory, factoryInvokerCache, PacketTaskFactory::isFactoryMethod,
-                    provider -> {
-                        return (task, check, pre, post, catcher) -> {
-                            return provider.get(new Object[]{task, check, pre, post, catcher});
-                        };
-                    }
-            );
+
+            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = ProviderAdapter.<Runnable>getGenericInput()
+                    .adaptRemote(factoryInvokerCache, PacketTaskFactory::isFactoryMethod, remoteFactory);
+
+            PacketTaskFactory.Adapter adapter = new PacketTaskFactory.Adapter(factoryMethodProvider);
+            factory = adapter.get();
+
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to setup packet task env", ex);
         }
     }
 
-    interface Factory<T> {
+    public interface Factory<T> {
 
         T create(AtomicReference<Runnable> task,
                  AtomicReference<BooleanSupplier> check,
@@ -57,9 +60,13 @@ public class PacketTaskProvider {
                  AtomicReference<Consumer<Throwable>> catcher);
     }
 
-    interface Recyclable<T> {
+    private interface Recyclable<T> {
 
-        T recycle(Runnable task, BooleanSupplier check, Runnable pre, Runnable post, Consumer<Throwable> catcher);
+        T recycle(Runnable task,
+                  BooleanSupplier check,
+                  Runnable pre,
+                  Runnable post,
+                  Consumer<Throwable> catcher);
     }
 
     private final Queue<Recyclable<Runnable>> recyclables = new LinkedList<>();
