@@ -10,6 +10,10 @@ import java.util.function.BiPredicate;
 
 public class RemoteProviderUtils {
 
+    public static boolean isProviderMethod(AtomicInteger index, MethodInvoker<?> invoker) {
+        return invoker.getName().equals("get");
+    }
+
     public static <O, T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> P createWithException(AtomicReference<MethodInvoker<O>> cache,
                                                                                                                 Class<?> loadedClass,
                                                                                                                 BiPredicate<AtomicInteger, MethodInvoker<?>> filter,

@@ -11,10 +11,10 @@ import me.alek.honey.util.Array;
 
 public class Settings {
 
-    private static final Array<ConfigurationOptions.ViolationSetting> settingArray = new Array<>();
+    private static final Array<ConfigurationOptions.ViolationSetting> settings = new Array<>();
 
     public static ConfigurationOptions.ViolationSetting getSetting(ViolationValidation<?> validation, Class<? extends ConfigurationOptions.ViolationSetting> settingClass) {
-        return settingArray.get(validation.getID(), () -> ConfigurationOptions.getVlSetting(settingClass));
+        return settings.get(validation.getID(), () -> ConfigurationOptions.getVlSetting(settingClass));
     }
 
     public static ConfigurationOptions.ViolationSetting getSetting(HoneyValidation<?> validation) {

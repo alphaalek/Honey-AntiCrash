@@ -64,6 +64,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 public class HoneyPlugin implements HoneyAPI {
@@ -209,8 +210,7 @@ public class HoneyPlugin implements HoneyAPI {
         throw new InvalidLicenseException();
     }
 
-    public synchronized void onEnable() {
-
+    public void onEnable() {
         // check compatability and conflicts of runtime load or minecraft version
         String conflict = null;
         if (isLoaded || isRunning)

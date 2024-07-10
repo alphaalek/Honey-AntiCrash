@@ -30,7 +30,7 @@ public class PacketTaskProvider {
 
     private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
     private static final Provider.ProviderOneInput<Factory<Runnable>, Boolean> factoryProvider = ProviderAdapter.<Factory<Runnable>, Boolean>getWithOneInput()
-            .adaptRemote(null, ReflectStructure.biAllowAll(), RemoteProviderUtils.getNewProviderWithException(PacketTaskFactory.Provider.class));
+            .adaptRemote(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(PacketTaskFactory.Provider.class));
 
     private static Factory<Runnable> factory;
 

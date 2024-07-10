@@ -27,9 +27,9 @@ import java.util.function.Consumer;
 public class SpigotPipelineInjector {
 
     private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = ProviderAdapter.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
-            .adaptRemote(null, ReflectStructure.biAllowAll(), RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
+            .adaptRemote(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
     private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = ProviderAdapter.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
-            .adaptRemote(null, ReflectStructure.biAllowAll(), channelProxyRemoteFactoryProvider.get());
+            .adaptRemote(null, RemoteProviderUtils::isProviderMethod, channelProxyRemoteFactoryProvider.get());
 
     public void injectChannel(Channel channel) {
         synchronized (channel) {
