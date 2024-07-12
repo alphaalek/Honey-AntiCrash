@@ -58,6 +58,8 @@ public class HoneyPlayer implements Identifiable {
     public TempQueuedTracker serverThreadTimedQueuedTracker;
     public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
     public final Callback leaveCallback = new Callback();
+    private final TickCache<Boolean> bypassEverything = new TickCache<>();
+    private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();
 
     public EnhancedInitialIterator<PostponeCheck> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(
@@ -150,13 +152,19 @@ public class HoneyPlayer implements Identifiable {
     }
 
     public boolean bypassServerThreadTracking() {
-        return ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                && isBukkitReady() && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+        return bypassServerThreadTracking.get(HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick(), () -> {
+            return ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
+                    && isBukkitReady()
+                    && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+        });
     }
 
     public boolean bypassEverything() {
-        return ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                && isBukkitReady() && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+        return bypassEverything.get(HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick(), () -> {
+            return ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
+                    && isBukkitReady()
+                    && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+        });
     }
 
     public boolean isOnlineBukkit() {
