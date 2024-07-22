@@ -34,10 +34,10 @@ import java.util.function.Supplier;
 
 public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
-    private transient DelegatedWrapper executionQueue;
-    private transient boolean executing;
-    private transient int doneTicks;
-    private transient int doneExecutionTicks;
+    private DelegatedWrapper executionQueue;
+    private boolean executing;
+    private int doneTicks;
+    private int doneExecutionTicks;
 
     public void inject() {
         Class<?> queueHolderClass = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)

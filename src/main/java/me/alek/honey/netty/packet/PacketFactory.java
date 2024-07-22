@@ -71,14 +71,7 @@ public class PacketFactory {
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Channel channel, Callback postAction) {
         try {
-            Object rawPacket;
-            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
-                rawPacket = createRawPacket(type);
-            } else {
-                rawPacket = createPacket(type, serializer);
-            }
-
-            return createWrappedPacket(type, rawPacket, player, channel, postAction);
+            return createWrappedPacket(type, createPacket(type, serializer), player, channel, postAction);
         } catch (Exception ex) {
             HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when creating packet for type " + type, ex);
         }

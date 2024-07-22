@@ -1,5 +1,7 @@
 package me.alek.honey.util;
 
+import org.bukkit.Material;
+
 import java.util.function.Supplier;
 
 public class TickCache<T> {
@@ -11,6 +13,7 @@ public class TickCache<T> {
         if (currentTick == lastTick) {
             return reference != null ? reference : (reference = or.get());
         }
+
 
         lastTick = currentTick;
         return reference = or.get();
