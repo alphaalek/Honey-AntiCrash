@@ -5,12 +5,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
-import me.alek.honey.tickloop.ExecutionQueueProxy;
-import me.alek.honey.util.LibraryVersion;
-import me.alek.honey.validation.BaseValidationContainer;
-import me.alek.honey.validation.print.PrintValidationBridge;
-import me.alek.honey.validation.ValidationContainers;
-import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.compat.spark.SparkTPSProvider;
 import me.alek.honey.configuration.Configuration;
@@ -20,18 +14,13 @@ import me.alek.honey.listeners.DispenserListener;
 import me.alek.honey.listeners.PlayerQuitListener;
 import me.alek.honey.listeners.TabCompleteListener;
 import me.alek.honey.listeners.TeleportListener;
-import me.alek.honey.util.metrics.Metrics;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
-import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
@@ -40,10 +29,21 @@ import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.sql.RepositoryProvider;
 import me.alek.honey.sql.SQLManagerWrapper;
+import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
 import me.alek.honey.tracker.RegistryHandleTracker;
 import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
+import me.alek.honey.util.LibraryVersion;
+import me.alek.honey.util.metrics.Metrics;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.FieldAccessor;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.validation.BaseValidationContainer;
+import me.alek.honey.validation.ValidationContainers;
+import me.alek.honey.validation.item.ItemAnalysis;
+import me.alek.honey.validation.print.PrintValidationBridge;
 import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -64,7 +64,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.logging.Level;
 
 public class HoneyPlugin implements HoneyAPI {
@@ -147,7 +146,7 @@ public class HoneyPlugin implements HoneyAPI {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) {
                     if (player.isOp() && msg.getClass().getSimpleName().equals("PacketPlayInChat")) {
-                        String message = CachedReflectStructureProvider.acquireStructure(msg.getClass())
+                        String message = ReflectStructure.Provider.acquireStructure(msg.getClass())
                                 .withType(String.class).withTarget(msg)
                                 .readField(0);
 

@@ -2,25 +2,25 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.tracker.TimedManualHandleTracker;
-import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.util.messages.MessageFormat;
-import me.alek.honey.util.messages.MessageOffer;
-import me.alek.honey.util.messages.Placeholders;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.util.counter.DecayingListeningCounter;
-import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.util.TPSProvider;
+import me.alek.honey.util.counter.DecayingListeningCounter;
+import me.alek.honey.util.messages.MessageFormat;
+import me.alek.honey.util.messages.MessageOffer;
+import me.alek.honey.util.messages.Placeholders;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.statics.NumberUtils;
+import me.alek.honey.validation.ValidationPipelineContext;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -196,19 +196,19 @@ public class NotificationService {
     public int getPing(HoneyPlayer player) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
-                    CachedReflectStructureProvider.acquireStructure(NMS.getCraftPlayerClass())
+                    ReflectStructure.Provider.acquireStructure(NMS.getCraftPlayerClass())
                     .withInts().withTarget(player.bukkit);
 
             return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
         IStructureModifier<Object> craftPlayerModifier =
-                CachedReflectStructureProvider.acquireStructure(NMS.getCraftPlayerClass())
+                ReflectStructure.Provider.acquireStructure(NMS.getCraftPlayerClass())
                 .withType(NMS.getEntityPlayerClass()).withTarget(player.bukkit);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod(null, "getHandle", 0);
 
         IStructureModifier<Integer> entityPlayerModifier =
-                CachedReflectStructureProvider.acquireStructure(entityPlayer.getClass())
+                ReflectStructure.Provider.acquireStructure(entityPlayer.getClass())
                 .withInts().withTarget(entityPlayer);
 
         return entityPlayerModifier.readField(null, "ping", 0);
@@ -335,7 +335,7 @@ public class NotificationService {
             IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
         }
         if (chatSerializer == null) {
-            chatSerializer = CachedReflectStructureProvider.acquireStructure(NMS.getChatSerializerClass())
+            chatSerializer = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
                     .withType(IchatBaseComponentClass)
                     .withTarget(null);
         }

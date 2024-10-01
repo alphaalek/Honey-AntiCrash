@@ -4,13 +4,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.LazyInit;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -34,13 +34,13 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
             Object payload = getContainer().getObjectsOf(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
             Object key;
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                Object payloadData = CachedReflectStructureProvider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
+                Object payloadData = ReflectStructure.Provider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
                         .withoutStatic().withTarget(payload).invokeMethod(payloadDataCustomPayloadCache, 0);
 
-                key = CachedReflectStructureProvider.acquireStructure(payloadData.getClass())
+                key = ReflectStructure.Provider.acquireStructure(payloadData.getClass())
                         .withType(NMS.getMinecraftKeyClass()).withTarget(payloadData).invokeMethod(minecraftKeyCustomPayloadCache, 0);
             } else {
-                key = CachedReflectStructureProvider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
+                key = ReflectStructure.Provider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
                         .withType(NMS.getMinecraftKeyClass()).withTarget(payload).invokeMethod(minecraftKeyCustomPayloadCache, 0);
             }
 

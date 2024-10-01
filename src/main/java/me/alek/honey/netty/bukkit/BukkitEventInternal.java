@@ -29,7 +29,6 @@ public class BukkitEventInternal implements Listener {
     }
 
     private void handleChannel(Player player, Channel channel) {
-
         try {
             HoneyPlayer honeyPlayer = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).getPlayer();
             honeyPlayer.initBukkitPlayer(player);

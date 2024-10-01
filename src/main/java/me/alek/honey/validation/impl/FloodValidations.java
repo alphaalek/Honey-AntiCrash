@@ -1,25 +1,27 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packet.type.*;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.ValidationServiceContext;
-import me.alek.honey.validation.types.KeyedViolationValidation;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
 import me.alek.honey.netty.modelwrappers.nbt.NBTFactory;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.types.KeyedViolationValidation;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
@@ -147,7 +149,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
 
         static {
             for (PacketType type : PacketTypes.getTypesAvailable()) {
-                if (!CachedReflectStructureProvider.acquireStructure(type.getNmsClass())
+                if (!ReflectStructure.Provider.acquireStructure(type.getNmsClass())
                         .withType(NMS.getItemStackClass())
                         .getAccessors()
                         .isEmpty()) {

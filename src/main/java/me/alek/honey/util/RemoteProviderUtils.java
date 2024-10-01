@@ -14,18 +14,18 @@ public class RemoteProviderUtils {
         return invoker.getName().equals("get");
     }
 
-    public static <O, T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> P createWithException(AtomicReference<MethodInvoker<O>> cache,
-                                                                                                                Class<?> loadedClass,
-                                                                                                                BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
-                                                                                                                ProviderAdapter<T, P, A> adapter) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public static <O, T, P extends Provider<T, P, A>, A extends ProviderBridge<T, P, A>> P createWithException(AtomicReference<MethodInvoker<O>> cache,
+                                                                                                               Class<?> loadedClass,
+                                                                                                               BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
+                                                                                                               ProviderBridge<T, P, A> adapter) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return createWithException(cache, getNewProvider(loadedClass), filter, adapter);
     }
 
-    public static <O, T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> P createWithException(AtomicReference<MethodInvoker<O>> cache,
-                                                                                                                Object handle,
-                                                                                                                BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
-                                                                                                                ProviderAdapter<T, P, A> adapter) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        return adapter.adaptRemote(cache, filter, handle);
+    public static <O, T, P extends Provider<T, P, A>, A extends ProviderBridge<T, P, A>> P createWithException(AtomicReference<MethodInvoker<O>> cache,
+                                                                                                               Object handle,
+                                                                                                               BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
+                                                                                                               ProviderBridge<T, P, A> adapter) {
+        return adapter.createProviderRemotely(cache, filter, handle);
     }
 
     public static Object getNewProvider(Class<?> loadedClass) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -41,10 +41,10 @@ public class RemoteProviderUtils {
         }
     }
 
-    public static <O, T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> P create(AtomicReference<MethodInvoker<O>> cache,
-                                                                                                   Object handle,
-                                                                                                   BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
-                                                                                                   ProviderAdapter<T, P, A> adapter) {
+    public static <O, T, P extends Provider<T, P, A>, A extends ProviderBridge<T, P, A>> P create(AtomicReference<MethodInvoker<O>> cache,
+                                                                                                  Object handle,
+                                                                                                  BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
+                                                                                                  ProviderBridge<T, P, A> adapter) {
         try {
             return createWithException(cache, handle, filter, adapter);
         } catch (Exception ex) {
@@ -52,10 +52,10 @@ public class RemoteProviderUtils {
         }
     }
 
-    public static <O, T, P extends Provider<T, P, A>, A extends ProviderAdapter<T, P, A>> P create(AtomicReference<MethodInvoker<O>> cache,
-                                                                                                   Class<?> loadedClass,
-                                                                                                   BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
-                                                                                                   ProviderAdapter<T, P, A> adapter) {
+    public static <O, T, P extends Provider<T, P, A>, A extends ProviderBridge<T, P, A>> P create(AtomicReference<MethodInvoker<O>> cache,
+                                                                                                  Class<?> loadedClass,
+                                                                                                  BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
+                                                                                                  ProviderBridge<T, P, A> adapter) {
         try {
             return createWithException(cache, loadedClass, filter, adapter);
         } catch (Exception ex) {

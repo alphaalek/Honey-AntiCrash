@@ -4,7 +4,6 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.CharsetUtil;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import org.bukkit.Bukkit;
 
 import java.nio.charset.StandardCharsets;
 

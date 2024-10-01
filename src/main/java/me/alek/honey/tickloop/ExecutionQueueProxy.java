@@ -1,5 +1,6 @@
 package me.alek.honey.tickloop;
 
+import com.google.common.util.concurrent.Callables;
 import com.google.common.util.concurrent.Runnables;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -9,8 +10,8 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tickloop.packet.PacketTaskProvider;
 import me.alek.honey.tickloop.packet.WrappedPacketTask;
 import me.alek.honey.tickloop.postpone.PostponeCheck;
@@ -74,7 +75,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
     }
 
     public Supplier<Integer> getTickAccessor() {
-        IStructureModifier<Integer> tickStructureModifier = CachedReflectStructureProvider.acquireStructure(NMS.getMinecraftServerClass())
+        IStructureModifier<Integer> tickStructureModifier = ReflectStructure.Provider.acquireStructure(NMS.getMinecraftServerClass())
                 .withInts().withTarget(NMS.getMinecraftServer());
         int finalFields = (int) tickStructureModifier.getAccessors()
                 .stream()
@@ -141,7 +142,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         }
 
         private Object getEmptyTask() {
-            return newTickTask(new FutureTask<>(() -> null), tickAccessor.get());
+            return newTickTask(new FutureTask<>(Callables.returning(null)), tickAccessor.get());
         }
 
         @Override
@@ -204,7 +205,6 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 task.getPlayer().postponedLastTick = getCurrentExecutionTick();
             }
 
-            int i = currentPollIndex - 1;
             if (shouldDropTask(task)) {
                 if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
                     HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: "
@@ -224,8 +224,8 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 task.getPlayer().postponedPackets++;
                 task.getPlayer().postponedPacketsForTick++;
                 task.postpone();
-                submitQueue.set(i, task);
-                collector.add(i);
+                submitQueue.set(currentPollIndex - 1, task);
+                collector.add(currentPollIndex - 1);
                 super.add(EMPTY_VALUE);
 
                 return getEmptyTask();
@@ -381,6 +381,7 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
                 return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true));
             }
         });
+
         return trackersList;
     }
 }

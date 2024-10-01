@@ -3,7 +3,6 @@ package me.alek.honey.tickloop.packet;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.*;
 import me.alek.honey.util.chain.ChainRunnable;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -12,6 +11,7 @@ import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
@@ -29,8 +29,8 @@ public class PacketTaskProvider {
     };
 
     private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
-    private static final Provider.ProviderOneInput<Factory<Runnable>, Boolean> factoryProvider = ProviderAdapter.<Factory<Runnable>, Boolean>getWithOneInput()
-            .adaptRemote(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(PacketTaskFactory.Provider.class));
+    private static final Provider.ProviderOneInput<Factory<Runnable>, Boolean> factoryProvider = ProviderBridge.<Factory<Runnable>, Boolean>getWithOneInput()
+            .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(PacketTaskFactory.Provider.class));
 
     private static Factory<Runnable> factory;
 
@@ -38,8 +38,8 @@ public class PacketTaskProvider {
         try {
             Object remoteFactory = factoryProvider.get(MODERN);
 
-            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = ProviderAdapter.<Runnable>getWithGenericInput()
-                    .adaptRemote(factoryInvokerCache, PacketTaskFactory::isFactoryMethod, remoteFactory);
+            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = ProviderBridge.<Runnable>getWithGenericInput()
+                    .createProviderRemotely(factoryInvokerCache, PacketTaskProvider::isFactoryMethod, remoteFactory);
 
             PacketTaskFactory.Adapter adapter = new PacketTaskFactory.Adapter(factoryMethodProvider);
             factory = adapter.get();
@@ -47,6 +47,10 @@ public class PacketTaskProvider {
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to setup packet task env", ex);
         }
+    }
+
+    private static boolean isFactoryMethod(AtomicInteger index, MethodInvoker<?> invoker) {
+        return invoker.getName().equals("create");
     }
 
     public interface Factory<T> {

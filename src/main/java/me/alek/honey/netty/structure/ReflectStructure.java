@@ -1,6 +1,7 @@
 package me.alek.honey.netty.structure;
 
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -13,6 +14,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
@@ -21,6 +23,20 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
 public class ReflectStructure<T, C> {
+
+    public static class Provider {
+
+        private static final Array<ReflectStructure<Object, Object>> PACKET_STRUCTURE_CACHE = new Array<>();
+        private static final Map<Class<?>, ReflectStructure<Object, Object>> WRAPPER_STRUCTURE_CACHE = new ConcurrentHashMap<>();
+
+        public static synchronized ReflectStructure<Object, Object> acquireStructure(PacketType packetType) {
+            return PACKET_STRUCTURE_CACHE.get(packetType.getHoneyID(), () -> new ReflectStructure<>(packetType.getNmsClass()));
+        }
+
+        public static synchronized <T> ReflectStructure<Object, T> acquireStructure(Class<?> clazz) {
+            return (ReflectStructure<Object, T>) WRAPPER_STRUCTURE_CACHE.computeIfAbsent(clazz, wrapperClass -> new ReflectStructure<>(clazz));
+        }
+    }
 
     public static <A> Predicate<A> allowAll() {
         return (a) -> true;
@@ -41,7 +57,7 @@ public class ReflectStructure<T, C> {
     }};
 
     public static Object copyStructure(Object from, Object to) {
-        ReflectStructure<Object, Object> structure = CachedReflectStructureProvider.acquireStructure(from.getClass())
+        ReflectStructure<Object, Object> structure = ReflectStructure.Provider.acquireStructure(from.getClass())
                 .withoutStatic().without(NMS.getCraftMetaItemClass());
 
         Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)

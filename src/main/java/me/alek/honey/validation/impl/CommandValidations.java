@@ -1,19 +1,19 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
@@ -40,7 +40,7 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     }
 
     public static String[] getRegisteredCommands(List<String> commands) {
-        IStructureModifier<CommandMap> craftServerModifier = CachedReflectStructureProvider.acquireStructure(NMS.getCraftServerClass())
+        IStructureModifier<CommandMap> craftServerModifier = ReflectStructure.Provider.acquireStructure(NMS.getCraftServerClass())
                 .withType(CommandMap.class)
                 .withTarget(Bukkit.getServer());
         CommandMap commandMap = craftServerModifier.readField(0);

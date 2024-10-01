@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -60,7 +60,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public Object readItemStack() {
-        return CachedReflectStructureProvider.acquireStructure(NMS.getPacketDataSerializerClass())
+        return ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
                 .withType(NMS.getItemStackClass()).withTarget(getSerializer())
                 .invokeMethod(null, 0);
     }
@@ -76,7 +76,7 @@ public class PacketDataSerializer extends ByteBuf {
             damage = readShort();
         }
 
-        Object nbt = CachedReflectStructureProvider.acquireStructure(NMS.getPacketDataSerializerClass())
+        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
                 .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
                 .invokeMethod(null, 0);
         Object item = ItemReflection.getItemFromId(itemId);

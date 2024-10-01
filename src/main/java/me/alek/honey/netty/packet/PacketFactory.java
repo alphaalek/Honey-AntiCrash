@@ -7,13 +7,13 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.util.Callback;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.util.Callback;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -47,7 +47,7 @@ public class PacketFactory {
         try {
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 Object raw = createRawPacket(type);
-                CachedReflectStructureProvider.acquireStructure(type.getNmsClass())
+                ReflectStructure.Provider.acquireStructure(type.getNmsClass())
                         .withTarget(raw).invokeMethod(serializerApplyInvokerCache, 0, packetSerializer);
                 return raw;
             } else {

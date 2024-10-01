@@ -1,10 +1,6 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.ValidationServiceContext;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.api.ListenerPriority;
@@ -13,22 +9,23 @@ import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInLook;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInPosition;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInPositionLook;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.NumberUtils;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
@@ -124,11 +121,10 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         public List<PacketType> getPacketTypes() {
             List<PacketType> packetTypes = new ArrayList<>();
 
-            BiPredicate<ReflectStructure<?, ?>, Class<?>> structureClass = (structure, clazz) ->
-                    !structure.withType(clazz).withoutStatic().getAccessors().isEmpty();
             for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
-                ReflectStructure<Object, ?> structure = CachedReflectStructureProvider.acquireStructure(packetType);
-                if (structureClass.test(structure, double.class) || structureClass.test(structure, float.class)) {
+                ReflectStructure<Object, ?> structure = ReflectStructure.Provider.acquireStructure(packetType);
+                if (!structure.withDoubles().withoutStatic().getAccessors().isEmpty()
+                        || !structure.withFloats().withoutStatic().getAccessors().isEmpty()) {
                     packetTypes.add(packetType);
                 }
             }

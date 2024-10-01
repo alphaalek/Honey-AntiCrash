@@ -17,7 +17,6 @@ public class HoneyClassLoader extends URLClassLoader {
         try {
             paperPluginClassLoaderClass = Reflection.getClassWithException("io.papermc.paper.plugin.entrypoint.classloader.PaperPluginClassLoader");
         } catch (Exception ignored) {
-
         }
         PAPER_PLUGIN_CLASS_LOADER = paperPluginClassLoaderClass;
     }
@@ -29,10 +28,10 @@ public class HoneyClassLoader extends URLClassLoader {
     }
 
     public HoneyClassLoader() {
-        super(new URL[]{HoneyClassLoader.class.getProtectionDomain().getCodeSource().getLocation()}, getPlatformClassLoader());
+        super(new URL[]{HoneyClassLoader.class.getProtectionDomain().getCodeSource().getLocation()}, getPluginPlatformClassLoader());
     }
 
-    private static ClassLoader getPlatformClassLoader() {
+    private static ClassLoader getPluginPlatformClassLoader() {
         ClassLoader loader = HoneyClassLoader.class.getClassLoader();
         while (!PLUGIN_CLASS_LOADER.isInstance(loader)
                 && !(PAPER_PLUGIN_CLASS_LOADER != null && PAPER_PLUGIN_CLASS_LOADER.isInstance(loader))) {

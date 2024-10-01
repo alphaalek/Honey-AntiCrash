@@ -5,13 +5,13 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -28,7 +28,7 @@ public class CodecFactory {
         Class<Object> protocolInfoClass = NMS.getProtocolInfoClass();
         Class<Object> protocolInfoBinderClass = NMS.getProtocolInfoBinderClass();
 
-        BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> CachedReflectStructureProvider.acquireStructure(c)
+        BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> ReflectStructure.Provider.acquireStructure(c)
                 .withType(t).withTarget(null);
 
         int index = bound.equals(PacketBound.CLIENT) ? 1 : 0;
@@ -54,27 +54,27 @@ public class CodecFactory {
     }
 
     public static Object bindProtocolInfo1_20_5(Object protocolInfoBinder) {
-        return CachedReflectStructureProvider.acquireStructure(NMS.getProtocolInfoBinderClass())
+        return ReflectStructure.Provider.acquireStructure(NMS.getProtocolInfoBinderClass())
                 .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder)
                 .invokeMethod(null, "bind", 0, getRegistryCustomFunction1_20_5());
     }
 
     public static Function<ByteBuf, Object> getRegistryCustomFunction1_20_5() {
-        Object layeredRegistryAccess = CachedReflectStructureProvider.acquireStructure(NMS.getMinecraftServerClass())
+        Object layeredRegistryAccess = ReflectStructure.Provider.acquireStructure(NMS.getMinecraftServerClass())
                 .withType(NMS.getLayeredRegistryAccessClass()).withTarget(NMS.getMinecraftServer())
                 .readField(0);
 
-        Object registryCustomDimension = CachedReflectStructureProvider.acquireStructure(NMS.getLayeredRegistryAccessClass())
+        Object registryCustomDimension = ReflectStructure.Provider.acquireStructure(NMS.getLayeredRegistryAccessClass())
                 .withType(NMS.getRegistryCustomDimensionClass()).withTarget(layeredRegistryAccess)
                 .readField(0);
 
-        return CachedReflectStructureProvider.acquireStructure(NMS.getRegistryFriendlyByteBufClass())
+        return ReflectStructure.Provider.acquireStructure(NMS.getRegistryFriendlyByteBufClass())
                 .<Function<ByteBuf, Object>>withWeakType(Function.class).withTarget(null)
                 .invokeMethod(null, 0, registryCustomDimension);
     }
 
     public static Collection<FieldAccessor<Object>> getPacketTypes1_20_5(PacketState state) {
-        Function<Class<Object>, Collection<FieldAccessor<Object>>> get = c -> CachedReflectStructureProvider.acquireStructure(c)
+        Function<Class<Object>, Collection<FieldAccessor<Object>>> get = c -> ReflectStructure.Provider.acquireStructure(c)
                 .withType(NMS.getPacketTypeClass()).withTarget(null).getAccessors();
 
         switch (state) {
@@ -96,7 +96,7 @@ public class CodecFactory {
     public static Object getStreamCodec1_20_5(PacketBound bound, PacketState state) {
         Object protocolInfo = getProtocolInfo1_20_5(bound, state);
 
-        return CachedReflectStructureProvider.acquireStructure(NMS.getProtocolInfoClass())
+        return ReflectStructure.Provider.acquireStructure(NMS.getProtocolInfoClass())
                 .withType(NMS.getStreamCodecClass()).withTarget(protocolInfo)
                 .invokeMethod(null, 0);
     }
@@ -104,10 +104,10 @@ public class CodecFactory {
     public static EmulatorCodec<Object, ByteBuf> createFromStreamCodec1_20_5(Object codec, Supplier<? extends ByteBuf> byteBuf) {
         return new EmulatorCodec<Object, ByteBuf>() {
 
-            private final MethodInvoker<Object> decoderInvoker = CachedReflectStructureProvider.acquireStructure(NMS.getStreamDecoderClass())
+            private final MethodInvoker<Object> decoderInvoker = ReflectStructure.Provider.acquireStructure(NMS.getStreamDecoderClass())
                     .withTarget(codec).getMethod(null, "decode", 0, Object.class);
 
-            private final MethodInvoker<Object> encoderInvoker = CachedReflectStructureProvider.acquireStructure(NMS.getStreamEncoderClass())
+            private final MethodInvoker<Object> encoderInvoker = ReflectStructure.Provider.acquireStructure(NMS.getStreamEncoderClass())
                     .withTarget(codec).getMethod(null, "encode", 0, Object.class, Object.class);
 
             @Override
@@ -207,7 +207,7 @@ public class CodecFactory {
                     @Override
                     public void apply(LegacyCodec codec) throws CodecException {
                         codec.apply(packet,
-                                CachedReflectStructureProvider.acquireStructure(type.getNmsClass())
+                                ReflectStructure.Provider.acquireStructure(type.getNmsClass())
                                         .withoutStatic().withTarget(packet),
                                 dataSerializer);
                     }

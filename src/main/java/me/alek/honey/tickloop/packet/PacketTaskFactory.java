@@ -1,18 +1,10 @@
 package me.alek.honey.tickloop.packet;
 
-import me.alek.honey.util.Provider;
-import me.alek.honey.util.reflection.MethodInvoker;
-
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable>, Provider.ProviderNoInput<Runnable> {
-
-    public static boolean isFactoryMethod(AtomicInteger index, MethodInvoker<?> invoker) {
-        return invoker.getName().equals("create");
-    }
+public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
 
     private final boolean modern;
 
@@ -32,11 +24,6 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable>, 
         } else {
             return new PacketTask.TaskWrapper1_13_2<>(packetTask);
         }
-    }
-
-    @Override
-    public Runnable get() {
-        return null;
     }
 
     public static class Provider implements me.alek.honey.util.Provider.ProviderOneInput<PacketTaskFactory, Boolean> {

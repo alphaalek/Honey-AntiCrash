@@ -2,7 +2,6 @@ package me.alek.honey.validation.item;
 
 import com.google.gson.JsonElement;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.item.enums.AcceptStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
@@ -11,12 +10,13 @@ import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
 import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
 import me.alek.honey.netty.modelwrappers.nbt.NBTType;
 import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.statics.NumberUtils;
+import me.alek.honey.validation.item.enums.AcceptStrategy;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -526,7 +526,7 @@ public class ItemChecks {
             MapView mapView = Bukkit.getMap(item.getDurability());
             if (mapView == null) return false;
 
-            MapConverter<Object, Object, WrappedRenderData> renderCache = CachedReflectStructureProvider.acquireStructure(mapView.getClass())
+            MapConverter<Object, Object, WrappedRenderData> renderCache = ReflectStructure.Provider.acquireStructure(mapView.getClass())
                     .withWeakType(Map.class, Converters.getMapConverterOf(WrappedRenderData.class, Converters.getRenderDataConverter(), false))
                     .withTarget(mapView)
                     .readFieldAndApplyMapping(0);

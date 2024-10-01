@@ -7,10 +7,10 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
 
 import java.util.Map;
@@ -23,10 +23,10 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
 
     public static AttributeKey<Object> getProtocolAttributeKey(Channel channel, PacketBound bound) {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2) && channel.pipeline().get("packet_handler") != null)
-            return CachedReflectStructureProvider.acquireStructure(NMS.getNetworkManagerClass())
+            return ReflectStructure.Provider.acquireStructure(NMS.getNetworkManagerClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get("packet_handler")).readField(0);
         else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_20_2) && channel.pipeline().get(bound.getProtocolHandlerName()) != null)
-            return CachedReflectStructureProvider.acquireStructure(bound == PacketBound.SERVER ? NMS.getPacketDecoderClass() : NMS.getPacketEncoderClass())
+            return ReflectStructure.Provider.acquireStructure(bound == PacketBound.SERVER ? NMS.getPacketDecoderClass() : NMS.getPacketEncoderClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class).withTarget(channel.pipeline().get(bound.getProtocolHandlerName())).readField(0);
         return null;
     }
@@ -50,7 +50,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     }
 
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
-        Map<Object, Object> enumProtocolDelegateFlowMap = CachedReflectStructureProvider.acquireStructure(NMS.getEnumProtocolClass())
+        Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructure.Provider.acquireStructure(NMS.getEnumProtocolClass())
                 .<Map<Object, Object>>withWeakType(Map.class).withoutStatic().withTarget(enumProtocol).readField(0);
         return enumProtocolDelegateFlowMap.get(bound.getNMSType());
     }
@@ -71,24 +71,24 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         } else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_15)) {
             Object protocolRegistry;
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-                protocolRegistry = CachedReflectStructureProvider.acquireStructure(handle.getClass())
+                protocolRegistry = ReflectStructure.Provider.acquireStructure(handle.getClass())
                         .withType(Reflection.getClass("{nms}.network.EnumProtocol$b")).withTarget(handle)
                         .readField(0);
             } else {
                 protocolRegistry = getProtocolInfo(handle, bound);
             }
 
-            classToIdMap = CachedReflectStructureProvider.acquireStructure(protocolRegistry.getClass())
+            classToIdMap = ReflectStructure.Provider.acquireStructure(protocolRegistry.getClass())
                     .withType(NMS.getObject2IntMapClass()).withTarget(protocolRegistry)
                     .readField(0);
 
-            getPacketIdModifier = CachedReflectStructureProvider.acquireStructure(NMS.getObject2IntMapClass())
+            getPacketIdModifier = ReflectStructure.Provider.acquireStructure(NMS.getObject2IntMapClass())
                     .withInts().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "getInt", 0, Object.class);
         } else {
             Object protocolMap = getProtocolInfo(handle, bound);
             classToIdMap = ((BiMap<Integer, Class<? extends Object>>)protocolMap).inverse();
 
-            getPacketIdModifier = (MethodInvoker<Integer>) (MethodInvoker<?>) CachedReflectStructureProvider.acquireStructure(Map.class)
+            getPacketIdModifier = (MethodInvoker<Integer>) (MethodInvoker<?>) ReflectStructure.Provider.acquireStructure(Map.class)
                     .withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "get", 0, Object.class);
         }
     }

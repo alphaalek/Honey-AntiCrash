@@ -3,7 +3,6 @@ package me.alek.honey.netty.injector;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
-import me.alek.honey.HoneyClassLoader;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.async.WorkerPool;
@@ -13,10 +12,9 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Provider;
-import me.alek.honey.util.ProviderAdapter;
+import me.alek.honey.util.ProviderBridge;
 import me.alek.honey.util.RemoteProviderUtils;
 import me.alek.honey.util.reflection.NMS;
 
@@ -26,10 +24,10 @@ import java.util.function.Consumer;
 
 public class SpigotPipelineInjector {
 
-    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = ProviderAdapter.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
-            .adaptRemote(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
-    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = ProviderAdapter.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
-            .adaptRemote(null, RemoteProviderUtils::isProviderMethod, channelProxyRemoteFactoryProvider.get());
+    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = ProviderBridge.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
+            .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
+    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = ProviderBridge.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
+            .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, channelProxyRemoteFactoryProvider.get());
 
     public void injectChannel(Channel channel) {
         synchronized (channel) {
@@ -68,7 +66,7 @@ public class SpigotPipelineInjector {
             throw new MissingHandlerException();
         }
 
-        IStructureModifier<Object> channelStructureModifier = CachedReflectStructureProvider.acquireStructure(NMS.getNetworkManagerClass())
+        IStructureModifier<Object> channelStructureModifier = ReflectStructure.Provider.acquireStructure(NMS.getNetworkManagerClass())
                 .withWeakType(Channel.class)
                 .withTarget(networkManager);
         Channel registeredChannel = (Channel) channelStructureModifier.readField(0);
@@ -87,7 +85,7 @@ public class SpigotPipelineInjector {
 
         if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
                 && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
-            CachedReflectStructureProvider.acquireStructure(ProtocolLib.CHANNEL_PROXY)
+            ReflectStructure.Provider.acquireStructure(ProtocolLib.CHANNEL_PROXY)
                     .withWeakType(Channel.class).withTarget(registeredChannel)
                     .writeField(0, channelProxy);
         } else {

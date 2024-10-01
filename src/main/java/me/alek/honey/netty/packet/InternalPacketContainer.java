@@ -11,12 +11,11 @@ import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
+import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.converters.Converters;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.NMS;
 import org.bukkit.inventory.ItemStack;
@@ -62,7 +61,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
             throw new IllegalStateException("Unknown type " + raw + " " + type + " " + Optional.ofNullable(type).map(PacketType::getNmsClass).orElse(null));
         }
 
-        this.structure = CachedReflectStructureProvider.acquireStructure(type);
+        this.structure = ReflectStructure.Provider.acquireStructure(type);
         if (this.structure.isStaticFieldsAllowed()) {
             this.structure.withoutStatic();
         }

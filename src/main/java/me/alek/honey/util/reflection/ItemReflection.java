@@ -3,7 +3,7 @@ package me.alek.honey.util.reflection;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.structure.CachedReflectStructureProvider;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -39,7 +39,7 @@ public class ItemReflection {
             itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getIMaterialClass(), int.class);
         }
 
-        CHAT_SERIALIZER_GSON = CachedReflectStructureProvider.acquireStructure(NMS.getChatSerializerClass())
+        CHAT_SERIALIZER_GSON = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
                 .withType(Gson.class)
                 .withTarget(null)
                 .readField(0);
@@ -58,7 +58,7 @@ public class ItemReflection {
     }
 
     public static List<Object> getPages(AtomicReference<IStructureModifier<List<Object>>> reference, BookMeta meta) {
-        IStructureModifier<List<Object>> bookMetaPageModifier = CachedReflectStructureProvider.acquireStructure(meta.getClass())
+        IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructure.Provider.acquireStructure(meta.getClass())
                 .<List<Object>>withWeakType(List.class)
                 .withTarget(meta);
         reference.set(bookMetaPageModifier);
@@ -96,7 +96,7 @@ public class ItemReflection {
 
     public static Object getHandleItem(ItemStack item) {
         if (craftItemStackClass.isInstance(item)) {
-            IStructureModifier<?> structure = CachedReflectStructureProvider.acquireStructure(craftItemStackClass)
+            IStructureModifier<?> structure = ReflectStructure.Provider.acquireStructure(craftItemStackClass)
                     .withType(itemStackClass)
                     .withTarget(item);
 
@@ -133,7 +133,7 @@ public class ItemReflection {
     }
 
     public static void setItemTag(Object item, Object tag) {
-        CachedReflectStructureProvider.acquireStructure(NMS.getItemClass())
+        ReflectStructure.Provider.acquireStructure(NMS.getItemClass())
                 .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
                 .writeField(0, tag);
     }
