@@ -8,12 +8,12 @@ import me.alek.honey.util.chain.ChainSupplier;
 
 import java.util.function.Supplier;
 
-public class ProcessorEmulator<WP extends WrappedPacket<WP>, C extends Emulator> extends Processor<WP> {
+public class ProcessorContextContainer<WP extends WrappedPacket<WP>, C extends ProcessorContext> extends Processor<WP> {
 
     private final Array<C> contexts = new Array<>();
     private final Supplier<C> contextFactory;
 
-    public ProcessorEmulator(Supplier<C> contextFactory) {
+    public ProcessorContextContainer(Supplier<C> contextFactory) {
         this.contextFactory = contextFactory;
     }
 

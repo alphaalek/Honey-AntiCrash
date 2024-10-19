@@ -86,7 +86,6 @@ public class CommandManager implements CommandExecutor {
             int disabledNettyChecks = 0;
             for (Class<?> clazz : ConfigurationOptions.Netty.class.getDeclaredClasses()) {
                 if (ConfigurationOptions.ViolationSetting.class.isAssignableFrom(clazz) && clazz.isAnnotationPresent(ConfigurationOptions.Setting.class)) {
-
                     @SuppressWarnings("unchecked")
                     Class<? extends ConfigurationOptions.ViolationSetting> vlSettingClass = (Class<? extends ConfigurationOptions.ViolationSetting>) clazz;
                     ConfigurationOptions.ViolationSetting setting = ConfigurationOptions.getVlSetting(vlSettingClass);
@@ -119,69 +118,64 @@ public class CommandManager implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
-        if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {
-            if (!commandSender.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION)) {
-
-                String message = ConfigurationOptions.General.HIDE_COMMAND_MESSAGE;
-                if (message.equalsIgnoreCase("SPIGOT_DEFAULT")) {
-                    message = getDefaultUnknownCommandMessage();
-                }
-                if (message == null) {
-                    message = "Unknown command. Type \"/help\" for help.";
-                }
-
-                commandSender.sendMessage(message);
-                return true;
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED && !sender.hasPermission(ConfigurationOptions.General.HIDE_BYPASS_PERMISSION)) {
+            String message = ConfigurationOptions.General.HIDE_COMMAND_MESSAGE;
+            if (message.equalsIgnoreCase("SPIGOT_DEFAULT")) {
+                message = getDefaultUnknownCommandMessage();
             }
-        }
-
-        if (args.length == 0) {
-            showInfo(commandSender);
+            if (message == null) {
+                message = "Unknown command. Type \"/help\" for help.";
+            }
+            sender.sendMessage(message);
             return true;
         }
 
-        final String firstArgument = args[0];
-        final Optional<Map.Entry<String, CommandImpl>> commandImplEntryOptional = this.commands
+        if (args.length == 0) {
+            showInfo(sender);
+            return true;
+        }
+
+        String firstArgument = args[0];
+        Optional<Map.Entry<String, CommandImpl>> commandImplEntryOptional = this.commands
                 .entrySet()
                 .stream()
                 .filter(commandLabel -> commandLabel.getKey().equals(firstArgument))
                 .findFirst();
-
-        final String[] implArgs = new String[args.length - 1];
-        if (implArgs.length > 0) System.arraycopy(args, 1, implArgs, 0, implArgs.length);
+        String[] implArgs = new String[args.length - 1];
+        if (implArgs.length > 0) {
+            System.arraycopy(args, 1, implArgs, 0, implArgs.length);
+        }
 
         try {
-            final Map.Entry<String, CommandImpl> commandImplEntry = commandImplEntryOptional.orElseThrow(() -> new CommandNotFoundException(firstArgument));
-            final CommandImpl commandImpl = commandImplEntry.getValue();
+            Map.Entry<String, CommandImpl> commandImplEntry = commandImplEntryOptional.orElseThrow(() -> new CommandNotFoundException(firstArgument));
+            CommandImpl commandImpl = commandImplEntry.getValue();
 
-            if (!commandImpl.isExecutableByConsole() && commandSender instanceof ConsoleCommandSender) {
-                commandSender.sendMessage(Lang.getFormatted("command.no.console"));
+            if (!commandImpl.isExecutableByConsole() && sender instanceof ConsoleCommandSender) {
+                sender.sendMessage(Lang.getFormatted("command.no.console"));
                 return true;
             }
 
             if (commandImpl.getPermission() != null
                     && !commandImpl.getPermission().isEmpty()
-                    && !commandSender.hasPermission(commandImpl.getPermission())
-                    && !commandSender.hasPermission("honey.*")) {
-                commandSender.sendMessage(Lang.getFormatted("command.no.permission"));
+                    && !sender.hasPermission(commandImpl.getPermission())
+                    && !sender.hasPermission("honey.*")) {
+                sender.sendMessage(Lang.getFormatted("command.no.permission"));
                 return true;
             }
 
-            if (commandSender instanceof Player) {
-                final Player player = (Player) commandSender;
+            if (sender instanceof Player) {
+                Player player = (Player) sender;
                 if (this.cooldownManager.hasCooldown(player, commandImpl)) {
-                    commandSender.sendMessage(
+                    sender.sendMessage(
                             Lang.getFormatted("command.cooldown", this.cooldownManager.getFormattedCooldown(player, commandImpl)));
                     return true;
                 }
                 this.cooldownManager.setCooldown(player, commandImpl);
             }
-
-            commandImpl.perform(commandSender, implArgs);
-
+            commandImpl.perform(sender, implArgs);
         } catch (CommandNotFoundException ex) {
-            showInfo(commandSender);
+            showInfo(sender);
         }
 
         return true;

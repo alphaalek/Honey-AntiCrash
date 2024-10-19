@@ -5,18 +5,18 @@ import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.IDRegistry;
 
-import java.io.Serializable;
-
 public class TempQueuedTracker implements HoneyTracker {
 
-    protected final UnsyncTempQueue[] tickDurationQueues = new UnsyncTempQueue[Timespan.values().length];
+    protected final NotSyncTempQueue[] tickDurationQueues = new NotSyncTempQueue[Timespan.values().length];
     private final int id;
     private final boolean fixed;
 
     public TempQueuedTracker(boolean hasId, boolean fixed) {
-        if (hasId) id = IDRegistry.TRACKER_CONTEXT.acquire();
-        else id = -1;
-
+        if (hasId) {
+            this.id = IDRegistry.TRACKER_CONTEXT.acquire();
+        } else {
+            this.id = -1;
+        }
         this.fixed = fixed;
         setup();
     }
@@ -41,7 +41,7 @@ public class TempQueuedTracker implements HoneyTracker {
     }
 
     public void add(TimedNode<Long> node) {
-        for (UnsyncTempQueue queue : tickDurationQueues) {
+        for (NotSyncTempQueue queue : tickDurationQueues) {
             queue.add(node);
         }
     }
@@ -54,12 +54,12 @@ public class TempQueuedTracker implements HoneyTracker {
         getQueue(timespan).clearExceedingNodes(time);
     }
 
-    public synchronized UnsyncTempQueue getQueue(Timespan timespan) {
+    public synchronized NotSyncTempQueue getQueue(Timespan timespan) {
         if (tickDurationQueues.length < timespan.ordinal()) {
             setup();
         }
 
-        UnsyncTempQueue queue = tickDurationQueues[timespan.ordinal()];
+        NotSyncTempQueue queue = tickDurationQueues[timespan.ordinal()];
         if (timespan.getQueue(this).equals(queue)) {
             return queue;
         }

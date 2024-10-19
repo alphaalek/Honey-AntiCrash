@@ -14,7 +14,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tickloop.packet.PacketTaskProvider;
 import me.alek.honey.tickloop.packet.WrappedPacketTask;
-import me.alek.honey.tickloop.postpone.PostponeCheck;
+import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
@@ -300,9 +300,9 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
 
             Array<Object> pipelineData = new Array<>();
             Callback postponed = new Callback();
-            for (PostponeCheck check : task.getPlayer().postponedChecks) {
+            for (PostponeValidation validation : task.getPlayer().postponedChecks) {
                 try {
-                    if (check.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
+                    if (validation.test(task.getPacket(), task.getPlayer(), pipelineData, postponed)) {
                         postponed.call(true);
                         return true;
                     }

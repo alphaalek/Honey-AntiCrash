@@ -6,8 +6,8 @@ import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.sql.SQLManagerWrapper;
-import me.alek.honey.tickloop.postpone.PostponeCheck;
-import me.alek.honey.tickloop.postpone.checkimpl.*;
+import me.alek.honey.tickloop.postpone.PostponeValidation;
+import me.alek.honey.tickloop.postpone.validationimpl.*;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.*;
 import me.alek.honey.validation.BaseValidationContainer;
@@ -19,9 +19,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class HoneyPlayer implements Identifiable {
 
@@ -61,7 +58,7 @@ public class HoneyPlayer implements Identifiable {
     private final TickCache<Boolean> bypassEverything = new TickCache<>();
     private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();
 
-    public EnhancedInitialIterator<PostponeCheck> postponedChecks = new EnhancedInitialIterator<>(
+    public EnhancedInitialIterator<PostponeValidation> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(
                 new ArrayList<>(Arrays.asList(
                         new PostponeRateIgnoreTerminator(),
@@ -71,7 +68,7 @@ public class HoneyPlayer implements Identifiable {
                         new PostponeMaxPerXTickCheck()
                 ))
             ),
-            i -> new LazyInit<>(() -> ((LinkedList<PostponeCheck>)i).peek())
+            i -> new LazyInit<>(() -> ((LinkedList<PostponeValidation>)i).peek())
     );
 
     public HoneyPlayer(Channel channel, HoneyPacketHandler handler) {
@@ -152,7 +149,7 @@ public class HoneyPlayer implements Identifiable {
     }
 
     public boolean bypassServerThreadTracking() {
-        return bypassServerThreadTracking.get(HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick(), () -> {
+        return bypassServerThreadTracking.get(() -> {
             return ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
                     && isBukkitReady()
                     && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
@@ -160,7 +157,7 @@ public class HoneyPlayer implements Identifiable {
     }
 
     public boolean bypassEverything() {
-        return bypassEverything.get(HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick(), () -> {
+        return bypassEverything.get(() -> {
             return ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
                     && isBukkitReady()
                     && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);

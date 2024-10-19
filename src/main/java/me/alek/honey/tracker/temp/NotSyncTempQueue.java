@@ -3,14 +3,13 @@ package me.alek.honey.tracker.temp;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 
-import java.io.Serializable;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-public class UnsyncTempQueue {
+public class NotSyncTempQueue {
 
     private final Queue<Long> FIXED = new LinkedList<>();
     private final Deque<TimedNode<Long>> TIMED = new LinkedList<>();
@@ -20,11 +19,11 @@ public class UnsyncTempQueue {
     private boolean collected;
     private long total;
 
-    public UnsyncTempQueue(Timespan timespan, boolean isFixed) {
+    public NotSyncTempQueue(Timespan timespan, boolean isFixed) {
         this(diff -> diff > timespan.getNanoTimespan(), isFixed);
     }
 
-    public UnsyncTempQueue(Predicate<Long> exceeds, boolean isFixed) {
+    public NotSyncTempQueue(Predicate<Long> exceeds, boolean isFixed) {
         this.exceeds = exceeds;
         this.isFixed = isFixed;
     }
@@ -34,7 +33,9 @@ public class UnsyncTempQueue {
     }
 
     public void prepareFixed(Timespan timespan, int amount, long defaultValue) {
-        if (!isFixed) throw new UnsupportedOperationException();
+        if (!isFixed) {
+            throw new UnsupportedOperationException();
+        }
 
         for (int i = 0; i < amount; i++) {
             FIXED.add(defaultValue);
@@ -51,13 +52,17 @@ public class UnsyncTempQueue {
     }
 
     public Queue<Long> asFixedQueue() {
-        if (!isFixed) throw new UnsupportedOperationException();
+        if (!isFixed) {
+            throw new UnsupportedOperationException();
+        }
 
         return FIXED;
     }
 
     public Deque<TimedNode<Long>> asTimedQueue() {
-        if (isFixed) throw new UnsupportedOperationException();
+        if (isFixed) {
+            throw new UnsupportedOperationException();
+        }
 
         synchronized (this) {
             return TIMED;

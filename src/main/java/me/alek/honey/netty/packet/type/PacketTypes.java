@@ -123,7 +123,6 @@ public enum PacketTypes implements PacketType {
                 continue;
             }
 
-
             int id = type.getMinecraftID().get();
             if (id == -1) {
                 Bukkit.getLogger().severe("Unknown ID: " + id + ", " + type);
@@ -224,16 +223,15 @@ public enum PacketTypes implements PacketType {
 
         public enum Client implements PacketType {
 
-            SET_PROTOCOL(SET_PROTOCOL_CLASS, idRegistry.acquire(), "intention");
+            SET_PROTOCOL(SET_PROTOCOL_CLASS, "intention");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsPacket;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
 
-            Client(Class<?> nmsPacket, int packetId, String keyName1_20_5) {
+            Client(Class<?> nmsPacket, String keyName1_20_5) {
                 this.nmsPacket = nmsPacket;
-                this.packetId = packetId;
                 this.keyName1_20_5 = keyName1_20_5;
             }
 
@@ -291,26 +289,25 @@ public enum PacketTypes implements PacketType {
         }
 
         public enum Client implements RangedPacketType {
-            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
-            CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, idRegistry.acquire(), "custom_query_answer", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, idRegistry.acquire(), "key"),
-            LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "login_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            LOGIN_START(LOGIN_START_CLASS, idRegistry.acquire(), "hello");
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, null, NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
+            CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, "custom_query_answer", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, "key"),
+            LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, "login_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            LOGIN_START(LOGIN_START_CLASS, "hello");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsPacket;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
             private final NetProtocolRange protocolRange;
 
-            Client(Class<?> nmsPacket, int packetId, String keyName1_20_5) {
-                this(nmsPacket, packetId, keyName1_20_5, NetProtocolRange.ALL);
+            Client(Class<?> nmsPacket, String keyName1_20_5) {
+                this(nmsPacket, keyName1_20_5, NetProtocolRange.ALL);
             }
 
-            Client(Class<?> nmsPacket, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Client(Class<?> nmsPacket, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsPacket = nmsPacket;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }
@@ -368,26 +365,25 @@ public enum PacketTypes implements PacketType {
         }
 
         public enum Server implements RangedPacketType {
-            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire(), "login_disconnect"),
-            ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, idRegistry.acquire(), "hello"),
-            LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, idRegistry.acquire(), "game_profile"),
-            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_query", NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_COMPRESSION(SET_COMPRESSION_CLASS, idRegistry.acquire(), "login_compression");
+            DISCONNECT(DISCONNECT_CLASS, "login_disconnect"),
+            ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, "hello"),
+            LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, "game_profile"),
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, "custom_query", NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_COMPRESSION(SET_COMPRESSION_CLASS, "login_compression");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsPacket;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
             private final NetProtocolRange protocolRange;
 
-            Server(Class<?> nmsPacket, int packetId, String keyName1_20_5) {
-                this(nmsPacket, packetId, keyName1_20_5, NetProtocolRange.ALL);
+            Server(Class<?> nmsPacket, String keyName1_20_5) {
+                this(nmsPacket, keyName1_20_5, NetProtocolRange.ALL);
             }
 
-            Server(Class<?> nmsPacket, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Server(Class<?> nmsPacket, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsPacket = nmsPacket;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }
@@ -436,22 +432,21 @@ public enum PacketTypes implements PacketType {
 
         public enum Client implements RangedPacketType {
 
-            PING(PING_CLASS, idRegistry.acquire(), "ping_request"),
-            START(START_CLASS, idRegistry.acquire(), "status_request");
+            PING(PING_CLASS, "ping_request"),
+            START(START_CLASS, "status_request");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsClass;
             private final NetProtocolRange protocolRange;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
 
-            Client(Class<?> nmsClass, int packetId, String keyName1_20_5) {
-                this(nmsClass, packetId, keyName1_20_5, NetProtocolRange.ALL);
+            Client(Class<?> nmsClass, String keyName1_20_5) {
+                this(nmsClass, keyName1_20_5, NetProtocolRange.ALL);
             }
 
-            Client(Class<?> nmsClass, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Client(Class<?> nmsClass, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsClass = nmsClass;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }
@@ -497,22 +492,21 @@ public enum PacketTypes implements PacketType {
 
         public enum Server implements RangedPacketType {
 
-            PONG(PONG_CLASS, idRegistry.acquire(), "pong_response"),
-            SERVER_INFO(SERVER_INFO_CLASS, idRegistry.acquire(), "status_response");
+            PONG(PONG_CLASS, "pong_response"),
+            SERVER_INFO(SERVER_INFO_CLASS, "status_response");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsClass;
             private final NetProtocolRange protocolRange;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
 
-            Server(Class<?> nmsPacket, int packetId, String keyName1_20_5) {
-                this(nmsPacket, packetId, keyName1_20_5, NetProtocolRange.ALL);
+            Server(Class<?> nmsPacket, String keyName1_20_5) {
+                this(nmsPacket, keyName1_20_5, NetProtocolRange.ALL);
             }
 
-            Server(Class<?> nmsClass, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Server(Class<?> nmsClass, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsClass = nmsClass;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }
@@ -701,83 +695,82 @@ public enum PacketTypes implements PacketType {
 
         public enum Client implements RangedPacketType {
 
-            PLAYER_ABILITIES(PLAYER_ABILITIES_CLASS, idRegistry.acquire(), "player_abilities"),
-            ADVANCEMENTS(ADVANCEMENTS_CLASS, idRegistry.acquire(), "seen_advancements", NetProtocolRange.since(NetProtocol.v1_12)),
-            ANIMATION(ANIMATION_CLASS, idRegistry.acquire(), "swing"),
-            AUTO_RECIPE(AUTO_RECIPE_CLASS, idRegistry.acquire(), "place_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
-            BOOK_EDIT(BOOK_EDIT_CLASS, idRegistry.acquire(), "edit_book", NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_BEACON_EFFECT(SET_BEACON_EFFECT_CLASS, idRegistry.acquire(), "set_beacon", NetProtocolRange.since(NetProtocol.v1_13)),
-            PLAYER_DIGGING(PLAYER_DIGGING_CLASS, idRegistry.acquire(), "player_action"),
-            BLOCK_PLACE(BLOCK_PLACE_CLASS, idRegistry.acquire(), "use_item"),
-            BOAT_MOVE(BOAT_MOVE_CLASS, idRegistry.acquire(), "paddle_boat", NetProtocolRange.since(NetProtocol.v1_9)),
-            CHAT_MESSAGE(CHAT_MESSAGE_CLASS, idRegistry.acquire(), "chat"),
-            CHAT_ACKNOWLEDGED(CHAT_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "chat_ack", NetProtocolRange.since(NetProtocol.v1_19_1)),
-            CHAT_PREVIEW(CHAT_PREVIEW_CLIENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
-            CHAT_COMMAND(CHAT_COMMAND_CLASS, idRegistry.acquire(), "chat_command", NetProtocolRange.since(NetProtocol.v1_19)),
-            CHAT_COMMAND_SIGNED(CHAT_COMMAND_SIGNED_CLASS, idRegistry.acquire(), "chat_command_signed", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CHAT_SESSION_UPDATE(CHAT_SESSION_UPDATE_CLASS, idRegistry.acquire(), "chat_session_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
-            CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, idRegistry.acquire(), "chunk_batch_received", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CLIENT_COMMAND(CLIENT_COMMAND_CLASS, idRegistry.acquire(), "client_command"),
-            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CLOSE_WINDOW(CLOSE_WINDOW_CLASS, idRegistry.acquire(), "container_close"),
-            CONFIGURATION_START_ACKNOWLEDGED(CONFIGURATION_START_ACKNOWLEDGED_CLASS, idRegistry.acquire(), "configuration_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, idRegistry.acquire(), "container_slot_state_changed", NetProtocolRange.since(NetProtocol.v1_20_4)),
-            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, idRegistry.acquire(), "custom_payload"),
-            DEBUG_SAMPLE_SUBSCRIPTION(DEBUG_SAMPLE_SUBSCRIPTION_CLASS, idRegistry.acquire(), "debug_sample_subscription", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, idRegistry.acquire(), "change_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
-            DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, idRegistry.acquire(), "lock_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
-            CLICK_WINDOW_BUTTON(CLICK_WINDOW_BUTTON_CLASS, idRegistry.acquire(), "container_button_click"),
-            ENTITY_ACTION(ENTITY_ACTION_CLASS, idRegistry.acquire(), "player_command"),
-            ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, idRegistry.acquire(), "entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
-            PLAYER_MOVEMENT(PLAYER_MOVEMENT_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_16_5)),
-            GROUND(GROUND_CLASS, idRegistry.acquire(), "move_player_status_only", NetProtocolRange.since(NetProtocol.v1_17)),
-            HELD_ITEM_CHANGE(HELD_ITEM_CHANGE_CLASS, idRegistry.acquire(), "set_carried_item"),
-            ITEM_NAME(ITEM_NAME_CLASS, idRegistry.acquire(), "rename_item", NetProtocolRange.since(NetProtocol.v1_13)),
-            JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, idRegistry.acquire(), "jigsaw_generate", NetProtocolRange.since(NetProtocol.v1_16_1)),
-            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), "keep_alive"),
-            PLAYER_ROTATION(PLAYER_ROTATION_CLASS, idRegistry.acquire(), "move_player_rot"),
-            PICK_ITEM(PICK_ITEM_CLASS, idRegistry.acquire(), "pick_item", NetProtocolRange.since(NetProtocol.v1_13)),
-            PING(PING_REQUEST_CLASS, idRegistry.acquire(), "ping_request", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            PONG(PONG_RESPONSE_CLASS, idRegistry.acquire(), "pong", NetProtocolRange.since(NetProtocol.v1_17)),
-            PLAYER_POSITION(PLAYER_POSITION_CLASS, idRegistry.acquire(), "move_player_pos"),
-            PLAYER_POS_AND_ROT(PLAYER_POSITION_AND_ROTATION_CLASS, idRegistry.acquire(), "move_player_pos_rot"),
-            RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, idRegistry.acquire(), "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
-            RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, idRegistry.acquire(), "recipe_book_change_settings", NetProtocolRange.since(NetProtocol.v1_16_2)),
-            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, idRegistry.acquire(), "resource_pack"),
-            UPDATE_COMMAND_BLOCK(UPDATE_COMMAND_BLOCK_CLASS, idRegistry.acquire(), "set_command_block", NetProtocolRange.since(NetProtocol.v1_13)),
-            SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, idRegistry.acquire(), "set_command_minecart", NetProtocolRange.since(NetProtocol.v1_13)),
-            CREATIVE_INVENTORY_ACTION(CREATIVE_INVENTORY_ACTION_CLASS, idRegistry.acquire(), "set_creative_mode_slot"),
-            SET_JIGSAW(SET_JIGSAW_CLASS, idRegistry.acquire(), "set_jigsaw_block", NetProtocolRange.since(NetProtocol.v1_14)),
-            CLIENT_SETTINGS(CLIENT_SETTINGS_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_20_1)),
-            SPECTATE(SPECTATE_CLASS, idRegistry.acquire(), "teleport_to_entity"),
-            STEER_VEHICLE(STEER_VEHICLE_CLASS, idRegistry.acquire(), "player_input"),
-            STRUCT(STRUCT_CLASS, idRegistry.acquire(), "set_structure_block", NetProtocolRange.since(NetProtocol.v1_13)),
-            TAB_COMPLETE(TAB_COMPLETE_CLASS, idRegistry.acquire(), "command_suggestion"),
-            TELEPORT_CONFIRM(TELEPORT_CONFIRM_CLASS, idRegistry.acquire(), "accept_teleportation", NetProtocolRange.since(NetProtocol.v1_9)),
-            CLICK_WINDOW(CLICK_WINDOW_CLASS, idRegistry.acquire(), "container_click"),
-            INTERACT_ENTITY(INTERACT_ENTITY_CLASS, idRegistry.acquire(), "interact"),
-            SELECT_TRADE(SELECT_TRADE_CLASS, idRegistry.acquire(), "select_trade", NetProtocolRange.since(NetProtocol.v1_13)),
-            TILE_NBT_QUERY(TILE_NBT_QUERY_CLASS, idRegistry.acquire(), "block_entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
-            UPDATE_SIGN(UPDATE_SIGN_CLASS, idRegistry.acquire(), "sign_update"),
-            USE_ITEM(USE_ITEM_CLASS, idRegistry.acquire(), "use_item_on", NetProtocolRange.since(NetProtocol.v1_9)),
-            VEHICLE_MOVE(VEHICLE_MOVE_CLASS, idRegistry.acquire(), "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
-            TRANSACTION(TRANSACTION_CLASS, idRegistry.acquire(), null, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            PLAYER_ABILITIES(PLAYER_ABILITIES_CLASS, "player_abilities"),
+            ADVANCEMENTS(ADVANCEMENTS_CLASS, "seen_advancements", NetProtocolRange.since(NetProtocol.v1_12)),
+            ANIMATION(ANIMATION_CLASS, "swing"),
+            AUTO_RECIPE(AUTO_RECIPE_CLASS, "place_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
+            BOOK_EDIT(BOOK_EDIT_CLASS, "edit_book", NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_BEACON_EFFECT(SET_BEACON_EFFECT_CLASS, "set_beacon", NetProtocolRange.since(NetProtocol.v1_13)),
+            PLAYER_DIGGING(PLAYER_DIGGING_CLASS, "player_action"),
+            BLOCK_PLACE(BLOCK_PLACE_CLASS, "use_item"),
+            BOAT_MOVE(BOAT_MOVE_CLASS, "paddle_boat", NetProtocolRange.since(NetProtocol.v1_9)),
+            CHAT_MESSAGE(CHAT_MESSAGE_CLASS, "chat"),
+            CHAT_ACKNOWLEDGED(CHAT_ACKNOWLEDGED_CLASS, "chat_ack", NetProtocolRange.since(NetProtocol.v1_19_1)),
+            CHAT_PREVIEW(CHAT_PREVIEW_CLIENT_CLASS, null, NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
+            CHAT_COMMAND(CHAT_COMMAND_CLASS, "chat_command", NetProtocolRange.since(NetProtocol.v1_19)),
+            CHAT_COMMAND_SIGNED(CHAT_COMMAND_SIGNED_CLASS, "chat_command_signed", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CHAT_SESSION_UPDATE(CHAT_SESSION_UPDATE_CLASS, "chat_session_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
+            CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, "chunk_batch_received", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CLIENT_COMMAND(CLIENT_COMMAND_CLASS, "client_command"),
+            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CLOSE_WINDOW(CLOSE_WINDOW_CLASS, "container_close"),
+            CONFIGURATION_START_ACKNOWLEDGED(CONFIGURATION_START_ACKNOWLEDGED_CLASS, "configuration_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, "container_slot_state_changed", NetProtocolRange.since(NetProtocol.v1_20_4)),
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, "custom_payload"),
+            DEBUG_SAMPLE_SUBSCRIPTION(DEBUG_SAMPLE_SUBSCRIPTION_CLASS, "debug_sample_subscription", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, "change_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
+            DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, "lock_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
+            CLICK_WINDOW_BUTTON(CLICK_WINDOW_BUTTON_CLASS, "container_button_click"),
+            ENTITY_ACTION(ENTITY_ACTION_CLASS, "player_command"),
+            ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, "entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
+            PLAYER_MOVEMENT(PLAYER_MOVEMENT_CLASS, null, NetProtocolRange.until(NetProtocol.v1_16_5)),
+            GROUND(GROUND_CLASS, "move_player_status_only", NetProtocolRange.since(NetProtocol.v1_17)),
+            HELD_ITEM_CHANGE(HELD_ITEM_CHANGE_CLASS, "set_carried_item"),
+            ITEM_NAME(ITEM_NAME_CLASS, "rename_item", NetProtocolRange.since(NetProtocol.v1_13)),
+            JIGSAW_GENERATE(JIGSAW_GENERATE_CLASS, "jigsaw_generate", NetProtocolRange.since(NetProtocol.v1_16_1)),
+            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, "keep_alive"),
+            PLAYER_ROTATION(PLAYER_ROTATION_CLASS, "move_player_rot"),
+            PICK_ITEM(PICK_ITEM_CLASS, "pick_item", NetProtocolRange.since(NetProtocol.v1_13)),
+            PING(PING_REQUEST_CLASS, "ping_request", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            PONG(PONG_RESPONSE_CLASS, "pong", NetProtocolRange.since(NetProtocol.v1_17)),
+            PLAYER_POSITION(PLAYER_POSITION_CLASS, "move_player_pos"),
+            PLAYER_POS_AND_ROT(PLAYER_POSITION_AND_ROTATION_CLASS, "move_player_pos_rot"),
+            RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
+            RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, "recipe_book_change_settings", NetProtocolRange.since(NetProtocol.v1_16_2)),
+            RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, "resource_pack"),
+            UPDATE_COMMAND_BLOCK(UPDATE_COMMAND_BLOCK_CLASS, "set_command_block", NetProtocolRange.since(NetProtocol.v1_13)),
+            SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, "set_command_minecart", NetProtocolRange.since(NetProtocol.v1_13)),
+            CREATIVE_INVENTORY_ACTION(CREATIVE_INVENTORY_ACTION_CLASS, "set_creative_mode_slot"),
+            SET_JIGSAW(SET_JIGSAW_CLASS, "set_jigsaw_block", NetProtocolRange.since(NetProtocol.v1_14)),
+            CLIENT_SETTINGS(CLIENT_SETTINGS_CLASS, null, NetProtocolRange.until(NetProtocol.v1_20_1)),
+            SPECTATE(SPECTATE_CLASS, "teleport_to_entity"),
+            STEER_VEHICLE(STEER_VEHICLE_CLASS, "player_input"),
+            STRUCT(STRUCT_CLASS, "set_structure_block", NetProtocolRange.since(NetProtocol.v1_13)),
+            TAB_COMPLETE(TAB_COMPLETE_CLASS, "command_suggestion"),
+            TELEPORT_CONFIRM(TELEPORT_CONFIRM_CLASS, "accept_teleportation", NetProtocolRange.since(NetProtocol.v1_9)),
+            CLICK_WINDOW(CLICK_WINDOW_CLASS, "container_click"),
+            INTERACT_ENTITY(INTERACT_ENTITY_CLASS, "interact"),
+            SELECT_TRADE(SELECT_TRADE_CLASS, "select_trade", NetProtocolRange.since(NetProtocol.v1_13)),
+            TILE_NBT_QUERY(TILE_NBT_QUERY_CLASS, "block_entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
+            UPDATE_SIGN(UPDATE_SIGN_CLASS, "sign_update"),
+            USE_ITEM(USE_ITEM_CLASS, "use_item_on", NetProtocolRange.since(NetProtocol.v1_9)),
+            VEHICLE_MOVE(VEHICLE_MOVE_CLASS, "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
+            TRANSACTION(TRANSACTION_CLASS, null, NetProtocolRange.until(NetProtocol.v1_16_5)),
             ;
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsClass;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
             private final NetProtocolRange protocolRange;
 
-            Client(Class<?> nmsClass, int packetId, String keyName1_20_5) {
-                this(nmsClass, packetId, keyName1_20_5, NetProtocolRange.ALL);
+            Client(Class<?> nmsClass, String keyName1_20_5) {
+                this(nmsClass,  keyName1_20_5, NetProtocolRange.ALL);
             }
 
-            Client(Class<?> nmsClass, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Client(Class<?> nmsClass, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsClass = nmsClass;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }
@@ -1357,25 +1350,24 @@ public enum PacketTypes implements PacketType {
         }
 
         public enum Client implements RangedPacketType {
-            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, idRegistry.acquire(), "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, idRegistry.acquire(), "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            PONG(PONG_CLASS, idRegistry.acquire(), "pong", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, idRegistry.acquire(), "resource_pack", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_CLIENT_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, "client_information", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            FINISH_CONFIGURATION(FINISH_CONFIGURATION_CLIENT_CLASS, "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            PONG(PONG_CLASS, "pong", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            RESOURCE_PACK(RESOURCE_PACK_CLIENT_CLASS, "resource_pack", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_CLIENT_CLASS, "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_6)),
             ;
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsPacket;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
             private final NetProtocolRange protocolRange;
 
-            Client(Class<?> nmsPacket, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Client(Class<?> nmsPacket, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsPacket = nmsPacket;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }
@@ -1461,33 +1453,32 @@ public enum PacketTypes implements PacketType {
         }
 
         public enum Server implements RangedPacketType {
-            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, idRegistry.acquire(), "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, idRegistry.acquire(), "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, idRegistry.acquire(), "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, idRegistry.acquire(), "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            DISCONNECT(DISCONNECT_CLASS, idRegistry.acquire(), "disconnect", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            PING(PING_CLASS, idRegistry.acquire(), "ping", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            REGISTRY_DATA(REGISTRY_DATA_CLASS, idRegistry.acquire(), "registry_data", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, idRegistry.acquire(), null, NetProtocolRange.only(NetProtocol.v1_20_2)),
-            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, idRegistry.acquire(), "resource_pack_pop", NetProtocolRange.since(NetProtocol.v1_20_4)),
-            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, idRegistry.acquire(), "resource_pack_push", NetProtocolRange.since(NetProtocol.v1_20_4)),
-            RESET_CHAT(RESET_CHAT_CLASS, idRegistry.acquire(), "reset_chat", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_SERVER_CLASS, idRegistry.acquire(), "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            STORE_COOKIE(STORE_COOKIE_CLASS, idRegistry.acquire(), "store_cookie", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            TRANSFER(TRANSFER_CLASS, idRegistry.acquire(), "transfer", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, idRegistry.acquire(), "update_enabled_features", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            UPDATE_TAGS(UPDATE_TAGS_CLASS, idRegistry.acquire(), "update_tags", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            COOKIE_REQUEST(COOKIE_REQUEST_CLASS, "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, "custom_payload", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            FINISH_CONFIGURATION(FINISH_CONFIGURATION_SERVER_CLASS, "finish_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, "keep_alive", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            DISCONNECT(DISCONNECT_CLASS, "disconnect", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            PING(PING_CLASS, "ping", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            REGISTRY_DATA(REGISTRY_DATA_CLASS, "registry_data", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            RESOURCE_PACK(RESOURCE_PACK_SERVER_CLASS, null, NetProtocolRange.only(NetProtocol.v1_20_2)),
+            RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, "resource_pack_pop", NetProtocolRange.since(NetProtocol.v1_20_4)),
+            RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, "resource_pack_push", NetProtocolRange.since(NetProtocol.v1_20_4)),
+            RESET_CHAT(RESET_CHAT_CLASS, "reset_chat", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_SERVER_CLASS, "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            STORE_COOKIE(STORE_COOKIE_CLASS, "store_cookie", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            TRANSFER(TRANSFER_CLASS, "transfer", NetProtocolRange.since(NetProtocol.v1_20_6)),
+            UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, "update_enabled_features", NetProtocolRange.since(NetProtocol.v1_20_2)),
+            UPDATE_TAGS(UPDATE_TAGS_CLASS, "update_tags", NetProtocolRange.since(NetProtocol.v1_20_2)),
             ;
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsPacket;
-            private final int packetId;
+            private final int packetId = idRegistry.acquire();
             private final NetProtocolRange protocolRange;
 
-            Server(Class<?> nmsPacket, int packetId, String keyName1_20_5, NetProtocolRange protocolRange) {
+            Server(Class<?> nmsPacket, String keyName1_20_5, NetProtocolRange protocolRange) {
                 this.nmsPacket = nmsPacket;
-                this.packetId = packetId;
                 this.protocolRange = protocolRange;
                 this.keyName1_20_5 = keyName1_20_5;
             }

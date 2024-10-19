@@ -1,6 +1,7 @@
 package me.alek.honey.tracker;
 
-public interface HoneyTracker {
+import me.alek.honey.util.Identifiable;
 
-    int getID();
+public interface HoneyTracker extends Identifiable {
+
 }

@@ -33,14 +33,14 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue();
 
-    private final AsyncPacketStream async;
+    private final AsyncPacketStream stream;
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
     public HoneyPacketDecodePreparation(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
-        this.async = async;
+        this.stream = async;
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
         setupMethodInvoke(channel.pipeline());
@@ -51,7 +51,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     public AsyncPacketStream getAsync() {
-        return async;
+        return stream;
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
@@ -128,6 +128,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
             earlyPacketContainer.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
+            // ignore all transaction packets, as well as players with permission to bypass all validations
             if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
                     || player.bypassEverything()) {
                 ctx.fireChannelRead(packet);
@@ -151,7 +152,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             } else {
                 ctx.channel().eventLoop().execute(() -> firePacketRead(ctx, finalPacketContainer, packetExecutorTask));
             }
-
         } catch (Throwable ex) {
             ex.printStackTrace();
             try {
@@ -226,7 +226,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             buf.release();
 
             PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
-            async.decode((s) -> {
+            stream.decode((s) -> {
                 InboundPacketFilter.MARK.set(packet);
 
                 if (player.isStreamActive()) {

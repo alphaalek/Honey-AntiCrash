@@ -79,7 +79,6 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
             worker = workerPool.submit(this);
         }
 
-
         if (worker.isQuarantined()) {
             if (worker.relocate(this)) {
                 worker = workerPool.relocateWorkerTasks(this, worker);
@@ -113,7 +112,6 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
             return;
         }
 
-        ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
         WrappedPacket<WrappedPlayOutDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketTypes.Play.Server.DISCONNECT, player);
         kickDisconnect.getContainer().getObjectsOf(NMS.getIChatBaseComponentClass())
                 .writeField(0, Reflection.getConstructor(Reflection.getClass("{nms}.ChatComponentText"), String.class).invoke(
@@ -121,6 +119,7 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
                 ));
 
         try {
+            ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
             packetManager.writeForcedPacket(player, kickDisconnect);
         } catch (Exception ex) {
             ex.printStackTrace();

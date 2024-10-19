@@ -1,20 +1,20 @@
-package me.alek.honey.tickloop.postpone.checkimpl;
+package me.alek.honey.tickloop.postpone.validationimpl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.tickloop.postpone.PostponeCheck;
+import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.UnsyncTempQueue;
+import me.alek.honey.tracker.temp.NotSyncTempQueue;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 
-public class PostponeMaxPerXTickCheck implements PostponeCheck {
+public class PostponeMaxPerXTickCheck implements PostponeValidation {
 
-    private final UnsyncTempQueue tickTracker = new UnsyncTempQueue(diff -> diff >= ConfigurationOptions.Postpone.MAX_PER_X_AMOUNT, false);
+    private final NotSyncTempQueue tickTracker = new NotSyncTempQueue(diff -> diff >= ConfigurationOptions.Postpone.MAX_PER_X_AMOUNT, false);
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {

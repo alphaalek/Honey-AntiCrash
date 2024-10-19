@@ -59,14 +59,14 @@ public class RegistryHandleTracker<T extends Identifiable> implements MarkableHa
         }
 
         long deltaHandleTime = System.nanoTime() - trackedNode.getInsertionInstant();
+        if (totalTime + deltaHandleTime == Long.MAX_VALUE) {
+            totalTime = totalTime / totalIndex;
+            totalIndex = 1;
+        }
         handleIndices.set(key, getHandleIndices(key) + 1);
         handleTime.set(key, getHandleTime(key) + deltaHandleTime);
         totalIndex++;
         totalTime += deltaHandleTime;
-        if (totalTime == Long.MAX_VALUE) {
-            totalTime = totalTime / totalIndex;
-            totalIndex = 1;
-        }
     }
 
     @Override

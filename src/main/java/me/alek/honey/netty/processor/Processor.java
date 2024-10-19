@@ -87,7 +87,6 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> {
 
     public void handle(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
         if (packetListeners.has(packet.getType().getHoneyID())) {
-
             for (ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
                 try {
                     info.listener.accept(player, packet);
