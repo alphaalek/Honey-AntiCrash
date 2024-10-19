@@ -387,9 +387,10 @@ commands:
       - "//evaluate"
 
     # Note, that if snakeyaml (Bukkit's YAML parser) has trouble parsing strings when adding regex commands, use single quotes instead of double quotes.
+    # Note, the regex has to match 100% with the command string.
     regex:
       # multiverse
-      - '\/(multiverse-core:)?mv(h|help| help)? [^a-zA-Z0-9]'
+      - '\/(multiverse-core:)?mv(h|help| help)? [^a-zA-Z0-9]*'
 
   # Fallback prefixes that also will be checked for at the commands above. (if they exist on the server)
   # Could e.g. be if someone types '/multiverse-core:mv help ^'
