@@ -13,8 +13,8 @@ public abstract class WrongMonitorFlagSyntaxException extends Exception {
 
             @Override
             public String getType() {
-                return "monitor flag " + Optional.ofNullable(
-                        MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown");
+                return "monitor flag \"" + Optional.ofNullable(
+                        MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown") + "\"";
             }
 
             @Override
