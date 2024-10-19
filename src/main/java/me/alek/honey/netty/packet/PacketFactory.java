@@ -37,9 +37,10 @@ public class PacketFactory {
     }
 
     public static Object createPacket(PacketType type, ByteBuf serializer) {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)
-                && !serializer.isReadable()) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
             return createRawPacket(type);
+        } else if (serializer == null) {
+            throw new UnsupportedOperationException();
         }
 
         Object packetSerializer = new PacketDataSerializer(serializer).getSerializer();
