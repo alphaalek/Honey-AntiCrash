@@ -1,6 +1,6 @@
-package me.alek.honey.netty.modelwrappers.nbt.writer;
+package me.alek.honey.netty.nbt.writer;
 
-import me.alek.honey.netty.modelwrappers.nbt.NBTElement;
+import me.alek.honey.netty.nbt.NBTElement;
 
 import java.io.DataOutput;
 

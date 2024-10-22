@@ -1,7 +1,7 @@
-package me.alek.honey.netty.modelwrappers.nbt;
+package me.alek.honey.netty.nbt;
 
-import me.alek.honey.netty.modelwrappers.nbt.writer.NBTWriter;
-import me.alek.honey.netty.modelwrappers.nbt.writer.Writers;
+import me.alek.honey.netty.nbt.writer.NBTWriter;
+import me.alek.honey.netty.nbt.writer.Writers;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 

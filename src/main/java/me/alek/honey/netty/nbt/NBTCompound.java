@@ -1,9 +1,9 @@
-package me.alek.honey.netty.modelwrappers.nbt;
+package me.alek.honey.netty.nbt;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.modelwrappers.nbt.lists.NBTList;
-import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfCompound;
-import me.alek.honey.netty.modelwrappers.nbt.lists.NBTListOfList;
+import me.alek.honey.netty.nbt.lists.NBTList;
+import me.alek.honey.netty.nbt.lists.NBTListOfCompound;
+import me.alek.honey.netty.nbt.lists.NBTListOfList;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;

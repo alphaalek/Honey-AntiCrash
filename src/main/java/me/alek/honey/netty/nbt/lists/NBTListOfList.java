@@ -1,9 +1,9 @@
-package me.alek.honey.netty.modelwrappers.nbt.lists;
+package me.alek.honey.netty.nbt.lists;
 
-import me.alek.honey.netty.modelwrappers.nbt.NBTAbstractList;
-import me.alek.honey.netty.modelwrappers.nbt.NBTBase;
-import me.alek.honey.netty.modelwrappers.nbt.NBTRoot;
-import me.alek.honey.netty.modelwrappers.nbt.NBTType;
+import me.alek.honey.netty.nbt.NBTAbstractList;
+import me.alek.honey.netty.nbt.NBTBase;
+import me.alek.honey.netty.nbt.NBTRoot;
+import me.alek.honey.netty.nbt.NBTType;
 
 public class NBTListOfList extends NBTAbstractList<NBTAbstractList<?>> {
 

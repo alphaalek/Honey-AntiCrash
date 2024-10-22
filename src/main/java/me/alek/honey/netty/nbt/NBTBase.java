@@ -1,4 +1,4 @@
-package me.alek.honey.netty.modelwrappers.nbt;
+package me.alek.honey.netty.nbt;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;

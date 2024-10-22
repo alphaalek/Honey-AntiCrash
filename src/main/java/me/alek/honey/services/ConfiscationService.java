@@ -5,7 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.item.ItemCheckRegistry;
 import me.alek.honey.validation.item.enums.ConfiscationStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.modelwrappers.nbt.NBTCompound;
+import me.alek.honey.netty.nbt.NBTCompound;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

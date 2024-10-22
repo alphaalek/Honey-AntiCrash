@@ -1,6 +1,6 @@
-package me.alek.honey.netty.modelwrappers.nbt.lists;
+package me.alek.honey.netty.nbt.lists;
 
-import me.alek.honey.netty.modelwrappers.nbt.*;
+import me.alek.honey.netty.nbt.*;
 
 public class NBTListOfCompound extends NBTAbstractList<NBTCompound> {
 
