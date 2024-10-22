@@ -112,9 +112,13 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
                 buf.release();
 
-                UnsafeChannelCloser.closeForcibly(ctx.channel());
-
+                if (ex.getMessage() != null) {
+                    player.bukkit.kickPlayer(ex.getMessage());
+                } else {
+                    player.bukkit.kickPlayer("Disconnected");
+                }
                 player.punished = true;
+
                 stopTimings(earlyPacketContainer);
                 return;
             }
