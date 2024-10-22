@@ -67,9 +67,10 @@ public class PrintValidationBridge {
 
         Cancellable.Trigger cancellable = new Cancellable.Trigger();
         HoneyPlayer player = packet.getPlayer();
+        int calculated = length.get();
         NettyValidations.PRINT_FILTER_PIPELINE.doStream(
                 player,
-                (validation, context) -> validation.validate(player, length.get(), context),
+                (validation, context) -> validation.validate(player, calculated, context),
                 cancellable);
 
         handling.remove();
@@ -91,6 +92,6 @@ public class PrintValidationBridge {
     }
 
     public static void suppressException(HoneyPlayer player, Throwable thrown) {
-        player.suppressedExceptions.put(stackTraceToUnit(thrown), new SuppressedException());
+        player.suppressedExceptions.put(stackTraceToUnit(thrown), new SuppressedException(thrown));
     }
 }

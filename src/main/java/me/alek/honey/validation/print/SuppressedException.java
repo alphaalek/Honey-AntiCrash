@@ -1,16 +1,40 @@
 package me.alek.honey.validation.print;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 public class SuppressedException {
 
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_TIME;
+    private static final long COOLDOWN_MILLIS = 1000;
+
     private int amount;
+    private long cooldownUntil = System.currentTimeMillis() - COOLDOWN_MILLIS;
+    private final Throwable initialThrown;
+    private final Instant initialThrownTime = new Date().toInstant();
+
+    public SuppressedException(Throwable thrown) {
+        this.initialThrown = thrown;
+    }
 
     public void suppress(PacketContainer<? extends WrappedPacket<?>> packet, Throwable thrown) {
         amount++;
 
-        System.out.print("Exception in thread \"" + Thread.currentThread().getName() + "\"" + (thrown.getMessage() != null ? ": " + thrown.getMessage() : ""));
-        System.out.print("\tSuppressed exception (" + amount + " time(s)) while handling packet " + packet.getType() + ", ID " + packet.getType().getMinecraftID() + " by " + packet.getPlayerName());
+        if (System.currentTimeMillis() <= cooldownUntil) {
+            return;
+        }
+        cooldownUntil = System.currentTimeMillis() + COOLDOWN_MILLIS;
+
+        System.out.println("Exception in thread \"" + Thread.currentThread().getName() + "\"" + (thrown.getMessage() != null ? ": " + thrown.getMessage() : ""));
+        System.out.println("\tSuppressed exception (" + amount + " time(s)) while handling packet " + packet.getType()
+                + ", (ID " + packet.getType().getMinecraftID() + ") "
+                + "by " + packet.getPlayerName() + ". "
+                + "Properties: " + HoneyPlugin.get().getLoggerService().filterTooMuchData(HoneyPlugin.get().getLoggerService().formatPacketEntries(packet)));
+        System.out.println("\tInitial thrown at " + FORMATTER.format(initialThrownTime));
     }
 }

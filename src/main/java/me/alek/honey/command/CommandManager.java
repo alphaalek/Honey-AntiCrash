@@ -68,7 +68,7 @@ public class CommandManager implements CommandExecutor {
         if (ConfigurationOptions.Messages.BASE_COMMAND_FEATURE_INFOS) {
             StringBuilder disabledFeatures = new StringBuilder();
             if (!ConfigurationOptions.Postpone.ENABLED) {
-                disabledFeatures.append("Postpone, ");
+                disabledFeatures.append("Tick Postpone, ");
             }
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED) {
                 disabledFeatures.append("No-Bypass Permission, ");
@@ -99,7 +99,7 @@ public class CommandManager implements CommandExecutor {
             }
 
             if (disabledFeatures.length() > 0) {
-                sender.sendMessage("§c[*] §7Disabled features: §8" + disabledFeatures.substring(0, disabledFeatures.length() - 2));
+                sender.sendMessage("§cNote! Disabled features: " + disabledFeatures.substring(0, disabledFeatures.length() - 2));
                 sender.sendMessage("");
             }
         }

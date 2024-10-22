@@ -171,7 +171,7 @@ public class MonitorManager {
     }
 
     public void setupMonitor(CommandSender sender, Monitorer monitorer) {
-        List<MonitorObserver> observers = monitorObservers.computeIfAbsent(monitorer, (d) -> new ArrayList<>());
+        List<MonitorObserver> observers = monitorObservers.computeIfAbsent(monitorer, __ -> new ArrayList<>());
         observers.add(new MonitorObserver() {
             @Override
             public CommandSender getSender() {
@@ -183,21 +183,21 @@ public class MonitorManager {
                 sender.sendMessage(message);
             }
         });
+
         sender.sendMessage(Lang.getFormatted("monitor.start", monitorer.getName()));
     }
 
     public Monitorer removeMonitor(CommandSender sender) {
         for (Monitorer monitorer : Sets.newHashSet(monitorObservers.keySet())) {
+
             List<MonitorObserver> observers = monitorObservers.get(monitorer);
-
             for (MonitorObserver observer : Lists.newArrayList(observers)) {
-                if (observer.getSender().equals(sender)) {
 
+                if (observer.getSender().equals(sender)) {
                     observers.remove(observer);
                     if (observers.isEmpty()) {
                         monitorObservers.remove(monitorer);
                     }
-
                     if (monitorer.getType() == MonitorType.PACKETS) {
                         packetMonitorers.remove(monitorer);
                     }
@@ -207,6 +207,7 @@ public class MonitorManager {
                 }
             }
         }
+
         return null;
     }
 
