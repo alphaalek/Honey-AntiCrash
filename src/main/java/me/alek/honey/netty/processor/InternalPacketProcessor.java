@@ -157,13 +157,13 @@ public class InternalPacketProcessor implements PacketProcessor {
             return null;
         }
 
-        for (PacketExecutor<? extends WrappedPacket<?>> executor : executors) {
+        for (PacketExecutor<? extends WrappedPacket<?>> executorImpl : executors) {
             @SuppressWarnings("unchecked")
-            PacketExecutor<WP> castedExecutor = (PacketExecutor<WP>) executor;
+            PacketExecutor<WP> executor = (PacketExecutor<WP>) executorImpl;
 
-            if (castedExecutor.test(packetContainer)) {
+            if (executor.test(packetContainer)) {
                 long start = System.nanoTime();
-                Runnable runnable = castedExecutor.getTask(packetContainer);
+                Runnable runnable = executor.getTask(packetContainer);
                 long end = System.nanoTime();
 
                 if (runnable != null) {
@@ -285,8 +285,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 earlyInitializedPacket, packet, player, channel, postAction, type);
 
         if (PacketTypes.isUnknown(type)
-                || packetContainer.getState().equals(PacketState.PLAY)
-                        && !packetContainer.getPlayer().isBukkitReady()) {
+                || packetContainer.getState().equals(PacketState.PLAY) && !packetContainer.getPlayer().isBukkitReady()) {
             return packetContainer;
         }
 
@@ -316,12 +315,12 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     @SuppressWarnings("unchecked")
-    public synchronized void addPostAction(PacketType packetType, Callback.Action callback) {
-        if (PacketTypes.isUnknown(packetType)) {
+    public synchronized void addPostAction(PacketType type, Callback.Action callback) {
+        if (PacketTypes.isUnknown(type)) {
             return;
         }
 
-        Callback action = postActions.get(packetType.getHoneyID(), Callback::new);
+        Callback action = postActions.get(type.getHoneyID(), Callback::new);
         action.addAction(callback);
     }
 }

@@ -6,7 +6,7 @@ public interface Cancellable {
 
     boolean isCancelled();
 
-    class Stated implements Cancellable {
+    class Trigger implements Cancellable {
 
         private boolean cancelled;
 

@@ -28,7 +28,7 @@ public class DiscordWebhook {
         SUBMIT_SERVICE.submit(() -> send0(message));
     }
 
-    public static void violation(HoneyPlayer player, HoneyValidation<?> check, String context, ValidationPipelineContext.DevelopmentData dev) {
+    public static void postViolation(HoneyPlayer player, HoneyValidation<?> check, String context, ValidationPipelineContext.DevelopmentData dev) {
         EmbedObject object = new EmbedObject()
                 .setColor(Color.ORANGE)
                 .setImage("http://cravatar.eu/head/" + player.name + ".png")

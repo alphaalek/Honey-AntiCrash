@@ -369,7 +369,7 @@ public class ViolationService {
                     player, validation.getName(), violationKey, getSetting(), this, developmentData);
 
             if (DiscordWebhook.enabled()) {
-                DiscordWebhook.violation(
+                DiscordWebhook.postViolation(
                         player, validation,
                         ChatColor.stripColor(AbstractPacketLimitHandler.this.format()),
                         developmentData);

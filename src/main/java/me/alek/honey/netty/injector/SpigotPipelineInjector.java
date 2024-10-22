@@ -24,6 +24,8 @@ import java.util.function.Consumer;
 
 public class SpigotPipelineInjector {
 
+    private static final String PRE_RESOLVED_PACKET_HANDLER = "pre-resolved-packet-handler";
+
     private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = ProviderBridge.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
             .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
     private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = ProviderBridge.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
@@ -197,7 +199,7 @@ public class SpigotPipelineInjector {
     }
 
     public boolean relocatePreparationHandlers(Channel channel) throws MissingHandlerException {
-        ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
+        ChannelHandler preResolvedPacketHandler = channel.pipeline().get(PRE_RESOLVED_PACKET_HANDLER);
         if (preResolvedPacketHandler != null) {
             togglePreResolvedBounds(channel, (PreResolvedPacketHandler) preResolvedPacketHandler);
         }
@@ -242,8 +244,8 @@ public class SpigotPipelineInjector {
             channel.pipeline().remove(encoderName);
         }
 
-        if (channel.pipeline().get("pre-resolved-packet-handler") != null) {
-            channel.pipeline().remove("pre-resolved-packet-handler");
+        if (channel.pipeline().get(PRE_RESOLVED_PACKET_HANDLER) != null) {
+            channel.pipeline().remove(PRE_RESOLVED_PACKET_HANDLER);
         }
     }
 
@@ -274,7 +276,7 @@ public class SpigotPipelineInjector {
     }
 
     public HoneyPacketHandler getPacketHandler(Channel channel) throws MissingHandlerException {
-        ChannelHandler preResolvedPacketHandler = channel.pipeline().get("pre-resolved-packet-handler");
+        ChannelHandler preResolvedPacketHandler = channel.pipeline().get(PRE_RESOLVED_PACKET_HANDLER);
         if (preResolvedPacketHandler != null) {
             PreResolvedPacketHandler preResolvedPacketHandler0 = (PreResolvedPacketHandler) preResolvedPacketHandler;
             return preResolvedPacketHandler0.getPacketHandler();
@@ -330,7 +332,7 @@ public class SpigotPipelineInjector {
         }
 
         if (channel.pipeline().context(handler) == null) {
-            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, "pre-resolved-packet-handler", handler);
+            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, PRE_RESOLVED_PACKET_HANDLER, handler);
         }
     }
 }

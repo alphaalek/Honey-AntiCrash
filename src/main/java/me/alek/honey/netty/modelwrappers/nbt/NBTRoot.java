@@ -60,8 +60,7 @@ public class NBTRoot {
             if (!distanceToTailMap.containsKey(sub)) {
                 distanceToTailMap.put(sub, 0);
                 distanceToTailMap.put(owner, 1);
-            }
-            else {
+            } else {
                 distanceToTailMap.put(owner, distanceToTailMap.get(sub) + 1);
             }
             int ownerDistance = distanceToTailMap.get(owner);

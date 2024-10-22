@@ -51,7 +51,7 @@ public class PrintValidationBridge {
 
         handling.set(true);
 
-        Cancellable.Stated stated = new Cancellable.Stated();
+        Cancellable.Trigger stated = new Cancellable.Trigger();
         HoneyPlayer player = packet.getPlayer();
         NettyValidations.PRINT_FILTER_PIPELINE.doStream(
                 player,

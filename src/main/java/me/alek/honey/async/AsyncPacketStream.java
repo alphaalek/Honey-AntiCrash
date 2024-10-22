@@ -28,6 +28,8 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
     public AsyncPacketStream(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
         this.workerPool = workerPool;
+
+        // TODO: rework
     }
 
     public HoneyPlayer getPlayer() {
@@ -107,24 +109,8 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
     }
 
     private void kickPlayer() {
-        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_16_5)) {
-            UnsafeChannelCloser.closeForcibly(player.channel);
-            return;
-        }
-
-        WrappedPacket<WrappedPlayOutDisconnect> kickDisconnect = PacketFactory.createNewPacket(PacketTypes.Play.Server.DISCONNECT, player);
-        kickDisconnect.getContainer().getObjectsOf(NMS.getIChatBaseComponentClass())
-                .writeField(0, Reflection.getConstructor(Reflection.getClass("{nms}.ChatComponentText"), String.class).invoke(
-                        Lang.get("kick.too.long.packet.handle")
-                ));
-
-        try {
-            ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
-            packetManager.writeForcedPacket(player, kickDisconnect);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            UnsafeChannelCloser.closeForcibly(player.channel);
-        }
+        player.bukkit.kickPlayer(Lang.get("kick.too.long.packet.handle"));
+        player.punished = true;
     }
 
     @Override

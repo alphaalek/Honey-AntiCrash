@@ -85,7 +85,6 @@ public class InMemoryCompiler {
         public final String sourceCode;
 
         public IMCSourceCode(final String fullClassName, final String sourceCode) {
-
             this.fullClassName = fullClassName;
             this.sourceCode = sourceCode;
         }
