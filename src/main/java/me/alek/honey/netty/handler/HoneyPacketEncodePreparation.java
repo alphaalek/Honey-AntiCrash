@@ -59,7 +59,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
-        packetHandler.handleEventloopProcesses(PacketBound.CLIENT);
+        packetHandler.runDelayedTasks(PacketBound.CLIENT);
 
         if (!packetHandler.isPacket(msg)) {
             if (!packetHandler.handleNonPacket(msg)) {

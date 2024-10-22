@@ -27,7 +27,7 @@ import java.util.Queue;
 public class HoneyPacketHandler {
 
     @SuppressWarnings("unchecked")
-    public static final ThreadLocal<Queue<Runnable>>[] EVENTLOOP_PROCESSES = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
+    public static final ThreadLocal<Queue<Runnable>>[] DELAYED_TASKS = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
 
     private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
@@ -100,7 +100,7 @@ public class HoneyPacketHandler {
                     || bound.equals(PacketBound.SERVER)) {
                 updateProtocolAttributeKey(bound);
             } else {
-                EVENTLOOP_PROCESSES[bound.ordinal()].get().add(() -> {
+                DELAYED_TASKS[bound.ordinal()].get().add(() -> {
                     updateProtocolAttributeKey(bound);
                 });
             }
@@ -202,10 +202,10 @@ public class HoneyPacketHandler {
         return !isCancelled(packetContainer);
     }
 
-    public void handleEventloopProcesses(PacketBound bound) {
-        Queue<Runnable> process = EVENTLOOP_PROCESSES[bound.ordinal()].get();
+    public void runDelayedTasks(PacketBound bound) {
+        Queue<Runnable> process = DELAYED_TASKS[bound.ordinal()].get();
         if (process == null) {
-            EVENTLOOP_PROCESSES[bound.ordinal()].set(new LinkedList<>());
+            DELAYED_TASKS[bound.ordinal()].set(new LinkedList<>());
         }
         if (process != null && !process.isEmpty()) {
             Runnable ac;

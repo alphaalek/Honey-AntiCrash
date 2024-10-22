@@ -52,9 +52,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         throw new IllegalStateException();
     }
 
-    private <WP extends WrappedPacket<WP>> void sendThroughPipeline(Object msg, PacketContainer<WP> packetContainer,
-                                                                    Function<PacketContainer<WP>, Boolean> handling,
-                                                                    Runnable sending) {
+    private <WP extends WrappedPacket<WP>> void sendThroughPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
         if (msg instanceof ByteBuf) {
             sending.run();
             return;
@@ -109,7 +107,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        packetHandler.handleEventloopProcesses(PacketBound.CLIENT);
+        packetHandler.runDelayedTasks(PacketBound.CLIENT);
         checkRelocation();
 
         if (!packetHandler.isPacket(msg)) {

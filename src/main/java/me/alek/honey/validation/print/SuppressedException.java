@@ -2,6 +2,7 @@ package me.alek.honey.validation.print;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.time.Instant;
@@ -21,6 +22,10 @@ public class SuppressedException {
     public SuppressedException(Throwable thrown) {
         this.initialThrown = thrown;
     }
+    
+    public Throwable getInitialThrown() {
+        return initialThrown;
+    }
 
     public void suppress(PacketContainer<? extends WrappedPacket<?>> packet, Throwable thrown) {
         amount++;
@@ -31,10 +36,15 @@ public class SuppressedException {
         cooldownUntil = System.currentTimeMillis() + COOLDOWN_MILLIS;
 
         System.out.println("Exception in thread \"" + Thread.currentThread().getName() + "\"" + (thrown.getMessage() != null ? ": " + thrown.getMessage() : ""));
-        System.out.println("\tSuppressed exception (" + amount + " time(s)) while handling packet " + packet.getType()
-                + ", (ID " + packet.getType().getMinecraftID() + ") "
-                + "by " + packet.getPlayerName() + ". "
-                + "Properties: " + HoneyPlugin.get().getLoggerService().filterTooMuchData(HoneyPlugin.get().getLoggerService().formatPacketEntries(packet)));
+        if (!PacketTypes.isUnknown(packet.getType())) {
+            System.out.println("\tSuppressed exception (" + amount + " time(s)) while handling packet " + packet.getType()
+                    + " (ID: " + packet.getType().getMinecraftID() + ") "
+                    + "by " + packet.getPlayerName() + ", "
+                    + "Properties: " + HoneyPlugin.get().getLoggerService().filterTooMuchData(HoneyPlugin.get().getLoggerService().formatPacketEntries(packet)));
+        } else {
+            System.out.println("\tSuppressed exception (" + amount + " time(s)) while handling unknown packet "
+                    + "by " + packet.getPlayerName());
+        }
         System.out.println("\tInitial thrown at " + FORMATTER.format(initialThrownTime));
     }
 }

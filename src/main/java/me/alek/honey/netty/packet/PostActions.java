@@ -40,7 +40,7 @@ public class PostActions {
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, Callback.Action.<PacketContainer<?>>from(packet -> {
             // await LOGIN_SUCCESS packet and ensure correct pipeline order for serverbound packet stream afterward
-            HoneyPacketHandler.EVENTLOOP_PROCESSES[PacketBound.CLIENT.ordinal()].get().add(() -> {
+            HoneyPacketHandler.DELAYED_TASKS[PacketBound.CLIENT.ordinal()].get().add(() -> {
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(packet.getChannel());
             });
         }));

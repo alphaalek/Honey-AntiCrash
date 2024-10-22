@@ -36,16 +36,16 @@ public class PacketTaskFactory implements PacketTaskProvider.Factory<Runnable> {
 
     public static class Adapter implements me.alek.honey.util.Provider.ProviderNoInput<PacketTaskProvider.Factory<Runnable>> {
 
-        private final ProviderGenericInput<Runnable> provider;
+        private final ProviderGenericInput<Runnable> factoryMethodProvider;
 
         public Adapter(ProviderGenericInput<Runnable> provider) {
-            this.provider = provider;
+            this.factoryMethodProvider = provider;
         }
 
         @Override
         public PacketTaskProvider.Factory<Runnable> get() {
             return (task, check, pre, post, catcher) -> {
-                return provider.get(new Object[]{task, check, pre, post, catcher});
+                return factoryMethodProvider.get(new Object[]{task, check, pre, post, catcher});
             };
         }
     }

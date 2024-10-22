@@ -18,7 +18,6 @@ import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -99,7 +98,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             return;
         }
 
-        packetHandler.handleEventloopProcesses(PacketBound.SERVER);
+        packetHandler.runDelayedTasks(PacketBound.SERVER);
 
         PacketType type = packetHandler.getPacketType(buf);
         PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel(), type, buf.readableBytes());

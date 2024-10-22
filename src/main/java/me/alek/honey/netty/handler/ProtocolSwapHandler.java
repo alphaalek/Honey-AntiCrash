@@ -20,7 +20,7 @@ public class ProtocolSwapHandler {
         if (packet.getType() == PacketTypes.Login.Server.LOGIN_SUCCESS
                 && NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
             for (PacketBound bound : PacketBound.values()) {
-                HoneyPacketHandler.EVENTLOOP_PROCESSES[bound.ordinal()].get().add(() -> setProtocolState(packet.getChannel(), PacketState.PLAY, bound));
+                HoneyPacketHandler.DELAYED_TASKS[bound.ordinal()].get().add(() -> setProtocolState(packet.getChannel(), PacketState.PLAY, bound));
             }
         // login -> configuration (client -> server)
         } else if (packet.getType() == PacketTypes.Login.Client.LOGIN_ACKNOWLEDGED) {
