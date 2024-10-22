@@ -25,6 +25,12 @@ public class PlayerInfoCommand implements CommandImpl {
         sender.sendMessage("§6Honey §7Showing info for player §6" + player.name);
         sender.sendMessage("§8* §7Using client §8" + player.clientInfo.getBrand());
         sender.sendMessage("§8* §7Using version §8" + player.clientInfo.getMajorProtocol().getName() + ", v" + player.clientInfo.getProtocolVersion() + " (server: " + NetProtocol.getProtocol().getName() + ")");
+
+        if (player.bypassEverything()) {
+            sender.sendMessage("§cThis player bypasses everything!");
+        } else if (player.bypassServerThreadTracking()) {
+            sender.sendMessage("§cThis player bypasses server thread tracking!");
+        }
     }
 
     @Override
