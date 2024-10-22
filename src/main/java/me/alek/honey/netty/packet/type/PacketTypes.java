@@ -1272,7 +1272,7 @@ public enum PacketTypes implements PacketType {
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName1_20_5;
             private final Class<?> nmsClass;
-            private final int packetId;
+            private final int packetId; // TODO
             private final NetProtocolRange protocolRange;
 
             Server(Class<?> nmsClass, int packetId, String keyName1_20_5) {

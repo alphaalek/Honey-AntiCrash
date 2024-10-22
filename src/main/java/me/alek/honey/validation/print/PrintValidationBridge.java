@@ -14,6 +14,8 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.bukkit.Bukkit;
 
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 public class PrintValidationBridge {
@@ -32,34 +34,63 @@ public class PrintValidationBridge {
 
     private static final ThreadLocal<Boolean> handling = new ThreadLocal<>();
 
-    public static synchronized org.apache.logging.log4j.core.Filter.Result handle(Supplier<Integer> length) {
+    public static synchronized org.apache.logging.log4j.core.Filter.Result handle(Throwable thrown, Supplier<Integer> length) {
         if (handling.get() != null) {
             return Filter.Result.NEUTRAL;
         }
 
         PacketContainer<? extends WrappedPacket<?>> packet = null;
-        if (Thread.currentThread().getName().startsWith("Netty")
-                || Thread.currentThread().getName().startsWith("honey-packet-decoder")) {
+        if (Thread.currentThread().getName().startsWith("Netty") || Thread.currentThread().getName().startsWith("honey-packet-decoder")) {
             packet = InboundPacketFilter.MARK.get();
         } else if (Thread.currentThread().getName().equals("Server Thread")) {
             packet = TaskLifecycleHandler.getCurrentHandledPacket();
         }
-
         if (packet == null) {
-            return org.apache.logging.log4j.core.Filter.Result.NEUTRAL;
+            return Filter.Result.NEUTRAL;
+        }
+
+        if (thrown != null) {
+            try {
+                SuppressedException ex = getSuppressedException(packet.getPlayer(), thrown);
+                if (ex == null) {
+                    suppressException(packet.getPlayer(), thrown);
+                    return Filter.Result.NEUTRAL;
+                } else {
+                    ex.suppress(packet, thrown);
+                }
+            } catch (Exception ignored) {
+                // ignored
+            }
         }
 
         handling.set(true);
 
-        Cancellable.Trigger stated = new Cancellable.Trigger();
+        Cancellable.Trigger cancellable = new Cancellable.Trigger();
         HoneyPlayer player = packet.getPlayer();
         NettyValidations.PRINT_FILTER_PIPELINE.doStream(
                 player,
                 (validation, context) -> validation.validate(player, length.get(), context),
-                stated);
+                cancellable);
 
         handling.remove();
 
-        return stated.isCancelled() ? org.apache.logging.log4j.core.Filter.Result.DENY : org.apache.logging.log4j.core.Filter.Result.NEUTRAL;
+        return cancellable.isCancelled() ? Filter.Result.DENY : Filter.Result.NEUTRAL;
+    }
+
+    private static String stackTraceToUnit(Throwable thrown) {
+        StringBuilder builder = new StringBuilder();
+        Arrays.stream(thrown.getStackTrace())
+                .map(StackTraceElement::toString)
+                .forEach(builder::append);
+
+        return builder.toString();
+    }
+
+    public static SuppressedException getSuppressedException(HoneyPlayer player, Throwable thrown) throws ExecutionException {
+        return player.suppressedExceptions.get(stackTraceToUnit(thrown), () -> null);
+    }
+
+    public static void suppressException(HoneyPlayer player, Throwable thrown) {
+        player.suppressedExceptions.put(stackTraceToUnit(thrown), new SuppressedException());
     }
 }

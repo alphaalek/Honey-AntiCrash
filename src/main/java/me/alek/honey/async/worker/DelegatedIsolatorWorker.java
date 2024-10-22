@@ -11,5 +11,4 @@ public interface DelegatedIsolatorWorker<T> {
     default void preCall() {}
 
     default void postCall() {}
-
 }

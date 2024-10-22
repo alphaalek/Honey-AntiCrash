@@ -87,6 +87,7 @@ public enum Timespan {
     }
 
     public static final long MILLIS_TO_NANO_MULTIPLIER = (long) Math.pow(10, 6);
+    public static final long TO_MILLIS_MULTIPLIER = (long) Math.pow(10, 3);
     public static final long TO_NANO_MULTIPLIER = (long) Math.pow(10, 9);
     private final Map<HoneyTracker, TimespanContext> noIDContextMap = new HashMap<>();
     private final Array<TimespanContext> IDContext = new Array<>();
@@ -129,6 +130,10 @@ public enum Timespan {
 
     public int getTimespan() {
         return timespan;
+    }
+
+    public long getMilliTimespan() {
+        return timespan * TO_MILLIS_MULTIPLIER;
     }
 
     public long getNanoTimespan() {

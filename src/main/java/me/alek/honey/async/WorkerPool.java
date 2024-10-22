@@ -205,22 +205,17 @@ public class WorkerPool<T> {
     public synchronized void pushTaskWorker(Worker<T> worker, int start) {
         for (int i = start; i < workers.length; i++) {
             Worker<T> otherWorker = workers[i];
-            /*
-            if (otherWorker == null) {
-                Bukkit.getLogger().info("Found null worker! " + i);
-                otherWorker = initNewTaskWorker(workers, i);
-            }
-            */
 
             if (worker.isQuarantined()
                     || worker.getPendingTasks().size() > otherWorker.getPendingTasks().size()
                     || worker.supplierCount() > otherWorker.supplierCount()) {
-
                 workers[i] = worker;
                 workers[i - 1] = otherWorker;
+
                 continue;
             }
 
+            // nothing to push, just break
             break;
         }
     }

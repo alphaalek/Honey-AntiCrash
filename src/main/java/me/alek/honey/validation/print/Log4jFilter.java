@@ -20,6 +20,10 @@ public class Log4jFilter extends AbstractLifeCycle implements Filter {
         for (StackTraceElement trace : throwable.getStackTrace()) {
             length += trace.toString().length();
         }
+        if (throwable.getCause() != null) {
+            length += getLength(throwable.getCause());
+        }
+        length += throwable.getMessage().length();
 
         return length;
     }
@@ -35,11 +39,11 @@ public class Log4jFilter extends AbstractLifeCycle implements Filter {
     }
 
     public Result filter(String msg) {
-        return PrintValidationBridge.handle(() -> getLength(msg));
+        return PrintValidationBridge.handle(null, () -> getLength(msg));
     }
 
     public Result filter(String msg, Throwable thrown) {
-        return PrintValidationBridge.handle(() -> getLength(msg) + getLength(thrown));
+        return PrintValidationBridge.handle(thrown, () -> getLength(msg) + getLength(thrown));
     }
 
     @Override

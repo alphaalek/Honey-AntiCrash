@@ -11,7 +11,8 @@ public class ChainedCallable<T> implements Callable<T> {
     private final Callable<T> callable;
     private final Queue<Consumer<T>> listeners = new LinkedList<>();
     private final Object wait = new Object();
-    private T value;
+
+    private volatile T value;
     private volatile boolean called;
 
     public ChainedCallable(TaskSupplier<T> from, Callable<T> delegate) {
@@ -33,19 +34,14 @@ public class ChainedCallable<T> implements Callable<T> {
     }
 
     public synchronized T getValue() {
-        boolean interrupted = false;
         synchronized (wait) {
             if (!called) {
                 try {
                     wait.wait();
                 } catch (Exception ex) {
-                    interrupted = true;
+                    Thread.currentThread().interrupt();
                 }
             }
-        }
-
-        if (interrupted) {
-            Thread.currentThread().interrupt();
         }
 
         return value;
@@ -64,6 +60,7 @@ public class ChainedCallable<T> implements Callable<T> {
                 wait.notifyAll();
             }
         }
+
         return value;
     }
 }

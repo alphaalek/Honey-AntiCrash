@@ -6,11 +6,13 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,7 +23,7 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
     private final AtomicLong expectedTick = new AtomicLong();
 
     public double evaluateTPS(Timespan timespan) {
-        return Math.min(20, ((double) 20 * 1010 * timespan.getTimespan()) / timespan.getTotal(this));
+        return ((double) 20 * timespan.getMilliTimespan()) / timespan.getTotal(this);
     }
 
     public CraftScheduledTPSTracker() {
@@ -29,31 +31,8 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
         setupThreads();
     }
 
-    private void setupFirstScheduledTask(BukkitRunnable runnable, Plugin plugin, long delay, long period) {
-        BukkitScheduler scheduler = HoneyPlugin.get().getPlugin().getServer().getScheduler();
-        AtomicReference<BukkitTask> craftTaskTailReference = Reflection.<AtomicReference<BukkitTask>>getField(
-                scheduler.getClass(), "tail", AtomicReference.class).get(scheduler);
-        BukkitTask initialTail = craftTaskTailReference.get();
-
-        // create task
-        BukkitTask task = scheduler.runTaskTimer(plugin, (Runnable) runnable, delay, period);
-        // clean up new tail
-        craftTaskTailReference.set(initialTail);
-        ReflectStructure<BukkitTask, BukkitTask> taskStructure = ReflectStructure.Provider.acquireStructure(task.getClass())
-                .<BukkitTask>withWeakType(task.getClass());
-
-        taskStructure.withTarget(initialTail)
-                .writeField(null,"next", 0,null);
-
-        // set first task to the new one
-        FieldAccessor<BukkitTask> headTaskField = Reflection.getFieldAssignableFrom(
-                scheduler.getClass(), "head", BukkitTask.class);
-        taskStructure.withTarget(headTaskField.get(scheduler))
-                .writeField(null,"next", 0,task);
-    }
-
     private void setupThreads() {
-        final AtomicLong lastTick = new AtomicLong(System.currentTimeMillis());
+        AtomicLong lastTick = new AtomicLong(System.currentTimeMillis());
         BukkitRunnable bukkitRunnable = new BukkitRunnable() {
             @Override
             public void run() {
@@ -69,12 +48,7 @@ public class CraftScheduledTPSTracker extends TempQueuedTracker {
                 }
 
                 long delta = System.currentTimeMillis() - expectedTick.get();
-                int amount;
-                if (delta > 0) {
-                    amount = 100 + (int) delta;
-                } else {
-                    amount = 100;
-                }
+                int amount = 100 + Math.max(0, (int) delta);
 
                 add(amount);
             }

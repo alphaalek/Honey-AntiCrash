@@ -18,12 +18,13 @@ import java.util.function.Consumer;
 
 public class AsyncPacketStream implements TaskSupplier<Object> {
 
+    private final AtomicLong lastHandledTask = new AtomicLong();
     private final HoneyPlayer player;
     private final WorkerPool<Object> workerPool;
+
     private ChainedCallable<Object> currentTask;
-    public Worker<Object> worker;
+    private Worker<Object> worker;
     private boolean unregistered;
-    private final AtomicLong lastHandledTask = new AtomicLong();
 
     public AsyncPacketStream(HoneyPlayer player, WorkerPool<Object> workerPool) {
         this.player = player;
@@ -36,25 +37,9 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
         return player;
     }
 
-    public synchronized void decode(Consumer<Object> consumer) {
-        submitTask(new ChainedCallable<>(this, () -> null).addListener(consumer));
-    }
-
-    public synchronized void prependDecode(Consumer<Object> consumer) {
-        if (currentTask == null) {
-            consumer.accept(null);
-        } else if (currentTask.isCalled()) {
-            consumer.accept(currentTask.getValue());
-        } else {
-            synchronized (currentTask) {
-                if (currentTask == null || currentTask.isCalled()) {
-                    prependDecode(consumer);
-                    return;
-                }
-
-                currentTask.addListener(consumer);
-            }
-        }
+    @Override
+    public ChainedCallable<Object> getTask() {
+        return currentTask;
     }
 
     @Override
@@ -99,6 +84,27 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
         }
     }
 
+    public synchronized void decode(Consumer<Object> consumer) {
+        submitTask(new ChainedCallable<>(this, () -> null).addListener(consumer));
+    }
+
+    public synchronized void prependDecode(Consumer<Object> consumer) {
+        if (currentTask == null) {
+            consumer.accept(null);
+        } else if (currentTask.isCalled()) {
+            consumer.accept(currentTask.getValue());
+        } else {
+            synchronized (currentTask) {
+                if (currentTask == null || currentTask.isCalled()) {
+                    prependDecode(consumer);
+                    return;
+                }
+
+                currentTask.addListener(consumer);
+            }
+        }
+    }
+
     public synchronized void farewell() {
         if (worker != null) {
             unregistered = true;
@@ -111,10 +117,5 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
     private void kickPlayer() {
         player.bukkit.kickPlayer(Lang.get("kick.too.long.packet.handle"));
         player.punished = true;
-    }
-
-    @Override
-    public ChainedCallable<Object> getTask() {
-        return currentTask;
     }
 }

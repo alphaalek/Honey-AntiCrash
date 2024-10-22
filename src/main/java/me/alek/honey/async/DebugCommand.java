@@ -8,10 +8,7 @@ public class DebugCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-
-        WorkerPool<Object> pool = WorkerPool.ASYNC_PACKET_DECODER_POOL;
-        pool.sendDebug(sender);
-
+        WorkerPool.ASYNC_PACKET_DECODER_POOL.sendDebug(sender);
         return true;
     }
 }

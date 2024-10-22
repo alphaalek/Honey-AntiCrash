@@ -1,5 +1,7 @@
 package me.alek.honey;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
@@ -12,6 +14,7 @@ import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.*;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainers;
+import me.alek.honey.validation.print.SuppressedException;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class HoneyPlayer implements Identifiable {
 
@@ -44,6 +48,7 @@ public class HoneyPlayer implements Identifiable {
     public UUID uuid;
     public String name;
 
+
     public boolean online = false;
     public boolean punished;
     public long postponedPackets;
@@ -57,6 +62,10 @@ public class HoneyPlayer implements Identifiable {
     public final Callback leaveCallback = new Callback();
     private final TickCache<Boolean> bypassEverything = new TickCache<>();
     private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();
+    public final Cache<String, SuppressedException> suppressedExceptions =
+            CacheBuilder.newBuilder()
+                    .expireAfterWrite(1, TimeUnit.MINUTES)
+                    .build();
 
     public EnhancedInitialIterator<PostponeValidation> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(
