@@ -1,9 +1,11 @@
-package me.alek.honey.netty.nbt;
+package me.alek.honey.netty.nbt.array;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.nbt.lists.NBTList;
-import me.alek.honey.netty.nbt.lists.NBTListOfCompound;
-import me.alek.honey.netty.nbt.lists.NBTListOfList;
+import me.alek.honey.netty.nbt.NBTBase;
+import me.alek.honey.netty.nbt.NBTRoot;
+import me.alek.honey.netty.nbt.NBTType;
+import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
+import me.alek.honey.netty.nbt.array.NBTArray;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -15,18 +17,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
-public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<List<Object>, ListConverter<Object, T>>implements Iterable<T> {
+public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<List<Object>, ListConverter<Object, T>>implements Iterable<T> {
 
     private ListConverter<Object, T> delegate;
     private final NBTType typeOf;
 
-    public NBTAbstractList(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+    public NBTAbstractArray(Object base, NBTType typeOf, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         super(base, root, owner, forceCreation);
         this.typeOf = typeOf;
     }
 
-    public NBTAbstractList(NBTType typeOf) {
-        super(NBTType.LIST.create());
+    public NBTAbstractArray(NBTType typeOf) {
+        super(NBTType.ARRAY.create());
         this.typeOf = typeOf;
     }
 
@@ -62,33 +64,33 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     }
 
     @Override
-    public NBTList<T> asList() {
-        if (typeOf == NBTType.LIST || typeOf == NBTType.COMPOUND || typeOf == NBTType.LISTOFCOMOUND || typeOf == NBTType.LISTOFLIST) {
+    public NBTArray<T> asList() {
+        if (typeOf == NBTType.ARRAY || typeOf == NBTType.COMPOUND || typeOf == NBTType.ARRAY_OF_COMPOUND || typeOf == NBTType.ARRAY_OF_ARRAY) {
             return null;
         }
-        return (NBTList<T>) this;
+        return (NBTArray<T>) this;
     }
 
-    public <R> NBTList<R> asListOf(Class<R> clazz) {
-        if (typeOf == NBTType.LIST || typeOf == NBTType.COMPOUND || typeOf == NBTType.LISTOFCOMOUND || typeOf == NBTType.LISTOFLIST) {
+    public <R> NBTArray<R> asListOf(Class<R> clazz) {
+        if (typeOf == NBTType.ARRAY || typeOf == NBTType.COMPOUND || typeOf == NBTType.ARRAY_OF_COMPOUND || typeOf == NBTType.ARRAY_OF_ARRAY) {
             return null;
         }
-        return (NBTList<R>) this;
+        return (NBTArray<R>) this;
     }
 
 
-    public NBTListOfList asListOfList() {
-        if (typeOf != NBTType.LIST) {
+    public GeneticArrayTypes.NBTArrayOfArray asListOfList() {
+        if (typeOf != NBTType.ARRAY) {
             return null;
         }
-        return (NBTListOfList) this;
+        return (GeneticArrayTypes.NBTArrayOfArray) this;
     }
 
-    public NBTListOfCompound asListOfCompound() {
-        if (typeOf != NBTType.LIST) {
+    public GeneticArrayTypes.NBTArrayOfCompound asListOfCompound() {
+        if (typeOf != NBTType.COMPOUND) {
             return null;
         }
-        return (NBTListOfCompound) this;
+        return (GeneticArrayTypes.NBTArrayOfCompound) this;
     }
 
     public int size() {

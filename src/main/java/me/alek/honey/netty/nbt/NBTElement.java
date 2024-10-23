@@ -63,16 +63,16 @@ public class NBTElement<T> extends NBTBase<T, T> {
                 case DOUBLE:
                     writer = new Writers.DoubleWriter();
                     break;
-                case BYTEARRAY:
+                case ARRAY_OF_BYTE:
                     writer = new Writers.ByteArrayWriter();
                     break;
                 case STRING:
                     writer = new Writers.StringWriter();
                     break;
-                case INTARRAY:
+                case ARRAY_OF_INT:
                     writer = new Writers.IntArrayWriter();
                     break;
-                case LONGARRAY:
+                case ARRAY_OF_LONG:
                     writer = new Writers.LongArrayWriter();
                     break;
             }

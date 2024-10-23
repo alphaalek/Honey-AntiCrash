@@ -1,9 +1,9 @@
 package me.alek.honey.netty.nbt;
 
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.nbt.lists.NBTList;
-import me.alek.honey.netty.nbt.lists.NBTListOfCompound;
-import me.alek.honey.netty.nbt.lists.NBTListOfList;
+import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
+import me.alek.honey.netty.nbt.array.NBTAbstractArray;
+import me.alek.honey.netty.nbt.array.NBTArray;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -119,55 +119,47 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     @SuppressWarnings("unchecked")
-    private <R> NBTList<R> castNBTList(NBTAbstractList<?> list) {
-        return (NBTList<R>) list;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <R extends NBTBase<?, ?>> NBTAbstractList<R> getAbstractListOf(String key, NBTType nbtType) {
-
-        NBTAbstractList<R> list = getAbstractList(key);
-        if (list != null && nbtType == list.getTypeOf()) {
-            return list;
+    public <R extends NBTBase<?, ?>> NBTAbstractArray<R> getAbstractListOf(String key, NBTType nbtType) {
+        NBTAbstractArray<R> array = getAbstractArray(key);
+        if (array != null && nbtType == array.getTypeOf()) {
+            return array;
         }
+
         NBTRoot root = getRoot();
         NBTBase<?, ?> base = get(key);
 
         if (base == null) {
             return null;
-        }
-        if (nbtType == NBTType.COMPOUND) {
-            return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner(), forceCreateChildren);
-        }
-        else if (nbtType == NBTType.LIST) {
-            return (NBTAbstractList<R>) new NBTListOfList(base.getHandle(), root, base.getOwner(), forceCreateChildren);
-        }
-        else {
-            return (NBTAbstractList<R>) new NBTList<>(base.getHandle(), nbtType, root, base.getOwner(), forceCreateChildren);
+        } else if (nbtType == NBTType.COMPOUND) {
+            return (NBTAbstractArray<R>) new GeneticArrayTypes.NBTArrayOfCompound(base.getHandle(), root, base.getOwner(), forceCreateChildren);
+        } else if (nbtType == NBTType.ARRAY) {
+            return (NBTAbstractArray<R>) new GeneticArrayTypes.NBTArrayOfCompound(base.getHandle(), root, base.getOwner(), forceCreateChildren);
+        } else {
+            return (NBTAbstractArray<R>) new NBTArray<>(base.getHandle(), nbtType, root, base.getOwner(), forceCreateChildren);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends NBTBase<?, ?>> NBTAbstractList<R> getAbstractListOf(String key, Class<?> clazz) {
+    public <R extends NBTBase<?, ?>> NBTAbstractArray<R> getAbstractListOf(String key, Class<?> clazz) {
         return getAbstractListOf(key, NBTType.getFromClass(clazz));
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTList<R> getListOf(String key, Class<R> clazz) {
-        return (NBTList<R>) (NBTAbstractList<?>) getAbstractListOf(key, clazz);
+    public <R> NBTArray<R> getListOf(String key, Class<R> clazz) {
+        return (NBTArray<R>) (NBTAbstractArray<?>) getAbstractListOf(key, clazz);
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NBTList<R> getListOf(String key, NBTType nbtType) {
-        return (NBTList<R>) (NBTAbstractList<?>) getAbstractListOf(key, nbtType);
+    public <R> NBTArray<R> getListOf(String key, NBTType nbtType) {
+        return (NBTArray<R>) (NBTAbstractArray<?>) getAbstractListOf(key, nbtType);
     }
 
-    public NBTListOfCompound getListOfCompound(String key) {
-        return (NBTListOfCompound) (NBTAbstractList<?>) getAbstractListOf(key, NBTType.COMPOUND);
+    public GeneticArrayTypes.NBTArrayOfCompound getListOfCompound(String key) {
+        return (GeneticArrayTypes.NBTArrayOfCompound) (NBTAbstractArray<?>) getAbstractListOf(key, NBTType.COMPOUND);
     }
 
-    public NBTListOfList getListOfList(String key) {
-        return (NBTListOfList) (NBTAbstractList<?>) getAbstractListOf(key, NBTType.LIST);
+    public GeneticArrayTypes.NBTArrayOfArray getListOfList(String key) {
+        return (GeneticArrayTypes.NBTArrayOfArray) (NBTAbstractArray<?>) getAbstractListOf(key, NBTType.ARRAY);
     }
 
     @SuppressWarnings("unchecked")
@@ -182,8 +174,8 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     @SuppressWarnings("unchecked")
-    public <R extends NBTBase<?, ?>> NBTAbstractList<R> getAbstractList(String key) {
-        return (NBTAbstractList<R>) get(key);
+    public <R extends NBTBase<?, ?>> NBTAbstractArray<R> getAbstractArray(String key) {
+        return (NBTAbstractArray<R>) get(key);
     }
 
     public NBTCompound getCompound(String key) {

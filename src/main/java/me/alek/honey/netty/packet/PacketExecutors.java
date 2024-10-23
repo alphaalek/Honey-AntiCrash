@@ -14,7 +14,7 @@ import me.alek.honey.netty.nbt.NBTCompound;
 import me.alek.honey.netty.nbt.NBTElement;
 import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.nbt.NBTType;
-import me.alek.honey.netty.nbt.lists.NBTList;
+import me.alek.honey.netty.nbt.array.NBTArray;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
@@ -115,9 +115,9 @@ public class PacketExecutors {
                     }
 
                     if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
-                        NBTList<String> pages = nbt.hasKeyOfType("pages", NBTType.STRING)
+                        NBTArray<String> pages = nbt.hasKeyOfType("pages", NBTType.STRING)
                                 ? nbt.getListOf("pages", NBTType.STRING)
-                                : new NBTList<>(NBTType.STRING);
+                                : new NBTArray<>(NBTType.STRING);
                         if (!serializeTextComponents(pages)) {
                             // TODO: actually serialize the components of the meta
                             break;
@@ -166,7 +166,7 @@ public class PacketExecutors {
             bookMetaPageModifier.get().writeField(bookMetaPageCache, "pages", 0, newPages);
         }
 
-        private boolean serializeTextComponents(NBTList<String> pages) {
+        private boolean serializeTextComponents(NBTArray<String> pages) {
             for (int i = 0; i < pages.size(); i++) {
                 NBTElement<String> page = pages.get(i);
 

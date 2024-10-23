@@ -9,7 +9,6 @@ import me.alek.honey.netty.nbt.NBTCompound;
 import me.alek.honey.netty.nbt.NBTElement;
 import me.alek.honey.netty.nbt.NBTRoot;
 import me.alek.honey.netty.nbt.NBTType;
-import me.alek.honey.netty.nbt.lists.NBTListOfCompound;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -74,10 +73,10 @@ public class ItemChecks {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            NBTListOfCompound enchantments = null;
+            NBTArrayOfCompound enchantments = null;
 
             for (String key : enchantmentKeys) {
-                if (nbt.hasKeyOfType(key, NBTType.LISTOFCOMOUND)) {
+                if (nbt.hasKeyOfType(key, NBTType.ARRAY_OF_COMPOUND)) {
                     enchantments = nbt.getListOfCompound(key);
                     break;
                 }
@@ -173,7 +172,7 @@ public class ItemChecks {
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
-                    && nbt.hasKeyOfType("AttributeModifiers", NBTType.LISTOFCOMOUND);
+                    && nbt.hasKeyOfType("AttributeModifiers", NBTType.ARRAY_OF_COMPOUND);
         }
 
         @Override
@@ -187,7 +186,7 @@ public class ItemChecks {
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
-                    && nbt.hasKeyOfType("CustomPotionEffects", NBTType.LISTOFCOMOUND);
+                    && nbt.hasKeyOfType("CustomPotionEffects", NBTType.ARRAY_OF_COMPOUND);
         }
 
         @Override
@@ -343,7 +342,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("pages", NBTType.LIST)
+            return nbt.hasKeyOfType("pages", NBTType.ARRAY)
                     && nbt.getListOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
         }
 
@@ -428,11 +427,11 @@ public class ItemChecks {
             }
 
             NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKeyOfType("textures", NBTType.LISTOFCOMOUND)) {
+            if (!propertiesCompound.hasKeyOfType("textures", NBTType.ARRAY_OF_COMPOUND)) {
                 return false;
             }
 
-            NBTListOfCompound textures = propertiesCompound.getListOfCompound("textures");
+            NBTArrayOfCompound textures = propertiesCompound.getListOfCompound("textures");
             for (NBTCompound texture : textures.getValues()) {
                 if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
                     return false;
@@ -491,7 +490,7 @@ public class ItemChecks {
             }
 
             NBTCompound fireworksCompound = nbt.getCompound("Fireworks");
-            if (!fireworksCompound.hasKeyOfType("Explosions", NBTType.LISTOFCOMOUND)) {
+            if (!fireworksCompound.hasKeyOfType("Explosions", NBTType.ARRAY_OF_COMPOUND)) {
                 return false;
             }
 
@@ -508,7 +507,7 @@ public class ItemChecks {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("Patterns", NBTType.LISTOFCOMOUND)
+            return nbt.hasKeyOfType("Patterns", NBTType.ARRAY_OF_COMPOUND)
                     && nbt.getListOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
 

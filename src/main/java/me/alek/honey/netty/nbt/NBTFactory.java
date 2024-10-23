@@ -27,6 +27,7 @@ public class NBTFactory {
         }
 
         NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES);
+
         ReflectStructure<Object, ?> reflectStructure = ReflectStructure.Provider.acquireStructure(nmsItem.getClass());
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(root, null, forceCreation))
@@ -37,9 +38,9 @@ public class NBTFactory {
             try {
                 Object handle = NMS.getNBTTagCompoundClass().getDeclaredConstructor().newInstance();
 
-                NBTCompound createdNBT = new NBTCompound(handle, root, null, true);
-                structureModifier.writeField(0, createdNBT);
-                return createdNBT;
+                NBTCompound nbt = new NBTCompound(handle, root, null, forceCreation);
+                structureModifier.writeField(0, nbt);
+                return nbt;
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -66,43 +67,37 @@ public class NBTFactory {
             return null;
         }
 
-        if (type == NBTType.LIST) {
-            return (NBTBase<K, V>) constructorInvoker.invoke(handle, getListType(handle, root, owner, forceCreation), root, owner, forceCreation);
+        if (type == NBTType.ARRAY) {
+            return (NBTBase<K, V>) constructorInvoker.invoke(handle, getArrayType(handle, root, owner, forceCreation), root, owner, forceCreation);
+        } else {
+            return (NBTBase<K, V>) constructorInvoker.invoke(handle, root, owner, forceCreation);
         }
-        return (NBTBase<K, V>) constructorInvoker.invoke(handle, root, owner, forceCreation);
-    }
-
-    public static ReflectStructure<Object, ? > getDirectNBTStructure(Object handle) {
-        if (handle == null) {
-            return null;
-        }
-        return ReflectStructure.Provider.acquireStructure(handle.getClass());
     }
 
     @SuppressWarnings("unchecked")
-    public static NBTType getListType(Object handle, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+    public static NBTType getArrayType(Object handle, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
 
         IStructureModifier<Byte> byteModifier = ReflectStructure.Provider.acquireStructure(NMS.getNBTTagListClass())
-                .withType(byte.class)
+                .withBytes()
                 .withTarget(handle);
         byte typeId = byteModifier.readField(0);
         if (typeId != 0) {
             return NBTType.getFromTypeId(typeId);
         }
 
-        IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> listModifier = getDirectNBTStructure(handle)
+        IStructureModifier<ListConverter<Object, NBTBase<?, ?>>> arrayStructure = ReflectStructure.Provider.acquireStructure(handle.getClass())
             .withWeakType(List.class, Converters.<NBTBase<?, ?>>getNBTListConverter(root, owner, forceCreation))
             .withTarget(handle);
-        List<? extends NBTBase<?, ?>> list = listModifier.readFieldAndApplyMapping(0)
+        List<? extends NBTBase<?, ?>> array = arrayStructure.readFieldAndApplyMapping(0)
                 .getDelegatedList();
-        if (list.isEmpty()) {
+        if (array.isEmpty()) {
             return NBTType.UNKNOWN;
         }
 
-        NBTBase<?, ?> value = list.get(0);
+        NBTBase<?, ?> value = array.get(0);
         if (value == null) {
             return NBTType.UNKNOWN;
         }
@@ -112,35 +107,36 @@ public class NBTFactory {
 
     public static byte getTypeId(IStructureModifier<Byte> structureModifier) {
         if (structureModifier == null) {
-            return (byte) -1;
+            return -1;
         }
 
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
             return structureModifier.invokeMethod(null, "getTypeId", 0);
+        } else {
+            return structureModifier.invokeMethod(null,
+                    (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(NMS.getNBTBaseClass()));
         }
-
-        return structureModifier.invokeMethod(null,
-                (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(NMS.getNBTBaseClass()));
     }
 
-    public static NBTType getType(Object handle, boolean ignoreNestedLists, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+    public static NBTType getType(Object handle, boolean ignoreNestedArrays, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         if (handle == null) {
             return NBTType.UNKNOWN;
         }
 
         ReflectStructure<Object, ?> reflectStructure = ReflectStructure.Provider.acquireStructure(NMS.getNBTBaseClass());
         IStructureModifier<Byte> structureModifier = reflectStructure
-                .withType(byte.class)
+                .withBytes()
                 .withTarget(handle);
+
         byte typeId = getTypeId(structureModifier);
 
         NBTType type = NBTType.getFromTypeId(typeId);
-        if (type == NBTType.LIST && !ignoreNestedLists) {
-            switch (getListType(handle, root, owner, forceCreation)) {
+        if (type == NBTType.ARRAY && !ignoreNestedArrays) {
+            switch (getArrayType(handle, root, owner, forceCreation)) {
                 case COMPOUND:
-                    return NBTType.LISTOFCOMOUND;
-                case LIST:
-                    return NBTType.LISTOFLIST;
+                    return NBTType.ARRAY_OF_COMPOUND;
+                case ARRAY:
+                    return NBTType.ARRAY_OF_ARRAY;
                 default:
                     break;
             }

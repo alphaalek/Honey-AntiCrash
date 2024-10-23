@@ -2,6 +2,7 @@ package me.alek.honey.netty.nbt;
 
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.nbt.array.NBTAbstractArray;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
@@ -111,11 +112,11 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         this.owner = owner;
     }
 
-    public NBTAbstractList<?> asList() {
+    public NBTAbstractArray<?> asList() {
         if (type.getClazz() != List.class) {
             return null;
         }
-        return (NBTAbstractList<?>) this;
+        return (NBTAbstractArray<?>) this;
     }
 
     public NBTCompound asCompound() {
@@ -183,7 +184,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public boolean isByteArray() {
-        return isType(NBTType.BYTEARRAY);
+        return isType(NBTType.ARRAY_OF_BYTE);
     }
 
     public boolean isString() {
@@ -191,7 +192,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public boolean isList() {
-        return isType(NBTType.LIST);
+        return isType(NBTType.ARRAY);
     }
 
     public boolean isCompound() {
@@ -199,11 +200,11 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public boolean isIntArray() {
-        return isType(NBTType.INTARRAY);
+        return isType(NBTType.ARRAY_OF_INT);
     }
 
     public boolean isLongArray() {
-        return isType(NBTType.LONGARRAY);
+        return isType(NBTType.ARRAY_OF_LONG);
     }
 
     @Override
