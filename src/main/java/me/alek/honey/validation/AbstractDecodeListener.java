@@ -1,7 +1,7 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -13,7 +13,7 @@ import me.alek.honey.util.Callback;
 
 import java.util.stream.Collectors;
 
-public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements ValidationPipelineFactory<DecodeValidation>, BaseValidationContainer {
+public abstract class AbstractDecodeListener<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> implements ValidationPipelineFactory<DecodeValidation>, BaseValidationContainer {
 
     private final Array<ValidationPipeline<DecodeValidation>> pipelines = new Array<>();
 

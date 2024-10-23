@@ -3,7 +3,7 @@ package me.alek.honey.listeners;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,7 +12,7 @@ import org.bukkit.event.server.TabCompleteEvent;
 
 import java.util.stream.Collectors;
 
-public class TabCompleteListener extends PacketAdapter<WrappedPlayOutTabComplete> implements Listener {
+public class TabCompleteListener extends PacketListenerAdapter<WrappedPlayOutTabComplete> implements Listener {
 
     private boolean shouldBlockTabCompletion(HoneyPlayer player) {
         if (ConfigurationOptions.General.HIDE_COMMAND_ENABLED) {

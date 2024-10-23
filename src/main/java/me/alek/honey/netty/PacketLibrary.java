@@ -6,7 +6,7 @@ import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.SpigotServerInjector;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.PacketWrapperFactory;
 import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -115,23 +115,23 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, PacketType... type) {
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, ListenerPriority priority, PacketType... type) {
         packetProcessor.addListener(adapter, priority, type);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketAdapter<WP> adapter, ListenerPriority priority, List<PacketType> types) {
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, ListenerPriority priority, List<PacketType> types) {
         packetProcessor.addListener(adapter, priority, types);
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListener(PacketAdapter<WP> adapter) {
+    public <WP extends WrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> adapter) {
         removeListeners(adapter, PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListeners(PacketAdapter<WP> adapter, List<PacketType> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> adapter, List<PacketType> packetTypes) {
         packetProcessor.removeListener(adapter, packetTypes);
     }
 
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> adapter) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> adapter) {
         return packetProcessor.isRegistered(adapter);
     }
 

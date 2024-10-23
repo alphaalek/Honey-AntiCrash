@@ -67,12 +67,12 @@ public class PacketFactory {
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, ByteBuf serializer, HoneyPlayer player) {
-        return createNewPacket(type, player, serializer, player.channel, null);
+        return createNewPacket(type, player, serializer, null);
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Channel channel, Callback postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createNewPacket(PacketType type, HoneyPlayer player, ByteBuf serializer, Callback postAction) {
         try {
-            return createWrappedPacket(type, createPacket(type, serializer), player, channel, postAction);
+            return createWrappedPacket(type, createPacket(type, serializer), player, postAction);
         } catch (Exception ex) {
             HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when creating packet for type " + type, ex);
         }
@@ -80,8 +80,8 @@ public class PacketFactory {
         return null;
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, HoneyPlayer player, Channel channel, Callback postAction) {
-        return PacketWrapperFactory.initWrappedPacket(type, rawPacket, (PacketContainer<WP>) new InternalPacketContainer<>(rawPacket, player, channel, postAction, type));
+    public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, HoneyPlayer player, Callback postAction) {
+        return PacketWrapperFactory.initWrappedPacket(type, rawPacket, (PacketContainer<WP>) new InternalPacketContainer<>(rawPacket, player, postAction, type));
     }
 
     public static synchronized <WP extends WrappedPacket<WP>> WrappedPacket<WP> createWrappedPacket(PacketType type, Object rawPacket, PacketContainer<WP> packetContainer) {

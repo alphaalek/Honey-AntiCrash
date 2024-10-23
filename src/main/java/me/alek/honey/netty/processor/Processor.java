@@ -6,7 +6,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.CancellableByteBuf;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-public class Processor<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> {
+public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> {
 
     public static class ReaderInfo<B, T> {
 

@@ -7,13 +7,15 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 public abstract class WrappedObject<T> {
 
     private final Object handle;
-    private ReflectStructure<Object, Object> reflectStructure;
+    private final ReflectStructure<Object, Object> reflectStructure;
 
     public WrappedObject(Object handle) {
         this.handle = handle;
 
         if (handle != null) {
             this.reflectStructure = ReflectStructure.Provider.acquireStructure(handle.getClass());
+        } else {
+            this.reflectStructure = null;
         }
     }
 
@@ -29,7 +31,7 @@ public abstract class WrappedObject<T> {
         return reflectStructure.withType(clazz).withTarget(handle);
     }
 
-    public <T, R> IStructureModifier<R> getModifier(Class<T> clazz, JavaConverter<T, R> converter) {
+    public <R> IStructureModifier<R> getModifier(Class<T> clazz, JavaConverter<T, R> converter) {
         return reflectStructure.withType(clazz, converter).withTarget(handle);
     }
 }

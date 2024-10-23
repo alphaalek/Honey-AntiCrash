@@ -38,7 +38,7 @@ public abstract class NBTAbstractList<T extends NBTBase<?, ?>> extends NBTBase<L
     @Override
     public ApplicableConverter<List<Object>, ListConverter<Object, T>> getConverter() {
         if (delegate == null) {
-            delegate = Converters.getNBTListConverter(getRoot(), this, forceCreation);
+            delegate = Converters.getNBTListConverter(getRoot(), this, forceCreateChildren);
         }
         return delegate;
     }

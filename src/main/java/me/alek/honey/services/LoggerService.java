@@ -8,7 +8,7 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -18,7 +18,6 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,7 +43,7 @@ public class LoggerService {
 
     private final class PacketLoggerHolder<WP extends WrappedPacket<WP>> {
 
-        private final PacketAdapter<WP> packetLogger = new PacketAdapter<WP>() {
+        private final PacketListenerAdapter<WP> packetLogger = new PacketListenerAdapter<WP>() {
 
             @Override
             @SuppressWarnings("unchecked")

@@ -5,7 +5,7 @@ import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
@@ -14,7 +14,7 @@ import org.bukkit.Bukkit;
 
 import java.util.List;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketAdapter<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
+public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
 
     private final Array<ValidationPipeline<PacketValidation<WP>>> visitors = new Array<>();
     private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();

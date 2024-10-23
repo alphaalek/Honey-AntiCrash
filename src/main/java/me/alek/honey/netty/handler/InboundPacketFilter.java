@@ -101,7 +101,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         packetHandler.runDelayedTasks(PacketBound.SERVER);
 
         PacketType type = packetHandler.getPacketType(buf);
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, ctx.channel(), type, buf.readableBytes());
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, type, buf.readableBytes());
 
         if (Optional.ofNullable(MARK.get())
                 .map(PacketContainer::getType)

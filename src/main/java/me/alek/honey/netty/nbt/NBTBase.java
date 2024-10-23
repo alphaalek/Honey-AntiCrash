@@ -15,30 +15,34 @@ import java.util.function.Function;
 public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> implements Cloneable, Serializable {
 
     private final Object handle;
-    protected final boolean forceCreation;
-    protected IStructureModifier<V> valueStructureModifier;
+    protected final boolean forceCreateChildren;
+    protected final IStructureModifier<V> valueStructureModifier;
 
     private NBTRoot root;
     private NBTBase<?, ?> owner;
     private NBTType type;
     private V value;
 
-    public NBTBase(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-        super(base);
-        this.handle = base;
+    public NBTBase(Object handle, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
+        super(handle);
+        this.handle = handle;
         this.root = root;
         this.owner = owner;
-        this.forceCreation = forceCreation;
+        this.forceCreateChildren = forceCreation;
+
+        if (handle != null) {
+            valueStructureModifier = applyStructure(getConverter())
+                    .apply(getReflectStructure())
+                    .withTarget(handle);
+        } else {
+            valueStructureModifier = null;
+        }
 
         if (getRoot().getTotalElements() > getRoot().getMaximumElementsWithin()) {
             return;
         }
 
-        if (base != null) {
-            valueStructureModifier = applyStructure(getConverter())
-                    .apply(getReflectStructure())
-                    .withTarget(base);
-
+        if (handle != null) {
             getRoot().subscribe(getOwner(), this);
         }
 
@@ -137,7 +141,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public NBTType getType() {
         if (type == null) {
-            this.type = NBTFactory.getType(handle, false, getRoot(), getOwner(), forceCreation);
+            this.type = NBTFactory.getType(handle, false, getRoot(), getOwner(), forceCreateChildren);
         }
         return type;
     }

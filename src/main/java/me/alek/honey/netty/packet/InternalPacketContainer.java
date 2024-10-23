@@ -31,7 +31,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final int byteSize;
     private Callback postAction;
     private final HoneyPlayer player;
-    private final Channel channel;
     private ReflectStructure<Object, ?> structure;
     private boolean cancelled;
     private boolean dumped;
@@ -39,19 +38,18 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final PacketLifecycleTimings eventLoopStateTracker = new PacketLifecycleTimings();
     private final Callback callbackAction = new Callback();
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Channel channel, Callback postAction, PacketType type) {
-        this(player, channel, type, 0);
-        postDecode(rawPacket, postAction, type);
+    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Callback postAction, PacketType type) {
+        this(player, type, 0);
+        initPostMinecraftDecode(rawPacket, postAction, type);
     }
 
-    public InternalPacketContainer(HoneyPlayer player, Channel channel, PacketType type, int byteSize) {
+    public InternalPacketContainer(HoneyPlayer player, PacketType type, int byteSize) {
         this.player = player;
-        this.channel = channel;
         this.type = type;
         this.byteSize = byteSize;
     }
 
-    public void postDecode(Object raw, Callback postAction, PacketType type) {
+    public void initPostMinecraftDecode(Object raw, Callback postAction, PacketType type) {
         this.type = type;
         this.raw = raw;
         this.postAction = postAction;
@@ -100,8 +98,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public Channel getChannel() {
-        return this.channel;
+        return this.player.channel;
     }
+
     @Override
     public PacketType getType() {
         return this.type;

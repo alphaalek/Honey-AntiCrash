@@ -26,7 +26,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private static class EventBus<WP extends WrappedPacket<WP>> {
 
-        private final EnumMap<ListenerPriority, List<PacketAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
+        private final EnumMap<ListenerPriority, List<PacketListenerAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
         private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
 
         @SuppressWarnings("unchecked")
@@ -47,9 +47,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         public void callDecode(HoneyPlayer player, PacketType type, CancellableByteBuf buf) {
-            callPipeline(packetAdapter -> {
+            callPipeline(packetListener -> {
                 try {
-                    packetAdapter.onPacketDecode(player, type, buf);
+                    packetListener.onPacketDecode(player, type, buf);
                 } catch (Exception ex) {
                     Bukkit.getLogger().log(Level.SEVERE, "Error occurred in packet task: " + Optional.ofNullable(player).map(p -> p.name).orElse("Unknown") + ", " + buf.buf().readableBytes() + " bytes", ex);
 
@@ -58,33 +58,33 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void callPipeline(Consumer<PacketAdapter<WP>> consumer) {
+        public void callPipeline(Consumer<PacketListenerAdapter<WP>> consumer) {
             for (ListenerPriority priority : pipeline) {
-                for (PacketAdapter<WP> listener : priorityMap.get(priority)) {
+                for (PacketListenerAdapter<WP> listener : priorityMap.get(priority)) {
                     consumer.accept(listener);
                 }
             }
         }
 
-        public void addListener(PacketAdapter<?> packetAdapter, ListenerPriority priority) {
+        public void addListener(PacketListenerAdapter<?> packetListener, ListenerPriority priority) {
             synchronized (priorityMap) {
                 if (!priorityMap.containsKey(priority)) {
                     priorityMap.put(priority, new ArrayList<>());
                 }
-                priorityMap.get(priority).add((PacketAdapter<WP>) packetAdapter);
+                priorityMap.get(priority).add((PacketListenerAdapter<WP>) packetListener);
                 addToPipeline(priority);
             }
         }
 
-        public boolean removeListener(PacketAdapter<?> packetAdapter) {
+        public boolean removeListener(PacketListenerAdapter<?> packetListener) {
             synchronized (priorityMap) {
                 synchronized (pipeline) {
                     for (ListenerPriority priority : new ArrayList<>(pipeline)) {
-                        List<PacketAdapter<WP>> listeners = priorityMap.get(priority);
-                        Iterator<PacketAdapter<WP>> listenerIterator = listeners.iterator();
+                        List<PacketListenerAdapter<WP>> listeners = priorityMap.get(priority);
+                        Iterator<PacketListenerAdapter<WP>> listenerIterator = listeners.iterator();
                         while (listenerIterator.hasNext()) {
-                            PacketAdapter<WP> listener = listenerIterator.next();
-                            if (listener != packetAdapter) {
+                            PacketListenerAdapter<WP> listener = listenerIterator.next();
+                            if (listener != packetListener) {
                                 continue;
                             }
 
@@ -187,26 +187,26 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, List<PacketType> types) {
-        addListener(bus -> bus.addListener(packetAdapter, priority), types);
+    public synchronized void addListener(PacketListenerAdapter<? extends WrappedPacket<?>> packetListener, ListenerPriority priority, List<PacketType> types) {
+        addListener(bus -> bus.addListener(packetListener, priority), types);
     }
 
     @Override
-    public void addListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, ListenerPriority priority, PacketType... packetTypes) {
-        addListener(packetAdapter, priority, Arrays.asList(packetTypes));
+    public void addListener(PacketListenerAdapter<? extends WrappedPacket<?>> packetListener, ListenerPriority priority, PacketType... packetTypes) {
+        addListener(packetListener, priority, Arrays.asList(packetTypes));
     }
 
     @Override
-    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, PacketType... packetTypes) {
-        removeListener(packetAdapter, Arrays.asList(packetTypes));
+    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> packetListener, PacketType... packetTypes) {
+        removeListener(packetListener, Arrays.asList(packetTypes));
     }
 
     @Override
-    public void removeListener(PacketAdapter<? extends WrappedPacket<?>> packetAdapter, List<PacketType> packetTypes) {
+    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> packetListener, List<PacketType> packetTypes) {
         for (PacketType packetType : packetTypes) {
             if (!eventBusses.has(packetType.getHoneyID())) continue;
 
-            eventBusses.get(packetType.getHoneyID()).removeListener(packetAdapter);
+            eventBusses.get(packetType.getHoneyID()).removeListener(packetListener);
 
             if (eventBusses.get(packetType.getHoneyID()).isEmpty()) {
                 eventBusses.remove(packetType.getHoneyID());
@@ -215,7 +215,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketAdapter<WP> check) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> check) {
         for (EventBus<?> bus : eventBusses) {
             if (bus != null && existsInBus(bus, check)) {
                 return true;
@@ -224,9 +224,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketAdapter<WP> adapter) {
-        for (List<PacketAdapter<WP2>> packetAdapters : bus.priorityMap.values()) {
-            if (packetAdapters.stream().anyMatch(a -> a.equals(adapter))) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketListenerAdapter<WP> adapter) {
+        for (List<PacketListenerAdapter<WP2>> packetListeners : bus.priorityMap.values()) {
+            if (packetListeners.stream().anyMatch(a -> a.equals(adapter))) {
                 return true;
             }
         }
@@ -253,15 +253,15 @@ public class InternalPacketProcessor implements PacketProcessor {
         call(type, bus -> bus.callDecode(player, type, buf));
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> packetContainer,
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket,
                                                                                          Object packet, HoneyPlayer player, Channel channel,
                                                                                          Callback postAction, PacketType type) {
-        if (packetContainer != null) {
-            packetContainer.postDecode(packet, postAction, type);
-            return packetContainer;
+        if (earlyInitializedPacket != null) {
+            earlyInitializedPacket.initPostMinecraftDecode(packet, postAction, type);
+            return earlyInitializedPacket;
         }
 
-        return new InternalPacketContainer<>(packet, player, channel, postAction, type);
+        return new InternalPacketContainer<>(packet, player, postAction, type);
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Channel channel,

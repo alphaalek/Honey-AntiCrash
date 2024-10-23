@@ -8,7 +8,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
-import me.alek.honey.netty.packet.PacketAdapter;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
@@ -34,7 +34,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
     public MovementValidations() {
-        HoneyPlugin.get().getPacketLibrary().addListeners(new PacketAdapter<WrappedPlayOutPosition>() {
+        HoneyPlugin.get().getPacketLibrary().addListeners(new PacketListenerAdapter<WrappedPlayOutPosition>() {
 
             @Override
             public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {

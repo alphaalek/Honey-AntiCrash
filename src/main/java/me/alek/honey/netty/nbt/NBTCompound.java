@@ -35,7 +35,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
 
     public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getConverter() {
         if (delegate == null) {
-            delegate = Converters.getNBTCompoundConverter(getRoot(), this, forceCreation);
+            delegate = Converters.getNBTCompoundConverter(getRoot(), this, forceCreateChildren);
         }
         return delegate;
     }
@@ -137,13 +137,13 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
             return null;
         }
         if (nbtType == NBTType.COMPOUND) {
-            return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner(), forceCreation);
+            return (NBTAbstractList<R>) new NBTListOfCompound(base.getHandle(), root, base.getOwner(), forceCreateChildren);
         }
         else if (nbtType == NBTType.LIST) {
-            return (NBTAbstractList<R>) new NBTListOfList(base.getHandle(), root, base.getOwner(), forceCreation);
+            return (NBTAbstractList<R>) new NBTListOfList(base.getHandle(), root, base.getOwner(), forceCreateChildren);
         }
         else {
-            return (NBTAbstractList<R>) new NBTList<>(base.getHandle(), nbtType, root, base.getOwner(), forceCreation);
+            return (NBTAbstractList<R>) new NBTList<>(base.getHandle(), nbtType, root, base.getOwner(), forceCreateChildren);
         }
     }
 

@@ -13,7 +13,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketLifecycleTimings getEventloopStateTimings();
 
-    void postDecode(Object packet, Callback postAction, PacketType type);
+    void initPostMinecraftDecode(Object packet, Callback postAction, PacketType type);
 
     int getByteSize();
 
