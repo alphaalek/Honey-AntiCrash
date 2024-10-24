@@ -13,11 +13,11 @@ import java.util.List;
 public class InternalComponentBridge implements ComponentBridge {
 
     private final QueryFactory queryFactory;
-    private final RepositoryProvider repositoryCollection;
+    private final RepositoryCollection repositoryCollection;
 
     private boolean enabled;
 
-    public InternalComponentBridge(RepositoryProvider repositoryCollection, QueryFactory queryFactory) {
+    public InternalComponentBridge(RepositoryCollection repositoryCollection, QueryFactory queryFactory) {
         this.queryFactory = queryFactory;
         this.repositoryCollection = repositoryCollection;
     }

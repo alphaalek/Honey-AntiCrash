@@ -7,7 +7,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
-import me.alek.honey.sql.SQLManagerWrapper;
+import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
 import me.alek.honey.tracker.temp.TempQueuedTracker;
@@ -128,7 +128,7 @@ public class HoneyPlayer implements Identifiable {
             }.runTaskLater(HoneyPlugin.get().getPlugin(), 40L);
         }
 
-        SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
+        SQLManager sqlHandler = HoneyPlugin.get().getSQLManager();
         new BukkitRunnable() {
             @Override
             public void run() {

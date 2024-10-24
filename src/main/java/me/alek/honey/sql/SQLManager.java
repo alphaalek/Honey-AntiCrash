@@ -3,21 +3,17 @@ package me.alek.honey.sql;
 import com.google.common.base.Strings;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.sql.exceptions.SQLFactoryException;
 import me.alek.honey.sql.exceptions.SQLPlayerNotFoundException;
-import me.alek.honey.sql.model.PlayerEntry;
-import me.alek.honey.sql.model.ViolationEntry;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
+public class SQLManager implements QueryFactory {
 
     private boolean isEnabled;
     private int port;
@@ -28,11 +24,11 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
 
     private Connection connection;
 
-    private final RepositoryProvider repositoryCollection;
+    private final RepositoryCollection repositoryCollection;
     private final ComponentBridge componentBridge;
     private final QueryFactory queryFactory;
 
-    public SQLManagerWrapper(RepositoryProvider repositoryCollection) {
+    public SQLManager(RepositoryCollection repositoryCollection) {
         this.repositoryCollection = repositoryCollection;
         this.componentBridge = new InternalComponentBridge(repositoryCollection, this);
 
@@ -76,7 +72,7 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         HoneyPlugin.get().getLoggerService().getLogger().info(url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
     }
 
-    public RepositoryProvider getRepositoryCollection() {
+    public RepositoryCollection getRepositoryCollection() {
         return this.repositoryCollection;
     }
 
@@ -101,7 +97,9 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
             queryFactory.setConnection(this.connection);
 
             // prepare repositories
-            if (!queryFactory.isConnectionClosed()) prepareRepositories();
+            if (!queryFactory.isConnectionClosed()) {
+                prepareRepositories();
+            }
         }
     }
 
@@ -113,61 +111,8 @@ public class SQLManagerWrapper implements QueryFactory, ComponentBridge {
         componentBridge.preparePlayer(player);
     }
 
-    @Override
-    public void updatePlayer(HoneyPlayer player) throws SQLPlayerNotFoundException, SQLFactoryException {
-        componentBridge.updatePlayer(player);
-    }
-
-    @Override
-    public void setupPlayer(HoneyPlayer player) throws SQLFactoryException {
-        componentBridge.setupPlayer(player);
-    }
-
-    @Override
-    public void removePlayerName(String playerName) throws SQLFactoryException {
-        componentBridge.removePlayerName(playerName);
-    }
-
-    @Override
-    public boolean existsPlayer(String playerName) {
-        return componentBridge.existsPlayer(playerName);
-    }
-
-    @Override
-    public boolean containsUUID(String UUID) throws SQLFactoryException {
-        return componentBridge.containsUUID(UUID);
-    }
-
-    @Override
-    public List<ViolationEntry> getViolations(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return componentBridge.getViolations(playerName);
-    }
-
-    @Override
-    public List<ViolationEntry> getViolationsOf(String playerName, String violationName) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return componentBridge.getViolationsOf(playerName, violationName);
-    }
-
-    @Override
-    public List<ViolationEntry> getViolationsBefore(String playerName, int unixTime) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return componentBridge.getViolationsBefore(playerName, unixTime);
-    }
-
-    public void postViolation(HoneyPlayer player, String violationName, String context, ValidationPipelineContext.DevelopmentData developmentData) throws SQLPlayerNotFoundException, SQLFactoryException {
-        componentBridge.postViolation(player, violationName, context, developmentData);
-    }
-
-    public int getPlayerId(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return componentBridge.getPlayerId(playerName);
-    }
-
-    public int getPlayerId(HoneyPlayer player) throws SQLPlayerNotFoundException,SQLFactoryException {
-        return componentBridge.getPlayerId(player);
-    }
-
-    @Override
-    public PlayerEntry getPlayerData(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException {
-        return componentBridge.getPlayerData(playerName);
+    public ComponentBridge getComponentBridge() {
+        return componentBridge;
     }
 
     public Connection getConnection() {

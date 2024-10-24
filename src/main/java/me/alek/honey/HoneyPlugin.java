@@ -27,8 +27,8 @@ import me.alek.honey.services.NotificationService;
 import me.alek.honey.services.ViolationService;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
-import me.alek.honey.sql.RepositoryProvider;
-import me.alek.honey.sql.SQLManagerWrapper;
+import me.alek.honey.sql.RepositoryCollection;
+import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.MarkableHandleTracker;
@@ -75,7 +75,7 @@ public class HoneyPlugin implements HoneyAPI {
     private ConfiscationService confiscationService;
     private LoggerService loggerService;
     private CommandManager commandManager;
-    private SQLManagerWrapper sqlManager;
+    private SQLManager sqlManager;
     private Configuration configuration;
     private ExecutionQueueProxy serverThreadTracker;
     private TempQueuedHandleTracker packetNettyTracker;
@@ -263,7 +263,7 @@ public class HoneyPlugin implements HoneyAPI {
         confiscationService = new ConfiscationService();
 
         // setup sql handler
-        sqlManager = new SQLManagerWrapper(new RepositoryProvider());
+        sqlManager = new SQLManager(new RepositoryCollection());
 
         // setup tracking
         serverThreadTracker = new ExecutionQueueProxy();
@@ -404,7 +404,7 @@ public class HoneyPlugin implements HoneyAPI {
         return confiscationService;
     }
 
-    public SQLManagerWrapper getSQLManager() {
+    public SQLManager getSQLManager() {
         return sqlManager;
     }
 

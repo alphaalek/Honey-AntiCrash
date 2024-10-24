@@ -1,6 +1,5 @@
 package me.alek.honey.sql;
 
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.sql.exceptions.SQLFactoryException;
 import org.bukkit.Bukkit;
 

@@ -5,7 +5,7 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.sql.SQLManagerWrapper;
+import me.alek.honey.sql.SQLManager;
 import me.alek.honey.sql.model.ViolationEntry;
 import me.alek.honey.util.pastebin.PasteRequest;
 import me.alek.honey.util.pastebin.PastebinClient;
@@ -18,46 +18,59 @@ import java.util.Date;
 
 public class PasteLogsCommand implements CommandImpl {
 
-    private final SQLManagerWrapper sqlHandler = HoneyPlugin.get().getSQLManager();
+    private final SQLManager sqlHandler = HoneyPlugin.get().getSQLManager();
 
     public boolean handlePreconditions(CommandSender sender, String[] args) {
         if (!sqlHandler.isEnabled()) {
             sender.sendMessage(Lang.getFormatted("pastelogs.mysql.disabled"));
             return false;
-        }
-        if (sqlHandler.isConnectionClosed()) {
+        } else if (sqlHandler.isConnectionClosed()) {
             sender.sendMessage(Lang.getFormatted("pastelogs.mysql.connection.error"));
             return false;
-        }
-        if (ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY.isEmpty()) {
+        } else if (ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY.isEmpty()) {
             sender.sendMessage(Lang.getFormatted("pastelogs.pastebin.developer.key.error"));
             return false;
-        }
-        if (args.length == 0) {
+        } else if (args.length == 0) {
             sender.sendMessage(Lang.getFormatted("pastelogs.specify.player"));
             return false;
         }
-        final String playerName = args[0];
-        if (!sqlHandler.existsPlayer(playerName)) {
+
+        String playerName = args[0];
+        if (!sqlHandler.getComponentBridge().existsPlayer(playerName)) {
             sender.sendMessage(Lang.getFormatted("pastelogs.unknown.player"));
             return false;
         }
+
         return true;
     }
 
     @Override
     public void perform(CommandSender sender, String[] args) {
-        if (!handlePreconditions(sender, args)) return;
+        if (!handlePreconditions(sender, args)) {
+            return;
+        }
 
         try {
-            final String playerName = sqlHandler.getPlayerData(args[0]).getPlayerName();
+            String playerName = sqlHandler.getComponentBridge().getPlayerData(args[0]).getPlayerName();
 
-            final StringBuilder rawMessageBuilder = new StringBuilder();
-            rawMessageBuilder.append("Violation log for player " + playerName + " pasted with Honey " + HoneyPlugin.get().getPlugin().getDescription().getVersion() + "\n");
-
+            StringBuilder rawMessageBuilder = new StringBuilder();
+            rawMessageBuilder
+                    .append("Violation log for player ")
+                    .append(playerName)
+                    .append(" pasted with Honey ")
+                    .append(HoneyPlugin.get().getPlugin().getDescription().getVersion())
+                    .append("\n");
             int size = 0;
-            for (ViolationEntry violationEntry : sqlHandler.getViolations(playerName)) {
-                rawMessageBuilder.append("[" + new Date(violationEntry.getUnixTime()) + "] violated for " + violationEntry.getViolationName() + " " + violationEntry.getContext() + " [*] " + violationEntry.getDevData() + "\n");
+            for (ViolationEntry violationEntry : sqlHandler.getComponentBridge().getViolations(playerName)) {
+                rawMessageBuilder
+                        .append("[")
+                        .append(new Date(violationEntry.getUnixTime()))
+                        .append("] violated for ")
+                        .append(violationEntry.getViolationName())
+                        .append(" ")
+                        .append(violationEntry.getContext())
+                        .append(" [*] ").append(violationEntry.getDevData())
+                        .append("\n");
                 size++;
             }
             if (size == 0) {
@@ -65,7 +78,7 @@ public class PasteLogsCommand implements CommandImpl {
                 return;
             }
 
-            final PasteRequest request = PasteRequest
+            PasteRequest request = PasteRequest
                     .content(rawMessageBuilder.toString())
                     .visibility(Visibility.PUBLIC).format(Format.PYTHON).expiration(Expiration.ONE_DAY)
                     .name("Violation log for player " + playerName)
@@ -75,7 +88,6 @@ public class PasteLogsCommand implements CommandImpl {
                 sender.sendMessage(CommandManager.PREFIX + " §cAn error occurred! :( Try again later.");
                 return;
             }
-
             String[] splittedURL = URL.split("/");
             URL = "https://" + splittedURL[splittedURL.length - 2] + "/raw/" + splittedURL[splittedURL.length - 1];
 

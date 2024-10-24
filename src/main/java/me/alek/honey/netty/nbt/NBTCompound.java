@@ -154,11 +154,11 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         return (NBTArray<R>) (NBTAbstractArray<?>) getAbstractListOf(key, nbtType);
     }
 
-    public GeneticArrayTypes.NBTArrayOfCompound getListOfCompound(String key) {
+    public GeneticArrayTypes.NBTArrayOfCompound getArrayOfCompound(String key) {
         return (GeneticArrayTypes.NBTArrayOfCompound) (NBTAbstractArray<?>) getAbstractListOf(key, NBTType.COMPOUND);
     }
 
-    public GeneticArrayTypes.NBTArrayOfArray getListOfList(String key) {
+    public GeneticArrayTypes.NBTArrayOfArray getArrayOfArray(String key) {
         return (GeneticArrayTypes.NBTArrayOfArray) (NBTAbstractArray<?>) getAbstractListOf(key, NBTType.ARRAY);
     }
 
@@ -167,9 +167,10 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         if (hasKey(key)) {
             try {
                 return (T) get(key).getValue();
-            } catch (ClassCastException ex) {
+            } catch (ClassCastException ignored) {
             }
         }
+
         return null;
     }
 
@@ -228,7 +229,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     private void deleteInherited(NBTBase<?, ?> value) {
-        value.setRoot(new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES));
+        value.setRoot(NBTRoot.createNewDefault());
         value.setOwner(null);
     }
 }

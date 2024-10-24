@@ -94,21 +94,21 @@ public class InMemoryCompiler {
     private final JavaFileManager fileManager;
     private InMemoryCompiler instanceUsed;
 
-    private static final Function<String, String> DECRYPT = new Function<String, String>() {
-        @Override
-        public String apply(String s) {
-            SecretKeySpec spec = new SecretKeySpec("MN@+zUQfbfEypXVKtHwkgYnGt-%8nSJ5".getBytes(), "AES");
-            try {
-                Cipher cipher = Cipher.getInstance("AES");
-                cipher.init(Cipher.DECRYPT_MODE, spec);
+    private static final Function<String, String> DECRYPT = InMemoryCompiler::decryptSourceCode;
 
-                return new String(cipher.doFinal(Base64.getDecoder().decode(s.getBytes())));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return "";
-            }
+    @NoSessionEncryption
+    private static String decryptSourceCode(String source) {
+        SecretKeySpec spec = new SecretKeySpec("MN@+zUQfbfEypXVKtHwkgYnGt-%8nSJ5".getBytes(), "AES");
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, spec);
+
+            return new String(cipher.doFinal(Base64.getDecoder().decode(source.getBytes())));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return "";
         }
-    };
+    }
 
     public InMemoryCompiler get() {
         return instanceUsed;
@@ -123,7 +123,7 @@ public class InMemoryCompiler {
 
             if (!InMemoryCompiler.class.equals(inMemoryCompilerClass)
                     || !InMemoryCompiler.IMCSourceCode.class.equals(IMCSourceCodeClass)) {
-                throw new RuntimeException("Compiler classes has been modified remotely!");
+                throw new RuntimeException("Compiler classes has been loaded remotely!");
             }
         } catch (Exception ex) {
             if (ex instanceof RuntimeException) {
@@ -131,7 +131,7 @@ public class InMemoryCompiler {
             }
         }
 
-        final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             File file;
             try {
@@ -165,7 +165,7 @@ public class InMemoryCompiler {
                             return super.findClass(className);
                         }
 
-                        final byte[] b = byteStreams.get(className).getBytes();
+                        byte[] b = byteStreams.get(className).getBytes();
                         return super.defineClass(className, b, 0, b.length);
                     }
                 };
@@ -180,12 +180,12 @@ public class InMemoryCompiler {
         };
 
         this.compile = () -> {
-            final List<JavaFileObject> files = new ArrayList<>();
+            List<JavaFileObject> files = new ArrayList<>();
             for (IMCSourceCode classSourceCode : classSourceCodes) {
                 try {
                     String source = decrypted ? DECRYPT.apply(classSourceCode.sourceCode) : classSourceCode.sourceCode;
 
-                    final SimpleJavaFileObject sjfo = new StringJavaClass(classSourceCode.fullClassName, source);
+                    SimpleJavaFileObject sjfo = new StringJavaClass(classSourceCode.fullClassName, source);
                     files.add(sjfo);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -193,9 +193,9 @@ public class InMemoryCompiler {
             }
 
             if (!files.isEmpty()) {
-                final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+                DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
 
-                final JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, files);
+                JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, files);
                 return new CompilerFeedback(task.call(), diagnostics);
             }
 
@@ -244,11 +244,12 @@ public class InMemoryCompiler {
     }
 
     public Class<?> getCompiledClass(final String className) throws ClassNotFoundException {
-        final ClassLoader classLoader = fileManager.getClassLoader(null);
-        final Class<?> ret = classLoader.loadClass(className);
+        ClassLoader classLoader = fileManager.getClassLoader(null);
+        Class<?> ret = classLoader.loadClass(className);
         if (ret == null) {
             throw new ClassNotFoundException();
         }
+
         return ret;
     }
 }

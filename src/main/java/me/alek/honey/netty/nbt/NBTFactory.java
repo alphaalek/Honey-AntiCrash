@@ -26,7 +26,7 @@ public class NBTFactory {
             return null;
         }
 
-        NBTRoot root = new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES);
+        NBTRoot root = NBTRoot.createNewDefault();
 
         ReflectStructure<Object, ?> reflectStructure = ReflectStructure.Provider.acquireStructure(nmsItem.getClass());
         IStructureModifier<NBTBase<?, ?>> structureModifier = reflectStructure

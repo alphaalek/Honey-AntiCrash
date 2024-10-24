@@ -379,7 +379,7 @@ public class ViolationService {
                 @Override
                 public void run() {
                     try {
-                        HoneyPlugin.get().getSQLManager().postViolation(player,
+                        HoneyPlugin.get().getSQLManager().getComponentBridge().postViolation(player,
                                 validation.getName() + (violationKey != null && violationKey.getIdentifier() != null ? " (" + violationKey.getIdentifier() + ")" : ""),
                                 ChatColor.stripColor(AbstractPacketLimitHandler.this.format()), developmentData);
                     } catch (Exception ex) {

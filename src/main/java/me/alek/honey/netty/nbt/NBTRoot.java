@@ -1,14 +1,20 @@
 package me.alek.honey.netty.nbt;
 
+import me.alek.honey.configuration.ConfigurationOptions;
+
 import java.util.*;
 
 public class NBTRoot {
 
+    public static NBTRoot createNewDefault() {
+        return new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES);
+    }
+
     private Map<NBTBase<?, ?>, List<NBTBase<?, ?>>> ownerMap;
     private Map<NBTBase<?, ?>, Integer> distanceToTailMap;
     private Map<NBTType, List<NBTBase<?, ?>>> nbtTypeLookup;
-    private int maxDistanceToTail = 0;
-    private int totalElements = 0;
+    private int maxDistanceToTail;
+    private int totalElements;
 
     private final int maximumElementsWithin;
 

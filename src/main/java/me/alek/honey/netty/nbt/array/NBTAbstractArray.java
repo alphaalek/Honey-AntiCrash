@@ -151,7 +151,7 @@ public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<
     }
 
     private void deleteInherited(T value) {
-        value.setRoot(new NBTRoot(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES));
+        value.setRoot(NBTRoot.createNewDefault());
         value.setOwner(null);
     }
 }

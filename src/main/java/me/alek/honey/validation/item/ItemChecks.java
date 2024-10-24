@@ -9,6 +9,7 @@ import me.alek.honey.netty.nbt.NBTCompound;
 import me.alek.honey.netty.nbt.NBTElement;
 import me.alek.honey.netty.nbt.NBTRoot;
 import me.alek.honey.netty.nbt.NBTType;
+import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -73,11 +74,11 @@ public class ItemChecks {
 
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-            NBTArrayOfCompound enchantments = null;
+            GeneticArrayTypes.NBTArrayOfCompound enchantments = null;
 
             for (String key : enchantmentKeys) {
                 if (nbt.hasKeyOfType(key, NBTType.ARRAY_OF_COMPOUND)) {
-                    enchantments = nbt.getListOfCompound(key);
+                    enchantments = nbt.getArrayOfCompound(key);
                     break;
                 }
             }
@@ -431,7 +432,7 @@ public class ItemChecks {
                 return false;
             }
 
-            NBTArrayOfCompound textures = propertiesCompound.getListOfCompound("textures");
+            GeneticArrayTypes.NBTArrayOfCompound textures = propertiesCompound.getArrayOfCompound("textures");
             for (NBTCompound texture : textures.getValues()) {
                 if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
                     return false;
@@ -494,7 +495,7 @@ public class ItemChecks {
                 return false;
             }
 
-            return fireworksCompound.getListOfCompound("Explosions").size() > ConfigurationOptions.ItemAnalysis.MAX_FIREWORK_EXPLOSIONS;
+            return fireworksCompound.getArrayOfCompound("Explosions").size() > ConfigurationOptions.ItemAnalysis.MAX_FIREWORK_EXPLOSIONS;
         }
 
         @Override
@@ -508,7 +509,7 @@ public class ItemChecks {
         @Override
         public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.hasKeyOfType("Patterns", NBTType.ARRAY_OF_COMPOUND)
-                    && nbt.getListOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
+                    && nbt.getArrayOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
 
         @Override

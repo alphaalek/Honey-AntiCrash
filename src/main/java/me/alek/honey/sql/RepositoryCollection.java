@@ -6,7 +6,7 @@ import me.alek.honey.sql.repository.ViolationRepositoryProvider;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class RepositoryProvider implements Iterable<Repository> {
+public class RepositoryCollection implements Iterable<Repository> {
 
     public PlayerRepositoryProvider playerRepository = new PlayerRepositoryProvider();
     public ViolationRepositoryProvider violationRepository = new ViolationRepositoryProvider();
