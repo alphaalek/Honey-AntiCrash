@@ -11,8 +11,8 @@ import me.alek.honey.services.ViolationService;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
-import me.alek.honey.tracker.MarkableHandleTracker;
-import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
+import me.alek.honey.tracker.KeyedHandleTracker;
+import me.alek.honey.tracker.temp.TempIntervalTrackerManager;
 import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.plugin.Plugin;
 
@@ -38,11 +38,11 @@ public interface HoneyAPI {
 
     LoggerService getLoggerService();
 
-    TempQueuedHandleTracker getNettyPacketTracker();
+    TempIntervalTrackerManager getNettyPacketTracker();
 
     ExecutionQueueProxy getExecutionQueueProxy();
 
-    MarkableHandleTracker<Double, HoneyValidation<?>> getValidationHandleTracker();
+    KeyedHandleTracker<Double, HoneyValidation<?>> getValidationHandleTracker();
 
     CraftScheduledTPSTracker getTPSTracker();
 

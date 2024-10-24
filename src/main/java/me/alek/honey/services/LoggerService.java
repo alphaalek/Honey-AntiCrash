@@ -15,7 +15,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.TempQueuedTracker;
+import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
 
@@ -38,7 +38,7 @@ public class LoggerService {
     private final Map<UUID, Queue<PacketType>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
-    private final TempQueuedTracker packetRatePerQueueExecution = new TempQueuedTracker(false, false);
+    private final TempIntervalTracker packetRatePerQueueExecution = new TempIntervalTracker(false, false);
     private final AtomicInteger currentQueueExecutionPacket = new AtomicInteger(0);
 
     private final class PacketLoggerHolder<WP extends WrappedPacket<WP>> {

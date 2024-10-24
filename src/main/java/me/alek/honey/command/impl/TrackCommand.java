@@ -6,7 +6,7 @@ import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
-import me.alek.honey.tracker.MarkableHandleTracker;
+import me.alek.honey.tracker.KeyedHandleTracker;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.statics.NumberUtils;
@@ -49,7 +49,7 @@ public class TrackCommand implements CommandImpl {
 
                 break;
             case "checks":
-                MarkableHandleTracker<Double, HoneyValidation<?>> checkTracker = HoneyPlugin.get().getValidationHandleTracker();
+                KeyedHandleTracker<Double, HoneyValidation<?>> checkTracker = HoneyPlugin.get().getValidationHandleTracker();
                 if (checkTracker.getTrackerSize() == 0) {
                     sender.sendMessage(Lang.getFormatted("track.no.data"));
                     return;

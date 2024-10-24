@@ -2,22 +2,13 @@ package me.alek.honey.tracker;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.spark.SparkTPSProvider;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.tracker.temp.TempQueuedTracker;
-import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
+import me.alek.honey.tracker.temp.TempIntervalTracker;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 
-import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class CraftScheduledTPSTracker extends TempQueuedTracker {
+public class CraftScheduledTPSTracker extends TempIntervalTracker {
 
     private final CyclicBarrier barrier = new CyclicBarrier(2);
     private final AtomicLong expectedTick = new AtomicLong();

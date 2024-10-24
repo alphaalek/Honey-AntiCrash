@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-public class RegistryHandleTracker<T extends Identifiable> implements MarkableHandleTracker<Double, T> {
+public class RegistryHandleTracker<T extends Identifiable> implements KeyedHandleTracker<Double, T> {
 
     private final Array<Long> handleTime = new Array<>();
     private final Array<Integer> handleIndices = new Array<>();

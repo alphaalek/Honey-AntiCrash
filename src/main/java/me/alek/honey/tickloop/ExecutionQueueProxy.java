@@ -17,8 +17,8 @@ import me.alek.honey.tickloop.packet.WrappedPacketTask;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
-import me.alek.honey.tracker.temp.TempQueuedTracker;
+import me.alek.honey.tracker.temp.TempIntervalTrackerManager;
+import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.function.Supplier;
 
-public class ExecutionQueueProxy extends TempQueuedHandleTracker {
+public class ExecutionQueueProxy extends TempIntervalTrackerManager {
 
     private DelegatedWrapper executionQueue;
     private boolean executing;
@@ -66,11 +66,11 @@ public class ExecutionQueueProxy extends TempQueuedHandleTracker {
         return executionQueue;
     }
 
-    public TempQueuedTracker getPropertyTracker(HoneyPlayer player) {
+    public TempIntervalTracker getPropertyTracker(HoneyPlayer player) {
         return player.serverThreadTimedQueuedTracker;
     }
 
-    public void setPropertyTracker(HoneyPlayer player, TempQueuedTracker tracker) {
+    public void setPropertyTracker(HoneyPlayer player, TempIntervalTracker tracker) {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 

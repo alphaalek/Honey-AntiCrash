@@ -1,7 +1,7 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.tracker.temp.NotSyncTempQueue;
-import me.alek.honey.tracker.temp.TempQueuedTracker;
+import me.alek.honey.tracker.temp.NotSyncTempIntervalQueue;
+import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.Array;
 import org.bukkit.command.CommandSender;
 
@@ -17,8 +17,8 @@ public enum Timespan {
 
     public static class TimespanContext {
 
-        private final NotSyncTempQueue fixed;
-        private final NotSyncTempQueue timed;
+        private final NotSyncTempIntervalQueue fixed;
+        private final NotSyncTempIntervalQueue timed;
         private final int timespan;
         private final HoneyTracker tracker;
 
@@ -26,8 +26,8 @@ public enum Timespan {
             this.timespan = timespan.timespan;
             this.tracker = tracker;
 
-            fixed = new NotSyncTempQueue(timespan, true);
-            timed = new NotSyncTempQueue(timespan, false);
+            fixed = new NotSyncTempIntervalQueue(timespan, true);
+            timed = new NotSyncTempIntervalQueue(timespan, false);
 
             fixed.prepareFixed(timespan, 10 * this.timespan, 100);
         }
@@ -37,15 +37,15 @@ public enum Timespan {
         }
 
         public boolean isFixed(HoneyTracker tracker) {
-            if (!(tracker instanceof TempQueuedTracker)) {
+            if (!(tracker instanceof TempIntervalTracker)) {
                 throw new UnsupportedOperationException();
             }
 
-            TempQueuedTracker tempQueuedTracker = (TempQueuedTracker) tracker;
+            TempIntervalTracker tempQueuedTracker = (TempIntervalTracker) tracker;
             return tempQueuedTracker.isFixed();
         }
 
-        public NotSyncTempQueue getQueue(HoneyTracker tracker) {
+        public NotSyncTempIntervalQueue getQueue(HoneyTracker tracker) {
             if (isFixed(tracker)) return fixed;
             else return timed;
         }
@@ -120,7 +120,7 @@ public enum Timespan {
         return IDContext.get(tracker.getID(), () -> new TimespanContext(this, tracker));
     }
 
-    public NotSyncTempQueue getQueue(HoneyTracker tracker) {
+    public NotSyncTempIntervalQueue getQueue(HoneyTracker tracker) {
         return getContext(tracker).getQueue(tracker);
     }
 

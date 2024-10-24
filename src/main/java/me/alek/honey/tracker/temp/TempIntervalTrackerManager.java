@@ -7,19 +7,18 @@ import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.IDRegistry;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, Double, HoneyPlayer> {
+public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long, Double, HoneyPlayer> {
 
-    private final Map<UUID, TempQueuedTracker> trackerMap = new HashMap<>();
-    private final TempQueuedTracker commonTracker = new TempQueuedTracker(false, false);
+    private final Map<UUID, TempIntervalTracker> trackerMap = new HashMap<>();
+    private final TempIntervalTracker commonTracker = new TempIntervalTracker(false, false);
 
     @Override
     public synchronized void remove(HoneyPlayer key) {
         if (trackerMap.containsKey(key.uuid)) {
-            TempQueuedTracker tracker = getTracker(key);
+            TempIntervalTracker tracker = getTracker(key);
             for (Timespan timespan : Timespan.values()) {
                 timespan.clearContext(tracker);
             }
@@ -39,17 +38,17 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, D
         return trackerMap.containsKey(key.uuid);
     }
 
-    public TempQueuedTracker getPropertyTracker(HoneyPlayer player) {
+    public TempIntervalTracker getPropertyTracker(HoneyPlayer player) {
         return player.timedQueuedTracker;
     }
 
-    public void setPropertyTracker(HoneyPlayer player, TempQueuedTracker tracker) {
+    public void setPropertyTracker(HoneyPlayer player, TempIntervalTracker tracker) {
         player.timedQueuedTracker = tracker;
     }
 
-    public synchronized TempQueuedTracker getTracker(HoneyPlayer player) {
+    public synchronized TempIntervalTracker getTracker(HoneyPlayer player) {
         if (getPropertyTracker(player) == null) {
-            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempQueuedTracker(true, false)));
+            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempIntervalTracker(true, false)));
         }
         return getPropertyTracker(player);
     }
@@ -76,7 +75,7 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, D
         commonTracker.clearExceedingNodes(timespan, time);
 
         if (alsoPlayers) {
-            for (TempQueuedTracker tracker : trackerMap.values()) {
+            for (TempIntervalTracker tracker : trackerMap.values()) {
                 tracker.clearExceedingNodes(timespan, time);
             }
         }
@@ -95,7 +94,7 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, D
         return getTracker(player).getQueue(timespan).isCollected();
     }
 
-    private long getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan, long time) {
+    private long getExceedingTimedNode(TempIntervalTracker tracker, Timespan timespan, long time) {
         TimedNode<Long> node = tracker.getQueue(timespan).asTimedQueue().peek();
         long diff;
         if (node != null && node.getValue() > (diff = Math.abs((timespan.getNanoTimespan() - (time - node.getInsertionInstant()))))) {
@@ -104,7 +103,7 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, D
         return 0;
     }
 
-    private long getExceedingTimedNode(TempQueuedTracker tracker, Timespan timespan) {
+    private long getExceedingTimedNode(TempIntervalTracker tracker, Timespan timespan) {
         return getExceedingTimedNode(tracker, timespan, System.nanoTime());
     }
 
@@ -166,7 +165,7 @@ public class TempQueuedHandleTracker implements TimedManualHandleTracker<Long, D
     @Override
     public Long getPlayerTotal(HoneyPlayer player, Timespan timespan, boolean update) {
         long time = 0;
-        TempQueuedTracker tracker = getTracker(player);
+        TempIntervalTracker tracker = getTracker(player);
         if (update) {
             tracker.clearExceedingNodes(timespan, time = System.nanoTime());
         }

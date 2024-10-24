@@ -31,9 +31,9 @@ import me.alek.honey.sql.RepositoryCollection;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
-import me.alek.honey.tracker.MarkableHandleTracker;
+import me.alek.honey.tracker.KeyedHandleTracker;
 import me.alek.honey.tracker.RegistryHandleTracker;
-import me.alek.honey.tracker.temp.TempQueuedHandleTracker;
+import me.alek.honey.tracker.temp.TempIntervalTrackerManager;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.metrics.Metrics;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -78,8 +78,8 @@ public class HoneyPlugin implements HoneyAPI {
     private SQLManager sqlManager;
     private Configuration configuration;
     private ExecutionQueueProxy serverThreadTracker;
-    private TempQueuedHandleTracker packetNettyTracker;
-    private MarkableHandleTracker<Double, HoneyValidation<?>> validationHandleTracker;
+    private TempIntervalTrackerManager packetNettyTracker;
+    private KeyedHandleTracker<Double, HoneyValidation<?>> validationHandleTracker;
     private CraftScheduledTPSTracker TPSTracker;
     private MonitorManager monitorManager;
     private boolean isLoaded;
@@ -268,7 +268,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup tracking
         serverThreadTracker = new ExecutionQueueProxy();
         serverThreadTracker.inject();
-        packetNettyTracker = new TempQueuedHandleTracker();
+        packetNettyTracker = new TempIntervalTrackerManager();
         validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
@@ -412,7 +412,7 @@ public class HoneyPlugin implements HoneyAPI {
         return loggerService;
     }
 
-    public TempQueuedHandleTracker getNettyPacketTracker() {
+    public TempIntervalTrackerManager getNettyPacketTracker() {
         return packetNettyTracker;
     }
 
@@ -420,7 +420,7 @@ public class HoneyPlugin implements HoneyAPI {
         return serverThreadTracker;
     }
 
-    public MarkableHandleTracker<Double, HoneyValidation<?>> getValidationHandleTracker() {
+    public KeyedHandleTracker<Double, HoneyValidation<?>> getValidationHandleTracker() {
         return validationHandleTracker;
     }
 
