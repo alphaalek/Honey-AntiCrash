@@ -13,7 +13,7 @@ public class WrappedSuggestions extends WrappedObject<WrappedSuggestions> {
     }
 
     public ListConverter<Object, WrappedSuggestion> getSuggestions(boolean controlDeclaring) {
-        return getReflectStructure()
+        return getReflectionStructure()
                 .withWeakType(List.class, Converters.getListConverterOf(WrappedSuggestion.class, Converters.getSuggestionConverter(), controlDeclaring))
                 .withTarget(getHandle())
                 .readField(0);

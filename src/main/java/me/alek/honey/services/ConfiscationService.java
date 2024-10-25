@@ -2,8 +2,8 @@ package me.alek.honey.services;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.item.ItemCheckRegistry;
-import me.alek.honey.validation.item.enums.ConfiscationStrategy;
+import me.alek.honey.validation.item.ItemValidationRegistry;
+import me.alek.honey.validation.item.enums.ItemConfiscationStrategy;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.nbt.NBTCompound;
 import org.bukkit.Material;
@@ -13,7 +13,7 @@ import java.util.logging.Level;
 
 public class ConfiscationService {
 
-    private ConfiscationStrategy confiscationStrategy;
+    private ItemConfiscationStrategy confiscationStrategy;
 
     public ConfiscationService() {
         reload();
@@ -21,20 +21,20 @@ public class ConfiscationService {
 
     public void reload() {
         try {
-            confiscationStrategy = ConfiscationStrategy.valueOf(ConfigurationOptions.ItemAnalysis.General.CONFISCATION_STRATEGY.toUpperCase());
+            confiscationStrategy = ItemConfiscationStrategy.valueOf(ConfigurationOptions.ItemAnalysis.General.CONFISCATION_STRATEGY.toUpperCase());
         } catch (Exception ex) {
             HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "You have wrote something badly in the config.yml! Delete the file and let it generate a new one.");
-            confiscationStrategy = ConfiscationStrategy.LENIENT;
+            confiscationStrategy = ItemConfiscationStrategy.LENIENT;
         }
     }
 
-    public void confiscate(HoneyPlayer player, ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
+    public void confiscate(HoneyPlayer player, ItemStack item, NBTCompound nbt, ItemValidationRegistry validation) {
         switch (confiscationStrategy) {
 
             case NOTHING:
                 break;
             case LENIENT:
-                confiscateLenient(item, nbt, check);
+                confiscateLenient(item, nbt, validation);
                 break;
             case STRICT:
                 player.bukkit.getInventory().setContents(new ItemStack[0]);
@@ -47,8 +47,8 @@ public class ConfiscationService {
         }
     }
 
-    private void confiscateLenient(ItemStack item, NBTCompound nbt, ItemCheckRegistry check) {
-        switch (check) {
+    private void confiscateLenient(ItemStack item, NBTCompound nbt, ItemValidationRegistry validation) {
+        switch (validation) {
             case MAX_AMOUNT:
                 item.setAmount(ConfigurationOptions.ItemAnalysis.MAX_AMOUNT);
                 break;

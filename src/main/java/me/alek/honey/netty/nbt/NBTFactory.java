@@ -1,6 +1,5 @@
 package me.alek.honey.netty.nbt;
 
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -45,6 +44,7 @@ public class NBTFactory {
                 ex.printStackTrace();
             }
         }
+
         return (NBTCompound) base;
     }
 

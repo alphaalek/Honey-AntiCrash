@@ -1,11 +1,8 @@
 package me.alek.honey.netty.nbt.array;
 
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.nbt.NBTBase;
 import me.alek.honey.netty.nbt.NBTRoot;
 import me.alek.honey.netty.nbt.NBTType;
-import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
-import me.alek.honey.netty.nbt.array.NBTArray;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -38,7 +35,7 @@ public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<
     }
 
     @Override
-    public ApplicableConverter<List<Object>, ListConverter<Object, T>> getConverter() {
+    public ApplicableConverter<List<Object>, ListConverter<Object, T>> getNBTConverter() {
         if (delegate == null) {
             delegate = Converters.getNBTListConverter(getRoot(), this, forceCreateChildren);
         }

@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ViolationKey;
-import me.alek.honey.validation.item.enums.AcceptStrategy;
+import me.alek.honey.validation.item.enums.ItemValidationFilterStrategy;
 import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.nbt.NBTCompound;
@@ -19,58 +19,45 @@ import java.util.logging.Level;
 
 public class ItemAnalysis {
 
-    private static final Map<ItemCheckRegistry, Check> checkRegistryLookup = new HashMap<>();
-    private static final Map<Class<? extends Check>, ItemCheckRegistry> reversedCheckRegistryLookup = new HashMap<>();
-    private static final List<Check> disabledChecks = new ArrayList<>();
-    private static List<String> ignoredPlayers;
+    private static final Map<Class<? extends ItemValidation>, ItemValidationRegistry> validationRegistryLookup = new HashMap<>();
+    private static final List<String> ignoredPlayers = new ArrayList<>();
 
-    private static final Map<Material, Set<Check>> directAvailableMaterialChecks = new EnumMap<>(Material.class);
-    private static final Map<String, Set<Check>> directAvailableNBTChecks = new HashMap<>();
-    private static final List<Check> globalAvailableChecks = new ArrayList<>();
+    private static final Map<Material, Set<ItemValidation>> validationsForMaterial = new EnumMap<>(Material.class);
+    private static final Map<String, Set<ItemValidation>> validationsForCompoundKey = new HashMap<>();
+    private static final List<ItemValidation> validationsForAll = new ArrayList<>();
 
     static {
-        for (ItemCheckRegistry registry : ItemCheckRegistry.values()) {
-            if (registry.getCheck() == null) {
+        for (ItemValidationRegistry registry : ItemValidationRegistry.values()) {
+            if (registry.getValidation() == null) {
                 continue;
             }
-            checkRegistryLookup.put(registry, registry.getCheck());
-            reversedCheckRegistryLookup.put(registry.getCheck().getClass(), registry);
+            validationRegistryLookup.put(registry.getValidation().getClass(), registry);
         }
     }
 
     public static void reload() {
-        disabledChecks.clear();
-        directAvailableMaterialChecks.clear();
-        globalAvailableChecks.clear();
+        validationsForMaterial.clear();
+        validationsForAll.clear();
 
-        ignoredPlayers = ConfigurationOptions.ItemAnalysis.General.IGNORED_PLAYERS;
+        ignoredPlayers.clear();
+        ignoredPlayers.addAll(ConfigurationOptions.ItemAnalysis.General.IGNORED_PLAYERS);
 
-        for (ItemCheckRegistry registry : ItemCheckRegistry.values()) {
-            if (registry.getCheck() == null || disabledChecks.contains(registry.getCheck())) {
+        for (ItemValidationRegistry registry : ItemValidationRegistry.values()) {
+            if (!registry.hasFilter()) {
+                validationsForAll.add(registry.getValidation());
                 continue;
             }
 
-            Material[] availableMaterials = registry.getAvailableMaterials();
-            String nbtTag = registry.getTag();
-            if (availableMaterials.length == 0 && nbtTag.isEmpty()) {
-                globalAvailableChecks.add(registry.getCheck());
-            }
-            if (availableMaterials.length > 0) {
-                for (Material material : availableMaterials) {
-                    if (material.equals(Material.AIR)) {
-                        continue;
-                    }
-                    if (!directAvailableMaterialChecks.containsKey(material)) {
-                        directAvailableMaterialChecks.put(material, new HashSet<>());
-                    }
-                    directAvailableMaterialChecks.get(material).add(registry.getCheck());
+            Material[] materials = registry.getMaterials();
+            String tag = registry.getTag();
+            if (materials.length > 0) {
+                for (Material material : materials) {
+                    validationsForMaterial.computeIfAbsent(material, __ -> new HashSet<>())
+                            .add(registry.getValidation());
                 }
-            }
-            else if (!nbtTag.isEmpty()) {
-                if (!directAvailableNBTChecks.containsKey(nbtTag)) {
-                    directAvailableNBTChecks.put(nbtTag, new HashSet<>());
-                }
-                directAvailableNBTChecks.get(nbtTag).add(registry.getCheck());
+            } else if (!tag.isEmpty()) {
+                validationsForCompoundKey.computeIfAbsent(tag, __ -> new HashSet<>())
+                        .add(registry.getValidation());
             }
         }
     }
@@ -78,11 +65,14 @@ public class ItemAnalysis {
     public static ValidationServiceContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
         Callback callback = new Callback();
         if (ItemAnalysis.checkItem(player, item, callback)) {
-            return ValidationServiceContext.Builder.validate().cancel().flag().onViolation(keyOuter, (keyInner, onViolation) -> {
-                if (onViolation != null) onViolation.run();
+            return ValidationServiceContext.Builder.validate()
+                    .cancel()
+                    .flag()
+                    .onViolation(keyOuter, (keyInner, onViolation) -> {
+                        if (onViolation != null) onViolation.run();
 
-                callback.call(context.getDevelopmentData(keyInner));
-            }).build();
+                        callback.call(context.getDevelopmentData(keyInner));
+                    }).build();
         }
 
         return ValidationServiceContext.PASS;
@@ -100,82 +90,88 @@ public class ItemAnalysis {
     }
 
     public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, Callback callback) {
-        for (final String ignoredPlayer : ignoredPlayers) {
+        for (String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer)
                     || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
                 return false;
             }
         }
 
-        ItemCheckRegistry flaggedCheck = checkItem(player, item, nbt);
-        if (flaggedCheck == null) {
+        if (item == null || item.getType() == Material.AIR) {
+            return false;
+        }
+
+        ItemValidationRegistry flagged = checkItem(player, item, nbt);
+        if (flagged == null) {
             return false;
         }
 
         if (callback != null) {
-            callback.addAction(Callback.Action.<ValidationPipelineContext.DevelopmentData>from(context -> context.addPoint("Type", flaggedCheck.toString())));
+            callback.addAction(Callback.Action.<ValidationPipelineContext.DevelopmentData>from(context -> context.addPoint("Type", flagged.toString())));
         }
 
         if (ConfigurationOptions.PacketLogger.DEBUG) {
-            Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flaggedCheck);
+            Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
         }
 
-        HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flaggedCheck);
+        HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flagged);
         return true;
     }
 
-    private static ItemCheckRegistry checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
-        final Material material = item.getType();
-        if (!material.equals(Material.AIR)
-                && directAvailableMaterialChecks.containsKey(material)) {
-            for (final Check checker : directAvailableMaterialChecks.get(material)) {
-                ItemCheckRegistry registry = check(player, checker, item, nbt);
-                if (registry != null) return registry;
+    private static ItemValidationRegistry checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        Material material = item.getType();
+        if (!validationsForMaterial.containsKey(material)) {
+            for (ItemValidation validation : validationsForMaterial.get(material)) {
+                ItemValidationRegistry registry = check(player, validation, item, nbt);
+                if (registry != null) {
+                    return registry;
+                }
             }
         }
 
         if (nbt != null) {
-            for (final String key : nbt.getKeys()) {
-                if (directAvailableNBTChecks.containsKey(key)) {
-                    for (final Check checker : directAvailableNBTChecks.get(key)) {
-                        ItemCheckRegistry registry = check(player, checker, item, nbt);
-                        if (registry != null) return registry;
+            for (String key : nbt.getKeys()) {
+                if (validationsForCompoundKey.containsKey(key)) {
+                    for (ItemValidation validation : validationsForCompoundKey.get(key)) {
+                        ItemValidationRegistry registry = check(player, validation, item, nbt);
+                        if (registry != null) {
+                            return registry;
+                        }
                     }
                 }
             }
         }
 
-        for (final Check checker : globalAvailableChecks) {
-            ItemCheckRegistry registry = check(player, checker, item, nbt);
-            if (registry != null) return registry;
+        for (ItemValidation validation : validationsForAll) {
+            ItemValidationRegistry registry = check(player, validation, item, nbt);
+            if (registry != null) {
+                return registry;
+            }
         }
 
         return null;
     }
 
-    private static ItemCheckRegistry check(HoneyPlayer player, Check checker, ItemStack item, NBTCompound nbt) {
+    private static ItemValidationRegistry check(HoneyPlayer player, ItemValidation validation, ItemStack item, NBTCompound nbt) {
         try {
-            if (checkStrategyAcceptance(checker.getAcceptStrategy(), item, nbt)
-                    && checker.check(player, item, nbt)) {
-                return getRegistryFrom(checker);
+            if (checkFilter(validation.getAcceptStrategy(), item, nbt)
+                    && validation.validate(player, item, nbt)) {
+                return getRegistryFrom(validation);
             }
         } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Error occurred at item analysis check", ex);
+            Bukkit.getLogger().log(Level.SEVERE, "Error occurred at item validation", ex);
         }
+
         return null;
     }
 
-    private static ItemCheckRegistry getRegistryFrom(Check checker) {
-        Class<? extends Check> clazz = checker.getClass();
-        ItemCheckRegistry registry = reversedCheckRegistryLookup.get(clazz);
+    private static ItemValidationRegistry getRegistryFrom(ItemValidation checker) {
+        Class<? extends ItemValidation> clazz = checker.getClass();
 
-        if (registry == null) {
-            return ItemCheckRegistry.UNKNOWN;
-        }
-        return registry;
+        return validationRegistryLookup.get(clazz);
     }
 
-    private static boolean checkStrategyAcceptance(AcceptStrategy strategy, ItemStack item, NBTCompound nbt) {
+    private static boolean checkFilter(ItemValidationFilterStrategy strategy, ItemStack item, NBTCompound nbt) {
         switch (strategy) {
             case ALL:
                 return true;
@@ -184,13 +180,14 @@ public class ItemAnalysis {
             case ONLY_WITH_METADATA:
                 return item.hasItemMeta();
         }
+
         return true;
     }
 
-    public interface Check {
+    public interface ItemValidation {
 
-        boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt);
+        boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt);
 
-        AcceptStrategy getAcceptStrategy();
+        ItemValidationFilterStrategy getAcceptStrategy();
     }
 }

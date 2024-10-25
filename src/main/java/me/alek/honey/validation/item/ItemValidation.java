@@ -16,7 +16,7 @@ import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.statics.NumberUtils;
-import me.alek.honey.validation.item.enums.AcceptStrategy;
+import me.alek.honey.validation.item.enums.ItemValidationFilterStrategy;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -31,13 +31,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ItemChecks {
+public class ItemValidation {
 
-    public static class IllegalNumbersCheck implements ItemAnalysis.Check {
+    public static class IllegalNumbersItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        @SuppressWarnings("unchecked")
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             NBTRoot root = nbt.getRoot();
 
             for (NBTElement<Double> doubleValue : root.<Double>getAllPrimitiveElementsAs(NBTType.DOUBLE)) {
@@ -63,17 +62,17 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxEnchantmentLevelCheck implements ItemAnalysis.Check {
+    public static class MaxEnchantmentLevelItemValidation implements ItemAnalysis.ItemValidation {
 
         private final String[] enchantmentKeys = new String[]{"ench", "StoredEnchantments", "Enchantments"};
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             GeneticArrayTypes.NBTArrayOfCompound enchantments = null;
 
             for (String key : enchantmentKeys) {
@@ -96,42 +95,42 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxAmountCheck implements ItemAnalysis.Check {
+    public static class MaxAmountItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return item.getAmount() > ConfigurationOptions.ItemAnalysis.MAX_AMOUNT;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ALL;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ALL;
         }
     }
 
-    public static class MaxDisplayNameLengthCheck implements ItemAnalysis.Check {
+    public static class MaxDisplayNameLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return item.getItemMeta().hasDisplayName()
                     && item.getItemMeta().getDisplayName().length() > ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_METADATA;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
 
-    public static class MaxTotalLoreLengthCheck implements ItemAnalysis.Check {
+    public static class MaxTotalLoreLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             if (!item.getItemMeta().hasLore()) {
                 return false;
             }
@@ -148,58 +147,58 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_METADATA;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
 
-    public static class UnbreakableItemCheck implements ItemAnalysis.Check {
+    public static class UnbreakableItemItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_UNBREAKABLE_ITEMS
                     && nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)
                     && nbt.getByte("Unbreakable") == (byte) 1;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class AttributeModifiersCheck implements ItemAnalysis.Check {
+    public static class AttributeModifiersItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
                     && nbt.hasKeyOfType("AttributeModifiers", NBTType.ARRAY_OF_COMPOUND);
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class CustomPotionEffectsCheck implements ItemAnalysis.Check {
+    public static class CustomPotionEffectsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
                     && nbt.hasKeyOfType("CustomPotionEffects", NBTType.ARRAY_OF_COMPOUND);
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class BookTranslationComponents implements ItemAnalysis.Check {
+    public static class BookTranslationComponents implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             AtomicReference<IStructureModifier<List<Object>>> bookMetaPageModifier = new AtomicReference<>();
             List<Object> pages = ItemReflection.getPages(bookMetaPageModifier, (BookMeta) item.getItemMeta());
 
@@ -216,15 +215,15 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_METADATA;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
 
-    public static class IllegalCharacterCheck implements ItemAnalysis.Check {
+    public static class IllegalCharacterItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             if (item.getItemMeta().hasDisplayName() && checkBadCharacter(item.getItemMeta().getDisplayName())) {
                 return true;
             }
@@ -255,29 +254,29 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_METADATA;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
 
-    public static class MaxNBTLengthCheck implements ItemAnalysis.Check {
+    public static class MaxNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxNBTStringLengthCheck implements ItemAnalysis.Check {
+    public static class MaxNBTStringLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             for (NBTElement<String> stringValue : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
                 if (stringValue.getValue().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH) {
                     return true;
@@ -287,16 +286,16 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxPageLengthCheck implements ItemAnalysis.Check {
+    public static class MaxPageLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             for (NBTElement<String> page : nbt.<String>getListOf("pages", NBTType.STRING)) {
                 if (page != null
                         && page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
@@ -308,55 +307,55 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxFireworkLengthCheck implements ItemAnalysis.Check {
+    public static class MaxFireworkLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxBookNBTLengthCheck implements ItemAnalysis.Check {
+    public static class MaxBookNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxBookPagesCheck implements ItemAnalysis.Check {
+    public static class MaxBookPagesItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.hasKeyOfType("pages", NBTType.ARRAY)
                     && nbt.getListOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxBookAuthorLengthCheck implements ItemAnalysis.Check {
+    public static class MaxBookAuthorLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             String author;
             return nbt != null
                     && nbt.hasKeyOfType("author", NBTType.STRING)
@@ -364,58 +363,58 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxBookTitleLengthCheck implements ItemAnalysis.Check {
+    public static class MaxBookTitleLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.hasKeyOfType("title", NBTType.STRING)
                     && nbt.getString("title").length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxNBTBasesCheck implements ItemAnalysis.Check {
+    public static class MaxNBTBasesItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.getRoot().getTotalElements() > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxNBTNestingCheck implements ItemAnalysis.Check {
+    public static class MaxNBTNestingItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.getRoot().getMaxDistanceBetweenTail() > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class IllegalSkullTexturesCheck implements ItemAnalysis.Check {
+    public static class IllegalSkullTexturesItemValidation implements ItemAnalysis.ItemValidation {
 
         private static final Pattern URL_PATTERN = Pattern.compile("url");
         private static final String[] skullOwnerKeys = new String[]{"SkullOwner", "Owner"};
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             NBTCompound skullOwnerCompound = null;
             for (String key : skullOwnerKeys) {
                 if (nbt.hasKeyOfType(key, NBTType.COMPOUND)) {
@@ -464,28 +463,28 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class IllegalEnchantmentsCheck implements ItemAnalysis.Check {
+    public static class IllegalEnchantmentsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return false;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ALL;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ALL;
         }
     }
 
-    public static class MaxFireworkExplosionsCheck implements ItemAnalysis.Check {
+    public static class MaxFireworkExplosionsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             if (!nbt.hasKeyOfType("Fireworks", NBTType.COMPOUND)) {
                 return false;
             }
@@ -499,30 +498,30 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MaxBannerPatternsCheck implements ItemAnalysis.Check {
+    public static class MaxBannerPatternsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             return nbt.hasKeyOfType("Patterns", NBTType.ARRAY_OF_COMPOUND)
                     && nbt.getArrayOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 
-    public static class MapRangeCheck implements ItemAnalysis.Check {
+    public static class MapRangeItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             MapView mapView = Bukkit.getMap(item.getDurability());
             if (mapView == null) return false;
 
@@ -544,13 +543,13 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ALL;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ALL;
         }
     }
 
 
-    public static class IllegalComponentStrings implements ItemAnalysis.Check {
+    public static class IllegalComponentStrings implements ItemAnalysis.ItemValidation {
 
         private final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
                 "{translate:\"translation.test.invalid\"}",
@@ -560,7 +559,7 @@ public class ItemChecks {
 
         @Override
         @SuppressWarnings("unchecked")
-        public boolean check(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
             for (NBTElement<String> string : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
                 String trimmed = string.getValue().toLowerCase().replace("\\", "").trim();
                 for (String component : ILLEGAL_COMPONENT_STRINGS) {
@@ -574,8 +573,8 @@ public class ItemChecks {
         }
 
         @Override
-        public AcceptStrategy getAcceptStrategy() {
-            return AcceptStrategy.ONLY_WITH_NBT;
+        public ItemValidationFilterStrategy getAcceptStrategy() {
+            return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
 }

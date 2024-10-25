@@ -1,6 +1,5 @@
 package me.alek.honey.netty.nbt;
 
-import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.nbt.array.NBTAbstractArray;
 import me.alek.honey.netty.nbt.array.NBTArray;
@@ -33,7 +32,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         return (structure) -> structure.withSpecificType(Map.class, converter, false);
     }
 
-    public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getConverter() {
+    public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getNBTConverter() {
         if (delegate == null) {
             delegate = Converters.getNBTCompoundConverter(getRoot(), this, forceCreateChildren);
         }

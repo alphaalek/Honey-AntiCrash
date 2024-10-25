@@ -108,6 +108,7 @@ public enum MaterialMappings {
                 return mapping.getType();
             }
         }
+
         return Material.AIR;
     }
 

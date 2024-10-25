@@ -23,7 +23,7 @@ public abstract class WrappedObject<T> {
         return handle;
     }
 
-    public ReflectStructure<Object, Object> getReflectStructure() {
+    public ReflectStructure<Object, Object> getReflectionStructure() {
         return reflectStructure;
     }
 

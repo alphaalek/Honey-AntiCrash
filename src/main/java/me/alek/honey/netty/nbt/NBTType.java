@@ -2,8 +2,8 @@ package me.alek.honey.netty.nbt;
 
 import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.nbt.array.NBTArray;
-import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.Reflection;
 
 import java.util.HashMap;
@@ -64,12 +64,12 @@ public enum NBTType {
             if (NBTBase.class.isAssignableFrom(clazz)) {
                 return (Class<? extends NBTBase<?, ?>>) clazz.asSubclass(NBTBase.class);
             }
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
+
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     NBTType(int typeId, Class<?> baseClass, Class<?> clazz) {
         this(typeId, baseClass, new ConstructorInvoker<>(getNBTBaseClass(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), clazz);
     }

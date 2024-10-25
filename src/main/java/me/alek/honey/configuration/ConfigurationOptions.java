@@ -408,18 +408,20 @@ public class ConfigurationOptions {
 
         public Set<Map.Entry<String, Object>> getValues() {
             Map<String, Object> valueMap = new HashMap<>();
-
             for (Field field : getClass().getFields()) {
-
                 try {
                     ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
-                    if (settingImpl == null && field.getDeclaringClass() == ViolationSetting.class) continue;
+                    if (settingImpl == null && field.getDeclaringClass() == ViolationSetting.class) {
+                        continue;
+                    }
 
                     Object value = field.get(this);
 
                     // check if this field is associated with a setting value from this check
                     if (settingImpl != null && value != null) {
-                        if (!getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())) continue;
+                        if (!getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())){
+                            continue;
+                        }
 
                         valueMap.put(field.getName(), value);
                     }
@@ -427,6 +429,7 @@ public class ConfigurationOptions {
                     ex.printStackTrace();
                 }
             }
+
             return valueMap.entrySet();
         }
 
@@ -437,6 +440,7 @@ public class ConfigurationOptions {
             for (Map.Entry<String, Object> valueEntry : getValues()) {
                 builder.append(valueEntry.getKey()).append("=").append(valueEntry.getValue()).append(",");
             }
+
             return builder.substring(0, builder.length() - 1);
         }
     }

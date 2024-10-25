@@ -27,7 +27,7 @@ public class NBTElement<T> extends NBTBase<T, T> {
     }
 
     @Override
-    public ApplicableConverter<T, T> getConverter() {
+    public ApplicableConverter<T, T> getNBTConverter() {
         return null;
     }
 

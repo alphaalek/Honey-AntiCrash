@@ -32,8 +32,8 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         this.forceCreateChildren = forceCreation;
 
         if (handle != null) {
-            valueStructureModifier = applyStructure(getConverter())
-                    .apply(getReflectStructure())
+            valueStructureModifier = applyStructure(getNBTConverter())
+                    .apply(getReflectionStructure())
                     .withTarget(handle);
         } else {
             valueStructureModifier = null;
@@ -56,7 +56,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
         this(base, new NBTRoot(Integer.MAX_VALUE), null, true);
     }
 
-    public abstract ApplicableConverter<T, V> getConverter();
+    public abstract ApplicableConverter<T, V> getNBTConverter();
 
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
 
@@ -75,7 +75,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public boolean isNull() {
-        return valueStructureModifier == null || getReflectStructure() == null || getHandle() == null;
+        return valueStructureModifier == null || getReflectionStructure() == null || getHandle() == null;
     }
 
     public NBTRoot getRoot() {

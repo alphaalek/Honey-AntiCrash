@@ -1,6 +1,9 @@
 package me.alek.honey.netty.nbt.array;
 
-import me.alek.honey.netty.nbt.*;
+import me.alek.honey.netty.nbt.NBTBase;
+import me.alek.honey.netty.nbt.NBTCompound;
+import me.alek.honey.netty.nbt.NBTRoot;
+import me.alek.honey.netty.nbt.NBTType;
 
 public class GeneticArrayTypes {
 
