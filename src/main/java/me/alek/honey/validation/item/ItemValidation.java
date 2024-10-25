@@ -51,13 +51,6 @@ public class ItemValidation {
                 }
             }
 
-            for (NBTElement<Integer> intValue : root.<Integer>getAllPrimitiveElementsAs(NBTType.INT)) {
-                if (intValue.getValue() == Integer.MAX_VALUE
-                        || intValue.getValue() == Integer.MIN_VALUE) {
-                    return true;
-                }
-            }
-
             return false;
         }
 
