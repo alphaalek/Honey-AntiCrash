@@ -48,11 +48,6 @@ public enum NetProtocol {
             }
         }
 
-        NetProtocol fallbackVersion = HoneyPlugin.get().getPacketLibrary().getFallbackProtocol();
-        if (fallbackVersion != null) {
-            return fallbackVersion;
-        }
-
         return UNKNOWN;
     }
 

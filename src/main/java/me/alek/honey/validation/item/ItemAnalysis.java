@@ -154,7 +154,7 @@ public class ItemAnalysis {
 
     private static ItemValidationRegistry check(HoneyPlayer player, ItemValidation validation, ItemStack item, NBTCompound nbt) {
         try {
-            if (checkFilter(validation.getAcceptStrategy(), item, nbt)
+            if (checkFilter(validation.getFilter(), item, nbt)
                     && validation.validate(player, item, nbt)) {
                 return getRegistryFrom(validation);
             }
@@ -188,6 +188,6 @@ public class ItemAnalysis {
 
         boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt);
 
-        ItemValidationFilterStrategy getAcceptStrategy();
+        ItemValidationFilterStrategy getFilter();
     }
 }

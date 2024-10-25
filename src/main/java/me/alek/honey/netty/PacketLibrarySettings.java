@@ -5,7 +5,6 @@ import org.bukkit.plugin.Plugin;
 
 public class PacketLibrarySettings {
 
-    private NetProtocol fallbackProtocol;
     private final Plugin plugin;
     private final String filterName;
     private final String connectorName;
@@ -58,13 +57,5 @@ public class PacketLibrarySettings {
 
     public Plugin getPlugin() {
         return plugin;
-    }
-
-    public void setFallbackProtocol(NetProtocol value) {
-        this.fallbackProtocol = value;
-    }
-
-    public NetProtocol getFallbackProtocol() {
-        return fallbackProtocol;
     }
 }

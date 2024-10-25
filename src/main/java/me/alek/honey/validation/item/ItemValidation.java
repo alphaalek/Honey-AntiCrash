@@ -55,7 +55,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -88,7 +88,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -101,7 +101,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ALL;
         }
     }
@@ -115,7 +115,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
@@ -140,7 +140,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
@@ -155,7 +155,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -169,7 +169,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -183,7 +183,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -208,7 +208,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
@@ -247,7 +247,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_METADATA;
         }
     }
@@ -260,7 +260,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -279,7 +279,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -300,7 +300,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -313,7 +313,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -326,7 +326,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -340,7 +340,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -356,7 +356,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -370,7 +370,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -383,7 +383,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -396,7 +396,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -456,7 +456,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -469,7 +469,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ALL;
         }
     }
@@ -491,7 +491,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -505,7 +505,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
@@ -536,7 +536,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ALL;
         }
     }
@@ -566,7 +566,7 @@ public class ItemValidation {
         }
 
         @Override
-        public ItemValidationFilterStrategy getAcceptStrategy() {
+        public ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ONLY_WITH_NBT;
         }
     }
