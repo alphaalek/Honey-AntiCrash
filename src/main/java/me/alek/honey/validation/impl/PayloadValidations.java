@@ -131,11 +131,13 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
                     NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     Callback callback = new Callback();
                     if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
-                        return ValidationServiceContext.Builder.validate().cancel().flag().onViolation(ViolationKey.of(this), (key, onViolation) -> {
-                            if (onViolation != null) onViolation.run();
+                        return ValidationServiceContext.Builder.validate().cancel().flag()
+                                .onViolation(ViolationKey.of(this), (key, onViolation) -> {
+                                    if (onViolation != null) onViolation.run();
 
-                            callback.call(context.getDevelopmentData(key));
-                        }).build();
+                                    callback.call(context.getDevelopmentData(key));
+                                })
+                                .build();
                     }
 
                     int nbtSize;
@@ -181,15 +183,15 @@ public class PayloadValidations extends AbstractPacketListener<WrappedPlayInCust
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
-                String channel = packet.getChannel();
-                if (channel.equals("MC|BSign") || channel.equals("MC|BEdit")) {
+            if (getSetting().isEnabled() && packet.isBookChannel()) {
+                if (packet.getBookChannelItemStack() == null) {
+                    return ValidationServiceContext.FLAG;
+                }
 
-                    ItemStack itemInHand = player.bukkit.getItemInHand();
-                    if (itemInHand.getType() != MaterialMappings.getType("writable-book")
-                            && itemInHand.getType() != Material.WRITTEN_BOOK) {
-                        return ValidationServiceContext.FLAG;
-                    }
+                ItemStack itemInHand = player.bukkit.getItemInHand();
+                if (itemInHand.getType() != MaterialMappings.getType("writable-book")
+                        && itemInHand.getType() != Material.WRITTEN_BOOK) {
+                    return ValidationServiceContext.FLAG;
                 }
             }
 

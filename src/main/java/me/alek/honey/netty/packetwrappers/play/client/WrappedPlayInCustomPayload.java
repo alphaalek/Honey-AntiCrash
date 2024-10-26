@@ -58,7 +58,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
                 channel = getContainer().getStrings().readField(0);
             }
 
-            if (channel.equals("MC|BEdit") || channel.equals("MC|BSign")) {
+            if (isBookChannel()) {
                 try {
                     PacketDataSerializer copy = getDataSerializer(true);
                     bookChannelItemStack = new LazyInit<>(() ->
@@ -87,5 +87,9 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
 
     public String getChannel() {
         return channel;
+    }
+
+    public boolean isBookChannel() {
+        return channel.equals("MC|BEdit") || channel.equals("MC|BSign");
     }
 }
