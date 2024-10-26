@@ -91,7 +91,7 @@ public class NMS {
     }
 
     public static Class<Object> getUnsureClass(String... params) {
-        return Reflection.getUnsureObjectClass(params);
+        return Reflection.getUnsureClass(params);
     }
 
     private static Class<Object> gameProfileClass;
@@ -204,6 +204,11 @@ public class NMS {
         return tickTaskClass != null ? tickTaskClass : (tickTaskClass = getUnsureClass("{nms}.TickTask", "{nms}.server.TickTask"));
     }
 
+    private static Class<Object> magicNumbersUtilClass;
+    public static Class<Object> getMagicNumbersUtilClass() {
+        return magicNumbersUtilClass != null ? magicNumbersUtilClass : (magicNumbersUtilClass = (Class<Object>) Reflection.getClass("{obc}.util.CraftMagicNumbers"));
+    }
+
     private static Class<Object> nbtTagCompoundClass;
     public static Class<Object> getNBTTagCompoundClass() {
         return nbtTagCompoundClass != null ? nbtTagCompoundClass : (nbtTagCompoundClass = getUnsureClass("{nms}.NBTTagCompound", "{nms}.nbt.NBTTagCompound"));
@@ -235,15 +240,13 @@ public class NMS {
     }
 
     private static Class<Enum<?>> enumProtocolDirectionClass;
-    @SuppressWarnings("unchecked")
     public static Class<Enum<?>> getEnumProtocolDirectionClass() {
-        return enumProtocolDirectionClass != null ? enumProtocolDirectionClass : (enumProtocolDirectionClass = (Class<Enum<?>>) Reflection.getUnsureClass("{nms}.EnumProtocolDirection", "{nms}.network.protocol.EnumProtocolDirection"));
+        return enumProtocolDirectionClass != null ? enumProtocolDirectionClass : (enumProtocolDirectionClass = Reflection.getUnsureClass("{nms}.EnumProtocolDirection", "{nms}.network.protocol.EnumProtocolDirection"));
     }
 
     private static Class<Enum<?>> enumProtocolClass;
-    @SuppressWarnings("unchecked")
     public static Class<Enum<?>> getEnumProtocolClass() {
-        return enumProtocolClass != null ? enumProtocolClass : (enumProtocolClass = (Class<Enum<?>>) Reflection.getUnsureClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol"));
+        return enumProtocolClass != null ? enumProtocolClass : (enumProtocolClass = Reflection.getUnsureClass("{nms}.EnumProtocol", "{nms}.network.EnumProtocol"));
     }
 
     private static Class<Object> packetClass;
@@ -358,7 +361,7 @@ public class NMS {
 
     private static Class<Object> protocolInfoBinderClass;
     public static Class<Object> getProtocolInfoBinderClass() {
-        return protocolInfoBinderClass != null ? protocolInfoBinderClass : Reflection.asObject(Reflection.getSubClass(protocolInfoClass, 0));
+        return protocolInfoBinderClass != null ? protocolInfoBinderClass : Reflection.getSubClass(protocolInfoClass, 0);
     }
 
     private static Class<Object> packetTypeClass;

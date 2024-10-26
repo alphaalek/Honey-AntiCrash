@@ -95,13 +95,17 @@ public enum MaterialMappings {
 
     public static Material getTypeIfAny(String key) {
         Material material = getType(key);
-        if (material == Material.AIR) throw new IllegalArgumentException("Couldn't find any material matching the item key " + key);
+        if (material == Material.AIR) {
+            throw new IllegalArgumentException("Couldn't find any material matching the item key " + key);
+        }
 
         return material;
     }
 
     public static Material getType(String key) {
-        if (!mappingsOfKey.containsKey(key)) return org.bukkit.Material.AIR;
+        if (!mappingsOfKey.containsKey(key)) {
+            return org.bukkit.Material.AIR;
+        }
 
         for (MaterialMappings mapping : mappingsOfKey.get(key)) {
             if (mapping.getType() != null && mapping.getRange().match(NetProtocol.getProtocol())) {

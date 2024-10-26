@@ -56,12 +56,7 @@ public class Reflection {
             "org.bukkit.craftbukkit", "").replace(".", "");
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
 
-    @SuppressWarnings("unchecked")
-    public static Class<Object> asObject(Class<?> clazz) {
-        return (Class<Object>) clazz;
-    }
-
-    public static Class<?> getSubClass(Class<?> superClass, String name) {
+    public static <T> Class<?> getSubClass(Class<?> superClass, String name) {
         for (Class<?> subClass : superClass.getDeclaredClasses()) {
             if (subClass.getSimpleName().equals(name)) {
                 return subClass;
@@ -71,34 +66,34 @@ public class Reflection {
         throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + name + " " + Arrays.toString(superClass.getDeclaredClasses()));
     }
 
-    public static Class<?> getSubClass(Class<?> superClass, int i) {
+    public static <T> Class<T> getSubClass(Class<?> superClass, int i) {
         int index = 0;
         for (Class<?> subClass : superClass.getDeclaredClasses()) {
             if (index++ == i) {
-                return subClass;
+                return (Class<T>) subClass;
             }
         }
 
         throw new RuntimeException("Reflection error (subclass): " + superClass.getName() + ", " + i);
     }
 
-    public static Class<?> getClassWithException(String name) throws Exception {
+    public static <T> Class<T> getClassWithException(String name) throws Exception {
         return getCanonicalClassWithException(setPlaceholders(name));
     }
 
-    public static Class<?> getClass(String name) {
-        return CLASS_CACHE.computeIfAbsent(name, (d) -> getCanonicalClass(setPlaceholders(name)));
+    public static <T> Class<T> getClass(String name) {
+        return (Class<T>) CLASS_CACHE.computeIfAbsent(name, __ -> getCanonicalClass(setPlaceholders(name)));
     }
 
-    public static Class<?> getArrayClass(String name) {
+    public static <T> Class<T> getArrayClass(String name) {
         return getClass("[L" + name + ";");
     }
 
-    public static Class<?> getArrayClass(Class<?> clazz) {
+    public static <T> Class<T> getArrayClass(Class<?> clazz) {
         return getArrayClass(clazz.getName());
     }
 
-    public static Class<?> getUnsureClass(String... names) {
+    public static <T> Class<T> getUnsureClass(String... names) {
         for (String name : names) {
             try {
                 return getClassWithException(name);
@@ -108,15 +103,11 @@ public class Reflection {
         throw new RuntimeException("Reflection error (class): " + Arrays.stream(names).map(Reflection::setPlaceholders).collect(Collectors.toList()));
     }
 
-    public static Class<Object> getUnsureObjectClass(String... names) {
-        return (Class<Object>) getUnsureClass(names);
+    public static <T> Class<T> getCanonicalClassWithException(String name) throws Exception {
+        return (Class<T>) Class.forName(name);
     }
 
-    public static Class<?> getCanonicalClassWithException(String name) throws Exception {
-        return Class.forName(name);
-    }
-
-    public static Class<?> getCanonicalClass(String name) {
+    public static <T> Class<T> getCanonicalClass(String name) {
         try {
             return getCanonicalClassWithException(name);
         } catch (Exception ex) {
@@ -180,11 +171,11 @@ public class Reflection {
         return (ConstructorInvoker<T>) new ConstructorInvoker<>(target, parameters);
     }
 
-    public static MethodInvoker<Object> getMethod(Method method) {
+    public static <T> MethodInvoker<T> getMethod(Method method) {
         return new MethodInvoker<>(method);
     }
 
-    public static MethodInvoker<Object> getMethod(String target, String name, Class<?>... parameters) {
+    public static <T> MethodInvoker<T> getMethod(String target, String name, Class<?>... parameters) {
         return getMethod(getClass(target), name, parameters);
     }
 
@@ -201,7 +192,7 @@ public class Reflection {
         return clazz.getDeclaredFields();
     }
 
-    public static MethodInvoker<Object> getMethod(Class<?> target, Predicate<Method> methodPredicate) {
+    public static <T> MethodInvoker<T> getMethod(Class<?> target, Predicate<Method> methodPredicate) {
         for (Method method : getDeclaredMethods(target)) {
             if (methodPredicate.test(method)) {
                 return new MethodInvoker<>(method);
@@ -213,7 +204,7 @@ public class Reflection {
         throw new RuntimeException("Reflection error (method predicate): " + target.getName());
     }
 
-    public static MethodInvoker<Object> getMethod(Class<?> target, int index, Class<?>... parameters) {
+    public static <T> MethodInvoker<T> getMethod(Class<?> target, int index, Class<?>... parameters) {
         int currentIndex = 0;
 
         for (Method method : getDeclaredMethods(target)) {
@@ -230,7 +221,7 @@ public class Reflection {
         throw new RuntimeException("Reflection error (method): " + target.getName() + ", " + index + ", " + Arrays.toString(parameters));
     }
 
-    public static MethodInvoker<Object> getMethod(Class<?> target, String name, Class<?>... parameters) {
+    public static <T> MethodInvoker<T> getMethod(Class<?> target, String name, Class<?>... parameters) {
         for (Method method : getDeclaredMethods(target)) {
             if (!method.getName().equals(name) || !Arrays.equals(method.getParameterTypes(), parameters)) {
                 continue;
@@ -243,7 +234,7 @@ public class Reflection {
         throw new RuntimeException("Reflection error (method): " + target.getName() + ", " + name + ", " + Arrays.toString(parameters));
     }
 
-    public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
+    public static <T> MethodInvoker<T> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType) {
         int currentIndex = 0;
         for (Method method : getDeclaredMethods(target)) {
             if (method.getReturnType() == returnType) {
@@ -259,7 +250,7 @@ public class Reflection {
         throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
-    public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, String name, Class<?> returnType) {
+    public static <T> MethodInvoker<T> getMethodFromReturnType(Class<?> target, String name, Class<?> returnType) {
         for (Method method : getDeclaredMethods(target)) {
             if (!(method.getReturnType().equals(returnType) && name.equals(method.getName()))) {
                 continue;
@@ -272,7 +263,7 @@ public class Reflection {
         throw new RuntimeException("Reflection error (method):" + name + " " + target.getName() + ", " + returnType + ", " + returnType);
     }
 
-    public static MethodInvoker<Object> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType, Class<?>... parameters) {
+    public static <T> MethodInvoker<T> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType, Class<?>... parameters) {
         int currentIndex = 0;
         for (Method method : getDeclaredMethods(target)) {
             if (method.getReturnType() == returnType && Arrays.equals(method.getParameterTypes(), parameters)) {

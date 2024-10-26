@@ -15,7 +15,7 @@ public class WrappedPlayInWindowClick extends WrappedPacket<WrappedPlayInWindowC
         super(rawPacket, packetContainer);
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            enumConstClass = (Class<Enum<?>>) Reflection.getUnsureClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType");
+            enumConstClass = Reflection.getUnsureClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType");
         }
     }
 

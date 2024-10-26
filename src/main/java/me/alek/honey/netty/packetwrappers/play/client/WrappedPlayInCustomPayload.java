@@ -8,9 +8,11 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.LazyInit;
+import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -60,7 +62,11 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
                 try {
                     PacketDataSerializer copy = getDataSerializer(true);
                     bookChannelItemStack = new LazyInit<>(() ->
-                            Converters.getItemStackConverter().convertDelegate(copy.readItemStack()));
+                            Converters.getItemStackConverter()
+                                    .convertDelegate(
+                                            copy.readItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book"))
+                                    )
+                    );
                 } catch (Exception ignored) {
                 }
             }

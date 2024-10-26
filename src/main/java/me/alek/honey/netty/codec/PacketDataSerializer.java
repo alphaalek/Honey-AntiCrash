@@ -12,6 +12,7 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Material;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +22,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.UUID;
 
 public class PacketDataSerializer extends ByteBuf {
@@ -65,7 +67,7 @@ public class PacketDataSerializer extends ByteBuf {
                 .invokeMethod(null, 0);
     }
 
-    public Object readItemStackWithoutMeta() {
+    public Object readItemStackWithFilter(boolean withMeta, Material... required) {
         short itemId = readShort();
         if (itemId < 0) {
             return null;
@@ -76,16 +78,31 @@ public class PacketDataSerializer extends ByteBuf {
             damage = readShort();
         }
 
-        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
-                .invokeMethod(null, 0);
         Object item = ItemReflection.getItemFromId(itemId);
         if (item == null) {
             return null;
         }
+        Material material = ItemReflection.getMaterialFromItem(item);
+        boolean found = false;
+        for (Material req : required) {
+            if (req.equals(material)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return null;
+        }
+
+        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
+                .invokeMethod(null, 0);
 
         Object itemStack = ItemReflection.createItemStack(item, amount, damage);
         ItemReflection.setItemTag(itemStack, nbt);
+        if (withMeta) {
+            // TODO
+        }
 
         return itemStack;
     }

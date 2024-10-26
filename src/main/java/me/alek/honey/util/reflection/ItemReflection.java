@@ -17,15 +17,19 @@ public class ItemReflection {
 
     private static final Class<?> itemStackClass = Reflection.getUnsureClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
     private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
-    private static ConstructorInvoker<?> itemStackConstructor;
+    private static final ConstructorInvoker<?> itemStackConstructor;
 
     private static final MethodInvoker<?> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
-    private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), (method) -> {
+    private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
+        } else {
+            return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
         }
-        return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
+    });
+    private static final MethodInvoker<Material> materialGetByItemInvoker = Reflection.getMethod(NMS.getMagicNumbersUtilClass(), method -> {
+        return method.getReturnType().equals(Material.class) && Arrays.equals(method.getParameterTypes(), new Class[]{NMS.getItemClass()});
     });
 
     private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
@@ -33,11 +37,13 @@ public class ItemReflection {
     private static final Gson CHAT_SERIALIZER_GSON;
 
     static {
+        ConstructorInvoker<?> invoker;
         try {
-            itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getItemClass(), int.class, int.class);
+            invoker = Reflection.getConstructor(itemStackClass, NMS.getItemClass(), int.class, int.class);
         } catch (Exception ex) {
-            itemStackConstructor = Reflection.getConstructor(itemStackClass, NMS.getIMaterialClass(), int.class);
+            invoker = Reflection.getConstructor(itemStackClass, NMS.getIMaterialClass(), int.class);
         }
+        itemStackConstructor = invoker;
 
         CHAT_SERIALIZER_GSON = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
                 .withType(Gson.class)
@@ -76,12 +82,12 @@ public class ItemReflection {
                 ex.printStackTrace();
             }
         }
+
         return new ItemStack(Material.AIR);
     }
 
     public static Object asNMSCopy(ItemStack item) {
         if (item != null && Arrays.equals(nmsCopyInvoker.getHandle().getParameterTypes(), new Class[]{ItemStack.class})) {
-
             try {
                 Object nmsItem = nmsCopyInvoker.invokeWithException(null, item);
                 if (isNMSItem(nmsItem)) {
@@ -91,6 +97,7 @@ public class ItemReflection {
                 ex.printStackTrace();
             }
         }
+
         return null;
     }
 
@@ -105,11 +112,16 @@ public class ItemReflection {
                 return handle;
             }
         }
+
         return ItemReflection.asNMSCopy(item);
     }
 
     public static Object getItemFromId(int id) {
         return itemGetByIdInvoker.invoke(null, id);
+    }
+
+    public static Material getMaterialFromItem(Object item) {
+        return materialGetByItemInvoker.invoke(null, item);
     }
 
     public static Object createItemStack(Object item, byte amount, short damage) {
