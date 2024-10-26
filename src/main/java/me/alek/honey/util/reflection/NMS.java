@@ -139,6 +139,11 @@ public class NMS {
         return craftMetaItemClass != null ? craftMetaItemClass : (craftMetaItemClass = getUnsureClass("{obc}.inventory.CraftMetaItem"));
     }
 
+    private static Class<Object> craftItemStackClass;
+    public static Class<Object> getCraftItemStackClass() {
+        return craftItemStackClass != null ? craftItemStackClass : (craftItemStackClass = getUnsureClass("{obc}.inventory.CraftItemStack"));
+    }
+
     private static Class<Object> serverConnectionClass;
     public static Class<Object> getServerConnectionClass() {
         return serverConnectionClass != null ? serverConnectionClass : (serverConnectionClass = getUnsureClass("{nms}.ServerConnection", "{nms}.server.network.ServerConnection"));

@@ -83,25 +83,30 @@ public class PacketDataSerializer extends ByteBuf {
             return null;
         }
         Material material = ItemReflection.getMaterialFromItem(item);
-        boolean found = false;
-        for (Material req : required) {
-            if (req.equals(material)) {
-                found = true;
-                break;
+        // do type filter
+        if (required.length > 0) {
+            boolean found = false;
+            for (Material req : required) {
+                if (req.equals(material)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return null;
             }
         }
-        if (!found) {
-            return null;
-        }
+
+        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
 
         Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
                 .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
                 .invokeMethod(null, 0);
-
-        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
-        ItemReflection.setItemTag(itemStack, nbt);
-        if (withMeta) {
-            // TODO
+        if (nbt != null) {
+            ItemReflection.setItemTag(itemStack, nbt);
+            if (withMeta) {
+                ItemReflection.setItemMeta(itemStack);
+            }
         }
 
         return itemStack;

@@ -8,6 +8,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +32,8 @@ public class ItemReflection {
     private static final MethodInvoker<Material> materialGetByItemInvoker = Reflection.getMethod(NMS.getMagicNumbersUtilClass(), method -> {
         return method.getReturnType().equals(Material.class) && Arrays.equals(method.getParameterTypes(), new Class[]{NMS.getItemClass()});
     });
+    private static final MethodInvoker<Void> craftItemSetMeta = Reflection.getMethod(NMS.getCraftItemStackClass(), "setItemMeta", NMS.getItemStackClass(), ItemMeta.class);
+    private static final MethodInvoker<ItemMeta> craftItemGetMeta = Reflection.getMethod(NMS.getCraftItemStackClass(), "getItemMeta", NMS.getItemStackClass());
 
     private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
 
@@ -148,5 +151,10 @@ public class ItemReflection {
         ReflectStructure.Provider.acquireStructure(NMS.getItemClass())
                 .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
                 .writeField(0, tag);
+    }
+
+    public static void setItemMeta(Object item) {
+        ItemMeta meta = craftItemGetMeta.invoke(null, item);
+        craftItemSetMeta.invoke(null, item, meta);
     }
 }
