@@ -29,7 +29,7 @@ public class PacketTaskProvider {
     };
 
     private static final AtomicReference<MethodInvoker<Object>> factoryInvokerCache = new AtomicReference<>();
-    private static final Provider.ProviderOneInput<Factory<Runnable>, Boolean> factoryProvider = ProviderBridge.<Factory<Runnable>, Boolean>getWithOneInput()
+    private static final Provider.ProviderOneInput<Factory<Runnable>, Boolean> factoryProvider = RemoteProviderBridge.<Factory<Runnable>, Boolean>getWithOneInput()
             .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(PacketTaskFactory.Provider.class));
 
     private static Factory<Runnable> factory;
@@ -38,7 +38,7 @@ public class PacketTaskProvider {
         try {
             Object remoteFactory = factoryProvider.get(MODERN);
 
-            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = ProviderBridge.<Runnable>getWithGenericInput()
+            Provider.ProviderGenericInput<Runnable> factoryMethodProvider = RemoteProviderBridge.<Runnable>getWithGenericInput()
                     .createProviderRemotely(factoryInvokerCache, PacketTaskProvider::isFactoryMethod, remoteFactory);
 
             PacketTaskFactory.Adapter adapter = new PacketTaskFactory.Adapter(factoryMethodProvider);

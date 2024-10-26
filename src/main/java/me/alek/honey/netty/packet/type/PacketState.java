@@ -21,7 +21,7 @@ public enum PacketState {
 
     @SuppressWarnings("unchecked")
     private final Array<PacketType>[] types = (Array<PacketType>[]) new Array[]{
-            new Array<>(), new Array<>()
+            new Array<>(), new Array<>() // will be written to on PacketTypes initialization
     };
 
     public String getName() {

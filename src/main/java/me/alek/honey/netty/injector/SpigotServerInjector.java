@@ -35,30 +35,38 @@ public class SpigotServerInjector {
             serverConnectionListAccessor = ReflectStructure.Provider.acquireStructure(NMS.getServerConnectionClass())
                     .<List<?>>withWeakType(List.class).withTarget(serverConnection);
         }
-        if (serverConnectionListAccessor == null) return null;
+        if (serverConnectionListAccessor == null) {
+            return null;
+        }
 
         for (List<?> list : serverConnectionListAccessor.readFieldValues()) {
             if (!list.isEmpty() && clazz.isAssignableFrom(list.get(0).getClass())) {
                 return (List<T>) list;
             }
         }
+
         return null;
     }
 
     private void getChannelFutures() {
         List<ChannelFuture> channelFutures = getNonEmptyServerConnectionList(ChannelFuture.class);
-        if (channelFutures == null) return;
+        if (channelFutures == null) {
+            return;
+        }
 
         int fieldIndex = channelFuturesFieldIndex;
         if (fieldIndex == -1) {
             boolean foundChannelFutures = false;
             for (List<?> list : serverConnectionListAccessor.readFieldValues()) {
-                if (!foundChannelFutures) fieldIndex++;
+                if (!foundChannelFutures) {
+                    fieldIndex++;
+                }
 
-                if (list.equals(channelFutures))
+                if (list.equals(channelFutures)) {
                     foundChannelFutures = true;
-                else
+                } else {
                     networkManagers = (List<Object>) list;
+                }
             }
             channelFuturesFieldIndex = fieldIndex;
         }
@@ -71,6 +79,7 @@ public class SpigotServerInjector {
                 return super.add(future);
             }
         });
+
         // we can't use ArrayList#addAll, because then the overridden method will not be run
         for (ChannelFuture channelFuture : channelFutures) {
             this.channelFutures.add(channelFuture);
@@ -154,11 +163,12 @@ public class SpigotServerInjector {
     public Object getNetworkManagerFor(Channel channel) {
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
-
-                if (channel.equals(NMS.getChannelFromNetworkManager(networkManager)))
+                if (channel.equals(NMS.getChannelFromNetworkManager(networkManager))) {
                     return networkManager;
+                }
             }
         }
+
         return channel.pipeline().get("packet_handler");
     }
 
@@ -169,7 +179,9 @@ public class SpigotServerInjector {
     }
 
     public synchronized void inject() {
-        if (injected) return;
+        if (injected) {
+            return;
+        }
 
         if (channelFutures == null) {
             getChannelFutures();
@@ -180,9 +192,10 @@ public class SpigotServerInjector {
 
         synchronized (networkManagers) {
             for (Object networkManager : networkManagers) {
-
                 Channel channel = NMS.getChannelFromNetworkManager(networkManager);
-                if (channel == null) continue;
+                if (channel == null) {
+                    continue;
+                }
 
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
             }
@@ -196,7 +209,6 @@ public class SpigotServerInjector {
                 serverConnectionListAccessor.writeField(channelFuturesFieldIndex, Collections.synchronizedList(new ArrayList<>(channelFutures)));
 
                 for (ChannelFuture channelFuture : channelFutures) {
-
                     for (Map.Entry<String, ChannelHandler> handler : channelFuture.channel().pipeline()) {
                         if (handler.getValue() instanceof BeginInitProtocolInjector) {
                             channelFuture.channel().pipeline().remove(handler.getValue());
@@ -209,9 +221,10 @@ public class SpigotServerInjector {
         if (networkManagers != null) {
             synchronized (networkManagers) {
                 for (Object networkManager : networkManagers) {
-
                     Channel channel = NMS.getChannelFromNetworkManager(networkManager);
-                    if (channel == null) continue;
+                    if (channel == null) {
+                        continue;
+                    }
 
                     HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
                 }

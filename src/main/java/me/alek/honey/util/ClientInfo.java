@@ -24,7 +24,7 @@ public class ClientInfo {
         return protocolVersion;
     }
 
-    public NetProtocol getMajorProtocol() {
+    public NetProtocol getProtocol() {
         return majorProtocol;
     }
 

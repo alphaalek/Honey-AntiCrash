@@ -91,13 +91,16 @@ public enum ViaProtocol {
 
     public static ViaProtocol getViaProtocolFrom(NetProtocol protocol) {
         for (ViaProtocol viaProtocol : values()) {
+            // acquire a protocol range from the mc-protocol matching this via-protocol to the mc-protocol just before the next via-protocol
+            // this means, that there has been no protocol change within this protocol range, so any mc-protocol within this range,
+            // will have the same protocol version
             NetProtocolRange range = NetProtocolRange.between(viaProtocol.getProtocol(), viaProtocol.getNextProtocol().getProtocol().getBefore());
             if (range.match(protocol) || viaProtocol.ordinal() == values().length - 1) {
                 return viaProtocol;
             }
         }
 
-        throw new IllegalStateException("Could not find any ViaVersion protocol for major version " + protocol);
+        throw new IllegalStateException("Could not find any ViaVersion protocol for version " + protocol);
     }
 
     ViaProtocol(NetProtocol protocol, String packageName, Array<PacketState> states) {
@@ -135,11 +138,11 @@ public enum ViaProtocol {
 
     private Array<PacketType> getMappings(PacketBound bound, PacketState state) {
         Array<PacketType> types = new Array<>();
-
         if (!hasState(bound, state)) {
             if (this.equals(ViaProtocol.v1_8)) {
                 return types;
             }
+
             return getPreviousProtocol().getMappings(bound, state);
         }
 

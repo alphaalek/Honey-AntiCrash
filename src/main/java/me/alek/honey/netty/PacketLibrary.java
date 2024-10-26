@@ -79,10 +79,6 @@ public class PacketLibrary {
         return packetManager;
     }
 
-    public NetProtocol getFallbackProtocol() {
-        return settings.getFallbackProtocol();
-    }
-
     public String getFilterName() {
         return settings.getFilterName();
     }

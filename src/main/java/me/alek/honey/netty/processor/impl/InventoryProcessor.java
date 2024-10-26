@@ -29,7 +29,7 @@ public class InventoryProcessor<WP extends WrappedPacket<WP>> extends ProcessorC
 
     private boolean sendsPacketForOpenInventory(HoneyPlayer player) {
         return NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_15_2)
-                && player.clientInfo.getMajorProtocol().isOlderThanOrEqual(NetProtocol.v1_15_2);
+                && player.clientInfo.getProtocol().isOlderThanOrEqual(NetProtocol.v1_15_2);
     }
 
     public void handleCloseWindow(HoneyPlayer player, PacketContainer<WrappedPlayInCloseWindow> packet) {

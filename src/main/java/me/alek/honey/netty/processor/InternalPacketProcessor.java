@@ -253,9 +253,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         call(type, bus -> bus.callDecode(player, type, buf));
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket,
-                                                                                         Object packet, HoneyPlayer player, Channel channel,
-                                                                                         Callback postAction, PacketType type) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket, Object packet, HoneyPlayer player, Callback postAction, PacketType type) {
         if (earlyInitializedPacket != null) {
             earlyInitializedPacket.initPostMinecraftDecode(packet, postAction, type);
             return earlyInitializedPacket;
@@ -264,8 +262,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return new InternalPacketContainer<>(packet, player, postAction, type);
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Channel channel,
-                                                                            Object packet, PacketContainer<WP> earlyInitializedPacket) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Object packet, PacketContainer<WP> earlyInitializedPacket) {
         PacketType type = null;
         if (bound.equals(PacketBound.SERVER) && earlyInitializedPacket != null) {
             type = earlyInitializedPacket.getType();
@@ -282,7 +279,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         Callback postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, channel, postAction, type);
+                earlyInitializedPacket, packet, player, postAction, type);
 
         if (PacketTypes.isUnknown(type)
                 || packetContainer.getState().equals(PacketState.PLAY) && !packetContainer.getPlayer().isBukkitReady()) {
@@ -299,13 +296,13 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        return handleCommon(player, PacketBound.SERVER, channel, packet, earlyInitializedPacket);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
+        return handleCommon(player, PacketBound.SERVER, packet, earlyInitializedPacket);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet) {
-        return handleCommon(player, PacketBound.CLIENT, channel, packet, null);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(HoneyPlayer player, Object packet) {
+        return handleCommon(player, PacketBound.CLIENT, packet, null);
     }
 
     @SuppressWarnings("unchecked")

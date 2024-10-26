@@ -10,10 +10,10 @@ public interface EmulatorCodec<T, B extends ByteBuf> {
     boolean LEGACY = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17);
 
     T decodeModern(ByteBuf buf, PacketState state) throws CodecException;
-    T decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) throws CodecException;
+    T decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException;
 
     B encodeModern(T val, PacketState state, PacketBuilder<PacketType, B> function) throws CodecException;
-    B encodeLegacy(T val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) throws CodecException;
+    B encodeLegacy(T val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException;
 
     @FunctionalInterface
     interface PacketBuilder<K1, K2> {
@@ -26,7 +26,7 @@ public interface EmulatorCodec<T, B extends ByteBuf> {
             throw new UnsupportedOperationException();
         }
 
-        default B encodeLegacy(T val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) {
+        default B encodeLegacy(T val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) {
             throw new UnsupportedOperationException();
         }
     }
@@ -37,7 +37,7 @@ public interface EmulatorCodec<T, B extends ByteBuf> {
             throw new UnsupportedOperationException();
         }
 
-        default T decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Applier> codec) {
+        default T decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) {
             throw new UnsupportedOperationException();
         }
     }

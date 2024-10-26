@@ -49,20 +49,6 @@ public class PrintValidationBridge {
             return Filter.Result.NEUTRAL;
         }
 
-        if (thrown != null) {
-            try {
-                SuppressedException ex = getSuppressedException(packet.getPlayer(), thrown);
-                if (ex == null) {
-                    suppressException(packet.getPlayer(), thrown);
-                    return Filter.Result.NEUTRAL;
-                } else {
-                    ex.suppress(packet, thrown);
-                }
-            } catch (Exception ignored) {
-                // ignored
-            }
-        }
-
         handling.set(true);
 
         Cancellable.Trigger cancellable = new Cancellable.Trigger();
@@ -73,9 +59,26 @@ public class PrintValidationBridge {
                 (validation, context) -> validation.validate(player, calculated, context),
                 cancellable);
 
+        Filter.Result result = Filter.Result.NEUTRAL;
+        if (cancellable.isCancelled()) {
+            if (thrown != null) {
+                try {
+                    SuppressedException ex = getSuppressedException(packet.getPlayer(), thrown);
+                    if (ex == null) {
+                        suppressException(packet.getPlayer(), thrown);
+                    } else {
+                        ex.suppress(packet, thrown);
+                        result = Filter.Result.DENY;
+                    }
+                } catch (Exception ignored) {
+                    // ignored
+                }
+            }
+        }
+
         handling.remove();
 
-        return cancellable.isCancelled() ? Filter.Result.DENY : Filter.Result.NEUTRAL;
+        return result;
     }
 
     private static String stackTraceToUnit(Throwable thrown) {

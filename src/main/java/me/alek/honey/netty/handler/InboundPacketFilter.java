@@ -8,6 +8,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
@@ -74,13 +75,14 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         if (!hasCalledChannelInactive) {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
         }
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
         hasCalledChannelInactive = true;
+
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
     }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
-        super.userEventTriggered(ctx, event);
+        ctx.fireUserEventTriggered(event);
 
         if (event.equals(PAPER_COMPRESSION_ENABLED_EVENT)) {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
@@ -100,19 +102,19 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         packetHandler.runDelayedTasks(PacketBound.SERVER);
 
-        PacketType type = packetHandler.getPacketType(buf);
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, type, buf.readableBytes());
-
-        if (Optional.ofNullable(MARK.get())
-                .map(PacketContainer::getType)
-                .isPresent()) {
+        PacketContainer<? extends WrappedPacket<?>> prevMarked = MARK.get();
+        if (prevMarked != null && !PacketTypes.isUnknown(prevMarked.getType())) {
             FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
                     player,
                     (validation, context) -> validation.validate(player, 1, context),
-                    packetContainer);
+                    prevMarked);
         }
 
+        PacketType type = packetHandler.getPacketType(buf);
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, type, buf.readableBytes());
+
         MARK.set(packetContainer);
+
         packetContainer.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
         CancellableByteBuf cancellableByteBuf = new CancellableByteBuf(player, buf);

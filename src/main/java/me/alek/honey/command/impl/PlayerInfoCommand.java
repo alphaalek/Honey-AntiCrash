@@ -25,7 +25,7 @@ public class PlayerInfoCommand implements CommandImpl {
         HoneyPlayer player = target.get();
         sender.sendMessage(NotificationService.PREFIX + " §7Showing info for player §6" + player.name);
         sender.sendMessage("§8* §7Using client §8" + player.clientInfo.getBrand());
-        sender.sendMessage("§8* §7Using version §8" + player.clientInfo.getMajorProtocol().getName() + ", protocol " + player.clientInfo.getProtocolVersion() + " §7on server version §8" + NetProtocol.getProtocol().getName() + "");
+        sender.sendMessage("§8* §7Using version §8" + player.clientInfo.getProtocol().getName() + ", protocol " + player.clientInfo.getProtocolVersion() + " §7on server version §8" + NetProtocol.getProtocol().getName() + "");
 
         if (player.bypassEverything()) {
             sender.sendMessage("§cThis player bypasses everything!");

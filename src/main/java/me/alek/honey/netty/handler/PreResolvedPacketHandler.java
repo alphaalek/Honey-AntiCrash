@@ -44,9 +44,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             case SERVER:
                 PacketContainer<WP> packetContainer = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
                 InboundPacketFilter.MARK.remove();
-                return packetProcessor.read(channel, packetHandler.getPlayer(), msg, packetContainer);
+                return packetProcessor.read(packetHandler.getPlayer(), msg, packetContainer);
             case CLIENT:
-                return packetProcessor.write(channel, packetHandler.getPlayer(), msg);
+                return packetProcessor.write(packetHandler.getPlayer(), msg);
         }
 
         throw new IllegalStateException();

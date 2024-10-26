@@ -37,7 +37,7 @@ public interface LegacyCodec {
 
     void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) throws CodecException;
 
-    interface Applier {
+    interface Callback {
 
         void apply(LegacyCodec codec) throws CodecException;
     }

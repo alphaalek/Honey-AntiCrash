@@ -102,18 +102,18 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     }
 
     public Object createLegacyPacket(PacketBound direction, int id) throws Exception {
-        return invoke(direction.getNMSType(), id);
+        return invokePacketFactory(direction.getNMSType(), id);
     }
 
     public Object createModernPacket1_20_1(PacketBound direction, PacketDataSerializer serializer, int id) throws Exception {
-        return invoke(direction.getNMSType(), id, serializer.getSerializer());
+        return invokePacketFactory(direction.getNMSType(), id, serializer.getSerializer());
     }
 
     public Object createModernPacket1_20_2(PacketDataSerializer serializer, int id) throws Exception {
-        return invoke(id, serializer.getSerializer());
+        return invokePacketFactory(id, serializer.getSerializer());
     }
 
-    private Object invoke(Object... params) throws Exception {
+    private Object invokePacketFactory(Object... params) throws Exception {
         return packetModifier.invokeMethodWithException(createPacketCachedInvoker, 0, params);
     }
 }

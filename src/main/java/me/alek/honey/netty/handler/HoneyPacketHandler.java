@@ -136,14 +136,14 @@ public class HoneyPacketHandler {
         PacketState state = getProtocolState(PacketBound.SERVER);
         PacketType type = null;
 
-        // check if the client major version is not the same as the server
+        // check if the client protocol version is not the same as the server protocol version
         // if it is not the same, then we will acquire the packet type with ViaVersion
         if (ViaProtocol.ViaValidator.VALIDATOR.find().get()
                 && state != PacketState.HANDSHAKE // client-info (handshake SET_PROTOCOL) has been called
-                && !player.clientInfo.getMajorProtocol().equals(NetProtocol.getProtocol())) {
+                && !player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
 
             if (viaProtocol == null) {
-                viaProtocol = ViaProtocol.getViaProtocolFrom(player.clientInfo.getMajorProtocol());
+                viaProtocol = ViaProtocol.getViaProtocolFrom(player.clientInfo.getProtocol());
             }
 
             if (viaProtocol.hasState(PacketBound.SERVER, state)) {
@@ -152,6 +152,7 @@ public class HoneyPacketHandler {
         }
 
         if (type == null) {
+            // we didn't acquire the type from ViaVersion type-mapping, just get it by the server
             type = getPacketType(PacketBound.SERVER, id);
         }
 

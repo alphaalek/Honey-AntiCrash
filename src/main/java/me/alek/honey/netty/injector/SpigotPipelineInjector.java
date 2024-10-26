@@ -14,7 +14,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Provider;
-import me.alek.honey.util.ProviderBridge;
+import me.alek.honey.util.RemoteProviderBridge;
 import me.alek.honey.util.RemoteProviderUtils;
 import me.alek.honey.util.reflection.NMS;
 
@@ -26,9 +26,9 @@ public class SpigotPipelineInjector {
 
     private static final String PRE_RESOLVED_PACKET_HANDLER = "pre-resolved-packet-handler";
 
-    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = ProviderBridge.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
+    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = RemoteProviderBridge.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
             .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
-    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = ProviderBridge.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
+    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = RemoteProviderBridge.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
             .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, channelProxyRemoteFactoryProvider.get());
 
     public void injectChannel(Channel channel) {

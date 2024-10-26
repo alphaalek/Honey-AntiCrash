@@ -1,42 +1,42 @@
 package me.alek.honey.util;
 
-public interface Provider<T, P extends Provider<T, P, A>, A extends ProviderBridge<T, P, A>> {
+public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProviderBridge<T, P, A>> {
 
-    A createBridge();
+    A createRemoveBridge();
 
-    interface ProviderNoInput<T> extends Provider<T, ProviderNoInput<T>, ProviderBridge.ProviderNoInput<T>> {
+    interface ProviderNoInput<T> extends Provider<T, ProviderNoInput<T>, RemoteProviderBridge.ProviderNoInput<T>> {
 
         T get();
 
-        default ProviderBridge.ProviderNoInput<T> createBridge() {
-            return (ProviderBridge.ProviderNoInput<T>) ProviderBridge.<T>getWithNoInput();
+        default RemoteProviderBridge.ProviderNoInput<T> createRemoveBridge() {
+            return (RemoteProviderBridge.ProviderNoInput<T>) RemoteProviderBridge.<T>getWithNoInput();
         }
     }
 
-    interface ProviderOneInput<T, I1> extends Provider<T, ProviderOneInput<T, I1>, ProviderBridge.ProviderOneInput<T, I1>> {
+    interface ProviderOneInput<T, I1> extends Provider<T, ProviderOneInput<T, I1>, RemoteProviderBridge.ProviderOneInput<T, I1>> {
 
         T get(I1 i1);
 
-        default ProviderBridge.ProviderOneInput<T, I1> createBridge() {
-            return (ProviderBridge.ProviderOneInput<T, I1>) ProviderBridge.<T, I1>getWithOneInput();
+        default RemoteProviderBridge.ProviderOneInput<T, I1> createRemoveBridge() {
+            return (RemoteProviderBridge.ProviderOneInput<T, I1>) RemoteProviderBridge.<T, I1>getWithOneInput();
         }
     }
 
-    interface ProviderTwoInput<T, I1, I2> extends Provider<T, ProviderTwoInput<T, I1, I2>, ProviderBridge.ProviderTwoInput<T, I1, I2>> {
+    interface ProviderTwoInput<T, I1, I2> extends Provider<T, ProviderTwoInput<T, I1, I2>, RemoteProviderBridge.ProviderTwoInput<T, I1, I2>> {
 
         T get(I1 i1, I2 i2);
 
-        default ProviderBridge.ProviderTwoInput<T, I1, I2> createBridge() {
-            return (ProviderBridge.ProviderTwoInput<T, I1, I2>) ProviderBridge.<T, I1, I2>getWithTwoInput();
+        default RemoteProviderBridge.ProviderTwoInput<T, I1, I2> createRemoveBridge() {
+            return (RemoteProviderBridge.ProviderTwoInput<T, I1, I2>) RemoteProviderBridge.<T, I1, I2>getWithTwoInput();
         }
     }
 
-    interface ProviderGenericInput<T> extends Provider<T, ProviderGenericInput<T>, ProviderBridge.ProviderGenericInput<T>> {
+    interface ProviderGenericInput<T> extends Provider<T, ProviderGenericInput<T>, RemoteProviderBridge.ProviderGenericInput<T>> {
 
         T get(Object[] array);
 
-        default ProviderBridge.ProviderGenericInput<T> createBridge() {
-            return (ProviderBridge.ProviderGenericInput<T>) ProviderBridge.<T>getWithGenericInput();
+        default RemoteProviderBridge.ProviderGenericInput<T> createRemoveBridge() {
+            return (RemoteProviderBridge.ProviderGenericInput<T>) RemoteProviderBridge.<T>getWithGenericInput();
         }
     }
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 
-public interface ProviderBridge<T, P extends Provider<T, P, A>, A extends ProviderBridge<T, P, A>> {
+public interface RemoteProviderBridge<T, P extends Provider<T, P, A>, A extends RemoteProviderBridge<T, P, A>> {
 
     default IStructureModifier<T> getStructure(Object other) {
         return ReflectStructure.Provider.<T>acquireStructure(other.getClass())
@@ -19,7 +19,7 @@ public interface ProviderBridge<T, P extends Provider<T, P, A>, A extends Provid
                                  BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
                                  Object other);
 
-    class ProviderNoInput<T> implements ProviderBridge<T, Provider.ProviderNoInput<T>, ProviderNoInput<T>> {
+    class ProviderNoInput<T> implements RemoteProviderBridge<T, Provider.ProviderNoInput<T>, ProviderNoInput<T>> {
 
         public <O> Provider.ProviderNoInput<T> createProviderRemotely(AtomicReference<MethodInvoker<O>> cache,
                                                                       BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
@@ -29,7 +29,7 @@ public interface ProviderBridge<T, P extends Provider<T, P, A>, A extends Provid
         }
     }
 
-    class ProviderOneInput<T, I1> implements ProviderBridge<T, Provider.ProviderOneInput<T, I1>, ProviderOneInput<T, I1>> {
+    class ProviderOneInput<T, I1> implements RemoteProviderBridge<T, Provider.ProviderOneInput<T, I1>, ProviderOneInput<T, I1>> {
 
         public <O> Provider.ProviderOneInput<T, I1> createProviderRemotely(AtomicReference<MethodInvoker<O>> cache,
                                                                            BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
@@ -39,7 +39,7 @@ public interface ProviderBridge<T, P extends Provider<T, P, A>, A extends Provid
         }
     }
 
-    class ProviderTwoInput<T, I1, I2> implements ProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, ProviderTwoInput<T, I1, I2>> {
+    class ProviderTwoInput<T, I1, I2> implements RemoteProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, ProviderTwoInput<T, I1, I2>> {
 
         public <O> Provider.ProviderTwoInput<T, I1, I2> createProviderRemotely(AtomicReference<MethodInvoker<O>> cache,
                                                                                BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
@@ -49,7 +49,7 @@ public interface ProviderBridge<T, P extends Provider<T, P, A>, A extends Provid
         }
     }
 
-    class ProviderGenericInput<T> implements ProviderBridge<T, Provider.ProviderGenericInput<T>, ProviderGenericInput<T>> {
+    class ProviderGenericInput<T> implements RemoteProviderBridge<T, Provider.ProviderGenericInput<T>, ProviderGenericInput<T>> {
 
         public <O> Provider.ProviderGenericInput<T> createProviderRemotely(AtomicReference<MethodInvoker<O>> cache,
                                                                            BiPredicate<AtomicInteger, MethodInvoker<?>> filter,
@@ -61,19 +61,19 @@ public interface ProviderBridge<T, P extends Provider<T, P, A>, A extends Provid
         }
     }
 
-    static <T> ProviderBridge<T, Provider.ProviderNoInput<T>, ProviderBridge.ProviderNoInput<T>> getWithNoInput() {
-        return new ProviderBridge.ProviderNoInput<T>();
+    static <T> RemoteProviderBridge<T, Provider.ProviderNoInput<T>, RemoteProviderBridge.ProviderNoInput<T>> getWithNoInput() {
+        return new RemoteProviderBridge.ProviderNoInput<T>();
     }
 
-    static <T, I1> ProviderBridge<T, Provider.ProviderOneInput<T, I1>, ProviderBridge.ProviderOneInput<T, I1>> getWithOneInput() {
-        return new ProviderBridge.ProviderOneInput<T, I1>();
+    static <T, I1> RemoteProviderBridge<T, Provider.ProviderOneInput<T, I1>, RemoteProviderBridge.ProviderOneInput<T, I1>> getWithOneInput() {
+        return new RemoteProviderBridge.ProviderOneInput<T, I1>();
     }
 
-    static <T, I1, I2> ProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, ProviderBridge.ProviderTwoInput<T, I1, I2>> getWithTwoInput() {
-        return new ProviderBridge.ProviderTwoInput<T, I1, I2>();
+    static <T, I1, I2> RemoteProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, RemoteProviderBridge.ProviderTwoInput<T, I1, I2>> getWithTwoInput() {
+        return new RemoteProviderBridge.ProviderTwoInput<T, I1, I2>();
     }
 
-    static <T> ProviderBridge<T, Provider.ProviderGenericInput<T>, ProviderBridge.ProviderGenericInput<T>> getWithGenericInput() {
-        return new ProviderBridge.ProviderGenericInput<T>();
+    static <T> RemoteProviderBridge<T, Provider.ProviderGenericInput<T>, RemoteProviderBridge.ProviderGenericInput<T>> getWithGenericInput() {
+        return new RemoteProviderBridge.ProviderGenericInput<T>();
     }
 }

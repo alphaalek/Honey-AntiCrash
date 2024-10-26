@@ -21,22 +21,20 @@ public class HoneyPacketDecoder {
         Object packet;
         try {
             if (EmulatorCodec.LEGACY) {
-                packet = protocol.decodeLegacy(byteBuf, state, (packetType, applier) -> {
+                packet = protocol.decodeLegacy(byteBuf, state, (packetType, callback) -> {
                     if (packetType.equals(PacketTypes.Play.Client.BLOCK_PLACE)
                             && ConfigurationOptions.Decoder.DISABLE_NBT
                             && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-                        applier.apply(DisabledNBTCodec.BLOCK_PLACE);
-                    }
-                    else if (packetType.equals(PacketTypes.Play.Client.CLICK_WINDOW)
+                        callback.apply(DisabledNBTCodec.BLOCK_PLACE);
+                    } else if (packetType.equals(PacketTypes.Play.Client.CLICK_WINDOW)
                             && ConfigurationOptions.Decoder.DISABLE_NBT) {
-                        applier.apply(DisabledNBTCodec.WINDOW_CLICK);
-                    }
-                    else if (packetType.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
+                        callback.apply(DisabledNBTCodec.WINDOW_CLICK);
+                    } else if (packetType.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
                             && player.isBukkitReady() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
                     } else {
-                        applier.apply(LegacyCodec.createDefault(packetType));
+                        callback.apply(LegacyCodec.createDefault(packetType));
                     }
                 });
             } else {

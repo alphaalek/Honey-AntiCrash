@@ -140,7 +140,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(ctx.channel(), player, packet, earlyPacketContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(player, packet, earlyPacketContainer);
 
             Runnable packetExecutorTask;
             if (!finalPacketContainer.isCancelled()) {
@@ -174,6 +174,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         if (packetExecutorTask != null) {
             serverThreadExecutionQueue.add(packetExecutorTask);
+            // drop the packet for the pipeline
             return;
         }
 
@@ -205,7 +206,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
 
         ByteBuf buf = (ByteBuf) o;
-        if (buf.readableBytes() == 0) {
+        if (!buf.isReadable()) {
             ctx.fireChannelRead(buf);
             return;
         }
@@ -218,6 +219,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             InboundPacketFilter.MARK.set(packetContainer);
         }
 
+        // stops in-between timings
         packetContainer.getEventloopStateTimings().stopTimings();
 
         List<Object> nonRecycledList = new ArrayList<>();

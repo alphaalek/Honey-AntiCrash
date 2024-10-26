@@ -1,10 +1,9 @@
 package me.alek.honey.netty.api;
 
-import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packet.PacketListenerAdapter;
-import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.CancellableByteBuf;
+import me.alek.honey.netty.packet.PacketExecutor;
+import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
@@ -13,9 +12,9 @@ import java.util.List;
 
 public interface PacketProcessor {
 
-    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(Channel channel, HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket);
 
-    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(Channel channel, HoneyPlayer player, Object packet);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(HoneyPlayer player, Object packet);
 
     void addPostAction(PacketType packetType, Callback.Action callback);
 

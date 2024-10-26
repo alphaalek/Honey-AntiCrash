@@ -31,7 +31,7 @@ public class LazyInit<T> {
                     throw new IllegalStateException("Modern protocol for packet mapping without minecraft key");
                 }
 
-                Object streamCodec = CodecFactory.getStreamCodec1_20_5(type.getBound(), type.getState());
+                Object streamCodec = CodecFactory.getStreamCodec1_20_6(type.getBound(), type.getState());
 
                 List<Object> codecs = ReflectStructure.Provider.acquireStructure(streamCodec.getClass())
                         .<List<Object>>withWeakType(List.class).withTarget(streamCodec)
