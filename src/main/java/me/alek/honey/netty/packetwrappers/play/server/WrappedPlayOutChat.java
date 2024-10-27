@@ -1,9 +1,10 @@
 package me.alek.honey.netty.packetwrappers.play.server;
 
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
-public class WrappedPlayOutChat extends WrappedPacket<WrappedPlayOutChat> {
+public class WrappedPlayOutChat extends ObjectWrappedPacket<WrappedPlayOutChat> {
 
     public WrappedPlayOutChat(Object rawPacket, PacketContainer<WrappedPlayOutChat> packetContainer) {
         super(rawPacket, packetContainer);

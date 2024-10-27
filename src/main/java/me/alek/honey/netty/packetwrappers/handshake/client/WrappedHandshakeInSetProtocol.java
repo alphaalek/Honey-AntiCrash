@@ -3,10 +3,12 @@ package me.alek.honey.netty.packetwrappers.handshake.client;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketReader;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.processor.Processor;
 import me.alek.honey.util.ClientInfo;
 
-public class WrappedHandshakeInSetProtocol extends WrappedPacket<WrappedHandshakeInSetProtocol> {
+public class WrappedHandshakeInSetProtocol extends ObjectWrappedPacket<WrappedHandshakeInSetProtocol> {
 
     public WrappedHandshakeInSetProtocol(Object rawPacket, PacketContainer<WrappedHandshakeInSetProtocol> packetContainer) {
         super(rawPacket, packetContainer);

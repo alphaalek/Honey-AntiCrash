@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -18,7 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCustomPayload> {
+public class WrappedPlayInCustomPayload extends ObjectWrappedPacket<WrappedPlayInCustomPayload> {
 
     private static final AtomicReference<MethodInvoker<Object>> minecraftKeyCustomPayloadCache = new AtomicReference<>();
     private static final AtomicReference<MethodInvoker<Object>> payloadDataCustomPayloadCache = new AtomicReference<>();
@@ -33,7 +34,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
             buf = Unpooled.buffer();
 
-            Object payload = getContainer().getObjectsOf(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
+            Object payload = getContainer().getStructure().getObjectsOf(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
             Object key;
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 Object payloadData = ReflectStructure.Provider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
@@ -51,11 +52,11 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
             buf = getDataSerializer(false);
 
             if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_12_2)) {
-                Object key = getContainer().getObjectsOf(NMS.getMinecraftKeyClass()).readField(0);
+                Object key = getContainer().getStructure().getObjectsOf(NMS.getMinecraftKeyClass()).readField(0);
 
                 channel = key.toString();
             } else {
-                channel = getContainer().getStrings().readField(0);
+                channel = getContainer().getStructure().getStrings().readField(0);
             }
 
             if (isBookChannel()) {
@@ -74,7 +75,7 @@ public class WrappedPlayInCustomPayload extends WrappedPacket<WrappedPlayInCusto
     }
 
     public PacketDataSerializer getDataSerializer(boolean copy) {
-        return getContainer().getDataSerializers(copy).readField(0);
+        return getContainer().getStructure().getDataSerializers(copy).readField(0);
     }
 
     public ItemStack getBookChannelItemStack() {

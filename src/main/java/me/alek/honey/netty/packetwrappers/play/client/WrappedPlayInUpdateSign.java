@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.play.client;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ItemReflection;
@@ -13,7 +14,7 @@ import me.alek.honey.util.reflection.Reflection;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSign> {
+public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUpdateSign> {
 
     private static Class<?> iChatBaseComponentArrayClass;
     private static MethodInvoker<?> textComponentGetter;
@@ -32,7 +33,7 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
 
     public String[] getLines() {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            return getContainer().getStringArrays().readField(0);
+            return getContainer().getStructure().getStringArrays().readField(0);
         }
 
         Object[] chatBaseComponentArray = getChatBaseComponents();
@@ -45,7 +46,7 @@ public class WrappedPlayInUpdateSign extends WrappedPacket<WrappedPlayInUpdateSi
     }
 
     private Object[] getChatBaseComponents() {
-        return (Object[]) getContainer().getObjectsOf(iChatBaseComponentArrayClass).readField(0);
+        return (Object[]) getContainer().getStructure().getObjectsOf(iChatBaseComponentArrayClass).readField(0);
     }
 
     public List<JsonObject> getLegacyJsonPages() {

@@ -167,7 +167,7 @@ public enum ViaProtocol {
     public Enum<?>[] getEnumConstants(PacketBound bound, PacketState state) {
         try {
             String className = bound.getName() + (state.equals(PacketState.PLAY) ? "" : state.getName()) + "Packets" + protocol.toString();
-            Class<Enum<?>> clazz = (Class<Enum<?>>) Reflection.getClass(PACKAGE + ".protocols." + packageName + "." + className);
+            Class<Enum<?>> clazz = Reflection.getClass(PACKAGE + ".protocols." + packageName + "." + className);
 
             return clazz.getEnumConstants();
         } catch (Exception ex) {

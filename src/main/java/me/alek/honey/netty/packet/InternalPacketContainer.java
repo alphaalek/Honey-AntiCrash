@@ -1,74 +1,72 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.api.ObjectPacketStructure;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.reflection.NMS;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
 
     private PacketType type;
-    private Object raw;
-    private WP wrapped;
-    private final int byteSize;
-    private Callback postAction;
-    private final HoneyPlayer player;
-    private ReflectStructure<Object, ?> structure;
     private boolean cancelled;
     private boolean dumped;
+    private InternalObjectPacketStructure structure;
+    private ObjectWrappedPacket<WP> objectWrapped;
+    private final ByteWrappedPacket<WP> byteWrapped;
+    private final Callback postAction;
+    private final HoneyPlayer player;
     private final long time = System.currentTimeMillis();
     private final PacketLifecycleTimings eventLoopStateTracker = new PacketLifecycleTimings();
     private final Callback callbackAction = new Callback();
 
-    public InternalPacketContainer(Object rawPacket, HoneyPlayer player, Callback postAction, PacketType type) {
-        this(player, type, 0);
-        initPostMinecraftDecode(rawPacket, postAction, type);
+    public InternalPacketContainer(Object handle, HoneyPlayer player, PacketType type, Callback postAction) {
+        this(null, player, type, postAction);
+        initPostMinecraftDecode(handle, type);
     }
 
-    public InternalPacketContainer(HoneyPlayer player, PacketType type, int byteSize) {
+    public InternalPacketContainer(ByteBuf buf, HoneyPlayer player, PacketType type, Callback postAction) {
         this.player = player;
         this.type = type;
-        this.byteSize = byteSize;
-    }
-
-    public void initPostMinecraftDecode(Object raw, Callback postAction, PacketType type) {
-        this.type = type;
-        this.raw = raw;
         this.postAction = postAction;
 
+        if (buf != null) {
+            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, new PacketDataSerializer(buf), this);
+        } else {
+            this.byteWrapped = null;
+        }
+    }
+
+    public void initPostMinecraftDecode(Object handle, PacketType type) {
+        this.type = type;
+
         if (PacketTypes.isUnknown(type)
-                || !type.getNmsClass().equals(raw.getClass())) {
-            throw new IllegalStateException("Unknown type " + raw + " " + type + " " + Optional.ofNullable(type).map(PacketType::getNmsClass).orElse(null));
+                || !type.getNmsClass().equals(handle.getClass())) {
+            throw new IllegalStateException("Unknown type " + handle + " " + type + " " + Optional.ofNullable(type).map(PacketType::getNmsClass).orElse(null));
         }
 
-        this.structure = ReflectStructure.Provider.acquireStructure(type);
-        if (this.structure.isStaticFieldsAllowed()) {
-            this.structure.withoutStatic();
-        }
-        this.wrapped = (WP) PacketFactory.createWrappedPacket(type, raw, this);
+        ReflectStructure<Object, ?> structure = ReflectStructure.Provider.acquireStructure(type);
+        this.structure = new InternalObjectPacketStructure(handle, structure);
+
+        this.objectWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, handle, this);
     }
 
     @Override
-    public int getByteSize() {
-        return byteSize;
+    public ObjectPacketStructure getStructure() {
+        return this.structure;
     }
 
     @Override
@@ -121,11 +119,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public Object getRaw() {
-        return this.raw;
-    }
-
-    @Override
     public boolean isDumped() {
         return this.dumped;
     }
@@ -151,146 +144,41 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public Callback getPost() {
-        return postAction;
+        return this.postAction;
     }
 
     @Override
-    public WP getPacket() {
-        return wrapped;
+    public ObjectWrappedPacket<WP> getObjectWrapped() {
+        return this.objectWrapped;
+    }
+
+    @Override
+    public ByteWrappedPacket<WP> getByteWrapped() {
+        return this.byteWrapped;
+    }
+
+    @Override
+    public WP getAnyWrapped() {
+        if (this.byteWrapped != null && !this.byteWrapped.getClass().equals(ByteWrappedPacket.class)) {
+            return this.byteWrapped.get();
+        } else if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
+            return this.objectWrapped.get();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public HoneyPlayer getPlayer() {
-        return player;
+        return this.player;
     }
 
     @Override
     public String getPlayerName() {
-        if (this.type == PacketTypes.Login.Client.LOGIN_START && this.wrapped != null) {
-            return ((WrappedLoginInLoginStart)this.wrapped).getName();
+        if (this.type == PacketTypes.Login.Client.LOGIN_START && this.objectWrapped != null) {
+            return ((WrappedLoginInLoginStart)this.objectWrapped).getName();
         }
 
-        return player.packetHandler.getPlayerName();
-    }
-
-    public <T> IStructureModifier<T> getModifier(Class<T> clazz) {
-        return getModifier(clazz, null);
-    }
-
-    public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params) {
-        if (this.structure == null) {
-            return null;
-        }
-
-        return this.structure.withType(clazz, converter).withTarget(this.raw, params);
-    }
-
-    @Override
-    public IStructureModifier<Double> getDoubles() {
-        return getModifier(double.class);
-    }
-
-    @Override
-    public IStructureModifier<Long> getLongs() {
-        return getModifier(long.class);
-    }
-
-    @Override
-    public IStructureModifier<Integer> getInts() {
-        return getModifier(int.class);
-    }
-
-    @Override
-    public IStructureModifier<Short> getShorts() {
-        return getModifier(short.class);
-    }
-
-    @Override
-    public IStructureModifier<Float> getFloats() {
-        return getModifier(float.class);
-    }
-
-    @Override
-    public IStructureModifier<Byte> getBytes() {
-        return getModifier(byte.class);
-    }
-
-    @Override
-    public IStructureModifier<Boolean> getBooleans() {
-        return getModifier(boolean.class);
-    }
-
-    @Override
-    public IStructureModifier<String> getStrings() {
-        return getModifier(String.class);
-    }
-
-    @Override
-    public IStructureModifier<Object> getObjectsOf() {
-        return getModifier(Object.class);
-    }
-
-    @Override
-    public IStructureModifier<Object> getAll() {
-        if (this.structure == null) {
-            return null;
-        }
-
-        return (IStructureModifier<Object>) this.structure.withTarget(raw);
-    }
-
-    @Override
-    public IStructureModifier<UUID> getUUIDS() {
-        return getModifier(UUID.class);
-    }
-
-    @Override
-    public IStructureModifier<String[]> getStringArrays() {
-        return getModifier(String[].class);
-    }
-
-    @Override
-    public IStructureModifier<long[]> getLongArrays() {
-        return getModifier(long[].class);
-    }
-
-    @Override
-    public IStructureModifier<int[]> getIntArrays() {
-        return getModifier(int[].class);
-    }
-
-    @Override
-    public IStructureModifier<short[]> getShortArrays() {
-        return getModifier(short[].class);
-    }
-
-    @Override
-    public IStructureModifier<byte[]> getByteArrays() {
-        return getModifier(byte[].class);
-    }
-
-    @Override
-    public IStructureModifier<ItemStack> getItems() {
-        return getModifier(NMS.getItemStackClass(), Converters.getItemStackConverter());
-    }
-
-    @Override
-    public IStructureModifier<WrappedGameProfile> getGameProfiles() {
-        return getModifier(NMS.getGameProfileClass(), Converters.getGameProfileConverter());
-    }
-
-    @Override
-    public IStructureModifier<PacketDataSerializer> getDataSerializers(boolean copy) {
-        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter(), copy);
-    }
-
-    @Override
-    public IStructureModifier<WrappedBlockPosition> getBlockPositions() {
-        return getModifier(NMS.getBlockPositionClass(), Converters.getBlockPositionConverter());
-    }
-
-    @Override
-    public <T> IStructureModifier<T> getObjectsOf(Class<T> target) {
-        return getModifier(target);
+        return this.player.packetHandler.getPlayerName();
     }
 }

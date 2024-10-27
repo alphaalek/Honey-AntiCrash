@@ -7,7 +7,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
@@ -15,6 +14,7 @@ import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
@@ -24,6 +24,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.logging.Level;
 
@@ -108,7 +109,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + earlyPacketContainer.getByteSize() + " bytes", ex);
+                    Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
@@ -178,7 +179,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        ctx.fireChannelRead(packetContainer.getRaw());
+        if (packetContainer.getObjectWrapped() != null) {
+            ctx.fireChannelRead(packetContainer.getObjectWrapped().getHandle());
+        }
 
         Callback postAction = packetContainer.getPost();
         if (postAction != null) {
@@ -215,7 +218,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         if (packetContainer == null) {
             // this packet is not sent by the client (because it was not received by the filter),
             // but instead invoked by some plugin (most likely ViaVersion)
-            packetContainer = new InternalPacketContainer<>(player, packetHandler.getPacketType(buf), buf.readableBytes());
+            packetContainer = new InternalPacketContainer<>(buf, player, packetHandler.getPacketType(buf), null);
             InboundPacketFilter.MARK.set(packetContainer);
         }
 

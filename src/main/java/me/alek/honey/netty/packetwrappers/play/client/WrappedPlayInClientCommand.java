@@ -1,10 +1,11 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.reflection.NMS;
 
-public class WrappedPlayInClientCommand extends WrappedPacket<WrappedPlayInClientCommand> {
+public class WrappedPlayInClientCommand extends ObjectWrappedPacket<WrappedPlayInClientCommand> {
 
     public WrappedPlayInClientCommand(Object rawPacket, PacketContainer<WrappedPlayInClientCommand> packetContainer) {
         super(rawPacket, packetContainer);

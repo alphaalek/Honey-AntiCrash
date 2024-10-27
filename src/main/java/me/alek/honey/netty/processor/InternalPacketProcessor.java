@@ -253,13 +253,13 @@ public class InternalPacketProcessor implements PacketProcessor {
         call(type, bus -> bus.callDecode(player, type, buf));
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket, Object packet, HoneyPlayer player, Callback postAction, PacketType type) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket, Object packet, HoneyPlayer player, PacketType type) {
         if (earlyInitializedPacket != null) {
-            earlyInitializedPacket.initPostMinecraftDecode(packet, postAction, type);
+            earlyInitializedPacket.initPostMinecraftDecode(packet, type);
             return earlyInitializedPacket;
         }
 
-        return new InternalPacketContainer<>(packet, player, postAction, type);
+        return new InternalPacketContainer<>(packet, player, type, getPostAction(type));
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Object packet, PacketContainer<WP> earlyInitializedPacket) {
@@ -277,9 +277,8 @@ public class InternalPacketProcessor implements PacketProcessor {
             type = optionalType.get();
         }
 
-        Callback postAction = getPostAction(type);
         PacketContainer<WP> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, postAction, type);
+                earlyInitializedPacket, packet, player, type);
 
         if (PacketTypes.isUnknown(type)
                 || packetContainer.getState().equals(PacketState.PLAY) && !packetContainer.getPlayer().isBukkitReady()) {

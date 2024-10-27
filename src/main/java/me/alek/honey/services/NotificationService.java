@@ -7,7 +7,9 @@ import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.WrappedPacketFactory;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tracker.TimedManualHandleTracker;
@@ -326,10 +328,10 @@ public class NotificationService {
             return;
         }
 
-        WrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.PLAYER_CHAT, player);
+        ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(WrappedPacketFactory.<WrappedPlayOutChat>acquireHolder().OBJECT_FACTORY, PacketTypes.Play.Server.PLAYER_CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
-        packetContainer.getBytes().writeField(0, (byte) 2);
+        packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
 
         if (IchatBaseComponentClass == null) {
             IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
@@ -340,7 +342,7 @@ public class NotificationService {
                     .withTarget(null);
         }
         Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
-        packetContainer.getObjectsOf(IchatBaseComponentClass).writeField(0, chatComponent);
+        packetContainer.getStructure().getObjectsOf(IchatBaseComponentClass).writeField(0, chatComponent);
 
         try {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);

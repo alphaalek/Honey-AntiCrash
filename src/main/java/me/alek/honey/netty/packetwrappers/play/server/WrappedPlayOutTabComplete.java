@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.play.server;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -13,7 +14,7 @@ import me.alek.honey.util.reflection.NMS;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabComplete> {
+public class WrappedPlayOutTabComplete extends ObjectWrappedPacket<WrappedPlayOutTabComplete> {
 
     private static final boolean IS_MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13);
 
@@ -56,7 +57,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
         if (!IS_MODERN) {
             List<String> suggestions = new ArrayList<>(Arrays.asList(getSuggestions()));
             suggestions.remove(suggestion);
-            getContainer().getStringArrays().writeField(0, createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
+            getContainer().getStructure().getStringArrays().writeField(0, createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
         } else {
             getModernSuggestionsHandle(true).removeConverted(new WrappedSuggestion(suggestion));
         }
@@ -64,7 +65,7 @@ public class WrappedPlayOutTabComplete extends WrappedPacket<WrappedPlayOutTabCo
 
     public String[] getSuggestions() {
         if (!IS_MODERN) {
-            return getContainer().getStringArrays().readField(0);
+            return getContainer().getStructure().getStringArrays().readField(0);
         }
 
         ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(true);

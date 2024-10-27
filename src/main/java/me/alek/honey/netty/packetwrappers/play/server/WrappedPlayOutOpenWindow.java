@@ -1,16 +1,17 @@
 package me.alek.honey.netty.packetwrappers.play.server;
 
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
-public class WrappedPlayOutOpenWindow extends WrappedPacket<WrappedPlayOutOpenWindow> {
+public class WrappedPlayOutOpenWindow extends ObjectWrappedPacket<WrappedPlayOutOpenWindow> {
 
     public WrappedPlayOutOpenWindow(Object rawPacket, PacketContainer<WrappedPlayOutOpenWindow> packetContainer) {
         super(rawPacket, packetContainer);
     }
 
     public int getWindowID() {
-        return getContainer().getInts().readField(0);
+        return getContainer().getStructure().getInts().readField(0);
     }
 
     public Container getInventoryContainer() {

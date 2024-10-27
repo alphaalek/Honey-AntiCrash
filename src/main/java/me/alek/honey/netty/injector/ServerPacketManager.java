@@ -7,6 +7,7 @@ import me.alek.honey.netty.handler.HoneyDebugger;
 import me.alek.honey.netty.handler.HoneyPacketDecodePreparation;
 import me.alek.honey.netty.handler.HoneyPacketEncodePreparation;
 import me.alek.honey.netty.handler.InboundPacketFilter;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class ServerPacketManager {
@@ -15,7 +16,7 @@ public class ServerPacketManager {
         writePacket(player.channel, rawPacket, flushAfter);
     }
 
-    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, WrappedPacket<WP> packet) throws Exception {
+    public <WP extends WrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet) throws Exception {
         ServerPacketManager packetManager = HoneyPlugin.get().getPacketLibrary().getPacketManager();
 
         HoneyPacketEncodePreparation encoder = packetManager.getEncoder(player.channel);
@@ -26,7 +27,7 @@ public class ServerPacketManager {
         encoder.writeForcedPacket(packet.getHandle());
     }
 
-    public <WP extends WrappedPacket<WP>> void writePacket(HoneyPlayer player, WrappedPacket<WP> packet, boolean flushAfter) {
+    public <WP extends WrappedPacket<WP>> void writePacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet, boolean flushAfter) {
         writePacket(player, packet.getHandle(), flushAfter);
     }
 
@@ -37,8 +38,8 @@ public class ServerPacketManager {
             channel.writeAndFlush(rawPacket);
     }
 
-    public <WP extends WrappedPacket<WP>> void writePacket(Channel channel, WrappedPacket<WP> packet, boolean flushafter) {
-        writePacket(channel, packet.getHandle(), flushafter);
+    public <WP extends WrappedPacket<WP>> void writePacket(Channel channel, ObjectWrappedPacket<WP> packet, boolean flushAfter) {
+        writePacket(channel, packet.getHandle(), flushAfter);
     }
 
     public void flushPackets(HoneyPlayer player) {

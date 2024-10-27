@@ -6,16 +6,18 @@ import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 
-public interface PacketContainer<WP extends WrappedPacket<WP>> extends ModifiablePacketContainer, Cancellable {
+public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellable {
 
     PacketLifecycleTimings getEventloopStateTimings();
 
-    void initPostMinecraftDecode(Object packet, Callback postAction, PacketType type);
+    void initPostMinecraftDecode(Object packet, PacketType type);
 
-    int getByteSize();
+    ObjectPacketStructure getStructure();
 
     long getTime();
 
@@ -31,15 +33,17 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Modifiabl
 
     PacketState getProtocolState();
 
-    WP getPacket();
+    ObjectWrappedPacket<WP> getObjectWrapped();
+
+    ByteWrappedPacket<WP> getByteWrapped();
+
+    WP getAnyWrapped();
 
     Callback getPost();
 
     HoneyPlayer getPlayer();
 
     String getPlayerName();
-
-    Object getRaw();
 
     boolean isCancelled();
 

@@ -1,6 +1,8 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.netty.PacketLibrary;
@@ -13,6 +15,7 @@ import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
 
@@ -61,7 +64,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
             contextInner.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 context.getDevelopmentData(keyInner).addEmpty();
                 context.getDevelopmentData(keyInner).addValue(" Packet", packet.getType() + " (id: " + packet.getType().getMinecraftID().get() + ")");
-                context.getDevelopmentData(keyInner).addValue(" Buffer", packet.getByteSize() + " bytes");
+                context.getDevelopmentData(keyInner).addValue(" Buffer", Optional.ofNullable(packet.getByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes");
                 AbstractPacketListener.applyCommonDevelopmentData(context.getDevelopmentData(keyInner));
 
                 if (onViolation != null) onViolation.run();
@@ -74,8 +77,8 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
 
         getCachedPipeline(visitors, this, player).doStream(
                 player,
-                (validation, key) -> Settings.getSetting(player, validation, key, packet.getPacket()),
-                validation -> validation.validate(player, packet.getPacket(), context),
+                (validation, key) -> Settings.getSetting(player, validation, key, packet.getAnyWrapped()),
+                validation -> validation.validate(player, packet.getAnyWrapped(), context),
                 packet, context, callback);
 
         hasCalledCallback.remove();

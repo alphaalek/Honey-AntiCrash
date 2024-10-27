@@ -7,13 +7,12 @@ import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.SpigotServerInjector;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
-import me.alek.honey.netty.packet.PacketWrapperFactory;
+import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.processor.Processors;
-import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
@@ -47,7 +46,7 @@ public class PacketLibrary {
         Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
 
         PacketTypes.load();
-        PacketWrapperFactory.loadWrappers();
+        WrappedPacketFactoryCollection.loadWrappers();
 
         packetProcessor = new InternalPacketProcessor();
         packetManager = new ServerPacketManager();

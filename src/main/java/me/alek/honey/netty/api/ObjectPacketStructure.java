@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
-public interface ModifiablePacketContainer {
+public interface ObjectPacketStructure {
 
     IStructureModifier<Double> getDoubles();
 

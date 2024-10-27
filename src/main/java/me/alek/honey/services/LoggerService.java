@@ -156,7 +156,7 @@ public class LoggerService {
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
         if (player.isBukkitReady() && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
-                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getRaw().getClass().getSimpleName()))) {
+                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getObjectWrapped().getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
                 Queue<PacketType> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
@@ -192,7 +192,7 @@ public class LoggerService {
                 + packet.getPlayerName() + ": "
                 + packet.getType()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(LifecycleState.SERVER_HANDLE) + "ms) "
-                + filterTooMuchData(packet.getAll().readFieldEntries()));
+                + filterTooMuchData(packet.getStructure().getAll().readFieldEntries()));
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
@@ -201,7 +201,7 @@ public class LoggerService {
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime) {
         if (ignoredPlayers.contains(playerName)
-                || ignoredPackets.contains(packetContainer.getRaw().getClass().getSimpleName())) {
+                || ignoredPackets.contains(packetContainer.getObjectWrapped().getHandle().getClass().getSimpleName())) {
             return;
         }
 
@@ -243,7 +243,7 @@ public class LoggerService {
         }
 
         Map<String, Object> entries = new HashMap<>();
-        for (Map.Entry<String, Object> entry : packet.getAll().readFieldEntries().entrySet()) {
+        for (Map.Entry<String, Object> entry : packet.getStructure().getAll().readFieldEntries().entrySet()) {
             if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS
                     && entry.getValue() != null
                     && entry.getValue().getClass().isArray()) {

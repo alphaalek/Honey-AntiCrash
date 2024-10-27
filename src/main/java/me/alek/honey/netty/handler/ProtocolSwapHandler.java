@@ -44,11 +44,11 @@ public class ProtocolSwapHandler {
         } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                WrappedEnumProtocol protocol = packet.getModifier(NMS.getEnumProtocolClass(), Converters.getEnumProtocolConverter(), PacketBound.SERVER)
+                WrappedEnumProtocol protocol = packet.getStructure().getModifier(NMS.getEnumProtocolClass(), Converters.getEnumProtocolConverter(), PacketBound.SERVER)
                         .readField(0);
                 packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
             } else {
-                Object clientIntent = packet.getModifier(NMS.getClientIntentClass()).readField(0);
+                Object clientIntent = packet.getStructure().getModifier(NMS.getClientIntentClass()).readField(0);
                 packetStateOrdinal = ((Enum<?>)clientIntent).ordinal() == 0 ? /* status */ 2 : /* login */ 3;
             }
             PacketState packetState = PacketState.values()[packetStateOrdinal];

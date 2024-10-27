@@ -57,14 +57,12 @@ public class PacketExecutors {
 
         @Override
         public boolean test(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            String channel = packetContainer.getPacket().getChannel();
-
-            return channel.equals("MC|BEdit") || channel.equals("MC|BSign");
+            return packetContainer.getAnyWrapped().isBookChannel();
         }
 
         @Override
         public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            ItemStack item = packetContainer.getPacket().getBookChannelItemStack();
+            ItemStack item = packetContainer.getAnyWrapped().getBookChannelItemStack();
             if (item == null) {
                 return null;
             }
@@ -74,7 +72,7 @@ public class PacketExecutors {
             Runnable edit = handleBookEdit(packetContainer, item, nbt);
             return Optional.ofNullable(edit)
                 .map(r -> (Runnable) () -> {
-                    ByteBuf buf = packetContainer.getPacket().getBuf();
+                    ByteBuf buf = packetContainer.getByteWrapped().getBuf();
                     if (buf.refCnt() > 0) {
                         buf.release();
                     }
@@ -87,7 +85,7 @@ public class PacketExecutors {
         private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
             Player player = packetContainer.getPlayer().bukkit;
             ItemMeta meta = item.getItemMeta();
-            switch (packetContainer.getPacket().getChannel()) {
+            switch (packetContainer.getAnyWrapped().getChannel()) {
                 case "MC|BEdit":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)) {
                         break;

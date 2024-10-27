@@ -38,7 +38,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
             @Override
             public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
-                lastTeleportationLocationMap.put(player.uuid, packetContainer.getPacket().getLocation());
+                lastTeleportationLocationMap.put(player.uuid, packetContainer.getPlayer().getLocation());
             }
 
         }, ListenerPriority.HIGHEST, PacketTypes.Play.Server.PLAYER_POSITION);
@@ -55,12 +55,12 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     }
 
     public static String format(double value) {
-        return (Math.ceil(value * 100) / 100) + "";
+        return String.valueOf(Math.ceil(value * 100) / 100);
     }
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
-        Location currentLocation = packet.getPacket().getLocation();
+        Location currentLocation = packet.getAnyWrapped().getLocation();
         Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
         // check if the packet has any valid location to be checked, or just origin location

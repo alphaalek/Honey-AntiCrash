@@ -2,36 +2,24 @@ package me.alek.honey.netty.packetwrappers;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketType;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
-public class WrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WrappedPacket<WP>> {
+public interface WrappedPacket<WP extends WrappedPacket<WP>> {
 
-    private final PacketContainer<WP> packetContainer;
-
-    public WrappedPacket(Object rawPacket, PacketContainer<WP> packetContainer) {
-        super(rawPacket);
-        this.packetContainer = packetContainer;
+    @SuppressWarnings("unchecked")
+    default WP get() {
+        return (WP) this;
     }
 
-    public HoneyPlayer getPlayer() {
-        return packetContainer.getPlayer();
-    }
+    HoneyPlayer getPlayer();
 
-    public World getWorld() {
-        return getPlayer() != null ? getPlayer().getWorld() : Bukkit.getWorlds().get(0);
-    }
+    PacketContainer<WP> getContainer();
 
-    public PacketContainer<WP> getContainer() {
-        return packetContainer;
-    }
-
-    public PacketType getType() {
-        return packetContainer.getType();
-    }
-
+    PacketType getType();
 }
 
 

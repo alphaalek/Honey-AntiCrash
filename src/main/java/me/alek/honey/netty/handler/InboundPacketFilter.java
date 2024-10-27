@@ -111,7 +111,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
 
         PacketType type = packetHandler.getPacketType(buf);
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(player, type, buf.readableBytes());
+        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(buf, player, type, null);
 
         MARK.set(packetContainer);
 

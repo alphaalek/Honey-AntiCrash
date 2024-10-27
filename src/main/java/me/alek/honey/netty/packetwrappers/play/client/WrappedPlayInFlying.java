@@ -1,10 +1,11 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Location;
 
-public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends WrappedPacket<WP> {
+public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends ObjectWrappedPacket<WP> {
 
     public static class Status extends WrappedPlayInFlying<Status> {
 
@@ -21,12 +22,12 @@ public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> ex
 
     public Location getLocation() {
         return location != null ? location : new Location(
-                getWorld(),
-                getContainer().getDoubles().readField(0),
-                getContainer().getDoubles().readField(1),
-                getContainer().getDoubles().readField(2),
-                getContainer().getFloats().readField(0),
-                getContainer().getFloats().readField(1)
+                getPlayer().getWorld(),
+                getContainer().getStructure().getDoubles().readField(0),
+                getContainer().getStructure().getDoubles().readField(1),
+                getContainer().getStructure().getDoubles().readField(2),
+                getContainer().getStructure().getFloats().readField(0),
+                getContainer().getStructure().getFloats().readField(1)
         );
     }
 
@@ -51,26 +52,26 @@ public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> ex
     }
 
     public void setX(double x) {
-        getContainer().getDoubles().writeField(0, x);
+        getContainer().getStructure().getDoubles().writeField(0, x);
     }
 
     public void setY(double y) {
-        getContainer().getDoubles().writeField(1, y);
+        getContainer().getStructure().getDoubles().writeField(1, y);
     }
 
     public void setZ(double z) {
-        getContainer().getDoubles().writeField(2, z);
+        getContainer().getStructure().getDoubles().writeField(2, z);
     }
 
     public void setYaw(float yaw) {
-        getContainer().getFloats().writeField(0, yaw);
+        getContainer().getStructure().getFloats().writeField(0, yaw);
     }
 
     public void setPitch(float pitch) {
-        getContainer().getFloats().writeField(1, pitch);
+        getContainer().getStructure().getFloats().writeField(1, pitch);
     }
 
     public boolean onGround() {
-        return getContainer().getBooleans().readField(0);
+        return getContainer().getStructure().getBooleans().readField(0);
     }
 }

@@ -22,7 +22,7 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packet, ValidationPipelineContext context, Callback callback) {
-        return packet.getPacket().getMessage().startsWith("/");
+        return packet.getAnyWrapped().getMessage().startsWith("/");
     }
 
     @Override

@@ -60,7 +60,7 @@ public class PostActions {
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Client.LOGIN_START, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
-            String name = packet.getPacket().getName();
+            String name = packet.getAnyWrapped().getName();
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {

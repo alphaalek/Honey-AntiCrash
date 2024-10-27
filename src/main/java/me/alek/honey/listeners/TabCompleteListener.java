@@ -25,10 +25,10 @@ public class TabCompleteListener extends PacketListenerAdapter<WrappedPlayOutTab
     @Override
     public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutTabComplete> packetContainer) {
         if (shouldBlockTabCompletion(player)) {
-            String[] suggestions = packetContainer.getPacket().getSuggestions();
+            String[] suggestions = packetContainer.getAnyWrapped().getSuggestions();
             for (String suggestion : suggestions) {
                 if (suggestion.startsWith("/honey")) {
-                    packetContainer.getPacket().removeSuggestion(suggestion);
+                    packetContainer.getAnyWrapped().removeSuggestion(suggestion);
                 }
             }
         }

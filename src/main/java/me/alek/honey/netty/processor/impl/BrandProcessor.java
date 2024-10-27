@@ -13,8 +13,8 @@ public class BrandProcessor extends Processor<WrappedPlayInCustomPayload> {
     }
 
     public void handleCustomPayload(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packet) {
-        if (packet.getPacket().getChannel().equals("MC|Brand")) {
-            String brand = packet.getPacket().getDataSerializer(true).readString(Short.MAX_VALUE);
+        if (packet.getAnyWrapped().getChannel().equals("MC|Brand")) {
+            String brand = packet.getAnyWrapped().getDataSerializer(true).readString(Short.MAX_VALUE);
             player.clientInfo.setBrand(brand);
         }
     }

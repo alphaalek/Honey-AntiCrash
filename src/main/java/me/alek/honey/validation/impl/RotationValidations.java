@@ -25,7 +25,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
     @Override
     public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
-        Location location = packet.getPacket().getLocation();
+        Location location = packet.getAnyWrapped().getLocation();
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
         }

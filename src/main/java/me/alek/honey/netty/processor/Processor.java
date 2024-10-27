@@ -46,7 +46,7 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
 
     @SuppressWarnings("unchecked")
     public <T extends WrappedPacket<T>> void addListener(PacketType type, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
-        List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>> readerInfos = packetListeners.get(type.getHoneyID(), LinkedList::new);
+        List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>> readerInfos = packetListeners.get(type, LinkedList::new);
 
         ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info;
         if (onException != null) {
@@ -69,7 +69,7 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
     }
 
     public void addReader(PacketType type, PacketReader.Buf<PacketDataSerializer> reader, BiConsumer<HoneyPlayer, Object[]> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
-        List<ReaderInfo<PacketDataSerializer, Object[]>> readerInfos = packetReaders.get(type.getHoneyID(), LinkedList::new);
+        List<ReaderInfo<PacketDataSerializer, Object[]>> readerInfos = packetReaders.get(type, LinkedList::new);
         ReaderInfo<PacketDataSerializer, Object[]> info;
         if (onException != null) {
             info = new ReaderInfo<>(reader::read, listener, onException);
@@ -86,7 +86,7 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
     }
 
     public void handle(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        if (packetListeners.has(packet.getType().getHoneyID())) {
+        if (packetListeners.has(packet.getType())) {
             for (ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
                 try {
                     info.listener.accept(player, packet);
@@ -106,11 +106,11 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
     }
 
     public void onPacketDecode(HoneyPlayer player, PacketType type, CancellableByteBuf buf) {
-        if (packetReaders.has(type.getHoneyID())) {
+        if (packetReaders.has(type)) {
             PacketDataSerializer serializer = new PacketDataSerializer(buf.buf());
             serializer.readVarInt();
 
-            for (ReaderInfo<PacketDataSerializer, Object[]> info : packetReaders.get(type.getHoneyID())) {
+            for (ReaderInfo<PacketDataSerializer, Object[]> info : packetReaders.get(type)) {
                 try {
                     info.listener.accept(player, info.reader.apply(serializer));
                 } catch (Exception ex) {

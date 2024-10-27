@@ -84,9 +84,9 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPosition> packetContainer) {
                     return new Object[]{
-                            packetContainer.getPacket().getX(),
-                            packetContainer.getPacket().getY(),
-                            packetContainer.getPacket().getZ()};
+                            packetContainer.getAnyWrapped().getX(),
+                            packetContainer.getAnyWrapped().getY(),
+                            packetContainer.getAnyWrapped().getZ()};
                 }
             });
             READERS.set(PacketTypes.Play.Client.PLAYER_POS_AND_ROT.getHoneyID(), new PacketReader.Container<WrappedPlayInPositionLook>() {
@@ -94,11 +94,11 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInPositionLook> packetContainer) {
                     return new Object[]{
-                            packetContainer.getPacket().getX(),
-                            packetContainer.getPacket().getY(),
-                            packetContainer.getPacket().getZ(),
-                            packetContainer.getPacket().getYaw(),
-                            packetContainer.getPacket().getPitch()};
+                            packetContainer.getAnyWrapped().getX(),
+                            packetContainer.getAnyWrapped().getY(),
+                            packetContainer.getAnyWrapped().getZ(),
+                            packetContainer.getAnyWrapped().getYaw(),
+                            packetContainer.getAnyWrapped().getPitch()};
                 }
             });
             READERS.set(PacketTypes.Play.Client.PLAYER_ROTATION.getHoneyID(), new PacketReader.Container<WrappedPlayInLook>() {
@@ -106,8 +106,8 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
                 @Override
                 public Object[] read(PacketContainer<WrappedPlayInLook> packetContainer) {
                     return new Object[]{
-                            packetContainer.getPacket().getYaw(),
-                            packetContainer.getPacket().getPitch()};
+                            packetContainer.getAnyWrapped().getYaw(),
+                            packetContainer.getAnyWrapped().getPitch()};
                 }
             });
         }
@@ -152,13 +152,13 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
                     return ValidationServiceContext.PASS;
                 }
 
-                for (double value : packet.getContainer().getDoubles().readFieldValues()) {
+                for (double value : packet.getContainer().getStructure().getDoubles().readFieldValues()) {
                     if (NumberUtils.isInvalid(value)) {
                         return ValidationServiceContext.FLAG;
                     }
                 }
 
-                for (float value : packet.getContainer().getFloats().readFieldValues()) {
+                for (float value : packet.getContainer().getStructure().getFloats().readFieldValues()) {
                     if (NumberUtils.isInvalid(value)) {
                         return ValidationServiceContext.FLAG;
                     }
