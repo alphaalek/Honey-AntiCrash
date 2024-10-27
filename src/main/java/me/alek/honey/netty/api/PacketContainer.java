@@ -13,13 +13,17 @@ import me.alek.honey.util.Callback;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellable {
 
+    enum State {
+        BYTE, OBJECT
+    }
+
     PacketLifecycleTimings getEventloopStateTimings();
 
     void initPostMinecraftDecode(Object packet, PacketType type);
 
     ObjectPacketStructure getStructure();
 
-    long getTime();
+    long getTimeCreated();
 
     void addServerCallbackAction(Callback.Action action);
 
@@ -30,6 +34,8 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
     PacketType getType();
 
     PacketState getState();
+
+    State getProcessState();
 
     PacketState getProtocolState();
 

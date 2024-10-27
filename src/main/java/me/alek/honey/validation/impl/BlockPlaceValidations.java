@@ -1,6 +1,9 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -22,7 +25,15 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Collections;
 import java.util.List;
 
-public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInBlockPlace> {
+public class BlockPlaceValidations extends AbstractValidationPacketListener<WrappedPlayInBlockPlace> {
+
+    public BlockPlaceValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.BLOCK_PLACE);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInBlockPlace>> getNewPipeline() {
@@ -34,11 +45,6 @@ public class BlockPlaceValidations extends AbstractPacketListener<WrappedPlayInB
             visitor.register(new BlockInteractD());
         }
         return visitor;
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.BLOCK_PLACE);
     }
 
     public static ValidationServiceContext checkExceedingMaxDistance(HoneyPlayer player, ViolationKey key, WrappedBlockPosition blockPosition, int maxDistance, ValidationPipelineContext context) {

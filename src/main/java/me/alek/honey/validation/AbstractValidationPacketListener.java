@@ -1,7 +1,7 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.PacketValidation;
@@ -17,10 +17,7 @@ import org.bukkit.Bukkit;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
-
-    private final Array<ValidationPipeline<PacketValidation<WP>>> visitors = new Array<>();
-    private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();
+public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
 
     public static void applyCommonDevelopmentData(ValidationPipelineContext.DevelopmentData developmentData) {
         developmentData.addValue(" Version", Bukkit.getServer().getVersion());
@@ -48,9 +45,11 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
         return pipelines.get(id);
     }
 
-    @Override
-    public void register(PacketLibrary library) {
-        library.addListeners(this, getPriority(), getPacketTypes());
+    private final Array<ValidationPipeline<PacketValidation<WP>>> visitors = new Array<>();
+    private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();
+
+    public AbstractValidationPacketListener(PacketLibrary library, PacketContainer.State state, ListenerPriority priority, List<PacketType> types) {
+        library.addListeners(this, state, priority, types);
     }
 
     private void call(HoneyPlayer player, PacketContainer<WP> packet) {
@@ -65,7 +64,7 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
                 context.getDevelopmentData(keyInner).addEmpty();
                 context.getDevelopmentData(keyInner).addValue(" Packet", packet.getType() + " (id: " + packet.getType().getMinecraftID().get() + ")");
                 context.getDevelopmentData(keyInner).addValue(" Buffer", Optional.ofNullable(packet.getByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes");
-                AbstractPacketListener.applyCommonDevelopmentData(context.getDevelopmentData(keyInner));
+                AbstractValidationPacketListener.applyCommonDevelopmentData(context.getDevelopmentData(keyInner));
 
                 if (onViolation != null) onViolation.run();
             });
@@ -87,16 +86,19 @@ public abstract class AbstractPacketListener<WP extends WrappedPacket<WP>> exten
     }
 
     @Override
-    public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
+    public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
         call(player, packet);
     }
 
     @Override
-    public void onPacketSend(HoneyPlayer player, PacketContainer<WP> packet) {
+    public void onObjectPacketSend(HoneyPlayer player, PacketContainer<WP> packet) {
         call(player, packet);
     }
 
-    public abstract List<PacketType> getPacketTypes();
+    @Override
+    public void onBytePacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
+
+    }
 
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext container, Callback callback) {
         return true;

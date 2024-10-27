@@ -1,6 +1,9 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -16,16 +19,19 @@ import me.alek.honey.util.IDRegistry;
 import java.util.Collections;
 import java.util.List;
 
-public class HeldItemValidations extends AbstractPacketListener<WrappedPlayInHeldItemSlot> {
+public class HeldItemValidations extends AbstractValidationPacketListener<WrappedPlayInHeldItemSlot> {
+
+    public HeldItemValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.HELD_ITEM_CHANGE);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getNewPipeline() {
         return ValidationPipeline.from(new HeldItemA(), new HeldItemB());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.HELD_ITEM_CHANGE);
     }
 
     public static class HeldItemA implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {

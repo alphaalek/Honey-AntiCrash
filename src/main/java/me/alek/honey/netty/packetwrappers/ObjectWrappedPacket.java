@@ -14,6 +14,12 @@ public class ObjectWrappedPacket<WP extends WrappedPacket<WP>> extends WrappedOb
         super(handle);
         this.packet = packet;
     }
+
+    @Override
+    public boolean isObjectBased() {
+        return true;
+    }
+
     @Override
     public HoneyPlayer getPlayer() {
         return packet.getPlayer();

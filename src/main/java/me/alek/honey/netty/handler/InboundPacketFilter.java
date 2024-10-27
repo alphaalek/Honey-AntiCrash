@@ -15,7 +15,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
-import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -111,22 +110,21 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
 
         PacketType type = packetHandler.getPacketType(buf);
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = new InternalPacketContainer<>(buf, player, type, null);
+        PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(buf, player, type, null);
 
-        MARK.set(packetContainer);
+        MARK.set(packet);
 
-        packetContainer.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+        packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
-        CancellableByteBuf cancellableByteBuf = new CancellableByteBuf(player, buf);
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callDecode(player, type, cancellableByteBuf);
-        packetContainer.getEventloopStateTimings().stopTimings();
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callBytePacketProcessListeners(player, packet);
+        packet.getEventloopStateTimings().stopTimings();
 
-        if (!cancellableByteBuf.isCancelled()) {
+        if (!packet.isCancelled()) {
             list.add(buf.readBytes(buf.readableBytes()));
         } else {
             list.add(Unpooled.buffer());
         }
 
-        packetContainer.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
+        packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
     }
 }

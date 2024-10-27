@@ -3,6 +3,7 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.nbt.NBTCompound;
@@ -27,11 +28,27 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
+public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
     public static final ValidationPipeline<ViolationValidation.IntViolation> TOO_EARLY_DROP_PIPELINE = ValidationPipeline.from(new FloodE());
-
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
+
+    public FloodValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.LOW, getPacketTypes());
+    }
+
+    public static List<PacketType> getPacketTypes() {
+        Set<PacketType> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
+
+        List<PacketType> types = new ArrayList<>();
+        for (PacketType packetType : PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
+            if (floodSettings.contains(packetType)) {
+                types.add(packetType);
+            }
+        }
+
+        return types;
+    }
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
@@ -57,27 +74,8 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractPack
     }
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.LOW;
-    }
-
-    @Override
     public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
         return ValidationPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        Set<PacketType> floodSettings = ConfigurationOptions.getFloodSettings().keySet();
-
-        List<PacketType> types = new ArrayList<>();
-        for (PacketType packetType : PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER)) {
-            if (floodSettings.contains(packetType)) {
-                types.add(packetType);
-            }
-        }
-
-        return types;
     }
 
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {

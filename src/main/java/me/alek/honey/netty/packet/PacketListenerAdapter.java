@@ -7,15 +7,15 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class PacketListenerAdapter<WP extends WrappedPacket<WP>> {
 
-    public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
+    public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
 
     }
 
-    public void onPacketSend(HoneyPlayer player, PacketContainer<WP> packetContainer) throws Exception {
+    public void onObjectPacketSend(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
 
     }
 
-    public void onPacketDecode(HoneyPlayer player, PacketType type, CancellableByteBuf byteBuf) {
+    public void onBytePacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
 
     }
 }

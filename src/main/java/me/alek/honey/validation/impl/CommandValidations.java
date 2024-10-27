@@ -3,7 +3,10 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
@@ -23,7 +26,19 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
-public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat> implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
+public class CommandValidations extends AbstractValidationPacketListener<WrappedPlayInChat> implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
+
+    public CommandValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
+            return Collections.singletonList(PacketTypes.Play.Client.CHAT_MESSAGE);
+        } else {
+            return Collections.singletonList(PacketTypes.Play.Client.CHAT_COMMAND);
+        }
+    }
 
     private static String getLabel(String command) {
         String label = command.split( " ")[0];
@@ -133,15 +148,6 @@ public class CommandValidations extends AbstractPacketListener<WrappedPlayInChat
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
         return ValidationPipeline.from(this);
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
-            return Collections.singletonList(PacketTypes.Play.Client.CHAT_MESSAGE);
-        } else {
-            return Collections.singletonList(PacketTypes.Play.Client.CHAT_COMMAND);
-        }
     }
 
     @Override

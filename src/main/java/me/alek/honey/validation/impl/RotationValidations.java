@@ -3,6 +3,8 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -18,10 +20,18 @@ import org.bukkit.Location;
 
 import java.util.*;
 
-public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
+public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractValidationPacketListener<WP> {
 
     private static final Map<UUID, Float> lastYawMap = new HashMap<>();
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
+
+    public RotationValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Arrays.asList(PacketTypes.Play.Client.PLAYER_ROTATION, PacketTypes.Play.Client.PLAYER_POS_AND_ROT);
+    }
 
     @Override
     public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
@@ -66,14 +76,6 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     @Override
     public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
         return ValidationPipeline.from(new RotationA<>(), new RotationB<>(), new RotationC<>());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Arrays.asList(
-                PacketTypes.Play.Client.PLAYER_ROTATION,
-                PacketTypes.Play.Client.PLAYER_POS_AND_ROT
-        );
     }
 
     @Override

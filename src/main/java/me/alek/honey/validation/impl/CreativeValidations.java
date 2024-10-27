@@ -1,6 +1,9 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -17,16 +20,19 @@ import org.bukkit.GameMode;
 import java.util.Collections;
 import java.util.List;
 
-public class CreativeValidations extends AbstractPacketListener<WrappedPlayInSetCreativeSlot> {
+public class CreativeValidations extends AbstractValidationPacketListener<WrappedPlayInSetCreativeSlot> {
+
+    public CreativeValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getNewPipeline() {
         return ValidationPipeline.from(new CreativeA(), new CreativeB(), new CreativeC());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION);
     }
 
     public static class CreativeA implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {

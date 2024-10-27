@@ -2,6 +2,9 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -18,7 +21,15 @@ import me.alek.honey.util.IDRegistry;
 import java.util.Collections;
 import java.util.List;
 
-public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindowClick> {
+public class WindowValidations extends AbstractValidationPacketListener<WrappedPlayInWindowClick> {
+
+    public WindowValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.CLICK_WINDOW);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> getNewPipeline() {
@@ -30,11 +41,6 @@ public class WindowValidations extends AbstractPacketListener<WrappedPlayInWindo
         }
         visitor.register(new WindowD());
         return visitor;
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.CLICK_WINDOW);
     }
 
     public static class WindowA implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {

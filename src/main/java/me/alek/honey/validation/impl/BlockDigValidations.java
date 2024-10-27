@@ -1,6 +1,9 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
@@ -16,16 +19,19 @@ import me.alek.honey.util.IDRegistry;
 import java.util.Collections;
 import java.util.List;
 
-public class BlockDigValidations extends AbstractPacketListener<WrappedPlayInBlockDig> {
+public class BlockDigValidations extends AbstractValidationPacketListener<WrappedPlayInBlockDig> {
+
+    public BlockDigValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.PLAYER_DIGGING);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInBlockDig>> getNewPipeline() {
         return ValidationPipeline.from(new BlockInteractE());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.PLAYER_DIGGING);
     }
 
     public static class BlockInteractE implements PacketValidation<WrappedPlayInBlockDig>, ViolationValidation<WrappedPlayInBlockDig> {

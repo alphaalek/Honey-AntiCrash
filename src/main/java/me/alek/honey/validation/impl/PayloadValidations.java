@@ -4,12 +4,13 @@ import io.netty.buffer.EmptyByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.nbt.NBTCompound;
 import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
@@ -24,7 +25,15 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Collections;
 import java.util.List;
 
-public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> extends AbstractPacketListener<CP> {
+public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> extends AbstractValidationPacketListener<CP> {
+
+    public PayloadValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.CUSTOM_PAYLOAD);
+    }
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context, Callback callback) {
@@ -44,11 +53,6 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
     @Override
     public ValidationPipeline<PacketValidation<CP>> getNewPipeline() {
         return ValidationPipeline.from(new PayloadA<>(), new PayloadB<>(), new PayloadC<>(), new PayloadD<>(), new PayloadE<>());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.CUSTOM_PAYLOAD);
     }
 
     public static class PayloadA<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {

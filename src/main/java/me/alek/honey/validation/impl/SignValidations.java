@@ -3,6 +3,9 @@ package me.alek.honey.validation.impl;
 import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.lang.Lang;
@@ -15,16 +18,19 @@ import me.alek.honey.validation.types.ViolationValidation;
 import java.util.Collections;
 import java.util.List;
 
-public class SignValidations extends AbstractPacketListener<WrappedPlayInUpdateSign> {
+public class SignValidations extends AbstractValidationPacketListener<WrappedPlayInUpdateSign> {
+
+    public SignValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.UPDATE_SIGN);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInUpdateSign>> getNewPipeline() {
         return ValidationPipeline.from(new SignA());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.UPDATE_SIGN);
     }
 
     public static class SignA implements PacketValidation<WrappedPlayInUpdateSign>, ViolationValidation<WrappedPlayInUpdateSign> {

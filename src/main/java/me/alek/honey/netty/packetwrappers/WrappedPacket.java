@@ -15,6 +15,14 @@ public interface WrappedPacket<WP extends WrappedPacket<WP>> {
         return (WP) this;
     }
 
+    default boolean isByteBased() {
+        return false;
+    }
+
+    default boolean isObjectBased() {
+        return false;
+    }
+
     HoneyPlayer getPlayer();
 
     PacketContainer<WP> getContainer();

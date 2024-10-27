@@ -24,12 +24,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PacketType type;
     private boolean cancelled;
     private boolean dumped;
+    private State state;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
     private final ByteWrappedPacket<WP> byteWrapped;
     private final Callback postAction;
     private final HoneyPlayer player;
-    private final long time = System.currentTimeMillis();
+    private final long timeCreated = System.currentTimeMillis();
     private final PacketLifecycleTimings eventLoopStateTracker = new PacketLifecycleTimings();
     private final Callback callbackAction = new Callback();
 
@@ -45,6 +46,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
         if (buf != null) {
             this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, new PacketDataSerializer(buf), this);
+            this.state = State.BYTE;
         } else {
             this.byteWrapped = null;
         }
@@ -52,6 +54,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     public void initPostMinecraftDecode(Object handle, PacketType type) {
         this.type = type;
+        this.state = State.OBJECT;
 
         if (PacketTypes.isUnknown(type)
                 || !type.getNmsClass().equals(handle.getClass())) {
@@ -80,8 +83,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public long getTime() {
-        return this.time;
+    public long getTimeCreated() {
+        return this.timeCreated;
     }
 
     @Override
@@ -111,6 +114,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         }
 
         return this.type.getState();
+    }
+
+    @Override
+    public State getProcessState() {
+        return this.state;
     }
 
     @Override

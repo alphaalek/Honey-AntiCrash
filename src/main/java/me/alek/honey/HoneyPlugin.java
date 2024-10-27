@@ -18,6 +18,7 @@ import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -272,8 +273,7 @@ public class HoneyPlugin implements HoneyAPI {
         validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
-        for (BaseValidationContainer validation : ValidationContainers.getValidations()) {
-            validation.register(packetLibrary);
+        for (BaseValidationContainer validation : ValidationContainers.initValidations(packetLibrary)) {
             validation.load();
         }
         PacketExecutors.register();
@@ -293,7 +293,7 @@ public class HoneyPlugin implements HoneyAPI {
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
         TabCompleteListener tabCompleteListener = new TabCompleteListener();
         Bukkit.getPluginManager().registerEvents(tabCompleteListener, plugin);
-        packetLibrary.addListeners(tabCompleteListener, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
+        packetLibrary.addListeners(tabCompleteListener, PacketContainer.State.OBJECT, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
 
         getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
     }

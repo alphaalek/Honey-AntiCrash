@@ -1,6 +1,9 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.validation.types.PacketValidation;
@@ -16,16 +19,19 @@ import me.alek.honey.util.IDRegistry;
 import java.util.Collections;
 import java.util.List;
 
-public class ChatValidations extends AbstractPacketListener<WrappedPlayInChat> {
+public class ChatValidations extends AbstractValidationPacketListener<WrappedPlayInChat> {
+
+    public ChatValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.CHAT_MESSAGE);
+    }
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
         return ValidationPipeline.from(new ChatA(), new ChatB());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.CHAT_MESSAGE);
     }
 
     public static class ChatA implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {

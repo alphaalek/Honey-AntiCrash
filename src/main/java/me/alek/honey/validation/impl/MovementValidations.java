@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -27,25 +28,25 @@ import org.bukkit.World;
 import java.util.*;
 import java.util.function.Function;
 
-public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractPacketListener<WP> {
+public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractValidationPacketListener<WP> {
 
     private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
     private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
-    public MovementValidations() {
+    public MovementValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
         HoneyPlugin.get().getPacketLibrary().addListeners(new PacketListenerAdapter<WrappedPlayOutPosition>() {
 
             @Override
-            public void onPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packetContainer) {
-                lastTeleportationLocationMap.put(player.uuid, packetContainer.getPlayer().getLocation());
+            public void onObjectPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packet) {
+                lastTeleportationLocationMap.put(player.uuid, packet.getPlayer().getLocation());
             }
 
-        }, ListenerPriority.HIGHEST, PacketTypes.Play.Server.PLAYER_POSITION);
+        }, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, Collections.singletonList(PacketTypes.Play.Server.PLAYER_POSITION));
     }
 
-    @Override
-    public List<PacketType> getPacketTypes() {
+    private static List<PacketType> getPacketTypes() {
         return Arrays.asList(
                 PacketTypes.Play.Client.PLAYER_POSITION,
                 PacketTypes.Play.Client.PLAYER_POS_AND_ROT,

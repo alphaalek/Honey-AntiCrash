@@ -1,7 +1,6 @@
 package me.alek.honey.netty.api;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packet.CancellableByteBuf;
 import me.alek.honey.netty.packet.PacketExecutor;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -12,28 +11,26 @@ import java.util.List;
 
 public interface PacketProcessor {
 
-    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> read(HoneyPlayer player, Object objectPacket, PacketContainer<WP> packet);
 
-    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(HoneyPlayer player, Object packet);
+    <WP extends WrappedPacket<WP>> PacketContainer<WP> write(HoneyPlayer player, Object objectPacket);
 
-    void addPostAction(PacketType packetType, Callback.Action callback);
+    void addPostAction(PacketType type, Callback.Action callback);
 
-    <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer);
+    <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet);
 
-    void removeListener(PacketListenerAdapter<?> packetAdapter, PacketType... packetType);
+    void removeListener(PacketListenerAdapter<?> listener, PacketContainer.State state, PacketType... types);
 
-    void removeListener(PacketListenerAdapter<?> packetAdapter, List<PacketType> packetType);
+    void removeListener(PacketListenerAdapter<?> listener, PacketContainer.State state, List<PacketType> types);
 
-    void addPacketExecutor(PacketType packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor);
+    void addPacketExecutor(PacketType type, PacketExecutor<? extends WrappedPacket<?>> executor);
 
-    void addListener(PacketListenerAdapter<?> packetAdapter, ListenerPriority priority, PacketType... packetType);
+    void addListener(PacketListenerAdapter<?> listener, PacketContainer.State state, ListenerPriority priority, List<PacketType> types);
 
-    void addListener(PacketListenerAdapter<?> packetAdapter, ListenerPriority priority, List<PacketType> packetType);
+    <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.State state);
 
-    <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> packetAdapter);
+    void callObjectPacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
 
-    void callListeners(HoneyPlayer player, PacketContainer<?> packetContainer);
-
-    void callDecode(HoneyPlayer player, PacketType type, CancellableByteBuf byteBuf);
+    void callBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
 }
 

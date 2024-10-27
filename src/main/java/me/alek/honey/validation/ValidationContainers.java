@@ -1,10 +1,12 @@
 package me.alek.honey.validation;
 
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.validation.impl.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public enum ValidationContainers {
 
@@ -28,25 +30,32 @@ public enum ValidationContainers {
     v18(CommandValidations::new),
     ;
 
+    private static final List<Function<PacketLibrary, BaseValidationContainer>> validationFactories = new ArrayList<>();
     private static final List<BaseValidationContainer> validations = new ArrayList<>();
 
     static {
         for (ValidationContainers validation : ValidationContainers.values()) {
-            validations.add(validation.getValidationContainer());
+            validationFactories.add(validation.getValidationContainer());
         }
+    }
+
+    public static List<BaseValidationContainer> initValidations(PacketLibrary library) {
+        validations.clear();
+        validationFactories.stream().map(f -> f.apply(library)).forEach(validations::add);
+        return validations;
     }
 
     public static List<BaseValidationContainer> getValidations() {
         return validations;
     }
 
-    private final BaseValidationContainer validation;
+    private final Function<PacketLibrary, BaseValidationContainer> validation;
 
-    ValidationContainers(Supplier<BaseValidationContainer> validation) {
-        this.validation = validation.get();
+    ValidationContainers(Function<PacketLibrary, BaseValidationContainer> validation) {
+        this.validation = validation;
     }
 
-    public BaseValidationContainer getValidationContainer() {
+    public Function<PacketLibrary, BaseValidationContainer> getValidationContainer() {
         return validation;
     }
 }

@@ -47,7 +47,7 @@ public class LoggerService {
 
             @Override
             @SuppressWarnings("unchecked")
-            public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
+            public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
                 if (monitorManager.hasMonitorers()) {
                     // notify monitor observers
                     logToMonitors(player, packet);
@@ -88,9 +88,9 @@ public class LoggerService {
         ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
         ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
-        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger);
+        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger, PacketContainer.State.OBJECT);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
+            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
         }
     }
 
@@ -206,8 +206,8 @@ public class LoggerService {
         }
 
         StringBuilder message = new StringBuilder();
-        if (comparingTime > packetContainer.getTime()) {
-            message.append("(" + (comparingTime - packetContainer.getTime()) + "ms ago): ");
+        if (comparingTime > packetContainer.getTimeCreated()) {
+            message.append("(" + (comparingTime - packetContainer.getTimeCreated()) + "ms ago): ");
         }
         message.append(playerName + " sent " + packetContainer.getType());
 

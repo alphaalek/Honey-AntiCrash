@@ -21,10 +21,10 @@ public class InventoryProcessor<WP extends WrappedPacket<WP>> extends ProcessorC
 
     public InventoryProcessor() {
         super(InventoryEmulator::new);
-        addListener(PacketTypes.Play.Client.CLOSE_WINDOW, this::handleCloseWindow);
-        addListener(PacketTypes.Play.Client.CLIENT_COMMAND, this::handleClientCommand);
-        addListener(PacketTypes.Play.Client.CLICK_WINDOW, this::handleClickWindow);
-        addListener(PacketTypes.Play.Server.OPEN_WINDOW, this::handleOpenWindow);
+        addListener(PacketTypes.Play.Client.CLOSE_WINDOW, PacketContainer.State.OBJECT, this::handleCloseWindow);
+        addListener(PacketTypes.Play.Client.CLIENT_COMMAND, PacketContainer.State.OBJECT, this::handleClientCommand);
+        addListener(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.State.OBJECT, this::handleClickWindow);
+        addListener(PacketTypes.Play.Server.OPEN_WINDOW, PacketContainer.State.OBJECT, this::handleOpenWindow);
     }
 
     private boolean sendsPacketForOpenInventory(HoneyPlayer player) {

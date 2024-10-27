@@ -3,6 +3,8 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -17,17 +19,23 @@ import me.alek.honey.validation.types.ViolationValidation;
 
 import java.util.*;
 
-public class TabValidations extends AbstractPacketListener<WrappedPlayInTabComplete> {
+public class TabValidations extends AbstractValidationPacketListener<WrappedPlayInTabComplete> {
 
+    public TabValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Play.Client.TAB_COMPLETE);
+    }
+
+    public ValidationPipeline<PacketValidation<WrappedPlayInTabComplete>> getNewPipeline() {
+        return ValidationPipeline.from(new TabA(), new TabC());
+    }
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInTabComplete> packet, ValidationPipelineContext context, Callback callback) {
         return packet.getAnyWrapped().getMessage().startsWith("/");
-    }
-
-    @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInTabComplete>> getNewPipeline() {
-        return ValidationPipeline.from(new TabA(), new TabC());
     }
 
     @Override
@@ -37,11 +45,6 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         if (TabC.labelSetting != null) {
             TabC.labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
         }
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.TAB_COMPLETE);
     }
 
     public static class TabA implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
@@ -91,12 +94,15 @@ public class TabValidations extends AbstractPacketListener<WrappedPlayInTabCompl
         }
     }
 
-    public static class ClientboundTabValidations extends AbstractPacketListener<WrappedPlayOutTabComplete> implements PacketValidation<WrappedPlayOutTabComplete>, ViolationValidation<WrappedPlayOutTabComplete> {
+    public static class ClientboundTabValidations extends AbstractValidationPacketListener<WrappedPlayOutTabComplete> implements PacketValidation<WrappedPlayOutTabComplete>, ViolationValidation<WrappedPlayOutTabComplete> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        @Override
-        public List<PacketType> getPacketTypes() {
+        public ClientboundTabValidations(PacketLibrary library) {
+            super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        }
+
+        private static List<PacketType> getPacketTypes() {
             return Collections.singletonList(PacketTypes.Play.Server.TAB_COMPLETE);
         }
 

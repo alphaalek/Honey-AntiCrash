@@ -1,7 +1,10 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.AbstractPacketListener;
+import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.api.ListenerPriority;
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.validation.AbstractValidationPacketListener;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -18,7 +21,15 @@ import org.bukkit.entity.Player;
 import java.util.Collections;
 import java.util.List;
 
-public class LoginValidations extends AbstractPacketListener<WrappedLoginInLoginStart> {
+public class LoginValidations extends AbstractValidationPacketListener<WrappedLoginInLoginStart> {
+
+    public LoginValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+    }
+
+    private static List<PacketType> getPacketTypes() {
+        return Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
+    }
 
     @Override
     public boolean requiresPlayer() {
@@ -28,11 +39,6 @@ public class LoginValidations extends AbstractPacketListener<WrappedLoginInLogin
     @Override
     public ValidationPipeline<PacketValidation<WrappedLoginInLoginStart>> getNewPipeline() {
         return ValidationPipeline.from(new LoginA());
-    }
-
-    @Override
-    public List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
     }
 
     public static class LoginA implements PacketValidation<WrappedLoginInLoginStart> {

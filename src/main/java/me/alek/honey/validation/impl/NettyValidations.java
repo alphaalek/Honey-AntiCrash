@@ -3,6 +3,7 @@ package me.alek.honey.validation.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
+import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
@@ -28,24 +29,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> {
+public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
     public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA(), new NettyC());
 
-    @Override
-    public List<PacketType> getPacketTypes() {
+    public NettyValidations(PacketLibrary library) {
+        super(library, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
+    }
+
+    public static List<PacketType> getPacketTypes() {
         return PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER).stream().collect(Collectors.toList());
     }
 
     @Override
-    public ListenerPriority getPriority() {
-        return ListenerPriority.HIGHEST;
-    }
-
-    @Override
     public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
-        return ValidationPipeline.from(
-                /* new NettyA<>(), */ new NettyB<>(), /*  new NettyC<>(), */ new NettyH<>(), new NettyI<>() /*, new NettyJ<>() */);
+        return ValidationPipeline.from(new NettyH<>(), new NettyI<>());
     }
 
     public static class NettyA implements ViolationValidation.IntViolation {
@@ -72,7 +70,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         }
     }
 
-    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final List<PacketType> IGNORE = Collections.singletonList(PacketTypes.Play.Client.PLAYER_MOVEMENT);
@@ -112,13 +110,16 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
             });
         }
 
+        public NettyB(PacketLibrary library) {
+            super(library, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
+        }
+
         @Override
         public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
             return ValidationPipeline.from(this);
         }
 
-        @Override
-        public List<PacketType> getPacketTypes() {
+        public static List<PacketType> getPacketTypes() {
             List<PacketType> packetTypes = new ArrayList<>();
 
             for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
@@ -181,11 +182,6 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractPack
         @Override
         public String getDescription() {
             return Lang.get("validation.netty.b");
-        }
-
-        @Override
-        public ListenerPriority getPriority() {
-            return ListenerPriority.HIGHEST;
         }
 
         @Override
