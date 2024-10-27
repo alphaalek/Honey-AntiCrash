@@ -38,11 +38,11 @@ public class PacketExecutors {
         PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
 
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            packetProcessor.addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor());
+            packetProcessor.addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor<>());
         }
     }
 
-    private static class CustomPayloadPacketExecutor implements PacketExecutor<WrappedPlayInCustomPayload> {
+    private static class CustomPayloadPacketExecutor<CP extends WrappedPlayInCustomPayload<CP>> implements PacketExecutor<CP> {
 
         private static final Class<?> craftEventFactory = Reflection.getClass("{obc}.event.CraftEventFactory");
 
@@ -56,13 +56,13 @@ public class PacketExecutors {
         private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
 
         @Override
-        public boolean test(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            return packetContainer.getAnyWrapped().isBookChannel();
+        public boolean test(PacketContainer<CP> packetContainer) {
+            return packetContainer.getAnyWrapped().getData().isBookChannel();
         }
 
         @Override
-        public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packetContainer) {
-            ItemStack item = packetContainer.getAnyWrapped().getBookChannelItemStack();
+        public Runnable getTask(PacketContainer<CP> packetContainer) {
+            ItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
             if (item == null) {
                 return null;
             }
@@ -82,10 +82,10 @@ public class PacketExecutors {
                 .orElse(null);
         }
 
-        private Runnable handleBookEdit(PacketContainer<WrappedPlayInCustomPayload> packetContainer, ItemStack item, NBTCompound nbt) {
+        private Runnable handleBookEdit(PacketContainer<CP> packetContainer, ItemStack item, NBTCompound nbt) {
             Player player = packetContainer.getPlayer().bukkit;
             ItemMeta meta = item.getItemMeta();
-            switch (packetContainer.getAnyWrapped().getChannel()) {
+            switch (packetContainer.getAnyWrapped().getData().getChannel()) {
                 case "MC|BEdit":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)) {
                         break;

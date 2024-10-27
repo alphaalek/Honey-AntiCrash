@@ -18,9 +18,9 @@ public interface WrappedPacketFactory<TP extends WrappedPacket<WP>, WP extends W
 
     class Holder<WP extends WrappedPacket<WP>> {
 
-        public ObjectWrappedPacketFactory<WP> OBJECT_FACTORY = ObjectWrappedPacketFactory.factoryFromSupplier(ObjectWrappedPacket::new);
+        public final ObjectWrappedPacketFactory<WP> OBJECT_FACTORY = ObjectWrappedPacketFactory.factoryFromSupplier(ObjectWrappedPacket::new);
 
-        public ByteWrappedPacketFactory<WP> BYTE_FACTORY = ByteWrappedPacketFactory.factoryFromSupplier(ByteWrappedPacket::new);
+        public final ByteWrappedPacketFactory<WP> BYTE_FACTORY = ByteWrappedPacketFactory.factoryFromSupplier(ByteWrappedPacket::new);
     }
 
     class ObjectWrappedPacketFactory<WP extends WrappedPacket<WP>> implements WrappedPacketFactory<ObjectWrappedPacket<WP>, WP, Object> {

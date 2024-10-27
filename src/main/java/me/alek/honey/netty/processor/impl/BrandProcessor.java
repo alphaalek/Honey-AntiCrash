@@ -6,15 +6,17 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.netty.processor.Processor;
 
-public class BrandProcessor extends Processor<WrappedPlayInCustomPayload> {
+public class BrandProcessor<CP extends WrappedPlayInCustomPayload<CP>> extends Processor<CP> {
 
     public BrandProcessor() {
         addListener(PacketTypes.Play.Client.CUSTOM_PAYLOAD, this::handleCustomPayload, (p, t) -> p.channel.close());
     }
 
-    public void handleCustomPayload(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packet) {
-        if (packet.getAnyWrapped().getChannel().equals("MC|Brand")) {
-            String brand = packet.getAnyWrapped().getDataSerializer(true).readString(Short.MAX_VALUE);
+    public void handleCustomPayload(HoneyPlayer player, PacketContainer<CP> packet) {
+        WrappedPlayInCustomPayload.PayloadData data = packet.getAnyWrapped().getData();
+        String channel = data.getChannel();
+        if (channel.equals("MC|Brand") || channel.equals("minecraft:brand")) {
+            String brand = data.getCopiedSerializer().readString(Short.MAX_VALUE);
             player.clientInfo.setBrand(brand);
         }
     }

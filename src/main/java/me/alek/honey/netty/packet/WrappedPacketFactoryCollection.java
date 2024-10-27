@@ -22,6 +22,7 @@ public class WrappedPacketFactoryCollection {
     private final static Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> BYTE_WRAPPERS = new Array<>();
 
     public static void loadWrappers() {
+        loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);
         loadObjectWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_MESSAGE, WrappedPlayInChat::new);
@@ -33,7 +34,6 @@ public class WrappedPacketFactoryCollection {
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_ROTATION, WrappedPlayInLook::new);
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_MOVEMENT, WrappedPlayInFlying.Status::new);
         loadObjectWrapper(PacketTypes.Play.Client.GROUND, WrappedPlayInGround::new);
-        loadObjectWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload::new);
         loadObjectWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
         loadObjectWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
         loadObjectWrapper(PacketTypes.Play.Client.CLICK_WINDOW, WrappedPlayInWindowClick::new);
