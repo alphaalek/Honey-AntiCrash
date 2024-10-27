@@ -1,6 +1,5 @@
 package me.alek.honey.netty.packet;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -39,13 +38,21 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         initPostMinecraftDecode(handle, type);
     }
 
-    public InternalPacketContainer(ByteBuf buf, HoneyPlayer player, PacketType type, Callback postAction) {
+    public InternalPacketContainer(PacketDataSerializer serializer, HoneyPlayer player, PacketType type, Callback postAction) {
         this.player = player;
         this.type = type;
-        this.postAction = postAction;
+        Callback wrapped = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(type);
+        if (wrapped == null) {
+            this.postAction = postAction;
+        } else {
+            if (postAction != null && postAction != wrapped) {
+                postAction.getActions().forEach(wrapped::addAction);
+            }
+            this.postAction = wrapped;
+        }
 
-        if (buf != null) {
-            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, new PacketDataSerializer(buf), this);
+        if (serializer != null) {
+            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, serializer, this);
             this.state = State.BYTE;
         } else {
             this.byteWrapped = null;
@@ -172,7 +179,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         } else if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
             return this.objectWrapped.get();
         } else {
-            return null;
+            if (this.byteWrapped != null) {
+                return this.byteWrapped.get();
+            } else if (this.objectWrapped != null) {
+                return this.objectWrapped.get();
+            } else {
+                return null;
+            }
         }
     }
 

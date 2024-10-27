@@ -41,10 +41,14 @@ public class Callback {
         void call(Object... data);
     }
 
-    private final List<Action> callbacks = new LinkedList<>();
+    private final List<Action> actions = new LinkedList<>();
 
     public void addAction(Action callback) {
-        callbacks.add(callback);
+        actions.add(callback);
+    }
+
+    public List<Action> getActions() {
+        return getActions();
     }
 
     public void call(Object... data) {
@@ -52,7 +56,7 @@ public class Callback {
             return;
         }
 
-        for (Action callback : callbacks) {
+        for (Action callback : actions) {
             if (callback.test(data)) {
                 callback.call(data);
             }
@@ -60,6 +64,6 @@ public class Callback {
     }
 
     public boolean isEmpty(){
-        return callbacks.isEmpty();
+        return actions.isEmpty();
     }
 }

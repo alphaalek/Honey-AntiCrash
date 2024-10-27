@@ -24,20 +24,29 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
     PayloadData getData();
 
+    void release();
+
     class ByteWrappedPlayInCustomPayload extends ByteWrappedPacket<ByteWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ByteWrappedPlayInCustomPayload> {
 
         private final PayloadData data;
 
         public ByteWrappedPlayInCustomPayload(PacketDataSerializer buf, PacketContainer<ByteWrappedPlayInCustomPayload> packet) {
             super(buf, packet);
-            String channel = Types.UTF8.read(buf);
-            PacketDataSerializer serializer = new PacketDataSerializer(buf.readBytes(buf.readableBytes()));
+            String channel = Types.UTF8.read(buf, 20);
+            PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
             this.data = new PayloadData(channel, serializer);
         }
 
         @Override
         public PayloadData getData() {
             return data;
+        }
+
+        @Override
+        public void release() {
+            if (this.data.getSerializer().refCnt() > 0) {
+                this.data.getSerializer().release();
+            }
         }
     }
 
@@ -93,6 +102,13 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         @Override
         public PayloadData getData() {
             return this.data;
+        }
+
+        @Override
+        public void release() {
+            if (this.data.getSerializer().refCnt() > 0) {
+                this.data.getSerializer().release();
+            }
         }
     }
 

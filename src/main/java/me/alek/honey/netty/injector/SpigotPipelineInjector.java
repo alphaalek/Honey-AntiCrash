@@ -60,7 +60,6 @@ public class SpigotPipelineInjector {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void injectChannelProxy(Channel channel) throws MissingHandlerException {
         Object networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(channel);
         if (networkManager == null
@@ -72,16 +71,6 @@ public class SpigotPipelineInjector {
                 .withWeakType(Channel.class)
                 .withTarget(networkManager);
         Channel registeredChannel = (Channel) channelStructureModifier.readField(0);
-        /*
-        if (isChannelProxy(registeredChannel)
-                || CachedReflectStructureProvider.acquireStructure(registeredChannel.getClass())
-                        .withTarget(registeredChannel)
-                        .readFieldValues()
-                        .stream()
-                        .anyMatch(this::isChannelProxy)) {
-            return;
-        }
-        */
 
         Object channelProxy = channelProxyRemoteFactory.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
 

@@ -64,6 +64,7 @@ public class PacketExecutors {
         public Runnable getTask(PacketContainer<CP> packetContainer) {
             ItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
             if (item == null) {
+                packetContainer.getAnyWrapped().release();
                 return null;
             }
 
@@ -72,11 +73,7 @@ public class PacketExecutors {
             Runnable edit = handleBookEdit(packetContainer, item, nbt);
             return Optional.ofNullable(edit)
                 .map(r -> (Runnable) () -> {
-                    ByteBuf buf = packetContainer.getByteWrapped().getBuf();
-                    if (buf.refCnt() > 0) {
-                        buf.release();
-                    }
-
+                    packetContainer.getAnyWrapped().release();
                     r.run();
                 })
                 .orElse(null);

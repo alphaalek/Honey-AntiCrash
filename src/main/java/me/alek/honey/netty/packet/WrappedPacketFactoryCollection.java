@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -22,11 +23,11 @@ public class WrappedPacketFactoryCollection {
     private final static Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> BYTE_WRAPPERS = new Array<>();
 
     public static void loadWrappers() {
+        loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
         loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, WrappedHandshakeInSetProtocol::new);
 
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);
-        loadObjectWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_MESSAGE, WrappedPlayInChat::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_COMMAND, WrappedPlayInChat::new);
         loadObjectWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, WrappedPlayInSetCreativeSlot::new);
@@ -68,13 +69,13 @@ public class WrappedPacketFactoryCollection {
     }
 
     @SuppressWarnings("unchecked")
-    public static <WP extends WrappedPacket<WP>> ByteWrappedPacket<WP> initWrappedPacket(PacketType type, PacketDataSerializer buf, PacketContainer<WP> container) {
+    public static <WP extends WrappedPacket<WP>> ByteWrappedPacket<WP> initWrappedPacket(PacketType type, PacketDataSerializer serializer, PacketContainer<WP> container) {
         WrappedPacketFactory.ByteWrappedPacketFactory<WP> factory;
         if (!BYTE_WRAPPERS.has(type.getHoneyID())) {
             factory = WrappedPacketFactory.<WP>acquireHolder().BYTE_FACTORY;
         } else {
             factory = (WrappedPacketFactory.ByteWrappedPacketFactory<WP>) BYTE_WRAPPERS.get(type.getHoneyID());
         }
-        return factory.createPacket(buf, container);
+        return factory.createPacket(serializer, container);
     }
 }

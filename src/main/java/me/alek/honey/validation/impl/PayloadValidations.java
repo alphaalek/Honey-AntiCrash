@@ -19,6 +19,7 @@ import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -61,10 +62,6 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getData().getSerializer().getBuf() instanceof EmptyByteBuf) {
-                return ValidationServiceContext.FLAG;
-            }
-
             return ValidationServiceContext.PASS;
         }
 

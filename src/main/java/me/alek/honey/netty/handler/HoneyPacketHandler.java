@@ -127,11 +127,13 @@ public class HoneyPacketHandler {
         }
     }
 
-    public PacketType getPacketType(ByteBuf buf) {
-        int index = buf.readerIndex();
+    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex) {
+        int startIndex = buf.readerIndex();
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
-        int id = Types.VAR_INT.read(serializer);
-        buf.readerIndex(index);
+        int id = serializer.readVarInt();
+        if (resetToStartIndex) {
+            buf.readerIndex(startIndex);
+        }
 
         PacketState state = getProtocolState(PacketBound.SERVER);
         PacketType type = null;

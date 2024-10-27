@@ -10,7 +10,7 @@ public class DisabledNBTCodec {
 
         @Override
         public void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) {
-            structure.writeField(0, serializer.readBlockPosition());
+            structure.writeField(0, serializer.readBlockPosition().getHandle());
             structure.writeField(1, serializer.readUnsignedByte());
             structure.writeField(2, serializer.readItemStackWithFilter(false));
             structure.writeField(3, serializer.readUnsignedByte() / 16.0F);

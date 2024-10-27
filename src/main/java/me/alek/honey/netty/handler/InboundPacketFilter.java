@@ -7,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.reflection.Reflection;
@@ -109,12 +110,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                     prevMarked);
         }
 
-        PacketType type = packetHandler.getPacketType(buf);
-        PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(buf, player, type, null);
-
-        MARK.set(packet);
+        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
+        PacketType type = packetHandler.getPacketType(serializer, false);
+        PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(serializer, player, type, null);
 
         packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+
+        MARK.set(packet);
 
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callBytePacketProcessListeners(player, packet);
         packet.getEventloopStateTimings().stopTimings();
@@ -124,6 +126,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         } else {
             list.add(Unpooled.buffer());
         }
+
+        serializer.release();
 
         packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
     }

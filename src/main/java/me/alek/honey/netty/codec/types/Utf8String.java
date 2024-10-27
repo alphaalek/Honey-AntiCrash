@@ -22,7 +22,7 @@ public class Utf8String implements Type<String, PacketDataSerializer> {
         }
         int maxLength = Integer.parseInt(params[0].toString());
 
-        int stringByteLength = Types.VAR_INT.read(buf);
+        int stringByteLength = buf.readVarInt();
         int maxByteLength = maxLength * MAX_BYTES_PER_CHAR_UTF8;
         if (stringByteLength > maxByteLength) {
             throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + stringByteLength + " > " + maxByteLength + ")");

@@ -120,7 +120,7 @@ public class ItemAnalysis {
 
     private static ItemValidationRegistry checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
         Material material = item.getType();
-        if (!validationsForMaterial.containsKey(material)) {
+        if (validationsForMaterial.containsKey(material)) {
             for (ItemValidation validation : validationsForMaterial.get(material)) {
                 ItemValidationRegistry registry = check(player, validation, item, nbt);
                 if (registry != null) {

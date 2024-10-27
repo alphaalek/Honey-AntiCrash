@@ -21,6 +21,7 @@ import me.alek.honey.util.statics.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.List;
 public class BlockPlaceValidations extends AbstractValidationPacketListener<WrappedPlayInBlockPlace> {
 
     public BlockPlaceValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {
@@ -137,7 +138,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
-                return ItemAnalysis.flagIf(player, packet.getItem(), ViolationKey.of(this), context);
+                return ItemAnalysis.flagIf(player, packet.getItemStack(), ViolationKey.of(this), context);
             }
 
             return ValidationServiceContext.PASS;
@@ -171,7 +172,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
-                ItemStack item = packet.getItem();
+                ItemStack item = packet.getItemStack();
                 if (item == null) {
                     return ValidationServiceContext.PASS;
                 }
@@ -215,12 +216,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
                     && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
-                int placedBlockDirection = packet.getPlacedBlockDirection();
-
-                float facingX = packet.getFacingX();
-                float facingY = packet.getFacingY();
-                float facingZ = packet.getFacingZ();
-
+                int placedBlockDirection = packet.getFaceId();
                 if (placedBlockDirection < 0
                         || placedBlockDirection > 5 && placedBlockDirection != 255) {
                     return ValidationServiceContext.Builder.validate().cancel().flag()
@@ -231,19 +227,21 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
                             })
                             .build();
                 }
-                if (facingX < 0
-                        || facingX > 1
-                        || facingY < 0
-                        || facingY > 1
-                        || facingZ < 0
-                        || facingZ > 1) {
+
+                Vector cursorPosition = packet.getCursorPosition();
+                if (cursorPosition.getX() < 0
+                        || cursorPosition.getX() > 1
+                        || cursorPosition.getY() < 0
+                        || cursorPosition.getY() > 1
+                        || cursorPosition.getZ() < 0
+                        || cursorPosition.getZ() > 1) {
                     return ValidationServiceContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
-                                context.getDevelopmentData(key).addPoint("Facing X", facingX);
-                                context.getDevelopmentData(key).addPoint("Facing Y", facingY);
-                                context.getDevelopmentData(key).addPoint("Facing Z", facingZ);
+                                context.getDevelopmentData(key).addPoint("Facing X", cursorPosition.getX());
+                                context.getDevelopmentData(key).addPoint("Facing Y", cursorPosition.getY());
+                                context.getDevelopmentData(key).addPoint("Facing Z", cursorPosition.getZ());
                             })
                             .build();
                 }

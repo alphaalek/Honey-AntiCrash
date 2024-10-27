@@ -315,13 +315,12 @@ public class InternalPacketProcessor implements PacketProcessor {
         return handleCommon(player, PacketBound.CLIENT, packet, null);
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public Callback getPostAction(PacketType type) {
         return PacketTypes.isUnknown(type) ? null : postActions.get(type.getHoneyID());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public synchronized void addPostAction(PacketType type, Callback.Action callback) {
         if (PacketTypes.isUnknown(type)) {
             return;

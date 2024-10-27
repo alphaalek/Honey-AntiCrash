@@ -182,7 +182,6 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
                         || packet.getActionNumber() < 0
                         || packet.getWindowButton() < 0
                         || packet.getWindowId() < 0) {
-                    HoneyPlugin.get().getLoggerService().getLogger().info("DEBUG: Mode: " + packet.getMode() + " , action: " + packet.getActionNumber() + ", id: " + packet.getWindowId() + ", button: " + packet.getWindowButton() + ", slot: " + packet.getWindowSlot());
                     return ValidationServiceContext.FLAG;
                 }
             }

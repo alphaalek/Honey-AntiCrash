@@ -97,7 +97,7 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
 
     @Override
     public void onBytePacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
-
+        call(player, packet);
     }
 
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext container, Callback callback) {
@@ -105,6 +105,6 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
     }
 
     public void onPostPacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext container) {
-
+        // to be overridden
     }
 }

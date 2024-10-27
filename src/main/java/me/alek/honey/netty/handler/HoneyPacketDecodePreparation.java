@@ -218,7 +218,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         if (packetContainer == null) {
             // this packet is not sent by the client (because it was not received by the filter),
             // but instead invoked by some plugin (most likely ViaVersion)
-            packetContainer = new InternalPacketContainer<>(buf, player, packetHandler.getPacketType(buf), null);
+            packetContainer = new InternalPacketContainer<>(buf, player, packetHandler.getPacketType(buf, true), null);
             InboundPacketFilter.MARK.set(packetContainer);
         }
 

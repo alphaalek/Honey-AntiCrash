@@ -17,6 +17,8 @@ public interface PacketProcessor {
 
     void addPostAction(PacketType type, Callback.Action callback);
 
+    Callback getPostAction(PacketType type);
+
     <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet);
 
     void removeListener(PacketListenerAdapter<?> listener, PacketContainer.State state, PacketType... types);

@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBufProcessor;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -13,6 +14,7 @@ import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +51,8 @@ public class PacketDataSerializer extends ByteBuf {
         return serializer.get();
     }
 
-    public Object readBlockPosition() {
-        return WrappedBlockPosition.fromLong(readLong()).getHandle();
+    public WrappedBlockPosition readBlockPosition() {
+        return WrappedBlockPosition.fromLong(readLong());
     }
 
     public int readVarInt() {
@@ -65,6 +67,10 @@ public class PacketDataSerializer extends ByteBuf {
         return ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
                 .withType(NMS.getItemStackClass()).withTarget(getSerializer())
                 .invokeMethod(null, 0);
+    }
+
+    public ItemStack readBukkitItemStack() {
+        return Converters.getItemStackConverter().convertDelegate(readItemStack());
     }
 
     public Object readItemStackWithFilter(boolean withMeta, Material... required) {
@@ -110,6 +116,10 @@ public class PacketDataSerializer extends ByteBuf {
         }
 
         return itemStack;
+    }
+
+    public ItemStack readBukkitItemStackWithFilter(boolean withMeta, Material... required) {
+        return Converters.getItemStackConverter().convertDelegate(readItemStackWithFilter(withMeta, required));
     }
 
     public UUID readUUID() {
