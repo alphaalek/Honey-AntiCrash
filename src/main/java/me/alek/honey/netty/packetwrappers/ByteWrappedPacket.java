@@ -33,8 +33,6 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
         buf.readerIndex(start);
         this.accumulatedByteSize = accumulated;
         this.doubleByteSequences = doubleSequences;
-
-        Bukkit.broadcastMessage("Size " + byteSize + ", Accumulated " + accumulated + ", Sequences " + doubleSequences);
     }
 
     @Override
