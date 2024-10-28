@@ -4,6 +4,9 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
+import org.bukkit.Bukkit;
+
+import java.util.Map;
 
 public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedPacket<WP> {
 
@@ -30,6 +33,8 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
         buf.readerIndex(start);
         this.accumulatedByteSize = accumulated;
         this.doubleByteSequences = doubleSequences;
+
+        Bukkit.broadcastMessage("Size " + byteSize + ", Accumulated " + accumulated + ", Sequences " + doubleSequences);
     }
 
     @Override
@@ -66,5 +71,11 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
     @Override
     public PacketType getType() {
         return this.packet.getType();
+    }
+
+    @Override
+    public Map<String, Object> getProperties() {
+        // TODO
+        return null;
     }
 }

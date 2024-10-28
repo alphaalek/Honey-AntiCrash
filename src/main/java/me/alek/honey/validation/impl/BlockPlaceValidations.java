@@ -42,9 +42,6 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         visitor.register(new BlockInteractA());
         visitor.register(new BlockInteractB());
         visitor.register(new BlockInteractC());
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            visitor.register(new BlockInteractD());
-        }
         return visitor;
     }
 
@@ -205,69 +202,6 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractC.class);
-        }
-    }
-
-    public static class BlockInteractD implements PacketValidation<WrappedPlayInBlockPlace>, ViolationValidation<WrappedPlayInBlockPlace> {
-
-        private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()
-                    && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
-                int placedBlockDirection = packet.getFaceId();
-                if (placedBlockDirection < 0
-                        || placedBlockDirection > 5 && placedBlockDirection != 255) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag()
-                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
-                                if (onViolation != null) onViolation.run();
-
-                                context.getDevelopmentData(key).addPoint("Block Direction", placedBlockDirection);
-                            })
-                            .build();
-                }
-
-                Vector cursorPosition = packet.getCursorPosition();
-                if (cursorPosition.getX() < 0
-                        || cursorPosition.getX() > 1
-                        || cursorPosition.getY() < 0
-                        || cursorPosition.getY() > 1
-                        || cursorPosition.getZ() < 0
-                        || cursorPosition.getZ() > 1) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag()
-                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
-                                if (onViolation != null) onViolation.run();
-
-                                context.getDevelopmentData(key).addPoint("Facing X", cursorPosition.getX());
-                                context.getDevelopmentData(key).addPoint("Facing Y", cursorPosition.getY());
-                                context.getDevelopmentData(key).addPoint("Facing Z", cursorPosition.getZ());
-                            })
-                            .build();
-                }
-            }
-
-            return ValidationServiceContext.PASS;
-        }
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "BlockInteract.D";
-        }
-
-        @Override
-        public String getDescription() {
-            return Lang.get("validation.block.d");
-        }
-
-        @Override
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractD.class);
         }
     }
 }

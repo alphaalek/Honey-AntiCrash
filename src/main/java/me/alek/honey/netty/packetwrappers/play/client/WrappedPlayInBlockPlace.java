@@ -15,6 +15,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> implements AutoReleasable {
 

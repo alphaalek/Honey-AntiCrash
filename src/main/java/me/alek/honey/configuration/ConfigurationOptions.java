@@ -877,12 +877,6 @@ public class ConfigurationOptions {
         public static class BlockInteractD extends ViolationSetting implements VlSimpleRequiredContentsSetting {
 
         }
-
-        @Setting
-        @Violation(prefixPaths = "block-interact.e", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class BlockInteractE extends ViolationSetting implements VlSimpleMaxRequiredContentsSetting {
-
-        }
     }
 
     @Setting

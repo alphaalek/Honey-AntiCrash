@@ -8,6 +8,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
+import java.util.Map;
+
 public interface WrappedPacket<WP extends WrappedPacket<WP>> {
 
     @SuppressWarnings("unchecked")
@@ -28,6 +30,8 @@ public interface WrappedPacket<WP extends WrappedPacket<WP>> {
     PacketContainer<WP> getContainer();
 
     PacketType getType();
+
+    Map<String, Object> getProperties();
 }
 
 

@@ -20,8 +20,7 @@ server.frozen={prefix} §cThe server seems to be frozen after a packet was sent 
 validation.block.a=Placing block too far away
 validation.block.b=Right clicking with illegal item
 validation.block.c=Placing illegal piston block
-validation.block.d=Illegal facing or direction
-validation.block.e=Interacting with block too far away
+validation.block.d=Interacting with block too far away
 
 validation.chat.a=Bad character in chat message
 validation.chat.b=Too long chat message

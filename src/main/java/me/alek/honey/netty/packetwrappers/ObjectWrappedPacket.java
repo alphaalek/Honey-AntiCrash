@@ -6,6 +6,8 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketType;
 
+import java.util.Map;
+
 public class ObjectWrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WP> implements WrappedPacket<WP> {
 
     private final PacketContainer<WP> packet;
@@ -33,5 +35,10 @@ public class ObjectWrappedPacket<WP extends WrappedPacket<WP>> extends WrappedOb
     @Override
     public PacketType getType() {
         return packet.getType();
+    }
+
+    @Override
+    public Map<String, Object> getProperties() {
+        return getContainer().getStructure().getAll().readFieldEntries();
     }
 }
