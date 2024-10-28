@@ -1,54 +1,104 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
+import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.AutoReleasable;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 
-public class WrappedPlayInWindowClick extends ObjectWrappedPacket<WrappedPlayInWindowClick> {
+import java.util.Map;
+import java.util.Optional;
 
-    private static final boolean modern = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17_1);
-    private Class<Enum<?>> enumConstClass;
+public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWindowClick> implements AutoReleasable {
 
-    public WrappedPlayInWindowClick(Object rawPacket, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
-        super(rawPacket, packetContainer);
+    public enum WindowClickType {
+        PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL;
+    }
 
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            enumConstClass = Reflection.getUnsureClass("{nms}.InventoryClickType", "{nms}.world.inventory.InventoryClickType");
+    private final int windowId;
+    private int stateId;
+    private final int slot;
+    private final int button;
+    private int actionNumber;
+    private final WindowClickType windowClickType;
+    private Map<Integer, ItemStack> slots;
+    private final LazyInit<ItemStack> carriedItemStack;
+
+    private final Runnable release;
+
+    public WrappedPlayInWindowClick(PacketDataSerializer serializer, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
+        super(serializer, packetContainer);
+
+        // TODO
+        if (false /*NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2) */) {
+            this.windowId = serializer.readVarInt();
+        } else {
+            this.windowId = serializer.readUnsignedByte();
         }
+
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17_1)) {
+            this.stateId = serializer.readVarInt();
+        }
+        this.slot = serializer.readShort();
+        this.button = serializer.readByte();
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+            this.actionNumber = serializer.readShort();
+        }
+
+        int clickTypeIndex = serializer.readVarInt();
+        this.windowClickType = WindowClickType.values()[clickTypeIndex];
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+            this.slots = serializer.readMap(
+                    serializerInput -> Math.toIntExact(serializerInput.readShort()),
+                    PacketDataSerializer::readBukkitItemStack
+            );
+        }
+
+        PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
+        this.carriedItemStack = new LazyInit<>(copy::readBukkitItemStack);
+        release = () -> AutoReleasable.doRelease(copy);
+    }
+
+    @Override
+    public void release() {
+        this.release.run();
     }
 
     public int getWindowId() {
-        return getContainer().getStructure().getInts().readField(0);
+        return windowId;
     }
 
     public int getStateId() {
-        return !modern ? 0 : getContainer().getStructure().getInts().readField(1);
+        return this.stateId;
     }
 
-    public int getWindowSlot() {
-        return getContainer().getStructure().getInts().readField(modern ? 2 : 1);
+    public int getSlot() {
+        return this.slot;
     }
 
-    public int getWindowButton() {
-        return getContainer().getStructure().getInts().readField(modern ? 3 : 2);
+    public int getButton() {
+        return this.button;
     }
 
     public int getActionNumber() {
-        return getContainer().getStructure().getShorts().getAccessors().isEmpty() ? 0 : getContainer().getStructure().getShorts().readField(0);
+        return this.actionNumber;
     }
 
-    public int getMode() {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            return getContainer().getStructure().getInts().readField(3);
-        }
-        Enum<?> enumConst = getContainer().getStructure().getObjectsOf(enumConstClass).readField(0);
-        return enumConst.ordinal();
+    public WindowClickType getWindowClickType() {
+        return this.windowClickType;
     }
 
-    public ItemStack getItem() {
-        return getContainer().getStructure().getItems().readField(0);
+    public Map<Integer, ItemStack> getSlots() {
+        return this.slots;
+    }
+
+    public ItemStack getCarriedItemStack() {
+        return this.carriedItemStack.get();
     }
 }

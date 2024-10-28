@@ -25,6 +25,7 @@ public class WrappedPacketFactoryCollection {
     public static void loadWrappers() {
         loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, WrappedPlayInSetCreativeSlot::new);
+        loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, WrappedPlayInWindowClick::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
         loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, WrappedHandshakeInSetProtocol::new);
 
@@ -39,7 +40,6 @@ public class WrappedPacketFactoryCollection {
         loadObjectWrapper(PacketTypes.Play.Client.GROUND, WrappedPlayInGround::new);
         loadObjectWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
         loadObjectWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
-        loadObjectWrapper(PacketTypes.Play.Client.CLICK_WINDOW, WrappedPlayInWindowClick::new);
         loadObjectWrapper(PacketTypes.Login.Client.LOGIN_START, WrappedLoginInLoginStart::new);
 
         loadObjectWrapper(PacketTypes.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);

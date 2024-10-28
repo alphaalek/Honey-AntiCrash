@@ -123,12 +123,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
                     PacketDataSerializer copy = makeSerializerCopy();
-                    bookChannelItemStack = new LazyInit<>(() ->
-                            Converters.getItemStackConverter()
-                                    .convertDelegate(
-                                            copy.readItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book"))
-                                    )
-                    );
+                    bookChannelItemStack = new LazyInit<>(() -> copy.readBukkitItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")));
                     release = () -> AutoReleasable.doRelease(copy);
                 } catch (Exception ignored) {
                 }

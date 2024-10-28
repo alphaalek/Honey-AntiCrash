@@ -36,54 +36,54 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
     private Runnable release;
 
-    public WrappedPlayInBlockPlace(PacketDataSerializer buf, PacketContainer<WrappedPlayInBlockPlace> packet) {
-        super(buf, packet);
+    public WrappedPlayInBlockPlace(PacketDataSerializer serializer, PacketContainer<WrappedPlayInBlockPlace> packet) {
+        super(serializer, packet);
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-            interactionHand = InteractionHand.values()[buf.readVarInt()];
-            blockPosition = buf.readBlockPosition();
-            faceId = buf.readVarInt();
-            cursorPosition = new Vector(buf.readFloat(), buf.readFloat(), buf.readFloat());
-            insideBlock = buf.readBoolean();
+            this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
+            this.blockPosition = serializer.readBlockPosition();
+            this.faceId = serializer.readVarInt();
+            this.cursorPosition = new Vector(serializer.readFloat(), serializer.readFloat(), serializer.readFloat());
+            this.insideBlock = serializer.readBoolean();
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19)) {
                 /*
                 if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2)) {
                     this.worldBorderHit = Optional.of(this.readBoolean());
                 }
                 */
-                sequence = buf.readVarInt();
+                this.sequence = serializer.readVarInt();
             }
         } else {
-            blockPosition = buf.readBlockPosition();
+            this.blockPosition = serializer.readBlockPosition();
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-                faceId = buf.readVarInt();
-                interactionHand = InteractionHand.values()[buf.readVarInt()];
+                this.faceId = serializer.readVarInt();
+                this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
             } else {
-                faceId = buf.readUnsignedByte();
-                if (faceId == 255) {
-                    face = BlockFace.SELF;
+                this.faceId = serializer.readUnsignedByte();
+                if (this.faceId == 255) {
+                    this.face = BlockFace.SELF;
                 }
-                PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
-                itemStack = new LazyInit<>(copy::readBukkitItemStack);
-                release = () -> AutoReleasable.doRelease(copy);
-                interactionHand = InteractionHand.MAIN_HAND;
+                PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
+                this.itemStack = new LazyInit<>(copy::readBukkitItemStack);
+                this.release = () -> AutoReleasable.doRelease(copy);
+                this.interactionHand = InteractionHand.MAIN_HAND;
             }
 
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_11)) {
-                cursorPosition = new Vector(buf.readFloat(), buf.readFloat(), buf.readFloat());
+                this.cursorPosition = new Vector(serializer.readFloat(), serializer.readFloat(), serializer.readFloat());
             } else {
-                cursorPosition = new Vector(buf.readUnsignedByte() / 16.0F, buf.readUnsignedByte() / 16.0F, buf.readUnsignedByte() / 16.0F);
+                this.cursorPosition = new Vector(serializer.readUnsignedByte() / 16.0F, serializer.readUnsignedByte() / 16.0F, serializer.readUnsignedByte() / 16.0F);
             }
         }
 
-        if (face != null) {
-            face = CARTESIAN_FACES.get(faceId % CARTESIAN_FACES.size());
+        if (this.face != null) {
+            this.face = CARTESIAN_FACES.get(faceId % CARTESIAN_FACES.size());
         }
     }
 
     @Override
     public void release() {
-        if (release != null) {
-            release.run();
+        if (this.release != null) {
+            this.release.run();
         }
     }
 

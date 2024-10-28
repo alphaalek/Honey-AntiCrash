@@ -24,7 +24,7 @@ import java.util.List;
 public class WindowValidations extends AbstractValidationPacketListener<WrappedPlayInWindowClick> {
 
     public WindowValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {
@@ -107,7 +107,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, packet.getItem(), ViolationKey.of(this), context);
+                return ItemAnalysis.flagIf(player, packet.getCarriedItemStack(), ViolationKey.of(this), context);
             }
 
             return ValidationServiceContext.PASS;
@@ -142,7 +142,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (player.bukkit.getOpenInventory().getType().name().equals("LECTERN")
-                        && packet.getMode() == 1) {
+                        && packet.getWindowClickType() == WrappedPlayInWindowClick.WindowClickType.QUICK_MOVE) {
                     return ValidationServiceContext.FLAG;
                 }
             }
@@ -178,9 +178,8 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                if (packet.getMode() < 0
-                        || packet.getActionNumber() < 0
-                        || packet.getWindowButton() < 0
+                if (packet.getActionNumber() < 0
+                        || packet.getStateId() < 0
                         || packet.getWindowId() < 0) {
                     return ValidationServiceContext.FLAG;
                 }

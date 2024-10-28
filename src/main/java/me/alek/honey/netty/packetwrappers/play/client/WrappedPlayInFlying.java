@@ -21,14 +21,14 @@ public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> ex
     }
 
     public Location getLocation() {
-        return location != null ? location : new Location(
+        return location != null ? location : (location = new Location(
                 getPlayer().getWorld(),
                 getContainer().getStructure().getDoubles().readField(0),
                 getContainer().getStructure().getDoubles().readField(1),
                 getContainer().getStructure().getDoubles().readField(2),
                 getContainer().getStructure().getFloats().readField(0),
                 getContainer().getStructure().getFloats().readField(1)
-        );
+        ));
     }
 
     public double getX() {
