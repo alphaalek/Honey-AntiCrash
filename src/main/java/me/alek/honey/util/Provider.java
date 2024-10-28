@@ -9,7 +9,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
         T get();
 
         default RemoteProviderBridge.ProviderNoInput<T> createRemoveBridge() {
-            return (RemoteProviderBridge.ProviderNoInput<T>) RemoteProviderBridge.<T>getWithNoInput();
+            return (RemoteProviderBridge.ProviderNoInput<T>) RemoteProviderBridge.Factory.<T>createWithNoInput();
         }
     }
 
@@ -18,7 +18,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
         T get(I1 i1);
 
         default RemoteProviderBridge.ProviderOneInput<T, I1> createRemoveBridge() {
-            return (RemoteProviderBridge.ProviderOneInput<T, I1>) RemoteProviderBridge.<T, I1>getWithOneInput();
+            return (RemoteProviderBridge.ProviderOneInput<T, I1>) RemoteProviderBridge.Factory.<T, I1>createWithOneInput();
         }
     }
 
@@ -27,7 +27,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
         T get(I1 i1, I2 i2);
 
         default RemoteProviderBridge.ProviderTwoInput<T, I1, I2> createRemoveBridge() {
-            return (RemoteProviderBridge.ProviderTwoInput<T, I1, I2>) RemoteProviderBridge.<T, I1, I2>getWithTwoInput();
+            return (RemoteProviderBridge.ProviderTwoInput<T, I1, I2>) RemoteProviderBridge.Factory.<T, I1, I2>createWithTwoInput();
         }
     }
 
@@ -36,7 +36,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
         T get(Object[] array);
 
         default RemoteProviderBridge.ProviderGenericInput<T> createRemoveBridge() {
-            return (RemoteProviderBridge.ProviderGenericInput<T>) RemoteProviderBridge.<T>getWithGenericInput();
+            return (RemoteProviderBridge.ProviderGenericInput<T>) RemoteProviderBridge.Factory.<T>createWithGenericInput();
         }
     }
 }

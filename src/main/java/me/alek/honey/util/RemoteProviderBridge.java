@@ -61,19 +61,22 @@ public interface RemoteProviderBridge<T, P extends Provider<T, P, A>, A extends 
         }
     }
 
-    static <T> RemoteProviderBridge<T, Provider.ProviderNoInput<T>, RemoteProviderBridge.ProviderNoInput<T>> getWithNoInput() {
-        return new RemoteProviderBridge.ProviderNoInput<T>();
-    }
+    class Factory {
 
-    static <T, I1> RemoteProviderBridge<T, Provider.ProviderOneInput<T, I1>, RemoteProviderBridge.ProviderOneInput<T, I1>> getWithOneInput() {
-        return new RemoteProviderBridge.ProviderOneInput<T, I1>();
-    }
+        public static <T> RemoteProviderBridge<T, Provider.ProviderNoInput<T>, RemoteProviderBridge.ProviderNoInput<T>> createWithNoInput() {
+            return new RemoteProviderBridge.ProviderNoInput<T>();
+        }
 
-    static <T, I1, I2> RemoteProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, RemoteProviderBridge.ProviderTwoInput<T, I1, I2>> getWithTwoInput() {
-        return new RemoteProviderBridge.ProviderTwoInput<T, I1, I2>();
-    }
+        public static <T, I1> RemoteProviderBridge<T, Provider.ProviderOneInput<T, I1>, RemoteProviderBridge.ProviderOneInput<T, I1>> createWithOneInput() {
+            return new RemoteProviderBridge.ProviderOneInput<T, I1>();
+        }
 
-    static <T> RemoteProviderBridge<T, Provider.ProviderGenericInput<T>, RemoteProviderBridge.ProviderGenericInput<T>> getWithGenericInput() {
-        return new RemoteProviderBridge.ProviderGenericInput<T>();
+        public static <T, I1, I2> RemoteProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, RemoteProviderBridge.ProviderTwoInput<T, I1, I2>> createWithTwoInput() {
+            return new RemoteProviderBridge.ProviderTwoInput<T, I1, I2>();
+        }
+
+        public static <T> RemoteProviderBridge<T, Provider.ProviderGenericInput<T>, RemoteProviderBridge.ProviderGenericInput<T>> createWithGenericInput() {
+            return new RemoteProviderBridge.ProviderGenericInput<T>();
+        }
     }
 }

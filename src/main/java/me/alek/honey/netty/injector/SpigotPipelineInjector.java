@@ -26,9 +26,9 @@ public class SpigotPipelineInjector {
 
     private static final String PRE_RESOLVED_PACKET_HANDLER = "pre-resolved-packet-handler";
 
-    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = RemoteProviderBridge.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>getWithNoInput()
+    private final Provider.ProviderNoInput<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>> channelProxyRemoteFactoryProvider = RemoteProviderBridge.Factory.<Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>>>createWithNoInput()
             .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, RemoteProviderUtils.getNewProviderWithException(ChannelProxyFactory.Provider.class));
-    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = RemoteProviderBridge.<Channel, Channel, Consumer<Channel>>getWithTwoInput()
+    private final Provider.ProviderTwoInput<Channel, Channel, Consumer<Channel>> channelProxyRemoteFactory = RemoteProviderBridge.Factory.<Channel, Channel, Consumer<Channel>>createWithTwoInput()
             .createProviderRemotely(null, RemoteProviderUtils::isProviderMethod, channelProxyRemoteFactoryProvider.get());
 
     public void injectChannel(Channel channel) {
