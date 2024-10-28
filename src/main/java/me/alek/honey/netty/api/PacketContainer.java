@@ -58,4 +58,6 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
     void cancel();
 
     void dump();
+
+    void releaseIfAutoReleasable();
 }

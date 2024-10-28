@@ -56,7 +56,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         // ignore set creative slot packets when players in creative mode clear their inventory
         if (packet.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
                 && player.bukkit.getGameMode() == GameMode.CREATIVE) {
-            int slot = ((WrappedPlayInSetCreativeSlot) packet.getObjectWrapped()).getSlot();
+            int slot = ((WrappedPlayInSetCreativeSlot) packet.getAnyWrapped()).getSlot();
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
 
             lastSetCreativeSlot.put(player.uuid, slot);

@@ -16,7 +16,7 @@ public class BrandProcessor<CP extends WrappedPlayInCustomPayload<CP>> extends P
         WrappedPlayInCustomPayload.PayloadData data = packet.getAnyWrapped().getData();
         String channel = data.getChannel();
         if (channel.equals("MC|Brand") || channel.equals("minecraft:brand")) {
-            String brand = data.getCopiedSerializer().readString(Short.MAX_VALUE);
+            String brand = data.makeSerializerCopy().readString(Short.MAX_VALUE);
             player.clientInfo.setBrand(brand);
         }
     }

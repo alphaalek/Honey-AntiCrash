@@ -1,9 +1,12 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
+import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
@@ -13,7 +16,7 @@ import org.bukkit.util.Vector;
 import java.util.Arrays;
 import java.util.List;
 
-public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> {
+public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> implements AutoReleasable {
 
     private static final List<BlockFace> CARTESIAN_FACES = Arrays.asList(BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
 
@@ -26,10 +29,12 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     private final int faceId;
     private BlockFace face;
     private final Vector cursorPosition;
-    private ItemStack itemStack;
+    private LazyInit<ItemStack> itemStack;
     private boolean insideBlock;
     private boolean worldBorderHit;
     private int sequence;
+
+    private Runnable release;
 
     public WrappedPlayInBlockPlace(PacketDataSerializer buf, PacketContainer<WrappedPlayInBlockPlace> packet) {
         super(buf, packet);
@@ -57,9 +62,12 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                 if (faceId == 255) {
                     face = BlockFace.SELF;
                 }
-                itemStack = buf.readBukkitItemStack();
+                PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
+                itemStack = new LazyInit<>(copy::readBukkitItemStack);
+                release = () -> AutoReleasable.doRelease(copy);
                 interactionHand = InteractionHand.MAIN_HAND;
             }
+
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_11)) {
                 cursorPosition = new Vector(buf.readFloat(), buf.readFloat(), buf.readFloat());
             } else {
@@ -72,39 +80,46 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
         }
     }
 
+    @Override
+    public void release() {
+        if (release != null) {
+            release.run();
+        }
+    }
+
     public InteractionHand getInteractionHand() {
-        return interactionHand;
+        return this.interactionHand;
     }
 
     public WrappedBlockPosition getBlockPosition() {
-        return blockPosition;
+        return this.blockPosition;
     }
 
     public BlockFace getFace() {
-        return face;
+        return this.face;
     }
 
     public int getFaceId() {
-        return faceId;
+        return this.faceId;
     }
 
     public Vector getCursorPosition() {
-        return cursorPosition;
+        return this.cursorPosition;
     }
 
     public ItemStack getItemStack() {
-        return itemStack;
+        return this.itemStack.get();
     }
 
     public boolean isInsideBlock() {
-        return insideBlock;
+        return this.insideBlock;
     }
 
     public boolean isWorldBorderHit() {
-        return worldBorderHit;
+        return this.worldBorderHit;
     }
 
     public int getSequence() {
-        return sequence;
+        return this.sequence;
     }
 }

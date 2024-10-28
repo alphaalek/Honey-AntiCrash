@@ -9,6 +9,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -155,6 +156,16 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void dump() {
         this.dumped = true;
+    }
+
+    @Override
+    public void releaseIfAutoReleasable() {
+        if (this.byteWrapped instanceof AutoReleasable) {
+            ((AutoReleasable)this.byteWrapped).release();
+        }
+        if (this.objectWrapped instanceof AutoReleasable) {
+            ((AutoReleasable)this.objectWrapped).release();
+        }
     }
 
     @Override

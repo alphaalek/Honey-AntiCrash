@@ -108,6 +108,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                     player,
                     (validation, context) -> validation.validate(player, 1, context),
                     prevMarked);
+
+            prevMarked.releaseIfAutoReleasable();
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
@@ -125,6 +127,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             list.add(buf.readBytes(buf.readableBytes()));
         } else {
             list.add(Unpooled.buffer());
+            packet.releaseIfAutoReleasable();
         }
 
         serializer.release();

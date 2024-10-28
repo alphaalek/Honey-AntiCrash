@@ -191,59 +191,66 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
-        read(ctx, o);
+        if (!read(ctx, o)) {
+            // not async
+            InboundPacketFilter.MARK.get().releaseIfAutoReleasable();
+        }
 
         InboundPacketFilter.MARK.remove();
     }
 
-    public void read(ChannelHandlerContext ctx, Object o) {
+    public boolean read(ChannelHandlerContext ctx, Object o) {
         if (!player.isStreamActive()) {
-            return;
+            return false;
         }
         if (!(o instanceof ByteBuf)) {
             if (!packetHandler.handleNonPacket(o)) {
-                return;
+                return false;
             }
             ctx.fireChannelRead(ReferenceCountUtil.retain(o));
-            return;
+            return false;
         }
 
         ByteBuf buf = (ByteBuf) o;
         if (!buf.isReadable()) {
             ctx.fireChannelRead(buf);
-            return;
+            return false;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = InboundPacketFilter.MARK.get();
-        if (packetContainer == null) {
+        PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
+        if (packet == null) {
             // this packet is not sent by the client (because it was not received by the filter),
             // but instead invoked by some plugin (most likely ViaVersion)
-            packetContainer = new InternalPacketContainer<>(buf, player, packetHandler.getPacketType(buf, true), null);
-            InboundPacketFilter.MARK.set(packetContainer);
+            packet = new InternalPacketContainer<>(buf, player, packetHandler.getPacketType(buf, true), null);
+            InboundPacketFilter.MARK.set(packet);
         }
 
         // stops in-between timings
-        packetContainer.getEventloopStateTimings().stopTimings();
+        packet.getEventloopStateTimings().stopTimings();
 
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED
                 || !player.isBukkitReady()
                 || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
-            invokeRead(packetContainer, ctx, buf, nonRecycledList);
+            invokeRead(packet, ctx, buf, nonRecycledList);
+            return false;
         } else {
             ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
             buf.release();
 
-            PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
+            PacketContainer<? extends WrappedPacket<?>> copy = packet;
             stream.decode((s) -> {
-                InboundPacketFilter.MARK.set(packet);
+                InboundPacketFilter.MARK.set(copy);
 
                 if (player.isStreamActive()) {
-                    invokeRead(packet, ctx, wrapped, nonRecycledList);
+                    invokeRead(copy, ctx, wrapped, nonRecycledList);
+                    copy.releaseIfAutoReleasable();
                 }
 
                 InboundPacketFilter.MARK.remove();
             });
+
+            return true;
         }
     }
 }

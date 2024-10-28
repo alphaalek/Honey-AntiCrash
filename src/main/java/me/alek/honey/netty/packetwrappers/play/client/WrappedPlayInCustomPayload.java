@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -20,11 +21,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayload<WP>> extends WrappedPacket<WP> {
+public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayload<WP>> extends WrappedPacket<WP>, AutoReleasable {
 
     PayloadData getData();
-
-    void release();
 
     class ByteWrappedPlayInCustomPayload extends ByteWrappedPacket<ByteWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ByteWrappedPlayInCustomPayload> {
 
@@ -44,9 +43,8 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         @Override
         public void release() {
-            if (this.data.getSerializer().refCnt() > 0) {
-                this.data.getSerializer().release();
-            }
+            AutoReleasable.doRelease(this.data.getSerializer());
+            this.data.release();
         }
     }
 
@@ -106,17 +104,17 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         @Override
         public void release() {
-            if (this.data.getSerializer().refCnt() > 0) {
-                this.data.getSerializer().release();
-            }
+            AutoReleasable.doRelease(this.data.getSerializer());
+            this.data.release();
         }
     }
 
-    class PayloadData {
+    class PayloadData implements AutoReleasable {
 
         private final String channel;
         private final PacketDataSerializer serializer;
         private LazyInit<ItemStack> bookChannelItemStack;
+        private Runnable release;
 
         public PayloadData(String channel, PacketDataSerializer serializer) {
             this.channel = channel;
@@ -124,15 +122,23 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
-                    PacketDataSerializer copy = getCopiedSerializer();
+                    PacketDataSerializer copy = makeSerializerCopy();
                     bookChannelItemStack = new LazyInit<>(() ->
                             Converters.getItemStackConverter()
                                     .convertDelegate(
                                             copy.readItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book"))
                                     )
                     );
+                    release = () -> AutoReleasable.doRelease(copy);
                 } catch (Exception ignored) {
                 }
+            }
+        }
+
+        @Override
+        public void release() {
+            if (release != null) {
+                release.run();
             }
         }
 
@@ -144,7 +150,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             return serializer;
         }
 
-        public PacketDataSerializer getCopiedSerializer() {
+        public PacketDataSerializer makeSerializerCopy() {
             return new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
         }
 

@@ -1,21 +1,45 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
+import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packetwrappers.AutoReleasable;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.util.LazyInit;
+import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
 
-public class WrappedPlayInSetCreativeSlot extends ObjectWrappedPacket<WrappedPlayInSetCreativeSlot> {
+public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> implements AutoReleasable {
 
-    public WrappedPlayInSetCreativeSlot(Object rawPacket, PacketContainer<WrappedPlayInSetCreativeSlot> packetContainer) {
-        super(rawPacket, packetContainer);
-    }
+    private final int slot;
+    private final LazyInit<ItemStack> item;
+    private final Runnable release;
 
-    public ItemStack getItem() {
-        return getContainer().getStructure().getItems().readField(0);
+    public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
+        super(serializer, packet);
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            this.slot = serializer.readUnsignedShort();
+        } else {
+            this.slot = serializer.readShort();
+        }
+
+        PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
+        this.item = new LazyInit<>(copy::readBukkitItemStack);
+        this.release = () -> AutoReleasable.doRelease(copy);
     }
 
     public int getSlot() {
-        return getContainer().getStructure().getInts().readField(0);
+        return this.slot;
+    }
+
+    public ItemStack getItem() {
+        return this.item.get();
+    }
+
+    @Override
+    public void release() {
+        this.release.run();
     }
 }
