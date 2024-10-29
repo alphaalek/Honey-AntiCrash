@@ -34,7 +34,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA(), new NettyC());
 
     public NettyValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
     }
 
     public static List<PacketType> getPacketTypes() {
@@ -111,7 +111,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         public NettyB(PacketLibrary library) {
-            super(library, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
+            super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
         }
 
         @Override

@@ -22,7 +22,7 @@ import java.util.List;
 public class ChatValidations extends AbstractValidationPacketListener<WrappedPlayInChat> {
 
     public ChatValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

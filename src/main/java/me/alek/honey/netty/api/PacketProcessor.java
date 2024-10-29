@@ -21,18 +21,20 @@ public interface PacketProcessor {
 
     <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet);
 
-    void removeListener(PacketListenerAdapter<?> listener, PacketContainer.State state, PacketType... types);
+    void removeListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, PacketType... types);
 
-    void removeListener(PacketListenerAdapter<?> listener, PacketContainer.State state, List<PacketType> types);
+    void removeListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, List<PacketType> types);
 
     void addPacketExecutor(PacketType type, PacketExecutor<? extends WrappedPacket<?>> executor);
 
-    void addListener(PacketListenerAdapter<?> listener, PacketContainer.State state, ListenerPriority priority, List<PacketType> types);
+    void addListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types);
 
-    <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.State state);
+    <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state);
 
     void callObjectPacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
 
-    void callBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
+    void callInitialBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
+
+    void callFinalBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
 }
 

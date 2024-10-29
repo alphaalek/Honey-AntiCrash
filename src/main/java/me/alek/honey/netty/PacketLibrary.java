@@ -112,23 +112,23 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, PacketContainer.State state, ListenerPriority priority, List<PacketType> types) {
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         packetProcessor.addListener(adapter, state, priority, types);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, PacketContainer.State state, ListenerPriority priority, PacketType... types) {
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
         addListeners(adapter, state, priority, Arrays.asList(types));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> adapter, PacketContainer.State state) {
+    public <WP extends WrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> adapter, PacketContainer.PipelineState state) {
         removeListeners(adapter, state, PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.State state, List<PacketType> packetTypes) {
+    public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, List<PacketType> packetTypes) {
         packetProcessor.removeListener(listener, state, packetTypes);
     }
 
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.State state) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
         return packetProcessor.isRegistered(listener, state);
     }
 

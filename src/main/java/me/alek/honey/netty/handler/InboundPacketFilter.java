@@ -114,13 +114,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
         PacketType type = packetHandler.getPacketType(serializer, false);
-        PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(serializer, player, type, null);
+        PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, player, type, null);
 
         packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
         MARK.set(packet);
 
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callBytePacketProcessListeners(player, packet);
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, packet);
         packet.getEventloopStateTimings().stopTimings();
 
         if (!packet.isCancelled()) {

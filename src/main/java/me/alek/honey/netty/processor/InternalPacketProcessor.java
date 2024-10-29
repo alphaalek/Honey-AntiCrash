@@ -30,21 +30,21 @@ public class InternalPacketProcessor implements PacketProcessor {
             private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
         }
 
-        private final EnumMap<PacketContainer.State, StateBus> stateBusses = new EnumMap<>(PacketContainer.State.class);
+        private final EnumMap<PacketContainer.PipelineState, StateBus> stateBusses = new EnumMap<>(PacketContainer.PipelineState.class);
 
         {
-            for (PacketContainer.State state : PacketContainer.State.values()) {
+            for (PacketContainer.PipelineState state : PacketContainer.PipelineState.values()) {
                 stateBusses.put(state, new StateBus());
             }
         }
 
-        private StateBus getStateBus(PacketContainer.State state) {
+        private StateBus getStateBus(PacketContainer.PipelineState state) {
             return stateBusses.get(state);
         }
 
         @SuppressWarnings("unchecked")
         public void callObjectPacketProcess(HoneyPlayer player, PacketContainer<?> packet) {
-            callPipeline(PacketContainer.State.OBJECT, listener -> {
+            callPipeline(PacketContainer.PipelineState.OBJECT, listener -> {
                 try {
                     if (packet.getType().getBound().equals(PacketBound.SERVER)) {
                         listener.onObjectPacketReceive(player, (PacketContainer<WP>) packet);
@@ -60,8 +60,12 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         @SuppressWarnings("unchecked")
-        public void callBytePacketProcess(HoneyPlayer player, PacketContainer<?> packet) {
-            callPipeline(PacketContainer.State.INITIAL_BYTE, listener -> {
+        public void callBytePacketProcess(HoneyPlayer player, PacketContainer.PipelineState state, PacketContainer<?> packet) {
+            if (state == PacketContainer.PipelineState.OBJECT) {
+                throw new IllegalArgumentException("Object state");
+            }
+
+            callPipeline(state, listener -> {
                 try {
                     listener.onBytePacketReceive(player, (PacketContainer<WP>) packet);
                 } catch (Exception ex) {
@@ -72,7 +76,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void callPipeline(PacketContainer.State state, Consumer<PacketListenerAdapter<WP>> consumer) {
+        public void callPipeline(PacketContainer.PipelineState state, Consumer<PacketListenerAdapter<WP>> consumer) {
             StateBus bus = getStateBus(state);
             for (ListenerPriority priority : bus.pipeline) {
                 for (PacketListenerAdapter<WP> listener : bus.priorityMap.get(priority)) {
@@ -81,7 +85,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
 
-        public void addListener(PacketListenerAdapter<?> listener, PacketContainer.State state, ListenerPriority priority) {
+        public void addListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, ListenerPriority priority) {
             StateBus bus = getStateBus(state);
             synchronized (bus.priorityMap) {
                 bus.priorityMap.computeIfAbsent(priority, __ -> new ArrayList<>()).add((PacketListenerAdapter<WP>) listener);
@@ -89,7 +93,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
 
-        public boolean removeListener(PacketContainer.State state, PacketListenerAdapter<?> listener) {
+        public boolean removeListener(PacketContainer.PipelineState state, PacketListenerAdapter<?> listener) {
             StateBus bus = getStateBus(state);
             synchronized (bus.priorityMap) {
                 synchronized (bus.pipeline) {
@@ -118,14 +122,14 @@ public class InternalPacketProcessor implements PacketProcessor {
             return false;
         }
 
-        public boolean removeFromPipeline(PacketContainer.State state, ListenerPriority priority) {
+        public boolean removeFromPipeline(PacketContainer.PipelineState state, ListenerPriority priority) {
             StateBus bus = getStateBus(state);
             synchronized (bus.pipeline) {
                 return bus.pipeline.removeIf(busPriority -> busPriority == priority);
             }
         }
 
-        public void addToPipeline(PacketContainer.State state, ListenerPriority priority) {
+        public void addToPipeline(PacketContainer.PipelineState state, ListenerPriority priority) {
             StateBus bus = getStateBus(state);
             synchronized (bus.pipeline) {
                 int indexAtInsert = -1;
@@ -150,7 +154,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
 
-        public boolean isEmpty(PacketContainer.State state) {
+        public boolean isEmpty(PacketContainer.PipelineState state) {
             return getStateBus(state).priorityMap.isEmpty();
         }
     }
@@ -203,17 +207,17 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.State state, ListenerPriority priority, List<PacketType> types) {
+    public synchronized void addListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         addListener(bus -> bus.addListener(listener, state, priority), types);
     }
 
     @Override
-    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.State state, PacketType... types) {
+    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, PacketType... types) {
         removeListener(listener, state, Arrays.asList(types));
     }
 
     @Override
-    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.State state, List<PacketType> types) {
+    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, List<PacketType> types) {
         for (PacketType type : types) {
             if (!eventBusses.has(type.getHoneyID())) continue;
 
@@ -226,7 +230,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.State state) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
         for (EventBus<?> bus : eventBusses) {
             if (bus != null && existsInBus(bus, state, listener)) {
                 return true;
@@ -235,7 +239,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketContainer.State state, PacketListenerAdapter<WP> adapter) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketContainer.PipelineState state, PacketListenerAdapter<WP> adapter) {
         for (List<PacketListenerAdapter<WP2>> packetListeners : bus.getStateBus(state).priorityMap.values()) {
             if (packetListeners.stream().anyMatch(a -> a.equals(adapter))) {
                 return true;
@@ -260,8 +264,13 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void callBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) {
-        call(packet.getType(), bus -> bus.callBytePacketProcess(player, packet));
+    public void callInitialBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) {
+        call(packet.getType(), bus -> bus.callBytePacketProcess(player, PacketContainer.PipelineState.INITIAL_BYTE, packet));
+    }
+
+    @Override
+    public void callFinalBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) {
+        call(packet.getType(), bus -> bus.callBytePacketProcess(player, PacketContainer.PipelineState.FINAL_BYTE, packet));
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket, Object packet, HoneyPlayer player, PacketType type) {

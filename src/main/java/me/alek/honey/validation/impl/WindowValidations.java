@@ -23,7 +23,7 @@ import java.util.List;
 public class WindowValidations extends AbstractValidationPacketListener<WrappedPlayInWindowClick> {
 
     public WindowValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

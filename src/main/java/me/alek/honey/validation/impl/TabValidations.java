@@ -22,7 +22,7 @@ import java.util.*;
 public class TabValidations extends AbstractValidationPacketListener<WrappedPlayInTabComplete> {
 
     public TabValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {
@@ -99,7 +99,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         private static final int id = IDRegistry.CHECKS.acquire();
 
         public ClientboundTabValidations(PacketLibrary library) {
-            super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+            super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
         }
 
         private static List<PacketType> getPacketTypes() {

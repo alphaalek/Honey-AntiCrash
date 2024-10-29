@@ -22,17 +22,17 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
             HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Error occurred in processor for packet sent by " + player, thrown);
         };
 
-        private final PacketContainer.State state;
+        private final PacketContainer.PipelineState state;
         private final BiConsumer<HoneyPlayer, T> listener;
         private final BiConsumer<HoneyPlayer, Throwable> onException;
 
-        public ReaderInfo(PacketContainer.State state, BiConsumer<HoneyPlayer, T> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
+        public ReaderInfo(PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, T> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
             this.state = state;
             this.listener = listener;
             this.onException = onException;
         }
 
-        public ReaderInfo(PacketContainer.State state, BiConsumer<HoneyPlayer, T> listener) {
+        public ReaderInfo(PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, T> listener) {
             this(state, listener, DEFAULT_THROWABLE_DEBUGGER);
         }
     }
@@ -40,7 +40,7 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
     private final Array<List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>>> packetListeners = new Array<>();
 
     @SuppressWarnings("unchecked")
-    public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.State state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
+    public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
         List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>> readerInfos = packetListeners.get(type, LinkedList::new);
 
         ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info;
@@ -59,11 +59,11 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
         HoneyPlugin.get().getPacketLibrary().addListeners(this, state, ListenerPriority.HIGHEST, type);
     }
 
-    public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.State state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {
+    public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {
         addListener(type, state, listener, null);
     }
 
-    public void handle(HoneyPlayer player, PacketContainer.State state, PacketContainer<WP> packet) throws Exception {
+    public void handle(HoneyPlayer player, PacketContainer.PipelineState state, PacketContainer<WP> packet) throws Exception {
         if (packetListeners.has(packet.getType())) {
             for (ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
                 if (info.state.equals(state)) {
@@ -78,16 +78,16 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
     }
 
     public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.State.OBJECT, packet);
+        handle(player, PacketContainer.PipelineState.OBJECT, packet);
     }
 
     @Override
     public void onObjectPacketSend(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.State.OBJECT, packet);
+        handle(player, PacketContainer.PipelineState.OBJECT, packet);
     }
 
     @Override
     public void onBytePacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.State.INITIAL_BYTE, packet);
+        handle(player, PacketContainer.PipelineState.INITIAL_BYTE, packet);
     }
 }

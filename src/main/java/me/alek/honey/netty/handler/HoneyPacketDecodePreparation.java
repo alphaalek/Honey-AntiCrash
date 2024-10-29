@@ -10,6 +10,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -217,16 +218,20 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             return false;
         }
 
+        PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
         if (packet == null) {
             // this packet is not sent by the client (because it was not received by the filter),
             // but instead invoked by some plugin (most likely ViaVersion)
-            packet = new InternalPacketContainer<>(buf, player, packetHandler.getPacketType(buf, true), null);
+            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, true), null);
             InboundPacketFilter.MARK.set(packet);
         }
 
         // stops in-between timings
         packet.getEventloopStateTimings().stopTimings();
+
+        packet.initPreMinecraftDecode(serializer);
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
 
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED

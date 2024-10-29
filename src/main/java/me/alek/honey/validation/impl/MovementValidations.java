@@ -35,7 +35,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
 
     public MovementValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
         HoneyPlugin.get().getPacketLibrary().addListeners(new PacketListenerAdapter<WrappedPlayOutPosition>() {
 
             @Override
@@ -43,7 +43,7 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
                 lastTeleportationLocationMap.put(player.uuid, packet.getPlayer().getLocation());
             }
 
-        }, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, Collections.singletonList(PacketTypes.Play.Server.PLAYER_POSITION));
+        }, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, Collections.singletonList(PacketTypes.Play.Server.PLAYER_POSITION));
     }
 
     private static List<PacketType> getPacketTypes() {

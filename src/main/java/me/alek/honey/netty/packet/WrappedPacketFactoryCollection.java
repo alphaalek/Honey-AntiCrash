@@ -1,6 +1,5 @@
 package me.alek.honey.netty.packet;
 
-import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -15,19 +14,20 @@ import me.alek.honey.netty.packetwrappers.play.client.*;
 import me.alek.honey.netty.packetwrappers.play.server.*;
 import me.alek.honey.util.Array;
 
+import java.util.EnumMap;
 import java.util.function.BiFunction;
 
 public class WrappedPacketFactoryCollection {
 
     private final static Array<WrappedPacketFactory.ObjectWrappedPacketFactory<? extends WrappedPacket<?>>> OBJECT_WRAPPERS = new Array<>();
-    private final static Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> BYTE_WRAPPERS = new Array<>();
+    private final static EnumMap<PacketContainer.PipelineState, Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>>> BYTE_WRAPPERS = new EnumMap<>(PacketContainer.PipelineState.class);
 
     public static void loadWrappers() {
         //loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
-        loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, WrappedPlayInSetCreativeSlot::new);
-        loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, WrappedPlayInWindowClick::new);
-        loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
-        loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, WrappedHandshakeInSetProtocol::new);
+        loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInSetCreativeSlot::new);
+        loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInWindowClick::new);
+        loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
+        loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.FINAL_BYTE, WrappedHandshakeInSetProtocol::new);
 
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_MESSAGE, WrappedPlayInChat::new);
@@ -53,8 +53,13 @@ public class WrappedPacketFactoryCollection {
         OBJECT_WRAPPERS.set(type.getHoneyID(), WrappedPacketFactory.ObjectWrappedPacketFactory.factoryFromSupplier(invoker));
     }
 
-    private static <WP extends WrappedPacket<WP>> void loadByteWrapper(PacketType type, BiFunction<PacketDataSerializer, PacketContainer<WP>, ByteWrappedPacket<WP>> invoker) {
-        BYTE_WRAPPERS.set(type.getHoneyID(), WrappedPacketFactory.ByteWrappedPacketFactory.factoryFromSupplier(invoker));
+    private static <WP extends WrappedPacket<WP>> void loadByteWrapper(PacketType type, PacketContainer.PipelineState state, BiFunction<PacketDataSerializer, PacketContainer<WP>, ByteWrappedPacket<WP>> invoker) {
+        if (state == PacketContainer.PipelineState.OBJECT) {
+            throw new IllegalArgumentException("Object state");
+        }
+
+        BYTE_WRAPPERS.computeIfAbsent(state, __ -> new Array<>())
+                .set(type.getHoneyID(), WrappedPacketFactory.ByteWrappedPacketFactory.factoryFromSupplier(invoker));
     }
 
     @SuppressWarnings("unchecked")
@@ -69,12 +74,17 @@ public class WrappedPacketFactoryCollection {
     }
 
     @SuppressWarnings("unchecked")
-    public static <WP extends WrappedPacket<WP>> ByteWrappedPacket<WP> initWrappedPacket(PacketType type, PacketDataSerializer serializer, PacketContainer<WP> container) {
+    public static <WP extends WrappedPacket<WP>> ByteWrappedPacket<WP> initWrappedPacket(PacketType type, PacketContainer.PipelineState state, PacketDataSerializer serializer, PacketContainer<WP> container) {
+        if (state == PacketContainer.PipelineState.OBJECT) {
+            throw new IllegalArgumentException("Object state");
+        }
+
         WrappedPacketFactory.ByteWrappedPacketFactory<WP> factory;
-        if (!BYTE_WRAPPERS.has(type.getHoneyID())) {
+        Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> factories = BYTE_WRAPPERS.computeIfAbsent(state, __ -> new Array<>());
+        if (!factories.has(type.getHoneyID())) {
             factory = WrappedPacketFactory.<WP>acquireHolder().BYTE_FACTORY;
         } else {
-            factory = (WrappedPacketFactory.ByteWrappedPacketFactory<WP>) BYTE_WRAPPERS.get(type.getHoneyID());
+            factory = (WrappedPacketFactory.ByteWrappedPacketFactory<WP>) factories.get(type.getHoneyID());
         }
         return factory.createPacket(serializer, container);
     }

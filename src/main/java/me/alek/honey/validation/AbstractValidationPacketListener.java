@@ -48,7 +48,7 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
     private final Array<ValidationPipeline<PacketValidation<WP>>> visitors = new Array<>();
     private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();
 
-    public AbstractValidationPacketListener(PacketLibrary library, PacketContainer.State state, ListenerPriority priority, List<PacketType> types) {
+    public AbstractValidationPacketListener(PacketLibrary library, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         library.addListeners(this, state, priority, types);
     }
 

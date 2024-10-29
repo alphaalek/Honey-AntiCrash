@@ -34,7 +34,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     public FloodValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.LOW, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.LOW, getPacketTypes());
     }
 
     public static List<PacketType> getPacketTypes() {

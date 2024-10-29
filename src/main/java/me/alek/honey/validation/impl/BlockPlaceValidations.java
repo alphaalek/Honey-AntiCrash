@@ -27,7 +27,7 @@ import java.util.List;
 public class BlockPlaceValidations extends AbstractValidationPacketListener<WrappedPlayInBlockPlace> {
 
     public BlockPlaceValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

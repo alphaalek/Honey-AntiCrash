@@ -12,11 +12,8 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 public class PacketFactory {
@@ -71,12 +68,13 @@ public class PacketFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static synchronized <WP extends WrappedPacket<WP>, TP extends WrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, HoneyPlayer player, ByteBuf serializer, Callback postAction) {
+    public static synchronized <WP extends WrappedPacket<WP>, TP extends WrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, HoneyPlayer player, ByteBuf buf, Callback postAction) {
         try {
             if (factory instanceof WrappedPacketFactory.ObjectWrappedPacketFactory) {
-                return (TP) WrappedPacketFactoryCollection.initWrappedPacket(type, new PacketDataSerializer(serializer), new InternalPacketContainer<WP>(serializer, player, type, postAction));
+                PacketDataSerializer serializer = new PacketDataSerializer(buf);
+                return (TP) WrappedPacketFactoryCollection.initWrappedPacket(type, serializer, new InternalPacketContainer<WP>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, type, postAction));
             } else if (factory instanceof WrappedPacketFactory.ByteWrappedPacketFactory) {
-                Object handle = createPacket(type, serializer);
+                Object handle = createPacket(type, buf);
                 return (TP) WrappedPacketFactoryCollection.initWrappedPacket(type, handle, new InternalPacketContainer<WP>(handle, player, type, postAction));
             }
         } catch (Exception ex) {

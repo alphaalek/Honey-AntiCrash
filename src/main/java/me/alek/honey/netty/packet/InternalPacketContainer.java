@@ -24,10 +24,10 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PacketType type;
     private boolean cancelled;
     private boolean dumped;
-    private State state;
+    private PipelineState state;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
-    private final ByteWrappedPacket<WP> byteWrapped;
+    private ByteWrappedPacket<WP> byteWrapped;
     private final Callback postAction;
     private final HoneyPlayer player;
     private final long timeCreated = System.currentTimeMillis();
@@ -35,11 +35,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private final Callback callbackAction = new Callback();
 
     public InternalPacketContainer(Object handle, HoneyPlayer player, PacketType type, Callback postAction) {
-        this(null, player, type, postAction);
+        this(PipelineState.OBJECT, null, player, type, postAction);
         initPostMinecraftDecode(handle, type);
     }
 
-    public InternalPacketContainer(PacketDataSerializer serializer, HoneyPlayer player, PacketType type, Callback postAction) {
+    public InternalPacketContainer(PipelineState createdState, PacketDataSerializer serializer, HoneyPlayer player, PacketType type, Callback postAction) {
         this.player = player;
         this.type = type;
         Callback wrapped = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(type);
@@ -52,17 +52,18 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
             this.postAction = wrapped;
         }
 
-        if (serializer != null) {
-            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, serializer, this);
-            this.state = State.INITIAL_BYTE;
+        if (serializer != null && createdState != PipelineState.OBJECT) {
+            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+            this.state = createdState;
         } else {
             this.byteWrapped = null;
         }
     }
 
+    @Override
     public void initPostMinecraftDecode(Object handle, PacketType type) {
         this.type = type;
-        this.state = State.OBJECT;
+        this.state = PipelineState.OBJECT;
 
         if (PacketTypes.isUnknown(type)
                 || !type.getNmsClass().equals(handle.getClass())) {
@@ -73,6 +74,14 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.structure = new InternalObjectPacketStructure(handle, structure);
 
         this.objectWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, handle, this);
+    }
+
+    @Override
+    public void initPreMinecraftDecode(PacketDataSerializer serializer) {
+        if (this.state == PipelineState.INITIAL_BYTE) {
+            this.state = PipelineState.FINAL_BYTE;
+            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.state, serializer, this);
+        }
     }
 
     @Override
@@ -125,7 +134,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public State getProcessState() {
+    public PipelineState getProcessState() {
         return this.state;
     }
 

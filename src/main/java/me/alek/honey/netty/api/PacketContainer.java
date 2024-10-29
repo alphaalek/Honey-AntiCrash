@@ -2,6 +2,7 @@ package me.alek.honey.netty.api;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -13,13 +14,15 @@ import me.alek.honey.util.Callback;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellable {
 
-    enum State {
-        INITIAL_BYTE, MODIFIED_BYTE, OBJECT
+    enum PipelineState {
+        INITIAL_BYTE, FINAL_BYTE, OBJECT
     }
 
     PacketLifecycleTimings getEventloopStateTimings();
 
     void initPostMinecraftDecode(Object packet, PacketType type);
+
+    void initPreMinecraftDecode(PacketDataSerializer serializer);
 
     ObjectPacketStructure getStructure();
 
@@ -35,7 +38,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     PacketState getState();
 
-    State getProcessState();
+    PipelineState getProcessState();
 
     PacketState getProtocolState();
 

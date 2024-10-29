@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
     public NettyDecodeValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     public static List<PacketType> getPacketTypes() {

@@ -88,9 +88,9 @@ public class LoggerService {
         ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
         ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
-        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger, PacketContainer.State.OBJECT);
+        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger, PacketContainer.PipelineState.OBJECT);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, PacketContainer.State.OBJECT, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
+            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
         }
     }
 

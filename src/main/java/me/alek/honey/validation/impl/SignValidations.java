@@ -21,7 +21,7 @@ import java.util.List;
 public class SignValidations extends AbstractValidationPacketListener<WrappedPlayInUpdateSign> {
 
     public SignValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

@@ -26,7 +26,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
 
     public RotationValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

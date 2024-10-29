@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class CommandValidations extends AbstractValidationPacketListener<WrappedPlayInChat> implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
     public CommandValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {
