@@ -14,7 +14,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
@@ -185,8 +185,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     public static class MovementB<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationService.HoneyKey XZKey = ViolationService.HoneyKey.of(0, "2d");
-        private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
+        private static final ViolationManagement.HoneyKey XZKey = ViolationManagement.HoneyKey.of(0, "2d");
+        private static final ViolationManagement.HoneyKey YKey = ViolationManagement.HoneyKey.of(1, "y");
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -422,13 +422,13 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
 
             private final Direction opp1;
             private final Direction opp2;
-            private final ViolationService.HoneyKey key = ViolationService.HoneyKey.of(ordinal(), name().toLowerCase());
+            private final ViolationManagement.HoneyKey key = ViolationManagement.HoneyKey.of(ordinal(), name().toLowerCase());
 
             public Direction getOther(Direction dir) {
                 return (dir == opp1) ? opp2 : opp1;
             }
 
-            public ViolationService.HoneyKey getKey() {
+            public ViolationManagement.HoneyKey getKey() {
                 return key;
             }
 
@@ -557,8 +557,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     public static class MovementH<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP>{
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationService.HoneyKey twoDKey = ViolationService.HoneyKey.of(0, "2d");
-        private static final ViolationService.HoneyKey YKey = ViolationService.HoneyKey.of(1, "y");
+        private static final ViolationManagement.HoneyKey twoDKey = ViolationManagement.HoneyKey.of(0, "2d");
+        private static final ViolationManagement.HoneyKey YKey = ViolationManagement.HoneyKey.of(1, "y");
 
         private double lastDelta2D;
         private double lastDeltaY;

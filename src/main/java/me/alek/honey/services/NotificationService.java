@@ -8,7 +8,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacketFactory;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutChat;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -23,6 +22,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.ViolationManagement;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -129,9 +129,9 @@ public class NotificationService {
             public void notify(HoneyPlayer player,
                                String type,
                                ConfigurationOptions.ViolationSetting setting,
-                               ViolationService.AbstractPacketLimitHandler packetLimitHandler,
+                               ViolationManagement.AbstractPacketLimitHandler packetLimitHandler,
                                ValidationPipelineContext.DevelopmentData developmentData,
-                               ViolationService.HoneyKey honeyKey) {
+                               ViolationManagement.HoneyKey honeyKey) {
                 MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, packetLimitHandler::format)
@@ -159,13 +159,13 @@ public class NotificationService {
             }
 
             @Override
-            public void warn(HoneyPlayer player, String type, ViolationService.HoneyKey honeyKey) {
+            public void warn(HoneyPlayer player, String type, ViolationManagement.HoneyKey honeyKey) {
                 observer.sendMessage(getMessage(punishFormat, getOffer(player, type, honeyKey)));
             }
         });
     }
 
-    public MessageOffer getOffer(HoneyPlayer player, String type, ViolationService.HoneyKey honeyKey) {
+    public MessageOffer getOffer(HoneyPlayer player, String type, ViolationManagement.HoneyKey honeyKey) {
         return new MessageOffer.Builder()
                 .offer(Placeholders.PLAYER, () -> player.name)
                 .offer(Placeholders.NETWORK, () -> formatNetworkStats(player))
@@ -361,7 +361,7 @@ public class NotificationService {
         }
     }
 
-    public void notify(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, ViolationManagement.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey())
                     || !player.isStreamActive()) {
@@ -372,7 +372,7 @@ public class NotificationService {
         }
     }
 
-    public void warn(HoneyPlayer player, String warning, ViolationService.HoneyKey honeyKey) {
+    public void warn(HoneyPlayer player, String warning, ViolationManagement.HoneyKey honeyKey) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
             if (!hasNotifyPermission(observer.getKey())
                     || !player.isStreamActive()) {
@@ -387,8 +387,8 @@ public class NotificationService {
 
         void notify(String notification);
 
-        void notify(HoneyPlayer player, String notification, ConfigurationOptions.ViolationSetting setting, ViolationService.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationService.HoneyKey honeyKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationManagement.HoneyKey honeyKey);
 
-        void warn(HoneyPlayer player, String notification, ViolationService.HoneyKey honeyKey);
+        void warn(HoneyPlayer player, String notification, ViolationManagement.HoneyKey honeyKey);
     }
 }

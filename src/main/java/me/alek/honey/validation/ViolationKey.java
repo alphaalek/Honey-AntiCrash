@@ -1,6 +1,5 @@
 package me.alek.honey.validation;
 
-import me.alek.honey.services.ViolationService;
 import me.alek.honey.validation.types.HoneyValidation;
 
 import java.util.Objects;
@@ -11,14 +10,14 @@ public class ViolationKey {
         return new ViolationKey(validation, null);
     }
 
-    public static ViolationKey of (HoneyValidation<?> validation, ViolationService.HoneyKey key) {
+    public static ViolationKey of (HoneyValidation<?> validation, ViolationManagement.HoneyKey key) {
         return new ViolationKey(validation, key);
     }
 
     private final HoneyValidation<?> validation;
-    private final ViolationService.HoneyKey key;
+    private final ViolationManagement.HoneyKey key;
 
-    public ViolationKey(HoneyValidation<?> validation, ViolationService.HoneyKey key) {
+    public ViolationKey(HoneyValidation<?> validation, ViolationManagement.HoneyKey key) {
         this.validation = validation;
         this.key = key;
     }
@@ -27,7 +26,7 @@ public class ViolationKey {
         return validation;
     }
 
-    public ViolationService.HoneyKey getKey() {
+    public ViolationManagement.HoneyKey getKey() {
         return key;
     }
 

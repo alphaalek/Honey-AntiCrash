@@ -15,7 +15,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.NMS;
@@ -224,8 +224,8 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         @Override
-        public ViolationService.HoneyKey getKey(WP val) {
-            return ViolationService.HoneyKey.of(val.getType().getHoneyID());
+        public ViolationManagement.HoneyKey getKey(WP val) {
+            return ViolationManagement.HoneyKey.of(val.getType().getHoneyID());
         }
 
         @Override

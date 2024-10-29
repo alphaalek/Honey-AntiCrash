@@ -1,9 +1,7 @@
 package me.alek.honey.validation;
 
-import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.statics.NumberUtils;
-import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
@@ -16,7 +14,7 @@ public class ValidationPipelineContext {
 
     public DevelopmentData getDevelopmentData(ViolationKey key) {
         return developmentDataMap
-                .get(Optional.ofNullable(key.getKey()).map(ViolationService.HoneyKey::getRegistry).orElse(0), Array::new)
+                .get(Optional.ofNullable(key.getKey()).map(ViolationManagement.HoneyKey::getRegistry).orElse(0), Array::new)
                 .get(key.getValidation().getID(), DevelopmentData::new);
     }
 

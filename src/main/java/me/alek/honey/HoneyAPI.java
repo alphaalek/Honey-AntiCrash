@@ -7,7 +7,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
@@ -28,7 +28,7 @@ public interface HoneyAPI {
 
     PacketLibrary getPacketLibrary();
 
-    ViolationService getViolationService();
+    ViolationManagement getViolationService();
 
     NotificationService getNotificationService();
 

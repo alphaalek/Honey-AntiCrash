@@ -6,7 +6,6 @@ import me.alek.honey.validation.types.KeyedViolationValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.services.ViolationService;
 import me.alek.honey.util.Array;
 
 public class Settings {
@@ -25,7 +24,7 @@ public class Settings {
         return ((ViolationValidation<?>) validation).getSetting();
     }
 
-    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> validation, ViolationService.HoneyKey key, WP packet) {
+    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> validation, ViolationManagement.HoneyKey key, WP packet) {
         if (!validation.isViolation()) {
             return null;
         }
@@ -35,10 +34,10 @@ public class Settings {
             @SuppressWarnings("unvalidationed")
             KeyedViolationValidation<WP> keyedViolationCheck = (KeyedViolationValidation<WP>) violationCheck;
             ConfigurationOptions.ViolationSetting setting = keyedViolationCheck.getSetting(packet);
-            ViolationService.HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
+            ViolationManagement.HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
 
-            ViolationService.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);
-            ViolationService.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(distributionKey, false);
+            ViolationManagement.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);
+            ViolationManagement.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(distributionKey, false);
 
             if (handler != null && handler.getSetting() == setting) {
                 return setting;

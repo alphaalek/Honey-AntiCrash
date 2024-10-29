@@ -6,7 +6,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.services.NotificationService;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -58,7 +58,7 @@ public class HoneyPlayer implements Identifiable {
     public HoneyPacketHandler packetHandler;
     public TempIntervalTracker timedQueuedTracker;
     public TempIntervalTracker serverThreadTimedQueuedTracker;
-    public ViolationService.ViolationContext violationContext = new ViolationService.ViolationContext(this);
+    public ViolationManagement.ViolationContext violationContext = new ViolationManagement.ViolationContext(this);
     public final Callback leaveCallback = new Callback();
     private final TickCache<Boolean> bypassEverything = new TickCache<>();
     private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();

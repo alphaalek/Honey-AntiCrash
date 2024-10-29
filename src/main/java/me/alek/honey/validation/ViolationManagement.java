@@ -1,4 +1,4 @@
-package me.alek.honey.services;
+package me.alek.honey.validation;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -8,7 +8,6 @@ import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
-import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,11 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ViolationService {
+public class ViolationManagement {
 
-    private static ViolationService INSTANCE;
+    private static ViolationManagement INSTANCE;
 
-    public ViolationService() { INSTANCE = this; }
+    public ViolationManagement() { INSTANCE = this; }
 
     public void reload() {
         // loop through all the players and update their packet limit handlers

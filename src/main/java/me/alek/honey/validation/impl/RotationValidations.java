@@ -9,7 +9,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
@@ -132,8 +132,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
-        private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
+        private static final ViolationManagement.HoneyKey yawKey = ViolationManagement.HoneyKey.of(0, "yaw");
+        private static final ViolationManagement.HoneyKey pitchKey = ViolationManagement.HoneyKey.of(1, "pitch");
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -177,8 +177,8 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
     public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationService.HoneyKey yawKey = ViolationService.HoneyKey.of(0, "yaw");
-        private static final ViolationService.HoneyKey pitchKey = ViolationService.HoneyKey.of(1, "pitch");
+        private static final ViolationManagement.HoneyKey yawKey = ViolationManagement.HoneyKey.of(0, "yaw");
+        private static final ViolationManagement.HoneyKey pitchKey = ViolationManagement.HoneyKey.of(1, "pitch");
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {

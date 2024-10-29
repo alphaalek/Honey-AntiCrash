@@ -25,7 +25,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.services.ConfiscationService;
 import me.alek.honey.services.LoggerService;
 import me.alek.honey.services.NotificationService;
-import me.alek.honey.services.ViolationService;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.sql.RepositoryCollection;
@@ -71,7 +71,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private static HoneyPlugin INSTANCE;
 
-    private ViolationService violationService;
+    private ViolationManagement violationService;
     private NotificationService notificationService;
     private ConfiscationService confiscationService;
     private LoggerService loggerService;
@@ -260,7 +260,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup services
         notificationService = new NotificationService();
         loggerService = new LoggerService();
-        violationService = new ViolationService();
+        violationService = new ViolationManagement();
         confiscationService = new ConfiscationService();
 
         // setup sql handler
@@ -392,7 +392,7 @@ public class HoneyPlugin implements HoneyAPI {
         return packetLibrary;
     }
 
-    public ViolationService getViolationService() {
+    public ViolationManagement getViolationService() {
         return violationService;
     }
 
