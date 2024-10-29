@@ -610,7 +610,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> TILE_NBT_QUERY_CLASS;
         private static Class<?> SELECT_TRADE_CLASS;
         private static Class<?> TRANSACTION_CLASS;
-        private static Class<?> USE_ITEM_CLASS;
+        private static Class<?> USE_ITEM_ON_CLASS;
         private static Class<?> VEHICLE_MOVE_CLASS;
 
         static {
@@ -624,7 +624,7 @@ public enum PacketTypes implements PacketType {
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_9)) {
                 VEHICLE_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInVehicleMove");
                 BOAT_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInBoatMove");
-                USE_ITEM_CLASS = Reflection.getClass("{play}.PacketPlayInUseItem");
+                USE_ITEM_ON_CLASS = Reflection.getClass("{play}.PacketPlayInUseItem");
                 TELEPORT_CONFIRM_CLASS = Reflection.getClass("{play}.PacketPlayInTeleportAccept");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_12)) {
@@ -754,7 +754,7 @@ public enum PacketTypes implements PacketType {
             SELECT_TRADE(SELECT_TRADE_CLASS, "select_trade", NetProtocolRange.since(NetProtocol.v1_13)),
             TILE_NBT_QUERY(TILE_NBT_QUERY_CLASS, "block_entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
             UPDATE_SIGN(UPDATE_SIGN_CLASS, "sign_update"),
-            USE_ITEM(USE_ITEM_CLASS, "use_item_on", NetProtocolRange.since(NetProtocol.v1_9)),
+            USE_ITEM_ON(USE_ITEM_ON_CLASS, "use_item_on", NetProtocolRange.since(NetProtocol.v1_9)),
             VEHICLE_MOVE(VEHICLE_MOVE_CLASS, "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
             TRANSACTION(TRANSACTION_CLASS, null, NetProtocolRange.until(NetProtocol.v1_16_5)),
             ;

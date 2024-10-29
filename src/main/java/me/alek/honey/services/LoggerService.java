@@ -209,7 +209,7 @@ public class LoggerService {
         if (comparingTime > packetContainer.getTimeCreated()) {
             message.append("(" + (comparingTime - packetContainer.getTimeCreated()) + "ms ago): ");
         }
-        message.append(playerName + " sent " + packetContainer.getType());
+        message.append(playerName + " sent " + packetContainer.getType() + " " + packetContainer.getObjectWrapped().getHandle());
 
         if (detailed && !PacketTypes.isUnknown(packetContainer.getType())) {
             message.append(": " + filterTooMuchData(formatPacketEntries(packetContainer)));
@@ -264,7 +264,7 @@ public class LoggerService {
 
         Iterator<Map.Entry<String, Object>> i = entries.entrySet().iterator();
         if (!i.hasNext()) {
-            return "{}";
+            return "<empty>";
         }
 
         StringBuilder sb = new StringBuilder();

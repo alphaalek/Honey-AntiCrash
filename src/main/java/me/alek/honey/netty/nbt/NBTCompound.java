@@ -161,6 +161,10 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         return (GeneticArrayTypes.NBTArrayOfArray) (NBTAbstractArray<?>) getAbstractListOf(key, NBTType.ARRAY);
     }
 
+    public <T> NBTArray<T> getArray(String key) {
+        return (NBTArray<T>) (NBTAbstractArray<?>) getAbstractArray(key);
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T getUnspecific(String key) {
         if (hasKey(key)) {

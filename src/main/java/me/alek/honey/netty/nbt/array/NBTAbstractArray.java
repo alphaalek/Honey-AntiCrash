@@ -12,7 +12,10 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import java.io.DataOutput;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterators;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<List<Object>, ListConverter<Object, T>>implements Iterable<T> {
 
@@ -32,6 +35,14 @@ public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<
     @Override
     public Iterator<T> iterator() {
         return getValue().getDelegatedList().iterator();
+    }
+
+    public Stream<T> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    public <E> Stream<E> streamOfValues() {
+        return stream().map(T::getValue).map(v -> (E) v);
     }
 
     @Override

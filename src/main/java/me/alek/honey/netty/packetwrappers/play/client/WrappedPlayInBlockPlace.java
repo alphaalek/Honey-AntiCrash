@@ -16,6 +16,7 @@ import org.bukkit.util.Vector;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> implements AutoReleasable {
 
@@ -26,10 +27,10 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     }
 
     private final InteractionHand interactionHand;
-    private final WrappedBlockPosition blockPosition;
-    private final int faceId;
+    private WrappedBlockPosition blockPosition;
+    private int faceId = -1;
     private BlockFace face;
-    private final Vector cursorPosition;
+    private Vector cursorPosition;
     private LazyInit<ItemStack> itemStack;
     private boolean insideBlock;
     private boolean worldBorderHit;
@@ -41,10 +42,12 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
         super(serializer, packet);
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
+            /*
             this.blockPosition = serializer.readBlockPosition();
             this.faceId = serializer.readVarInt();
             this.cursorPosition = new Vector(serializer.readFloat(), serializer.readFloat(), serializer.readFloat());
             this.insideBlock = serializer.readBoolean();
+            */
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19)) {
                 /*
                 if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2)) {
@@ -76,8 +79,8 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
             }
         }
 
-        if (this.face != null) {
-            this.face = CARTESIAN_FACES.get(faceId % CARTESIAN_FACES.size());
+        if (this.face != null && this.faceId != -1) {
+            this.face = CARTESIAN_FACES.get(this.faceId % CARTESIAN_FACES.size());
         }
     }
 
@@ -109,7 +112,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     }
 
     public ItemStack getItemStack() {
-        return this.itemStack.get();
+        return Optional.ofNullable(this.itemStack).map(LazyInit::get).orElse(null);
     }
 
     public boolean isInsideBlock() {

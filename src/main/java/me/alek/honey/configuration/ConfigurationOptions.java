@@ -1340,7 +1340,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.USE_ITEM)
+            @Flood(PacketTypes.Play.Client.USE_ITEM_ON)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.use-item"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class UseItem extends ViolationSetting implements VlIntervalRequiredContentsSetting {

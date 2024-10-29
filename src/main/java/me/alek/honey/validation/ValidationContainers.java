@@ -20,7 +20,7 @@ public enum ValidationContainers {
     v8(NettyDecodeValidations::new),
     v9(LoginValidations::new),
     v10(SignValidations::new),
-    v11(BlockPlaceValidations::new),
+    // v11(BlockPlaceValidations::new),
     v12(ChatValidations::new),
     v13(WindowValidations::new),
     v14(RotationValidations::new),

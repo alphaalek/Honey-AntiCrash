@@ -23,7 +23,7 @@ public class WrappedPacketFactoryCollection {
     private final static Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> BYTE_WRAPPERS = new Array<>();
 
     public static void loadWrappers() {
-        loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
+        //loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
         loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, WrappedPlayInSetCreativeSlot::new);
         loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, WrappedPlayInWindowClick::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);

@@ -11,6 +11,8 @@ import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
+
 public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> implements AutoReleasable {
 
     private final int slot;
