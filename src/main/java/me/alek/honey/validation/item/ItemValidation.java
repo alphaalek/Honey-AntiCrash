@@ -21,6 +21,7 @@ import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.item.enums.ItemValidationFilterStrategy;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.map.MapCursor;
@@ -341,7 +342,7 @@ public class ItemValidation {
                 boolean v1_14 = player.clientInfo.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
 
                 // up until v1.14 the page limit for a book was set to 50 pages
-                // then, the limit was changed to 100
+                // then, the limit was changed to 100 pages
                 if (!v1_14 && pages.size() > PAGES_PER_BOOK_LEGACY) {
                     return true;
                 } else if (v1_14 && pages.size() > PAGES_PER_BOOK_MODERN) {
@@ -368,12 +369,15 @@ public class ItemValidation {
 
                         // skip the colour code chars
                         if (c == '§') {
-                            sectionChars++;
-                            int j = page.indexOf(c, i);
-                            if (j == -1) {
+                            sectionChars++; i++;
+                            if (i == page.length()) {
                                 return true;
                             }
-                            i = j;
+                            // check for valid color code
+                            char n = page.charAt(i - 1);
+                            if (ChatColor.getByChar(n) == null) {
+                                return true;
+                            }
                             continue;
                         }
 
