@@ -14,14 +14,12 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +27,7 @@ import java.util.List;
 public class BlockPlaceValidations extends AbstractValidationPacketListener<WrappedPlayInBlockPlace> {
 
     public BlockPlaceValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

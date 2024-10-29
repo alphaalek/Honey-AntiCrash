@@ -1,7 +1,6 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
@@ -24,7 +23,7 @@ import java.util.List;
 public class WindowValidations extends AbstractValidationPacketListener<WrappedPlayInWindowClick> {
 
     public WindowValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

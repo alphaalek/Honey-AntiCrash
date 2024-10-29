@@ -10,7 +10,7 @@ import me.alek.honey.util.ClientInfo;
 public class HandshakeProcessor extends Processor<WrappedHandshakeInSetProtocol> {
 
     public HandshakeProcessor() {
-        addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.State.BYTE, this::handleHandshake, (p, t) -> p.channel.close());
+        addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.State.INITIAL_BYTE, this::handleHandshake, (p, t) -> p.channel.close());
     }
 
     public void handleHandshake(HoneyPlayer player, PacketContainer<WrappedHandshakeInSetProtocol> packet) {

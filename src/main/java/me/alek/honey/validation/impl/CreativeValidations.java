@@ -23,7 +23,7 @@ import java.util.List;
 public class CreativeValidations extends AbstractValidationPacketListener<WrappedPlayInSetCreativeSlot> {
 
     public CreativeValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

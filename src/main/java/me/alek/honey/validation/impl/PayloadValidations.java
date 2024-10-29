@@ -1,6 +1,5 @@
 package me.alek.honey.validation.impl;
 
-import io.netty.buffer.EmptyByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
@@ -19,7 +18,6 @@ import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -29,7 +27,7 @@ import java.util.List;
 public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> extends AbstractValidationPacketListener<CP> {
 
     public PayloadValidations(PacketLibrary library) {
-        super(library, PacketContainer.State.BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.State.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

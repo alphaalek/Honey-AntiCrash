@@ -14,7 +14,7 @@ import me.alek.honey.util.Callback;
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellable {
 
     enum State {
-        BYTE, OBJECT
+        INITIAL_BYTE, MODIFIED_BYTE, OBJECT
     }
 
     PacketLifecycleTimings getEventloopStateTimings();

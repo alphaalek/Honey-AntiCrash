@@ -61,7 +61,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         @SuppressWarnings("unchecked")
         public void callBytePacketProcess(HoneyPlayer player, PacketContainer<?> packet) {
-            callPipeline(PacketContainer.State.BYTE, listener -> {
+            callPipeline(PacketContainer.State.INITIAL_BYTE, listener -> {
                 try {
                     listener.onBytePacketReceive(player, (PacketContainer<WP>) packet);
                 } catch (Exception ex) {

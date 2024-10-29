@@ -4,18 +4,14 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
-import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.logging.Level;
 
 public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> {
@@ -92,6 +88,6 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
 
     @Override
     public void onBytePacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.State.BYTE, packet);
+        handle(player, PacketContainer.State.INITIAL_BYTE, packet);
     }
 }
