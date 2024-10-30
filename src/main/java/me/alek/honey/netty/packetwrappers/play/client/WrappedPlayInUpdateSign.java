@@ -27,8 +27,8 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
         }
     }
 
-    public WrappedPlayInUpdateSign(Object rawPacket, PacketContainer<WrappedPlayInUpdateSign> packetContainer) {
-        super(rawPacket, packetContainer);
+    public WrappedPlayInUpdateSign(Object rawPacket, PacketContainer<WrappedPlayInUpdateSign> packet) {
+        super(rawPacket, packet);
     }
 
     public String[] getLines() {

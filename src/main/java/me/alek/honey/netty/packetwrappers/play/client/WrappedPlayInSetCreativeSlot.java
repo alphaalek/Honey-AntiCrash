@@ -21,7 +21,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
 
     public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
         super(serializer, packet);
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+        if (packet.getProtocolByBytePacketState().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             this.slot = serializer.readUnsignedShort();
         } else {
             this.slot = serializer.readShort();

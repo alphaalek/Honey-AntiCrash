@@ -40,7 +40,10 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
     public WrappedPlayInBlockPlace(PacketDataSerializer serializer, PacketContainer<WrappedPlayInBlockPlace> packet) {
         super(serializer, packet);
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
+
+        NetProtocol protocol = packet.getProtocolByBytePacketState();
+
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
             /*
             this.blockPosition = serializer.readBlockPosition();
@@ -48,9 +51,10 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
             this.cursorPosition = new Vector(serializer.readFloat(), serializer.readFloat(), serializer.readFloat());
             this.insideBlock = serializer.readBoolean();
             */
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19)) {
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_19)) {
+                // TODO
                 /*
-                if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2)) {
+                if (protocol.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
                     this.worldBorderHit = Optional.of(this.readBoolean());
                 }
                 */
@@ -58,7 +62,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
             }
         } else {
             this.blockPosition = serializer.readBlockPosition();
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_9)) {
                 this.faceId = serializer.readVarInt();
                 this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
             } else {
@@ -72,7 +76,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                 this.interactionHand = InteractionHand.MAIN_HAND;
             }
 
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_11)) {
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_11)) {
                 this.cursorPosition = new Vector(serializer.readFloat(), serializer.readFloat(), serializer.readFloat());
             } else {
                 this.cursorPosition = new Vector(serializer.readUnsignedByte() / 16.0F, serializer.readUnsignedByte() / 16.0F, serializer.readUnsignedByte() / 16.0F);

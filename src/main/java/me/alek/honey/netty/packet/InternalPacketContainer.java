@@ -88,11 +88,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public NetProtocol getProtocolByBytePacketState() {
         if (this.pipelineState == PipelineState.OBJECT) {
-            throw new IllegalStateException("Object state");
+            throw new IllegalStateException("Object state"); // illegal state to call this
         } else if (this.pipelineState == PipelineState.INITIAL_BYTE) {
-            return this.player.clientInfo.getProtocol();
+            return this.player.clientInfo.getProtocol(); // use the client version to check for different protocols
         } else {
-            return NetProtocol.getProtocol();
+            return NetProtocol.getProtocol(); // if modified by ViaVersion, using either client or server should read same packet data
         }
     }
 
