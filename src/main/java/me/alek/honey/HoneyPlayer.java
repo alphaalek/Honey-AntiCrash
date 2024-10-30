@@ -13,7 +13,7 @@ import me.alek.honey.tickloop.postpone.validationimpl.*;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.*;
 import me.alek.honey.validation.BaseValidationContainer;
-import me.alek.honey.validation.ValidationContainers;
+import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.print.SuppressedException;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -89,7 +89,7 @@ public class HoneyPlayer implements Identifiable {
     public void remove() {
         online = false;
 
-        for (BaseValidationContainer validationContainer : ValidationContainers.getValidations()) {
+        for (BaseValidationContainer validationContainer : ValidationContainerRegistry.getValidations()) {
             validationContainer.cleanup(this);
         }
 
@@ -113,7 +113,7 @@ public class HoneyPlayer implements Identifiable {
         this.name = player.getName();
         this.online = true;
 
-        for (BaseValidationContainer validationContainer : ValidationContainers.getValidations()) {
+        for (BaseValidationContainer validationContainer : ValidationContainerRegistry.getValidations()) {
             validationContainer.setup(this);
         }
         HoneyPlugin.get().getNotificationService().setup(this);

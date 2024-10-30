@@ -42,7 +42,7 @@ import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.BaseValidationContainer;
-import me.alek.honey.validation.ValidationContainers;
+import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.print.PrintValidationBridge;
 import me.alek.honey.validation.types.HoneyValidation;
@@ -273,7 +273,7 @@ public class HoneyPlugin implements HoneyAPI {
         validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
-        for (BaseValidationContainer validation : ValidationContainers.initValidations(packetLibrary)) {
+        for (BaseValidationContainer validation : ValidationContainerRegistry.initValidations(packetLibrary)) {
             validation.load();
         }
         PacketExecutors.register();
@@ -344,7 +344,7 @@ public class HoneyPlugin implements HoneyAPI {
         configuration.reload();
         Lang.load();
 
-        for (BaseValidationContainer validation : ValidationContainers.getValidations()) {
+        for (BaseValidationContainer validation : ValidationContainerRegistry.getValidations()) {
             validation.load();
         }
         ItemAnalysis.reload();

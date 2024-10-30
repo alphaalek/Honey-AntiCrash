@@ -25,7 +25,10 @@ public enum ItemValidationRegistry {
     UNBREAKABLE_ITEM(ItemValidation.UnbreakableItemItemValidation::new),
     CUSTOM_POTION_EFFECTS(ItemValidation.CustomPotionEffectsItemValidation::new, Material.POTION),
     ATTRIBUTE_MODIFIERS(ItemValidation.AttributeModifiersItemValidation::new),
-    BOOK_NO_TEXT_COMPONENT(ItemValidation.BookTranslationComponents::new, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
+    BOOK_NO_TEXT_COMPONENT(ItemValidation.BookTranslationComponents::new,
+            Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
+    INVALID_BOOK_CONTENT(ItemValidation.InvalidBookContentValidation::new,
+            Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
     MAP_RANGE(ItemValidation.MapRangeItemValidation::new, MaterialMappings.getTypeIfAny("empty-map"), MaterialMappings.getTypeIfAny("filled-map")),
 
     // nbt
@@ -36,8 +39,6 @@ public enum ItemValidationRegistry {
     MAX_BOOK_NBT_LENGTH(ItemValidation.MaxBookNBTLengthItemValidation::new,
             Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
     MAX_BOOK_PAGES(ItemValidation.MaxBookPagesItemValidation::new,
-            Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
-    INVALID_BOOK(ItemValidation.InvalidBookValidation::new,
             Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
     MAX_BOOK_AUTHOR_LENGTH(ItemValidation.MaxBookAuthorLengthItemValidation::new, Material.WRITTEN_BOOK),
     MAX_BOOK_TITLE_LENGTH(ItemValidation.MaxBookTitleLengthItemValidation::new, Material.WRITTEN_BOOK),

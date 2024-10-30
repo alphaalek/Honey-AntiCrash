@@ -6,9 +6,8 @@ import me.alek.honey.validation.impl.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public enum ValidationContainers {
+public enum ValidationContainerRegistry {
 
     v1(FloodValidations::new),
     v2(MovementValidations::new),
@@ -20,7 +19,7 @@ public enum ValidationContainers {
     v8(NettyDecodeValidations::new),
     v9(LoginValidations::new),
     v10(SignValidations::new),
-    // v11(BlockPlaceValidations::new),
+    v11(BlockPlaceValidations::new),
     v12(ChatValidations::new),
     v13(WindowValidations::new),
     v14(RotationValidations::new),
@@ -34,7 +33,7 @@ public enum ValidationContainers {
     private static final List<BaseValidationContainer> validations = new ArrayList<>();
 
     static {
-        for (ValidationContainers validation : ValidationContainers.values()) {
+        for (ValidationContainerRegistry validation : ValidationContainerRegistry.values()) {
             validationFactories.add(validation.getValidationContainer());
         }
     }
@@ -51,7 +50,7 @@ public enum ValidationContainers {
 
     private final Function<PacketLibrary, BaseValidationContainer> validation;
 
-    ValidationContainers(Function<PacketLibrary, BaseValidationContainer> validation) {
+    ValidationContainerRegistry(Function<PacketLibrary, BaseValidationContainer> validation) {
         this.validation = validation;
     }
 

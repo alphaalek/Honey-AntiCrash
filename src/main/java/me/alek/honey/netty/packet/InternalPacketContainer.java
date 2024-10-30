@@ -16,6 +16,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
+import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PacketType type;
     private boolean cancelled;
     private boolean dumped;
-    private PipelineState state;
+    private PipelineState pipelineState;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
     private ByteWrappedPacket<WP> byteWrapped;
@@ -54,7 +55,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
         if (serializer != null && createdState != PipelineState.OBJECT) {
             this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
-            this.state = createdState;
+            this.pipelineState = createdState;
         } else {
             this.byteWrapped = null;
         }
@@ -63,7 +64,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void initPostMinecraftDecode(Object handle, PacketType type) {
         this.type = type;
-        this.state = PipelineState.OBJECT;
+        this.pipelineState = PipelineState.OBJECT;
 
         if (PacketTypes.isUnknown(type)
                 || !type.getNmsClass().equals(handle.getClass())) {
@@ -78,9 +79,20 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public void initPreMinecraftDecode(PacketDataSerializer serializer) {
-        if (this.state == PipelineState.INITIAL_BYTE) {
-            this.state = PipelineState.FINAL_BYTE;
-            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.state, serializer, this);
+        if (this.pipelineState == PipelineState.INITIAL_BYTE) {
+            this.pipelineState = PipelineState.FINAL_BYTE;
+            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+        }
+    }
+
+    @Override
+    public NetProtocol getProtocolByBytePacketState() {
+        if (this.pipelineState == PipelineState.OBJECT) {
+            throw new IllegalStateException("Object state");
+        } else if (this.pipelineState == PipelineState.INITIAL_BYTE) {
+            return this.player.clientInfo.getProtocol();
+        } else {
+            return NetProtocol.getProtocol();
         }
     }
 
@@ -134,8 +146,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public PipelineState getProcessState() {
-        return this.state;
+    public PipelineState getPipelineState() {
+        return this.pipelineState;
     }
 
     @Override

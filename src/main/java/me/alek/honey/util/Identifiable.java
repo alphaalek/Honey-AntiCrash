@@ -1,12 +1,12 @@
 package me.alek.honey.util;
 
-import java.util.function.Supplier;
+import java.util.function.IntSupplier;
 
-public interface Identifiable extends Supplier<Integer> {
+public interface Identifiable extends IntSupplier {
 
     int getID();
 
-    default Integer get() {
+    default int getAsInt() {
         return getID();
     }
 

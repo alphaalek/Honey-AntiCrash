@@ -11,6 +11,7 @@ import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import me.alek.honey.util.protocol.NetProtocol;
 
 public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellable {
 
@@ -23,6 +24,8 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
     void initPostMinecraftDecode(Object packet, PacketType type);
 
     void initPreMinecraftDecode(PacketDataSerializer serializer);
+
+    NetProtocol getProtocolByBytePacketState();
 
     ObjectPacketStructure getStructure();
 
@@ -38,7 +41,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     PacketState getState();
 
-    PipelineState getProcessState();
+    PipelineState getPipelineState();
 
     PacketState getProtocolState();
 

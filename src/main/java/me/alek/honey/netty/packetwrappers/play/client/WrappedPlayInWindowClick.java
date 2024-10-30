@@ -5,15 +5,11 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.Reflection;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWindowClick> implements AutoReleasable {
 
@@ -35,25 +31,27 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     public WrappedPlayInWindowClick(PacketDataSerializer serializer, PacketContainer<WrappedPlayInWindowClick> packetContainer) {
         super(serializer, packetContainer);
 
+        NetProtocol protocol = packetContainer.getProtocolByBytePacketState();
+
         // TODO
-        if (false /*NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2) */) {
+        if (false /*protocol.isNewerThanOrEqual(NetProtocol.v1_21_2) */) {
             this.windowId = serializer.readVarInt();
         } else {
             this.windowId = serializer.readUnsignedByte();
         }
 
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17_1)) {
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_17_1)) {
             this.stateId = serializer.readVarInt();
         }
         this.slot = serializer.readShort();
         this.button = serializer.readByte();
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+        if (protocol.isOlderThan(NetProtocol.v1_17)) {
             this.actionNumber = serializer.readShort();
         }
 
         int clickTypeIndex = serializer.readVarInt();
         this.windowClickType = WindowClickType.values()[clickTypeIndex];
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             this.slots = serializer.readMap(
                     serializerInput -> Math.toIntExact(serializerInput.readShort()),
                     PacketDataSerializer::readBukkitItemStack

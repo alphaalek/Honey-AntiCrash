@@ -23,7 +23,7 @@ public class WrappedPacketFactoryCollection {
     private final static EnumMap<PacketContainer.PipelineState, Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>>> BYTE_WRAPPERS = new EnumMap<>(PacketContainer.PipelineState.class);
 
     public static void loadWrappers() {
-        //loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, WrappedPlayInBlockPlace::new);
+        loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInBlockPlace::new);
         loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInSetCreativeSlot::new);
         loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInWindowClick::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
@@ -65,7 +65,7 @@ public class WrappedPacketFactoryCollection {
     @SuppressWarnings("unchecked")
     public static <WP extends WrappedPacket<WP>> ObjectWrappedPacket<WP> initWrappedPacket(PacketType type, Object raw, PacketContainer<WP> container) {
         WrappedPacketFactory.ObjectWrappedPacketFactory<WP> factory;
-        if (!OBJECT_WRAPPERS.has(type.getHoneyID())) {
+        if (!OBJECT_WRAPPERS.has(type)) {
             factory = WrappedPacketFactory.<WP>acquireHolder().OBJECT_FACTORY;
         } else {
             factory = (WrappedPacketFactory.ObjectWrappedPacketFactory<WP>) OBJECT_WRAPPERS.get(type.getHoneyID());
@@ -81,7 +81,7 @@ public class WrappedPacketFactoryCollection {
 
         WrappedPacketFactory.ByteWrappedPacketFactory<WP> factory;
         Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> factories = BYTE_WRAPPERS.computeIfAbsent(state, __ -> new Array<>());
-        if (!factories.has(type.getHoneyID())) {
+        if (!factories.has(type)) {
             factory = WrappedPacketFactory.<WP>acquireHolder().BYTE_FACTORY;
         } else {
             factory = (WrappedPacketFactory.ByteWrappedPacketFactory<WP>) factories.get(type.getHoneyID());

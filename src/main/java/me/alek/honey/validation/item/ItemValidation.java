@@ -323,7 +323,7 @@ public class ItemValidation {
         }
     }
 
-    public static class InvalidBookValidation implements ItemAnalysis.ItemValidation {
+    public static class InvalidBookContentValidation implements ItemAnalysis.ItemValidation {
 
         private static final int BOOK_PIXEL_WIDTH = 57;
         private static final int BOOK_LINES = 14;
