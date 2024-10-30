@@ -37,7 +37,7 @@ public class WrappedPacketFactoryCollection {
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_POSITION, WrappedPlayInPosition::new);
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_POS_AND_ROT, WrappedPlayInPositionLook::new);
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_ROTATION, WrappedPlayInLook::new);
-        loadObjectWrapper(PacketTypes.Play.Client.PLAYER_MOVEMENT, WrappedPlayInFlying.Status::new);
+        loadObjectWrapper(PacketTypes.Play.Client.PLAYER_MOVEMENT, MovementPacketWrapper.Status::new);
         loadObjectWrapper(PacketTypes.Play.Client.GROUND, WrappedPlayInGround::new);
         loadObjectWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
         loadObjectWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);

@@ -2,12 +2,11 @@ package me.alek.honey.netty.packetwrappers.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Location;
 
-public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> extends ObjectWrappedPacket<WP> {
+public abstract class MovementPacketWrapper<WP extends MovementPacketWrapper<WP>> extends ObjectWrappedPacket<WP> {
 
-    public static class Status extends WrappedPlayInFlying<Status> {
+    public static class Status extends MovementPacketWrapper<Status> {
 
         public Status(Object rawPacket, PacketContainer<Status> packetContainer) {
             super(rawPacket, packetContainer);
@@ -16,7 +15,7 @@ public abstract class WrappedPlayInFlying<WP extends WrappedPlayInFlying<WP>> ex
 
     private Location location;
 
-    public WrappedPlayInFlying(Object rawPacket, PacketContainer<WP> packetContainer) {
+    public MovementPacketWrapper(Object rawPacket, PacketContainer<WP> packetContainer) {
         super(rawPacket, packetContainer);
     }
 

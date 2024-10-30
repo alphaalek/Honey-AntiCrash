@@ -8,7 +8,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInFlying;
+import me.alek.honey.netty.packetwrappers.play.client.MovementPacketWrapper;
 import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
@@ -20,7 +20,7 @@ import org.bukkit.Location;
 
 import java.util.*;
 
-public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends AbstractValidationPacketListener<WP> {
+public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends AbstractValidationPacketListener<WP> {
 
     private static final Map<UUID, Float> lastYawMap = new HashMap<>();
     private static final Map<UUID, Float> lastPitchMap = new HashMap<>();
@@ -92,7 +92,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         return lastPitchMap.getOrDefault(player.uuid, pitch);
     }
 
-    public static class RotationA<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class RotationA<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -129,7 +129,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
     }
 
-    public static class RotationB<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class RotationB<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final ViolationManagement.HoneyKey yawKey = ViolationManagement.HoneyKey.of(0, "yaw");
@@ -174,7 +174,7 @@ public class RotationValidations<WP extends WrappedPlayInFlying<WP>> extends Abs
         }
     }
 
-    public static class RotationC<WP extends WrappedPlayInFlying<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class RotationC<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final ViolationManagement.HoneyKey yawKey = ViolationManagement.HoneyKey.of(0, "yaw");
