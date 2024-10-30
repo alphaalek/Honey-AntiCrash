@@ -1,21 +1,21 @@
 package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ValidationServiceContext;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
-import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.validation.*;
+import me.alek.honey.validation.item.ItemAnalysis;
+import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.types.ViolationValidation;
+import org.bukkit.event.inventory.InventoryType;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,15 +31,15 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> getNewPipeline() {
-        ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> visitor = new ValidationPipeline<>();
-        visitor.register(new WindowA());
-        visitor.register(new WindowB());
+    public ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> createValidationPipeline() {
+        ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> pipeline = new ValidationPipeline<>();
+        pipeline.register(new WindowA());
+        pipeline.register(new WindowB());
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-            visitor.register(new WindowC());
+            pipeline.register(new WindowC());
         }
-        visitor.register(new WindowD());
-        return visitor;
+        pipeline.register(new WindowD());
+        return pipeline;
     }
 
     public static class WindowA implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
@@ -140,7 +140,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                if (player.bukkit.getOpenInventory().getType().name().equals("LECTERN")
+                if (player.bukkit.getOpenInventory().getType().equals(InventoryType.LECTERN)
                         && packet.getWindowClickType() == WrappedPlayInWindowClick.WindowClickType.QUICK_MOVE) {
                     return ValidationServiceContext.FLAG;
                 }

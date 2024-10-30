@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
+import org.bukkit.Bukkit;
 
 import java.util.Map;
 
@@ -20,7 +21,9 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
         this.packet = packet;
         this.byteSize = buf.readableBytes();
 
-        if (packet.getByteWrapped() != null) {
+        Bukkit.broadcastMessage("Byte wrapped " + packet.getType());
+
+        if (packet.getByteWrapped() == null) {
             int start = buf.readerIndex(), accumulated = 0, prevByte = 0, doubleSequences = 0;
             while (buf.isReadable()) {
                 byte b = buf.readByte();

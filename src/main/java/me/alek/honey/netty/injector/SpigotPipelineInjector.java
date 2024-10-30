@@ -17,6 +17,7 @@ import me.alek.honey.util.Provider;
 import me.alek.honey.util.RemoteProviderBridge;
 import me.alek.honey.util.RemoteProviderUtils;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,10 @@ public class SpigotPipelineInjector {
     }
 
     public void injectChannelProxy(Channel channel) throws MissingHandlerException {
+        if (channel != null) {
+            return; //TODO
+        }
+
         Object networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(channel);
         if (networkManager == null
                 || !NMS.getNetworkManagerClass().isInstance(networkManager)) {
@@ -72,16 +77,18 @@ public class SpigotPipelineInjector {
                 .withTarget(networkManager);
         Channel registeredChannel = (Channel) channelStructureModifier.readField(0);
 
-        Object channelProxy = channelProxyRemoteFactory.get(channel, (c) -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
+        Object channelProxy = channelProxyRemoteFactory.get(channel, c -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(c));
 
         if (ProtocolLib.ProtocolLibValidator.VALIDATOR.find().get()
-                && ProtocolLib.CHANNEL_PROXY.isInstance(registeredChannel)) {
-            ReflectStructure.Provider.acquireStructure(ProtocolLib.CHANNEL_PROXY)
+                && ProtocolLib.CHANNEL_PROXY_CLASS.isInstance(registeredChannel)) {
+            ReflectStructure.Provider.acquireStructure(ProtocolLib.CHANNEL_PROXY_CLASS)
                     .withWeakType(Channel.class).withTarget(registeredChannel)
                     .writeField(0, channelProxy);
         } else {
             channelStructureModifier.writeField(0, channelProxy);
         }
+
+        Bukkit.broadcastMessage("Inject channel proxy " + channel.pipeline().names());
     }
 
     public void ensureCorrectPipelineOrder(Channel channel) {

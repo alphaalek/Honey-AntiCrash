@@ -8,11 +8,11 @@ import me.alek.honey.util.reflection.Reflection;
 public class ProtocolLib {
 
     public static final String PACKAGE = "com.comphenix.protocol";
-    public static Class<?> CHANNEL_PROXY;
+    public static Class<?> CHANNEL_PROXY_CLASS;
 
     static {
         if (ProtocolLibValidator.VALIDATOR.find().get()) {
-            CHANNEL_PROXY = Reflection.getUnsureClass(
+            CHANNEL_PROXY_CLASS = Reflection.getUnsureClass(
                     PACKAGE + ".injector.netty.channel.NettyChannelProxy", // 5.0
                     PACKAGE + ".injector.netty.ChannelProxy" // 4.0
             );

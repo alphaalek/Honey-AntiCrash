@@ -30,7 +30,7 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> createValidationPipeline() {
         return ValidationPipeline.from(new HeldItemA(), new HeldItemB());
     }
 
@@ -40,6 +40,13 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
 
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
+            try {
+                Object nullObject = null;
+                nullObject.toString();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {

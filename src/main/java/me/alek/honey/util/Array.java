@@ -1,6 +1,6 @@
 package me.alek.honey.util;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -184,7 +184,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(Identifiable identifiable) {
-        return get(identifiable.get(), null);
+        return get(identifiable.getAsInt(), null);
     }
 
     public T getFirst() {
@@ -221,7 +221,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T get(Identifiable identifiable, Supplier<T> or) {
-        return get(identifiable.get(), or);
+        return get(identifiable.getAsInt(), or);
     }
 
     public T getOr(int index, Supplier<T> or) {
@@ -234,7 +234,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T getOr(Identifiable identifiable, Supplier<T> or) {
-        return getOr(identifiable.get(), or);
+        return getOr(identifiable.getAsInt(), or);
     }
 
     public synchronized void move(int start, int by) {
@@ -288,7 +288,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(Identifiable identifiable) {
-        return has(identifiable.get());
+        return has(identifiable.getAsInt());
     }
 
     public void clear() {
@@ -309,7 +309,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public T setAndGet(Identifiable identifiable, T val) {
-        return setAndGet(identifiable.get(), val);
+        return setAndGet(identifiable.getAsInt(), val);
     }
 
     public synchronized boolean set(int index, T val) {
@@ -322,7 +322,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public synchronized boolean set(Identifiable identifiable, T val) {
-        return set(identifiable.get(), val);
+        return set(identifiable.getAsInt(), val);
     }
 
     public synchronized boolean remove(int index) {
@@ -343,7 +343,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean remove(Identifiable identifiable) {
-        return remove(identifiable.get());
+        return remove(identifiable.getAsInt());
     }
 
     public synchronized boolean remove(T val, boolean resolve) {
@@ -362,7 +362,7 @@ public class Array<T> implements Iterable<T> {
     }
     
     public T removeAndGet(Identifiable identifiable) {
-        return removeAndGet(identifiable.get());
+        return removeAndGet(identifiable.getAsInt());
     }
     
     public synchronized T removeAndGet(int index) {

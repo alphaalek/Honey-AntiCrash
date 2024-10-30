@@ -38,7 +38,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
 
     @SuppressWarnings("unchecked")
     @Override
-    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return (ValidationPipeline<PacketValidation<WP>>) (ValidationPipeline<?>) ValidationPipeline.from(new NettyD(), new NettyE(), new NettyF(), new NettyG(), new NettyK(), new NettyL(), new NettyM(), new NettyN(), new NettyO());
     }
 

@@ -123,8 +123,8 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
                     PacketDataSerializer copy = makeSerializerCopy();
-                    bookChannelItemStack = new LazyInit<>(() -> copy.readBukkitItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")));
-                    release = () -> AutoReleasable.doRelease(copy);
+                    this.bookChannelItemStack = new LazyInit<>(() -> copy.readBukkitItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")));
+                    this.release = () -> AutoReleasable.doRelease(copy);
                 } catch (Exception ignored) {
                 }
             }
@@ -132,29 +132,29 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         @Override
         public void release() {
-            if (release != null) {
-                release.run();
+            if (this.release != null) {
+                this.release.run();
             }
         }
 
         public ItemStack getBookChannelItemStack() {
-            return Optional.ofNullable(bookChannelItemStack).map(LazyInit::get).orElse(null);
+            return Optional.ofNullable(this.bookChannelItemStack).map(LazyInit::get).orElse(null);
         }
 
         public PacketDataSerializer getSerializer() {
-            return serializer;
+            return this.serializer;
         }
 
         public PacketDataSerializer makeSerializerCopy() {
-            return new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
+            return new PacketDataSerializer(Unpooled.copiedBuffer(this.serializer));
         }
 
         public String getChannel() {
-            return channel;
+            return this.channel;
         }
 
         public boolean isBookChannel() {
-            return channel.equals("MC|BEdit") || channel.equals("MC|BSign");
+            return this.channel.equals("MC|BEdit") || this.channel.equals("MC|BSign");
         }
     }
 }

@@ -2,7 +2,6 @@ package me.alek.honey.util.discord;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.json.simple.JSONObject;
 
 import java.awt.*;
 import java.util.ArrayList;

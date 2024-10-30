@@ -146,7 +146,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInChat>> createValidationPipeline() {
         return ValidationPipeline.from(this);
     }
 

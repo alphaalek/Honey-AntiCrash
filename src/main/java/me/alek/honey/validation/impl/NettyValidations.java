@@ -42,7 +42,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new NettyH<>(), new NettyI<>());
     }
 
@@ -115,7 +115,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         @Override
-        public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+        public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
             return ValidationPipeline.from(this);
         }
 

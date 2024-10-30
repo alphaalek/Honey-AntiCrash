@@ -24,27 +24,31 @@ public class SuppressedException {
     }
     
     public Throwable getInitialThrown() {
-        return initialThrown;
+        return this.initialThrown;
+    }
+
+    public Instant getInitialThrownTime() {
+        return this.initialThrownTime;
     }
 
     public void suppress(PacketContainer<? extends WrappedPacket<?>> packet, Throwable thrown) {
-        amount++;
+        this.amount++;
 
-        if (System.currentTimeMillis() <= cooldownUntil) {
+        if (System.currentTimeMillis() <= this.cooldownUntil) {
             return;
         }
-        cooldownUntil = System.currentTimeMillis() + COOLDOWN_MILLIS;
+        this.cooldownUntil = System.currentTimeMillis() + COOLDOWN_MILLIS;
 
         System.out.println("Exception in thread \"" + Thread.currentThread().getName() + "\"" + (thrown.getMessage() != null ? ": " + thrown.getMessage() : ""));
         if (!PacketTypes.isUnknown(packet.getType())) {
-            System.out.println("\tSuppressed exception (" + amount + " time(s)) while handling packet " + packet.getType()
+            System.out.println("\tSuppressed exception (" + this.amount + " time(s)) while handling packet " + packet.getType()
                     + " (ID: " + packet.getType().getMinecraftID() + ") "
                     + "by " + packet.getPlayerName() + ", "
                     + "Properties: " + HoneyPlugin.get().getLoggerService().filterTooMuchData(HoneyPlugin.get().getLoggerService().formatPacketEntries(packet)));
         } else {
-            System.out.println("\tSuppressed exception (" + amount + " time(s)) while handling unknown packet "
+            System.out.println("\tSuppressed exception (" + this.amount + " time(s)) while handling unknown packet "
                     + "by " + packet.getPlayerName());
         }
-        System.out.println("\tInitial thrown at " + FORMATTER.format(initialThrownTime));
+        System.out.println("\tInitial thrown at " + FORMATTER.format(this.initialThrownTime));
     }
 }

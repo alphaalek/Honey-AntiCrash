@@ -283,6 +283,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Object packet, PacketContainer<WP> earlyInitializedPacket) {
+        Bukkit.broadcastMessage("Processor handle " + packet);
         PacketType type = null;
         if (bound.equals(PacketBound.SERVER) && earlyInitializedPacket != null) {
             type = earlyInitializedPacket.getType();
@@ -330,13 +331,13 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addPostAction(PacketType type, Callback.Action callback) {
+    public synchronized void addPostAction(PacketType type, Callback.Action action) {
         if (PacketTypes.isUnknown(type)) {
             return;
         }
 
-        Callback action = postActions.get(type.getHoneyID(), Callback::new);
-        action.addAction(callback);
+        Callback callback = postActions.get(type.getHoneyID(), Callback::new);
+        callback.addAction(action);
     }
 }
 

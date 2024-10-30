@@ -29,7 +29,7 @@ public class SignValidations extends AbstractValidationPacketListener<WrappedPla
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInUpdateSign>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInUpdateSign>> createValidationPipeline() {
         return ValidationPipeline.from(new SignA());
     }
 

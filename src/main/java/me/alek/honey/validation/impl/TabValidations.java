@@ -29,7 +29,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         return Collections.singletonList(PacketTypes.Play.Client.TAB_COMPLETE);
     }
 
-    public ValidationPipeline<PacketValidation<WrappedPlayInTabComplete>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInTabComplete>> createValidationPipeline() {
         return ValidationPipeline.from(new TabA(), new TabC());
     }
 
@@ -107,7 +107,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         }
 
         @Override
-        public ValidationPipeline<PacketValidation<WrappedPlayOutTabComplete>> getNewPipeline() {
+        public ValidationPipeline<PacketValidation<WrappedPlayOutTabComplete>> createValidationPipeline() {
             return ValidationPipeline.from(this);
         }
 

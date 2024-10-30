@@ -12,6 +12,7 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 public class ProtocolSwapHandler {
 
@@ -49,8 +50,9 @@ public class ProtocolSwapHandler {
                 packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
             } else {
                 Object clientIntent = packet.getStructure().getModifier(NMS.getClientIntentClass()).readField(0);
-                packetStateOrdinal = ((Enum<?>)clientIntent).ordinal() == 0 ? /* status */ 2 : /* login */ 3;
+                packetStateOrdinal = ((Enum<?>)clientIntent).ordinal() == 0 ? PacketState.STATUS.ordinal() : PacketState.LOGIN.ordinal();
             }
+
             PacketState packetState = PacketState.values()[packetStateOrdinal];
             setProtocolState(packet.getChannel(), packetState, null);
         }

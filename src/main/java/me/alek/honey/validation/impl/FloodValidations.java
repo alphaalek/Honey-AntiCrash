@@ -74,7 +74,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 

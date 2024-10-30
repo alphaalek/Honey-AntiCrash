@@ -62,10 +62,7 @@ public class HoneyPlayer implements Identifiable {
     public final Callback leaveCallback = new Callback();
     private final TickCache<Boolean> bypassEverything = new TickCache<>();
     private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();
-    public final Cache<String, SuppressedException> suppressedExceptions =
-            CacheBuilder.newBuilder()
-                    .expireAfterWrite(1, TimeUnit.MINUTES)
-                    .build();
+    public final Map<String, SuppressedException> suppressedExceptions = new HashMap<>();
 
     public EnhancedInitialIterator<PostponeValidation> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(

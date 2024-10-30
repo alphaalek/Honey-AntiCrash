@@ -36,7 +36,7 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
         if (!pipelines.has(id)) {
             if (!factory.requiresPlayer()
                     || player.isBukkitReady() && player.isStreamActive()) {
-                pipelines.set(id, factory.getNewPipeline());
+                pipelines.set(id, factory.createValidationPipeline());
 
                 player.leaveCallback.addAction(Callback.Action.from(p -> pipelines.remove(id)));
             }

@@ -14,6 +14,8 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.bukkit.Bukkit;
 
+import javax.annotation.Nullable;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
@@ -65,7 +67,7 @@ public class PrintValidationBridge {
                 try {
                     SuppressedException ex = getSuppressedException(packet.getPlayer(), thrown);
                     if (ex == null) {
-                        suppressException(packet.getPlayer(), thrown);
+                        addExceptionToSuppressCache(packet.getPlayer(), thrown);
                     } else {
                         ex.suppress(packet, thrown);
                         result = Filter.Result.DENY;
@@ -90,11 +92,21 @@ public class PrintValidationBridge {
         return builder.toString();
     }
 
+    @Nullable
     public static SuppressedException getSuppressedException(HoneyPlayer player, Throwable thrown) throws ExecutionException {
-        return player.suppressedExceptions.get(stackTraceToUnit(thrown), () -> null);
+        String key = stackTraceToUnit(thrown);
+        SuppressedException ex = player.suppressedExceptions.get(key);
+
+        // check if this cache has been expired
+        if (ex.getInitialThrownTime().plusSeconds(60).isAfter(Instant.now())) {
+            player.suppressedExceptions.remove(key);
+            return null;
+        }
+
+        return ex;
     }
 
-    public static void suppressException(HoneyPlayer player, Throwable thrown) {
+    public static void addExceptionToSuppressCache(HoneyPlayer player, Throwable thrown) {
         player.suppressedExceptions.put(stackTraceToUnit(thrown), new SuppressedException(thrown));
     }
 }

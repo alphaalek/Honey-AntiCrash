@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.util.Array;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
 public enum PacketState {
 

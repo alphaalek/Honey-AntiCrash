@@ -50,7 +50,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<CP>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<CP>> createValidationPipeline() {
         return ValidationPipeline.from(new PayloadA<>(), new PayloadB<>(), new PayloadC<>(), new PayloadD<>(), new PayloadE<>());
     }
 

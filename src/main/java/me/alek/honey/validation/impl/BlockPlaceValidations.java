@@ -35,7 +35,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInBlockPlace>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInBlockPlace>> createValidationPipeline() {
         ValidationPipeline<PacketValidation<WrappedPlayInBlockPlace>> visitor = new ValidationPipeline<>();
         visitor.register(new BlockInteractA());
         visitor.register(new BlockInteractB());
@@ -173,8 +173,8 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
                 }
 
                 Material material = item.getType();
-                if (material == Material.PISTON_MOVING_PIECE
-                        || material == Material.PISTON_EXTENSION) {
+                if (material.name().equals("PISTON_MOVING_PIECE")
+                        || material.name().equals("PISTON_EXTENSION")) {
                     return ValidationServiceContext.Builder.validate().cancel().flag().build();
                 }
             }

@@ -13,6 +13,7 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
@@ -70,6 +71,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
     }
 
+    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (resolving) {
             ctx.fireChannelRead(msg);
@@ -91,17 +93,19 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
 
         try {
-            PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
-            if (packetContainer == null) {
+            PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
+            if (packet == null) {
                 return;
             }
-            sendThroughPipeline(msg, packetContainer, packetHandler::read, () -> ctx.fireChannelRead(msg));
+            sendThroughPipeline(msg, packet, packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
+    @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        Bukkit.broadcastMessage("Pre-resolved write " + msg);
         if (resolving) {
             ctx.write(msg, promise);
             return;
@@ -124,11 +128,11 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packetContainer = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
-        if (packetContainer == null) {
+        PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
+        if (packet == null) {
             return;
         }
-        sendThroughPipeline(msg, packetContainer, packetHandler::write, () -> ctx.write(msg, promise));
+        sendThroughPipeline(msg, packet, packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
     }
 
     public void checkRelocation() {

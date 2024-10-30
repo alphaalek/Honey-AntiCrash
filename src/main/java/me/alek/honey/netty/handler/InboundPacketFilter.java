@@ -19,6 +19,7 @@ import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -91,6 +92,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
+        Bukkit.broadcastMessage("Filter received " + buf);
         if (!player.isStreamActive()) {
             return;
         }
@@ -124,6 +126,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         packet.getEventloopStateTimings().stopTimings();
 
         if (!packet.isCancelled()) {
+            Bukkit.broadcastMessage("Send " + buf);
             list.add(buf.readBytes(buf.readableBytes()));
         } else {
             list.add(Unpooled.buffer());

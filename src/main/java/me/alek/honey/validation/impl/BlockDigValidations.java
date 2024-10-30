@@ -30,7 +30,7 @@ public class BlockDigValidations extends AbstractValidationPacketListener<Wrappe
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInBlockDig>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInBlockDig>> createValidationPipeline() {
         return ValidationPipeline.from(new BlockInteractD());
     }
 

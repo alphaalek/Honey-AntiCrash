@@ -4,7 +4,7 @@ import me.alek.honey.validation.types.HoneyValidation;
 
 public interface ValidationPipelineFactory<T extends HoneyValidation<?>> {
 
-    ValidationPipeline<T> getNewPipeline();
+    ValidationPipeline<T> createValidationPipeline();
 
     default boolean requiresPlayer() {
         return true;

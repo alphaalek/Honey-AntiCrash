@@ -31,7 +31,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> createValidationPipeline() {
         return ValidationPipeline.from(new CreativeA(), new CreativeB(), new CreativeC());
     }
 

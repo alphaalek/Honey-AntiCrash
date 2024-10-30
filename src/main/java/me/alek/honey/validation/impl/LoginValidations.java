@@ -37,7 +37,7 @@ public class LoginValidations extends AbstractValidationPacketListener<WrappedLo
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedLoginInLoginStart>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedLoginInLoginStart>> createValidationPipeline() {
         return ValidationPipeline.from(new LoginA());
     }
 

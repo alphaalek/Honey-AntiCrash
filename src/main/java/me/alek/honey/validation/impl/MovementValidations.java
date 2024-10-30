@@ -95,7 +95,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WP>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
                 new MovementF<>(), new MovementG<>(), new MovementH<>(), new MovementI<>(), new MovementJ<>());
     }

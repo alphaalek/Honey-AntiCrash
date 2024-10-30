@@ -1,6 +1,7 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
@@ -201,6 +202,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     public boolean read(ChannelHandlerContext ctx, Object o) {
+        Bukkit.broadcastMessage("Preparation received " + o);
         if (!player.isStreamActive()) {
             return false;
         }
@@ -223,15 +225,21 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         if (packet == null) {
             // this packet is not sent by the client (because it was not received by the filter),
             // but instead invoked by some plugin (most likely ViaVersion)
-            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, true), null);
+            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, false), null);
             InboundPacketFilter.MARK.set(packet);
+        } else {
+            serializer.readVarInt(); // skip packet-id
         }
+
+        Bukkit.broadcastMessage("Link " + packet.getType());
 
         // stops in-between timings
         packet.getEventloopStateTimings().stopTimings();
 
+        // handle final byte state
         packet.initPreMinecraftDecode(serializer);
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
+        serializer.resetReaderIndex();
 
         List<Object> nonRecycledList = new ArrayList<>();
         if (!ConfigurationOptions.AsyncDecoder.ENABLED

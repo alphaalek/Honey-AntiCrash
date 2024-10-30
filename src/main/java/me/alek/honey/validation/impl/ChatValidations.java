@@ -30,7 +30,7 @@ public class ChatValidations extends AbstractValidationPacketListener<WrappedPla
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInChat>> getNewPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInChat>> createValidationPipeline() {
         return ValidationPipeline.from(new ChatA(), new ChatB());
     }
 
