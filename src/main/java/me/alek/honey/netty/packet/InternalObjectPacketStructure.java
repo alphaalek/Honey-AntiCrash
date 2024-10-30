@@ -125,7 +125,7 @@ public class InternalObjectPacketStructure implements ObjectPacketStructure {
 
     @Override
     public IStructureModifier<ItemStack> getItems() {
-        return getModifier(NMS.getItemStackClass(), Converters.getItemStackConverter());
+        return getModifier(NMS.getItemStackClass(), Converters.getMirrorItemStackConverter());
     }
 
     @Override

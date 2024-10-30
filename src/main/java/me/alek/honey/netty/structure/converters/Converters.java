@@ -132,7 +132,7 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, ItemStack> getItemStackConverter() {
+    public static JavaConverter<Object, ItemStack> getCopyItemStackConverter() {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
             public ItemStack convertDelegate(Object delegate, Object... params) {
@@ -142,6 +142,20 @@ public class Converters {
             @Override
             public Object convertDeclaring(ItemStack itemStack) {
                 return ItemReflection.asNMSCopy(itemStack);
+            }
+        });
+    }
+
+    public static JavaConverter<Object, ItemStack> getMirrorItemStackConverter() {
+        return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
+            @Override
+            public ItemStack convertDelegate(Object delegate, Object... params) {
+                return ItemReflection.asBukkitMirror(delegate);
+            }
+
+            @Override
+            public Object convertDeclaring(ItemStack itemStack) {
+                return ItemReflection.getHandleItem(itemStack);
             }
         });
     }

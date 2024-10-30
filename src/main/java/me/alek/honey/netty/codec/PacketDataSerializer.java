@@ -25,7 +25,6 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -73,7 +72,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ItemStack readBukkitItemStack() {
-        return Converters.getItemStackConverter().convertDelegate(readItemStack());
+        return Converters.getMirrorItemStackConverter().convertDelegate(readItemStack());
     }
 
     public Object readItemStackWithFilter(boolean withMeta, Material... required) {
@@ -122,7 +121,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ItemStack readBukkitItemStackWithFilter(boolean withMeta, Material... required) {
-        return Converters.getItemStackConverter().convertDelegate(readItemStackWithFilter(withMeta, required));
+        return Converters.getMirrorItemStackConverter().convertDelegate(readItemStackWithFilter(withMeta, required));
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

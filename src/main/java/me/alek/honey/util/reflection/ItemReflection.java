@@ -20,8 +20,9 @@ public class ItemReflection {
     private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
     private static final ConstructorInvoker<?> itemStackConstructor;
 
-    private static final MethodInvoker<?> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
+    private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
+    private static final MethodInvoker<ItemStack> bukkitMirrorInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitMirror", itemStackClass);
     private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
@@ -80,6 +81,20 @@ public class ItemReflection {
             try {
                 if (itemStackClass.isInstance(itemStack)) {
                     return (ItemStack) bukkitCopyInvoker.invokeWithException(null, itemStack);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        return new ItemStack(Material.AIR);
+    }
+
+    public static ItemStack asBukkitMirror(Object itemStack) {
+        if (itemStack != null) {
+            try {
+                if (itemStackClass.isInstance(itemStack)) {
+                    return (ItemStack) bukkitMirrorInvoker.invokeWithException(null, itemStack);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
