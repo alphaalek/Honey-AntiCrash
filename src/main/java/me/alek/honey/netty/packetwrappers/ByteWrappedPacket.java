@@ -4,7 +4,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
-import org.bukkit.Bukkit;
 
 import java.util.Map;
 
@@ -21,18 +20,23 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
         this.packet = packet;
         this.byteSize = buf.readableBytes();
 
-        int start = buf.readerIndex(), accumulated = 0, prevByte = 0, doubleSequences = 0;
-        while (buf.isReadable()) {
-            byte b = buf.readByte();
-            accumulated += Math.abs(b) + 8;
-            if (b == prevByte) {
-                doubleSequences++;
+        if (packet.getByteWrapped() != null) {
+            int start = buf.readerIndex(), accumulated = 0, prevByte = 0, doubleSequences = 0;
+            while (buf.isReadable()) {
+                byte b = buf.readByte();
+                accumulated += Math.abs(b) + 8;
+                if (b == prevByte) {
+                    doubleSequences++;
+                }
+                prevByte = b;
             }
-            prevByte = b;
+            buf.readerIndex(start);
+            this.accumulatedByteSize = accumulated;
+            this.doubleByteSequences = doubleSequences;
+        } else {
+            this.accumulatedByteSize = packet.getByteWrapped().getAccumulatedByteSize();
+            this.doubleByteSequences = packet.getByteWrapped().getDoubleByteSequences();
         }
-        buf.readerIndex(start);
-        this.accumulatedByteSize = accumulated;
-        this.doubleByteSequences = doubleSequences;
     }
 
     @Override
