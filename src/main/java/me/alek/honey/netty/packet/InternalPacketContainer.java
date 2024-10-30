@@ -54,7 +54,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         }
 
         if (serializer != null && createdState != PipelineState.OBJECT) {
-            // this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
             this.pipelineState = createdState;
         } else {
             this.byteWrapped = null;

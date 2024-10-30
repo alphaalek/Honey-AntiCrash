@@ -62,10 +62,6 @@ public class SpigotPipelineInjector {
     }
 
     public void injectChannelProxy(Channel channel) throws MissingHandlerException {
-        if (channel != null) {
-            return; //TODO
-        }
-
         Object networkManager = HoneyPlugin.get().getPacketLibrary().getServerInjector().getNetworkManagerFor(channel);
         if (networkManager == null
                 || !NMS.getNetworkManagerClass().isInstance(networkManager)) {
@@ -87,8 +83,6 @@ public class SpigotPipelineInjector {
         } else {
             channelStructureModifier.writeField(0, channelProxy);
         }
-
-        Bukkit.broadcastMessage("Inject channel proxy " + channel.pipeline().names());
     }
 
     public void ensureCorrectPipelineOrder(Channel channel) {

@@ -18,7 +18,7 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
 
     public static class ReaderInfo<B, T> {
 
-        private static final BiConsumer<HoneyPlayer, Throwable> DEFAULT_THROWABLE_DEBUGGER = (player, thrown) -> {
+        public static final BiConsumer<HoneyPlayer, Throwable> DEFAULT_THROWABLE_DEBUGGER = (player, thrown) -> {
             HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Error occurred in processor for packet sent by " + player, thrown);
         };
 

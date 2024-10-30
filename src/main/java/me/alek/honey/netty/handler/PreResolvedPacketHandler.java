@@ -32,22 +32,22 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     public HoneyPacketHandler getPacketHandler() {
-        return packetHandler;
+        return this.packetHandler;
     }
 
     public boolean streams(PacketBound bound) {
-        return bound.equals(PacketBound.SERVER) ? read : write;
+        return bound.equals(PacketBound.SERVER) ? this.read : this.write;
     }
 
     @SuppressWarnings("unchecked")
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Channel channel, Object msg, PacketBound bound) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Object msg, PacketBound bound) {
         switch (bound) {
             case SERVER:
-                PacketContainer<WP> packetContainer = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
+                PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
                 InboundPacketFilter.MARK.remove();
-                return packetProcessor.read(packetHandler.getPlayer(), msg, packetContainer);
+                return this.packetProcessor.read(this.packetHandler.getPlayer(), msg, packet);
             case CLIENT:
-                return packetProcessor.write(packetHandler.getPlayer(), msg);
+                return this.packetProcessor.write(this.packetHandler.getPlayer(), msg);
         }
 
         throw new IllegalStateException();
@@ -73,31 +73,31 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (resolving) {
+        if (this.resolving) {
             ctx.fireChannelRead(msg);
             return;
         }
         checkRelocation();
 
-        if (!packetHandler.isPacket(msg)) {
-            if (!packetHandler.handleNonPacket(msg)) {
+        if (!this.packetHandler.isPacket(msg)) {
+            if (!this.packetHandler.handleNonPacket(msg)) {
                 return;
             }
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
             return;
         }
 
-        if (!read) {
+        if (!this.read) {
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
             return;
         }
 
         try {
-            PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(ctx.channel(), msg, PacketBound.SERVER);
+            PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(msg, PacketBound.SERVER);
             if (packet == null) {
                 return;
             }
-            sendThroughPipeline(msg, packet, packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
+            sendThroughPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -105,17 +105,16 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        Bukkit.broadcastMessage("Pre-resolved write " + msg);
-        if (resolving) {
+        if (this.resolving) {
             ctx.write(msg, promise);
             return;
         }
 
-        packetHandler.runDelayedTasks(PacketBound.CLIENT);
+        this.packetHandler.runDelayedTasks(PacketBound.CLIENT);
         checkRelocation();
 
-        if (!packetHandler.isPacket(msg)) {
-            if (!packetHandler.handleNonPacket(msg)) {
+        if (!this.packetHandler.isPacket(msg)) {
+            if (!this.packetHandler.handleNonPacket(msg)) {
                 promise.setSuccess();
                 return;
             }
@@ -123,27 +122,27 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        if (!write) {
+        if (!this.write) {
             ctx.write(ReferenceCountUtil.retain(msg));
             return;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(ctx.channel(), msg, PacketBound.CLIENT);
+        PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(msg, PacketBound.CLIENT);
         if (packet == null) {
             return;
         }
-        sendThroughPipeline(msg, packet, packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
+        sendThroughPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
     }
 
     public void checkRelocation() {
-        if (!hasBeenRelocated && !resolving) {
+        if (!this.hasBeenRelocated && !this.resolving) {
             try {
-                resolving = true;
-                hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packetHandler.getChannel());
+                this.resolving = true;
+                this.hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packetHandler.getChannel());
             } catch (MissingHandlerException ex) {
-                hasBeenRelocated = false;
+                this.hasBeenRelocated = false;
             }
-            resolving = false;
+            this.resolving = false;
         }
     }
 }

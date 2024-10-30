@@ -1,6 +1,7 @@
 package me.alek.honey.netty;
 
 import io.netty.channel.Channel;
+import org.bukkit.Bukkit;
 
 public class UnsafeChannelCloser {
 

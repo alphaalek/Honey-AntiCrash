@@ -21,8 +21,6 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
         this.packet = packet;
         this.byteSize = buf.readableBytes();
 
-        Bukkit.broadcastMessage("Byte wrapped " + packet.getType());
-
         if (packet.getByteWrapped() == null) {
             int start = buf.readerIndex(), accumulated = 0, prevByte = 0, doubleSequences = 0;
             while (buf.isReadable()) {

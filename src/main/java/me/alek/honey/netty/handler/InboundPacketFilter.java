@@ -26,13 +26,16 @@ import java.util.*;
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
+    private static final String CONNECTION_EVENT_CLASS_NAME = "io.papermc.paper.network.ConnectionEvent";
+    private static final String COMPRESSION_THRESHOLD_SET_FIELD_NAME = "COMPRESSION_THRESHOLD_SET";
+
     public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
     public static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
 
     private static Object getPaperCompressionEnabledEvent() {
         try {
-            Class<?> eventClass = Reflection.getClass("io.papermc.paper.network.ConnectionEvent");
-            return Reflection.getField(eventClass, "COMPRESSION_THRESHOLD_SET").get(null);
+            Class<?> eventClass = Reflection.getClass(CONNECTION_EVENT_CLASS_NAME);
+            return Reflection.getField(eventClass, COMPRESSION_THRESHOLD_SET_FIELD_NAME).get(null);
         } catch (Exception ex) {
             return null;
         }
@@ -58,6 +61,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(ctx.channel());
         } catch (MissingHandlerException ex) {
+            ex.printStackTrace();
             ctx.close();
         }
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
@@ -65,6 +69,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(ctx.channel()).setProtocolState(PacketBound.SERVER, PacketState.HANDSHAKE);
         } catch (MissingHandlerException ex) {
+            ex.printStackTrace();
             ctx.close();
         }
     }
@@ -82,7 +87,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     }
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object event) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object event) {
         ctx.fireUserEventTriggered(event);
 
         if (event.equals(PAPER_COMPRESSION_ENABLED_EVENT)) {
@@ -92,7 +97,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
-        Bukkit.broadcastMessage("Filter received " + buf);
         if (!player.isStreamActive()) {
             return;
         }
@@ -105,8 +109,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         packetHandler.runDelayedTasks(PacketBound.SERVER);
 
         PacketContainer<? extends WrappedPacket<?>> prevMarked = MARK.get();
+        // check for too early dropped packet in the previous eventloop
+        // if the filter mark has a value, it means that a channel handler between
+        // the filter and decode preparation dropped this packet
         if (prevMarked != null && !PacketTypes.isUnknown(prevMarked.getType())) {
-            FloodValidations.TOO_EARLY_DROP_PIPELINE.doStream(
+            FloodValidations.PACKET_DROP_PIPELINE.doStream(
                     player,
                     (validation, context) -> validation.validate(player, 1, context),
                     prevMarked);
@@ -114,27 +121,29 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             prevMarked.releaseIfAutoReleasable();
         }
 
+        // initialize packet container
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
         PacketType type = packetHandler.getPacketType(serializer, false);
         PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, player, type, null);
-
-        packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
-
         MARK.set(packet);
 
+        // call listeners
+        packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
         HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, packet);
         packet.getEventloopStateTimings().stopTimings();
 
+        // we're done using this byte buffer, just release it so Netty can
+        // clear the allocated memory used
+        serializer.release();
+
         if (!packet.isCancelled()) {
-            Bukkit.broadcastMessage("Send " + buf);
             list.add(buf.readBytes(buf.readableBytes()));
         } else {
             list.add(Unpooled.buffer());
             packet.releaseIfAutoReleasable();
         }
 
-        serializer.release();
-
+        // start in-between timings - stopped in decode preparation handler
         packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
     }
 }

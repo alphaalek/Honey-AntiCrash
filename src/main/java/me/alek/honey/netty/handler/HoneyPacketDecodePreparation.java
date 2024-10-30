@@ -202,10 +202,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     public boolean read(ChannelHandlerContext ctx, Object o) {
-        Bukkit.broadcastMessage("Preparation received " + o);
         if (!player.isStreamActive()) {
             return false;
         }
+
         if (!(o instanceof ByteBuf)) {
             if (!packetHandler.handleNonPacket(o)) {
                 return false;
@@ -230,8 +230,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         } else {
             serializer.readVarInt(); // skip packet-id
         }
-
-        Bukkit.broadcastMessage("Link " + packet.getType());
 
         // stops in-between timings
         packet.getEventloopStateTimings().stopTimings();

@@ -30,7 +30,7 @@ import java.util.*;
 
 public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
-    public static final ValidationPipeline<ViolationValidation.IntViolation> TOO_EARLY_DROP_PIPELINE = ValidationPipeline.from(new FloodE());
+    public static final ValidationPipeline<ViolationValidation.IntViolation> PACKET_DROP_PIPELINE = ValidationPipeline.from(new FloodE());
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
 
     public FloodValidations(PacketLibrary library) {

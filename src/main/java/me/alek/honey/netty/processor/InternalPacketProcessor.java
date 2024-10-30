@@ -283,7 +283,6 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        Bukkit.broadcastMessage("Processor handle " + packet);
         PacketType type = null;
         if (bound.equals(PacketBound.SERVER) && earlyInitializedPacket != null) {
             type = earlyInitializedPacket.getType();
