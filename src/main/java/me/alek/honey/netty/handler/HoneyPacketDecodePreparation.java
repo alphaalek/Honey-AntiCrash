@@ -220,20 +220,23 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             return false;
         }
 
-        /*
-        if (WrappedPacketFactoryCollection.hasFactoryFor()) {
-
-        }
-        */
-
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
+        boolean fresh = false;
         if (packet == null) {
             // this packet is not sent by the client (because it was not received by the filter),
             // but instead invoked by some plugin (most likely ViaVersion)
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, false), null);
             InboundPacketFilter.MARK.set(packet);
-        } else {
+            fresh = true;
+        }
+        if (PacketTypes.isUnknown(packet.getType())) {
+            return false;
+        }
+
+        boolean hasWrappedPacket = WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE);
+        // check if we have to care about a wrapped initial byte packet for this type
+        if (!fresh && hasWrappedPacket) {
             serializer.readVarInt(); // skip packet-id
         }
 
@@ -241,8 +244,11 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         packet.getEventloopStateTimings().stopTimings();
 
         // handle final byte state
-        packet.initPreMinecraftDecode(serializer);
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
+        if (hasWrappedPacket) {
+            packet.initPreMinecraftDecode(serializer);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
+        }
+
         serializer.resetReaderIndex();
 
         List<Object> nonRecycledList = new ArrayList<>();

@@ -62,6 +62,14 @@ public class WrappedPacketFactoryCollection {
                 .set(type.getHoneyID(), WrappedPacketFactory.ByteWrappedPacketFactory.factoryFromSupplier(invoker));
     }
 
+    public static boolean hasObjectWrappedPacket(PacketType type) {
+        return OBJECT_WRAPPERS.has(type);
+    }
+
+    public static boolean hasByteWrappedPacket(PacketType type, PacketContainer.PipelineState state) {
+        return BYTE_WRAPPERS.containsKey(state) && BYTE_WRAPPERS.get(state).has(type);
+    }
+
     @SuppressWarnings("unchecked")
     public static <WP extends WrappedPacket<WP>> ObjectWrappedPacket<WP> initWrappedPacket(PacketType type, Object raw, PacketContainer<WP> container) {
         WrappedPacketFactory.ObjectWrappedPacketFactory<WP> factory;
