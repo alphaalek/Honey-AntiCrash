@@ -1,7 +1,6 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
@@ -14,6 +13,7 @@ import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
@@ -111,7 +111,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLoggerService().isDebug()) {
-                    Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                    Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
@@ -201,24 +201,30 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         InboundPacketFilter.MARK.remove();
     }
 
-    public boolean read(ChannelHandlerContext ctx, Object o) {
+    public boolean read(ChannelHandlerContext ctx, Object msg) {
         if (!player.isStreamActive()) {
             return false;
         }
 
-        if (!(o instanceof ByteBuf)) {
-            if (!packetHandler.handleNonPacket(o)) {
+        if (!(msg instanceof ByteBuf)) {
+            if (!packetHandler.handleNonPacket(msg)) {
                 return false;
             }
-            ctx.fireChannelRead(ReferenceCountUtil.retain(o));
+            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
             return false;
         }
 
-        ByteBuf buf = (ByteBuf) o;
+        ByteBuf buf = (ByteBuf) msg;
         if (!buf.isReadable()) {
             ctx.fireChannelRead(buf);
             return false;
         }
+
+        /*
+        if (WrappedPacketFactoryCollection.hasFactoryFor()) {
+
+        }
+        */
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();

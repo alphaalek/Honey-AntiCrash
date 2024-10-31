@@ -11,8 +11,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.WrappedEnumProtocol;
-import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -108,8 +107,8 @@ public class HoneyPacketHandler {
     }
 
     private void updateProtocolAttributeKey(PacketBound bound) {
-        Attribute<Object> protocolAttribute = channel.attr(WrappedEnumProtocol.getProtocolAttributeKey(channel, bound));
-        protocolAttribute.set(WrappedEnumProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
+        Attribute<Object> protocolAttribute = channel.attr(LegacyProtocol.getProtocolAttributeKey(channel, bound));
+        protocolAttribute.set(LegacyProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
     }
 
     public void setProtocolState(PacketBound bound, PacketState state) {

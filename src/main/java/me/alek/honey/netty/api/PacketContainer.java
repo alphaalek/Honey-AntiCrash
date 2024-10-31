@@ -47,7 +47,9 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     ObjectWrappedPacket<WP> getObjectWrapped();
 
-    ByteWrappedPacket<WP> getByteWrapped();
+    ByteWrappedPacket<WP> getInitialByteWrapped();
+
+    ByteWrappedPacket<WP> getFinalByteWrapped();
 
     WP getAnyWrapped();
 

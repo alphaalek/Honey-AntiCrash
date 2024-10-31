@@ -6,11 +6,12 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.processor.Processor;
 import me.alek.honey.netty.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
 import me.alek.honey.util.ClientInfo;
+import org.bukkit.Bukkit;
 
 public class HandshakeProcessor extends Processor<WrappedHandshakeInSetProtocol> {
 
     public HandshakeProcessor() {
-        addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.FINAL_BYTE, this::handleHandshake, (p, t) -> p.channel.close());
+        addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, this::handleHandshake, (p, t) -> p.channel.close());
     }
 
     public void handleHandshake(HoneyPlayer player, PacketContainer<WrappedHandshakeInSetProtocol> packet) {

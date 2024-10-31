@@ -3,7 +3,7 @@ package me.alek.honey.netty.handler;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.codec.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -12,7 +12,6 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 public class ProtocolSwapHandler {
 
@@ -45,7 +44,7 @@ public class ProtocolSwapHandler {
         } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                WrappedEnumProtocol protocol = packet.getStructure().getModifier(NMS.getEnumProtocolClass(), Converters.getEnumProtocolConverter(), PacketBound.SERVER)
+                LegacyProtocol protocol = packet.getStructure().getModifier(NMS.getEnumProtocolClass(), Converters.getEnumProtocolConverter(), PacketBound.SERVER)
                         .readField(0);
                 packetStateOrdinal = ((Enum<?>)protocol.getHandle()).ordinal();
             } else {

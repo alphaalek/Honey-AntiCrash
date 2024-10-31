@@ -16,7 +16,7 @@ import me.alek.honey.util.reflection.Reflection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
+public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
 
     private static final AtomicReference<MethodInvoker<Object>> createPacketCachedInvoker = new AtomicReference<>();
     private static final AtomicReference<MethodInvoker<Object>> getPacketIdCachedInvoker = new AtomicReference<>();
@@ -39,14 +39,14 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
         return NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
     }
 
-    public static WrappedEnumProtocol getEnumProtocolDelegate(PacketBound bound, PacketState state) {
+    public static LegacyProtocol getEnumProtocolDelegate(PacketBound bound, PacketState state) {
         Object enumProtocol = getEnumProtocol(state);
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
-            return new WrappedEnumProtocol(enumProtocol, bound);
+            return new LegacyProtocol(enumProtocol, bound);
         }
 
-        return new WrappedEnumProtocol(getProtocolInfo(enumProtocol, bound), bound);
+        return new LegacyProtocol(getProtocolInfo(enumProtocol, bound), bound);
     }
 
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
@@ -61,7 +61,7 @@ public class WrappedEnumProtocol extends WrappedObject<WrappedEnumProtocol> {
     private final Object classToIdMap;
 
     @SuppressWarnings("unchecked")
-    public WrappedEnumProtocol(Object handle, PacketBound bound) {
+    public LegacyProtocol(Object handle, PacketBound bound) {
         super(handle);
         this.bound = bound;
 

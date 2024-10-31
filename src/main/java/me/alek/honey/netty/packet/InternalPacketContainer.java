@@ -28,7 +28,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PipelineState pipelineState;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
-    private ByteWrappedPacket<WP> byteWrapped;
+    private ByteWrappedPacket<WP> initialByteWrapped;
+    private ByteWrappedPacket<WP> finalByteWrapped;
     private final Callback postAction;
     private final HoneyPlayer player;
     private final long timeCreated = System.currentTimeMillis();
@@ -53,11 +54,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
             this.postAction = wrapped;
         }
 
-        if (serializer != null && createdState != PipelineState.OBJECT) {
-            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
-            this.pipelineState = createdState;
-        } else {
-            this.byteWrapped = null;
+        this.pipelineState = createdState;
+        if (serializer != null) {
+            if (createdState == PipelineState.INITIAL_BYTE) {
+                this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+            } else if (createdState == PipelineState.FINAL_BYTE) {
+                this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+            }
         }
     }
 
@@ -81,7 +84,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public void initPreMinecraftDecode(PacketDataSerializer serializer) {
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
-            this.byteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+            this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
         }
     }
 
@@ -181,8 +184,11 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public void releaseIfAutoReleasable() {
-        if (this.byteWrapped instanceof AutoReleasable) {
-            ((AutoReleasable)this.byteWrapped).release();
+        if (this.initialByteWrapped instanceof AutoReleasable) {
+            ((AutoReleasable)this.initialByteWrapped).release();
+        }
+        if (this.finalByteWrapped instanceof AutoReleasable) {
+            ((AutoReleasable)this.finalByteWrapped).release();
         }
         if (this.objectWrapped instanceof AutoReleasable) {
             ((AutoReleasable)this.objectWrapped).release();
@@ -200,19 +206,28 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public ByteWrappedPacket<WP> getByteWrapped() {
-        return this.byteWrapped;
+    public ByteWrappedPacket<WP> getInitialByteWrapped() {
+        return this.initialByteWrapped;
+    }
+
+    @Override
+    public ByteWrappedPacket<WP> getFinalByteWrapped() {
+        return this.finalByteWrapped;
     }
 
     @Override
     public WP getAnyWrapped() {
-        if (this.byteWrapped != null && !this.byteWrapped.getClass().equals(ByteWrappedPacket.class)) {
-            return this.byteWrapped.get();
+        if (this.initialByteWrapped != null && !this.initialByteWrapped.getClass().equals(ByteWrappedPacket.class)) {
+            return this.initialByteWrapped.get();
+        } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteWrappedPacket.class)) {
+            return this.finalByteWrapped.get();
         } else if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
             return this.objectWrapped.get();
         } else {
-            if (this.byteWrapped != null) {
-                return this.byteWrapped.get();
+            if (this.initialByteWrapped != null) {
+                return this.initialByteWrapped.get();
+            } else if (this.finalByteWrapped != null) {
+                return this.finalByteWrapped.get();
             } else if (this.objectWrapped != null) {
                 return this.objectWrapped.get();
             } else {

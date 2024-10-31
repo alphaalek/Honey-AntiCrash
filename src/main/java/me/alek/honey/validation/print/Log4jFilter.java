@@ -23,7 +23,9 @@ public class Log4jFilter extends AbstractLifeCycle implements Filter {
         if (throwable.getCause() != null) {
             length += getLength(throwable.getCause());
         }
-        length += throwable.getMessage().length();
+        if (throwable.getMessage() != null) {
+            length += throwable.getMessage().length();
+        }
 
         return length;
     }

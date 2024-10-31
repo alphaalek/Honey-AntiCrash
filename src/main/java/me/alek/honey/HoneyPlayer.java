@@ -1,12 +1,9 @@
 package me.alek.honey;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.services.NotificationService;
-import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -14,6 +11,7 @@ import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.*;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.print.SuppressedException;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class HoneyPlayer implements Identifiable {
 
@@ -47,7 +44,6 @@ public class HoneyPlayer implements Identifiable {
     public Player bukkit;
     public UUID uuid;
     public String name;
-
 
     public boolean online = false;
     public boolean punished;

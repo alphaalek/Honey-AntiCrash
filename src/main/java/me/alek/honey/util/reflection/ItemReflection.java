@@ -21,8 +21,8 @@ public class ItemReflection {
     private static final ConstructorInvoker<?> itemStackConstructor;
 
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
+    private static final MethodInvoker<?> craftMirrorInvoker = Reflection.getMethod(craftItemStackClass, "asCraftMirror", itemStackClass);
     private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
-    private static final MethodInvoker<ItemStack> bukkitMirrorInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitMirror", itemStackClass);
     private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
@@ -80,7 +80,7 @@ public class ItemReflection {
         if (itemStack != null) {
             try {
                 if (itemStackClass.isInstance(itemStack)) {
-                    return (ItemStack) bukkitCopyInvoker.invokeWithException(null, itemStack);
+                    return bukkitCopyInvoker.invokeWithException(null, itemStack);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -90,18 +90,18 @@ public class ItemReflection {
         return new ItemStack(Material.AIR);
     }
 
-    public static ItemStack asBukkitMirror(Object itemStack) {
+    public static Object asCraftMirror(Object itemStack) {
         if (itemStack != null) {
             try {
                 if (itemStackClass.isInstance(itemStack)) {
-                    return (ItemStack) bukkitMirrorInvoker.invokeWithException(null, itemStack);
+                    return craftMirrorInvoker.invokeWithException(null, itemStack);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
 
-        return new ItemStack(Material.AIR);
+        return null;
     }
 
     public static Object asNMSCopy(ItemStack item) {

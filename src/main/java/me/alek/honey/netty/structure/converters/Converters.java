@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
@@ -146,20 +146,6 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, ItemStack> getMirrorItemStackConverter() {
-        return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
-            @Override
-            public ItemStack convertDelegate(Object delegate, Object... params) {
-                return ItemReflection.asBukkitMirror(delegate);
-            }
-
-            @Override
-            public Object convertDeclaring(ItemStack itemStack) {
-                return ItemReflection.getHandleItem(itemStack);
-            }
-        });
-    }
-
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
         return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
     }
@@ -191,8 +177,8 @@ public class Converters {
         };
     }
 
-    public static JavaConverter<Enum<?>, WrappedEnumProtocol> getEnumProtocolConverter() {
-        return getConverter(WrappedEnumProtocol.class, (clazz) -> new SimpleWrapperConverter<>(WrappedEnumProtocol.class, PacketBound.class));
+    public static JavaConverter<Enum<?>, LegacyProtocol> getEnumProtocolConverter() {
+        return getConverter(LegacyProtocol.class, (clazz) -> new SimpleWrapperConverter<>(LegacyProtocol.class, PacketBound.class));
     }
 
     public static JavaConverter<Object, WrappedSuggestions> getSuggestionsConverter() {

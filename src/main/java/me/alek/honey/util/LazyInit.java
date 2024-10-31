@@ -1,7 +1,7 @@
 package me.alek.honey.util;
 
 import me.alek.honey.netty.codec.CodecFactory;
-import me.alek.honey.netty.codec.WrappedEnumProtocol;
+import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -52,7 +52,7 @@ public class LazyInit<T> {
                     i++;
                 }
             } else {
-                WrappedEnumProtocol enumProtocol = WrappedEnumProtocol.getEnumProtocolDelegate(type.getBound(), type.getState());
+                LegacyProtocol enumProtocol = LegacyProtocol.getEnumProtocolDelegate(type.getBound(), type.getState());
 
                 return enumProtocol.getPacketId(type.getNmsClass());
             }

@@ -49,7 +49,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getByteWrapped().getByteSize()).build();
+                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getByteSize()).build();
             }
 
             return ValidationServiceContext.PASS;
@@ -83,7 +83,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getByteWrapped().getByteSize()).build();
+                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getByteSize()).build();
             }
 
             return ValidationServiceContext.PASS;
@@ -117,7 +117,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getByteWrapped().getAccumulatedByteSize()).build();
+                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getAccumulatedByteSize()).build();
             }
 
             return ValidationServiceContext.PASS;
@@ -151,7 +151,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getByteWrapped().getAccumulatedByteSize()).build();
+                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getAccumulatedByteSize()).build();
             }
 
             return ValidationServiceContext.PASS;
@@ -217,8 +217,8 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                int size = packet.getContainer().getByteWrapped().getByteSize();
-                ByteBuf buf = packet.getContainer().getByteWrapped().getBuf().getBuf();
+                int size = packet.getContainer().getInitialByteWrapped().getByteSize();
+                ByteBuf buf = packet.getContainer().getInitialByteWrapped().getBuf().getBuf();
 
                 if (size > getSetting().threshold) {
                     long diff = System.currentTimeMillis() -
@@ -301,7 +301,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
-                    && packet.getContainer().getByteWrapped().getByteSize() > getSetting().threshold) {
+                    && packet.getContainer().getInitialByteWrapped().getByteSize() > getSetting().threshold) {
                 long diff = System.currentTimeMillis() -
                         (lastFlag != 0 ? lastFlag : System.currentTimeMillis() - getSetting().min + 1);
 

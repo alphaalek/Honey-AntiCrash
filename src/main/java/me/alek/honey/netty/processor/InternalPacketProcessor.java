@@ -88,7 +88,8 @@ public class InternalPacketProcessor implements PacketProcessor {
         public void addListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, ListenerPriority priority) {
             StateBus bus = getStateBus(state);
             synchronized (bus.priorityMap) {
-                bus.priorityMap.computeIfAbsent(priority, __ -> new ArrayList<>()).add((PacketListenerAdapter<WP>) listener);
+                bus.priorityMap.computeIfAbsent(priority, __ -> new ArrayList<>())
+                        .add((PacketListenerAdapter<WP>) listener);
                 addToPipeline(state, priority);
             }
         }

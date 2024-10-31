@@ -313,7 +313,7 @@ public class ReflectStructure<T, C> {
         return withSpecificType(clazz, converter, false);
     }
 
-    public <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter, boolean withCache) {
+    public synchronized <R, D, V> ReflectStructure<R, D> withSpecificType(Class<V> clazz, JavaConverter<R, D> converter, boolean withCache) {
         if (withCache) {
             return (ReflectStructure<R, D>) SUB_TYPE_CACHE.computeIfAbsent(clazz, d -> withSpecificType(clazz, converter, false));
         } else {

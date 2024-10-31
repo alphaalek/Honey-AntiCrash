@@ -137,8 +137,8 @@ public class CodecFactory {
     public static EmulatorCodec.In<Object, PacketDataSerializer> createInboundCodec(PacketState state) {
         return new EmulatorCodec.In<Object, PacketDataSerializer>() {
 
-            private final WrappedEnumProtocol enumProtocol = NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)
-                    ? WrappedEnumProtocol.getEnumProtocolDelegate(PacketBound.SERVER, state)
+            private final LegacyProtocol enumProtocol = NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)
+                    ? LegacyProtocol.getEnumProtocolDelegate(PacketBound.SERVER, state)
                     : null;
 
             private final EmulatorCodec<Object, ByteBuf> wrappedStreamCodec = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)
