@@ -12,7 +12,6 @@ import me.alek.honey.util.*;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
-import me.alek.honey.validation.print.SuppressedException;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -58,7 +57,6 @@ public class HoneyPlayer implements Identifiable {
     public final Callback leaveCallback = new Callback();
     private final TickCache<Boolean> bypassEverything = new TickCache<>();
     private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();
-    public final Map<String, SuppressedException> suppressedExceptions = new HashMap<>();
 
     public EnhancedInitialIterator<PostponeValidation> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(

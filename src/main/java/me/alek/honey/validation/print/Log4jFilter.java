@@ -41,11 +41,11 @@ public class Log4jFilter extends AbstractLifeCycle implements Filter {
     }
 
     public Result filter(String msg) {
-        return PrintValidationBridge.handle(null, () -> getLength(msg));
+        return PrintValidationBridge.handle(() -> getLength(msg));
     }
 
     public Result filter(String msg, Throwable thrown) {
-        return PrintValidationBridge.handle(thrown, () -> getLength(msg) + getLength(thrown));
+        return PrintValidationBridge.handle(() -> getLength(msg) + getLength(thrown));
     }
 
     @Override

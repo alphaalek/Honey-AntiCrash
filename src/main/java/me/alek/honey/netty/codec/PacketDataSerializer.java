@@ -72,7 +72,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ItemStack readBukkitItemStack() {
-        return Converters.getCopyItemStackConverter().convertDelegate(readItemStack());
+        return Converters.getMirrorItemStackConverter().convertDelegate(readItemStack());
     }
 
     public Object readItemStackWithFilter(boolean withMeta, Material... required) {
@@ -121,7 +121,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ItemStack readBukkitItemStackWithFilter(boolean withMeta, Material... required) {
-        return Converters.getCopyItemStackConverter().convertDelegate(readItemStackWithFilter(withMeta, required));
+        return Converters.getMirrorItemStackConverter().convertDelegate(readItemStackWithFilter(withMeta, required));
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

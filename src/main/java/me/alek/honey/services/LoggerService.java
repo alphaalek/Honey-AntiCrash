@@ -209,7 +209,7 @@ public class LoggerService {
         if (comparingTime > packetContainer.getTimeCreated()) {
             message.append("(" + (comparingTime - packetContainer.getTimeCreated()) + "ms ago): ");
         }
-        message.append(playerName + " sent " + packetContainer.getType() + " " + packetContainer.getObjectWrapped().getHandle());
+        message.append(playerName + " sent " + packetContainer.getType());
 
         if (detailed && !PacketTypes.isUnknown(packetContainer.getType())) {
             message.append(": " + filterTooMuchData(formatPacketEntries(packetContainer)));

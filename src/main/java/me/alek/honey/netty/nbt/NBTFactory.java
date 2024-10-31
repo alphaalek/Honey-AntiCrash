@@ -1,6 +1,7 @@
 package me.alek.honey.netty.nbt;
 
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
@@ -14,6 +15,10 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 
 public class NBTFactory {
+
+    public static NBTBase<?, ?> read(PacketDataSerializer serializer) {
+        return null;
+    }
 
     public static NBTCompound fromItem(ItemStack item, boolean createIfNone, boolean forceCreation) {
         if (item == null || item.getType() == Material.AIR) {
@@ -46,6 +51,10 @@ public class NBTFactory {
         }
 
         return (NBTCompound) base;
+    }
+
+    public static <K, V> NBTBase<K, V> fromDelegate(Object handle, boolean forceCreation) {
+        return fromDelegate(handle, NBTRoot.createNewDefault(), null, forceCreation);
     }
 
     public static <K, V> NBTBase<K, V> fromDelegate(Object handle, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {

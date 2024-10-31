@@ -69,6 +69,13 @@ import java.util.logging.Level;
 
 public class HoneyPlugin implements HoneyAPI {
 
+    public static final String HONEY_CONNECTION_CHANNEL_NAME = "honey-connection";
+    public static final String HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME = "honey-channel-init";
+    public static final String HONEY_DEBUGGER_CHANNEL_NAME = "honey-debugger";
+    public static final String HONEY_DECODER_CHANNEL_NAME = "honey-decoder";
+    public static final String HONEY_ENCODER_CHANNEL_NAME = "honey-encoder";
+    public static final String HONEY_FILTER_CHANNEL_NAME = "honey-filter";
+
     private static HoneyPlugin INSTANCE;
 
     private ViolationManagement violationService;
@@ -78,12 +85,11 @@ public class HoneyPlugin implements HoneyAPI {
     private CommandManager commandManager;
     private SQLManager sqlManager;
     private Configuration configuration;
-    private ExecutionQueueProxy serverThreadTracker;
+    private ExecutionQueueProxy executionQueueProxy;
     private TempIntervalTrackerManager packetNettyTracker;
     private KeyedHandleTracker<Double, HoneyValidation<?>> validationHandleTracker;
     private CraftScheduledTPSTracker TPSTracker;
     private MonitorManager monitorManager;
-    private boolean isLoaded;
     private boolean isRunning;
     private PacketLibrary packetLibrary;
     private Thread serverThread;
@@ -109,7 +115,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
         if (new LibraryVersion(plugin.getDescription().getVersion()).isOlderThan(new LibraryVersion(this.latestVersion))) {
-            isUsingOldVersion = true;
+            this.isUsingOldVersion = true;
             try {
                 PluginDescriptionFile descriptionFile = plugin.getDescription();
                 FieldAccessor<String> versionField = Reflection.getField(descriptionFile.getClass(), "version", String.class);
@@ -120,7 +126,7 @@ public class HoneyPlugin implements HoneyAPI {
                 ex.printStackTrace();
             }
         } else {
-            isUsingOldVersion = false;
+            this.isUsingOldVersion = false;
         }
     }
 
@@ -173,7 +179,7 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     private HttpsURLConnection getConnection() {
-        plugin.saveDefaultConfig();
+        this.plugin.saveDefaultConfig();
 
         if (getLicense().isEmpty()) {
             throw new InvalidLicenseException();
@@ -211,30 +217,30 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public void onEnable() {
-        // check compatability and conflicts of runtime load or minecraft version
+        // check compatibility and conflicts of runtime load or minecraft version
         String conflict = null;
-        if (isLoaded || isRunning)
+        if (this.isRunning) {
             conflict = Lang.get("conflict.runtime.load");
-        else if (NetProtocol.getProtocol() == NetProtocol.UNKNOWN)
+        } else if (NetProtocol.getProtocol() == NetProtocol.UNKNOWN) {
             conflict = Lang.get("conflict.unsupported.version");
+        }
 
         if (conflict != null) {
-            Bukkit.getPluginManager().disablePlugin(plugin);
+            Bukkit.getPluginManager().disablePlugin(this.plugin);
             throw new RuntimeException(conflict);
         }
 
-        isRunning = true;
-        isLoaded = true;
-        serverThread = Thread.currentThread();
+        this.isRunning = true;
+        this.serverThread = Thread.currentThread();
 
         // setup configuration and check if it is misconfigured
-        plugin.saveDefaultConfig();
-        configuration = new DedicatedConfiguration();
+        this.plugin.saveDefaultConfig();
+        this.configuration = new DedicatedConfiguration();
 
-        if (configuration.isMisconfigured()) {
-            if (plugin.getServer().getPluginManager().isPluginEnabled(plugin)) {
+        if (this.configuration.isMisconfigured()) {
+            if (this.plugin.getServer().getPluginManager().isPluginEnabled(this.plugin)) {
                 resetConfiguration();
-                plugin.getServer().getPluginManager().disablePlugin(plugin);
+                this.plugin.getServer().getPluginManager().disablePlugin(this.plugin);
 
                 throw new RuntimeException(Lang.get("conflict.misconfiguration"));
             }
@@ -244,33 +250,33 @@ public class HoneyPlugin implements HoneyAPI {
         // setup packet library
         setupPacketLibrary();
 
-        if (!Bukkit.getServer().getPluginManager().isPluginEnabled(plugin)) {
-            plugin.getLogger().severe(Lang.get("conflict.packet.library.setup"));
+        if (!Bukkit.getServer().getPluginManager().isPluginEnabled(this.plugin)) {
+            this.plugin.getLogger().severe(Lang.get("conflict.packet.library.setup"));
             return;
         }
 
         // setup tps tracker
         if (!SparkTPSProvider.SparkValidator.VALIDATOR.find().get()) {
-            TPSTracker = new CraftScheduledTPSTracker();
+            this.TPSTracker = new CraftScheduledTPSTracker();
         }
 
         // setup monitoring
-        monitorManager = new MonitorManager();
+        this.monitorManager = new MonitorManager();
 
         // setup services
-        notificationService = new NotificationService();
-        loggerService = new LoggerService();
-        violationService = new ViolationManagement();
-        confiscationService = new ConfiscationService();
+        this.notificationService = new NotificationService();
+        this.loggerService = new LoggerService();
+        this.violationService = new ViolationManagement();
+        this.confiscationService = new ConfiscationService();
 
         // setup sql handler
-        sqlManager = new SQLManager(new RepositoryCollection());
+        this.sqlManager = new SQLManager(new RepositoryCollection());
 
         // setup tracking
-        serverThreadTracker = new ExecutionQueueProxy();
-        serverThreadTracker.inject();
-        packetNettyTracker = new TempIntervalTrackerManager();
-        validationHandleTracker = new RegistryHandleTracker<>();
+        this.executionQueueProxy = new ExecutionQueueProxy();
+        this.executionQueueProxy.inject();
+        this.packetNettyTracker = new TempIntervalTrackerManager();
+        this.validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup checks
         for (BaseValidationContainer validation : ValidationContainerRegistry.initValidations(packetLibrary)) {
@@ -281,32 +287,43 @@ public class HoneyPlugin implements HoneyAPI {
         PrintValidationBridge.inject();
 
         // setup commands
-        commandManager = new CommandManager(plugin);
-        ((JavaPlugin)plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
+        this.commandManager = new CommandManager(plugin);
+        ((JavaPlugin)this.plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
 
         // setup metrics
-        new Metrics(plugin, 19028);
+        new Metrics(this.plugin, 19028);
 
         // setup listeners
-        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new TeleportListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new DispenserListener(), plugin);
-        TabCompleteListener tabCompleteListener = new TabCompleteListener();
-        Bukkit.getPluginManager().registerEvents(tabCompleteListener, plugin);
-        packetLibrary.addListeners(tabCompleteListener, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
+        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this.plugin);
+        Bukkit.getPluginManager().registerEvents(new TeleportListener(), this.plugin);
+        Bukkit.getPluginManager().registerEvents(new DispenserListener(), this.plugin);
 
-        getLoggerService().getLogger().info(Lang.getFormatted("loaded", plugin.getDescription().getVersion()));
+        TabCompleteListener tabCompleteListener = new TabCompleteListener();
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
+            Bukkit.getPluginManager().registerEvents(tabCompleteListener, this.plugin);
+        } else {
+            this.packetLibrary.addListeners(tabCompleteListener, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
+        }
+
+        getLoggerService().getLogger().info(Lang.getFormatted("loaded", this.plugin.getDescription().getVersion()));
     }
 
     private void setupPacketLibrary() {
-        if (packetLibrary == null) {
-            packetLibrary = PacketLibrary.set(new PacketLibrarySettings(plugin, "honey-filter", "honey-connection", "honey-channel-init", "honey-decode-prepare", "honey-encode-prepare", "honey-debugger"));
+        if (this.packetLibrary == null) {
+            this.packetLibrary = PacketLibrary.set(
+                    new PacketLibrarySettings(this.plugin,
+                            HONEY_FILTER_CHANNEL_NAME,
+                            HONEY_CONNECTION_CHANNEL_NAME,
+                            HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME,
+                            HONEY_DECODER_CHANNEL_NAME,
+                            HONEY_ENCODER_CHANNEL_NAME,
+                            HONEY_DEBUGGER_CHANNEL_NAME));
         }
     }
 
     public void onDisable() {
-        if (isRunning) {
-            isRunning = false;
+        if (this.isRunning) {
+            this.isRunning = false;
 
             getPacketLibrary().disable();
 
@@ -324,7 +341,7 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public void resetConfiguration() {
-        File oldFile = new File(plugin.getDataFolder(), "old-config.yml");
+        File oldFile = new File(this.plugin.getDataFolder(), "old-config.yml");
         if (oldFile.exists()) {
             try {
                 Files.deleteIfExists(oldFile.toPath());
@@ -332,16 +349,16 @@ public class HoneyPlugin implements HoneyAPI {
                 ex.printStackTrace();
             }
         }
-        File file = new File(plugin.getDataFolder(), "config.yml");
+        File file = new File(this.plugin.getDataFolder(), "config.yml");
 
         if (file.exists()) {
-            file.renameTo(new File(plugin.getDataFolder(), "old-config.yml"));
+            file.renameTo(new File(this.plugin.getDataFolder(), "old-config.yml"));
         }
-        plugin.saveDefaultConfig();
+        this.plugin.saveDefaultConfig();
     }
 
     public void reload() {
-        configuration.reload();
+        this.configuration.reload();
         Lang.load();
 
         for (BaseValidationContainer validation : ValidationContainerRegistry.getValidations()) {
@@ -349,31 +366,31 @@ public class HoneyPlugin implements HoneyAPI {
         }
         ItemAnalysis.reload();
 
-        violationService.reload();
-        loggerService.reload();
-        notificationService.reload();
-        confiscationService.reload();
+        this.violationService.reload();
+        this.loggerService.reload();
+        this.notificationService.reload();
+        this.confiscationService.reload();
 
-        sqlManager.reload();
-        if (sqlManager.isEnabled()) {
+        this.sqlManager.reload();
+        if (this.sqlManager.isEnabled()) {
             for (HoneyPlayer player : HoneyPlayer.getAllPlayers()) {
                 try {
-                    sqlManager.preparePlayer(player);
+                    this.sqlManager.preparePlayer(player);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         }
 
-        validationHandleTracker.clear();
+        this.validationHandleTracker.clear();
 
-        monitorManager.reload();
+        this.monitorManager.reload();
     }
 
     @NoSessionEncryption
     @Override
     public String getLicense() {
-        return plugin.getConfig().getString("license", "");
+        return this.plugin.getConfig().getString("license", "");
     }
 
     public static HoneyAPI get() {
@@ -381,82 +398,78 @@ public class HoneyPlugin implements HoneyAPI {
     }
 
     public Plugin getPlugin() {
-        return plugin;
+        return this.plugin;
     }
 
     public PacketLibrary getPacketLibrary() {
-        if (packetLibrary == null) {
-            packetLibrary = PacketLibrary.get();
+        if (this.packetLibrary == null) {
+            this.packetLibrary = PacketLibrary.get();
         }
 
-        return packetLibrary;
+        return this.packetLibrary;
     }
 
     public ViolationManagement getViolationService() {
-        return violationService;
+        return this.violationService;
     }
 
     public NotificationService getNotificationService() {
-        return notificationService;
+        return this.notificationService;
     }
 
     public ConfiscationService getConfiscationService() {
-        return confiscationService;
+        return this.confiscationService;
     }
 
     public SQLManager getSQLManager() {
-        return sqlManager;
+        return this.sqlManager;
     }
 
     public LoggerService getLoggerService() {
-        return loggerService;
+        return this.loggerService;
     }
 
     public TempIntervalTrackerManager getNettyPacketTracker() {
-        return packetNettyTracker;
+        return this.packetNettyTracker;
     }
 
     public ExecutionQueueProxy getExecutionQueueProxy() {
-        return serverThreadTracker;
+        return this.executionQueueProxy;
     }
 
     public KeyedHandleTracker<Double, HoneyValidation<?>> getValidationHandleTracker() {
-        return validationHandleTracker;
+        return this.validationHandleTracker;
     }
 
     public CraftScheduledTPSTracker getTPSTracker() {
-        return TPSTracker;
+        return this.TPSTracker;
     }
 
     public MonitorManager getMonitorManager() {
-        return monitorManager;
+        return this.monitorManager;
     }
 
     public Configuration getConfiguration() {
-        return configuration;
+        return this.configuration;
     }
 
     public CommandManager getCommandManager() {
-        return commandManager;
+        return this.commandManager;
     }
 
     public String getLatestVersion() {
-        return latestVersion;
+        return this.latestVersion;
     }
 
     public boolean isUsingOldVersion(){
-        return isUsingOldVersion;
+        return this.isUsingOldVersion;
     }
 
     public boolean isRunning() {
-        return isRunning;
-    }
-
-    public boolean isLoaded() {
-        return isLoaded;
+        return this.isRunning;
     }
 
     public Thread getServerThread() {
-        return serverThread;
+        return this.serverThread;
     }
 }

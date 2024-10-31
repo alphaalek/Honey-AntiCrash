@@ -36,7 +36,7 @@ public class PrintValidationBridge {
 
     private static final ThreadLocal<Boolean> handling = new ThreadLocal<>();
 
-    public static synchronized org.apache.logging.log4j.core.Filter.Result handle(Throwable thrown, Supplier<Integer> length) {
+    public static synchronized Filter.Result handle(Supplier<Integer> length) {
         if (handling.get() != null) {
             return Filter.Result.NEUTRAL;
         }
@@ -61,52 +61,15 @@ public class PrintValidationBridge {
                 (validation, context) -> validation.validate(player, calculated, context),
                 cancellable);
 
-        Filter.Result result = Filter.Result.NEUTRAL;
+        Filter.Result result;
         if (cancellable.isCancelled()) {
-            if (thrown != null) {
-                try {
-                    SuppressedException ex = getSuppressedException(packet.getPlayer(), thrown);
-                    if (ex == null) {
-                        addExceptionToSuppressCache(packet.getPlayer(), thrown);
-                    } else {
-                        ex.suppress(packet, thrown);
-                        result = Filter.Result.DENY;
-                    }
-                } catch (Exception ignored) {
-                    // ignored
-                }
-            }
+            result = Filter.Result.DENY;
+        } else {
+            result = Filter.Result.NEUTRAL;
         }
 
         handling.remove();
 
         return result;
-    }
-
-    private static String stackTraceToUnit(Throwable thrown) {
-        StringBuilder builder = new StringBuilder();
-        Arrays.stream(thrown.getStackTrace())
-                .map(StackTraceElement::toString)
-                .forEach(builder::append);
-
-        return builder.toString();
-    }
-
-    @Nullable
-    public static SuppressedException getSuppressedException(HoneyPlayer player, Throwable thrown) throws ExecutionException {
-        String key = stackTraceToUnit(thrown);
-        SuppressedException ex = player.suppressedExceptions.get(key);
-
-        // check if this cache has been expired
-        if (ex.getInitialThrownTime().plusSeconds(60).isAfter(Instant.now())) {
-            player.suppressedExceptions.remove(key);
-            return null;
-        }
-
-        return ex;
-    }
-
-    public static void addExceptionToSuppressCache(HoneyPlayer player, Throwable thrown) {
-        player.suppressedExceptions.put(stackTraceToUnit(thrown), new SuppressedException(thrown));
     }
 }

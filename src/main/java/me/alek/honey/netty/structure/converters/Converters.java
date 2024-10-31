@@ -146,6 +146,20 @@ public class Converters {
         });
     }
 
+    public static JavaConverter<Object, ItemStack> getMirrorItemStackConverter() {
+        return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
+            @Override
+            public ItemStack convertDelegate(Object delegate, Object... params) {
+                return ItemReflection.asCraftMirror(delegate);
+            }
+
+            @Override
+            public Object convertDeclaring(ItemStack itemStack) {
+                return ItemReflection.getHandleItem(itemStack);
+            }
+        });
+    }
+
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
         return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
     }

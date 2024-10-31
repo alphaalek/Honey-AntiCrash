@@ -21,8 +21,9 @@ public class ItemReflection {
     private static final ConstructorInvoker<?> itemStackConstructor;
 
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
-    private static final MethodInvoker<?> craftMirrorInvoker = Reflection.getMethod(craftItemStackClass, "asCraftMirror", itemStackClass);
+    private static final MethodInvoker<ItemStack> craftMirrorInvoker = Reflection.getMethod(craftItemStackClass, "asCraftMirror", itemStackClass);
     private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
+    private static final MethodInvoker<ItemMeta> createItemMetaInvoker = Reflection.getMethod(craftItemStackClass, "getItemMeta", itemStackClass);
     private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
@@ -90,7 +91,7 @@ public class ItemReflection {
         return new ItemStack(Material.AIR);
     }
 
-    public static Object asCraftMirror(Object itemStack) {
+    public static ItemStack asCraftMirror(Object itemStack) {
         if (itemStack != null) {
             try {
                 if (itemStackClass.isInstance(itemStack)) {
@@ -101,7 +102,7 @@ public class ItemReflection {
             }
         }
 
-        return null;
+        return new ItemStack(Material.AIR);
     }
 
     public static Object asNMSCopy(ItemStack item) {
@@ -132,6 +133,10 @@ public class ItemReflection {
         }
 
         return ItemReflection.asNMSCopy(item);
+    }
+
+    public static Material getMaterialFromId(int id) {
+        return getMaterialFromItem(getItemFromId(id));
     }
 
     public static Object getItemFromId(int id) {
@@ -171,5 +176,9 @@ public class ItemReflection {
     public static void setItemMeta(Object item) {
         ItemMeta meta = craftItemGetMeta.invoke(null, item);
         craftItemSetMeta.invoke(null, item, meta);
+    }
+
+    public static ItemMeta createItemMeta(Object item) {
+        return createItemMetaInvoker.invoke(null, item);
     }
 }
